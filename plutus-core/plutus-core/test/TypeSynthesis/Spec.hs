@@ -10,7 +10,7 @@ module TypeSynthesis.Spec
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.FsTree
 import PlutusCore.Pretty
 
@@ -18,11 +18,10 @@ import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Everything (builtins, examples)
 import PlutusCore.StdLib.Everything (stdLib)
 
-import Common
-
 import Control.Monad.Except
 import System.FilePath ((</>))
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 kindcheck

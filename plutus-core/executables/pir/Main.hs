@@ -25,9 +25,11 @@ import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Plated
+import Prettyprinter
 
 data Command = Analyse AOpts
              | Compile COpts
+             | Print POpts
 
 data AOpts = AOpts
   {
@@ -38,6 +40,12 @@ data AOpts = AOpts
 data COpts = COpts
   { cIn       :: Input
   , cOptimize :: Bool
+  }
+
+data POpts = POpts
+  {
+    pIn  :: Input
+  , pOut :: Output
   }
 
 pAOpts :: Parser AOpts
@@ -55,6 +63,11 @@ pCOpts = COpts
     switch' :: Mod FlagFields Bool -> Parser Bool
     switch' = fmap not . switch
 
+pPOpts :: Parser POpts
+pPOpts = POpts
+    <$> input
+    <*> output
+
 pPirOpts :: Parser Command
 pPirOpts = hsubparser $
     command "analyse"
@@ -63,6 +76,9 @@ pPirOpts = hsubparser $
   <> command "compile"
         (info (Compile <$> pCOpts) $
             progDesc "Given a PIR program in flat format, deserialise it and test if it can be successfully compiled to PLC.")
+  <> command "print"
+        (info (Print <$> pPOpts) $
+            progDesc "Given a PIR program in flat format, deserialise it and print it out textually.")
 
 
 type PIRTerm  = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
@@ -76,7 +92,7 @@ compile opts pirT = do
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-    set' :: Lens' PIR.CompilationOpts b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
+    set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
     defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
@@ -120,6 +136,16 @@ loadPirAndAnalyse aopts = do
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
 
+loadPirAndPrint :: POpts -> IO ()
+loadPirAndPrint popts = do
+    pirT <- loadPir $ pIn popts
+    let
+        printed :: String
+        printed = show $ pretty pirT
+    case pOut popts of
+        FileOutput path -> writeFile path printed
+        StdOutput       -> putStrLn printed
+
 -- | Load flat pir and deserialize it
 loadPir :: Input -> IO PIRTerm
 loadPir inp =do
@@ -132,13 +158,13 @@ loadPir inp =do
         Left decodeErr -> error $ show decodeErr
         Right pirT     -> pure pirT
 
-
 main :: IO ()
 main = do
     comm <- customExecParser (prefs showHelpOnEmpty) infoOpts
     case comm of
         Analyse opts -> loadPirAndAnalyse opts
         Compile opts -> loadPirAndCompile opts
+        Print opts   -> loadPirAndPrint opts
   where
     infoOpts =
       info (pPirOpts <**> helper)

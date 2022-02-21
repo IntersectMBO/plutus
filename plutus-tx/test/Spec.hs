@@ -16,10 +16,11 @@ import Hedgehog.Range qualified as Range
 import PlutusCore.Data (Data (..))
 import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
-import PlutusTx.Prelude (dropByteString, takeByteString)
-import PlutusTx.Ratio (Rational, denominator, numerator, recip, (%))
+import PlutusTx.Prelude (dropByteString, one, takeByteString)
+import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (..), isqrt, rsqrt)
 import Prelude hiding (Rational, negate, recip)
+import Suites.Laws (lawsTests)
 import Test.Tasty
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testProperty)
@@ -34,6 +35,7 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
+    , lawsTests
     ]
 
 sqrtTests :: TestTree
@@ -54,7 +56,7 @@ rsqrtRoundTripImaginary = property $ do
   a <- forAll numerators
   b <- forAll denominators
 
-  let x      = a % b
+  let x      = unsafeRatio a b
       decode = \case
             Imaginary -> True
             _         -> False
@@ -69,7 +71,7 @@ rsqrtRoundTrip = property $ do
   a <- forAll numerators
   b <- forAll denominators
 
-  let x = a % b
+  let x = unsafeRatio a b
       f = square
       g = decode . rsqrt
       integerPart = a `div` b
@@ -87,7 +89,7 @@ square r =
     n = numerator r
     d = denominator r
     two = 2 :: Integer
-    in (n^two) % (d^two)
+    in unsafeRatio (n^two) (d^two)
 
 isqrtRoundTrip :: Property
 isqrtRoundTrip = property $ do
@@ -124,7 +126,7 @@ sixtyFourByteInteger = 2^((64 :: Integer) *8)
 genData :: MonadGen m => m Data
 genData =
     let st = Gen.subterm genData id
-        constrIndex = fromIntegral <$> (Gen.integral @_ @Word64 Range.linearBounded)
+        constrIndex = fromIntegral <$> Gen.integral @_ @Word64 Range.linearBounded
         reasonableInteger = Gen.integral (Range.linear (-100000) 100000)
         -- over 64 bytes
         reallyBigInteger = Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
@@ -175,15 +177,16 @@ ratioTests = testGroup "Ratio"
 -- We check that 'recip' throws an exception if the numerator is zero
 reciprocalFailsZeroNumerator :: Assertion
 reciprocalFailsZeroNumerator = do
-  res <- catch (pure $! recip $ 0 % 2) $ \(_ :: ErrorCall) -> pure $ 1 % 1
-  -- the result should be 1 % 1 if there was an exception
-  res @?= (1 % 1)
+  res <- catch (pure $! recip $ unsafeRatio 0 2) $
+    \(_ :: ErrorCall) -> pure one
+  -- the result should be 1 if there was an exception
+  res @?= one
 
 genPositiveRational :: Monad m => PropertyT m Rational
 genPositiveRational = do
   a <- forAll . Gen.integral $ Range.linear 1 100000
   b <- forAll . Gen.integral $ Range.linear 1 100000
-  return (a % b)
+  return (unsafeRatio a b)
 
 genNegativeRational :: Monad m => PropertyT m Rational
 genNegativeRational = negate <$> genPositiveRational

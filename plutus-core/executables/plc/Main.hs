@@ -11,11 +11,11 @@ import PlutusCore.Pretty qualified as PP
 
 import UntypedPlutusCore qualified as UPLC (eraseProgram)
 
-import Data.Function ((&))
 import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -102,7 +102,7 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.AlexPosn)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -129,7 +129,7 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode timingMode) = do
   prog <- getProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
-      term = void . PLC.toTerm $ prog
+      term = void $ prog ^. PLC.progTerm
       !_ = rnf term
       -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
       -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
@@ -148,7 +148,7 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
   let untypedProg = () <$ UPLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
@@ -158,14 +158,14 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.AlexPosn) ) >>= print . getPrintMethod mode
+    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------

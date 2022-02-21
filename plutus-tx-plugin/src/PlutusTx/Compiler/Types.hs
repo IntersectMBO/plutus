@@ -15,7 +15,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 

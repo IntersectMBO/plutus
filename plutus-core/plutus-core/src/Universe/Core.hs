@@ -32,6 +32,7 @@ module Universe.Core
     , Permits
     , EverywhereAll
     , type (<:)
+    , TestTypesFromTheUniverseAreAllContained
     , HasUniApply (..)
     , checkStar
     , withApplicable
@@ -52,7 +53,6 @@ import Data.GADT.Compare
 import Data.GADT.Compare.TH
 import Data.GADT.DeepSeq
 import Data.GADT.Show
-import Data.Hashable
 import Data.Kind
 import Data.Proxy
 import Data.Some.Newtype
@@ -546,6 +546,10 @@ type family uni `EverywhereAll` constrs where
 -- | A constraint for \"@uni1@ is a subuniverse of @uni2@\".
 type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
+-- | An instance of this class not having any constraints ensures that every type
+-- (according to 'Everywhere') from the universe has a 'Contains' instance.
+class uni <: uni => TestTypesFromTheUniverseAreAllContained uni
+
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
     -- | Deconstruct a type application into the function and the argument and feed them to the
@@ -764,15 +768,3 @@ instance Closed uni => NFData (SomeTypeIn uni) where
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
     rnf = grnf
-
--------------------- 'Hashable'
-
-instance Closed uni => Hashable (SomeTypeIn uni) where
-    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
-    hashWithSalt salt (ValueOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
-    hashWithSalt salt (Some s) = hashWithSalt salt s

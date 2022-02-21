@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-tx
 version: 0.1.0.0
 license: Apache-2.0
@@ -40,7 +40,6 @@ library
         PlutusTx.Coverage
         PlutusTx.TH
         PlutusTx.Prelude
-        PlutusTx.Evaluation
         PlutusTx.Applicative
         PlutusTx.Base
         PlutusTx.Bool
@@ -84,6 +83,7 @@ library
         bytestring -any,
         deepseq -any,
         template-haskell >=2.13.0.0,
+        th-compat -any,
         th-abstraction -any,
         prettyprinter -any,
         text -any,
@@ -98,20 +98,57 @@ library
         memory -any,
         serialise -any
 
+library plutus-tx-testlib
+    import: lang
+    visibility: public
+    hs-source-dirs: testlib
+    exposed-modules:
+        PlutusTx.Test
+    build-depends:
+        base >=4.9 && <5,
+        prettyprinter -any,
+        text -any,
+        flat -any,
+        filepath -any,
+        plutus-core -any,
+        plutus-core:plutus-core-testlib -any,
+        plutus-tx -any,
+        lens -any,
+        mtl -any,
+        ghc-prim -any,
+        tagged -any,
+        tasty -any,
+        text -any
+
 test-suite plutus-tx-test
     import: lang
     if(impl(ghcjs) || os(windows))
         buildable: False
     type: exitcode-stdio-1.0
     main-is: Spec.hs
+    other-modules: 
+        Suites.Laws
+        Suites.Laws.Eq
+        Suites.Laws.Ord
+        Suites.Laws.Additive
+        Suites.Laws.Multiplicative
+        Suites.Laws.Ring
+        Suites.Laws.Module
+        Suites.Laws.Serialization
+        Suites.Laws.Construction
+        Suites.Laws.Other
+        Suites.Laws.Helpers
     hs-source-dirs: test
     build-tool-depends: doctest:doctest
     build-depends:
+        aeson -any,
         base >=4.9 && <5,
         bytestring -any,
+        hedgehog -any,
+        hedgehog-fn -any,
         plutus-core -any,
         plutus-tx -any,
-        hedgehog -any,
+        pretty-show -any,
         tasty -any,
         tasty-hedgehog -any,
         tasty-hunit -any,

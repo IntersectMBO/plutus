@@ -12,7 +12,7 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import PlutusCore qualified as Plc
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -26,12 +26,12 @@ import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import Common
 import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
 import Prettyprinter
 import Prettyprinter.Render.Text
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -44,7 +44,7 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnownOrFail @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp = erase <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp

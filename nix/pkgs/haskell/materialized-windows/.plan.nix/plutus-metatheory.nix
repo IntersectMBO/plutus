@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "2.4";
+      specVersion = "3.0";
       identifier = { name = "plutus-metatheory"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -55,6 +55,7 @@
           (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+          (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           ];
         buildable = true;
         modules = [
@@ -159,6 +160,7 @@
           "MAlonzo/Code/Data/These/Base"
           "MAlonzo/Code/Data/Vec/Base"
           "MAlonzo/Code/Data/Vec/Bounded/Base"
+          "MAlonzo/Code/Declarative"
           "MAlonzo/Code/Debug/Trace"
           "MAlonzo/Code/Function/Bijection"
           "MAlonzo/Code/Function/Bundles"
@@ -221,10 +223,9 @@
           "MAlonzo/Code/Utils"
           "MAlonzo/RTE"
           "MAlonzo/Code/Algorithmic/Erasure"
-          "MAlonzo/Code/Declarative"
           "MAlonzo/Code/Untyped"
-          "MAlonzo/Code/Untyped/Reduction"
           "MAlonzo/Code/Untyped/RenamingSubstitution"
+          "MAlonzo/Code/Untyped/CEK"
           "MAlonzo/Code/Agda/Builtin/Maybe"
           "MAlonzo/Code/Algebra/Construct/NaturalChoice/Base"
           "MAlonzo/Code/Algebra/Construct/NaturalChoice/Max"
@@ -300,6 +301,7 @@
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-metatheory" or (errorHandler.buildDepError "plutus-metatheory"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
             (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))

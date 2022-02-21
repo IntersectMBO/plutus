@@ -1,23 +1,42 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module UntypedPlutusCore.Core.Instance.Eq where
+module UntypedPlutusCore.Core.Instance.Eq () where
 
 import PlutusPrelude
 
 import UntypedPlutusCore.Core.Type
 
+import PlutusCore.DeBruijn
 import PlutusCore.Eq
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
 
 import Universe
 
-instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, HasUnique name TermUnique, Eq ann) =>
-            Eq (Term name uni fun ann) where
+instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
+            Eq (Term Name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
+
+-- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
+-- a) We ignore the name part of the nameddebruijn
+-- b) We do not do equality "modulo init index, see deBruijnInitIndex". E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
+-- c) We do not do equality ""modulo annotations".
+-- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any annotations.
+deriving instance
+   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
+   Eq (Term NamedDeBruijn uni fun ann)
+
+deriving instance
+   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
+   Eq (Term DeBruijn uni fun ann)
+
+deriving instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
+                  Eq (Term name uni fun ann)
+                  ) =>  Eq (Program name uni fun ann)
 
 -- | Check equality of two 'Term's.
 eqTermM

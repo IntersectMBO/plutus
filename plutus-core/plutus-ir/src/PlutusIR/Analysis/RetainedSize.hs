@@ -15,7 +15,7 @@ import PlutusIR.Analysis.Size
 import PlutusIR.Core
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (ToBuiltinMeaning)
+import PlutusCore.Builtin (ToBuiltinMeaning)
 import PlutusCore.Name
 
 import Algebra.Graph qualified as C

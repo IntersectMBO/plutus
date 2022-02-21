@@ -1,12 +1,9 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 module ParserSpec (parsing) where
 
 import PlutusPrelude
-
-import Common
 
 import Data.Char
 import Data.Text qualified as T
@@ -22,6 +19,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }

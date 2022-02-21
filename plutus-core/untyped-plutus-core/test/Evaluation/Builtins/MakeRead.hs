@@ -6,7 +6,7 @@ module Evaluation.Builtins.MakeRead
     ) where
 
 import PlutusCore qualified as TPLC
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
@@ -35,7 +35,7 @@ readMakeHetero
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnownOrFail @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+    xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err

@@ -1,9 +1,7 @@
 -- | Kind/type inference/checking.
 
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 module PlutusCore.TypeCheck
     ( ToKind
@@ -25,7 +23,7 @@ module PlutusCore.TypeCheck
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name

@@ -24,6 +24,7 @@ import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception
+import Control.Lens
 import Control.Monad.Except
 import Criterion.Main
 import Criterion.Types qualified as C
@@ -80,7 +81,7 @@ mkListBMs ns = bgroup "List" [mkListBM n | n <- ns]
 
 writePlc :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun () -> Haskell.IO ()
 writePlc p =
-    case runExcept @UPLC.FreeVariableError $ runQuoteT $ UPLC.unDeBruijnProgram p of
+    case runExcept @UPLC.FreeVariableError $ runQuoteT $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p of
       Left e   -> throw e
       Right p' -> Haskell.print . PP.prettyPlcClassicDebug $ p'
 

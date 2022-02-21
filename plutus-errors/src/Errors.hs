@@ -35,8 +35,6 @@ allErrors =
    , 'PIR.MalformedDataConstrResType
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
-   , 'PLC.LexErr
-   , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType
    , 'PLC.BuiltinTypeNotAStar
    , 'PLC.UnknownBuiltinFunction

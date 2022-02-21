@@ -15,7 +15,7 @@ module PlutusCore.TypeCheck.Internal
   -- export all because a lot are used by the pir-typechecker
   where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.MkPlc

@@ -1,12 +1,15 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiWayIf            #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
+
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
@@ -238,20 +241,28 @@ However, there is a subtlety: we'd like this binding to be removed by the dead-b
 but only where we don't absolutely need it to be sure the scrutinee is evaluated. Fortunately, provided
 we do a pattern match at all we will evaluate the scrutinee, since we do pattern matching by applying the scrutinee.
 
-So the only case where we *need* to keep the binding in place is the case described in Note [Default-only cases].
+So the only case where we *need* to keep the binding in place is the case described in Note [Evaluation-only cases].
 In this case we make a strict binding, in all others we make a non-strict binding.
 -}
 
-{- Note [Default-only cases]
-GHC sometimes generates case expressions where there is only a single alternative, which is a default
-alternative. It can do this even if the argument is a type variable (i.e. not known to be a datatype).
-What this amounts to is ensuring the expression is evaluated - hence once place this appears is bang
+{- Note [Evaluation-only cases]
+GHC sometimes generates case expressions where there is only a single alternative, and where none
+of the variables bound by the alternative are live (see Note [Occurrence analsis] for how we tell
+that this is the case).
+
+What this amounts to is ensuring the expression is evaluated - hence one place this appears is bang
 patterns.
 
-We can't actually compile this as a pattern match, since we need to know the actual type to do that.
-But in the case where the only alternative is a default alternative, we don't *need* to, because it
-doesn't actually inspect the contents of the datatype. So we can just compile this by returning
-the body of the alternative.
+It can do this even if the argument is a type variable (i.e. not known to be a datatype) by producing
+a default-only case expression! Also, this can happen to our opaque builtin wrapper types in the
+presence of e.g. bang patterns.
+
+We can't actually compile this as a pattern match, since we need to know the actual type to do that,
+(or in the case of builtin wrapper types, they're supposed to be opaque!).
+But in the case where there is only one alternative with no live variables, we don't *need* to, because it
+doesn't actually *do* anything with the contents of the datatype. So we can just compile this by returning
+the body of the alternative wrapped in a strict let which binds the scrutinee. That achieves the
+same thing as GHC wants (since GHC does expect the scrutinee to be in scope!).
 -}
 
 {- Note [Coercions and newtypes]
@@ -418,6 +429,15 @@ This typically means that we do a three-step process for a given definition:
 1. Create a definition with a fake body (this is often also needed for recursion, see Note [Occurrences of recursive names])
 2. Compile the real body (during which point dependencies are discovered and added to the fake definition).
 3. Modify the definition with the real body.
+-}
+
+{- Note [Occurrence analysis]
+GHC has "occurrence analysis", which is quite handy. In particular, it can tell you if variables are dead, which is useful
+in a couple of places.
+
+But it typically gets run *before* the simplifier, so when we get the expression we might be missing occurence analysis
+for any variables that were freshly created by the simplifier. That's easy to fix: we just run the occurrence analyser
+ourselves before we start.
 -}
 
 hoistExpr
@@ -766,8 +786,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
 
-        -- See Note [Default-only cases]
-        GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
+        -- See Note [Evaluation-only cases]
+        GHC.Case scrutinee b _ [(_, bs, body)] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             withVarScoped b $ \v -> do
@@ -850,9 +870,22 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
    differently with regards to tick floating.
 -}
 
--- | Do your best to try to extract a source span from a tick
+{- Note [Partial type signature for getSourceSpan]
+Why is there a partial type signature here? The answer is that we sometimes compile with a patched
+GHC provided from haskell.nix that has a slightly busted patch applied to it. That patch changes
+the type of the 'Tickish' part of 'Tick'.
+
+Obviously we would eventually like to not have this problem (should be when we go to 9.2), but in
+the mean time we'd like things to compile on both the patched and non-patched GHC.
+
+A partial type signature provides a simple solution: GHC will infer different types for the hole
+in each case, but since we operate on them in the same way, there's no problem.
+-}
+
 -- See Note [What source locations to cover]
-getSourceSpan :: Maybe GHC.ModBreaks -> GHC.GenTickish pass -> Maybe GHC.RealSrcSpan
+-- See Note [Partial type signature for getSourceSpan]
+-- | Do your best to try to extract a source span from a tick
+getSourceSpan :: Maybe GHC.ModBreaks -> _ -> Maybe GHC.RealSrcSpan
 getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
 getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
   case cc of

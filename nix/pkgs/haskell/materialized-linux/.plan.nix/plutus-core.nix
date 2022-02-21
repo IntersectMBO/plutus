@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "2.4";
+      specVersion = "3.0";
       identifier = { name = "plutus-core"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -39,13 +39,11 @@
     components = {
       "library" = {
         depends = [
-          (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
           (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
           (hsPkgs."algebraic-graphs" or (errorHandler.buildDepError "algebraic-graphs"))
           (hsPkgs."array" or (errorHandler.buildDepError "array"))
           (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
           (hsPkgs."base" or (errorHandler.buildDepError "base"))
-          (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
           (hsPkgs."bimap" or (errorHandler.buildDepError "bimap"))
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-crypto" or (errorHandler.buildDepError "cardano-crypto"))
@@ -56,7 +54,6 @@
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."data-default-class" or (errorHandler.buildDepError "data-default-class"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-          (hsPkgs."dependent-map" or (errorHandler.buildDepError "dependent-map"))
           (hsPkgs."dependent-sum-template" or (errorHandler.buildDepError "dependent-sum-template"))
           (hsPkgs."deriving-aeson" or (errorHandler.buildDepError "deriving-aeson"))
           (hsPkgs."deriving-compat" or (errorHandler.buildDepError "deriving-compat"))
@@ -70,7 +67,6 @@
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
-          (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
           (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
@@ -84,14 +80,9 @@
           (hsPkgs."semigroupoids" or (errorHandler.buildDepError "semigroupoids"))
           (hsPkgs."semigroups" or (errorHandler.buildDepError "semigroups"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-          (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
           (hsPkgs."some" or (errorHandler.buildDepError "some"))
-          (hsPkgs."sop-core" or (errorHandler.buildDepError "sop-core"))
-          (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-          (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
-          (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
-          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."th-compat" or (errorHandler.buildDepError "th-compat"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
@@ -102,18 +93,19 @@
           (hsPkgs."witherable" or (errorHandler.buildDepError "witherable"))
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
-          ];
-        build-tools = [
-          (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
-          (hsPkgs.buildPackages.happy.components.exes.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy:happy")))
+          (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
           ];
         buildable = true;
         modules = [
           "PlutusCore/Analysis/Definitions"
-          "PlutusCore/Constant/Function"
-          "PlutusCore/Constant/Kinded"
-          "PlutusCore/Constant/Meaning"
-          "PlutusCore/Constant/Typed"
+          "PlutusCore/Builtin/HasConstant"
+          "PlutusCore/Builtin/KnownKind"
+          "PlutusCore/Builtin/KnownType"
+          "PlutusCore/Builtin/KnownTypeAst"
+          "PlutusCore/Builtin/Meaning"
+          "PlutusCore/Builtin/Polymorphism"
+          "PlutusCore/Builtin/Runtime"
+          "PlutusCore/Builtin/TypeScheme"
           "PlutusCore/Core/Instance"
           "PlutusCore/Core/Instance/Eq"
           "PlutusCore/Core/Instance/Pretty"
@@ -131,16 +123,8 @@
           "PlutusCore/Default/Universe"
           "PlutusCore/Eq"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
-          "PlutusCore/Generators/Internal/Denotation"
-          "PlutusCore/Generators/Internal/Dependent"
-          "PlutusCore/Generators/Internal/Entity"
-          "PlutusCore/Generators/Internal/TypeEvalCheck"
-          "PlutusCore/Generators/Internal/TypedBuiltinGen"
-          "PlutusCore/Generators/Internal/Utils"
-          "PlutusCore/Lexer/Type"
-          "PlutusCore/Parsable"
-          "PlutusCore/Parser/Internal"
-          "PlutusCore/ParserCommon"
+          "PlutusCore/InlineUtils"
+          "PlutusCore/Parser/ParserCommon"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
@@ -164,6 +148,7 @@
           "PlutusIR/Normalize"
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
+          "UntypedPlutusCore/Analysis/Usages"
           "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
           "UntypedPlutusCore/Core/Instance/Eq"
@@ -180,21 +165,25 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
+          "UntypedPlutusCore/Simplify"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
-          "UntypedPlutusCore/Transform/Simplify"
+          "UntypedPlutusCore/Transform/ForceDelay"
+          "UntypedPlutusCore/Transform/Inline"
           "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Universe/Core"
+          "GHC/Natural/Extras"
           "PlutusCore"
           "PlutusCore/Check/Normal"
           "PlutusCore/Check/Scoping"
           "PlutusCore/Check/Uniques"
           "PlutusCore/Check/Value"
-          "PlutusCore/Constant"
-          "PlutusCore/Constant/Debug"
-          "PlutusCore/Constant/Dynamic/Emit"
+          "PlutusCore/Builtin"
+          "PlutusCore/Builtin/Debug"
+          "PlutusCore/Builtin/Elaborate"
+          "PlutusCore/Builtin/Emitter"
           "PlutusCore/Core"
           "PlutusCore/Data"
           "PlutusCore/DataFilePaths"
@@ -220,15 +209,6 @@
           "PlutusCore/Examples/Everything"
           "PlutusCore/Flat"
           "PlutusCore/FsTree"
-          "PlutusCore/Generators"
-          "PlutusCore/Generators/AST"
-          "PlutusCore/Generators/Interesting"
-          "PlutusCore/Generators/NEAT/Common"
-          "PlutusCore/Generators/NEAT/Spec"
-          "PlutusCore/Generators/NEAT/Term"
-          "PlutusCore/Generators/NEAT/Type"
-          "PlutusCore/Generators/Test"
-          "PlutusCore/Lexer"
           "PlutusCore/Mark"
           "PlutusCore/MkPlc"
           "PlutusCore/Name"
@@ -271,7 +251,6 @@
           "PlutusIR/Core/Plated"
           "PlutusIR/Core/Type"
           "PlutusIR/Error"
-          "PlutusIR/Generators/AST"
           "PlutusIR/Mark"
           "PlutusIR/MkPir"
           "PlutusIR/Parser"
@@ -295,15 +274,15 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/MkUPlc"
+          "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core/Type"
-          "Common"
           "Crypto"
           "Data/ByteString/Hash"
           "Data/SatInt"
           "Prettyprinter/Custom"
           "ErrorCode"
-          "PlcTestUtils"
           "PlutusPrelude"
           "Universe"
           ];
@@ -313,12 +292,63 @@
           "plutus-core/examples"
           "plutus-ir/src"
           "untyped-plutus-core/src"
-          "generators"
           "prelude"
           "common"
           ];
         };
       sublibs = {
+        "plutus-core-testlib" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bifunctors" or (errorHandler.buildDepError "bifunctors"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."dependent-map" or (errorHandler.buildDepError "dependent-map"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
+            (hsPkgs."lazy-search" or (errorHandler.buildDepError "lazy-search"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
+            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
+            (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
+            (hsPkgs."size-based" or (errorHandler.buildDepError "size-based"))
+            (hsPkgs."some" or (errorHandler.buildDepError "some"))
+            (hsPkgs."Stream" or (errorHandler.buildDepError "Stream"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
+            (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            ];
+          buildable = true;
+          modules = [
+            "PlutusCore/Generators/Internal/Denotation"
+            "PlutusCore/Generators/Internal/Dependent"
+            "PlutusCore/Generators/Internal/Entity"
+            "PlutusCore/Generators/Internal/TypeEvalCheck"
+            "PlutusCore/Generators/Internal/TypedBuiltinGen"
+            "PlutusCore/Generators/Internal/Utils"
+            "PlutusCore/Test"
+            "PlutusCore/Generators"
+            "PlutusCore/Generators/AST"
+            "PlutusCore/Generators/Interesting"
+            "PlutusCore/Generators/NEAT/Common"
+            "PlutusCore/Generators/NEAT/Spec"
+            "PlutusCore/Generators/NEAT/Term"
+            "PlutusCore/Generators/NEAT/Type"
+            "PlutusCore/Generators/Test"
+            "PlutusIR/Test"
+            "PlutusIR/Generators/AST"
+            "Test/Tasty/Extras"
+            ];
+          hsSourceDirs = [ "testlib" ];
+          };
         "index-envs" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -334,6 +364,7 @@
         "plc" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -345,6 +376,8 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -354,6 +387,7 @@
         "uplc" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -366,6 +400,8 @@
             (hsPkgs."split" or (errorHandler.buildDepError "split"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -375,6 +411,7 @@
         "pir" = {
           depends = [
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
@@ -389,6 +426,7 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -435,6 +473,7 @@
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -468,26 +507,16 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
-            (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             ];
           buildable = true;
-          modules = [
-            "NamesSpec"
-            "ParserSpec"
-            "TestLib"
-            "TransformSpec"
-            "TypeSpec"
-            ];
+          modules = [ "NamesSpec" "ParserSpec" "TransformSpec" "TypeSpec" ];
           hsSourceDirs = [ "plutus-ir/test" ];
           mainPath = [ "Spec.hs" ];
           };
@@ -497,8 +526,11 @@
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
+            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
+            (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-golden" or (errorHandler.buildDepError "tasty-golden"))
@@ -512,10 +544,14 @@
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
+            "Evaluation/FreeVars"
             "Evaluation/Golden"
             "Evaluation/Machines"
             "Transform/Simplify"
+            "DeBruijn/Common"
+            "DeBruijn/Scope"
             "DeBruijn/Spec"
+            "DeBruijn/UnDeBruijnify"
             ];
           hsSourceDirs = [ "untyped-plutus-core/test" ];
           mainPath = [ "Spec.hs" ];

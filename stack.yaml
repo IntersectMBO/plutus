@@ -1,4 +1,4 @@
-resolver: lts-17.14
+resolver: lts-18.24
 
 packages:
 - plutus-benchmark
@@ -59,6 +59,7 @@ extra-deps:
 - gray-code-0.3.1
 - dom-lt-0.2.2.1@sha256:6b005b64f10a0f73f716898e0f4b4d93a02c31dc8abb155c14afd870e3abf9ac,1778
 - libsystemd-journal-1.4.5@sha256:dc68296f5d874b48ba187dbd0af4de8182ba57cb6ebaa46c05ac61c1b3c6c396,1238
+- hedgehog-1.1.1
 
 # cabal.project is the source of truth for these pins, they are explained there
 # and need to be kept in sync.
@@ -72,7 +73,7 @@ extra-deps:
     - cardano-prelude
     - cardano-prelude-test
 - git: https://github.com/input-output-hk/cardano-base
-  commit: 592aa61d657ad5935a33bace1243abce3728b643
+  commit: 0b1b5b37e305c4bb10791f843bc8c81686a0cba4
   subdirs:
     - base-deriving-via
     - binary

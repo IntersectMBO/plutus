@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-benchmark
 version: 0.1.0.0
 license: Apache-2.0
@@ -40,7 +40,7 @@ common lang
      -Wnoncanonical-monoid-instances
 
 
----------------- Common code for benchmarking ----------------     
+---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
   import: lang
@@ -56,13 +56,11 @@ library plutus-benchmark-common
     , plutus-core -any
     , plutus-tx -any
     , criterion -any
-    , deepseq -any
     , filepath -any
-    , transformers -any
 
 
 ---------------- nofib ----------------
-     
+
 library nofib-internal
   import: lang
   hs-source-dirs:
@@ -101,6 +99,8 @@ executable nofib-exe
     , bytestring -any
     , flat -any
     , optparse-applicative -any
+    , transformers -any
+    , lens -any
 
 benchmark nofib
   import: lang
@@ -140,7 +140,9 @@ test-suite plutus-benchmark-nofib-tests
       , plutus-benchmark-common
       , nofib-internal
       , plutus-core -any
+      , plutus-core:plutus-core-testlib -any
       , plutus-tx -any
+      , plutus-tx:plutus-tx-testlib -any
       , tasty -any
       , tasty-hunit -any
       , tasty-quickcheck -any
@@ -167,6 +169,7 @@ library lists-internal
     , plutus-core -any
     , plutus-tx -any
     , plutus-tx-plugin -any
+    , mtl -any
 
 executable list-sort-exe
   import: lang
@@ -191,7 +194,7 @@ benchmark lists
     , plutus-benchmark-common
     , lists-internal
     , criterion >= 1.5.9.0
-    
+
 test-suite plutus-benchmark-lists-tests
     import: lang
     type: exitcode-stdio-1.0
@@ -207,15 +210,16 @@ test-suite plutus-benchmark-lists-tests
       , tasty -any
       , tasty-quickcheck -any
 
-
 ---------------- validation ----------------
 
 benchmark validation
   import: lang
   type: exitcode-stdio-1.0
-  main-is: Bench.hs
+  main-is: BenchCek.hs
   hs-source-dirs:
       validation
+  other-modules:
+      Common
   build-depends:
       base >=4.7 && <5
     , plutus-benchmark-common
@@ -227,7 +231,51 @@ benchmark validation
     , filepath -any
     , flat -any
     , optparse-applicative -any
+    , mtl -any
 
+---------------- validation-decode ----------------
+
+benchmark validation-decode
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: BenchDec.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      Common
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , bytestring -any
+    , criterion >= 1.5.9.0
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
+    , mtl -any
+
+---------------- validation-full ----------------
+
+benchmark validation-full
+  import: lang
+  type: exitcode-stdio-1.0
+  main-is: BenchFull.hs
+  hs-source-dirs:
+      validation
+  other-modules:
+      Common
+  build-depends:
+      base >=4.7 && <5
+    , plutus-benchmark-common
+    , plutus-core -any
+    , bytestring -any
+    , criterion >= 1.5.9.0
+    , directory -any
+    , filepath -any
+    , flat -any
+    , optparse-applicative -any
+    , mtl -any
 
 ---------------- Cek cost model calibration ----------------
 
@@ -248,3 +296,4 @@ benchmark cek-calibration
       , plutus-tx-plugin -any
       , criterion >= 1.5.9.0
       , mtl -any
+      , lens -any

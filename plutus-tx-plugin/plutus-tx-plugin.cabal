@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 name: plutus-tx-plugin
 version: 0.1.0.0
 license: Apache-2.0
@@ -78,7 +78,6 @@ library
     else
         build-depends: ghc >=8.10 && <9
 
-
 test-suite plutus-tx-tests
     import: lang
     if flag(use-ghc-stub)
@@ -87,10 +86,10 @@ test-suite plutus-tx-tests
     hs-source-dirs: test
     main-is: Spec.hs
     other-modules:
-        Budget.Lib
         Budget.Spec
         IsData.Spec
         Lift.Spec
+        Optimization.Spec
         Plugin.Spec
         Plugin.Basic.Spec
         Plugin.Data.Spec
@@ -103,6 +102,7 @@ test-suite plutus-tx-tests
         Plugin.Typeclasses.Spec
         Plugin.Typeclasses.Lib
         Plugin.Coverage.Spec
+        Plugin.Strict.Spec
         Plugin.Lib
         StdLib.Spec
         TH.Spec
@@ -112,10 +112,11 @@ test-suite plutus-tx-tests
         base >=4.9 && <5,
         flat -any,
         deepseq -any,
-        filepath -any,
         integer-gmp -any,
         plutus-core -any,
+        plutus-core:plutus-core-testlib -any,
         plutus-tx -any,
+        plutus-tx:plutus-tx-testlib -any,
         plutus-tx-plugin -any,
         prettyprinter -any,
         mtl -any,
@@ -130,3 +131,18 @@ test-suite plutus-tx-tests
         containers -any
     -- NOTE: -g makes the plugin give better errors
     ghc-options: -g
+
+test-suite size
+    import: lang
+    -- needs plutus-tx-plugin but it looks unused
+    ghc-options: -Wno-unused-packages
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test/size
+    build-depends:
+        base >= 4.9 && < 5.0,
+        plutus-tx:plutus-tx-testlib -any,
+        plutus-tx -any,
+        plutus-tx-plugin,
+        tagged -any,
+        tasty -any

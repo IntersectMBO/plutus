@@ -3,7 +3,6 @@
 module Spec.Eval (tests) where
 
 import Codec.Serialise qualified as CBOR
-import Common
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
@@ -16,6 +15,7 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 import UntypedPlutusCore as UPLC
 
@@ -24,6 +24,7 @@ For this test-suite we write the programs directly in the UPLC AST,
 bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
 The reason is that users can submit such hand-crafted code, and we want to test how it behaves.
 Because this is part of our API, we have to be careful not to change the behaviour of even weird untypeable programs.
+In particular, We test both the offline part (Scripts module) and the online part (API module).
 -}
 
 -- (delay outOfScope)
@@ -66,7 +67,7 @@ outITELazy = mkIterApp ()
          ]
 
 -- [(force (builtin ifThenElse)) (con bool True) (con bool  True) (con unit ())]
--- Note that the branches have **different** types.
+-- Note that the branches have **different** types. The machine cannot catch such a type error.
 illITEStrict :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 illITEStrict = mkIterApp ()
          (Force () (Builtin () IfThenElse))
@@ -76,7 +77,7 @@ illITEStrict = mkIterApp ()
          ]
 
 -- [(force (builtin ifThenElse)) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))]
--- The branches are *lazy*. Note that the branches have **different** types.
+-- The branches are *lazy*. Note that the branches have **different** types. The machine cannot catch such a type error.
 illITELazy :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 illITELazy = mkIterApp ()
          (Force () (Builtin () IfThenElse))
@@ -111,57 +112,45 @@ illOverApp = mkIterApp ()
              , one
              ]
 
-testOffline :: TestNested
-testOffline = pure . testCase "offline" $ do
-    eval outDelay @?= False
-    eval outLam @?= False
-    eval outConst @?= False
-    eval outITEStrict @?= False
-    eval outITELazy @?= False
-    eval illAdd @?= False
-    eval illOverSat @?= False
-    eval illOverApp @?= False
-    -- some ill-typed expressions cannot be caught by the machine
-    eval illITEStrict @?= True
-    eval illITELazy @?= True
+-- Evaluates using the Scripts module.
+testScripts :: TestNested
+testScripts = "v1-scripts" `testWith` evalScripts
   where
-      eval :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      eval = isRight . runExcept . evaluateScript . Script . mkProg
+      evalScripts :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
+      evalScripts = isRight . runExcept . Scripts.evaluateScript . Script . mkProg
 
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
-Currently, this includes de Bruijn conversion, but this will go away once we change the evaluator to operate
-on de Bruijn indices directly.
-currently behaves similar to offlineEvalExternal, because any out-of-scope errors will be caught by
-the undebruinification step of mkTermToEvaluate. Subject to change by direct debruijn branch.
 -}
-testOnline :: TestNested
-testOnline = pure . testCase "online" $ do
-    eval outDelay @?= False
-    eval outLam @?= False
-    eval outConst @?= False
-    eval outITEStrict @?= False
-    eval outITELazy @?= False
-    eval illAdd @?= False
-    eval illOverSat @?= False
-    eval illOverApp @?= False
-    -- some ill-typed expressions cannot be caught by the machine
-    eval illITEStrict @?= True
-    eval illITELazy @?= True
+testAPI :: TestNested
+testAPI = "v1-api" `testWith` evalAPI
   where
-      eval :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      eval t =
+      evalAPI :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
+      evalAPI t =
           -- handcraft a serialized script
           let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
           in isRight $ snd $ Api.evaluateScriptRestricting Quiet (fromJust defaultCostModelParams) (unExRestrictingBudget enormousBudget) s []
 
+-- Test a given eval function against the expected results.
+testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestNested
+testWith str evalFn = pure . testCase str $ do
+    evalFn outDelay @?= False
+    evalFn outLam @?= False
+    evalFn outConst @?= False
+    evalFn outITEStrict @?= False
+    evalFn outITELazy @?= False
+    evalFn illITEStrict @?= True
+    evalFn illITELazy @?= True
+    evalFn illAdd @?= False
+    evalFn illOverSat @?= False
+    evalFn illOverApp @?= False
+
 tests :: TestTree
 tests = runTestNestedIn ["plutus-ledger-api"] $
           testNested "eval"
-            [ testOffline
-            , testOnline
-            -- TODO: implement testOfflineInternal for cek-debruijn branch using Cek.Internal, to show that also no out-of-scope will be caught
+            [ testScripts
+            , testAPI
             ]
 
 
@@ -177,7 +166,7 @@ one = mkConstant @Integer () 1
 unit :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 unit = mkConstant @() () ()
 
--- a helper to intro a lam, debruijn are always 0-indexed
+-- a helper to intro a lam, debruijn binders are always 0-indexed
 mkLam :: (t ~ UPLC.Term DeBruijn DefaultUni DefaultFun ()) => t -> t
 mkLam = LamAbs () (DeBruijn 0)
 

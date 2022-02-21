@@ -9,7 +9,6 @@
 
 module StdLib.Spec where
 
-import Common
 import Control.DeepSeq
 import Control.Exception
 import Control.Monad.IO.Class
@@ -19,8 +18,8 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Lib
-import PlcTestUtils
+import PlutusCore.Test
+import PlutusTx.Test
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testProperty)
 
@@ -37,6 +36,7 @@ import PlutusTx.Plugin
 import PlutusCore.Data qualified as PLC
 
 import Data.Proxy
+import Data.Ratio qualified as GHCRatio
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -78,7 +78,7 @@ testDivMod = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ divMod n1 n2
-    plutusResult <- tryHard $ Ratio.divMod n1 n2
+    plutusResult <- tryHard $ PlutusTx.divMod n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -88,7 +88,7 @@ testQuotRem = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ quotRem n1 n2
-    plutusResult <- tryHard $ Ratio.quotRem n1 n2
+    plutusResult <- tryHard $ PlutusTx.quotRem n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
     Hedgehog.assert (ghcResult == plutusResult)
@@ -101,7 +101,17 @@ testReduce = Hedgehog.property $ do
     plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
     Hedgehog.annotateShow plutusResult
-    Hedgehog.assert (ghcResult == plutusResult)
+    -- GHC permits negative denominators, while we don't. Thus, we have to do
+    -- some normalization of our own to ensure it all behaves.
+    case ghcResult of
+      Nothing -> Hedgehog.assert (ghcResult == plutusResult)
+      Just ghcR -> case signum . GHCRatio.denominator $ ghcR of
+        (-1) -> case plutusResult of
+          Nothing -> Hedgehog.assert (ghcResult == plutusResult)
+          Just plutusR -> do
+                Hedgehog.assert (GHCRatio.numerator plutusR == (negate . GHCRatio.numerator $ ghcR))
+                Hedgehog.assert (GHCRatio.denominator plutusR == (negate . GHCRatio.denominator $ ghcR))
+        _ -> Hedgehog.assert (ghcResult == plutusResult)
 
 testOrd :: Property
 testOrd = Hedgehog.property $ do

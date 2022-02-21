@@ -40,112 +40,11 @@ open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removab
 ```
 
 ```
-{-# INJECTIVE _⊢_ #-}
-{-# INJECTIVE _⊢Nf⋆_ #-}
 ```
 
 ## Values
 
 ```
-data _<>>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
-  start : ∀{A}(as : List A) → [] <>> as ∈ as
-  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> (a ∷ as') ∈ as''
-    → (as :< a) <>> as' ∈ as''
-
-unique<>> : ∀{A}{az : Bwd A}{as as' : List A}(p p' : az <>> as ∈ as') → p ≡ p'
-unique<>> (start _) (start _) = refl
-unique<>> (bubble p) (bubble p') = cong bubble (unique<>> p p')
-
-_<>>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
-xs <>> ys ∈' zs = xs <>> ys ≡ zs
-
-bwd-length : ∀{A} → Bwd A → ℕ
-bwd-length [] = 0
-bwd-length (az :< a) = Data.Nat.suc (bwd-length az)
-
-open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
-
-<>>-length : ∀{A}(az : Bwd A)(as : List A)
-  → List.length (az <>> as) ≡ bwd-length az Data.Nat.+ List.length as
-<>>-length [] as = refl
-<>>-length (az :< x) as = trans (<>>-length az (x ∷ as)) (+-suc _ _)
-
--- reasoning about the length inspired by similar proof about ++ in the stdlib
-<>>-rcancel : ∀{A}(az : Bwd A)(as : List A) → az <>> [] ≡ az <>> as → as ≡ []
-<>>-rcancel []       as p = sym p
-<>>-rcancel (az :< a) [] p = refl
-<>>-rcancel (az :< a) (a' ∷ as) p = ⊥-elim
-  (m+1+n≢m 1
-           (sym (+-cancelˡ-≡ (bwd-length az)
-                             (trans (trans (sym (<>>-length az (a ∷ [])))
-                                           (cong List.length p))
-                                    (<>>-length az (a ∷ a' ∷ as))))))
-
-<>>-lcancel : ∀{A}(az : Bwd A)(as : List A) → as ≡ az <>> as → az ≡ []
-<>>-lcancel []       as p = refl
-<>>-lcancel (az :< a) as p = ⊥-elim
-  (m≢1+n+m (List.length as)
-           (trans (trans (cong List.length p)
-                         (<>>-length az (a ∷ as)))
-                  (+-suc (bwd-length az) (List.length as))))
-
-<>>-lcancel' : ∀{A}(az : Bwd A)(as as' : List A)
-  → as ≡ az <>> as'
-  → List.length as ≡ List.length as'
-  → az ≡ [] × as ≡ as'
-<>>-lcancel' [] as as' p q = refl ,, p
-<>>-lcancel' (az :< a) as as' p q = ⊥-elim
-  (m≢1+n+m (List.length as')
-           (trans (trans (trans (sym q) (cong List.length p))
-                         (<>>-length az (a ∷ as')))
-                  (+-suc (bwd-length az) (List.length as'))))
-
-<>>2<>>' : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈ zs → xs <>> ys ∈' zs
-<>>2<>>' [] ys .ys (start .ys) = refl
-<>>2<>>' (xs :< x) ys zs (bubble p) = <>>2<>>' xs (x ∷ ys) zs p
-
-<>>'2<>> : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈' zs → xs <>> ys ∈ zs
-<>>'2<>> [] ys .ys refl = start ys
-<>>'2<>> (xs :< x) ys zs p = bubble (<>>'2<>> xs (x ∷ ys) zs p)
-
-data _<><_∈_ : ∀{A} → Bwd A → List A → Bwd A → Set where
-  start : ∀{A}(as : Bwd A) → as <>< [] ∈ as
-  bubble : ∀{A}{a : A}{as as'' : Bwd A}{as' : List A}
-    → (as :< a) <>< as' ∈ as''
-    → as <>< (a ∷ as') ∈ as''
-
-_<><_∈'_ : ∀{A} → Bwd A → List A → Bwd A → Set
-xs <>< ys ∈' zs = xs <>< ys ≡ zs
-
-<><2<><' : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
-  → xs <>< ys ∈ zs → xs <>< ys ∈' zs
-<><2<><' xs [] .xs (start .xs) = refl
-<><2<><' xs (y ∷ ys) zs (bubble p) = <><2<><' (xs :< y) ys zs p
-
-<><'2<>< : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
-  → xs <>< ys ∈' zs → xs <>< ys ∈ zs
-<><'2<>< xs [] .xs refl = start xs
-<><'2<>< xs (x ∷ ys) zs p = bubble (<><'2<>< (xs :< x) ys zs p)
-
-lemma<><[] : ∀{A}(xs : Bwd A) → (xs <>< []) ≡ xs
-lemma<><[] xs = refl
-
-lemma[]<>> : ∀{A}(xs : List A) → ([] <>> xs) ≡ xs
-lemma[]<>> xs = refl
-
--- convert a list to a backward list and back again
-
-lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
-lemma<>1 xs []       = refl
-lemma<>1 xs (x ∷ ys) = lemma<>1 (xs :< x) ys
-
-lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
-lemma<>2 [] ys = refl
-lemma<>2 (xs :< x) ys = lemma<>2 xs (x ∷ ys)
-
-saturated : ∀{A}(as : List A) → ([] <>< as) <>> [] ∈ as
-saturated as = <>>'2<>> ([] <>< as) [] as (lemma<>1 [] as)
-
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
 data BApp (b : Builtin) : ∀{az}{as}
@@ -460,7 +359,7 @@ data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set whe
 ```
 
 ```
-data _—↠_ : {A A' : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A' → Set
+data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
   where
 
   refl—↠ : ∀{A}{M : ∅ ⊢ A}
@@ -492,73 +391,6 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
 ```
 
 ```
-lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
-lemma∷1 as .as (start .as) = refl
-
--- these properties are needed for bappTermLem
-<>>-cancel-both : ∀{A}(az az' : Bwd A)(as : List A)
-  → az <>> (az' <>> as) ∈ (az' <>> [])
-  → az ≡ [] × as ≡ []
-<>>-cancel-both az az' [] p =
-  <>>-lcancel az (az' <>> []) (sym (<>>2<>>' az (az' <>> []) (az' <>> []) p))
-  ,,
-  refl
-<>>-cancel-both az az' (a ∷ as) p = ⊥-elim (m+1+n≢0
-  _
-  (+-cancelʳ-≡
-    _
-    0
-    (trans
-      (trans
-        (+-assoc (bwd-length az) (List.length (a ∷ as)) (bwd-length az'))
-        (trans
-          (cong
-            (bwd-length az Data.Nat.+_)
-            (+-comm (List.length (a ∷ as)) (bwd-length az')))
-          (trans
-            (cong
-              (bwd-length az Data.Nat.+_)
-              (sym (<>>-length az' (a ∷ as))))
-            (trans
-              (sym (<>>-length az (az' <>> (a ∷ as))))
-              (trans
-                (cong
-                  List.length
-                  (<>>2<>>' az (az' <>> (a ∷ as)) (az' <>> []) p))
-                (<>>-length az' []))))))
-      (+-comm (bwd-length az') 0))))
-
-<>>-cancel-both' : ∀{A}(az az' az'' : Bwd A)(as : List A)
-  → az <>> (az' <>> as) ∈ (az'' <>> []) → bwd-length az' ≡ bwd-length az''
-  → az ≡ [] × as ≡ [] × az' ≡ az''
-<>>-cancel-both' az az' az'' [] p q
-  with <>>-lcancel' az (az'' <>> []) (az' <>> []) (sym (<>>2<>>' _ _ _ p)) (trans (<>>-length az'' []) (trans (cong (Data.Nat._+ 0) (sym q)) (sym (<>>-length az' []))))
-... | refl ,, Y = refl ,, refl ,, sym (trans (trans (sym (lemma<>2 az'' [])) (cong ([] <><_) Y)) (lemma<>2 az' []))
-<>>-cancel-both' az az' az'' (a ∷ as) p q = ⊥-elim (m+1+n≢0
-  _
-  (+-cancelʳ-≡
-    _
-    0
-    (trans
-      (trans
-        (+-assoc (bwd-length az) (List.length (a ∷ as)) (bwd-length az'))
-        (trans
-          (cong
-            (bwd-length az Data.Nat.+_)
-            (+-comm (List.length (a ∷ as)) (bwd-length az')))
-          (trans
-            (cong
-              (bwd-length az Data.Nat.+_)
-              (sym (<>>-length az' (a ∷ as))))
-            (trans
-              (sym (<>>-length az (az' <>> (a ∷ as))))
-              (trans
-                (cong
-                  List.length
-                  (<>>2<>>' az (az' <>> (a ∷ as)) (az'' <>> []) p))
-                (trans (<>>-length az'' []) (cong (Data.Nat._+ 0) (sym q))))))))
-      (+-comm (bwd-length az') 0))))
-
 -- these two proofs are defined by pattern matching on the builtin,
 -- they are very long and very ugly.  They could probably be made
 -- shorter by giving cases for particular types/arities, and adding a
@@ -1646,11 +1478,26 @@ unique-EC  E E' L p q with rlemma51! (E [ L ]ᴱ)
 ... | refl ,, refl ,, refl with U E refl p
 ... | refl ,, refl ,, refl = refl
 
+unique-EC' : ∀{A B}(E : EC A B)(L : ∅ ⊢ B) → Redex L
+  → E [ L ]ᴱ ≡ error _ → ∃ λ (p : B ≡ A) → E ≡ substEq (λ A → EC A B) p [] × L ≡ error _
+unique-EC' E L p q with rlemma51! (E [ L ]ᴱ)
+... | done VEL = ⊥-elim (valredex (lemVE L E VEL) p)
+... | step ¬VEL E'' r r' U with U [] q err
+... | refl ,, refl ,, refl with U E refl p
+... | refl ,, refl ,, refl = refl ,, refl ,, refl
+
 notVAL : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→ N → ⊥
 notVAL V (ruleEC E p refl r) = valred (lemVE _ E V) p
 notVAL V (ruleErr E refl)    =
   valerr E-error (lemVE _ E V)
-
+{-
+notErr : ∀{A B}{L L′ : ∅ ⊢ A}{E : EC B A} → L —→⋆ L′ → E [ L′ ]ᴱ ≡ error _ → ⊥
+notErr {L = L}{L′}{E} x y with rlemma51! (E [ L′ ]ᴱ)
+... | step x₁ E₁ x₂ x₃ x₄ = {!!}
+-- what do we know? E [ L′ ]ᴱ == error B, so E == [] and L′ == error B
+-- we also have that E [ L′ ] ᴱ == E₁ [ L₁ ]ᴱ and L₁ is a redex...
+... | done x₁ = ⊥-elim (notVAL x₁ (ruleErr [] y))
+-}
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
 determinism {L = L} p q with rlemma51! L
 determinism {L = .(E [ _ ]ᴱ)} (ruleEC E p refl p') q | done VL =

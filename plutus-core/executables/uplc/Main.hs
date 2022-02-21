@@ -21,6 +21,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -154,9 +155,9 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.AlexPosn)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
-        case map (\case p -> () <$ p) scripts of
+        case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
           progAndargs -> foldl1 UPLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
@@ -166,7 +167,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
     prog <- getProgram ifmt inp
-    let term = void . UPLC.toTerm $ prog
+    let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
                     Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
@@ -212,14 +213,14 @@ runUplcPrintExample = runPrintExample getUplcExamples
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (UplcProg PLC.AlexPosn)) >>= print . getPrintMethod mode
+    (parseInput inp :: IO (UplcProg PLC.SourcePos)) >>= print . getPrintMethod mode
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
+    program <- (getProgram ifmt inp :: IO (UplcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
 
 

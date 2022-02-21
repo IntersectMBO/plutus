@@ -12,6 +12,7 @@ import Data.Csv qualified as CSV
 import Data.Csv.Builder qualified as CSV
 import Data.DList qualified as DList
 import Data.Fixed
+import Data.Functor
 import Data.STRef (modifySTRef, newSTRef, readSTRef)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -28,7 +29,7 @@ noEmitter = EmitterMode $ \_ -> pure $ CekEmitterInfo (\_ -> pure ()) (pure memp
 logEmitter :: EmitterMode uni fun
 logEmitter = EmitterMode $ \_ -> do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekM $ modifySTRef logsRef (`DList.snoc` str)
+    let emitter strs = CekM $ modifySTRef logsRef (`DList.append` strs)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 -- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is
@@ -40,11 +41,11 @@ encodeRecord a = T.stripEnd $ T.decodeUtf8 $ BSL.toStrict $ BS.toLazyByteString 
 logWithTimeEmitter :: EmitterMode uni fun
 logWithTimeEmitter = EmitterMode $ \_ -> do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekM $ do
+    let emitter strs = CekM $ do
             time <- unsafeIOToST getCurrentTime
             let secs = let MkFixed s = nominalDiffTimeToSeconds $ utcTimeToPOSIXSeconds time in s
-            let withTime = encodeRecord (str, secs)
-            modifySTRef logsRef (`DList.snoc` withTime)
+            let withTime = strs <&> \str -> encodeRecord (str, secs)
+            modifySTRef logsRef (`DList.append` withTime)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 instance CSV.ToField ExCPU where
@@ -57,8 +58,8 @@ instance CSV.ToField ExMemory where
 logWithBudgetEmitter :: EmitterMode uni fun
 logWithBudgetEmitter = EmitterMode $ \getBudget -> do
     logsRef <- newSTRef DList.empty
-    let emitter str = CekM $ do
+    let emitter strs = CekM $ do
             ExBudget exCpu exMemory <- getBudget
-            let withBudget = encodeRecord (str, exCpu, exMemory)
-            modifySTRef logsRef (`DList.snoc` withBudget)
+            let withBudget = strs <&> \str -> encodeRecord (str, exCpu, exMemory)
+            modifySTRef logsRef (`DList.append` withBudget)
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)

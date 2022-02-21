@@ -88,6 +88,11 @@ data Bwd (A : Set) : Set where
 
 infixl 5 _:<_
 
+
+bwd-length : ∀{A} → Bwd A → ℕ
+bwd-length [] = 0
+bwd-length (az :< a) = Data.Nat.suc (bwd-length az)
+
 _<>>_ : ∀{A} → Bwd A → List A → List A
 [] <>> as = as
 (az :< a) <>> as = az <>> (a ∷ as)
@@ -108,10 +113,176 @@ data _≤L_ {A : Set} : List A → List A → Set where
 []≤L []       = base
 []≤L (a ∷ as) = skip ([]≤L as)
 
-
 data _≤L'_ {A : Set} : List A → List A → Set where
  base : ∀{as} → as ≤L' as
  skip : ∀{as as' a} → (a ∷ as) ≤L' as' → as ≤L' as'
+
+data _<>>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
+  start : ∀{A}(as : List A) → [] <>> as ∈ as
+  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> (a ∷ as') ∈ as''
+    → (as :< a) <>> as' ∈ as''
+
+data _<><_∈_ : ∀{A} → Bwd A → List A → Bwd A → Set where
+  start : ∀{A}(as : Bwd A) → as <>< [] ∈ as
+  bubble : ∀{A}{a : A}{as as'' : Bwd A}{as' : List A}
+    → (as :< a) <>< as' ∈ as''
+    → as <>< (a ∷ as') ∈ as''
+
+unique<>> : ∀{A}{az : Bwd A}{as as' : List A}(p p' : az <>> as ∈ as') → p ≡ p'
+unique<>> (start _) (start _) = refl
+unique<>> (bubble p) (bubble p') = cong bubble (unique<>> p p')
+
+_<>>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
+xs <>> ys ∈' zs = xs <>> ys ≡ zs
+
+open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
+
+<>>-length : ∀{A}(az : Bwd A)(as : List A)
+  → Data.List.length (az <>> as) ≡ bwd-length az Data.Nat.+ Data.List.length as
+<>>-length [] as = refl
+<>>-length (az :< x) as = trans (<>>-length az (x ∷ as)) (+-suc _ _)
+
+
+
+-- reasoning about the length inspired by similar proof about ++ in the stdlib
+<>>-rcancel : ∀{A}(az : Bwd A)(as : List A) → az <>> [] ≡ az <>> as → as ≡ []
+<>>-rcancel []       as p = sym p
+<>>-rcancel (az :< a) [] p = refl
+<>>-rcancel (az :< a) (a' ∷ as) p = ⊥-elim
+  (m+1+n≢m 1
+           (sym (+-cancelˡ-≡ (bwd-length az)
+                             (trans (trans (sym (<>>-length az (a ∷ [])))
+                                           (cong Data.List.length p))
+                                    (<>>-length az (a ∷ a' ∷ as))))))
+
+<>>-lcancel : ∀{A}(az : Bwd A)(as : List A) → as ≡ az <>> as → az ≡ []
+<>>-lcancel []       as p = refl
+<>>-lcancel (az :< a) as p = ⊥-elim
+  (m≢1+n+m (Data.List.length as)
+           (trans (trans (cong Data.List.length p)
+                         (<>>-length az (a ∷ as)))
+                  (+-suc (bwd-length az) (Data.List.length as))))
+
+open import Data.Product renaming (_,_ to _,,_)
+
+<>>-lcancel' : ∀{A}(az : Bwd A)(as as' : List A)
+  → as ≡ az <>> as'
+  → Data.List.length as ≡ Data.List.length as'
+  → (az ≡ []) × (as ≡ as')
+<>>-lcancel' [] as as' p q = refl ,, p
+<>>-lcancel' (az :< a) as as' p q = ⊥-elim
+  (m≢1+n+m (Data.List.length as')
+           (trans (trans (trans (sym q) (cong Data.List.length p))
+                         (<>>-length az (a ∷ as')))
+                  (+-suc (bwd-length az) (Data.List.length as'))))
+
+<>>2<>>' : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈ zs → xs <>> ys ∈' zs
+<>>2<>>' [] ys .ys (start .ys) = refl
+<>>2<>>' (xs :< x) ys zs (bubble p) = <>>2<>>' xs (x ∷ ys) zs p
+
+<>>'2<>> : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈' zs → xs <>> ys ∈ zs
+<>>'2<>> [] ys .ys refl = start ys
+<>>'2<>> (xs :< x) ys zs p = bubble (<>>'2<>> xs (x ∷ ys) zs p)
+
+_<><_∈'_ : ∀{A} → Bwd A → List A → Bwd A → Set
+xs <>< ys ∈' zs = xs <>< ys ≡ zs
+
+<><2<><' : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
+  → xs <>< ys ∈ zs → xs <>< ys ∈' zs
+<><2<><' xs [] .xs (start .xs) = refl
+<><2<><' xs (y ∷ ys) zs (bubble p) = <><2<><' (xs :< y) ys zs p
+
+<><'2<>< : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
+  → xs <>< ys ∈' zs → xs <>< ys ∈ zs
+<><'2<>< xs [] .xs refl = start xs
+<><'2<>< xs (x ∷ ys) zs p = bubble (<><'2<>< (xs :< x) ys zs p)
+
+lemma<><[] : ∀{A}(xs : Bwd A) → (xs <>< []) ≡ xs
+lemma<><[] xs = refl
+
+lemma[]<>> : ∀{A}(xs : List A) → ([] <>> xs) ≡ xs
+lemma[]<>> xs = refl
+
+-- convert a list to a backward list and back again
+
+lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
+lemma<>1 xs []       = refl
+lemma<>1 xs (x ∷ ys) = lemma<>1 (xs :< x) ys
+
+lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
+lemma<>2 [] ys = refl
+lemma<>2 (xs :< x) ys = lemma<>2 xs (x ∷ ys)
+
+saturated : ∀{A}(as : List A) → ([] <>< as) <>> [] ∈ as
+saturated as = <>>'2<>> ([] <>< as) [] as (lemma<>1 [] as)
+
+lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
+lemma∷1 as .as (start .as) = refl
+
+-- these properties are needed for bappTermLem
+<>>-cancel-both : ∀{A}(az az' : Bwd A)(as : List A)
+  → az <>> (az' <>> as) ∈ (az' <>> [])
+  → az ≡ [] × as ≡ []
+<>>-cancel-both az az' [] p =
+  <>>-lcancel az (az' <>> []) (sym (<>>2<>>' az (az' <>> []) (az' <>> []) p))
+  ,,
+  refl
+<>>-cancel-both az az' (a ∷ as) p = ⊥-elim (m+1+n≢0
+  _
+  (+-cancelʳ-≡
+    _
+    0
+    (trans
+      (trans
+        (+-assoc (bwd-length az) (Data.List.length (a ∷ as)) (bwd-length az'))
+        (trans
+          (cong
+            (bwd-length az Data.Nat.+_)
+            (+-comm (Data.List.length (a ∷ as)) (bwd-length az')))
+          (trans
+            (cong
+              (bwd-length az Data.Nat.+_)
+              (sym (<>>-length az' (a ∷ as))))
+            (trans
+              (sym (<>>-length az (az' <>> (a ∷ as))))
+              (trans
+                (cong
+                  Data.List.length
+                  (<>>2<>>' az (az' <>> (a ∷ as)) (az' <>> []) p))
+                (<>>-length az' []))))))
+      (+-comm (bwd-length az') 0))))
+
+<>>-cancel-both' : ∀{A}(az az' az'' : Bwd A)(as : List A)
+  → az <>> (az' <>> as) ∈ (az'' <>> []) → bwd-length az' ≡ bwd-length az''
+  → az ≡ [] × as ≡ [] × az' ≡ az''
+<>>-cancel-both' az az' az'' [] p q
+  with <>>-lcancel' az (az'' <>> []) (az' <>> []) (sym (<>>2<>>' _ _ _ p)) (trans (<>>-length az'' []) (trans (cong (Data.Nat._+ 0) (sym q)) (sym (<>>-length az' []))))
+... | refl ,, Y = refl ,, refl ,, sym (trans (trans (sym (lemma<>2 az'' [])) (cong ([] <><_) Y)) (lemma<>2 az' []))
+<>>-cancel-both' az az' az'' (a ∷ as) p q = ⊥-elim (m+1+n≢0
+  _
+  (+-cancelʳ-≡
+    _
+    0
+    (trans
+      (trans
+        (+-assoc (bwd-length az) (Data.List.length (a ∷ as)) (bwd-length az'))
+        (trans
+          (cong
+            (bwd-length az Data.Nat.+_)
+            (+-comm (Data.List.length (a ∷ as)) (bwd-length az')))
+          (trans
+            (cong
+              (bwd-length az Data.Nat.+_)
+              (sym (<>>-length az' (a ∷ as))))
+            (trans
+              (sym (<>>-length az (az' <>> (a ∷ as))))
+              (trans
+                (cong
+                  Data.List.length
+                  (<>>2<>>' az (az' <>> (a ∷ as)) (az'' <>> []) p))
+                (trans (<>>-length az'' []) (cong (Data.Nat._+ 0) (sym q))))))))
+      (+-comm (bwd-length az') 0))))
+
 
 open import Data.Product
 

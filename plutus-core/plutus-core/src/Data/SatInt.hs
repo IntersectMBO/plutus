@@ -4,6 +4,7 @@ Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max
 This is not quite as fast as using 'Int' or 'Int64' directly, but we need the safety.
 -}
 {-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
@@ -17,6 +18,9 @@ import Data.Csv
 import Data.Primitive (Prim)
 import GHC.Base
 import GHC.Generics
+#if MIN_VERSION_base(4,16,0)
+import GHC.Integer (smallInteger)
+#endif
 import GHC.Num
 import GHC.Real
 import Language.Haskell.TH.Syntax (Lift)

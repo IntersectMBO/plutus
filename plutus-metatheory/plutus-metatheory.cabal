@@ -1,4 +1,4 @@
-cabal-version:       2.4
+cabal-version:       3.0
 name:                plutus-metatheory
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs
@@ -48,7 +48,8 @@ library
                  process -any,
                  optparse-applicative -any,
                  text -any,
-                 transformers -any
+                 transformers -any,
+                 megaparsec -any
   exposed-modules:
     MAlonzo.Code.Main
     MAlonzo.Code.Agda.Builtin.Bool
@@ -151,6 +152,7 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Declarative
     MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -213,10 +215,9 @@ library
     MAlonzo.Code.Utils
     MAlonzo.RTE
     MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
@@ -272,6 +273,7 @@ library
     MAlonzo.Code.Algorithmic.CC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
+    MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
@@ -403,11 +405,9 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.RTE
-    MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
@@ -476,6 +476,7 @@ test-suite test3
     mtl -any,
     plutus-metatheory,
     plutus-core,
+    plutus-core:plutus-core-testlib,
     size-based -any,
     Stream -any,
     tasty -any,

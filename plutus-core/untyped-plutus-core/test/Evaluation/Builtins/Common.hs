@@ -10,7 +10,7 @@ module Evaluation.Builtins.Common
     ) where
 
 import PlutusCore qualified as TPLC
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -60,5 +60,5 @@ typecheckReadKnownCek
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException uni fun) a)
+    -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

@@ -28,7 +28,7 @@ module PlutusCore.Evaluation.Machine.Ck
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
@@ -41,7 +41,6 @@ import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
-import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -68,13 +67,13 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    TypeSchemeResult _ -> do
+    RuntimeSchemeResult -> do
         let (errOrRes, logs) = makeKnownRun (Just term) x
         emitCkM logs
         case errOrRes of
-            Left err  -> throwError err
+            Left err  -> throwMakeKnownErrorWithCause err
             Right res -> pure res
-    _                  -> pure $ VBuiltin term runtime
+    _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -280,8 +279,8 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        TypeSchemeAll  _ schK -> do
-            let runtime' = BuiltinRuntime (schK Proxy) f exF
+        RuntimeSchemeAll schK -> do
+            let runtime' = BuiltinRuntime schK f exF
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -306,12 +305,13 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        TypeSchemeArrow _ schB -> do
-            x <- readKnown (Just argTerm) arg
-            let noCosting = error "The CK machine does not support costing"
-                runtime' = BuiltinRuntime schB (f x) noCosting
-            res <- evalBuiltinApp term' runtime'
-            stack <| res
+        RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
+            Left err -> throwReadKnownErrorWithCause err
+            Right x  -> do
+                let noCosting = error "The CK machine does not support costing"
+                    runtime' = BuiltinRuntime schB (f x) noCosting
+                res <- evalBuiltinApp term' runtime'
+                stack <| res
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =

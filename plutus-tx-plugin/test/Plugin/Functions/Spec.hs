@@ -13,16 +13,16 @@
 
 module Plugin.Functions.Spec where
 
-import Common
-import Lib
-import PlcTestUtils
-import Plugin.Lib
+import Test.Tasty.Extras
 
 import Plugin.Data.Spec
+import Plugin.Lib
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Test
 
 import Data.Proxy
 

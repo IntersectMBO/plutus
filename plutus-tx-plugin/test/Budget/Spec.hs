@@ -9,15 +9,15 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 
+
 module Budget.Spec where
 
-import Budget.Lib (goldenBudget)
-import Common
-import Lib (goldenPir)
+import Test.Tasty.Extras
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenBudget, goldenPir)
 
 tests :: TestNested
 tests = testNested "Budget" [

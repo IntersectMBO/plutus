@@ -15,18 +15,17 @@ module Plutus.V1.Ledger.Bytes ( LedgerBytes (..)
                 , fromHex
                 , bytes
                 , fromBytes
+                , encodeByteString
                 ) where
 
-import Codec.Serialise
 import Control.DeepSeq (NFData)
-import Data.Aeson (FromJSON (..), ToJSON (..))
-import Data.Aeson qualified as JSON
-import Data.Aeson.Extras qualified as JSON
 import Data.ByteString qualified as BS
+import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Internal (c2w, w2c)
 import Data.Either.Extras (unsafeFromEither)
 import Data.String (IsString (..))
 import Data.Text qualified as Text
+import Data.Text.Encoding qualified as TE
 import Data.Word (Word8)
 import GHC.Generics (Generic)
 import PlutusTx qualified as PlutusTx
@@ -64,13 +63,10 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
           withBytes :: ([Word8] -> Either String [Word8]) -> BS.ByteString -> Either String BS.ByteString
           withBytes f = fmap BS.pack . f . BS.unpack
 
--- | 'Bultins.SizedByteString 32' with various useful JSON and
---   servant instances for the Playground, and a convenient bridge
---   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
-    deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
+    deriving newtype (P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving anyclass (NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
 
 bytes :: LedgerBytes -> BS.ByteString
@@ -83,12 +79,9 @@ instance IsString LedgerBytes where
     fromString = unsafeFromEither . fromHex . fromString
 
 instance Show LedgerBytes where
-    show = Text.unpack . JSON.encodeByteString . bytes
+    show = Text.unpack . encodeByteString . bytes
 
-instance ToJSON LedgerBytes where
-    toJSON = JSON.String . JSON.encodeByteString . bytes
-
-instance FromJSON LedgerBytes where
-    parseJSON v = fromBytes <$> JSON.decodeByteString v
+encodeByteString :: BS.ByteString -> Text.Text
+encodeByteString = TE.decodeUtf8 . Base16.encode
 
 makeLift ''LedgerBytes

@@ -116,7 +116,6 @@ import Data.Maybe (isJust)
 import Data.SatInt
 import Data.Text (Text)
 import Data.Tuple
-import Plutus.V1.Ledger.Ada
 import Plutus.V1.Ledger.Address
 import Plutus.V1.Ledger.Bytes
 import Plutus.V1.Ledger.Contexts
@@ -124,10 +123,8 @@ import Plutus.V1.Ledger.Credential
 import Plutus.V1.Ledger.Crypto
 import Plutus.V1.Ledger.DCert
 import Plutus.V1.Ledger.Interval hiding (singleton)
-import Plutus.V1.Ledger.Scripts hiding (mkTermToEvaluate)
-import Plutus.V1.Ledger.Scripts qualified as Scripts
+import Plutus.V1.Ledger.Scripts as Scripts
 import Plutus.V1.Ledger.Time
-import Plutus.V1.Ledger.TxId
 import Plutus.V1.Ledger.Value
 import PlutusCore as PLC
 import PlutusCore.Data qualified as PLC
@@ -142,6 +139,7 @@ import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBu
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
 import Prettyprinter
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Scope qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 {- Note [Abstract types in the ledger API]
@@ -178,7 +176,7 @@ type SerializedScript = ShortByteString
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
-    CekError (UPLC.CekEvaluationException PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
+    CekError (UPLC.CekEvaluationException PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError PLC.FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError CBOR.DeserialiseFailure -- ^ A serialisation error
     | IncompatibleVersionError (PLC.Version ()) -- ^ An error indicating a version tag that we don't support
@@ -193,13 +191,17 @@ instance Pretty EvaluationError where
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
--- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
-mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+-- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
+mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
     s@(Script (UPLC.Program _ v _)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    UPLC.Program _ _ t <- liftEither $ first DeBruijnError $ Scripts.mkTermToEvaluate (Scripts.applyArguments s args)
-    pure t
+    let appliedScript = unScript $ Scripts.applyArguments s args
+        -- add fake names to keep the api working on NamedDeBruijn
+        namedT = UPLC.termMapNames UPLC.fakeNameDeBruijn $ UPLC._progTerm appliedScript
+    -- make sure that term is closed, i.e. well-scoped
+    liftEither $ first DeBruijnError $ UPLC.checkScope namedT
+    pure namedT
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -221,7 +223,7 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
-            UPLC.runCek
+            UPLC.runCekDeBruijn
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
@@ -248,7 +250,7 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.CountingSt final, logs) =
-            UPLC.runCek
+            UPLC.runCekDeBruijn
                 (toMachineParameters model)
                 UPLC.counting
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)

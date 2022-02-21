@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
-
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -17,7 +15,7 @@ module PlutusCore.Default.Builtins where
 
 import PlutusPrelude
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -132,12 +130,374 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
+{- Note [How to add a built-in function: simple cases]
+This Notes explains how to add a built-in function and how to read definitions of existing built-in
+functions. It does not attempt to explain why things the way they are, that is explained in comments
+in relevant files (will have a proper overview doc on that, but for now you can check out this
+comment: https://github.com/input-output-hk/plutus/issues/4306#issuecomment-1003308938).
+
+In order to add a new built-in function one needs to add a constructor to 'DefaultFun' and handle
+it within the @ToBuiltinMeaning uni DefaultFun@ instance like this:
+
+    toBuiltinMeaning <Name> =
+        makeBuiltinMeaning
+            <denotation>
+            <costingFunction>
+
+'makeBuiltinMeaning' creates a Plutus builtin out of its denotation (i.e. Haskell implementation)
+and a costing function for it. Once a builtin is added, its Plutus type is kind-checked and printed
+to a golden file automatically (consult @git status@).
+
+Below we will enumerate what kind of denotations are accepted by 'makeBuiltinMeaning' without
+touching any costing stuff.
+
+1. The simplest example of an accepted denotation is a monomorphic function that takes values of
+built-in types and returns a value of a built-in type as well. For example
+
+    encodeUtf8 :: Text -> BS.ByteString
+
+You can feed 'encodeUtf8' directly to 'makeBuiltinMeaning' without specifying any types:
+
+    toBuiltinMeaning EncodeUtf8 =
+        makeBuiltinMeaning
+            encodeUtf8
+            <costingFunction>
+
+This will add the builtin, the only two things that remain are implementing costing for this
+builtin (out of the scope of this Note) and handling it within the @Flat DefaultFun@ instance
+(see Note [Stable encoding of PLC]).
+
+2. If the type of the denotation has any constrained type variables in it, all of them need to be
+instantiated. For example feeding @(+)@ directly to 'makeBuiltinMeaning' will give you an error
+message asking to instantiate constrained type variables, which you can do via an explicit type
+annotation or type application or using any other way of specifying types.
+
+Here's how it looks with a type application instantiating the type variable of @(+)@:
+
+    toBuiltinMeaning AddInteger =
+        makeBuiltinMeaning
+            ((+) @Integer)
+            <costingFunction>
+
+Or we can specify the whole type of the denotation by type-applying 'makeBuiltinMeaning':
+
+    toBuiltinMeaning AddInteger =
+        makeBuiltinMeaning
+            @(Integer -> Integer -> Integer)
+            (+)
+            <costingFunction>
+
+Or we can simply annotate @(+)@ with its monomorphized type:
+    toBuiltinMeaning AddInteger =
+        makeBuiltinMeaning
+            ((+) :: Integer -> Integer -> Integer)
+            <costingFunction>
+
+All of these are equivalent.
+
+3. Unconstrained type variables are fine, you don't need to instantiate them (but you may want to if
+you want some builtin to be less general than what Haskell infers for its denotation). For example
+
+    toBuiltinMeaning IfThenElse =
+        makeBuiltinMeaning
+            (\b x y -> if b then x else y)
+            <costingFunction>
+
+works alright. The inferred Haskell type of the denotation is
+
+    forall a. Bool -> a -> a -> a
+
+whose counterpart in Plutus is
+
+    all a. bool -> a -> a -> a
+
+and unsurprisingly it's the exact Plutus type of the added builtin.
+
+It may seem like getting the latter from the former is entirely trivial, however
+'makeBuiltinMeaning' jumps through quite a few hoops to achieve that and below we'll consider those
+of them that are important to know to be able to use 'makeBuiltinMeaning' in cases that are more
+complicated than a simple monomorphic or polymorphic function. But for now let's talk about a few
+more simple cases.
+
+4. Certain types are not built-in, but can be represented via built-in ones. For example, we don't
+have 'Int' as a built-in, but we have 'Integer' and we can represent the former in terms of the
+latter. The conversions between the two types are handled by 'makeBuiltinMeaning', so that the user
+doesn't need to write them themselves and can just write
+
+    toBuiltinMeaning LengthOfByteString =
+        makeBuiltinMeaning
+            BS.length
+            <costingFunction>
+
+directly (where @BS.length :: BS.ByteString -> Int@).
+
+Note however that while it's always safe to convert an 'Int' to an 'Integer', doing the opposite is
+not safe in general, because an 'Integer' may not fit into the range of 'Int'. For this reason
+
+    YOU MUST NEVER USE 'fromIntegral' AND SIMILAR FUNCTIONS THAT CAN SILENTLY UNDER- OR OVERFLOW
+    WHEN DEFINING A BUILT-IN FUNCTION
+
+For example defining a builtin that takes an 'Integer' and converts it to an 'Int' using
+'fromIntegral' is not allowed under any circumstances and can be a huge vulnerability.
+
+It's completely fine to define a builtin that takes an 'Int' directly, though. How so? That's due
+to the fact that the builtin application machinery checks that an 'Integer' is in the bounds of
+'Int' before doing the conversion. If the bounds check succeeds, then the 'Integer' gets converted
+to the corresponding 'Int', and if it doesn't, then the builtin application fails.
+
+For the list of types that can be converted to/from built-in ones look into the file with the
+default universe. If you need to add a new such type, just copy-paste what's done for an existing
+one and adjust.
+
+Speaking of builtin application failing:
+
+5. A built-in function can fail. Whenever a builtin fails, evaluation of the whole program fails.
+There's a number of ways a builtin can fail:
+
+- as we've just seen a type conversion can fail due to an unsuccessful bounds check
+- if the builtin expects, say, a 'Text' argument, but gets fed an 'Integer' argument
+- if the builtin expects any constant, but gets fed a non-constant
+- if its denotation runs in the 'EvaluationResult' and an 'EvaluationFailure' gets returned
+
+Most of these are not a concern to the user defining a built-in function (conversions are handled
+within the builtin application machinery, type mismatches are on the type checker and the person
+writing the program etc), however explicitly returning 'EvaluationFailure' from a builtin is
+something that happens commonly.
+
+One simple example is a monomorphic function matching on a certain constructor and failing in all
+other cases:
+
+    toBuiltinMeaning UnIData =
+        makeBuiltinMeaning
+            (\case
+                I i -> EvaluationSuccess i
+                _   -> EvaluationFailure)
+            <costingFunction>
+
+The inferred type of the denotation is
+
+    Data -> EvaluationResult Integer
+
+and the Plutus type of the builtin is
+
+    data -> integer
+
+because the error effect is implicit in Plutus.
+
+Returning @EvaluationResult a@ for a type variable @a@ is also fine, i.e. it doesn't matter whether
+the denotation is monomorphic or polymorphic w.r.t. failing.
+
+But note that
+
+    'EvaluationResult' MUST BE EXPLICITLY USED FOR ANY FAILING BUILTIN AND THROWING AN EXCEPTION
+    VIA 'error' OR 'throw' OR ELSE IS NOT ALLOWED AND CAN BE A HUGE VULNERABILITY. MAKE SURE THAT
+    NONE OF THE FUNCTIONS THAT YOU USE TO DEFINE A BUILTIN THROW EXCEPTIONS
+
+An argument of a builtin can't have 'EvaluationResult' in its type -- only the result.
+
+6. A builtin can emit log messages. For that it needs to run in the 'Emitter' monad. The ergonomics
+are the same as with 'EvaluationResult': 'Emitter' can't appear in the type of an argument and
+polymorphism is fine. For example:
+
+    toBuiltinMeaning Trace =
+        makeBuiltinMeaning
+            (\text a -> a <$ emitM text)
+            <costingFunction>
+
+The inferred type of the denotation is
+
+    forall a. Text -> a -> Emitter a
+
+and the Plutus type of the builtin is
+
+    all a. text -> a -> a
+
+because just like with the error effect, whether a function logs anything or not is not reflected
+in its type.
+
+'makeBuiltinMeaning' allows one to nest 'EvaluationResult' inside of 'Emitter' and vice versa,
+but as always nesting monads inside of each other without using monad transformers doesn't have good
+ergonomics, since computations of such a type can't be chained with a simple @(>>=)@.
+
+This concludes the list of simple cases. Before we jump to the hard ones, we need to talk about how
+polymorphism gets elaborated, so read Note [Elaboration of polymorphism] next.
+-}
+
+{- Note [Elaboration of polymorphism]
+In Note [How to add a built-in function: simple cases] we defined the following builtin:
+
+    toBuiltinMeaning IfThenElse =
+        makeBuiltinMeaning
+            (\b x y -> if b then x else y)
+            <costingFunction>
+
+whose inferred Haskell type is
+
+    forall a. Bool -> a -> a -> a
+
+The way 'makeBuiltinMeaning' handles such a type is by traversing it and instantiating every type
+variable. What a type variable gets instantiated to depends on where it appears. When the entire
+type of an argument is a single type variable, it gets instantiated to @Opaque val VarN@ where
+@VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N"
+For the purpose of this explanation it doesn't matter what @VarN@ actually is and the representation
+is subject to change anyway. 'Opaque' however is more fundamental and so we need to talk about it.
+Here's how it's defined:
+
+    newtype Opaque val (rep :: GHC.Type) = Opaque
+        { unOpaque :: val
+        }
+
+I.e. @Opaque val rep@ is a wrapper around @val@, which stands for the type of value that an
+evaluator uses (the builtins machinery is designed to work with any evaluator and different
+evaluators define their type of values differently, for example 'CkValue' if the type of value for
+the CK machine). The idea is simple: in order to apply the denotation of a builtin expecting, say,
+an 'Integer' constant we need to actually extract that 'Integer' from the AST of the given value,
+but if the denotation is polymorphic over the type of its argument, then we don't need to extract
+anything, we can just pass the AST of the value directly to the denotation. I.e. in order for a
+polymorphic function to become a monomorphic denotation (denotations are always monomorpic) all type
+variables in the type of that function need to be instantiated at the type of value that a given
+evaluator uses.
+
+If we used just @val@ rathen than @Opaque val rep@, we'd specialize
+
+    forall a. Bool -> a -> a -> a
+
+to
+
+    Bool -> val -> val -> val
+
+however then we'd need to separately specify the Plutus type of this builtin, since we can't infer
+it from all these @val@s in the general case, for example does
+
+    val -> val -> val
+
+stand for
+
+    all a. a -> a -> a
+
+or
+
+    all a b. a -> b -> a
+
+or something else?
+
+So we use the @Opaque val rep@ wrapper, which is basically a @val@ with a @rep@ attached to it where
+@rep@ represents the Plutus type of the argument/result, which is how we arrive at
+
+    Bool -> Opaque val Var0 -> Opaque val Var0 -> Opaque val Var0
+
+Not only does this encoding allow us to specify both the Haskell and the Plutus types of the
+builtin simultaneously, but it also makes it possible to infer such a type from a regular
+polymorphic Haskell function (how that is done is a whole another story), so that we don't even need
+to specify any types when creating builtins out of simple polymorphic functions.
+
+If we wanted to specify the type explicitly, we could do it like this (leaving out the @Var0@ thing
+for the elaboration machinery to figure out):
+
+    toBuiltinMeaning IfThenElse =
+        makeBuiltinMeaning
+            @(Bool -> Opaque val _ -> Opaque val _ -> Opaque val _)
+            (\b x y -> if b then x else y)
+            <costingFunction>
+
+and it would be equivalent to the original definition. We didn't do that, because why bother if
+the correct thing gets inferred anyway.
+
+Another thing we could do is define an auxiliary function with a type signature and explicit
+'Opaque' while still having explicit polymorphism:
+
+    ifThenElse :: Bool -> Opaque val a -> Opaque val a -> Opaque val a
+    ifThenElse b x y = if b then x else y
+
+    toBuiltinMeaning IfThenElse =
+        makeBuiltinMeaning
+            ifThenElse
+            <costingFunction>
+
+This achieves the same, but note how @a@ is now an argument to 'Opaque' rather than the entire type
+of an argument. In order for this definition to elaborate to the same type as before @a@ needs to be
+instantiated to just @Var0@, as opposed to @Opaque val Var0@, because the 'Opaque' part is
+already there, so this is what the elaboration machinery does.
+
+So regardless of which method of defining 'IfThenElse' we choose, the type of its denotation gets
+elaborated to the same
+
+    Bool -> Opaque val Var0 -> Opaque val Var0 -> Opaque val Var0
+
+which then gets digested, so that we can compute what Plutus type it corresponds to. The procedure
+is simple: collect all distinct type variables, @all@-bind them and replace the usages with the
+bound variables. This turns the type above into
+
+    all a. bool -> a -> a -> a
+
+which is the Plutus type of the 'IfThenElse' builtin.
+
+It's of course allowed to have multiple type variables, e.g. in the following snippet:
+
+    toBuiltinMeaning Const =
+        makeBuiltinMeaning
+            Prelude.const
+            <costingFunction>
+
+the Haskell type of 'const' gets inferred as
+
+    forall a b. a -> b -> a
+
+and the elaboration machinery turns that into
+
+    Opaque val Var0 -> Opaque val Var1 -> Opaque val Var0
+
+The elaboration machinery respects the explicitly specified parts of the type and does not attempt
+to argue with them. For example if the user insisted that the instantiated type of 'const' had
+@Var0@ and @Var1@ swapped:
+
+    Opaque val Var1 -> Opaque val Var0 -> Opaque val Var1
+
+the elaboration machinery wouldn't make a fuss about that.
+
+As a final simple example, consider
+
+    toBuiltinMeaning Trace =
+        makeBuiltinMeaning
+            (\text a -> a <$ emitM text)
+            <costingFunction>
+
+from [How to add a built-in function: simple cases]. The inferred type of the denotation is
+
+    forall a. Text -> a -> Emitter a
+
+which elaborates to
+
+    Text -> Opaque val Var0 -> Emitter (Opaque val Var0)
+
+Elaboration machinery is able to look under 'Emitter' and 'EvaluationResult' even if there's a type
+variable inside that does not appear anywhere else in the type signature, for example the inferred
+type of the denotation in
+
+    toBuiltinMeaning ErrorPrime =
+        makeBuiltinMeaning
+            EvaluationFailure
+            <costingFunction>
+
+is
+
+    forall a. EvaluationResult a
+
+which gets elaborated to
+
+    EvaluationResult (Opaque val Var0)
+
+from which the final Plutus type of the builtin is computed:
+
+    all a. a
+-}
+
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     -- Integers
     toBuiltinMeaning
-        :: forall term. HasConstantIn uni term
-        => DefaultFun -> BuiltinMeaning term BuiltinCostModel
+        :: forall val. HasConstantIn uni val
+        => DefaultFun -> BuiltinMeaning val BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)
@@ -248,7 +608,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramDecodeUtf8)
     -- Bool
     toBuiltinMeaning IfThenElse =
-       makeBuiltinMeaning
+        makeBuiltinMeaning
             (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
     -- Unit
@@ -267,8 +627,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             fstPlc
             (runCostingFunOneArgument . paramFstPair)
         where
-          fstPlc :: SomeConstantPoly uni (,) '[a, b] -> EvaluationResult (Opaque term a)
-          fstPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
+          fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
+          fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
               pure . fromConstant . someValueOf uniA $ fst xy
           {-# INLINE fstPlc #-}
@@ -277,8 +637,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             sndPlc
             (runCostingFunOneArgument . paramSndPair)
         where
-          sndPlc :: SomeConstantPoly uni (,) '[a, b] -> EvaluationResult (Opaque term b)
-          sndPlc (SomeConstantPoly (Some (ValueOf uniPairAB xy))) = do
+          sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
+          sndPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
               pure . fromConstant . someValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
@@ -288,8 +648,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)
         where
-          choosePlc :: SomeConstantPoly uni [] '[a] -> b -> b -> EvaluationResult b
-          choosePlc (SomeConstantPoly (Some (ValueOf uniListA xs))) a b = do
+          choosePlc :: SomeConstant uni [a] -> b -> b -> EvaluationResult b
+          choosePlc (SomeConstant (Some (ValueOf uniListA xs))) a b = do
             DefaultUniList _ <- pure uniListA
             pure $ case xs of
                 []    -> a
@@ -301,12 +661,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMkCons)
         where
           consPlc
-              :: SomeConstant uni a
-              -> SomeConstantPoly uni [] '[a]
-              -> EvaluationResult (Opaque term (SomeConstantPoly uni [] '[a]))
+              :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+            (SomeConstant (Some (ValueOf uniListA xs))) = do
                 DefaultUniList uniA' <- pure uniListA
                 -- Checking that the type of the constant is the same as the type of the elements
                 -- of the unlifted list. Note that there's no way we could enforce this statically
@@ -322,8 +680,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             headPlc
             (runCostingFunOneArgument . paramHeadList)
         where
-          headPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult (Opaque term a)
-          headPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+          headPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val a)
+          headPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
               pure . fromConstant $ someValueOf uniA x
@@ -333,10 +691,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             tailPlc
             (runCostingFunOneArgument . paramTailList)
         where
-          tailPlc
-            :: listA ~ SomeConstantPoly uni [] '[a]
-            => listA -> EvaluationResult (Opaque term listA)
-          tailPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+          tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+          tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs
               pure . fromConstant $ someValueOf uniListA xs'
@@ -346,8 +702,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             nullPlc
             (runCostingFunOneArgument . paramNullList)
         where
-          nullPlc :: SomeConstantPoly uni [] '[a] -> EvaluationResult Bool
-          nullPlc (SomeConstantPoly (Some (ValueOf uniListA xs))) = do
+          nullPlc :: SomeConstant uni [a] -> EvaluationResult Bool
+          nullPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               pure $ null xs
           {-# INLINE nullPlc #-}

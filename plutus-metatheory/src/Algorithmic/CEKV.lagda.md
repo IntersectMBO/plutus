@@ -31,8 +31,6 @@ open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Empty
 
-open import Algorithmic.ReductionEC using (_<>>_∈_;start;bubble;saturated;<>>2<>>';lemma<>2;unique<>>;<>>-cancel-both;<>>-cancel-both')
-
 data Env : Ctx ∅ → Set
 
 data BApp (b : Builtin) : ∀{az}{as}
@@ -136,70 +134,70 @@ discharge (V-con c)  = con c
 discharge (V-I⇒ b p bt) = dischargeB bt
 discharge (V-IΠ b p bt) = dischargeB bt
 
-BUILTIN : ∀ b {A} → BApp b (saturated (arity b)) A → Value A ⊎ ∅ ⊢Nf⋆ *
-BUILTIN addInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i + i')))
-BUILTIN subtractInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i - i')))
-BUILTIN multiplyInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₁ (V-con (integer (i ** i')))
+BUILTIN : ∀ b {A} → BApp b (saturated (arity b)) A → Either (∅ ⊢Nf⋆ *) (Value A)
+BUILTIN addInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
+BUILTIN subtractInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
+BUILTIN multiplyInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
 BUILTIN divideInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₂ (con integer))
-  (inj₁ (V-con (integer (div i i'))))
+  (inj₁ (con integer))
+  (inj₂ (V-con (integer (div i i'))))
 BUILTIN quotientInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₂ (con integer))
-  (inj₁ (V-con (integer (quot i i'))))
+  (inj₁ (con integer))
+  (inj₂ (V-con (integer (quot i i'))))
 BUILTIN remainderInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₂ (con integer))
-  (inj₁ (V-con (integer (rem i i'))))
+  (inj₁ (con integer))
+  (inj₂ (V-con (integer (rem i i'))))
 BUILTIN modInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₂ (con integer))
-  (inj₁ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₁ (V-con (bool true))) (inj₁ (V-con (bool false)))
-BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bytestring (concat b b')))
-BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (B> b b')))
-BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₁ (V-con
+  (inj₁ (con integer))
+  (inj₂ (V-con (integer (mod i i'))))
+BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
+BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
+BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B> b b')))
+BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₂ (V-con
   (bytestring (SHA2-256 b)))
 BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
-  inj₁ (V-con (bytestring (SHA3-256 b)))
+  inj₂ (V-con (bytestring (SHA3-256 b)))
 BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
-  inj₁ (V-con (bytestring (BLAKE2B-256 b)))
+  inj₂ (V-con (bytestring (BLAKE2B-256 b)))
 BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
-... | just b = inj₁ (V-con (bool b))
-... | nothing = inj₂ (con bool)
+... | just b = inj₂ (V-con (bool b))
+... | nothing = inj₁ (con bool)
 BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
-  inj₁ (V-con (bytestring (ENCODEUTF8 s)))
+  inj₂ (V-con (bytestring (ENCODEUTF8 s)))
 BUILTIN decodeUtf8 (app _ base (V-con (bytestring b))) with DECODEUTF8 b
-... | nothing = inj₂ (con string)
-... | just s  = inj₁ (V-con (string s))
-BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₁ (V-con (bool (equals b b')))
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₁ vf
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₁ vt
-BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (string (primStringAppend s s')))
+... | nothing = inj₁ (con string)
+... | just s  = inj₂ (V-con (string s))
+BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
+BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₂ vf
+BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₂ vt
+BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (string (primStringAppend s s')))
 BUILTIN trace (app _ (app _ (app⋆ _ base refl) (V-con (string s))) v) =
-  inj₁ (TRACE s v)
+  inj₂ (TRACE s v)
 BUILTIN iData (app _ base (V-con (integer i))) =
-  inj₁ (V-con (Data (iDATA i)))
+  inj₂ (V-con (Data (iDATA i)))
 BUILTIN bData (app _ base (V-con (bytestring b))) =
-  inj₁ (V-con (Data (bDATA b)))
-BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (cons i b)))
-BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₁ (V-con (bytestring (slice st n b)))
+  inj₂ (V-con (Data (bDATA b)))
+BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
+BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
 BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
-  inj₁ (V-con (integer (length b)))
+  inj₂ (V-con (integer (length b)))
 BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = inj₂ (con integer)
+... | no  _ = inj₁ (con integer)
 ... | yes _ with i <? length b
-... | no _  = inj₂ (con integer)
-... | yes _ = inj₁ (V-con (integer (index b i)))
-BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₁ (V-con (bool (primStringEquality s s')))
-BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₁ (V-con (integer i))
+... | no _  = inj₁ (con integer)
+... | yes _ = inj₂ (V-con (integer (index b i)))
+BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
+BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₂ (V-con (integer i))
 BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
-  inj₁ (V-con (bytestring b))
-BUILTIN _ {A} _ = inj₂ A
+  inj₂ (V-con (bytestring b))
+BUILTIN _ {A} _ = inj₁ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
   → ∀{A}
@@ -213,8 +211,8 @@ BUILTIN' : ∀ b {A}{az}(p : az <>> [] ∈ arity b)
 BUILTIN' b {az = az} p q
   with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
 ... | refl with BUILTIN b (convBApp b p (saturated (arity b)) q)
-... | inj₁ V = discharge V
-... | inj₂ A = error _
+... | inj₂ V = discharge V
+... | inj₁ A = error _
 
 open import Data.Product using (∃)
 
