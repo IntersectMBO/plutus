@@ -112,7 +112,7 @@ kind = inParens (typeKind <|> funKind)
 
 -- | Parser for @PType@.
 pType :: Parser PType
-pType = choice
+pType = choice $ map try
     [ funType
     , ifixType
     , allType
