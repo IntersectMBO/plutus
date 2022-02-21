@@ -41,6 +41,7 @@ import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
+import Data.Foldable (traverse_)
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -69,7 +70,7 @@ evalBuiltinApp
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
     RuntimeSchemeResult -> do
         let (errOrRes, logs) = makeKnownRun (Just term) x
-        emitCkM logs
+        traverse_ emitCkM logs
         case errOrRes of
             Left err  -> throwMakeKnownErrorWithCause err
             Right res -> pure res
@@ -113,12 +114,12 @@ instance AsEvaluationFailure CkUserError where
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-emitCkM :: DList Text -> CkM uni fun s ()
-emitCkM logs = do
+emitCkM :: Text -> CkM uni fun s ()
+emitCkM str = do
     mayLogsRef <- asks ckEnvMayEmitRef
     case mayLogsRef of
         Nothing      -> pure ()
-        Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.append` logs)
+        Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
 type instance UniOf (CkValue uni fun) = uni
 
