@@ -21,17 +21,17 @@ module PlutusCore.Flat
 import PlutusCore.Core
 import PlutusCore.Data
 import PlutusCore.DeBruijn
-import PlutusCore.Lexer.Type
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+import Data.Coerce
 import Data.Functor
 import Data.Proxy
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import Numeric.Natural
+import GHC.Natural.Extras
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -326,17 +326,16 @@ instance ( Flat ann
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
 
-instance Flat a => Flat (Token a)
--- instance Flat AlexPosn
-instance Flat Keyword
-instance Flat Special
-
 -- See Note [Index (Word64) (de)serialized through Natural]
 instance Flat Index where
     -- encode from word64 to natural
     encode = encode @Natural . fromIntegral
     -- decode from natural to word64
-    decode = fromIntegral @Natural <$> decode
+    decode = do
+        n <- decode @Natural
+        case naturalToWord64Maybe n of
+            Nothing  -> fail $ "Index outside representable range: " ++ show n
+            Just w64 -> pure $ Index w64
     -- to be exact, we must not let this be generically derived,
     -- because the `gsize` would derive the size of the underlying Word64,
     -- whereas we want the size of Natural
@@ -351,6 +350,7 @@ instance Flat NamedDeBruijn where
 
 deriving newtype instance Flat NamedTyDeBruijn -- via nameddebruijn
 
+-- NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
 instance Flat (Binder DeBruijn) where
     size _ = id -- zero cost
     encode _ = mempty
@@ -365,3 +365,17 @@ deriving newtype instance Flat (Binder TyName)
 -- That would be more compact, but we don't need it at the moment.
 deriving newtype instance Flat (Binder NamedDeBruijn)
 deriving newtype instance Flat (Binder NamedTyDeBruijn)
+
+-- this instance is very similar to the Flat DeBruijn instance.
+-- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+instance Flat FakeNamedDeBruijn where
+    size  = size . fromFake -- via debruijn
+    encode  = encode . fromFake -- via debruijn
+    decode =  toFake <$> decode -- via debruijn
+
+-- this instance is very similar to the Flat (Binder DeBruijn) instance.
+-- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+instance Flat (Binder FakeNamedDeBruijn) where
+    size  = size . fromFake . coerce -- via binder debruijn
+    encode = encode . fromFake . coerce -- via binder debruijn
+    decode = coerce . toFake . coerce <$> decode @(Binder DeBruijn) -- via binder debruijn

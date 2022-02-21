@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Core.Type
@@ -13,15 +12,18 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
+    , progAnn
+    , progVer
+    , progTerm
     , bindFunM
     , bindFun
     , mapFun
     , termAnn
     , erase
     , eraseProgram
-    , progAnn
-    , progVer
-    , progTerm
+    , UVarDecl(..)
+    , uvarDeclName
+    , uvarDeclAnn
     ) where
 
 import Control.Lens
@@ -103,15 +105,21 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
-instance TPLC.AsConstant (Term name uni fun ann) where
+instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant _        (Constant _ val) = pure val
     asConstant mayCause _                = TPLC.throwNotAConstant mayCause
 
-instance TPLC.FromConstant (Term name uni fun ()) where
     fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
+
+-- | An untyped "variable declaration", i.e. a name for a variable.
+data UVarDecl name ann = UVarDecl
+    { _uvarDeclAnn  :: ann
+    , _uvarDeclName :: name
+    } deriving (Functor, Show, Generic)
+makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann

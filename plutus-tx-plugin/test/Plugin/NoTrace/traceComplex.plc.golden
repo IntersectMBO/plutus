@@ -1,8 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind (strict) (vardecl t (con string)) (con string "no"))
-    (termbind (strict) (vardecl t (con string)) (con string "yes"))
     (datatypebind
       (datatype
         (tyvardecl Bool (type))
@@ -22,19 +20,7 @@
           [
             { [ Bool_match ds ] (all dead (type) Unit) } (abs dead (type) Unit)
           ]
-          (abs
-            dead
-            (type)
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl thunk (con unit))
-                [ { [ Unit_match Unit ] (con unit) } (con unit ()) ]
-              )
-              (error Unit)
-            )
-          )
+          (abs dead (type) (error Unit))
         ]
         (all dead (type) dead)
       }

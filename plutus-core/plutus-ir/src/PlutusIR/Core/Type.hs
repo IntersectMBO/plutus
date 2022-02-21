@@ -30,7 +30,7 @@ import PlutusPrelude
 import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (AsConstant (..), FromConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
@@ -63,7 +63,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- Bindings
 
 -- | Each multi-let-group has to be marked with its scoping:
--- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifer cannot refer to itself or later-introduced identifiers of the group.
+-- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
@@ -129,11 +129,10 @@ data Term tyname name uni fun a =
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance AsConstant (Term tyname name uni fun ann) where
+instance HasConstant (Term tyname name uni fun ()) where
     asConstant _        (Constant _ val) = pure val
     asConstant mayCause _                = throwNotAConstant mayCause
 
-instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
@@ -168,7 +167,7 @@ applyProgram
     -> Program tyname name uni fun a
 applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
 
-termAnn :: Term tynam name uni fun a -> a
+termAnn :: Term tyname name uni fun a -> a
 termAnn t = case t of
   Let a _ _ _    -> a
   Var a _        -> a

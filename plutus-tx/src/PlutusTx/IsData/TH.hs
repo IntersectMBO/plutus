@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
@@ -160,5 +161,10 @@ makeIsDataIndexed name indices = do
 
     pure [toDataInst, fromDataInst, unsafeFromDataInst]
     where
-        tyvarbndrName (TH.PlainTV n)    = n
-        tyvarbndrName (TH.KindedTV n _) = n
+#if MIN_VERSION_template_haskell(2,17,0)
+        tyvarbndrName (TH.PlainTV n _)    = n
+        tyvarbndrName (TH.KindedTV n _ _) = n
+#else
+        tyvarbndrName (TH.PlainTV n)      = n
+        tyvarbndrName (TH.KindedTV n _)   = n
+#endif

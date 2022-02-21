@@ -38,9 +38,9 @@ instance DeBruijnEnv (BRAL.RAList a) where
     {-# INLINABLE cons #-}
     cons = BRAL.Cons
     {-# INLINABLE index #-}
-    index e i = BRAL.safeIndexZero e (i-1)
+    index = BRAL.safeIndexOne
     {-# INLINABLE unsafeIndex #-}
-    unsafeIndex e i = BRAL.unsafeIndexZero e (i-1)
+    unsafeIndex = BRAL.unsafeIndexOne
 
 -- | A sequence implemented by a map from "levels" to values and a counter giving the "current" level.
 data RelativizedMap a = RelativizedMap (IM.IntMap a) {-# UNPACK #-} !Word64

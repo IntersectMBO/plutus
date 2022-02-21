@@ -21,18 +21,19 @@ import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
+import PlutusCore.DeBruijn
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
-import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
+import Data.Either (isLeft)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
-import Flat (flat)
-import Flat qualified
+import Data.Word (Word64)
+import Flat (flat, unflat)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -99,6 +100,17 @@ propFlat = property $ do
     prog <- forAllPretty $ runAstGen genProgram
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
+-- | Asserts that an index serialized as a 'Natural' will deserialize as 'Word64'
+-- iff it is in bounds.
+natWordSerializationProp :: Property
+natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
+    let maxWord :: Natural = fromIntegral (maxBound :: Word64)
+    (n :: Natural) <- forAll $ Gen.integral (Range.linear 0 (maxWord*2))
+    let res = unflat @Index (flat n)
+    if n <= maxWord
+    then res === Right (fromIntegral n)
+    else Hedgehog.assert (isLeft res)
+
 {- The lexer contains some quite complex regular expressions for literal
   constants, allowing escape sequences inside quoted strings among other
   things.  The lexer returns 'TkLiteralConst' tokens and then individual
@@ -109,30 +121,26 @@ propFlat = property $ do
   and programs.  We have unit tests for the unit and boolean types, and property
   tests for the full set of types in the default universe. -}
 
-type DefaultTerm  a = Term TyName Name DefaultUni DefaultFun a
-type DefaultError a = Error DefaultUni DefaultFun a
-
-parseTm :: BSL.ByteString -> Either (DefaultError AlexPosn) (DefaultTerm AlexPosn)
-parseTm = runQuote . runExceptT . parseTerm @(DefaultError AlexPosn)
+type DefaultError = Error DefaultUni DefaultFun SourcePos
 
 reprint :: PrettyPlc a => a -> BSL.ByteString
 reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
-{-| Test that the lexer/parser can successfully consume the output from the
+{-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here
-   because there are only three possiblities (@()@, @false@, and @true@). -}
+   because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
-    mapM_ (\t -> (fmap void . parseTm . reprint $ t) @?= Right t) smallConsts
+    mapM_ (\t -> (fmap void . parseTerm . reprint $ t) @?= Right t) smallConsts
         where
-          smallConsts :: [DefaultTerm ()]
+          smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
               [ mkConstant () ()
               , mkConstant () False
               , mkConstant () True
               ]
 
-{- Generate constant terms for each type in the default universe. The lexer should
+{- Generate constant terms for each type in the default universe. The parser should
   be able to consume escape sequences in characters and strings, both standard
   ASCII escape sequences and Unicode ones.  Hedgehog has generators for both of
   these, but the Unicode one essentially never generates anything readable: all
@@ -166,7 +174,7 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term reprint (fmap void . parseTerm)
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
@@ -174,17 +182,17 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     Hedgehog.tripping prog (reprint . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
+                (\p -> fmap (TextualProgram . void) $ parseProgram p)
 
-type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
+type TestFunction = BSL.ByteString -> Either DefaultError T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
+asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
-asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden :: TestFunction -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 -- TODO: evaluation tests should go under the 'Evaluation' module,
@@ -207,10 +215,9 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ [ (builtin addInteger) x ] y ])"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where
-        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+        fmt :: BSL.ByteString -> Either ParseError T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 
@@ -222,6 +229,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "lexing constants" propLexConstant
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (Flat)" propFlat
+    , testProperty "nat/word serialization test" natWordSerializationProp
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles

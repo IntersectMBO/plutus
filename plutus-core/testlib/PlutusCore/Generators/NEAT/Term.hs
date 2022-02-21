@@ -114,11 +114,11 @@ data TermConstantG = TmIntegerG Integer
                    | TmDataG Data
                    deriving (Show, Eq)
 
+deriveEnumerable ''Data
+
 deriveEnumerable ''TermConstantG
 
 deriveEnumerable ''DefaultFun
-
-deriveEnumerable ''Data
 
 data TermG tyname name
     = VarG

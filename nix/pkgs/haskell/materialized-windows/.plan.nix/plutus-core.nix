@@ -66,6 +66,7 @@
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."int-cast" or (errorHandler.buildDepError "int-cast"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
@@ -83,6 +84,7 @@
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."some" or (errorHandler.buildDepError "some"))
           (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
+          (hsPkgs."th-compat" or (errorHandler.buildDepError "th-compat"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."th-lift" or (errorHandler.buildDepError "th-lift"))
           (hsPkgs."th-lift-instances" or (errorHandler.buildDepError "th-lift-instances"))
@@ -94,10 +96,6 @@
           (hsPkgs."word-array" or (errorHandler.buildDepError "word-array"))
           (hsPkgs."cardano-crypto-class" or (errorHandler.buildDepError "cardano-crypto-class"))
           (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
-          ];
-        build-tools = [
-          (hsPkgs.buildPackages.alex.components.exes.alex or (pkgs.buildPackages.alex or (errorHandler.buildToolDepError "alex:alex")))
-          (hsPkgs.buildPackages.happy.components.exes.happy or (pkgs.buildPackages.happy or (errorHandler.buildToolDepError "happy:happy")))
           ];
         buildable = true;
         modules = [
@@ -127,10 +125,8 @@
           "PlutusCore/Default/Universe"
           "PlutusCore/Eq"
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
-          "PlutusCore/Lexer/Type"
-          "PlutusCore/Parsable"
-          "PlutusCore/Parser/Internal"
-          "PlutusCore/ParserCommon"
+          "PlutusCore/InlineUtils"
+          "PlutusCore/Parser/ParserCommon"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
@@ -154,6 +150,7 @@
           "PlutusIR/Normalize"
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
+          "UntypedPlutusCore/Analysis/Usages"
           "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
           "UntypedPlutusCore/Core/Instance/Eq"
@@ -170,13 +167,16 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/EmitterMode"
           "UntypedPlutusCore/Mark"
           "UntypedPlutusCore/Rename/Internal"
+          "UntypedPlutusCore/Simplify"
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
-          "UntypedPlutusCore/Transform/Simplify"
+          "UntypedPlutusCore/Transform/ForceDelay"
+          "UntypedPlutusCore/Transform/Inline"
           "Data/Aeson/Flatten"
           "Data/Aeson/THReader"
           "Data/Functor/Foldable/Monadic"
           "Universe/Core"
+          "GHC/Natural/Extras"
           "PlutusCore"
           "PlutusCore/Check/Normal"
           "PlutusCore/Check/Scoping"
@@ -211,7 +211,6 @@
           "PlutusCore/Examples/Everything"
           "PlutusCore/Flat"
           "PlutusCore/FsTree"
-          "PlutusCore/Lexer"
           "PlutusCore/Mark"
           "PlutusCore/MkPlc"
           "PlutusCore/Name"
@@ -277,6 +276,7 @@
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
+          "UntypedPlutusCore/MkUPlc"
           "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
           "UntypedPlutusCore/Core/Type"
@@ -379,6 +379,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -402,6 +403,7 @@
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];
@@ -426,6 +428,7 @@
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             ];
           buildable = true;
           modules = [ "Common" "Parsers" ];

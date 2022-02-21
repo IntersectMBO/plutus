@@ -26,16 +26,12 @@ import Data.ByteString qualified as BS
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
-import Data.Text.Foreign qualified as T (lengthWord16)
 import GHC.Exts (Int (I#))
 import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Prim
 import Language.Haskell.TH.Syntax (Lift)
 import Universe
-
-#include "MachDeps.h"
-
 
 {-
  ************************************************************************************
@@ -88,33 +84,19 @@ So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithm
 
 'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
 why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
-of 'Int64' is unacceptable..
+of 'Int64' is unacceptable.
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
 need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
-have much less headroom.
+would have much less headroom.
 
-However we mostly care about 64bit platforms, so this isn't too much of a
-problem. The only one where it could be a problem is GHCJS, which does present
-as a 32bit platform. However, we won't care about *performance* on GHCJS, since
-nobody will be running a node compiled to JS (and if they do, they deserve
-terrible performance). So: if we are not on a 64bit platform, then we can just
-fallback to the slower (but safe) 'Integer'.
-
+However, we don't build on 32bit platforms anyway, so we can ignore that.
 -}
 
 -- See Note [Integer types for costing]
 -- See also Note [Budgeting units] in ExBudget.hs
-type CostingInteger =
-#if WORD_SIZE_IN_BITS < 64
-    Integer
-#else
-    SatInt
-#endif
-
-
--- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+type CostingInteger = SatInt
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
@@ -173,17 +155,13 @@ instance ExMemoryUsage Integer where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory $ ((n-1) `div` 8) + 1
+  memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
 
-{- Text objects are UTF-16 encoded, which uses two bytes per character (strictly,
-   codepoint) for everything in the Basic Multilingual Plane but four bytes for
-   the other planes.  We use lengthWord16 because (a) it tells us the actual
-   number of 2-byte words used, and (2) it's O(1), but T.length is O(n).  An
-   object with memory usage n contains between 2n and 4n characters. -}
 instance ExMemoryUsage T.Text where
-  memoryUsage s = ExMemory $ ((n-1) `div` 4) + 1
-      where n = fromIntegral $ T.lengthWord16 s :: SatInt
+  -- This is slow and inaccurate, but matches the version that was originally deployed.
+  -- We may try and improve this in future so long as the new version matches this exactly.
+  memoryUsage text = memoryUsage $ T.unpack text
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
@@ -202,21 +180,21 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
                    []   -> 0
                    x:xs -> memoryUsage x + sizeList xs
 
-{- Another naive traversal for size.  This accounts for the number of nodes in a
-   Data object, and also the sizes of the contents of the nodes.  This is not
+{- Another naive traversal for size.  This accounts for the number of nodes in
+   a Data object, and also the sizes of the contents of the nodes.  This is not
    ideal, but it seems to be the best we can do.  At present this only comes
    into play for 'equalsData', which is implemented using the derived
    implementation of '==' (fortunately the costing functions are lazy, so this
    won't be called for things like 'unBData' which have constant costing
    functions because they only have to look at the top node).  The problem is
-   that when we call 'equalsData' the comparison will take place entirely in Haskell,
-   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
-   Thus if we just counted the number of nodes the sizes of 'I 2' and
-   'B <huge bytestring>' would be the same but they'd take different amounts of
-   time to compare.  It's not clear how to trade off the costs of processing a
-   units per node, but we may wish to revise this after experimentationnode and
-   processing the contents of nodes: the implementation below compromises by charging
-   four units per node, but we may wish to revise this after experimentation.
+   that when we call 'equalsData' the comparison will take place entirely in
+   Haskell, so the costing functions for the contents of 'I' and 'B' nodes
+   won't be called.  Thus if we just counted the number of nodes the sizes of
+   'I 2' and 'B <huge bytestring>' would be the same but they'd take different
+   amounts of time to compare.  It's not clear how to trade off the costs of
+   processing a node and processing the contents of nodes: the implementation
+   below compromises by charging four units per node, but we may wish to revise
+   this after experimentation.
 -}
 {- This code runs on the chain and hence should be as efficient as possible. To
    that end it's tempting to make these functions strict and tail recursive (and

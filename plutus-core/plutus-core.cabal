@@ -75,7 +75,6 @@ library
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
-        PlutusCore.Lexer
         PlutusCore.Mark
         PlutusCore.MkPlc
         PlutusCore.Name
@@ -143,6 +142,7 @@ library
         UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
+        UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core.Type
@@ -154,7 +154,6 @@ library
         ErrorCode
         PlutusPrelude
         Universe
-    build-tool-depends: alex:alex -any, happy:happy >=1.17.1
     hs-source-dirs:
         plutus-core/src
         plutus-core/stdlib
@@ -190,10 +189,8 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Lexer.Type
-        PlutusCore.Parsable
-        PlutusCore.Parser.Internal
-        PlutusCore.ParserCommon
+        PlutusCore.InlineUtils
+        PlutusCore.Parser.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName
@@ -220,6 +217,7 @@ library
         PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore.Analysis.Definitions
+        UntypedPlutusCore.Analysis.Usages
         UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
@@ -236,14 +234,17 @@ library
         UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
+        UntypedPlutusCore.Simplify
         UntypedPlutusCore.Size
         UntypedPlutusCore.Subst
-        UntypedPlutusCore.Transform.Simplify
+        UntypedPlutusCore.Transform.ForceDelay
+        UntypedPlutusCore.Transform.Inline
 
         Data.Aeson.Flatten
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
         Universe.Core
+        GHC.Natural.Extras
     build-depends:
         aeson -any,
         algebraic-graphs >= 0.3,
@@ -272,6 +273,7 @@ library
         ghc-prim -any,
         hashable,
         hedgehog >=1.0,
+        int-cast -any,
         integer-gmp -any,
         lens -any,
         megaparsec -any,
@@ -289,6 +291,7 @@ library
         serialise -any,
         some < 1.0.3,
         template-haskell -any,
+        th-compat -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
@@ -493,7 +496,8 @@ executable plc
         prettyprinter -any,
         text -any,
         transformers -any,
-        lens -any
+        lens -any,
+        megaparsec -any
 
 executable uplc
     import: lang
@@ -517,7 +521,8 @@ executable uplc
         split -any,
         text -any,
         transformers -any,
-        lens -any
+        lens -any,
+        megaparsec -any
 
 executable pir
     import: lang
@@ -543,7 +548,8 @@ executable pir
         containers -any,
         prettyprinter -any,
         cassava -any,
-        text -any
+        text -any,
+        megaparsec -any
 
 executable traceToStacks
     import: lang

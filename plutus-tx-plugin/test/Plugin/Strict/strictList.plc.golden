@@ -1,0 +1,5 @@
+(program
+  (lam
+    p [ (con list) (con integer) ] [ { (builtin headList) (con integer) } p ]
+  )
+)

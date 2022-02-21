@@ -70,9 +70,10 @@ safeLift x = do
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = set (ccOpts . coMaxSimplifierIterations) 0 (toDefaultCompilationCtx tcConfig)
+        usOpts = set UPLC.soMaxSimplifierIterations 0 UPLC.defaultSimplifyOpts
     compiled <- flip runReaderT ccConfig $ compileTerm lifted
     let erased = UPLC.erase compiled
-    db <- UPLC.deBruijnTerm $ UPLC.simplifyTerm erased
+    db <- UPLC.deBruijnTerm =<< UPLC.simplifyTerm usOpts erased
     pure $ void db
 
 -- | Get a Plutus Core program corresponding to the given value.
@@ -197,5 +198,5 @@ typeCode
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     let erased = UPLC.eraseProgram prog
-    db <-  traverseOf UPLC.progTerm (UPLC.deBruijnTerm . UPLC.simplifyTerm) erased
+    db <-  traverseOf UPLC.progTerm (\t -> UPLC.deBruijnTerm =<< UPLC.simplifyTerm UPLC.defaultSimplifyOpts t) erased
     pure $ DeserializedCode db Nothing mempty

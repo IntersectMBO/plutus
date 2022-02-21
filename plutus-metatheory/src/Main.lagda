@@ -96,6 +96,7 @@ postulate
 
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
+{-# FOREIGN GHC import Text.Megaparsec.Error #-}
 
 postulate
   TermN : Set -- term with names
@@ -132,7 +133,6 @@ postulate
   
 
 {-# FOREIGN GHC import PlutusCore.Name #-}
-{-# FOREIGN GHC import PlutusCore.Lexer #-}
 {-# FOREIGN GHC import PlutusCore.Parser #-}
 {-# FOREIGN GHC import PlutusCore.Pretty #-}
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
@@ -148,31 +148,31 @@ postulate
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}
+{-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParseError #-}
 
-{-# COMPILE GHC ParseError = type ParseError () #-}
-{-# COMPILE GHC parse = first void . runQuote . runExceptT . parseProgram  #-}
-{-# COMPILE GHC parseU = first void . runQuote . runExceptT . U.parseProgram  #-}
-{-# COMPILE GHC parseTm = first void . runQuote. runExceptT . parseTerm  #-}
-{-# COMPILE GHC parseTy = first void . runQuote . runExceptT . parseType  #-}
+{-# COMPILE GHC parse = parseProgram  #-}
+{-# COMPILE GHC parseU = U.parseProgram  #-}
+{-# COMPILE GHC parseTm = parseTerm  #-}
+{-# COMPILE GHC parseTy = parseType  #-}
+{-# COMPILE GHC parseTmU = U.parseTerm  #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import PlutusCore #-}
-{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SourcePos #-}
 {-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTmU = second void . runExcept . U.deBruijnTerm #-}
-{-# COMPILE GHC parseTmU = first void . runQuote. runExceptT . U.parseTerm  #-}
 {-# COMPILE GHC convTmU = U.conv #-}
 {-# COMPILE GHC unconvTmU = U.uconv 0 #-}
 

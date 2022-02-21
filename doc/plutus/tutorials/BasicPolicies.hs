@@ -9,7 +9,6 @@ import PlutusTx
 import PlutusTx.Lift
 import PlutusTx.Prelude
 
-import Plutus.V1.Ledger.Ada
 import Plutus.V1.Ledger.Contexts
 import Plutus.V1.Ledger.Crypto
 import Plutus.V1.Ledger.Scripts

@@ -1,9 +1,7 @@
 (program
   (let
     (nonrec)
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
+    (typebind (tyvardecl Unit (type)) (all a (type) (fun a a)))
     (termbind
       (strict)
       (vardecl error (all a (type) (fun (con unit) a)))
@@ -13,11 +11,7 @@
     (termbind
       (strict)
       (vardecl error (all a (type) (fun Unit a)))
-      (abs
-        a
-        (type)
-        (lam x Unit [ { error a } [ { [ Unit_match x ] (con unit) } unitval ] ])
-      )
+      (abs a (type) (lam x Unit [ { error a } unitval ]))
     )
     { error (con integer) }
   )
