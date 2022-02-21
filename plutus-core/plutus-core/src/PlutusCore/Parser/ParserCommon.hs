@@ -83,19 +83,19 @@ varType :: Parser PType
 varType = TyVar <$> getSourcePos <*> tyName
 
 funType :: Parser PType
-funType = TyFun <$> wordPos "fun" <*> pType <*> pType
+funType = inParens $ TyFun <$> wordPos "fun" <*> pType <*> pType
 
 allType :: Parser PType
-allType = TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
+allType = inParens $ TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
 
 lamType :: Parser PType
-lamType = TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
+lamType = inParens $ TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
 
 ifixType :: Parser PType
-ifixType = TyIFix <$> wordPos "ifix" <*> pType <*> pType
+ifixType = inParens $ TyIFix <$> wordPos "ifix" <*> pType <*> pType
 
 builtinType :: Parser PType
-builtinType = TyBuiltin <$> wordPos "con" <*> defaultUniType
+builtinType = inParens $ TyBuiltin <$> wordPos "con" <*> defaultUniType
 
 appType :: Parser PType
 appType = inBrackets $ do
@@ -113,8 +113,7 @@ kind = inParens (typeKind <|> funKind)
 -- | Parser for @PType@.
 pType :: Parser PType
 pType = choice
-    [inParens pType
-    , funType
+    [ funType
     , ifixType
     , allType
     , builtinType
