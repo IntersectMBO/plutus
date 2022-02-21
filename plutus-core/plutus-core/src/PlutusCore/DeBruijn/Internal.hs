@@ -10,6 +10,7 @@ module PlutusCore.DeBruijn.Internal
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
+    , FakeNamedDeBruijn (..)
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
@@ -33,6 +34,8 @@ module PlutusCore.DeBruijn.Internal
     , freeUniqueThrow
     , runDeBruijnT
     , deBruijnInitIndex
+    , toFake
+    , fromFake
     ) where
 
 import PlutusCore.Name
@@ -53,14 +56,14 @@ import Data.Word
 import Prettyprinter
 
 import Control.DeepSeq (NFData)
+import Data.Coerce
 import ErrorCode
 import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Word64
-    deriving stock Generic
-    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty)
-    deriving anyclass NFData
+    deriving stock (Generic)
+    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData)
 
 -- | The LamAbs index (for debruijn indices) and the starting level of DeBruijn monad
 deBruijnInitIndex :: Index
@@ -68,8 +71,22 @@ deBruijnInitIndex = 0
 
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
-    deriving (Show, Generic)
+    deriving stock (Show, Generic)
     deriving anyclass NFData
+
+-- | A wrapper around nameddebruijn that must hold the invariant of name=`fakeName`.
+newtype FakeNamedDeBruijn = FakeNamedDeBruijn NamedDeBruijn
+    deriving newtype (Show, Eq, NFData, PrettyBy config)
+
+toFake :: DeBruijn -> FakeNamedDeBruijn
+toFake (DeBruijn ix) = FakeNamedDeBruijn $ NamedDeBruijn fakeName ix
+
+fromFake :: FakeNamedDeBruijn -> DeBruijn
+fromFake (FakeNamedDeBruijn (NamedDeBruijn _ ix)) = DeBruijn ix
+
+-- | Arbitrarily-chosen text to represent a missing textual representation of a debruijn index
+fakeName :: T.Text
+fakeName = "i"
 
 instance Eq NamedDeBruijn where
     -- ignoring actual names and only relying solely on debruijn indices
@@ -77,24 +94,22 @@ instance Eq NamedDeBruijn where
 
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn { dbnIndex :: Index }
-    deriving (Show, Generic, Eq)
-    deriving anyclass NFData
+    deriving stock (Show, Generic, Eq)
+    deriving newtype (NFData)
 
 -- | A type name as a de Bruijn index.
 newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn
     deriving stock (Show, Generic)
-    deriving newtype (PrettyBy config)
+    deriving newtype (PrettyBy config, NFData)
     -- ignoring actual names and only relying solely on debruijn indices
     deriving Eq via NamedDeBruijn
-    deriving anyclass NFData
 instance Wrapped NamedTyDeBruijn
 
 -- | A type name as a de Bruijn index, without the name string.
 newtype TyDeBruijn = TyDeBruijn DeBruijn
     deriving stock (Show, Generic)
-    deriving newtype (PrettyBy config)
+    deriving newtype (NFData, PrettyBy config)
     deriving Eq via DeBruijn
-    deriving anyclass NFData
 instance Wrapped TyDeBruijn
 
 instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
@@ -188,7 +203,6 @@ data FreeVariableError
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Exception, NFData)
 
-
 instance Pretty FreeVariableError where
     pretty (FreeUnique u) = "Free unique:" <+> pretty u
     pretty (FreeIndex i)  = "Free index:" <+> pretty i
@@ -238,9 +252,8 @@ unNameTyDeBruijn
     :: NamedTyDeBruijn -> TyDeBruijn
 unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 
-fakeNameDeBruijn
-    :: DeBruijn -> NamedDeBruijn
-fakeNameDeBruijn (DeBruijn ix) = NamedDeBruijn "i" ix
+fakeNameDeBruijn :: DeBruijn -> NamedDeBruijn
+fakeNameDeBruijn = coerce . toFake
 
 nameToDeBruijn
     :: MonadReader Levels m
