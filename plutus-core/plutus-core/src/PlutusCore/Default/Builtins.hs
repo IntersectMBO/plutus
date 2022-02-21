@@ -349,14 +349,14 @@ Here's how it's defined:
 
 I.e. @Opaque val rep@ is a wrapper around @val@, which stands for the type of value that an
 evaluator uses (the builtins machinery is designed to work with any evaluator and different
-evaluators define their type of values differently, for example 'CkValue' if the type of value for
+evaluators define their type of values differently, for example 'CkValue' is the type of value for
 the CK machine). The idea is simple: in order to apply the denotation of a builtin expecting, say,
 an 'Integer' constant we need to actually extract that 'Integer' from the AST of the given value,
 but if the denotation is polymorphic over the type of its argument, then we don't need to extract
 anything, we can just pass the AST of the value directly to the denotation. I.e. in order for a
-polymorphic function to become a monomorphic denotation (denotations are always monomorpic) all type
-variables in the type of that function need to be instantiated at the type of value that a given
-evaluator uses.
+polymorphic function to become a monomorphic denotation (denotations are always monomorphic) all
+type variables in the type of that function need to be instantiated at the type of value that a
+given evaluator uses.
 
 If we used just @val@ rathen than @Opaque val rep@, we'd specialize
 
