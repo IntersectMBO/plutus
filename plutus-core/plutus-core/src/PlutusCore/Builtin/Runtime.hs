@@ -31,6 +31,7 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
         :: KnownTypeIn (UniOf val) val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
+           -- 'readKnown' inlined for optimization purposes.
         :: (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
         -> RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
@@ -79,7 +80,7 @@ typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime (typeSchemeToRuntimeScheme sch) f $ exF cost
+    BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
 -- | This is a function turned into a class for the sake of specialization and inspection.
 -- Every instance of this class must use the default implementation of 'toBuiltinsRuntime',
@@ -91,8 +92,7 @@ toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
 class ToBuiltinsRuntime fun val where
     -- Somehow getting rid of the @uni ~ UniOf val@ constraint by substituting @UniOf val@ for @uni@
     -- completely breaks inlining of 'toBuiltinMeaning'.
-    -- | Calculate runtime info for all built-in functions given denotations of builtins
-    -- and a cost model.
+    -- | Calculate runtime info for all built-in functions given a cost model.
     toBuiltinsRuntime :: uni ~ UniOf val => CostingPart uni fun -> BuiltinsRuntime fun val
     default toBuiltinsRuntime
         :: (HasConstantIn uni val, ToBuiltinMeaning uni fun)
