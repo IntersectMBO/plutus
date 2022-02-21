@@ -25,7 +25,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Text qualified as T
-import PlutusCore.Parser.ParserCommon
+import PlutusCore.Parser hiding (parseProgram, parseTerm)
 
 -- Parsers for UPLC terms
 

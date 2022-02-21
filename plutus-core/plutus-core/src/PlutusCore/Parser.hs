@@ -3,7 +3,8 @@
 -- | Parsers for PLC terms in DefaultUni.
 
 module PlutusCore.Parser
-    ( parseProgram
+    ( module Export
+    , parseProgram
     , parseTerm
     , parseType
     , ParserError(..)
@@ -16,7 +17,9 @@ import PlutusCore.Default
 import PlutusCore.Error (ParserError (..))
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name (Name, TyName)
-import PlutusCore.Parser.ParserCommon
+import PlutusCore.Parser.Builtin as Export
+import PlutusCore.Parser.ParserCommon as Export
+import PlutusCore.Parser.Type as Export
 import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 import Text.Megaparsec.Error (ParseErrorBundle)
 

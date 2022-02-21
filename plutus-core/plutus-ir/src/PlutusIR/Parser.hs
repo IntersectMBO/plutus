@@ -13,7 +13,7 @@ module PlutusIR.Parser
     ) where
 
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
-import PlutusCore.Parser.ParserCommon
+import PlutusCore.Parser
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
