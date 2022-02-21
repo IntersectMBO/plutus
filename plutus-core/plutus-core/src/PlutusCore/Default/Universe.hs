@@ -38,6 +38,8 @@ import PlutusCore.Evaluation.Result
 
 import Control.Applicative
 import Data.ByteString qualified as BS
+import Data.Int
+import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.Exts (inline, oneShot)
@@ -211,18 +213,40 @@ instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
-We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
-unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
-if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
+Technically our universe only contains 'Integer', but many of the builtin functions that we would
+like to use work over 'Int'.
+
+This is inconvenient and also error-prone: dealing with a function that takes an 'Int' means carefully
+downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
+wrong by e.g. blindly using 'fromInteger'.
+
+Moreover, there is a latent risk here: if we *were* to build on a 32-bit platform, then programs which
+use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
+
+So, what to do? We adopt the following strategy:
+- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
+
+This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
+'Int64'. So we can use 'Int' conveniently, but only if it has predictable behaviour.
+
+(An alternative would be to just add 'Int', but add 'IntCastEq Int Int64' as an instance constraint.
+That would also work, this way just seemed a little more explicit, and avoids adding constraints,
+which can sometimes interfere with optimization and inling.)
+
+Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
+supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
+
+Note: we couldn't fail the bounds check with 'AsUnliftingError', because an out-of-bounds error is not an
 internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
 being "internal".
 -}
 
-instance KnownTypeAst DefaultUni Int where
+instance KnownTypeAst DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int64 where
     makeKnown emit mayCause = makeKnown emit mayCause . toInteger
     {-# INLINE makeKnown #-}
 
@@ -231,9 +255,22 @@ instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
         inline readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
-            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
+            if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
                 then pure $ fromIntegral i
                 else throwingWithCause _EvaluationFailure () mayCause
+    {-# INLINE readKnown #-}
+
+instance KnownTypeAst DefaultUni Int where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Int as Integer].
+instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+    -- This could safely just be toInteger, but this way is more explicit and it'll
+    -- turn into the same thing anyway.
+    makeKnown emit mayCause = makeKnown emit mayCause . intCastEq @Int @Int64
+    {-# INLINE makeKnown #-}
+
+    readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
     {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]
