@@ -115,6 +115,9 @@ Where all lower-case names are Haskell type variables). We'll call functions hav
 The end result is that the user only has to specify the type of the denotation of a built-in
 function and the 'TypeScheme' of the built-in function will be derived automatically. And in the
 monomorphic and simply-polymorphic cases no types need to be specified at all.
+
+Instances have @INLINE@ pragmas attached to methods, not sure if it helps, but it certainly
+doesn't hurt.
 -}
 
 type family GetArgs a :: [GHC.Type] where
