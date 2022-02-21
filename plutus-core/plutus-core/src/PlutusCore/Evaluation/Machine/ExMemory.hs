@@ -33,9 +33,6 @@ import GHC.Prim
 import Language.Haskell.TH.Syntax (Lift)
 import Universe
 
-#include "MachDeps.h"
-
-
 {-
  ************************************************************************************
  *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
@@ -87,33 +84,19 @@ So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithm
 
 'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
 why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
-of 'Int64' is unacceptable..
+of 'Int64' is unacceptable.
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
 need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
-have much less headroom.
+would have much less headroom.
 
-However we mostly care about 64bit platforms, so this isn't too much of a
-problem. The only one where it could be a problem is GHCJS, which does present
-as a 32bit platform. However, we won't care about *performance* on GHCJS, since
-nobody will be running a node compiled to JS (and if they do, they deserve
-terrible performance). So: if we are not on a 64bit platform, then we can just
-fallback to the slower (but safe) 'Integer'.
-
+However, we don't build on 32bit platforms anyway, so we can ignore that.
 -}
 
 -- See Note [Integer types for costing]
 -- See also Note [Budgeting units] in ExBudget.hs
-type CostingInteger =
-#if WORD_SIZE_IN_BITS < 64
-    Integer
-#else
-    SatInt
-#endif
-
-
--- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+type CostingInteger = SatInt
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
