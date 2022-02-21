@@ -154,8 +154,7 @@ Overall, asking the user to manually unlift from @Opaque val [a]@ is just always
 faster than any kind of fancy encoding.
 -}
 
-
--- | The type of errors that 'readKnown' can return.
+-- | The type of errors that 'makeKnown' can return.
 data MakeKnownError
     = MakeKnownEvaluationFailure
     deriving (Eq)
@@ -328,7 +327,7 @@ instance uni ~ UniOf val => KnownTypeIn uni val (Opaque val rep) where
 
 -- | Coerce the second argument to the result type of the first one. The motivation for this
 -- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
--- to constructor an explicit coercion function, so this combinator can be used in cases like that.
+-- to construct an explicit coercion function, so this combinator can be used in cases like that.
 -- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
 coerceVia :: Coercible a b => (a -> b) -> a -> b
 coerceVia _ = coerce
