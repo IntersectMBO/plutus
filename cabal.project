@@ -46,8 +46,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/input-output-hk/cardano-base
-  tag: 5c1786f3a2b9b2647489862963003afdc1f27818
+  location: https://github.com/mlabs-haskell/cardano-base
+  tag: 3caf9f80f8cbed545475752ad493360f182e7847
   subdir:
     base-deriving-via
     binary

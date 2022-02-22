@@ -404,7 +404,7 @@
         "indexed-traversable-instances".revision = (((hackage."indexed-traversable-instances")."0.1.1").revisions).default;
         "testing-type-modifiers".revision = (((hackage."testing-type-modifiers")."0.1.0.1").revisions).default;
         "th-desugar".revision = (((hackage."th-desugar")."1.11").revisions).default;
-        "base16".revision = (((hackage."base16")."0.3.0.2").revisions).default;
+        "base16".revision = (((hackage."base16")."0.3.1.0").revisions).default;
         "microstache".revision = (((hackage."microstache")."1.0.2").revisions).default;
         "base-compat-batteries".revision = (((hackage."base-compat-batteries")."0.12.1").revisions).default;
         "extra".revision = (((hackage."extra")."1.7.10").revisions).default;
