@@ -18,7 +18,7 @@ let
   agdaProject = haskell-nix.hackage-project {
     name = "Agda";
     version = "2.6.2.1";
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
+    plan-sha256 = "sha256-gk2BF1qBhWT1Oa2z31Kw79wLOiS3FrFUnyqUB/BE+2A="; # lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
     # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
     # in recent haskell.nix, delete the index-state passing when we update.
     inherit compiler-nix-name index-state checkMaterialization;
@@ -54,12 +54,12 @@ let
     name = "cabal-install";
     version = "3.6.2.0";
     inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
+    plan-sha256 = "sha256-JnDI7ooAr7Quz1GZQfkBjg4xFoN0QcQR0n7PXQCUjyc="; # lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
   };
   cardanoRepoToolProject = haskell-nix.cabalProject' {
     src = sources.cardano-repo-tool;
     inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cardano-repo-tool.sha);
+    plan-sha256 = "sha256-D/P+WxOspEiRmmUS6gWElTTd1dQauXedTvtmoKSQ84w="; # lib.removeSuffix "\n" (builtins.readFile ./cardano-repo-tool.sha);
     sha256map = {
       "https://github.com/input-output-hk/nix-archive"."7dcf21b2af54d0ab267f127b6bd8fa0b31cfa49d" = "0mhw896nfqbd2iwibzymydjlb3yivi9gm0v2g1nrjfdll4f7d8ly";
     };
@@ -78,7 +78,7 @@ let
     '';
     src = sources.haskell-language-server;
     inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
+    plan-sha256 = "sha256-tCpSRSZz8GmzfVoF+uIPf2orZ+O4lrXAmxiXettAlDY="; # lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
     modules = [{
       # for compatibility with the GHC patch for extensible interfaces, not needed on mainline GHC.
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
