@@ -126,6 +126,8 @@
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/InlineUtils"
           "PlutusCore/Parser/ParserCommon"
+          "PlutusCore/Parser/Type"
+          "PlutusCore/Parser/Builtin"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
