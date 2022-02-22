@@ -1,8 +1,13 @@
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
+import Codec.Serialise qualified as Serialise (serialise)
 import Common
 import Criterion
-import PlutusBenchmark.Common
+import Data.ByteString as BS
+import Data.ByteString.Lazy as BSL
+import Data.ByteString.Short (toShort)
+import Plutus.V1.Ledger.Api
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -16,8 +21,20 @@ the whole time taken from script deserialization to script execution result.
 main :: IO ()
 main = benchWith mkFullBM
   where
-    mkFullBM file scriptBS = whnf (unsafeEvaluateCekNoEmit'
-                                  . throughCheckScope
-                                  . toNamedDeBruijnTerm
-                                  . unsafeUnflat file
-                                  ) scriptBS
+    mkFullBM :: FilePath -> BS.ByteString -> Benchmarkable
+    mkFullBM _file bsFlat =
+        let
+            -- just "envelope" the flat strict-bytestring into a cbor's lazy serialised bytestring
+            bslCBOR :: BSL.ByteString = Serialise.serialise bsFlat
+            -- strictify and "short" the result cbor to create a real `SerializedScript`
+            benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
+        in  whnf (\ script -> snd $ evaluateScriptCounting
+                        -- no logs
+                        Quiet
+                        -- no need to pass chain params
+                        mempty
+                        script
+                        -- no data args to apply to script
+                        []
+                 )
+            benchScript

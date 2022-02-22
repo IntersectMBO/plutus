@@ -17,7 +17,6 @@ import Criterion.Types (Config (..))
 import Options.Applicative
 
 import Data.ByteString qualified as BS
-import Data.ByteString.Lazy qualified as BSL
 import Data.List (isPrefixOf)
 import Flat
 import System.Directory (listDirectory)
@@ -72,14 +71,11 @@ withAnyPrefixFrom :: [String] -> [String] -> [String]
 l `withAnyPrefixFrom` ps =
     concatMap (\p -> filter (isPrefixOf p) l) ps
 
-readFlat :: FilePath -> IO BSL.ByteString
-readFlat file = BSL.fromStrict <$> BS.readFile file
-
-unsafeUnflat :: String -> BSL.ByteString -> UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+unsafeUnflat :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 unsafeUnflat file contents =
     case unflat contents of
         Left e     -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
-        Right prog -> UPLC._progTerm prog
+        Right prog -> prog
 
 ----------------------- Main -----------------------
 
@@ -101,7 +97,7 @@ parserInfo :: Config -> ParserInfo BenchOptions
 parserInfo cfg =
     info (helper <*> parseBenchOptions cfg) $ header "Plutus Core validation benchmark suite"
 
-benchWith :: (FilePath -> BSL.ByteString -> Benchmarkable) -> IO ()
+benchWith :: (FilePath -> BS.ByteString -> Benchmarkable) -> IO ()
 benchWith act = do
     cfg <- getConfig 20.0  -- Run each benchmark for at least 20 seconds.  Change this with -L or --timeout (longer is better).
     options <- execParser $ parserInfo cfg
@@ -121,7 +117,7 @@ benchWith act = do
 
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
-        env (readFlat $ dir </> file) $ \scriptBS ->
+        env (BS.readFile $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
 throughCheckScope :: UPLC.HasIndex name => UPLC.Term name uni fun a -> UPLC.Term name uni fun a
