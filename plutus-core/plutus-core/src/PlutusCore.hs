@@ -162,12 +162,12 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
 import PlutusCore.Parser (parseProgram, parseTerm, parseType)
-import Text.Megaparsec (SourcePos, errorBundlePretty, initialPos)
+import Text.Megaparsec (SourcePos, initialPos)
 
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
-printType ::(AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
+printType ::(AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -179,29 +179,16 @@ printType bs = runQuoteT $ T.pack . show . pretty <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped :: (MonadQuote f) =>
+parseScoped :: (AsUniqueError e SourcePos,
+        MonadError e m, MonadQuote m) =>
     BSL.ByteString
-    -> f (Program TyName Name DefaultUni DefaultFun SourcePos)
-parseScoped bs = do
-    case parseProgram bs of
-        -- when fail, pretty print the parse errors.
-        Left err ->
-            errorWithoutStackTrace $ errorBundlePretty err
-        -- otherwise,
-        Right p -> do
-            -- run @rename@ through the program
-            renamed <- runQuoteT $ rename p
-            -- check the program for @UniqueError@'s
-            let checked = through (Uniques.checkProgram (const True)) renamed
-            case checked of
-                -- pretty print the error
-                Left (err :: UniqueError SourcePos) ->
-                    errorWithoutStackTrace $ render $ pretty err
-                -- if there's no errors, return the parsed program
-                Right _ -> pure p
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+-- don't require there to be no free variables at this point, we might be parsing an open term
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
-parseTypecheck :: (AsTypeError
+parseTypecheck :: ( AsUniqueError e SourcePos,
+   AsTypeError
    e
    (Term TyName Name DefaultUni DefaultFun ())
    DefaultUni
@@ -224,13 +211,13 @@ typecheckPipeline = inferTypeOfProgram
 
 format :: (Monad m,
  PrettyBy
-   config (Program TyName Name DefaultUni DefaultFun SourcePos)) =>
+   config (Program TyName Name DefaultUni DefaultFun SourcePos), MonadQuote (Either [Char])) =>
  config -> BSL.ByteString -> m T.Text
 format cfg bs = do
     case parseProgram bs of
         -- when fail, pretty print the parse errors.
         Left err ->
-            errorWithoutStackTrace $ errorBundlePretty err
+            errorWithoutStackTrace err
         -- otherwise,
         Right p -> do
             -- run @rename@ through the program

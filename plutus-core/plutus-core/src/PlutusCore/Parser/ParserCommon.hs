@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 
@@ -48,17 +49,15 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParserError) a
-parse p file str = runQuote $ parseQuoted p file str
+parse :: MonadQuote m =>
+    Parser a -> String -> T.Text
+    -> m (Either (ParseErrorBundle T.Text ParserError) a)
+parse p file str = liftQuote $ evalStateT (runParserT p file str) initial
+    --evalStateT (liftQuote $ runParserT p file str) initial
 
 -- | Generic parser function.
-parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParserError) a
+parseGen :: MonadQuote m => Parser a -> ByteString -> m (Either (ParseErrorBundle T.Text ParserError) a)
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
-
-parseQuoted ::
-    Parser a -> String -> T.Text ->
-        Quote (Either (ParseErrorBundle T.Text ParserError) a)
-parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 -- | Space consumer.
 whitespace :: Parser ()
