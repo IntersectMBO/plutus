@@ -86,5 +86,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/cardano-crypto-praos; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/cardano-crypto-praos; echo source root reset to $sourceRoot";
     }
