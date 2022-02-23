@@ -40,8 +40,6 @@ import PlutusCore.Pretty
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
-import Data.List.NonEmpty qualified as NE (head)
-import Data.Set qualified as Set
 import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
@@ -102,7 +100,7 @@ data TypeError term uni fun ann
 makeClassyPrisms ''TypeError
 
 data Error uni fun ann
-    = ParseErrorE (ParseErrorBundle T.Text ParserError)
+    = ParseErrorE ParserError
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
@@ -112,8 +110,8 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
--- instance AsParserError (Error uni fun ann) where
---     _ParserError = _ParseErrorE
+instance AsParserError (Error uni fun ann) where
+    _ParserError = _ParseErrorE
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -191,7 +189,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE e)           = pretty $ errorBundlePretty e
+    prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
@@ -202,12 +200,6 @@ instance HasErrorCode ParserError where
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-
-instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom InvalidBuiltinConstant {})))) _) = ErrorCode 10
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinFunction {})))) _) = ErrorCode 9
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinType {})))) _)     = ErrorCode 8
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom BuiltinTypeNotAStar {})))) _)    = ErrorCode 51
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21
