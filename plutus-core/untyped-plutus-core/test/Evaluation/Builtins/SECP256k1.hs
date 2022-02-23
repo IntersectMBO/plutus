@@ -7,7 +7,8 @@ module Evaluation.Builtins.SECP256k1 (secp256k1Prop) where
 
 import Cardano.Crypto.DSIGN.Class (rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
                                    rawSerialiseVerKeyDSIGN)
-import Cardano.Crypto.DSIGN.SECP256k1 (SECP256k1DSIGN, SigDSIGN (SigSECP256k1), VerKeyDSIGN (VerKeySECP256k1))
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN (SigEcdsaSecp256k1),
+                                            VerKeyDSIGN (VerKeyEcdsaSecp256k1))
 import Control.Lens.Extras (is)
 import Control.Lens.Prism (Prism', prism')
 import Crypto.Secp256k1 qualified as SECP
@@ -224,7 +225,7 @@ getPubKey = \case
     AllGood pk _ _        -> pk
   where
     go :: SECP.PubKey -> ByteString
-    go = rawSerialiseVerKeyDSIGN . VerKeySECP256k1
+    go = rawSerialiseVerKeyDSIGN . VerKeyEcdsaSecp256k1
 
 getMsg :: SECP256k1Case -> ByteString
 getMsg = \case
@@ -249,7 +250,7 @@ getSig = \case
     AllGood _ _ sig        -> sig
   where
     go :: SECP.Sig -> ByteString
-    go = rawSerialiseSigDSIGN . SigSECP256k1
+    go = rawSerialiseSigDSIGN . SigEcdsaSecp256k1
 
 genCase :: Gen SECP256k1Case
 genCase = Gen.prune . Gen.choice $ [ShouldError <$> genErrorCase,
@@ -265,7 +266,7 @@ genPubKey :: Gen SECP.PubKey
 genPubKey = SECP.derivePubKey <$> genSecKey
 
 genPubKeyBad :: Gen ByteString
-genPubKeyBad = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @SECP256k1DSIGN)
+genPubKeyBad = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN)
                           (Gen.bytes . Range.linear 0 $ 64)
 
 genSig :: Gen SECP.Sig
@@ -278,5 +279,5 @@ genMsgBad :: Gen ByteString
 genMsgBad = Gen.filter (isNothing . SECP.msg) (Gen.bytes . Range.linear 0 $ 64)
 
 genSigBad :: Gen ByteString
-genSigBad = Gen.filter (isNothing . rawDeserialiseSigDSIGN @SECP256k1DSIGN)
+genSigBad = Gen.filter (isNothing . rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN)
                        (Gen.bytes . Range.linear 0 $ 64)

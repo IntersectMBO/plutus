@@ -7,7 +7,7 @@ module Crypto (
   ) where
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
-import Cardano.Crypto.DSIGN.SECP256k1 (SECP256k1DSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
 import Control.Applicative
 import Crypto.ECC.Ed25519Donna
 import Crypto.Error (maybeCryptoError)
@@ -35,11 +35,11 @@ verifySECP256k1Signature
   -> BS.ByteString -- ^ Message hash
   -> Emitter (EvaluationResult Bool)
 verifySECP256k1Signature pk sig msg =
-  case DSIGN.rawDeserialiseVerKeyDSIGN @SECP256k1DSIGN pk of
+  case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
     Nothing -> do
       emitM "SECP256k1: Given invalid signing key."
       pure EvaluationFailure
-    Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @SECP256k1DSIGN sig of
+    Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN sig of
       Nothing -> do
         emitM "SECP256k1: Given invalid signature."
         pure EvaluationFailure

@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main where
 
+import GHC.IO.Encoding (setLocaleEncoding, utf8)
+
 import DeBruijn.Spec (test_debruijn)
 import Evaluation.Builtins (test_builtins)
 import Evaluation.FreeVars (test_freevars)
@@ -22,7 +24,9 @@ import UntypedPlutusCore qualified as UPLC
 import Flat
 
 main :: IO ()
-main = defaultMain $ testGroup "Untyped Plutus Core"
+main = do
+  setLocaleEncoding utf8
+  defaultMain $ testGroup "Untyped Plutus Core"
     [ test_machines
     , test_builtins
     , test_budget
