@@ -27,7 +27,7 @@ import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.Coerce
 import Data.Functor
 import Data.Proxy
-import Data.Word (Word8)
+import Data.Word (Word64, Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
@@ -303,7 +303,15 @@ instance ( Flat ann
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
 
-deriving newtype instance Flat Index -- via word64
+instance Flat Index where
+    size = size @Word64 . coerce -- via word64
+    -- there is no "fail" / error for Encoding, flat expects Encoding to always succeed
+    -- so we let the undefined behaviour Index==0 be encoded
+    encode = encode @Word64 . coerce -- via word64
+    decode = decode >>= \case -- via word64
+        0 -> fail "DeBruijn Index '0' is not allowed as a variable identifier"
+        n -> pure $ Index n
+
 deriving newtype instance Flat DeBruijn -- via index
 deriving newtype instance Flat TyDeBruijn -- via debruijn
 
