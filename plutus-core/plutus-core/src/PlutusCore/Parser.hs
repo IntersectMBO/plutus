@@ -10,8 +10,9 @@ module PlutusCore.Parser
     , ParserError(..)
     ) where
 
+import Control.Monad.Except (MonadError)
 import Data.ByteString.Lazy (ByteString)
-import Data.Text (Text)
+import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (..))
@@ -21,8 +22,7 @@ import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
-import Text.Megaparsec (MonadParsec (notFollowedBy), ParseErrorBundle, SourcePos, anySingle, choice, getSourcePos, many,
-                        some, try)
+import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 
 -- | A parsable PLC term.
 type PTerm = Term TyName Name DefaultUni DefaultFun SourcePos
@@ -79,8 +79,8 @@ term = choice $ map try
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (MonadQuote m ) =>
-    ByteString -> m (Either (ParseErrorBundle Text ParserError) (Program TyName Name DefaultUni DefaultFun SourcePos))
+parseProgram :: (MonadQuote m, MonadError e m) =>
+    ByteString -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parser for PLC programs.
@@ -92,12 +92,12 @@ program = whitespace >> do
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: MonadQuote m =>
-    ByteString -> m (Either (ParseErrorBundle Text ParserError) (Term TyName Name DefaultUni DefaultFun SourcePos))
+parseTerm :: (MonadQuote m, MonadError e m) =>
+    ByteString -> m (Term TyName Name DefaultUni DefaultFun SourcePos)
 parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseType :: MonadQuote m =>
-    ByteString -> m (Either (ParseErrorBundle Text ParserError)(Type TyName DefaultUni SourcePos))
+parseType :: (MonadQuote m, MonadError e m) =>
+    ByteString -> m (Type TyName DefaultUni SourcePos)
 parseType = parseGen pType
