@@ -52,5 +52,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/base-deriving-via; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/base-deriving-via; echo source root reset to $sourceRoot";
     }
