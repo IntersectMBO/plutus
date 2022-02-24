@@ -1,23 +1,29 @@
+{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Crypto (
   verifySignature,
-  verifySECP256k1Signature
+  verifyEcdsaSecp256k1Signature,
+  verifySchnorrSecp256k1Signature,
   ) where
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
-import Control.Applicative
-import Crypto.ECC.Ed25519Donna
+import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
+import Control.Applicative (Alternative (empty))
+import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
 import Crypto.Error (maybeCryptoError)
 import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
+import Data.Kind (Type)
+import Data.Text (Text)
 import PlutusCore.Builtin.Emitter (Emitter, emitM)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 verifySignature
-    :: Alternative f
+    :: forall (f :: Type -> Type)
+     . Alternative f
     => BS.ByteString  -- ^ Public Key
     -> BS.ByteString  -- ^ Message
     -> BS.ByteString  -- ^ Signature
@@ -29,24 +35,57 @@ verifySignature pubKey msg sig =
             <*> pure msg
             <*> signature sig
 
-verifySECP256k1Signature
-  :: BS.ByteString -- ^ Public key
-  -> BS.ByteString -- ^ Signature
-  -> BS.ByteString -- ^ Message hash
+-- | Verify an ECDSA signature made using the SECP256k1 curve.
+--
+-- = Note
+--
+-- This takes a message /hash/, rather than a general blob of bytes; thus, it is
+-- limited in length.
+verifyEcdsaSecp256k1Signature
+  :: BS.ByteString -- ^ Public key (64 bytes)
+  -> BS.ByteString -- ^ Message hash (32 bytes)
+  -> BS.ByteString -- ^ Signature (64 bytes)
   -> Emitter (EvaluationResult Bool)
-verifySECP256k1Signature pk sig msg =
+verifyEcdsaSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
-    Nothing -> do
-      emitM "SECP256k1: Given invalid signing key."
-      pure EvaluationFailure
+    Nothing -> failWithMessage loc "Invalid verification key."
     Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN sig of
-      Nothing -> do
-        emitM "SECP256k1: Given invalid signature."
-        pure EvaluationFailure
+      Nothing -> failWithMessage loc "Invalid signature."
       Just sig' -> case SECP.msg msg of
-        Nothing -> do
-          emitM "SECP256k1: Given invalid message hash."
-          pure EvaluationFailure
-        Just msg' -> case DSIGN.verifyDSIGN () pk' msg' sig' of
-          Left _   -> pure . pure $ False
-          Right () -> pure . pure $ True
+        Nothing -> failWithMessage loc "Invalid message hash."
+        Just msg' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of
+          Left _   -> False
+          Right () -> True
+  where
+    loc :: Text
+    loc = "ECDSA SECP256k1 signature verification"
+
+-- | Verify a Schnorr signature made using the SECP256k1 curve.
+--
+-- = Note
+--
+-- Unlike 'verifyEcdsaSecp256k1Signature', this can accept messages of arbitrary
+-- form and length.
+verifySchnorrSecp256k1Signature
+  :: BS.ByteString -- ^ Public key (64 bytes)
+  -> BS.ByteString -- ^ Message
+  -> BS.ByteString -- ^ Signature (64 bytes)
+  -> Emitter (EvaluationResult Bool)
+verifySchnorrSecp256k1Signature pk msg sig =
+  case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of
+    Nothing -> failWithMessage loc "Invalid verification key."
+    Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @SchnorrSecp256k1DSIGN sig of
+      Nothing -> failWithMessage loc "Invalid signature."
+      Just sig' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg sig' of
+        Left _   -> False
+        Right () -> True
+  where
+    loc :: Text
+    loc = "Schnorr SECP256k1 signature verification"
+
+-- Helpers
+failWithMessage :: forall (a :: Type) .
+  Text -> Text -> Emitter (EvaluationResult a)
+failWithMessage location reason = do
+  emitM $ location <> ": " <> reason
+  pure EvaluationFailure

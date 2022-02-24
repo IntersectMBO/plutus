@@ -1,283 +1,368 @@
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
 
-module Evaluation.Builtins.SECP256k1 (secp256k1Prop) where
+module Evaluation.Builtins.SECP256k1 (
+  ecdsaSecp256k1Prop,
+  schnorrSecp256k1Prop,
+  ) where
 
-import Cardano.Crypto.DSIGN.Class (rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
-                                   rawSerialiseVerKeyDSIGN)
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN (SigEcdsaSecp256k1),
-                                            VerKeyDSIGN (VerKeyEcdsaSecp256k1))
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
+                                   rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
+                                   rawSerialiseVerKeyDSIGN, signDSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN, VerKeyDSIGN)
+import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
+import Cardano.Crypto.Seed (mkSeedFromBytes)
 import Control.Lens.Extras (is)
+import Control.Lens.Fold (preview)
 import Control.Lens.Prism (Prism', prism')
+import Control.Lens.Review (review)
 import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString (ByteString)
+import Data.Kind (Type)
 import Data.Maybe (isNothing)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import Hedgehog (Gen, PropertyT, annotateShow, cover, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (VerifySECP256k1Signature), EvaluationResult (EvaluationFailure, EvaluationSuccess),
-                   defaultCekParameters)
+import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature),
+                   EvaluationResult (EvaluationFailure, EvaluationSuccess), defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import Text.Show.Pretty (ppShow)
 
-secp256k1Prop :: PropertyT IO ()
-secp256k1Prop = do
-  secpCase <- forAllWith ppShow genCase
-  cover 14 "malformed pubkey" (is (_ShouldError . _BadPubKey) secpCase)
-  cover 14 "malformed message" (is (_ShouldError . _BadMsg) secpCase)
-  cover 14 "malformed signature" (is (_ShouldError . _BadSig) secpCase)
-  cover 14 "mismatch of signing key and pubkey" (is (_Shouldn'tError . _WrongKey) secpCase)
-  cover 14 "mismatch of message and signature" (is (_Shouldn'tError . _WrongSignature) secpCase)
-  cover 14 "happy path" (is (_Shouldn'tError . _AllGood) secpCase)
-  let actualExp = mkIterApp () (builtin () VerifySECP256k1Signature) [
-        mkConstant @ByteString () . getPubKey $ secpCase,
-        mkConstant @ByteString () . getSig $ secpCase,
-        mkConstant @ByteString () . getMsg $ secpCase
+ecdsaSecp256k1Prop :: PropertyT IO ()
+ecdsaSecp256k1Prop = do
+  testCase <- forAllWith ppShow genEcdsaCase
+  cover 14 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 14 "malformed message" . is (_ShouldError . _BadMessage) $ testCase
+  cover 14 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 14 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 14 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 14 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  runTestDataWith testCase SECP.getMsg VerifyEcdsaSecp256k1Signature
+
+schnorrSecp256k1Prop :: PropertyT IO ()
+schnorrSecp256k1Prop = do
+  testCase <- forAllWith ppShow genSchnorrCase
+  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  runTestDataWith testCase id VerifySchnorrSecp256k1Signature
+
+-- Helpers
+
+runTestDataWith :: forall (a :: Type) (msg :: Type) .
+  (DSIGNAlgorithm a) =>
+  Case a msg ->
+  (msg -> ByteString) ->
+  DefaultFun ->
+  PropertyT IO ()
+runTestDataWith testData f op = do
+  let (vk, msg, sig) = getCaseData f testData
+  let actualExp = mkIterApp () (builtin () op) [
+        mkConstant @ByteString () vk,
+        mkConstant @ByteString () msg,
+        mkConstant @ByteString () sig
         ]
   let result = typecheckEvaluateCek defaultCekParameters actualExp
   case result of
-    Left x -> do
-      annotateShow x
-      failure
+    Left x -> annotateShow x >> failure
     Right (res, logs) -> do
       annotateShow logs
-      res === (case secpCase of
-        ShouldError{} -> EvaluationFailure
-        Shouldn'tError good -> EvaluationSuccess . mkConstant () $ case good of
-          AllGood{} -> True
-          _         -> False)
+      case preview _Shouldn'tError testData of
+        Nothing -> res === EvaluationFailure
+        Just good -> case preview _AllGood good of
+          Nothing -> res === (EvaluationSuccess . mkConstant () $ False)
+          Just _  -> res === (EvaluationSuccess . mkConstant () $ True)
 
--- All data needed for an erroring case
-data SECP256k1ErrorCase =
-  BadPubKey ByteString SECP.Msg SECP.Sig |
-  BadMsg SECP.PubKey ByteString SECP.Sig |
-  BadSig SECP.PubKey SECP.Msg ByteString
-  deriving stock (Eq, Show)
+-- Data for an erroring case
+data ErrorCase (a :: Type) (msg :: Type) where
+  BadVerKey :: ByteString -> msg -> SigDSIGN a -> ErrorCase a msg
+  BadMsg :: VerKeyDSIGN a -> ByteString -> SigDSIGN a -> ErrorCase a msg
+  BadSig :: VerKeyDSIGN a -> msg -> ByteString -> ErrorCase a msg
 
-_BadPubKey :: Prism' SECP256k1ErrorCase (ByteString, SECP.Msg, SECP.Sig)
-_BadPubKey = prism' into outOf
+deriving stock instance (Eq msg, DSIGNAlgorithm a) => Eq (ErrorCase a msg)
+
+deriving stock instance (Show msg, DSIGNAlgorithm a) => Show (ErrorCase a msg)
+
+_BadVerKey :: forall (a :: Type) (msg :: Type) .
+  Prism' (ErrorCase a msg) (ByteString, msg, SigDSIGN a)
+_BadVerKey = prism' into outOf
   where
-    into :: (ByteString, SECP.Msg, SECP.Sig) -> SECP256k1ErrorCase
-    into (pk, msg, sig) = BadPubKey pk msg sig
-    outOf :: SECP256k1ErrorCase -> Maybe (ByteString, SECP.Msg, SECP.Sig)
+    into :: (ByteString, msg, SigDSIGN a) -> ErrorCase a msg
+    into (bs, message, sig) = BadVerKey bs message sig
+    outOf :: ErrorCase a msg -> Maybe (ByteString, msg, SigDSIGN a)
     outOf = \case
-      BadPubKey pk msg sig -> pure (pk, msg, sig)
+      BadVerKey bs message sig -> pure (bs, message, sig)
+      _                        -> Nothing
+
+_BadMessage :: forall (a :: Type) (msg :: Type) .
+  Prism' (ErrorCase a msg) (VerKeyDSIGN a, ByteString, SigDSIGN a)
+_BadMessage = prism' into outOf
+  where
+    into :: (VerKeyDSIGN a, ByteString, SigDSIGN a) -> ErrorCase a msg
+    into (vk, bs, sig) = BadMsg vk bs sig
+    outOf :: ErrorCase a msg -> Maybe (VerKeyDSIGN a, ByteString, SigDSIGN a)
+    outOf = \case
+      BadMsg vk bs sig -> pure (vk, bs, sig)
+      _                -> Nothing
+
+_BadSignature :: forall (a :: Type) (msg :: Type) .
+  Prism' (ErrorCase a msg) (VerKeyDSIGN a, msg, ByteString)
+_BadSignature = prism' into outOf
+  where
+    into :: (VerKeyDSIGN a, msg, ByteString) -> ErrorCase a msg
+    into (vk, message, sig) = BadSig vk message sig
+    outOf :: ErrorCase a msg -> Maybe (VerKeyDSIGN a, msg, ByteString)
+    outOf = \case
+      BadSig vk message bs -> pure (vk, message, bs)
       _                    -> Nothing
 
-_BadMsg :: Prism' SECP256k1ErrorCase (SECP.PubKey, ByteString, SECP.Sig)
-_BadMsg = prism' into outOf
+-- Data for non-erroring case
+data NoErrorCase (a :: Type) (msg :: Type) where
+  WrongVerKey :: VerKeyDSIGN a -> msg -> SigDSIGN a -> NoErrorCase a msg
+  WrongSignature :: VerKeyDSIGN a -> msg -> SigDSIGN a -> NoErrorCase a msg
+  AllGood :: VerKeyDSIGN a -> msg -> SigDSIGN a -> NoErrorCase a msg
+
+deriving stock instance (Eq msg, DSIGNAlgorithm a) => Eq (NoErrorCase a msg)
+
+deriving stock instance (Show msg, DSIGNAlgorithm a) => Show (NoErrorCase a msg)
+
+_WrongVerKey :: forall (a :: Type) (msg :: Type) .
+  Prism' (NoErrorCase a msg) (VerKeyDSIGN a, msg, SigDSIGN a)
+_WrongVerKey = prism' into outOf
   where
-    into :: (SECP.PubKey, ByteString, SECP.Sig) -> SECP256k1ErrorCase
-    into (pk, msg, sig) = BadMsg pk msg sig
-    outOf :: SECP256k1ErrorCase -> Maybe (SECP.PubKey, ByteString, SECP.Sig)
+    into :: (VerKeyDSIGN a, msg, SigDSIGN a) -> NoErrorCase a msg
+    into (vk, message, sig) = WrongVerKey vk message sig
+    outOf :: NoErrorCase a msg -> Maybe (VerKeyDSIGN a, msg, SigDSIGN a)
     outOf = \case
-      BadMsg pk msg sig -> pure (pk, msg, sig)
-      _                 -> Nothing
+      WrongVerKey vk message sig -> pure (vk, message, sig)
+      _                          -> Nothing
 
-_BadSig :: Prism' SECP256k1ErrorCase (SECP.PubKey, SECP.Msg, ByteString)
-_BadSig = prism' into outOf
-  where
-    into :: (SECP.PubKey, SECP.Msg, ByteString) -> SECP256k1ErrorCase
-    into (pk, msg, sig) = BadSig pk msg sig
-    outOf :: SECP256k1ErrorCase -> Maybe (SECP.PubKey, SECP.Msg, ByteString)
-    outOf = \case
-      BadSig pk msg sig -> pure (pk, msg, sig)
-      _                 -> Nothing
-
-genErrorCase :: Gen SECP256k1ErrorCase
-genErrorCase = Gen.prune . Gen.choice $ [mkBadPubKey, mkBadMsg, mkBadSig]
-  where
-    mkBadPubKey :: Gen SECP256k1ErrorCase
-    mkBadPubKey = do
-      pkBad <- genPubKeyBad
-      msg <- genMsg
-      sig <- genSig
-      pure . BadPubKey pkBad msg $ sig
-    mkBadMsg :: Gen SECP256k1ErrorCase
-    mkBadMsg = do
-      sk <- genSecKey
-      msg <- genMsg
-      let sig = SECP.signMsg sk msg
-      let pk = SECP.derivePubKey sk
-      msgBad <- genMsgBad
-      pure . BadMsg pk msgBad $ sig
-    mkBadSig :: Gen SECP256k1ErrorCase
-    mkBadSig = do
-      pk <- genPubKey
-      msg <- genMsg
-      sigBad <- genSigBad
-      pure . BadSig pk msg $ sigBad
-
--- All data needed for a successful case
-data SECP256k1NoErrorCase =
-  WrongKey SECP.PubKey SECP.Msg SECP.Sig |
-  WrongSignature SECP.PubKey SECP.Msg SECP.Sig |
-  AllGood SECP.PubKey SECP.Msg SECP.Sig
-  deriving stock (Eq, Show)
-
-_WrongKey :: Prism' SECP256k1NoErrorCase (SECP.PubKey, SECP.Msg, SECP.Sig)
-_WrongKey = prism' into outOf
-  where
-    into :: (SECP.PubKey, SECP.Msg, SECP.Sig) ->
-            SECP256k1NoErrorCase
-    into (pk, msg, sig) = WrongKey pk msg sig
-    outOf :: SECP256k1NoErrorCase -> Maybe (SECP.PubKey, SECP.Msg, SECP.Sig)
-    outOf = \case
-      WrongKey pk msg sig -> pure (pk, msg, sig)
-      _                   -> Nothing
-
-_WrongSignature :: Prism' SECP256k1NoErrorCase (SECP.PubKey, SECP.Msg, SECP.Sig)
+_WrongSignature :: forall (a :: Type) (msg :: Type) .
+  Prism' (NoErrorCase a msg) (VerKeyDSIGN a, msg, SigDSIGN a)
 _WrongSignature = prism' into outOf
   where
-    into :: (SECP.PubKey, SECP.Msg, SECP.Sig) ->
-            SECP256k1NoErrorCase
-    into (pk, msg, sig) = WrongSignature pk msg sig
-    outOf :: SECP256k1NoErrorCase -> Maybe (SECP.PubKey, SECP.Msg, SECP.Sig)
+    into :: (VerKeyDSIGN a, msg, SigDSIGN a) -> NoErrorCase a msg
+    into (vk, message, sig) = WrongSignature vk message sig
+    outOf :: NoErrorCase a msg -> Maybe (VerKeyDSIGN a, msg, SigDSIGN a)
     outOf = \case
-      WrongSignature pk msg sig -> pure (pk, msg, sig)
-      _                         -> Nothing
+      WrongSignature vk message sig -> pure (vk, message, sig)
+      _                             -> Nothing
 
-_AllGood :: Prism' SECP256k1NoErrorCase (SECP.PubKey, SECP.Msg, SECP.Sig)
+_AllGood :: forall (a :: Type) (msg :: Type) .
+  Prism' (NoErrorCase a msg) (VerKeyDSIGN a, msg, SigDSIGN a)
 _AllGood = prism' into outOf
   where
-    into :: (SECP.PubKey, SECP.Msg, SECP.Sig) ->
-            SECP256k1NoErrorCase
-    into (pk, msg, sig) = AllGood pk msg sig
-    outOf :: SECP256k1NoErrorCase -> Maybe (SECP.PubKey, SECP.Msg, SECP.Sig)
+    into :: (VerKeyDSIGN a, msg, SigDSIGN a) -> NoErrorCase a msg
+    into (vk, message, sig) = AllGood vk message sig
+    outOf :: NoErrorCase a msg -> Maybe (VerKeyDSIGN a, msg, SigDSIGN a)
     outOf = \case
-      AllGood pk msg sig -> pure (pk, msg, sig)
-      _                  -> Nothing
+      AllGood vk message sig -> pure (vk, message, sig)
+      _                      -> Nothing
 
-genNoErrorCase :: Gen SECP256k1NoErrorCase
-genNoErrorCase = do
-  sk <- genSecKey
-  let pk = SECP.derivePubKey sk
-  msg <- genMsg
-  Gen.prune . Gen.choice $ [mkWrongKey sk pk msg,
-                            mkWrongSignature sk pk msg,
-                            mkAllGood sk pk msg]
-  where
-    mkWrongKey ::
-      SECP.SecKey ->
-      SECP.PubKey ->
-      SECP.Msg ->
-      Gen SECP256k1NoErrorCase
-    mkWrongKey sk pk msg = do
-      pkBad <- Gen.filter (/= pk) genPubKey
-      let sig = SECP.signMsg sk msg
-      pure . WrongKey pkBad msg $ sig
-    mkWrongSignature ::
-      SECP.SecKey ->
-      SECP.PubKey ->
-      SECP.Msg ->
-      Gen SECP256k1NoErrorCase
-    mkWrongSignature sk pk msg = do
-      msgBad <- Gen.filter (/= msg) genMsg
-      let sig = SECP.signMsg sk msgBad
-      pure . WrongSignature pk msg $ sig
-    mkAllGood ::
-      SECP.SecKey ->
-      SECP.PubKey ->
-      SECP.Msg ->
-      Gen SECP256k1NoErrorCase
-    mkAllGood sk pk msg = do
-      let sig = SECP.signMsg sk msg
-      pure . AllGood pk msg $ sig
+-- Case, irrespective of form
+data Case (a :: Type) (msg :: Type) where
+  ShouldError :: ErrorCase a msg -> Case a msg
+  Shouldn'tError :: NoErrorCase a msg -> Case a msg
 
--- Case data, irrespective of form
-data SECP256k1Case =
-  ShouldError SECP256k1ErrorCase |
-  Shouldn'tError SECP256k1NoErrorCase
-  deriving stock (Eq, Show)
+deriving stock instance (DSIGNAlgorithm a, Eq msg) => Eq (Case a msg)
 
-_ShouldError :: Prism' SECP256k1Case SECP256k1ErrorCase
+deriving stock instance (DSIGNAlgorithm a, Show msg) => Show (Case a msg)
+
+_ShouldError :: forall (a :: Type) (msg :: Type) .
+  Prism' (Case a msg) (ErrorCase a msg)
 _ShouldError = prism' into outOf
   where
-    into :: SECP256k1ErrorCase -> SECP256k1Case
+    into :: ErrorCase a msg -> Case a msg
     into = ShouldError
-    outOf :: SECP256k1Case -> Maybe SECP256k1ErrorCase
+    outOf :: Case a msg -> Maybe (ErrorCase a msg)
     outOf = \case
       ShouldError x -> pure x
       _             -> Nothing
 
-_Shouldn'tError :: Prism' SECP256k1Case SECP256k1NoErrorCase
+_Shouldn'tError :: forall (a :: Type) (msg :: Type) .
+  Prism' (Case a msg) (NoErrorCase a msg)
 _Shouldn'tError = prism' into outOf
   where
-    into :: SECP256k1NoErrorCase -> SECP256k1Case
+    into :: NoErrorCase a msg -> Case a msg
     into = Shouldn'tError
-    outOf :: SECP256k1Case -> Maybe SECP256k1NoErrorCase
+    outOf :: Case a msg -> Maybe (NoErrorCase a msg)
     outOf = \case
       Shouldn'tError x -> pure x
       _                -> Nothing
 
-getPubKey :: SECP256k1Case -> ByteString
-getPubKey = \case
+getCaseData :: forall (a :: Type) (msg :: Type) .
+  (DSIGNAlgorithm a) =>
+  (msg -> ByteString) ->
+  Case a msg ->
+  (ByteString, ByteString, ByteString)
+getCaseData f = \case
   ShouldError x -> case x of
-    BadPubKey pk _ _ -> pk
-    BadMsg pk _ _    -> go pk
-    BadSig pk _ _    -> go pk
-  Shouldn'tError x -> go $ case x of
-    WrongKey pk _ _       -> pk
-    WrongSignature pk _ _ -> pk
-    AllGood pk _ _        -> pk
+    BadVerKey vk message sig -> (vk, f message, rawSerialiseSigDSIGN sig)
+    BadMsg vk message sig -> (rawSerialiseVerKeyDSIGN vk,
+                              message,
+                              rawSerialiseSigDSIGN sig)
+    BadSig vk message sig -> (rawSerialiseVerKeyDSIGN vk, f message, sig)
+  Shouldn'tError x -> case x of
+    WrongVerKey vk message sig -> (rawSerialiseVerKeyDSIGN vk,
+                                   f message,
+                                   rawSerialiseSigDSIGN sig)
+    WrongSignature vk message sig -> (rawSerialiseVerKeyDSIGN vk,
+                                      f message,
+                                      rawSerialiseSigDSIGN sig)
+    AllGood vk message sig -> (rawSerialiseVerKeyDSIGN vk,
+                               f message,
+                               rawSerialiseSigDSIGN sig)
+
+-- Generators
+
+genEcdsaErrorCase :: Gen (ErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaErrorCase =
+  Gen.prune . Gen.choice $ [
+    review _BadVerKey <$> mkBadVerKeyBits,
+    review _BadMessage <$> mkBadMessageBits,
+    review _BadSignature <$> mkBadSignatureBits
+    ]
   where
-    go :: SECP.PubKey -> ByteString
-    go = rawSerialiseVerKeyDSIGN . VerKeyEcdsaSecp256k1
+    mkBadVerKeyBits :: Gen (ByteString,
+                            SECP.Msg,
+                            SigDSIGN EcdsaSecp256k1DSIGN)
+    mkBadVerKeyBits = (,,) <$> genBadVerKey @EcdsaSecp256k1DSIGN <*>
+                               genEcdsaMsg <*>
+                               genEcdsaSig
+    mkBadMessageBits :: Gen (VerKeyDSIGN EcdsaSecp256k1DSIGN,
+                             ByteString,
+                             SigDSIGN EcdsaSecp256k1DSIGN)
+    mkBadMessageBits = (,,) <$> genVerKey <*> genBadEcdsaMsg <*> genEcdsaSig
+    mkBadSignatureBits :: Gen (VerKeyDSIGN EcdsaSecp256k1DSIGN,
+                               SECP.Msg,
+                               ByteString)
+    mkBadSignatureBits = (,,) <$> genVerKey <*>
+                                  genEcdsaMsg <*>
+                                  genBadSig @EcdsaSecp256k1DSIGN
 
-getMsg :: SECP256k1Case -> ByteString
-getMsg = \case
-  ShouldError x -> case x of
-    BadPubKey _ msg _ -> SECP.getMsg msg
-    BadMsg _ msg _    -> msg
-    BadSig _ msg _    -> SECP.getMsg msg
-  Shouldn'tError x -> SECP.getMsg $ case x of
-    WrongKey _ msg _       -> msg
-    WrongSignature _ msg _ -> msg
-    AllGood _ msg _        -> msg
-
-getSig :: SECP256k1Case -> ByteString
-getSig = \case
-  ShouldError x -> case x of
-    BadPubKey _ _ sig -> go sig
-    BadMsg _ _ sig    -> go sig
-    BadSig _ _ sig    -> sig
-  Shouldn'tError x -> go $ case x of
-    WrongKey _ _ sig       -> sig
-    WrongSignature _ _ sig -> sig
-    AllGood _ _ sig        -> sig
+genSchnorrErrorCase :: Gen (ErrorCase SchnorrSecp256k1DSIGN ByteString)
+genSchnorrErrorCase = Gen.choice [
+  review _BadVerKey <$> mkBadVerKeyBits,
+  review _BadSignature <$> mkBadSignatureBits
+  ]
   where
-    go :: SECP.Sig -> ByteString
-    go = rawSerialiseSigDSIGN . SigEcdsaSecp256k1
+    mkBadVerKeyBits :: Gen (ByteString,
+                            ByteString,
+                            SigDSIGN SchnorrSecp256k1DSIGN)
+    mkBadVerKeyBits = (,,) <$> genBadVerKey @SchnorrSecp256k1DSIGN <*>
+                              (Gen.bytes . Range.linear 0 $ 64) <*>
+                              genSchnorrSig
+    mkBadSignatureBits :: Gen (VerKeyDSIGN SchnorrSecp256k1DSIGN,
+                               ByteString,
+                               ByteString)
+    mkBadSignatureBits = (,,) <$> genVerKey <*>
+                                  (Gen.bytes . Range.linear 0 $ 64) <*>
+                                  genBadSig @SchnorrSecp256k1DSIGN
 
-genCase :: Gen SECP256k1Case
-genCase = Gen.prune . Gen.choice $ [ShouldError <$> genErrorCase,
-                                    Shouldn'tError <$> genNoErrorCase]
+genEcdsaNoErrorCase :: Gen (NoErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaNoErrorCase = do
+  sk <- genSignKey
+  let vk = deriveVerKeyDSIGN sk
+  msg <- genEcdsaMsg
+  Gen.prune . Gen.choice $ [
+    review _WrongVerKey <$> mkWrongKeyBits sk vk msg,
+    review _WrongSignature <$> mkWrongSignatureBits sk vk msg,
+    pure . review _AllGood $ (vk, msg, signDSIGN () msg sk)
+    ]
+  where
+    mkWrongSignatureBits ::
+      SignKeyDSIGN EcdsaSecp256k1DSIGN ->
+      VerKeyDSIGN EcdsaSecp256k1DSIGN ->
+      SECP.Msg ->
+      Gen (VerKeyDSIGN EcdsaSecp256k1DSIGN,
+           SECP.Msg,
+           SigDSIGN EcdsaSecp256k1DSIGN)
+    mkWrongSignatureBits sk vk msg = do
+      msgBad <- Gen.filter (/= msg) genEcdsaMsg
+      pure (vk, msg, signDSIGN () msgBad sk)
 
-genMsg :: Gen SECP.Msg
-genMsg = Gen.mapMaybe SECP.msg (Gen.bytes . Range.singleton $ 32)
+genSchnorrNoErrorCase :: Gen (NoErrorCase SchnorrSecp256k1DSIGN ByteString)
+genSchnorrNoErrorCase = do
+  sk <- genSignKey
+  let vk = deriveVerKeyDSIGN sk
+  msg <- Gen.bytes . Range.linear 0 $ 64
+  Gen.choice [
+    review _WrongVerKey <$> mkWrongKeyBits sk vk msg,
+    review _WrongSignature <$> mkWrongSignatureBits sk vk msg,
+    pure . review _AllGood $ (vk, msg, signDSIGN () msg sk)
+    ]
+  where
+    mkWrongSignatureBits ::
+      SignKeyDSIGN SchnorrSecp256k1DSIGN ->
+      VerKeyDSIGN SchnorrSecp256k1DSIGN ->
+      ByteString ->
+      Gen (VerKeyDSIGN SchnorrSecp256k1DSIGN,
+           ByteString,
+           SigDSIGN SchnorrSecp256k1DSIGN)
+    mkWrongSignatureBits sk vk msg = do
+      msgBad <- Gen.filter (/= msg) (Gen.bytes . Range.linear 0 $ 64)
+      pure (vk, msg, signDSIGN () msgBad sk)
 
-genSecKey :: Gen SECP.SecKey
-genSecKey = Gen.mapMaybe SECP.secKey (Gen.bytes . Range.singleton $ 32)
+genEcdsaCase :: Gen (Case EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaCase = Gen.prune . Gen.choice $ [
+  review _Shouldn'tError <$> genEcdsaNoErrorCase,
+  review _ShouldError <$> genEcdsaErrorCase
+  ]
 
-genPubKey :: Gen SECP.PubKey
-genPubKey = SECP.derivePubKey <$> genSecKey
+genSchnorrCase :: Gen (Case SchnorrSecp256k1DSIGN ByteString)
+genSchnorrCase = Gen.prune . Gen.frequency $ [
+  (6, review _Shouldn'tError <$> genSchnorrNoErrorCase),
+  (4, review _ShouldError <$> genSchnorrErrorCase)
+  ]
 
-genPubKeyBad :: Gen ByteString
-genPubKeyBad = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN)
+mkWrongKeyBits :: forall (a :: Type) (msg :: Type) .
+  (DSIGNAlgorithm a, ContextDSIGN a ~ (), Signable a msg) =>
+  SignKeyDSIGN a ->
+  VerKeyDSIGN a ->
+  msg ->
+  Gen (VerKeyDSIGN a, msg, SigDSIGN a)
+mkWrongKeyBits sk vk msg = do
+  vkBad <- Gen.filter (/= vk) genVerKey
+  pure (vkBad, msg, signDSIGN () msg sk)
+
+genBadVerKey :: forall (a :: Type) .
+  (DSIGNAlgorithm a) => Gen ByteString
+genBadVerKey = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @a)
                           (Gen.bytes . Range.linear 0 $ 64)
 
-genSig :: Gen SECP.Sig
-genSig = do
-  sk <- genSecKey
-  msg <- genMsg
-  pure . SECP.signMsg sk $ msg
+genEcdsaMsg :: Gen SECP.Msg
+genEcdsaMsg = Gen.mapMaybe SECP.msg (Gen.bytes . Range.singleton $ 32)
 
-genMsgBad :: Gen ByteString
-genMsgBad = Gen.filter (isNothing . SECP.msg) (Gen.bytes . Range.linear 0 $ 64)
+genEcdsaSig :: Gen (SigDSIGN EcdsaSecp256k1DSIGN)
+genEcdsaSig = do
+  sk <- genSignKey
+  msg <- genEcdsaMsg
+  pure . signDSIGN () msg $ sk
 
-genSigBad :: Gen ByteString
-genSigBad = Gen.filter (isNothing . rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN)
+genSchnorrSig :: Gen (SigDSIGN SchnorrSecp256k1DSIGN)
+genSchnorrSig = do
+  sk <- genSignKey
+  msg <- Gen.bytes . Range.linear 0 $ 64
+  pure . signDSIGN () msg $ sk
+
+genVerKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (VerKeyDSIGN a)
+genVerKey = deriveVerKeyDSIGN <$> genSignKey
+
+genBadEcdsaMsg :: Gen ByteString
+genBadEcdsaMsg = Gen.filter (isNothing . SECP.msg) (Gen.bytes . Range.linear 0 $ 64)
+
+genBadSig :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen ByteString
+genBadSig = Gen.filter (isNothing . rawDeserialiseSigDSIGN @a)
                        (Gen.bytes . Range.linear 0 $ 64)
+
+genSignKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (SignKeyDSIGN a)
+genSignKey = do
+  seed <- mkSeedFromBytes <$> (Gen.bytes . Range.linear 64 $ 128)
+  pure . genKeyDSIGN $ seed
