@@ -236,14 +236,35 @@ verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -
 verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
   BuiltinBool (fromMaybe False (Crypto.verifySignature pubKey message signature))
 
-{-# NOINLINE verifySECP256k1Signature #-}
-verifySECP256k1Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
-verifySECP256k1Signature (BuiltinByteString pk) (BuiltinByteString sig) (BuiltinByteString msg) =
-  case Crypto.verifySECP256k1Signature pk sig msg of
+{-# NOINLINE verifyEcdsaSecp256k1Signature #-}
+verifyEcdsaSecp256k1Signature ::
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinBool
+verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
+  case Crypto.verifyEcdsaSecp256k1Signature vk msg sig of
     Emitter f -> case f go of
-      EvaluationFailure   -> mustBeReplaced "SECP256k1 verification errored."
+      EvaluationFailure -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
       EvaluationSuccess b -> case b of
-        EvaluationFailure    -> mustBeReplaced "SECP256k1 tracing errored."
+        EvaluationFailure    -> mustBeReplaced "ECDSA Secp256k1 signature verification tracing errored."
+        EvaluationSuccess b' -> BuiltinBool b'
+  where
+    go :: Text -> EvaluationResult ()
+    go t = trace (BuiltinString t) . EvaluationSuccess $ ()
+
+{-# NOINLINE verifySchnorrSecp256k1Signature #-}
+verifySchnorrSecp256k1Signature ::
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinBool
+verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
+  case Crypto.verifySchnorrSecp256k1Signature vk msg sig of
+    Emitter f -> case f go of
+      EvaluationFailure -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
+      EvaluationSuccess b -> case b of
+        EvaluationFailure    -> mustBeReplaced "Schnorr Secp256k1 signature verification tracing errored."
         EvaluationSuccess b' -> BuiltinBool b'
   where
     go :: Text -> EvaluationResult ()
