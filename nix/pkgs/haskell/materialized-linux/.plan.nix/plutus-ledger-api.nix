@@ -53,6 +53,7 @@
           ];
         buildable = true;
         modules = [
+          "Codec/CBOR/Extras"
           "Data/Either/Extras"
           "Prettyprinter/Extras"
           "Plutus/V1/Ledger/Address"
