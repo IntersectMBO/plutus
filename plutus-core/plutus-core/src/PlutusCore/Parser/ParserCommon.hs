@@ -57,19 +57,8 @@ parse :: ((AsParserError e), MonadQuote m, MonadError e m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str =
     throwingEither
-        _ParserError -- TODO should this be of type Prism' r (ParseErrorBundle Text ParserError) instead?
-        (parseToParserErr p file str)
-
-extractParserErr :: ParseErrorBundle T.Text ParserError -> ParserError
-extractParserErr
-   (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom err))))
-    _) = err
-
-parseToParserErr :: Parser a -> String -> T.Text -> Either ParserError a
-parseToParserErr p file str =
-    case runQuote $ evalStateT (runParserT p file str) initial of
-        Left peb -> Left (extractParserErr peb)
-        Right a  -> Right a
+        _ParseErrorBundle --FIXME
+        (runQuote $ evalStateT (runParserT p file str) initial)
 
 
 -- | Generic parser function.
