@@ -12,7 +12,6 @@ module PlutusCore.Parser
 
 import Control.Monad.Except (MonadError)
 import Data.ByteString.Lazy (ByteString)
-import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (..))

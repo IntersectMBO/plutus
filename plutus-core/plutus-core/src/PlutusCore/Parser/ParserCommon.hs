@@ -54,7 +54,7 @@ parse :: (MonadQuote m, MonadError e m) =>
     -> m a
 parse p file str =
     throwingEither
-        _ParserError
+        _ParseErrorBundle --FIXME
         (runQuote $ evalStateT (runParserT p file str) initial)
 
     --liftEither $ runQuote $ evalStateT (runParserT p file str) initial

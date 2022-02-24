@@ -13,7 +13,7 @@ module UntypedPlutusCore.Parser
 
 import Prelude hiding (fail)
 
-import Control.Monad.Except ((<=<))
+import Control.Monad.Except (MonadError, (<=<))
 
 import PlutusCore qualified as PLC
 import PlutusPrelude (through)
@@ -79,12 +79,12 @@ program = whitespace >> do
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: MonadQuote m => ByteString -> m PTerm
+parseTerm :: (MonadError e m, MonadQuote m) => ByteString -> m PTerm
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: MonadQuote m => ByteString -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProgram :: (MonadError e m, MonadQuote m) => ByteString -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
