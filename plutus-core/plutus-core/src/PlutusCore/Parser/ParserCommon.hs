@@ -2,6 +2,8 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
+{-# LANGUAGE ViewPatterns      #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
 
@@ -19,6 +21,8 @@ import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
+import Data.List.NonEmpty qualified as NE
+import Data.Set qualified as Set
 import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
@@ -49,18 +53,27 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: (MonadQuote m, MonadError e m) =>
-    Parser a -> String -> T.Text
-    -> m a
+parse :: ((AsParserError e), MonadQuote m, MonadError e m) =>
+    Parser a -> String -> T.Text -> m a
 parse p file str =
     throwingEither
-        _ParseErrorBundle --FIXME
-        (runQuote $ evalStateT (runParserT p file str) initial)
+        _ParserError -- TODO should this be of type Prism' r (ParseErrorBundle Text ParserError) instead?
+        (parseToParserErr p file str)
 
-    --liftEither $ runQuote $ evalStateT (runParserT p file str) initial
+extractParserErr :: ParseErrorBundle T.Text ParserError -> ParserError
+extractParserErr
+   (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom err))))
+    _) = err
+
+parseToParserErr :: Parser a -> String -> T.Text -> Either ParserError a
+parseToParserErr p file str =
+    case runQuote $ evalStateT (runParserT p file str) initial of
+        Left peb -> Left (extractParserErr peb)
+        Right a  -> Right a
+
 
 -- | Generic parser function.
-parseGen :: (MonadError e m, MonadQuote m) => Parser a -> ByteString -> m a
+parseGen :: ((AsParserError e), MonadError e m, MonadQuote m) => Parser a -> ByteString -> m a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
 -- | Space consumer.
