@@ -114,11 +114,11 @@ encodeTerm
     -> Encoding
 encodeTerm = \case
     Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encode t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encode t
-    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encode t <> encode t'
+    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encodeTerm t
+    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
+    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
     Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t    -> encodeTermTag 5 <> encode ann <> encode t
+    Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
     Error    ann      -> encodeTermTag 6 <> encode ann
     Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
 
@@ -136,36 +136,38 @@ decodeTerm
     )
     => SizeLimit
     -> Get (Term name uni fun ann)
-decodeTerm sizeLimit = go =<< decodeTermTag
-    where go 0 = Var      <$> decode <*> decode
-          go 1 = Delay    <$> decode <*> decode
-          go 2 = LamAbs   <$> decode <*> (unBinder <$> decode) <*> decode
-          go 3 = Apply    <$> decode <*> decode <*> decode
-          go 4 = do
-              ann <- decode
+decodeTerm sizeLimit = go
+    where
+        go = handleTerm =<< decodeTermTag
+        handleTerm 0 = Var      <$> decode <*> decode
+        handleTerm 1 = Delay    <$> decode <*> go
+        handleTerm 2 = LamAbs   <$> decode <*> (unBinder <$> decode) <*> go
+        handleTerm 3 = Apply    <$> decode <*> go <*> go
+        handleTerm 4 = do
+            ann <- decode
 
-              -- See Note [Deserialization size limits]
-              posPre <- getCurPtr
-              con <- decode
-              posPost <- getCurPtr
-              let usedBytes = posPost `minusPtr` posPre
+            -- See Note [Deserialization size limits]
+            posPre <- getCurPtr
+            con <- decode
+            posPost <- getCurPtr
+            let usedBytes = posPost `minusPtr` posPre
 
-              let conNode :: Term name uni fun ann
-                  conNode = Constant ann con
-              case sizeLimit of
-                  NoLimit -> pure conNode
-                  Limit n ->
-                      if fromIntegral usedBytes > n
-                      then fail $ "Used more than " ++ show n ++ " bytes decoding the constant: " ++ show (prettyPlcDef conNode)
-                      else pure conNode
+            let conNode :: Term name uni fun ann
+                conNode = Constant ann con
+            case sizeLimit of
+                NoLimit -> pure conNode
+                Limit n ->
+                    if fromIntegral usedBytes > n
+                    then fail $ "Used more than " ++ show n ++ " bytes decoding the constant: " ++ show (prettyPlcDef conNode)
+                    else pure conNode
             where
                 -- Get the pointer where flat is currently decoding from. Requires digging into the innards of flat a bit.
                 getCurPtr :: Get (Ptr Word8)
                 getCurPtr = Get $ \_ s@S{currPtr} -> pure $ GetResult s currPtr
-          go 5 = Force    <$> decode <*> decode
-          go 6 = Error    <$> decode
-          go 7 = Builtin  <$> decode <*> decode
-          go t = fail $ "Unknown term constructor tag: " ++ show t
+        handleTerm 5 = Force    <$> decode <*> go
+        handleTerm 6 = Error    <$> decode
+        handleTerm 7 = Builtin  <$> decode <*> decode
+        handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
     :: forall name uni fun ann
