@@ -66,14 +66,14 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
+evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
     RuntimeSchemeResult -> do
-        let (errOrRes, logs) = makeKnownRun (Just term) x
+        let (errOrRes, logs) = runEmitter $ runExceptT getX
         emitCkM logs
         case errOrRes of
-            Left err  -> throwMakeKnownErrorWithCause err
-            Right res -> pure res
-    _ -> pure $ VBuiltin term runtime
+            Left err -> throwReadKnownErrorWithCause $ term <$ err
+            Right x  -> pure x
+    _                   -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -306,11 +306,11 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
-            Left err -> throwReadKnownErrorWithCause err
-            Right x  -> do
+        RuntimeSchemeArrow schB -> case f arg of
+            Left err  -> throwReadKnownErrorWithCause $ term' <$ err
+            Right app -> do
                 let noCosting = error "The CK machine does not support costing"
-                    runtime' = BuiltinRuntime schB (f x) noCosting
+                    runtime' = BuiltinRuntime schB app noCosting
                 res <- evalBuiltinApp term' runtime'
                 stack <| res
         _ ->

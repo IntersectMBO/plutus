@@ -15,10 +15,8 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 
 module PlutusCore.Builtin.KnownType
-    ( MakeKnownError
-    , ReadKnownError
+    ( ReadKnownError
     , throwReadKnownErrorWithCause
-    , throwMakeKnownErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
     , readKnownConstant
@@ -154,35 +152,19 @@ Overall, asking the user to manually unlift from @SomeConstant uni [a]@ is just 
 faster than any kind of fancy encoding.
 -}
 
--- | The type of errors that 'makeKnown' can return.
-data MakeKnownError
-    = MakeKnownEvaluationFailure
-    deriving stock (Eq)
-
 -- | The type of errors that 'readKnown' can return.
 data ReadKnownError
     = ReadKnownUnliftingError UnliftingError
     | ReadKnownEvaluationFailure
     deriving stock (Eq)
 
-makeClassyPrisms ''MakeKnownError
 makeClassyPrisms ''ReadKnownError
-
-instance AsEvaluationFailure MakeKnownError where
-    _EvaluationFailure = _EvaluationFailureVia MakeKnownEvaluationFailure
 
 instance AsUnliftingError ReadKnownError where
     _UnliftingError = _ReadKnownUnliftingError
 
 instance AsEvaluationFailure ReadKnownError where
     _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
-
--- | Throw a @ErrorWithCause ReadKnownError cause@.
-throwMakeKnownErrorWithCause
-    :: (MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err)
-    => ErrorWithCause MakeKnownError cause -> m void
-throwMakeKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
-    MakeKnownEvaluationFailure -> throwingWithCause _EvaluationFailure () cause
 
 -- | Throw a @ErrorWithCause ReadKnownError cause@.
 throwReadKnownErrorWithCause
@@ -232,10 +214,10 @@ readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
 class uni ~ UniOf val => KnownTypeIn uni val a where
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
-    makeKnown :: Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
+    makeKnown :: Maybe cause -> a -> ExceptT (ErrorWithCause ReadKnownError cause) Emitter val
     default makeKnown
         :: KnownBuiltinType val a
-        => Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
+        => Maybe cause -> a -> ExceptT (ErrorWithCause ReadKnownError cause) Emitter val
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
@@ -257,7 +239,7 @@ type KnownType val a = (KnownTypeAst (UniOf val) a, KnownTypeIn (UniOf val) val 
 
 makeKnownRun
     :: KnownTypeIn uni val a
-    => Maybe cause -> a -> (Either (ErrorWithCause MakeKnownError cause) val, DList Text)
+    => Maybe cause -> a -> (Either (ErrorWithCause ReadKnownError cause) val, DList Text)
 makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
 {-# INLINE makeKnownRun #-}
 

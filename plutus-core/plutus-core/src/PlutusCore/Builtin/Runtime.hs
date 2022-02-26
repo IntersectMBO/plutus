@@ -1,3 +1,6 @@
+{-# LANGUAGE RankNTypes     #-}
+{-# LANGUAGE TypeFamilies   #-}
+
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
@@ -12,7 +15,6 @@ import PlutusPrelude
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Meaning
 import PlutusCore.Builtin.TypeScheme
-import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -23,21 +25,31 @@ import Data.Kind qualified as GHC (Type)
 import GHC.Exts (inline)
 import PlutusCore.Builtin.KnownType
 
+import PlutusCore.Builtin.Emitter
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
+
+data Nat = Z | S Nat
+
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
-data RuntimeScheme val (args :: [GHC.Type]) res where
-    RuntimeSchemeResult
-        :: KnownTypeIn (UniOf val) val res
-        => RuntimeScheme val '[] res
-    RuntimeSchemeArrow
-        :: KnownTypeIn (UniOf val) val arg
-        => RuntimeScheme val args res
-        -> RuntimeScheme val (arg ': args) res
-    RuntimeSchemeAll
-        :: RuntimeScheme val args res
-        -> RuntimeScheme val args res
+data RuntimeScheme n where
+    RuntimeSchemeResult :: RuntimeScheme 'Z
+    RuntimeSchemeArrow :: RuntimeScheme n -> RuntimeScheme ('S n)
+    RuntimeSchemeAll :: RuntimeScheme n -> RuntimeScheme n
+
+type MakeKnownM = ExceptT (ErrorWithCause ReadKnownError ()) Emitter
+type ReadKnownM = Either (ErrorWithCause ReadKnownError ())
+
+type family ToDenotationType val (n :: Nat) :: GHC.Type where
+    ToDenotationType val 'Z     = MakeKnownM val
+    ToDenotationType val ('S n) = val -> ReadKnownM (ToDenotationType val n)
+
+type family ToCostingType (n :: Nat) :: GHC.Type where
+    ToCostingType 'Z     = ExBudget
+    ToCostingType ('S n) = ExMemory -> ToCostingType n
 
 -- we use strictdata, so this is just for the purpose of completeness
-instance NFData (RuntimeScheme val args res) where
+instance NFData (RuntimeScheme n) where
     rnf r = case r of
         RuntimeSchemeResult    -> rwhnf r
         RuntimeSchemeArrow arg -> rnf arg
@@ -60,13 +72,15 @@ instance NFData (RuntimeScheme val args res) where
 -- All the three are in sync in terms of partial instantiatedness due to 'TypeScheme' being a
 -- GADT and 'FoldArgs' and 'FoldArgsEx' operating on the index of that GADT.
 data BuiltinRuntime val =
-    forall args res. BuiltinRuntime
-        (RuntimeScheme val args res)
-        ~(FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
-                              -- it's fully saturated before figuring out what it's going to cost.
-        ~(FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
-                              -- can put @undefined@ here. TODO: we should test if making this
-                              -- strict introduces any measurable speedup.
+    forall n. BuiltinRuntime
+        (RuntimeScheme n)
+        ~(ToDenotationType val n)  -- Must be lazy, because we don't want to compute the denotation
+                                   -- when it's fully saturated before figuring out what it's going
+                                   -- to cost.
+        ~(ToCostingType n)         -- We make this lazy, so that evaluators that don't care about
+                                   -- costing can put @undefined@ here.
+                                   -- TODO: we should test if making this strict introduces any
+                                   -- measurable speedup.
 
 instance NFData (BuiltinRuntime val) where
     rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
@@ -78,18 +92,40 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
 
 deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
 
--- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
-typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
-typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
-typeSchemeToRuntimeScheme (TypeSchemeArrow schB) =
-    RuntimeSchemeArrow $ typeSchemeToRuntimeScheme schB
-typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
-    RuntimeSchemeAll $ typeSchemeToRuntimeScheme schK
+data UnliftMode
+    = UnliftImmediately
+    | UnliftWhenSaturated
+
+unliftMode :: UnliftMode
+unliftMode = UnliftImmediately
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
+    go sch $ \sch' toF' toExF' -> (BuiltinRuntime sch' $! (toF' $ pure f)) $! (toExF' $ exF cost) where
+        go
+            :: TypeScheme val args res
+            -> (forall n.
+                    RuntimeScheme n
+                -> (ReadKnownM (FoldArgs args res) -> ToDenotationType val n)
+                -> (FoldArgsEx args -> ToCostingType n)
+                -> BuiltinRuntime val)
+            -> BuiltinRuntime val
+        go TypeSchemeResult       k =
+            k
+                RuntimeSchemeResult
+                (\getRes -> liftEither getRes >>= makeKnown (Just ()))
+                id
+        go (TypeSchemeArrow schB) k =
+            go schB $ \sch' toF' toExF' -> k
+                (RuntimeSchemeArrow sch')
+                (\getF x -> do
+                    let getVal = readKnown (Just ()) x
+                    case unliftMode of
+                        UnliftImmediately   -> getVal <&> \val -> toF' (($ val) <$> getF)
+                        UnliftWhenSaturated -> pure . toF' $ getF <*> getVal)
+                (toExF' .)
+        go (TypeSchemeAll _ schK) k = go schK $ k . RuntimeSchemeAll
 
 -- See Note [Inlining meanings of builtins].
 -- | Calculate runtime info for all built-in functions given denotations of builtins
