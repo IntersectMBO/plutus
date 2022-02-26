@@ -43,7 +43,6 @@ import PlutusCore.Evaluation.Result
 import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.Coerce
-import Data.DList (DList)
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
@@ -257,7 +256,7 @@ type KnownType val a = (KnownTypeAst (UniOf val) a, KnownTypeIn (UniOf val) val 
 
 makeKnownRun
     :: KnownTypeIn uni val a
-    => Maybe cause -> a -> (Either (ErrorWithCause MakeKnownError cause) val, DList Text)
+    => Maybe cause -> a -> (Either (ErrorWithCause MakeKnownError cause) val, ChurchList Text)
 makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
 {-# INLINE makeKnownRun #-}
 
