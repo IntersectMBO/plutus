@@ -4,7 +4,7 @@ module PlutusCore.Builtin.Emitter
     , emit
     ) where
 
-import Control.Monad.Writer.Strict
+import Control.Monad.Trans.Writer.CPS
 import Data.DList as DList
 import Data.Text (Text)
 
