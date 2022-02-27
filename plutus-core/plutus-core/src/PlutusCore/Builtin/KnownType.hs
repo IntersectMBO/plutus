@@ -15,7 +15,8 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 
 module PlutusCore.Builtin.KnownType
-    ( MakeKnownError
+    ( GEqL (..)
+    , MakeKnownError
     , ReadKnownError
     , throwReadKnownErrorWithCause
     , throwMakeKnownErrorWithCause
@@ -49,8 +50,12 @@ import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
 import Universe
 
+class GEqL f a where
+    geqL :: f b -> Maybe (a :~: b)
+
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
-type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, GShow uni, GEq uni, uni `Contains` a)
+type KnownBuiltinTypeIn uni val a =
+    (HasConstantIn uni val, GShow uni, GEqL uni (Esc a), uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
 type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
@@ -199,14 +204,12 @@ readKnownConstant
     => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
 -- See Note [Performance of KnownTypeIn instances].
 readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
-    Some (ValueOf uniAct x) -> do
-        let uniExp = knownUni @_ @(UniOf val) @a
-        -- 'geq' matches on its first argument first, so we make the type tag that will be known
-        -- statically (because this function will be inlined) go first in order for GHC to optimize some of the matching away.
-        case uniExp `geq` uniAct of
+    Some (ValueOf uniAct x) ->
+        case geqL @(UniOf val) @(Esc a) uniAct of
             Just Refl -> pure x
             Nothing   -> do
-                let err = fromString $ concat
+                let uniExp = knownUni @_ @(UniOf val) @a
+                    err = fromString $ concat
                         [ "Type mismatch: "
                         , "expected: " ++ gshow uniExp
                         , "; actual: " ++ gshow uniAct
