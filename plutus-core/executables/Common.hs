@@ -617,7 +617,7 @@ typeSchemeToSignature = toSig []
           toSig acc =
               \case
                pR@PLC.TypeSchemeResult -> Signature acc (PLC.toTypeAst pR)
-               arr@(PLC.TypeSchemeArrow _ schB) ->
+               arr@(PLC.TypeSchemeArrow schB) ->
                    toSig (acc ++ [Type $ PLC.toTypeAst $ PLC.argProxy arr]) schB
                PLC.TypeSchemeAll proxy schK ->
                    case proxy of

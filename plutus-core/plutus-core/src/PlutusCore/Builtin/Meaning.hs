@@ -30,7 +30,6 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline)
 import GHC.TypeLits
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
@@ -136,9 +135,7 @@ instance (res ~ res', KnownType val res) => KnownMonotype val '[] res res' where
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance (KnownType val arg, KnownMonotype val args res a) =>
             KnownMonotype val (arg ': args) res (arg -> a) where
-    -- The call to 'inline' was added because without it 'readKnown' was not getting inlined for
-    -- certain types (in particular, 'Int' and 'Opaque').
-    knownMonotype = TypeSchemeArrow (inline readKnown) knownMonotype
+    knownMonotype = TypeSchemeArrow knownMonotype
     {-# INLINE knownMonotype #-}
 
 -- | A class that allows us to derive a polytype for a builtin.

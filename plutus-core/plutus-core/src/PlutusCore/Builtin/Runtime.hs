@@ -31,9 +31,8 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
         :: KnownTypeIn (UniOf val) val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
-           -- 'readKnown' inlined for optimization purposes.
-        :: (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
-        -> RuntimeScheme val args res
+        :: KnownTypeIn (UniOf val) val arg
+        => RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
     RuntimeSchemeAll
         :: RuntimeScheme val args res
@@ -72,8 +71,8 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
 typeSchemeToRuntimeScheme TypeSchemeResult = RuntimeSchemeResult
-typeSchemeToRuntimeScheme (TypeSchemeArrow rk schB) =
-    RuntimeSchemeArrow rk $ typeSchemeToRuntimeScheme schB
+typeSchemeToRuntimeScheme (TypeSchemeArrow schB) =
+    RuntimeSchemeArrow $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
     RuntimeSchemeAll $ typeSchemeToRuntimeScheme schK
 
