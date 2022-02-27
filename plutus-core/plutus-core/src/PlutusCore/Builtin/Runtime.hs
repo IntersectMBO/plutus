@@ -82,8 +82,8 @@ toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
     BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
 -- | This is a function turned into a class for the sake of specialization and inspection.
--- Every instance of this class must use the default implementation of 'toBuiltinsRuntime',
--- i.e. not define 'toBuiltinsRuntime' at all. Having this class allows us to inlining away lots of
+-- Every instance of this class MUST use the default implementation of 'toBuiltinsRuntime',
+-- i.e. not define 'toBuiltinsRuntime' at all. Having this class allows us to inline away lots of
 -- abstractions used by the builtins machinery.
 --
 -- For performance-critical code both @fun@ and @val@ need to be specified as concrete data types
