@@ -1,3 +1,4 @@
+
 {-# LANGUAGE StrictData    #-}
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
@@ -6,8 +7,8 @@ module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
 import PlutusCore.Builtin
+import PlutusCore.Core (UniOf)
 
-import PlutusCore.Core.Type hiding (Type)
 import PlutusCore.Evaluation.Machine.ExBudget ()
 
 import GHC.Types (Type)

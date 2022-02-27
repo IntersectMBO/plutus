@@ -66,6 +66,7 @@
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
           (hsPkgs."hashable" or (errorHandler.buildDepError "hashable"))
           (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+          (hsPkgs."int-cast" or (errorHandler.buildDepError "int-cast"))
           (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
           (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))

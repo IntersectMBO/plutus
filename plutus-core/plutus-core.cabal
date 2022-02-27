@@ -274,6 +274,7 @@ library
         ghc-prim -any,
         hashable,
         hedgehog >=1.0,
+        int-cast -any,
         integer-gmp -any,
         lens -any,
         megaparsec -any,

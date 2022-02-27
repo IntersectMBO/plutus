@@ -111,5 +111,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/binary; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/binary; echo source root reset to $sourceRoot";
     }

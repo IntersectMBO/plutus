@@ -119,13 +119,12 @@ emitCkM str = do
 
 type instance UniOf (CkValue uni fun) = uni
 
-instance FromConstant (CkValue uni fun) where
-    fromConstant = VCon
-
-instance AsConstant (CkValue uni fun) where
+instance HasConstant (CkValue uni fun) where
     asConstant mayCause = \case
         VCon val -> pure val
         _        -> throwNotAConstant mayCause
+
+    fromConstant = VCon
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@

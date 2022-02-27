@@ -24,6 +24,7 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+import Data.Coerce
 import Data.Functor
 import Data.Proxy
 import Data.Word (Word8)
@@ -349,6 +350,7 @@ instance Flat NamedDeBruijn where
 
 deriving newtype instance Flat NamedTyDeBruijn -- via nameddebruijn
 
+-- NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
 instance Flat (Binder DeBruijn) where
     size _ = id -- zero cost
     encode _ = mempty
@@ -363,3 +365,17 @@ deriving newtype instance Flat (Binder TyName)
 -- That would be more compact, but we don't need it at the moment.
 deriving newtype instance Flat (Binder NamedDeBruijn)
 deriving newtype instance Flat (Binder NamedTyDeBruijn)
+
+-- this instance is very similar to the Flat DeBruijn instance.
+-- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+instance Flat FakeNamedDeBruijn where
+    size  = size . fromFake -- via debruijn
+    encode  = encode . fromFake -- via debruijn
+    decode =  toFake <$> decode -- via debruijn
+
+-- this instance is very similar to the Flat (Binder DeBruijn) instance.
+-- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+instance Flat (Binder FakeNamedDeBruijn) where
+    size  = size . fromFake . coerce -- via binder debruijn
+    encode = encode . fromFake . coerce -- via binder debruijn
+    decode = coerce . toFake . coerce <$> decode @(Binder DeBruijn) -- via binder debruijn

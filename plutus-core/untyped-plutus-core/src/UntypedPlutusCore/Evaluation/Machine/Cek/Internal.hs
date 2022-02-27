@@ -480,13 +480,12 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 
 type instance UniOf (CekValue uni fun) = uni
 
-instance FromConstant (CekValue uni fun) where
-    fromConstant = VCon
-
-instance AsConstant (CekValue uni fun) where
+instance HasConstant (CekValue uni fun) where
     asConstant mayCause = \case
         VCon val -> pure val
         _        -> throwNotAConstant mayCause
+
+    fromConstant = VCon
 
 {-|
 The context in which the machine operates.
