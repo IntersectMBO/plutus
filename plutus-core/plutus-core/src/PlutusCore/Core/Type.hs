@@ -24,13 +24,9 @@ module PlutusCore.Core.Type
     , TyDecl (..)
     , tyDeclVar
     , HasUniques
-    , KnownKind (..)
-    , ToKind (..)
     , Binder (..)
-    , kindOf
     , defaultVersion
     -- * Helper functions
-    , toTerm
     , termAnn
     , typeAnn
     , mapFun
@@ -43,30 +39,27 @@ module PlutusCore.Core.Type
     , tyDeclAnn
     , tyDeclType
     , tyDeclKind
+    , progAnn
+    , progVer
+    , progTerm
     )
 where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Name
+import PlutusCore.Name
 
-import           Control.Lens
-import           Data.Hashable
-import qualified Data.Kind                as GHC
-import           Data.Proxy
-import           Instances.TH.Lift        ()
-import           Language.Haskell.TH.Lift
-import           Universe
-
-{- Note [Annotations and equality]
-Equality of two things does not depend on their annotations.
-So don't use @deriving Eq@ for things with annotations.
--}
+import Control.Lens
+import Data.Hashable
+import Data.Kind qualified as GHC
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Lift
+import Universe
 
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving (Eq, Show, Functor, Generic, NFData, Lift, Hashable)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -79,7 +72,7 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData)
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -92,16 +85,21 @@ data Term tyname name uni fun ann
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Show, Functor, Generic, NFData)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving (Eq, Show, Functor, Generic, NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progVer  :: Version ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
+    deriving (Show, Functor, Generic, NFData)
+makeLenses ''Program
 
 -- | Extract the universe from a type.
 type family UniOf a :: GHC.Type -> GHC.Type
@@ -158,37 +156,9 @@ type instance HasUniques (Term tyname name uni fun ann) =
 type instance HasUniques (Program tyname name uni fun ann) =
     HasUniques (Term tyname name uni fun ann)
 
--- | A class for converting Haskell kinds to PLC kinds.
-class KnownKind kind where
-    knownKind :: proxy kind -> Kind ()
-
-instance KnownKind GHC.Type where
-    knownKind _ = Type ()
-
-instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
-    knownKind _ = KindArrow () (knownKind $ Proxy @dom) (knownKind $ Proxy @cod)
-
--- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
--- producing them directly or by parsing/decoding them and in both the cases we have access to the
--- @Typeable@ information for the Haskell kind of a type and so we could just keep it around
--- (instead of throwing it away like we do now) and compute the Plutus kind directly from that.
--- That might be less efficient and probably requires updating the Plutus Tx compiler, so we went
--- with the simplest option for now and it's to have a class. Providing an instance per universe is
--- no big deal.
--- | For getting the Plutus kind of a type from the universe.
-class ToKind (uni :: GHC.Type -> GHC.Type) where
-    toKind :: forall k (a :: k). uni (Esc a) -> Kind ()
-
--- | Get the PLC kind of @a@.
-kindOf :: forall uni k (a :: k). KnownKind k => uni (Esc a) -> Kind ()
-kindOf _ = knownKind $ Proxy @k
-
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
-
-toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
-toTerm (Program _ _ term) = term
 
 typeAnn :: Type tyname uni ann -> ann
 typeAnn (TyVar ann _       ) = ann

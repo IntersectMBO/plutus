@@ -5,8 +5,8 @@ module PlutusTx.Either (Either(..), isLeft, isRight, either) where
 We export off-chain Haskell's Either type as on-chain Plutus's Either type since they are the same.
 -}
 
-import           PlutusTx.Bool (Bool (..))
-import           Prelude       (Either (..))
+import PlutusTx.Bool (Bool (..))
+import Prelude (Either (..))
 
 
 {- HLINT ignore -}

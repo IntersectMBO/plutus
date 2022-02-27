@@ -1,3 +1,3 @@
 module FamInstEnv where
 
-import           StubTypes
+import StubTypes

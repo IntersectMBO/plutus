@@ -5,10 +5,10 @@
 
 module PlutusCore.Core.Instance.Scoping () where
 
-import           PlutusCore.Check.Scoping
-import           PlutusCore.Core.Type
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Check.Scoping
+import PlutusCore.Core.Type
+import PlutusCore.Name
+import PlutusCore.Quote
 
 -- In the three instances below the added variable is always the last field of a constructor.
 -- Just to be consistent.

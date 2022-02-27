@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Plutus Application Framework
+    url: https://github.com/input-output-hk/plutus-apps/issues
+    about: Please raise any Plutus Application Framework issues here (e.g. PAB and Plutus Playground)
+  - name: Marlowe
+    url: https://github.com/input-output-hk/marlowe-cardano/issues
+    about: Please raise any Marlowe issues here (e.g. Marlowe Playground)

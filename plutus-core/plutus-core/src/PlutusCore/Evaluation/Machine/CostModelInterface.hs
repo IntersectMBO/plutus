@@ -9,15 +9,16 @@ module PlutusCore.Evaluation.Machine.CostModelInterface
     )
 where
 
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel           ()
-import           PlutusCore.Evaluation.Machine.MachineParameters          (CostModel (..))
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel ()
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
 
-import           Data.Aeson
-import           Data.Aeson.Flatten
-import qualified Data.HashMap.Strict                                      as HM
-import qualified Data.Map                                                 as Map
-import qualified Data.Text                                                as Text
+import Data.Aeson
+import Data.Aeson.Flatten
+import Data.HashMap.Strict qualified as HM
+import Data.Map qualified as Map
+import Data.Map.Merge.Lazy qualified as Map
+import Data.Text qualified as Text
 
 
 {- Note [Cost model parameters]
@@ -44,11 +45,11 @@ Int exponent). We should be able to convert between these types without loss of
 precision, except that Scientific numbers of large magnitude will overflow to
 SatInt::MaxBound or underflow to SatInt::MinBound.  This is OK because
 CostModelParams objects should never contain such large numbers. Any Plutus Core
-programs whose cost reaches MaxBound will fail due to excesssive resource usage.
+programs whose cost reaches MaxBound will fail due to excessive resource usage.
 
 3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
 
-We can just strip the out, but in particular this means that the parameters are
+We can just strip the type out, but in particular this means that the parameters are
 not enough to *construct* a model.  So we punt and say that you can *update* a
 model by giving the parameters. So you can take the default model and then
 overwrite the parameters, which seems okay.
@@ -79,7 +80,7 @@ extractParams :: ToJSON a => a -> Maybe CostModelParams
 extractParams cm = case toJSON cm of
     Object o ->
         let
-            flattened = flattenObject "-" o
+            flattened = objToHm $ flattenObject "-" o
             usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
             -- ^ Only (the contents of) the "Just" values are retained in the output map.
             mapified = Map.fromList $ HM.toList usingCostingIntegers
@@ -93,16 +94,25 @@ applyParams :: (FromJSON a, ToJSON a) => a -> CostModelParams -> Maybe a
 applyParams cm params = case toJSON cm of
     Object o ->
         let
-            hashmapified = HM.fromList $ Map.toList params
-            usingScientific = fmap (Number . fromIntegral) hashmapified
-            flattened = flattenObject "-" o
-            -- this is where the overwriting happens, this is left-biased
-            merged = HM.union usingScientific flattened
-            unflattened = unflattenObject "-" merged
-        in case fromJSON (Object unflattened) of
-            Success a -> Just a
-            Error _   -> Nothing
+            usingScientific = fmap (Number . fromIntegral) params
+            flattened = fromHash $ objToHm $ flattenObject "-" o
+        in do
+            -- this is where the overwriting happens
+            -- fail when key is in params (left) but not in the model (right)
+            merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
+            let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
+            case fromJSON (Object unflattened) of
+                Success a -> Just a
+                Error _   -> Nothing
     _ -> Nothing
+  where
+    toHash = HM.fromList . Map.toList
+    fromHash = Map.fromList . HM.toList
+    -- fail when field missing
+    failMissing = Map.traverseMissing $ \ _k _x -> Nothing
+    -- left-biased merging when key found in both maps
+    leftBiased _k l _r = l
+
 
 -- | Parameters for a machine step model and a builtin evaluation model bundled together.
 data SplitCostModelParams =

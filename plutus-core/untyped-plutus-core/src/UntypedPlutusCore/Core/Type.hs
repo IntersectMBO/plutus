@@ -2,8 +2,8 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Core.Type
@@ -12,23 +12,28 @@ module UntypedPlutusCore.Core.Type
     , TPLC.Binder (..)
     , Term (..)
     , Program (..)
-    , toTerm
+    , progAnn
+    , progVer
+    , progTerm
     , bindFunM
     , bindFun
     , mapFun
     , termAnn
     , erase
     , eraseProgram
+    , UVarDecl(..)
+    , uvarDeclName
+    , uvarDeclAnn
     ) where
 
-import           Data.Functor.Identity
-import           PlutusPrelude
+import Control.Lens
+import PlutusPrelude
 
-import qualified PlutusCore.Constant   as TPLC
-import qualified PlutusCore.Core       as TPLC
-import           PlutusCore.MkPlc
-import qualified PlutusCore.Name       as TPLC
-import           Universe
+import PlutusCore.Builtin qualified as TPLC
+import PlutusCore.Core qualified as TPLC
+import PlutusCore.MkPlc
+import PlutusCore.Name qualified as TPLC
+import Universe
 
 {- Note [Term constructor ordering and numbers]
 Ordering of constructors has a small but real effect on efficiency.
@@ -55,7 +60,7 @@ once per program, so it's not too big a deal if it doesn't get a tag.
 
 The latter two are due to the fact that we don't have value restriction in Typed Plutus Core
 and hence a computation can be stuck expecting only a single type argument for the computation
-to become unstuck. Therefore we can't just silently remove type abstractions and instantions and
+to become unstuck. Therefore we can't just silently remove type abstractions and instantiations and
 need to replace them with something else that also blocks evaluation (in order for the semantics
 of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
 serve exactly this purpose.
@@ -77,9 +82,14 @@ data Term name uni fun ann
     deriving anyclass (NFData)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program name uni fun ann = Program ann (TPLC.Version ann) (Term name uni fun ann)
+data Program name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progVer  :: TPLC.Version ann
+    , _progTerm :: Term name uni fun ann
+    }
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+makeLenses ''Program
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
@@ -95,18 +105,21 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
 
-instance TPLC.AsConstant (Term name uni fun ann) where
-    asConstant (Constant _ val) = pure val
-    asConstant term             = TPLC.throwNotAConstant term
+instance TPLC.HasConstant (Term name uni fun ()) where
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = TPLC.throwNotAConstant mayCause
 
-instance TPLC.FromConstant (Term name uni fun ()) where
     fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
 
-toTerm :: Program name uni fun ann -> Term name uni fun ann
-toTerm (Program _ _ term) = term
+-- | An untyped "variable declaration", i.e. a name for a variable.
+data UVarDecl name ann = UVarDecl
+    { _uvarDeclAnn  :: ann
+    , _uvarDeclName :: name
+    } deriving (Functor, Show, Generic)
+makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann

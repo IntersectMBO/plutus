@@ -10,7 +10,7 @@
   {
     flags = {};
     package = {
-      specVersion = "1.10";
+      specVersion = "2.4";
       identifier = {
         name = "prettyprinter-configurable";
         version = "0.1.0.0";
@@ -83,7 +83,6 @@
           };
         "prettyprinter-configurable-doctest" = {
           depends = [
-            (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."doctest" or (errorHandler.buildDepError "doctest"))
             ];

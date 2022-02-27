@@ -1,56 +1,66 @@
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiWayIf            #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE ViewPatterns          #-}
+
+{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import qualified PlutusTx.Builtins             as Builtins
-import           PlutusTx.Compiler.Binders
-import           PlutusTx.Compiler.Builtins
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Laziness
-import           PlutusTx.Compiler.Names
-import           PlutusTx.Compiler.Type
-import           PlutusTx.Compiler.Types
-import           PlutusTx.Compiler.Utils
-import           PlutusTx.PIRTypes
+import Class qualified as GHC
+import CoreSyn qualified as GHC
+import CostCentre qualified as GHC
+import GhcPlugins qualified as GHC
+import MkId qualified as GHC
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Compiler.Binders
+import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Laziness
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Type
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.Coverage
+import PlutusTx.PIRTypes
+import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import qualified PlutusTx.Builtins.Class       as Builtins
+import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Trace
+import PrelNames qualified as GHC
 
-import qualified Class                         as GHC
-import qualified FV                            as GHC
-import qualified GhcPlugins                    as GHC
-import qualified MkId                          as GHC
-import qualified PrelNames                     as GHC
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Core.Type (Term (..))
+import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Purity qualified as PIR
 
-import qualified PlutusIR                      as PIR
-import qualified PlutusIR.Compiler.Definitions as PIR
-import           PlutusIR.Compiler.Names       (safeFreshName)
-import           PlutusIR.Core.Type            (Term (..))
-import qualified PlutusIR.MkPir                as PIR
-import qualified PlutusIR.Purity               as PIR
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty qualified as PP
+import PlutusCore.Subst qualified as PLC
 
-import qualified PlutusCore                    as PLC
-import qualified PlutusCore.MkPlc              as PLC
-import qualified PlutusCore.Pretty             as PP
+import Control.Monad
+import Control.Monad.Reader (MonadReader (ask))
 
-import           Control.Monad.Reader          (MonadReader (ask))
-
-import qualified Data.ByteString               as BS
-import           Data.List                     (elemIndex)
-import qualified Data.List.NonEmpty            as NE
-import qualified Data.Map                      as Map
-import qualified Data.Set                      as Set
-import qualified Data.Text                     as T
-import qualified Data.Text.Encoding            as TE
-import           Data.Traversable
+import Data.Array qualified as Array
+import Data.ByteString qualified as BS
+import Data.Functor ((<&>))
+import Data.List (elemIndex)
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
+import Data.Set qualified as Set
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
+import Data.Traversable
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -130,7 +140,7 @@ strip = \case
     expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: Compiling uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
+compileDataConRef :: CompilingDefault uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -156,26 +166,34 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
     Just alt -> alt
     Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
 
--- | Make the alternative for a given 'CoreAlt'.
+-- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
     :: CompilingDefault uni fun m
-    => Bool -- ^ Whether we must delay the alternative.
+    => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> m (PIRTerm uni fun)
-compileAlt mustDelay instArgTys (alt, vars, body) = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
+compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
-    GHC.DEFAULT   -> do
-        body' <- compileExpr body >>= maybeDelay mustDelay
-        -- need to consume the args
-        argTypes <- mapM compileTypeNorm instArgTys
-        argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
-        pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
-    GHC.DataAlt _ -> mkIterLamAbsScoped vars (compileExpr body >>= maybeDelay mustDelay)
+    GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
+        b <- compileExpr body
+        delayed <- delay b
+        return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
+    GHC.DEFAULT   -> do
+        compiledBody <- compileExpr body
+        nonDelayed <- wrapDefaultAlt compiledBody
+        delayed <- delay compiledBody >>= wrapDefaultAlt
+        return (nonDelayed, delayed)
+    where
+        wrapDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        wrapDefaultAlt body' = do
+            -- need to consume the args
+            argTypes <- mapM compileTypeNorm instArgTys
+            argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
+            pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl ()) argNames argTypes) body'
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -223,20 +241,28 @@ However, there is a subtlety: we'd like this binding to be removed by the dead-b
 but only where we don't absolutely need it to be sure the scrutinee is evaluated. Fortunately, provided
 we do a pattern match at all we will evaluate the scrutinee, since we do pattern matching by applying the scrutinee.
 
-So the only case where we *need* to keep the binding in place is the case described in Note [Default-only cases].
+So the only case where we *need* to keep the binding in place is the case described in Note [Evaluation-only cases].
 In this case we make a strict binding, in all others we make a non-strict binding.
 -}
 
-{- Note [Default-only cases]
-GHC sometimes generates case expressions where there is only a single alternative, which is a default
-alternative. It can do this even if the argument is a type variable (i.e. not known to be a datatype).
-What this amounts to is ensuring the expression is evaluated - hence once place this appears is bang
+{- Note [Evaluation-only cases]
+GHC sometimes generates case expressions where there is only a single alternative, and where none
+of the variables bound by the alternative are live (see Note [Occurrence analsis] for how we tell
+that this is the case).
+
+What this amounts to is ensuring the expression is evaluated - hence one place this appears is bang
 patterns.
 
-We can't actually compile this as a pattern match, since we need to know the actual type to do that.
-But in the case where the only alternative is a default alternative, we don't *need* to, because it
-doesn't actually inspect the contents of the datatype. So we can just compile this by returning
-the body of the alternative.
+It can do this even if the argument is a type variable (i.e. not known to be a datatype) by producing
+a default-only case expression! Also, this can happen to our opaque builtin wrapper types in the
+presence of e.g. bang patterns.
+
+We can't actually compile this as a pattern match, since we need to know the actual type to do that,
+(or in the case of builtin wrapper types, they're supposed to be opaque!).
+But in the case where there is only one alternative with no live variables, we don't *need* to, because it
+doesn't actually *do* anything with the contents of the datatype. So we can just compile this by returning
+the body of the alternative wrapped in a strict let which binds the scrutinee. That achieves the
+same thing as GHC wants (since GHC does expect the scrutinee to be in scope!).
 -}
 
 {- Note [Coercions and newtypes]
@@ -357,7 +383,6 @@ TYPE 'GHC.Types.LiftedRep -> TYPE 'GHC.Types.LiftedRep -> TYPE ('GHC.Types.Tuple
 ```
 
 As Plutus has no different runtime representations, the overall strategy is consider `Type rep` to always be `Type LiftedRep`, which becomes `Type` on the Plutus side.
-on all levels and match any 'TYPE rep' to the usual Plutus type.
 
 To do this, we do the following:
 
@@ -383,54 +408,78 @@ and to compile the kind of '(#,#)' properly.
 
 -}
 
+{- Note [Dependency tracking]
+We use the PIR support for creating a whole bunch of definitions with dependencies between them, and then generating the code with them all
+in the right order. However, this requires us to know what the dependencies of a definition *are*.
+
+There are broadly two ways we could do this:
+1. Statically determine before compiling a term/type what it depends on (e.g. by looking at the free variables in the input Core).
+2. Dynamically track dependencies as we compile a term/type; whenever we see a reference to something, add it as a dependency.
+
+We used to do the former but we now do the latter. The reason for this is that we sometimes generate bits of code
+dynamically as we go. For example, the boolean coverage code *adds* some calls to 'traceBool' into the program. That means
+we need a dependency on 'traceBool' - but it wasn't there at the beginning, so a static approach won't work.
+
+The dynamic approach requires us to:
+1. Track the current definition.
+2. Ensure that the definition is tracked while we are recording things it may depend on (this may require creating a fake definition to begin with)
+3. Record dependencies when we find them.
+
+This typically means that we do a three-step process for a given definition:
+1. Create a definition with a fake body (this is often also needed for recursion, see Note [Occurrences of recursive names])
+2. Compile the real body (during which point dependencies are discovered and added to the fake definition).
+3. Modify the definition with the real body.
+-}
+
+{- Note [Occurrence analysis]
+GHC has "occurrence analysis", which is quite handy. In particular, it can tell you if variables are dead, which is useful
+in a couple of places.
+
+But it typically gets run *before* the simplifier, so when we get the expression we might be missing occurence analysis
+for any variables that were freshly created by the simplifier. That's easy to fix: we just run the occurrence analyser
+ourselves before we start.
+-}
+
 hoistExpr
     :: CompilingDefault uni fun m
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
-hoistExpr var t =
-    let
-        name = GHC.getName var
+hoistExpr var t = do
+    let name = GHC.getName var
         lexName = LexName name
-    in withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-        maybeDef <- PIR.lookupTerm () lexName
-        case maybeDef of
-            Just term -> pure term
-            Nothing -> do
-                let fvs = GHC.getName <$> (GHC.fvVarList $ GHC.expr_fvs t)
-                let tcs = GHC.getName <$> (GHC.nonDetEltsUniqSet $ tyConsOfExpr t)
-                let allFvs = Set.fromList $ fvs ++ tcs
+    -- See Note [Dependency tracking]
+    modifyCurDeps (\d -> Set.insert lexName d)
+    maybeDef <- PIR.lookupTerm () lexName
+    case maybeDef of
+        Just term -> pure term
+        -- See Note [Dependency tracking]
+        Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
+            var' <- compileVarFresh var
+            -- See Note [Occurrences of recursive names]
+            PIR.defineTerm
+                lexName
+                (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
+                mempty
 
-                var' <- compileVarFresh var
-                -- See Note [Occurrences of recursive names]
-                PIR.defineTerm
-                    lexName
-                    (PIR.Def var' (PIR.mkVar () var', PIR.Strict))
-                    mempty
+            t' <- maybeProfileRhs var' =<< compileExpr t
+            -- See Note [Non-strict let-bindings]
+            let strict = PIR.isPure (const PIR.NonStrict) t'
 
-                CompileContext {ccOpts=profileOpts} <- ask
-                t' <-
-                    if coProfile profileOpts==All then do
-                        let ty = PLC._varDeclType var'
-                            varName = PLC._varDeclName var'
-                        t'' <- compileExpr t
-                        thunk <- PLC.freshName "thunk"
-                        pure $
-                            traceInside varName thunk t'' ty
-                    else compileExpr t
+            PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
+            pure $ PIR.mkVar () var'
 
-                -- See Note [Non-strict let-bindings]
-                let strict = PIR.isPure (const PIR.NonStrict) t'
-                -- We could incur a dependency on unit for a number of reasons: we delayed,
-                -- or we used it for a lazy case expression. Rather than tear our hair out
-                -- trying to work out whether we do depend on it, just assume that we do.
-                -- This should get better when we push the laziness handling to PIR so we
-                -- can trust the source-level dependencies on unit.
-                let deps = Set.insert (GHC.getName GHC.unitTyCon) allFvs
-
-                PIR.defineTerm
-                    lexName
-                    (PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
-                    (Set.map LexName deps)
-                pure $ PIR.mkVar () var'
+maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs var t = do
+    CompileContext {ccOpts=compileOpts} <- ask
+    let ty = PLC._varDeclType var
+        varName = PLC._varDeclName var
+        displayName = T.pack $ PP.displayPlcDef varName
+        isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
+    -- Trace only if profiling is on *and* the thing being defined is a function
+    if coProfile compileOpts==All && isFunctionOrAbstraction
+    then do
+        thunk <- PLC.freshName "thunk"
+        pure $ entryExitTracingInside thunk displayName t ty
+    else pure t
 
 mkTrace
     :: (PLC.Contains uni T.Text)
@@ -444,44 +493,162 @@ mkTrace ty str v =
         (PIR.TyInst () (PIR.Builtin () PLC.Trace) ty)
         [PLC.mkConstant () str, v]
 
--- | Trace inside a term's lambda. I.e., turn
--- @trace (\a b -> body)@ to @\a -> \b -> trace body@.
-traceInside ::
-    PLC.Name
-    -> PIR.Name
+-- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
+mkLazyTrace
+    :: CompilingDefault uni fun m
+    => PLC.Type PLC.TyName uni ()
+    -> T.Text
+    -> PIRTerm uni PLC.DefaultFun
+    -> m (PIRTerm uni fun)
+mkLazyTrace ty str v = do
+  delayedBody <- delay v
+  delayedType <- delayType ty
+  force $ mkTrace delayedType str delayedBody
+
+{- Note [Profiling polymorphic functions]
+In order to profile polymorphic functions, we have to go under the type abstractions.
+But we also need the type of the final inner term in order to construct the correct
+invocations of 'trace'. At the moment we get this from the *type* of the term.
+
+But this goes wrong as soon as there are type variables involved!
+
+id :: forall a . a -> a
+id = /\a . \(x :: a) -> x -- The 'a' here is not the same as the 'a' in the type signature!
+
+The type of the term needs to use the type variables bound by the type abstractions,
+not the ones bound by the foralls in the type signature.
+
+We sort this out in a hacky way by continuing to use the type of the overall term, but
+constructing a substitution from the type-bound variables to the term-bound variables,
+and then applying that at the end. Not pleasant, but it works.
+
+Note that creating a substitution with a map relies on globally unique names in types.
+But that's okay, because these are all types we've been creating just now in Quote, so
+we should have globally unique names
+-}
+
+{- Note [Term/type argument mismatches]
+Given a term t and its type ty we can process them in parallel popping off arguments/function types.
+
+But we can end up with a mismatch:
+- We run out of arguments at the term level e.g. because we see something like `(\x -> \y -> y) 1`,
+which is of function type but isn't a lambda until you reduce.
+- We run out of arguments at the type level e.g. because we see something like `(\a -> (a -> a)) b`,
+which is a function type but isn't a function type until you reduce.
+
+It's usually okay to stop at this point, since the remaining things usually aren't "proper" arguments.
+In the term case, it's a lambda computed by an application, which won't occur from a "proper" argument.
+In the type case, we only generate type lambdas for newtypes, which will block "proper" arguments anyway,
+i.e. it comes from something like this:
+
+f :: Identity (a -> a)
+f = Identity (\x -> x)
+-}
+
+-- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
+-- @(/\a -> \b -> body)@ into @/\a -> \b -> entryExitTracing body@.
+entryExitTracingInside ::
+    PIR.Name
+    -> T.Text
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
     -> PLC.Type PIR.TyName PLC.DefaultUni ()
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-traceInside varName lamName = go
+entryExitTracingInside lamName displayName = go mempty
     where
-        go (LamAbs () n t body) (PLC.TyFun () _dom cod) =
-        -- when t = \x -> body, => \x -> traceInside body
-            LamAbs () n t (traceInside varName lamName body cod)
-        go LamAbs{} _ =
-            error "traceInside: type mismatched. It should be a function type."
-        go e ty =
-            let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
-                defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
-                displayName = T.pack $ PP.displayPlcDef varName
-            in
-            --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
-                PIR.Apply
-                    ()
-                    (mkTrace
-                        (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
-                        ("entering " <> displayName)
-                        -- \() -> trace @c "exiting f" e
-                        (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
-                    defaultUnit
+        go ::
+            Map.Map PLC.TyName (PLCType PLC.DefaultUni)
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+            -> PLCType PLC.DefaultUni
+            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+        go subst (LamAbs () n t body) (PLC.TyFun () _dom cod) =
+            -- when t = \x -> body, => \x -> entryExitTracingInside body
+            LamAbs () n t $ go subst body cod
+        go subst (TyAbs () tn1 k body) (PLC.TyForall () tn2 _k ty) =
+            -- when t = /\x -> body, => /\x -> entryExitTracingInside body
+            -- See Note [Profiling polymorphic functions]
+            let subst' = Map.insert tn2 (PLC.TyVar () tn1) subst
+            in TyAbs () tn1 k $ go subst' body ty
+        -- See Note [Term/type argument mismatches]
+        -- Even if there still look like there are arguments on the term or the type level, because we've hit
+        -- a mismatch we go ahead and insert our profiling traces here.
+        go subst e ty =
+            -- See Note [Profiling polymorphic functions]
+            let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
+            in entryExitTracing lamName displayName e ty'
+
+-- | Add tracing before entering and after exiting a term.
+entryExitTracing ::
+    PLC.Name
+    -> T.Text
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+    -> PLC.Type PLC.TyName PLC.DefaultUni ()
+    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+entryExitTracing lamName displayName e ty =
+    let defaultUnitTy = PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniUnit)
+        defaultUnit = PIR.Constant () (PLC.someValueOf PLC.DefaultUniUnit ())
+    in
+    --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+        PIR.Apply
+            ()
+            (mkTrace
+                (PLC.TyFun () defaultUnitTy ty) -- ()-> ty
+                ("entering " <> displayName)
+                -- \() -> trace @c "exiting f" e
+                (LamAbs () lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
+            defaultUnit
 
 -- Expressions
+
+{- Note [Tracking coverage and lazyness]
+   When we insert a coverage annotation `a` that is meant to be collected when we execute
+   `a` we would like do something like `trace (show a) body`. However, we can't do this
+   because `body` may throw an exception and that would in turn cause `show a` never to be logged.
+   To get around this we instead generate the code `force (trace (show a) (delay body))` to
+   guarantee that the annotation `a` is logged before we execute `body`.
+-}
+
+{- Note [Tick-unfloating]
+   GHC likes to float ticks on case scrutinees. This screws with boolean
+   coverage (because the result of the case expression is not necessarily
+   boolean typed) so we un-float these ticks. Specifically, GHC will convert an
+   expression like:
+   ```
+   if <tick with source location of condition> condition
+   then trueCase
+   else falseCase
+   ```
+   into something equivalent to:
+   ```
+   <tick with source location of condition>
+   if condition
+   then trueCase
+   else falseCase
+   ```
+   which means that we don't get boolean coverage for `condition` as there is no tick around it (so we
+   don't know where it is).
+-}
+
+{- Note [Boolean coverage]
+   During testing it is useful (sometimes even critical) to know which boolean
+   expressions have evaluated to true and false respectively. To track this we
+   introduce `traceBool "<expr evaluated to True>" "<expr evaluated to False>" expr`
+   around every non-constructor boolean typed expression `expr` with a known source location
+   when boolean coverage is turned on.
+
+   The annotation `<expr evaluated to True>` is implemented by adding a `CoverBool location True`
+   coverage annotation with the head function in `expr` as metadata. This means that in an expression
+   like:
+   `foo x < bar y && all isGood xs`
+   We will get annotations for `&&`, `<`, `all`, and `isGood` (given that `isGood` is defined in a module
+   with coverage turned on).
+-}
 
 compileExpr
     :: CompilingDefault uni fun m
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccBuiltinNameInfo=nameInfo} <- ask
+    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -529,8 +696,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
 
-        -- void# - values of type void get represented as error, since they should be unreachable
-        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> errorFunc
+        -- void# - Surprisingly, `Void#` is actually more like `Unit` than `Void`, so we represent it as such.
+        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> pure (PIR.mkConstant () ())
 
         -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
         -- See Note [noinline hack]
@@ -576,7 +743,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             hoistExpr n rhs
         GHC.Var n -> do
             -- Defined names, including builtin names
-            maybeDef <- PIR.lookupTerm () (LexName $ GHC.getName n)
+            let lexName = LexName $ GHC.getName n
+            modifyCurDeps (\d -> Set.insert lexName d)
+            maybeDef <- PIR.lookupTerm () lexName
             case maybeDef of
                 Just term -> pure term
                 Nothing -> throwSd FreeVariableError $
@@ -595,29 +764,30 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- otherwise it's a normal lambda
         GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
 
-        GHC.Let (GHC.NonRec b arg) body -> do
+        GHC.Let (GHC.NonRec b rhs) body -> do
             -- the binding is in scope for the body, but not for the arg
-            arg' <- compileExpr arg
+            rhs' <- compileExpr rhs
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure (const PIR.NonStrict) arg'
+            let strict = PIR.isPure (const PIR.NonStrict) rhs'
             withVarScoped b $ \v -> do
-                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                rhs'' <- maybeProfileRhs v rhs'
+                let binds = pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs''
                 body' <- compileExpr body
                 pure $ PIR.Let () PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
             withVarsScoped (fmap fst bs) $ \vars -> do
                 -- the bindings are scope in both the body and the args
                 -- TODO: this is a bit inelegant matching the vars back up
-                binds <- for (zip vars bs) $ \(v, (_, arg)) -> do
-                    arg' <- compileExpr arg
+                binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
+                    rhs' <- maybeProfileRhs v =<< compileExpr rhs
                     -- See Note [Non-strict let-bindings]
-                    let strict = PIR.isPure (const PIR.NonStrict) arg'
-                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v arg'
+                    let strict = PIR.isPure (const PIR.NonStrict) rhs'
+                    pure $ PIR.TermBind () (if strict then PIR.Strict else PIR.NonStrict) v rhs'
                 body' <- compileExpr body
                 pure $ PIR.mkLet () PIR.Rec binds body'
 
-        -- See Note [Default-only cases]
-        GHC.Case scrutinee b _ [a@(_, _, body)] | GHC.isDefaultAlt a -> do
+        -- See Note [Evaluation-only cases]
+        GHC.Case scrutinee b _ [(_, bs, body)] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             withVarScoped b $ \v -> do
@@ -637,26 +807,28 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
-                -- See Note [Case expressions and laziness]
-                isPureAlt <- forM dcs $ \dc ->
-                    let (_, vars, body) = findAlt dc alts t
-                    in if null vars then PIR.isPure (const PIR.NonStrict) <$> compileExpr body else pure True
-                let lazyCase = not (and isPureAlt || length dcs == 1)
-
+                -- it's important to instantiate the match before alts compilation
                 match <- getMatchInstantiated scrutineeType
                 let matched = PIR.Apply () match scrutinee'
+
+                -- See Note [Case expressions and laziness]
+                compiledAlts <- forM dcs $ \dc -> do
+                    let alt = findAlt dc alts t
+                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
+                        -- matching on Maybe Int it is [Int] (crucially, not [a])
+                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                    (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
+                    return (nonDelayedAlt, delayedAlt)
+                let
+                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure (const PIR.NonStrict) nonDelayed
+                    lazyCase = not (and isPureAlt || length dcs == 1)
+                    branches = compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
+                        if lazyCase then delayedAlt else nonDelayedAlt
 
                 -- See Note [Scott encoding of datatypes]
                 -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
                 resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst () matched resultType
-
-                branches <- forM dcs $ \dc ->
-                    let alt = findAlt dc alts t
-                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
-                        -- matching on Maybe Int it is [Int] (crucially, not [a])
-                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
-                    in compileAlt lazyCase instArgTys alt
 
                 let applied = PIR.mkIterApp () instantiated branches
                 -- See Note [Case expressions and laziness]
@@ -666,16 +838,134 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
+        -- See Note [Tick-unfloating]
+        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
+
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
-        GHC.Tick GHC.SourceNote{GHC.sourceSpan=src} body ->
-            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ compileExpr body
+        -- See Note [What source locations to cover]
+        GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+              CompileContext {ccOpts=coverageOpts} <- ask
+              -- See Note [Coverage annotations]
+              let anns = Set.toList $ activeCoverageTypes coverageOpts
+              compiledBody <- compileExpr body
+              foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+
         -- ignore other annotations
         GHC.Tick _ body -> compileExpr body
         -- See Note [Coercions and newtypes]
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+{- Note [What source locations to cover]
+   We try to get as much coverage information as we can out of GHC. This means that
+   anything we find in the GHC Core code that hints at a source location will be
+   included as a coverage annotation. This has both advantages and disadvantages.
+   On the one hand "trying as hard as we can" gives us as much coverage information as
+   possible. On the other hand GHC can sometimes do tricky things like tick floating
+   (see Note [Tick-unfloating]) that will degrade the quality of the coverage information
+   we get. However, we have yet to find any evidence that GHC treats different ticks
+   differently with regards to tick floating.
+-}
+
+{- Note [Partial type signature for getSourceSpan]
+Why is there a partial type signature here? The answer is that we sometimes compile with a patched
+GHC provided from haskell.nix that has a slightly busted patch applied to it. That patch changes
+the type of the 'Tickish' part of 'Tick'.
+
+Obviously we would eventually like to not have this problem (should be when we go to 9.2), but in
+the mean time we'd like things to compile on both the patched and non-patched GHC.
+
+A partial type signature provides a simple solution: GHC will infer different types for the hole
+in each case, but since we operate on them in the same way, there's no problem.
+-}
+
+-- See Note [What source locations to cover]
+-- See Note [Partial type signature for getSourceSpan]
+-- | Do your best to try to extract a source span from a tick
+getSourceSpan :: Maybe GHC.ModBreaks -> _ -> Maybe GHC.RealSrcSpan
+getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
+getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
+  case cc of
+    GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp) -> Just sp
+    GHC.AllCafsCC _ (GHC.RealSrcSpan sp)    -> Just sp
+    _                                       -> Nothing
+getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
+  mb <- mmb
+  let arr = GHC.modBreaks_locs mb
+      range = Array.bounds arr
+  GHC.RealSrcSpan sp <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  return sp
+getSourceSpan _ _ = Nothing
+
+-- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
+toCovLoc :: GHC.RealSrcSpan -> CovLoc
+toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
+                     (GHC.srcSpanStartLine sp)
+                     (GHC.srcSpanEndLine sp)
+                     (GHC.srcSpanStartCol sp)
+                     (GHC.srcSpanEndCol sp)
+
+-- Here be dragons:
+-- See Note [Tracking coverage and lazyness]
+-- See Note [Coverage order]
+-- | Annotate a term for coverage
+coverageCompile :: CompilingDefault uni fun m
+                => GHC.CoreExpr -- ^ The original expression
+                -> GHC.Type -- ^ The type of the expression
+                -> GHC.RealSrcSpan -- ^ The source location of this expression
+                -> PIRTerm uni fun -- ^ The current term (this is what we add coverage tracking to)
+                -> CoverageType -- ^ The type of coverage to do next
+                -> m (PIRTerm uni fun)
+coverageCompile originalExpr exprType src compiledTerm covT =
+  case covT of
+    -- Add a location coverage annotation to tell us "we've executed this piece of code"
+    LocationCoverage -> do
+      ann <- addLocationToCoverageIndex (toCovLoc src)
+      ty <- compileTypeNorm exprType
+      mkLazyTrace ty (T.pack . show $ ann) compiledTerm
+
+    -- Add two boolean coverage annotations to tell us "this boolean has been True/False respectively"
+    -- see Note [Boolean coverage]
+    BooleanCoverage -> do
+      -- Check if the thing we are compiling is a boolean
+      bool <- getThing ''Bool
+      true <- getThing 'True
+      false <- getThing 'False
+      let tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
+          headSymName = GHC.getName <$> findHeadSymbol originalExpr
+          isTrueOrFalse = case originalExpr of
+            GHC.Var v | GHC.DataConWorkId dc <- GHC.idDetails v ->
+              GHC.getName dc `elem` [GHC.getName c | c <- [true, false]]
+            _ -> False
+
+      if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
+      then return compiledTerm
+      -- Generate the code:
+      -- ```
+      -- traceBool "<compiledTerm was true>" "<compiledTerm was false>" compiledTerm
+      -- ```
+      else do
+        traceBoolThing <- getThing 'traceBool
+        case traceBoolThing of
+          GHC.AnId traceBoolId -> do
+            traceBoolCompiled <- compileExpr $ GHC.Var traceBoolId
+            let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
+            fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
+            tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
+            pure $ PLC.mkIterApp () traceBoolCompiled [PLC.mkConstant () (T.pack . show $ tc), PLC.mkConstant () (T.pack . show $ fc), compiledTerm]
+          _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> (GHC.ppr traceBoolThing)
+    where
+      findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
+      findHeadSymbol (GHC.Var n)    = Just n
+      findHeadSymbol (GHC.App t _)  = findHeadSymbol t
+      findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
+      findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
+      findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
+      findHeadSymbol _              = Nothing
 
 compileExprWithDefs
     :: CompilingDefault uni fun m

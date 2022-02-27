@@ -26,33 +26,25 @@ module PlutusCore.Error
     , Error (..)
     , AsError (..)
     , throwingEither
+    , ShowErrorComponent (..)
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.DeBruijn.Internal
-import           PlutusCore.Lexer.Type
-import           PlutusCore.Name
-import           PlutusCore.Pretty
+import PlutusCore.Core
+import PlutusCore.DeBruijn.Internal
+import PlutusCore.Name
+import PlutusCore.Pretty
 
-import           Control.Lens                 hiding (use)
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import qualified Data.Text                    as T
-import           ErrorCode
-import           Prettyprinter                (hardline, indent, squotes, (<+>))
-import           Prettyprinter.Internal       (Doc (Text))
-import           Text.Megaparsec.Pos          (SourcePos, sourcePosPretty)
-import           Universe                     (Closed (Everywhere), GEq, GShow)
-
-{- Note [Annotations and equality]
-Equality of two errors DOES DEPEND on their annotations.
-So feel free to use @deriving Eq@ for errors.
-This is because even though we do care about errors having an 'Eq' instance (which is required for
-example by tests that do checks like @resOrErr == Right res@), we don't care much about actually
-checking errors for equality and @deriving Eq@ saves us a lot of boilerplate.
--}
+import Control.Lens hiding (use)
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Data.Text qualified as T
+import ErrorCode
+import Prettyprinter (hardline, indent, squotes, (<+>))
+import Text.Megaparsec.Error (ShowErrorComponent, showErrorComponent)
+import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
+import Universe (Closed (Everywhere), GEq, GShow)
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
 throwingEither :: MonadError e m => AReview e t -> Either t a -> m a
@@ -61,18 +53,16 @@ throwingEither r e = case e of
     Right v -> pure v
 
 -- | An error encountered during parsing.
-data ParseError ann
-    = LexErr String
-    | Unexpected (Token ann)
-    | UnknownBuiltinType ann T.Text
-    | BuiltinTypeNotAStar ann T.Text
-    | UnknownBuiltinFunction ann T.Text
-    | InvalidBuiltinConstant ann T.Text T.Text
-    deriving (Eq, Ord, Generic, NFData, Functor)
+data ParseError
+    = UnknownBuiltinType T.Text SourcePos
+    | BuiltinTypeNotAStar T.Text SourcePos
+    | UnknownBuiltinFunction T.Text SourcePos
+    | InvalidBuiltinConstant T.Text T.Text SourcePos
+    deriving (Eq, Ord, Generic, NFData)
 
 makeClassyPrisms ''ParseError
 
-instance Pretty ann => Show (ParseError ann)
+instance Show ParseError
     where
       show = show . pretty
 
@@ -88,7 +78,8 @@ data NormCheckError tyname name uni fun ann
     | BadTerm ann (Term tyname name uni fun ann) T.Text
     deriving (Show, Functor, Generic, NFData)
 deriving instance
-    ( HasUniques (Term tyname name uni fun ann)
+    ( Eq (Term tyname name uni fun ann)
+    , Eq (Type tyname uni ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
@@ -107,15 +98,16 @@ data TypeError term uni fun ann
 makeClassyPrisms ''TypeError
 
 data Error uni fun ann
-    = ParseErrorE (ParseError ann)
+    = ParseErrorE ParseError
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
     | FreeVariableErrorE FreeVariableError
-    deriving (Show, Eq, Generic, NFData, Functor)
+    deriving (Eq, Generic, NFData, Functor)
 makeClassyPrisms ''Error
+deriving instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParseError) => Show (Error uni fun ann)
 
-instance AsParseError (Error uni fun ann) ann where
+instance AsParseError (Error uni fun ann) where
     _ParseError = _ParseErrorE
 
 instance AsUniqueError (Error uni fun ann) ann where
@@ -134,13 +126,14 @@ instance AsFreeVariableError (Error uni fun ann) where
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
-instance Pretty ann => Pretty (ParseError ann) where
-    pretty (LexErr s)                       = "Lexical error:" <+> Text (length s) (T.pack s)
-    pretty (Unexpected t)                   = "Unexpected" <+> squotes (pretty t) <+> "at" <+> pretty (tkLoc t)
-    pretty (UnknownBuiltinType loc s)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
-    pretty (BuiltinTypeNotAStar loc ty)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
-    pretty (UnknownBuiltinFunction loc s)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
-    pretty (InvalidBuiltinConstant loc c s) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+instance Pretty ParseError where
+    pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+
+instance ShowErrorComponent ParseError where
+    showErrorComponent = show . pretty
 
 instance Pretty ann => Pretty (UniqueError ann) where
     pretty (MultiplyDefined u def redef) =
@@ -199,13 +192,11 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Prett
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
 
-instance HasErrorCode (ParseError _a) where
+instance HasErrorCode ParseError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-    errorCode Unexpected {}             = ErrorCode 7
-    errorCode LexErr {}                 = ErrorCode 6
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21

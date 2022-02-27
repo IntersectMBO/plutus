@@ -15,21 +15,22 @@ module PlutusCore.TypeCheck.Internal
   -- export all because a lot are used by the pir-typechecker
   where
 
-import           PlutusCore.Core
-import           PlutusCore.Error
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import qualified PlutusCore.Normalize.Internal as Norm
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusPrelude
+import PlutusCore.Builtin
+import PlutusCore.Core
+import PlutusCore.Error
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Normalize.Internal qualified as Norm
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusPrelude
 
-import           Control.Lens
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Data.Array
-import           Universe
+import Control.Lens
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Array
+import Universe
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -70,7 +71,7 @@ The "a ~> b" notations reads as "normalize 'a' to 'b'".
 Functions that can fail start with either @infer@ or @check@ prefixes,
 functions that cannot fail looks like this:
 
-    kindOfTypeBuiltin
+    kindOfBuiltinType
     typeOfBuiltinFunction
 -}
 
@@ -216,7 +217,7 @@ inferKindM
 -- ------------------------
 -- [infer| G !- con b :: k]
 inferKindM (TyBuiltin _ (SomeTypeIn uni)) =
-    pure $ toKind uni
+    pure $ kindOfBuiltinType uni
 
 -- [infer| G !- v :: k]
 -- ------------------------

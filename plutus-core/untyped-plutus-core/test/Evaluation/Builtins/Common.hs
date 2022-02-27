@@ -9,18 +9,18 @@ module Evaluation.Builtins.Common
     , typecheckReadKnownCek
     ) where
 
-import qualified PlutusCore                                      as TPLC
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Name
+import PlutusCore qualified as TPLC
+import PlutusCore.Builtin
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Name
 
-import qualified UntypedPlutusCore                               as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.Monad.Except
-import           Data.Text                                       (Text)
+import Control.Monad.Except
+import Data.Text (Text)
 
 -- | Type check and evaluate a term.
 typecheckAnd
@@ -60,5 +60,5 @@ typecheckReadKnownCek
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException uni fun) a)
+    -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

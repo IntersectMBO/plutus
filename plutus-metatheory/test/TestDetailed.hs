@@ -1,20 +1,20 @@
 {-# LANGUAGE LambdaCase #-}
 module TestDetailed where
-import           Control.Exception
-import qualified Data.Text                  as T
-import           GHC.IO.Handle
-import           System.Directory
-import           System.Environment
-import           System.Exit
-import           System.IO
-import           System.Process
+import Control.Exception
+import Data.Text qualified as T
+import GHC.IO.Handle
+import System.Directory
+import System.Environment
+import System.Exit
+import System.IO
+import System.Process
 
-import           Distribution.TestSuite
+import Distribution.TestSuite
 
-import qualified MAlonzo.Code.Main          as M
-import qualified MAlonzo.Code.Raw           as R
+import MAlonzo.Code.Main qualified as M
+import MAlonzo.Code.Raw qualified as R
 
-import qualified Data.ByteString.Lazy.Char8 as C
+import Data.ByteString.Lazy.Char8 qualified as C
 
 -- this function is based on this stackoverflow answer:
 -- https://stackoverflow.com/a/9664017

@@ -1,19 +1,32 @@
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Compiler.Utils where
 
-import           PlutusTx.Compiler.Error
-import           PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Types
 
-import qualified CoreSyn                 as GHC
-import qualified GhcPlugins              as GHC
+import CoreSyn qualified as GHC
+import GhcPlugins qualified as GHC
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import qualified Data.Text               as T
+import Language.Haskell.TH.Syntax qualified as TH
+
+import Data.Map qualified as Map
+import Data.Text qualified as T
+
+-- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
+-- failing if it is missing.
+getThing :: Compiling uni fun m => TH.Name -> m GHC.TyThing
+getThing name = do
+    CompileContext{ccNameInfo=names} <- ask
+    case Map.lookup name names of
+        Nothing    -> throwSd CompilationError $ "Missing name:" GHC.<+> (GHC.text $ show name)
+        Just thing -> pure thing
 
 sdToTxt :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m T.Text
 sdToTxt sd = do

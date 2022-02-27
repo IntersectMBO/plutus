@@ -8,26 +8,28 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+
 module IsData.Spec where
 
-import           Common
-import           Lib
-import           PlcTestUtils
-import           Plugin.Data.Spec
-import           Plugin.Primitives.Spec
+import Test.Tasty.Extras
 
-import qualified PlutusTx.Builtins      as Builtins
-import           PlutusTx.Code
-import qualified PlutusTx.IsData        as IsData
-import           PlutusTx.Plugin
-import qualified PlutusTx.Prelude       as P
+import Plugin.Data.Spec
 
-import qualified PlutusCore             as PLC
-import qualified PlutusCore.MkPlc       as PLC
-import qualified UntypedPlutusCore      as UPLC
+import PlutusCore.Test
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.IsData qualified as IsData
+import PlutusTx.Plugin
+import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
-import           Data.Proxy
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import UntypedPlutusCore qualified as UPLC
+
+import Data.Proxy
 
 IsData.unstableMakeIsData ''MyMonoData
 IsData.unstableMakeIsData ''MyMonoRecord

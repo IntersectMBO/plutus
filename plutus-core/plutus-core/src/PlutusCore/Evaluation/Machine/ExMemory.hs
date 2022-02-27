@@ -15,24 +15,39 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExMemoryUsage(..)
 ) where
 
-import           PlutusCore.Data
-import           PlutusCore.Name
-import           PlutusCore.Pretty
-import           PlutusPrelude
+import PlutusCore.Data
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusPrelude
 
-import           Control.Monad.RWS.Strict
-import           Data.Aeson
-import qualified Data.ByteString            as BS
-import           Data.Proxy
-import           Data.SatInt
-import qualified Data.Text                  as T
-import           GHC.Integer
-import           GHC.Integer.Logarithms
-import           GHC.Prim
-import           Language.Haskell.TH.Syntax (Lift)
-import           Universe
+import Control.Monad.RWS.Strict
+import Data.Aeson
+import Data.ByteString qualified as BS
+import Data.Proxy
+import Data.SatInt
+import Data.Text qualified as T
+import GHC.Exts (Int (I#))
+import GHC.Integer
+import GHC.Integer.Logarithms
+import GHC.Prim
+import Language.Haskell.TH.Syntax (Lift)
+import Universe
 
-#include "MachDeps.h"
+{-
+ ************************************************************************************
+ *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
+ *                                                                                  *
+ *  The instances defined in this file will be used to calculate script validation  *
+ *  costs, and if an instance is changed then any scripts which were deployed when  *
+ *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
+ *  It is unsafe to increase the memory usage of a type because that may increase   *
+ *  the resource usage of existing scripts beyond the limits set (and paid for)     *
+ *  when they were uploaded to the chain, but because our costing functions are all *
+ *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  possible values of the type.                                                    *
+ ************************************************************************************
+-}
+
 
 {- Note [Memory Usage for Plutus]
 
@@ -69,33 +84,19 @@ So we use 'Data.SatInt', a variant of 'Data.SafeInt' that does saturating arithm
 
 'SatInt' is quite fast, but not quite as fast as using 'Int64' directly (I don't know
 why that would be, apart from maybe just the overflow checks), but the wrapping behaviour
-of 'Int64' is unacceptable..
+of 'Int64' is unacceptable.
 
 One other wrinkle is that 'SatInt' is backed by an 'Int' (i.e. a machine integer
 with platform-dependent size), rather than an 'Int64' since the primops that we
 need are only available for 'Int' until GHC 9.2 or so. So on 32bit platforms, we
-have much less headroom.
+would have much less headroom.
 
-However we mostly care about 64bit platforms, so this isn't too much of a
-problem. The only one where it could be a problem is GHCJS, which does present
-as a 32bit platform. However, we won't care about *performance* on GHCJS, since
-nobody will be running a node compiled to JS (and if they do, they deserve
-terrible performance). So: if we are not on a 64bit platform, then we can just
-fallback to the slower (but safe) 'Integer'.
-
+However, we don't build on 32bit platforms anyway, so we can ignore that.
 -}
 
 -- See Note [Integer types for costing]
 -- See also Note [Budgeting units] in ExBudget.hs
-type CostingInteger =
-#if WORD_SIZE_IN_BITS < 64
-    Integer
-#else
-    SatInt
-#endif
-
-
--- $(if finiteBitSize (0::SatInt) < 64 then [t|Integer|] else [t|SatInt|])
+type CostingInteger = SatInt
 
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
@@ -143,18 +144,24 @@ instance ExMemoryUsage () where
   memoryUsage () = 1
 
 instance ExMemoryUsage Integer where
-  memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0, but in practice returns -1
-  memoryUsage i = ExMemory . fromIntegral $ (1 + smallInteger (integerLog2# (abs i) `quotInt#` integerToInt 64)) -- Assume 64bit size.
+  memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0 (but in practice returns -1)
+  memoryUsage i = ExMemory $ fromIntegral $ (I# n) + 1
+                               where n = (integerLog2# (abs i) `quotInt#` integerToInt 64) :: Int#
+                               -- Assume 64-bit size for Integer
 
+{- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
+   9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
+   gives the correct answer for the empty bytestring.  Maybe we should just use
+   1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
+   things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory . fromIntegral $ 1 + ((toInteger $ BS.length bs)-1) `quot` 8
--- We want things of length 0-8 to have size 1, 9-16 to have size 2, etc.
--- We use 'quot' to deal with the empty bytestring because 'div' would give -1.
--- Maybe we should just use 1 + (toInteger $ BS.length bs) `div` 8, which
--- would count one extra for things whose sizes are multiples of 8.
+  memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+      where n = fromIntegral $ BS.length bs :: SatInt
 
 instance ExMemoryUsage T.Text where
-  memoryUsage text = memoryUsage $ T.unpack text -- TODO not accurate, as Text uses UTF-16
+  -- This is slow and inaccurate, but matches the version that was originally deployed.
+  -- We may try and improve this in future so long as the new version matches this exactly.
+  memoryUsage text = memoryUsage $ T.unpack text
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
@@ -173,21 +180,26 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
                    []   -> 0
                    x:xs -> memoryUsage x + sizeList xs
 
-{- Another naive traversal for size.  This accounts for the number of nodes in a
-   Data object, and also the sizes of the contents of the nodes.  This is not
+{- Another naive traversal for size.  This accounts for the number of nodes in
+   a Data object, and also the sizes of the contents of the nodes.  This is not
    ideal, but it seems to be the best we can do.  At present this only comes
    into play for 'equalsData', which is implemented using the derived
    implementation of '==' (fortunately the costing functions are lazy, so this
    won't be called for things like 'unBData' which have constant costing
    functions because they only have to look at the top node).  The problem is
-   that when we call 'equalsData' the comparison will take place entirely in Haskell,
-   so the costing functions for the contents of 'I' and 'B' nodes won't be called.
-   Thus if we just counted the number of nodes the sizes of 'I 2' and
-   'B <huge bytestring>' would be the same but they'd take different amounts of
-   time to compare.  It's not clear how to trade off the costs of processing a
-   units per node, but we may wish to revise this after experimentationnode and
-   processing the contents of nodes: the implementation below compromises by charging
-   four units per node, but we may wish to revise this after experimentation.
+   that when we call 'equalsData' the comparison will take place entirely in
+   Haskell, so the costing functions for the contents of 'I' and 'B' nodes
+   won't be called.  Thus if we just counted the number of nodes the sizes of
+   'I 2' and 'B <huge bytestring>' would be the same but they'd take different
+   amounts of time to compare.  It's not clear how to trade off the costs of
+   processing a node and processing the contents of nodes: the implementation
+   below compromises by charging four units per node, but we may wish to revise
+   this after experimentation.
+-}
+{- This code runs on the chain and hence should be as efficient as possible. To
+   that end it's tempting to make these functions strict and tail recursive (and
+   similarly in the instance for lists above), but experiments showed that that
+   didn't improve matters and in fact some versions led to a slight slowdown.
 -}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData

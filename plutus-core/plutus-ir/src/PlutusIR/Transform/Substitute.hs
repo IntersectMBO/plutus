@@ -11,13 +11,13 @@ module PlutusIR.Transform.Substitute (
     , bindingSubstTyNames
     ) where
 
-import           PlutusIR
+import PlutusIR
 
-import           PlutusCore.Subst (substTyVar, typeSubstTyNames)
+import PlutusCore.Subst (substTyVar, typeSubstTyNames)
 
-import           Control.Lens
+import Control.Lens
 
-import           Data.Maybe
+import Data.Maybe
 
 -- Needs to be different from the PLC version since we have different Terms
 -- | Replace a variable using the given function.

@@ -4,15 +4,15 @@ module NamesSpec
     ( names
     ) where
 
-import           PlcTestUtils
 
-import           PlutusIR.Generators.AST
-import           PlutusIR.Mark
-import           PlutusIR.Transform.Rename
+import PlutusIR.Generators.AST
+import PlutusIR.Mark
+import PlutusIR.Transform.Rename
 
-import           PlutusCore.Rename
+import PlutusCore.Rename
+import PlutusCore.Test
 
-import           Test.Tasty
+import Test.Tasty
 
 names :: TestTree
 names =

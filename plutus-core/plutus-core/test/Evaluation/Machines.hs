@@ -6,16 +6,16 @@ module Evaluation.Machines
     )
 where
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.Ck
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.Generators.Test
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Test
+import PlutusCore.Pretty
 
 
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 testMachine
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)

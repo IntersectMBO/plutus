@@ -1,3 +1,4 @@
+cabal-version:       2.4
 name:                prettyprinter-configurable
 version:             0.1.0.0
 -- synopsis:
@@ -11,7 +12,19 @@ maintainer:          plutus@iohk.io
 category:            User Interfaces, Text
 build-type:          Custom
 extra-source-files:  README.md
-cabal-version:       >=1.10
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities
+                 -Wnoncanonical-monoid-instances
+                 -Wunused-packages
 
 custom-setup
     setup-depends:
@@ -20,6 +33,7 @@ custom-setup
         cabal-doctest
 
 library
+    import: lang
     hs-source-dirs: src
     exposed-modules:
         Text.Fixity
@@ -37,13 +51,10 @@ library
         mtl,
         text,
         microlens
-    default-language: Haskell2010
-    ghc-options:
-        -O2 -Wall
-        -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities -Wunused-packages
+    ghc-options: -O2
 
 test-suite prettyprinter-configurable-test
+    import: lang
     type: exitcode-stdio-1.0
     main-is: Main.hs
     hs-source-dirs: test
@@ -52,7 +63,6 @@ test-suite prettyprinter-configurable-test
         NonDefault
         Universal
         Expr
-    default-language: Haskell2010
     build-depends:
         prettyprinter-configurable,
         base,
@@ -67,21 +77,14 @@ test-suite prettyprinter-configurable-test
         tasty-quickcheck
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N
-        -Wall
-        -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities -Wunused-packages
 
 test-suite prettyprinter-configurable-doctest
+    import: lang
     type: exitcode-stdio-1.0
     main-is: Main.hs
     hs-source-dirs: doctest
-    default-language: Haskell2010
     build-depends:
-        prettyprinter-configurable,
         base,
         doctest
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N
-        -Wall
-        -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities -Wunused-packages

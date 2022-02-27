@@ -24,10 +24,10 @@ module PlutusCore.Core.Plated
     , termUniquesDeep
     ) where
 
-import           PlutusCore.Core.Type
-import           PlutusCore.Name
+import PlutusCore.Core.Type
+import PlutusCore.Name
 
-import           Control.Lens
+import Control.Lens
 
 infixr 6 <^>
 

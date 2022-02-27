@@ -14,16 +14,13 @@ Digests of certificates that are included in transactions.
 -}
 module Plutus.V1.Ledger.DCert(DCert(..)) where
 
-import           Codec.Serialise.Class       (Serialise)
-import           Control.DeepSeq             (NFData)
-import           Data.Aeson                  (FromJSON, ToJSON)
-import           Data.Hashable               (Hashable)
-import           Data.Text.Prettyprint.Doc   (Pretty (..), viaShow)
-import           GHC.Generics                (Generic)
-import           Plutus.V1.Ledger.Credential (StakingCredential)
-import           Plutus.V1.Ledger.Crypto     (PubKeyHash)
-import qualified PlutusTx                    as PlutusTx
-import qualified PlutusTx.Prelude            as P
+import Control.DeepSeq (NFData)
+import GHC.Generics (Generic)
+import Plutus.V1.Ledger.Credential (StakingCredential)
+import Plutus.V1.Ledger.Crypto (PubKeyHash)
+import PlutusTx qualified as PlutusTx
+import PlutusTx.Prelude qualified as P
+import Prettyprinter (Pretty (..), viaShow)
 
 -- | A representation of the ledger DCert. Some information is digested, and
 --   not included
@@ -48,7 +45,7 @@ data DCert
   | -- | Another really terse Digest
     DCertMir
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (ToJSON, FromJSON, Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance P.Eq DCert where
     {-# INLINABLE (==) #-}

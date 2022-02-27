@@ -5,10 +5,10 @@ module PlutusCore.StdLib.Meta.Data.Function
     , etaExpand
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
 -- | 'const' as a PLC term.
 --

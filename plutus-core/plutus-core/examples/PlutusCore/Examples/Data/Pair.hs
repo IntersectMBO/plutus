@@ -6,15 +6,15 @@ module PlutusCore.Examples.Data.Pair
     ( obothPair
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Pair
+import PlutusCore.StdLib.Data.Pair
 
-import           PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Builtins
 
 -- | Apply a monomorphic function to both components of a pair.
 --

@@ -1,33 +1,35 @@
-{-# LANGUAGE DeriveTraversable     #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module TransformSpec (transform) where
 
-import           Common
-import           TestLib
+import Test.Tasty.Extras
 
-import           PlutusCore.Quote
+import PlutusCore.Quote
 
-import qualified PlutusCore                         as PLC
-import qualified PlutusCore.Pretty                  as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Test
 
-import qualified PlutusIR.Analysis.RetainedSize     as RetainedSize
-import           PlutusIR.Parser
-import qualified PlutusIR.Transform.Beta            as Beta
-import qualified PlutusIR.Transform.DeadCode        as DeadCode
-import qualified PlutusIR.Transform.Inline          as Inline
-import qualified PlutusIR.Transform.LetFloat        as LetFloat
-import qualified PlutusIR.Transform.LetMerge        as LetMerge
-import qualified PlutusIR.Transform.NonStrict       as NonStrict
-import qualified PlutusIR.Transform.RecSplit        as RecSplit
-import           PlutusIR.Transform.Rename          ()
-import qualified PlutusIR.Transform.ThunkRecursions as ThunkRec
-import qualified PlutusIR.Transform.Unwrap          as Unwrap
+import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Error as PIR
+import PlutusIR.Parser
+import PlutusIR.Test
+import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.Inline qualified as Inline
+import PlutusIR.Transform.LetFloat qualified as LetFloat
+import PlutusIR.Transform.LetMerge qualified as LetMerge
+import PlutusIR.Transform.NonStrict qualified as NonStrict
+import PlutusIR.Transform.RecSplit qualified as RecSplit
+import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
+import PlutusIR.Transform.Unwrap qualified as Unwrap
+import PlutusIR.TypeCheck as TC
 
-import           Control.Monad
-import           Text.Megaparsec.Pos
+import Control.Monad
+import Text.Megaparsec.Pos
 
 
 transform :: TestNested
@@ -46,21 +48,21 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir ThunkRec.thunkRecursions $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir ThunkRec.thunkRecursions pTerm)
     [ "listFold"
     , "monoMap"
     ]
 
 nonStrict :: TestNested
 nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) pTerm)
     [ "nonStrict1"
     ]
 
 letFloat :: TestNested
 letFloat =
     testNested "letFloat"
-    $ map (goldenPir (LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPirM goldenFloatTC pTerm)
   [ "letInLet"
   ,"listMatch"
   ,"maybe"
@@ -96,11 +98,18 @@ letFloat =
   ,"inLam"
   ,"rhsSqueezeVsNest"
   ]
+ where
+   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+       let pirFloated = RecSplit.recSplit . LetFloat.floatTerm . runQuote $ PLC.rename pir
+       -- make sure the floated result typechecks
+       _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
+       -- letmerge is not necessary for floating, but is a nice visual transformation
+       pure $ LetMerge.letMerge pirFloated
 
 recSplit :: TestNested
 recSplit =
     testNested "recSplit"
-    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
   [
     "truenonrec"
   , "mutuallyRecursiveTypes"
@@ -120,7 +129,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (runQuote . (Inline.inline <=< PLC.rename)) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . (Inline.inline mempty <=< PLC.rename)) $ pTerm)
     [ "var"
     , "builtin"
     , "constant"
@@ -133,15 +142,17 @@ inline =
 beta :: TestNested
 beta =
     testNested "beta"
-    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
     [ "lamapp"
     , "absapp"
+    , "multiapp"
+    , "multilet"
     ]
 
 unwrapCancel :: TestNested
 unwrapCancel =
     testNested "unwrapCancel"
-    $ map (goldenPir Unwrap.unwrapCancel $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir Unwrap.unwrapCancel pTerm)
     -- Note: these examples don't typecheck, but we don't care
     [ "unwrapWrap"
     , "wrapUnwrap"
@@ -150,7 +161,7 @@ unwrapCancel =
 deadCode :: TestNested
 deadCode =
     testNested "deadCode"
-    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) pTerm)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -166,12 +177,13 @@ deadCode =
     , "nestedBindingsIndirect"
     , "recBindingSimple"
     , "recBindingComplex"
+    , "pruneDatatype"
     ]
 
 retainedSize :: TestNested
 retainedSize =
     testNested "retainedSize"
-    $ map (goldenPir renameAndAnnotate $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir renameAndAnnotate pTerm)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -202,7 +214,7 @@ retainedSize =
 rename :: TestNested
 rename =
     testNested "rename"
-    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) $ term @PLC.DefaultUni @PLC.DefaultFun)
+    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
     [ "allShadowedDataNonRec"
     , "allShadowedDataRec"
     , "paramShadowedDataNonRec"

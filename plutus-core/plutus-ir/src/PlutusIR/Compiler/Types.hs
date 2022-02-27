@@ -7,23 +7,24 @@
 {-# LANGUAGE TypeOperators         #-}
 module PlutusIR.Compiler.Types where
 
-import qualified PlutusIR                      as PIR
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Error
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Error
 
-import           Control.Monad.Except
-import           Control.Monad.Reader
+import Control.Monad.Except
+import Control.Monad.Reader
 
-import           Control.Lens
+import Control.Lens
 
-import qualified PlutusCore                    as PLC
-import qualified PlutusCore.MkPlc              as PLC
-import qualified PlutusCore.Pretty             as PLC
-import           PlutusCore.Quote
-import qualified PlutusCore.StdLib.Type        as Types
-import qualified PlutusCore.TypeCheck.Internal as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.InlineUtils
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Quote
+import PlutusCore.StdLib.Type qualified as Types
+import PlutusCore.TypeCheck.Internal qualified as PLC
 
-import qualified Data.Text                     as T
+import Data.Text qualified as T
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -41,7 +42,7 @@ makeLenses ''PirTCConfig
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
-data CompilationOpts = CompilationOpts {
+data CompilationOpts a = CompilationOpts {
     _coOptimize                   :: Bool
     , _coPedantic                 :: Bool
     , _coVerbose                  :: Bool
@@ -51,16 +52,28 @@ data CompilationOpts = CompilationOpts {
     , _coDoSimplifierUnwrapCancel :: Bool
     , _coDoSimplifierBeta         :: Bool
     , _coDoSimplifierInline       :: Bool
+    , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
     , _coProfile                  :: Bool
-    } deriving (Eq, Show)
+    } deriving (Show)
 
 makeLenses ''CompilationOpts
 
-defaultCompilationOpts :: CompilationOpts
-defaultCompilationOpts = CompilationOpts True False False False 8 True True True False
+defaultCompilationOpts :: CompilationOpts a
+defaultCompilationOpts = CompilationOpts
+  { _coOptimize = True
+  , _coPedantic = False
+  , _coVerbose = False
+  , _coDebug = False
+  , _coMaxSimplifierIterations = 12
+  , _coDoSimplifierUnwrapCancel = True
+  , _coDoSimplifierBeta = True
+  , _coDoSimplifierInline = True
+  , _coInlineHints = mempty
+  , _coProfile = False
+  }
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts              :: CompilationOpts
+    _ccOpts              :: CompilationOpts a
     , _ccEnclosing       :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
     , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)

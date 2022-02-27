@@ -40,24 +40,24 @@ module Universe.Core
     , gshow
     , GEq (..)
     , deriveGEq
+    , deriveGCompare
     , (:~:)(..)
     ) where
 
-import           Control.Applicative
-import           Control.DeepSeq
-import           Control.Monad
-import           Control.Monad.Trans.State.Strict
-import           Data.GADT.Compare
-import           Data.GADT.Compare.TH
-import           Data.GADT.DeepSeq
-import           Data.GADT.Show
-import           Data.Hashable
-import           Data.Kind
-import           Data.Proxy
-import           Data.Some.Newtype
-import           Data.Type.Equality
-import           Text.Show.Deriving
-import           Type.Reflection
+import Control.Applicative
+import Control.DeepSeq
+import Control.Monad
+import Control.Monad.Trans.State.Strict
+import Data.GADT.Compare
+import Data.GADT.Compare.TH
+import Data.GADT.DeepSeq
+import Data.GADT.Show
+import Data.Kind
+import Data.Proxy
+import Data.Some.Newtype
+import Data.Type.Equality
+import Text.Show.Deriving
+import Type.Reflection
 
 {- Note [Universes]
 A universe is a collection of tags for types. It can be finite like
@@ -731,6 +731,28 @@ instance GEq uni => Eq (SomeTypeIn uni) where
 instance (GEq uni, Closed uni, uni `Everywhere` Eq) => Eq (ValueOf uni a) where
     (==) = defaultEq
 
+-------------------- 'Compare' / 'GCompare'
+
+instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
+            GCompare (ValueOf uni) where
+    ValueOf uni1 x1 `gcompare` ValueOf uni2 x2 =
+        case uni1 `gcompare` uni2 of
+            GLT -> GLT
+            GGT -> GGT
+            GEQ ->
+                bring (Proxy @Ord) uni1 $ case x1 `compare` x2 of
+                    EQ -> GEQ
+                    LT -> GLT
+                    GT -> GGT
+
+instance GCompare uni => Ord (SomeTypeIn uni) where
+    SomeTypeIn a1 `compare` SomeTypeIn a2 = a1 `defaultCompare` a2
+
+-- We need the 'Eq' constraint in order for @Ord (ValueOf uni a)@ to imply @Eq (ValueOf uni a)@.
+instance (GCompare uni, Closed uni, uni `Everywhere` Ord, uni `Everywhere` Eq) =>
+            Ord (ValueOf uni a) where
+    compare = defaultCompare
+
 -------------------- 'NFData'
 
 instance (Closed uni, uni `Everywhere` NFData) => GNFData (ValueOf uni) where
@@ -741,15 +763,3 @@ instance Closed uni => NFData (SomeTypeIn uni) where
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
     rnf = grnf
-
--------------------- 'Hashable'
-
-instance Closed uni => Hashable (SomeTypeIn uni) where
-    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
-    hashWithSalt salt (ValueOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
-    hashWithSalt salt (Some s) = hashWithSalt salt s

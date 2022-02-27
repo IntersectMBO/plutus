@@ -11,15 +11,6 @@ from os.path import abspath, join, dirname
 sys.path.insert(0, abspath(join(dirname(__file__))))
 sys.path.append(os.path.abspath('exts'))
 
-# -- Doc config values
-marlowe_playground_url = "https://alpha.marlowe.iohkdev.io/"
-plutus_playground_url = "https://alpha.plutus.iohkdev.io/"
-
-rst_epilog = """
-.. _Plutus Playground: {0}
-.. _Marlowe Playground: {1}
-""".format(plutus_playground_url, marlowe_playground_url)
-
 # -- RTD configuration ------------------------------------------------
 
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
@@ -31,7 +22,7 @@ if rtd_version not in ["stable", "latest"]:
 
 # -- Project information -----------------------------------------------------
 
-project = 'The Plutus Platform and Marlowe'
+project = 'Plutus'
 copyright = '2021, IOHK'
 author = 'IOHK'
 
@@ -93,7 +84,6 @@ exclude_patterns = [
     'haddock', # Otherwise it tries to pick up the README.md's in the Haddock doc!
     'README.md'
 ]
-
 
 # -- Options for HTML output -------------------------------------------------
 

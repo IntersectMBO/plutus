@@ -10,9 +10,9 @@ module PlutusCore.Core.Instance.Recursive
     , KindF (..)
     ) where
 
-import           PlutusCore.Core.Type
-import           PlutusPrelude
+import PlutusCore.Core.Type
+import PlutusPrelude
 
-import           Data.Functor.Foldable.TH
+import Data.Functor.Foldable.TH
 
 $(join <$> traverse makeBaseFunctor [''Kind, ''Type, ''Term])

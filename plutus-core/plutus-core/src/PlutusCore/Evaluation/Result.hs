@@ -16,12 +16,12 @@ module PlutusCore.Evaluation.Result
     , isEvaluationFailure
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Pretty
+import PlutusCore.Pretty
 
-import           Control.Lens
-import           Control.Monad.Except
+import Control.Lens
+import Control.Monad.Except
 
 -- Note that we can't just use 'makeClassyPrisms' for 'EvaluationResult' as that would generate
 -- @_EvaluationSuccess@ as well as @_EvaluationFailure@, which would no longer be prismatic error
@@ -86,6 +86,9 @@ instance Alternative EvaluationResult where
 
     EvaluationSuccess x <|> _ = EvaluationSuccess x
     EvaluationFailure   <|> a = a
+
+instance MonadFail EvaluationResult where
+    fail _ = EvaluationFailure
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess x) = prettyBy config x

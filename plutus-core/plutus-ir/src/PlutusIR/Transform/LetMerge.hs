@@ -6,9 +6,9 @@ module PlutusIR.Transform.LetMerge (
   letMerge
   ) where
 
-import           PlutusIR
+import PlutusIR
 
-import           Control.Lens (transformOf)
+import Control.Lens (transformOf)
 
 {-|
 A single non-recursive application of let-merging cancellation.

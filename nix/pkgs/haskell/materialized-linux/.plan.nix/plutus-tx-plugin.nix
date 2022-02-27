@@ -10,7 +10,7 @@
   {
     flags = { use-ghc-stub = false; };
     package = {
-      specVersion = "2.2";
+      specVersion = "3.0";
       identifier = { name = "plutus-tx-plugin"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "";
@@ -47,6 +47,7 @@
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
           (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+          (hsPkgs."array" or (errorHandler.buildDepError "array"))
           ] ++ (if flags.use-ghc-stub
           then [
             (hsPkgs."plutus-ghc-stub" or (errorHandler.buildDepError "plutus-ghc-stub"))
@@ -70,39 +71,6 @@
           ];
         hsSourceDirs = [ "src" ];
         };
-      exes = {
-        "profile" = {
-          depends = [
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
-            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
-            (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
-            (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
-            ];
-          buildable = true;
-          modules = [
-            "Lib"
-            "Plugin/Lib"
-            "Plugin/Basic/Spec"
-            "Plugin/Data/Spec"
-            "Plugin/Functions/Spec"
-            "Plugin/Typeclasses/Lib"
-            "Plugin/Typeclasses/Spec"
-            "TH/TestTH"
-            ];
-          hsSourceDirs = [ "executables/profile" "test" ];
-          mainPath = [ "Main.hs" ];
-          };
-        };
       tests = {
         "plutus-tx-tests" = {
           depends = [
@@ -111,35 +79,41 @@
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx".components.sublibs.plutus-tx-testlib or (errorHandler.buildDepError "plutus-tx:plutus-tx-testlib"))
             (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             (hsPkgs."template-haskell" or (errorHandler.buildDepError "template-haskell"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))
+            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
             (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             ];
           buildable = if flags.use-ghc-stub then false else true;
           modules = [
+            "Budget/Spec"
             "IsData/Spec"
             "Lift/Spec"
+            "Optimization/Spec"
             "Plugin/Spec"
             "Plugin/Basic/Spec"
             "Plugin/Data/Spec"
             "Plugin/Errors/Spec"
             "Plugin/Functions/Spec"
             "Plugin/Laziness/Spec"
+            "Plugin/NoTrace/Spec"
             "Plugin/Primitives/Spec"
             "Plugin/Profiling/Spec"
             "Plugin/Typeclasses/Spec"
             "Plugin/Typeclasses/Lib"
+            "Plugin/Coverage/Spec"
+            "Plugin/Strict/Spec"
             "Plugin/Lib"
             "StdLib/Spec"
             "TH/Spec"
@@ -148,6 +122,19 @@
             ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
+          };
+        "size" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-tx".components.sublibs.plutus-tx-testlib or (errorHandler.buildDepError "plutus-tx:plutus-tx-testlib"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-tx-plugin" or (errorHandler.buildDepError "plutus-tx-plugin"))
+            (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            ];
+          buildable = true;
+          hsSourceDirs = [ "test/size" ];
+          mainPath = [ "Main.hs" ];
           };
         };
       };

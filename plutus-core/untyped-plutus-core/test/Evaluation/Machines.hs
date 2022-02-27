@@ -8,32 +8,31 @@ module Evaluation.Machines
     , test_tallying
     ) where
 
-import           UntypedPlutusCore
-import           UntypedPlutusCore.Evaluation.HOAS
-import           UntypedPlutusCore.Evaluation.Machine.Cek        as Cek
+import UntypedPlutusCore
+import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import qualified PlutusCore                                      as Plc
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.FsTree
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.MkPlc
-import           PlutusCore.Pretty
+import PlutusCore qualified as Plc
+import PlutusCore.Builtin
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.FsTree
+import PlutusCore.Generators.Interesting
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
 
-import           PlutusCore.Examples.Builtins
-import qualified PlutusCore.StdLib.Data.Nat                      as Plc
-import           PlutusCore.StdLib.Meta
-import           PlutusCore.StdLib.Meta.Data.Function            (etaExpand)
+import PlutusCore.Examples.Builtins
+import PlutusCore.StdLib.Data.Nat qualified as Plc
+import PlutusCore.StdLib.Meta
+import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import           Common
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text
-import           GHC.Ix
-import           Hedgehog                                        hiding (Size, Var, eval)
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import GHC.Ix
+import Hedgehog hiding (Size, Var, eval)
+import Prettyprinter
+import Prettyprinter.Render.Text
+import Test.Tasty
+import Test.Tasty.Extras
+import Test.Tasty.Hedgehog
 
 testMachine
     :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
@@ -45,7 +44,7 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnownNoEmit @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp = erase <$> makeKnownOrFail @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ erase term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
@@ -54,7 +53,6 @@ test_machines :: TestTree
 test_machines =
     testGroup "machines"
         [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testBudget

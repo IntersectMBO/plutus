@@ -17,15 +17,15 @@ module Text.PrettyBy.Fixity
     , module Text.PrettyBy.Fixity
     ) where
 
-import           Text.Fixity                  as Export
-import           Text.Pretty
-import           Text.PrettyBy.Internal
-import           Text.PrettyBy.Internal.Utils
-import           Text.PrettyBy.Monad          as Export
+import Text.Fixity as Export
+import Text.Pretty
+import Text.PrettyBy.Internal
+import Text.PrettyBy.Internal.Utils
+import Text.PrettyBy.Monad as Export
 
-import           Control.Monad.Reader
-import           Data.String
-import           Lens.Micro
+import Control.Monad.Reader
+import Data.String
+import Lens.Micro
 
 -- | A constraint for \"'RenderContext' is a part of @config@\".
 class HasRenderContext config where

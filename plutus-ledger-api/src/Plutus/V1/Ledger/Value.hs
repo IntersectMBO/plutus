@@ -22,10 +22,12 @@ module Plutus.V1.Ledger.Value(
     , currencySymbol
     , mpsSymbol
     , currencyMPSHash
+    , adaSymbol
     -- ** Token names
     , TokenName(..)
     , tokenName
     , toString
+    , adaToken
     -- * Asset classes
     , AssetClass(..)
     , assetClass
@@ -49,60 +51,33 @@ module Plutus.V1.Ledger.Value(
     , flattenValue
     ) where
 
-import qualified Prelude                          as Haskell
+import Prelude qualified as Haskell
 
-import           Codec.Serialise.Class            (Serialise)
-import           Control.DeepSeq                  (NFData)
-import           Control.Monad                    (guard)
-import           Data.Aeson                       (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
-import qualified Data.Aeson                       as JSON
-import qualified Data.Aeson.Extras                as JSON
-import qualified Data.ByteString                  as BS
-import           Data.Hashable                    (Hashable)
-import qualified Data.List                        (sortBy)
-import           Data.String                      (IsString (fromString))
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
-import qualified Data.Text.Encoding               as E
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Extras
-import           GHC.Generics                     (Generic)
-import           GHC.Show                         (showList__)
-import           Plutus.V1.Ledger.Bytes           (LedgerBytes (LedgerBytes))
-import           Plutus.V1.Ledger.Orphans         ()
-import           Plutus.V1.Ledger.Scripts
-import qualified PlutusTx                         as PlutusTx
-import qualified PlutusTx.AssocMap                as Map
-import           PlutusTx.Lift                    (makeLift)
-import qualified PlutusTx.Ord                     as Ord
-import           PlutusTx.Prelude                 as PlutusTx
-import           PlutusTx.These
+import Control.DeepSeq (NFData)
+import Data.ByteString qualified as BS
+import Data.List qualified (sortBy)
+import Data.String (IsString (fromString))
+import Data.Text (Text)
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as E
+import GHC.Generics (Generic)
+import GHC.Show (showList__)
+import Plutus.V1.Ledger.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
+import Plutus.V1.Ledger.Scripts
+import PlutusTx qualified as PlutusTx
+import PlutusTx.AssocMap qualified as Map
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Ord qualified as Ord
+import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.These
+import Prettyprinter
+import Prettyprinter.Extras
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
+    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
-
-instance ToJSON CurrencySymbol where
-  toJSON currencySymbol =
-    JSON.object
-      [ ( "unCurrencySymbol"
-        , JSON.String .
-          JSON.encodeByteString .
-          PlutusTx.fromBuiltin .
-          unCurrencySymbol $
-          currencySymbol)
-      ]
-
-instance FromJSON CurrencySymbol where
-  parseJSON =
-    JSON.withObject "CurrencySymbol" $ \object -> do
-      raw <- object .: "unCurrencySymbol"
-      bytes <- JSON.decodeByteString raw
-      Haskell.pure $ CurrencySymbol $ PlutusTx.toBuiltin bytes
-
-makeLift ''CurrencySymbol
+    deriving anyclass (NFData)
 
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetay policy hash
@@ -121,10 +96,9 @@ currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
 -- | ByteString of a name of a token, shown as UTF-8 string when possible
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
-    deriving (Serialise) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData)
+    deriving anyclass (NFData)
     deriving Pretty via (PrettyShow TokenName)
 
 instance IsString TokenName where
@@ -142,7 +116,7 @@ fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
 fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
 
 asBase16 :: BS.ByteString -> Text
-asBase16 bs = Text.concat ["0x", JSON.encodeByteString bs]
+asBase16 bs = Text.concat ["0x", encodeByteString bs]
 
 quoted :: Text -> Text
 quoted s = Text.concat ["\"", s, "\""]
@@ -153,46 +127,26 @@ toString = Text.unpack . fromTokenName asBase16 id
 instance Haskell.Show TokenName where
     show = Text.unpack . fromTokenName asBase16 quoted
 
-{- note [Roundtripping token names]
+{-# INLINABLE adaSymbol #-}
+-- | The 'CurrencySymbol' of the 'Ada' currency.
+adaSymbol :: CurrencySymbol
+adaSymbol = CurrencySymbol emptyByteString
 
-How to properly roundtrip a token name that is not valid UTF-8 through PureScript
-without a big rewrite of the API?
-We prefix it with a zero byte so we can recognize it when we get a bytestring value back,
-and we serialize it base16 encoded, with 0x in front so it will look as a hex string.
-(Browsers don't render the zero byte.)
--}
-
-instance ToJSON TokenName where
-    toJSON = JSON.object . Haskell.pure . (,) "unTokenName" . JSON.toJSON .
-        fromTokenName
-            (\bs -> Text.cons '\NUL' (asBase16 bs))
-            (\t -> case Text.take 1 t of "\NUL" -> Text.concat ["\NUL\NUL", t]; _ -> t)
-
-instance FromJSON TokenName where
-    parseJSON =
-        JSON.withObject "TokenName" $ \object -> do
-        raw <- object .: "unTokenName"
-        fromJSONText raw
-        where
-            fromJSONText t = case Text.take 3 t of
-                "\NUL0x"       -> either Haskell.fail (Haskell.pure . tokenName) . JSON.tryDecode . Text.drop 3 $ t
-                "\NUL\NUL\NUL" -> Haskell.pure . fromText . Text.drop 2 $ t
-                _              -> Haskell.pure . fromText $ t
-
-makeLift ''TokenName
+{-# INLINABLE adaToken #-}
+-- | The 'TokenName' of the 'Ada' currency.
+adaToken :: TokenName
+adaToken = TokenName emptyByteString
 
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
+    deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving anyclass (NFData)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
 {-# INLINABLE assetClass #-}
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
-
-makeLift ''AssetClass
 
 -- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
 -- quantity of that currency.
@@ -211,8 +165,8 @@ makeLift ''AssetClass
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic)
-    deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
-    deriving newtype (Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving anyclass (NFData)
+    deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
 
 instance Haskell.Show Value where
@@ -230,18 +184,6 @@ normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
         filterRange p kvs = [(k,v) | (k,v) <- kvs, p v]
         mapRange f xys = [(x,f y) | (x,y) <- xys]
         sort xs = Data.List.sortBy compare xs
-
--- Orphan instances for 'Map' to make this work
-instance (ToJSON v, ToJSON k) => ToJSON (Map.Map k v) where
-    toJSON = JSON.toJSON . Map.toList
-
-instance (FromJSON v, FromJSON k) => FromJSON (Map.Map k v) where
-    parseJSON v = Map.fromList Haskell.<$> JSON.parseJSON v
-
-deriving anyclass instance (Hashable k, Hashable v) => Hashable (Map.Map k v)
-deriving anyclass instance (Serialise k, Serialise v) => Serialise (Map.Map k v)
-
-makeLift ''Value
 
 instance Haskell.Eq Value where
     (==) = eq
@@ -361,11 +303,15 @@ unionWith f ls rs =
 {-# INLINABLE flattenValue #-}
 -- | Convert a value to a simple list, keeping only the non-zero amounts.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
-flattenValue v = do
-    (cs, m) <- Map.toList $ getValue v
-    (tn, a) <- Map.toList m
-    guard $ a /= 0
-    return (cs, tn, a)
+flattenValue v = goOuter [] (Map.toList $ getValue v)
+  where
+    goOuter acc []             = acc
+    goOuter acc ((cs, m) : tl) = goOuter (goInner cs acc (Map.toList m)) tl
+
+    goInner _ acc [] = acc
+    goInner cs acc ((tn, a) : tl)
+        | a /= 0    = goInner cs ((cs, tn, a) : acc) tl
+        | otherwise = goInner cs acc tl
 
 -- Num operations
 
@@ -439,3 +385,8 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+makeLift ''CurrencySymbol
+makeLift ''TokenName
+makeLift ''AssetClass
+makeLift ''Value

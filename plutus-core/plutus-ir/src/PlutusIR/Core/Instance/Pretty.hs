@@ -6,16 +6,16 @@
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Pretty () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import qualified PlutusCore                       as PLC
-import           PlutusCore.Flat                  ()
-import qualified PlutusCore.Pretty                as PLC
+import PlutusCore qualified as PLC
+import PlutusCore.Flat ()
+import PlutusCore.Pretty qualified as PLC
 
-import           PlutusIR.Core.Type
+import PlutusIR.Core.Type
 
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom
+import Prettyprinter
+import Prettyprinter.Custom
 
 -- Pretty-printing
 

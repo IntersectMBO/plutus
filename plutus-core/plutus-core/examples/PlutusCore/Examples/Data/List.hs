@@ -6,16 +6,16 @@ module PlutusCore.Examples.Data.List
     ( omapList
     ) where
 
-import           PlutusCore.Core
-import           PlutusCore.Default
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.List
+import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.List
 
-import           PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Builtins
 
 -- | Monomorphic @map@ over built-in lists.
 --
@@ -41,7 +41,7 @@ omapList = runQuote $ do
         . apply () (apply () (tyInst () (unwrap' () (var () xs)) listA) $ var () xs)
         . lamAbs () x (TyVar () a)
         . lamAbs () xs' listA
-        $ mkIterApp () (tyInst () (builtin () $ Right Cons) $ TyVar () a)
+        $ mkIterApp () (tyInst () (builtin () $ Left MkCons) $ TyVar () a)
             [ apply () (var () f) $ var () x
             , apply () (var () rec) $ var () xs'
             ]

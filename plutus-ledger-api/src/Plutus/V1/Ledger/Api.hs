@@ -1,6 +1,9 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
+
 {- |
 The interface to Plutus V1 for the ledger.
 -}
@@ -17,10 +20,6 @@ module Plutus.V1.Ledger.Api (
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
-    -- * Serialising scripts
-    , plutusScriptEnvelopeType
-    , plutusDatumEnvelopeType
-    , plutusRedeemerEnvelopeType
     -- * Costing-related types
     , ExBudget (..)
     , ExCPU (..)
@@ -109,58 +108,44 @@ module Plutus.V1.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import qualified Codec.Serialise                                  as CBOR
-import           Control.Monad.Except
-import           Control.Monad.Writer
-import           Data.Bifunctor
-import           Data.ByteString.Lazy                             (fromStrict)
-import           Data.ByteString.Short
-import           Data.Either
-import           Data.Maybe                                       (isJust)
-import           Data.SatInt
-import           Data.Text                                        (Text)
-import           Data.Text.Prettyprint.Doc
-import           Data.Tuple
-import           Plutus.V1.Ledger.Ada
-import           Plutus.V1.Ledger.Address
-import           Plutus.V1.Ledger.Bytes
-import           Plutus.V1.Ledger.Contexts
-import           Plutus.V1.Ledger.Credential
-import           Plutus.V1.Ledger.Crypto
-import           Plutus.V1.Ledger.DCert
-import           Plutus.V1.Ledger.Interval                        hiding (singleton)
-import           Plutus.V1.Ledger.Scripts                         hiding (mkTermToEvaluate)
-import qualified Plutus.V1.Ledger.Scripts                         as Scripts
-import           Plutus.V1.Ledger.Time
-import           Plutus.V1.Ledger.TxId
-import           Plutus.V1.Ledger.Value
-import           PlutusCore                                       as PLC
-import qualified PlutusCore.Data                                  as PLC
-import           PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
-import           PlutusCore.Evaluation.Machine.ExBudget           (ExBudget (..))
-import qualified PlutusCore.Evaluation.Machine.ExBudget           as PLC
-import           PlutusCore.Evaluation.Machine.ExMemory           (ExCPU (..), ExMemory (..))
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Pretty
-import           PlutusTx                                         (FromData (..), ToData (..), UnsafeFromData (..),
-                                                                   fromData, toData)
-import           PlutusTx.Builtins.Internal                       (BuiltinData (..), builtinDataToData,
-                                                                   dataToBuiltinData)
-import           PlutusTx.Prelude                                 (BuiltinByteString, fromBuiltin, toBuiltin)
-import qualified UntypedPlutusCore                                as UPLC
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek         as UPLC
-
-plutusScriptEnvelopeType :: Text
-plutusScriptEnvelopeType = "PlutusV1Script"
-
--- | It was discussed with the Ledger team that the envelope types for 'Datum'
--- and 'Redeemer' should be in plutus-ledger-api.
---
--- For now, those types will be generic and versioning might be included in
--- the future.
-plutusDatumEnvelopeType, plutusRedeemerEnvelopeType  :: Text
-plutusDatumEnvelopeType = "ScriptDatum"
-plutusRedeemerEnvelopeType = "ScriptRedeemer"
+import Codec.Serialise qualified as CBOR
+import Control.Monad.Except
+import Control.Monad.Writer
+import Data.Bifunctor
+import Data.ByteString.Lazy (fromStrict)
+import Data.ByteString.Short
+import Data.Either
+import Data.Maybe (isJust)
+import Data.SatInt
+import Data.Text (Text)
+import Data.Tuple
+import Plutus.V1.Ledger.Address
+import Plutus.V1.Ledger.Bytes
+import Plutus.V1.Ledger.Contexts
+import Plutus.V1.Ledger.Credential
+import Plutus.V1.Ledger.Crypto
+import Plutus.V1.Ledger.DCert
+import Plutus.V1.Ledger.Interval hiding (singleton)
+import Plutus.V1.Ledger.Scripts as Scripts
+import Plutus.V1.Ledger.Time
+import Plutus.V1.Ledger.Value
+import PlutusCore as PLC
+import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty
+import PlutusPrelude (through)
+import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
+import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
+import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
+import Prettyprinter
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Scope qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You
@@ -196,7 +181,7 @@ type SerializedScript = ShortByteString
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
-    CekError (UPLC.CekEvaluationException PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
+    CekError (UPLC.CekEvaluationException PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError PLC.FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError CBOR.DeserialiseFailure -- ^ A serialisation error
     | IncompatibleVersionError (PLC.Version ()) -- ^ An error indicating a version tag that we don't support
@@ -211,34 +196,47 @@ instance Pretty EvaluationError where
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
--- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, and un-deBruijn-ifies it.
-mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ())
+{-| A variant of `Script` with a specialized `Serialise` instance
+that decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
+This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialized form of a `Script`.
+Rather than traversing the term and inserting fake names after deserializing, this lets us do at the same time as deserializing.
+-}
+newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+  -- Identical to the deriving instance for `Script`, *except* that it specifies `FakeNamedDeBruijn`
+  deriving CBOR.Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.FakeNamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())))
+
+-- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
+mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    s@(Script (UPLC.Program _ v _)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
+    ScriptForExecution (UPLC.Program _ v t) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    UPLC.Program _ _ t <- liftEither $ first DeBruijnError $ Scripts.mkTermToEvaluate (Scripts.applyArguments s args)
-    pure t
+    let termArgs = fmap (PLC.mkConstant ()) args
+        appliedT = PLC.mkIterApp () t termArgs
+    -- make sure that term is closed, i.e. well-scoped
+    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
--- resources it can use according to the cost model.  There's a default cost
--- model in  'UPLC.defaultBuiltinCostModel' and a budget called 'enormousBudget' in
--- 'UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode' which should be large
--- enough to evaluate any sensible program.
+-- resources it can use according to the cost model. Also returns the budget that
+-- was actually used.
+--
+-- Can be used to calculate budgets for scripts, but even in this case you must give
+-- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
-    -> (LogOutput, Either EvaluationError ())
+    -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
     model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
         Just model -> pure model
         Nothing    -> throwError CostModelParameterMismatch
 
-    let (res, _, logs) =
-            UPLC.runCek
+    let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
+            UPLC.runCekDeBruijn
                 (toMachineParameters model)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
@@ -246,9 +244,12 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 
     tell logs
     liftEither $ first CekError $ void res
+    pure (budget `PLC.minusExBudget` final)
 
 -- | Evaluates a script, returning the minimum budget that the script would need
--- to evaluate successfully.
+-- to evaluate successfully. This will take as long as the script takes, if you need to
+-- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
+-- also returns the used budget.
 evaluateScriptCounting
     :: VerboseMode     -- ^ Whether to produce log output
     -> CostModelParams -- ^ The cost model to use
@@ -262,7 +263,7 @@ evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ run
         Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.CountingSt final, logs) =
-            UPLC.runCek
+            UPLC.runCekDeBruijn
                 (toMachineParameters model)
                 UPLC.counting
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)

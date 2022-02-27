@@ -37,17 +37,17 @@ module PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import           Control.DeepSeq            (NFData)
-import           Data.Text.Prettyprint.Doc  (Pretty (..))
-import           GHC.Generics               (Generic)
-import qualified PlutusTx.Builtins          as P
-import qualified PlutusTx.Builtins.Internal as BI
-import           PlutusTx.IsData
-import           PlutusTx.Lift              (makeLift)
-import           PlutusTx.Prelude           hiding (filter, mapMaybe, null, toList)
-import qualified PlutusTx.Prelude           as P
-import           PlutusTx.These
-import qualified Prelude                    as Haskell
+import Control.DeepSeq (NFData)
+import GHC.Generics (Generic)
+import PlutusTx.Builtins qualified as P
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.IsData
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
+import PlutusTx.Prelude qualified as P
+import PlutusTx.These
+import Prelude qualified as Haskell
+import Prettyprinter (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}
 
@@ -67,6 +67,7 @@ instance (ToData k, ToData v) => ToData (Map k v) where
                 go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
                 go []         = BI.mkNilPairData BI.unitval
                 go ((k,v):xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
+
 instance (FromData k, FromData v) => FromData (Map k v) where
     fromBuiltinData d = P.matchData' d
         (\_ _ -> Nothing)
@@ -81,6 +82,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
             where
                 go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
                 go l = BI.chooseList l (const (pure [])) (\_ -> let tup = BI.head l in liftA2 (:) (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup)) (go (BI.tail l))) ()
+
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
     unsafeFromBuiltinData d = let es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
       where

@@ -14,11 +14,11 @@ module PlutusTx.Sqrt(
     , isqrt
     ) where
 
-import           PlutusTx.IsData  (makeIsDataIndexed)
-import           PlutusTx.Lift    (makeLift)
-import           PlutusTx.Prelude (Integer, divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
-import           PlutusTx.Ratio   (Rational, denominator, numerator, (%))
-import qualified Prelude          as Haskell
+import PlutusTx.IsData (makeIsDataIndexed)
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude (Integer, divide, negate, otherwise, ($), (*), (+), (<), (<=), (==))
+import PlutusTx.Ratio (Rational, denominator, numerator, unsafeRatio)
+import Prelude qualified as Haskell
 
 -- | Integer square-root representation, discarding imaginary integers.
 data Sqrt
@@ -41,7 +41,7 @@ rsqrt r
     | n == 0    = Exactly 0
     | n == d    = Exactly 1
     | n < d     = Approximately 0
-    | n < 0     = rsqrt $ negate n % negate d
+    | n < 0     = rsqrt $ unsafeRatio (negate n) (negate d)
     | otherwise = go 1 $ 1 + divide n d
   where
     n = numerator r
@@ -60,7 +60,7 @@ rsqrt r
 {-# INLINABLE isqrt #-}
 -- | Calculates the integer-component of the sqrt of 'n'.
 isqrt :: Integer -> Sqrt
-isqrt n = rsqrt (n % 1)
+isqrt n = rsqrt (unsafeRatio n 1)
 
 makeLift ''Sqrt
 makeIsDataIndexed ''Sqrt [ ('Imaginary,     0)

@@ -10,22 +10,22 @@ module PlutusCore.StdLib.Everything
     ( stdLib
     ) where
 
-import           PlutusCore.Default
-import           PlutusCore.FsTree
+import PlutusCore.Default
+import PlutusCore.FsTree
 
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.ChurchNat
-import           PlutusCore.StdLib.Data.Data
-import           PlutusCore.StdLib.Data.Function   as Function
-import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.List       as Builtin
-import           PlutusCore.StdLib.Data.Nat        as Nat
-import           PlutusCore.StdLib.Data.Pair       as Builtin
-import           PlutusCore.StdLib.Data.ScottList  as Scott
-import           PlutusCore.StdLib.Data.Sum        as Sum
-import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.StdLib.Meta.Data.Tuple
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.ChurchNat
+import PlutusCore.StdLib.Data.Data
+import PlutusCore.StdLib.Data.Function as Function
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.List as Builtin
+import PlutusCore.StdLib.Data.Nat as Nat
+import PlutusCore.StdLib.Data.Pair as Builtin
+import PlutusCore.StdLib.Data.ScottList as Scott
+import PlutusCore.StdLib.Data.Sum as Sum
+import PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Meta.Data.Tuple
+import PlutusCore.StdLib.Type
 
 -- | The entire stdlib exported as a single value.
 stdLib :: PlcFolderContents DefaultUni DefaultFun
@@ -66,6 +66,7 @@ stdLib =
                   [ plcTypeFile "List"      list
                   , plcTermFile "CaseList"  Builtin.caseList
                   , plcTermFile "FoldrList" Builtin.foldrList
+                  , plcTermFile "FoldList"  Builtin.foldList
                   ]
               , treeFolderContents "Data"
                   [ plcTypeFile "Data"     dataTy

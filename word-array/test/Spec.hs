@@ -1,12 +1,13 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import           Data.MonoTraversable
-import           Data.Vector
-import           Data.Word
-import           Data.Word64Array.Word8 as WordArray
-import           Test.QuickCheck
-import           Test.Tasty
-import           Test.Tasty.QuickCheck
+import Data.MonoTraversable
+import Data.Vector
+import Data.Word
+import Data.Word64Array.Word8 as WordArray
+import Test.QuickCheck
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 toVector :: WordArray -> Vector Word8
 toVector = fromList . WordArray.toList

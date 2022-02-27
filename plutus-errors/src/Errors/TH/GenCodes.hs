@@ -2,10 +2,10 @@
 {-# OPTIONS_HADDOCK hide #-}
 module Errors.TH.GenCodes (genCodes) where
 
-import           Data.Traversable
-import           ErrorCode
-import           Language.Haskell.TH          as TH
-import           Language.Haskell.TH.Datatype as TH
+import Data.Traversable
+import ErrorCode
+import Language.Haskell.TH as TH
+import Language.Haskell.TH.Datatype as TH
 
 -- | Takes a list of errors names (dataconstructors)
 -- and maps it to a list that will evaluate to their actuall error codes :: [Natural]

@@ -16,11 +16,11 @@ module Universal
     ( test_universal
     ) where
 
-import           Text.Pretty
-import           Text.PrettyBy
+import Text.Pretty
+import Text.PrettyBy
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Test.Tasty
+import Test.Tasty.HUnit
 
 data ViaPretty
     = ViaPretty

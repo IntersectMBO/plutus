@@ -112,7 +112,7 @@ nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
 
-postulate itype-lem : ∀ {Φ} b → Norm.itype {Φ} b ≡ nf (Syn.itype b)
+postulate btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
 
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
@@ -126,7 +126,7 @@ nfType (Syn.Λ {B = B} t) =
 nfType (Syn._·⋆_ {B = B} t A) = Norm.conv⊢
   refl
   (lem[] A B)
-  (Norm._·⋆_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A))
+  (Norm._·⋆_/_ (Norm.conv⊢ refl (lemΠ B) (nfType t)) (nf A) refl)
 nfType (Syn.wrap A B t) = Norm.wrap
   (nf A)
   (nf B)
@@ -134,10 +134,10 @@ nfType (Syn.wrap A B t) = Norm.wrap
 nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   refl
   (sym (stability-μ A B))
-  (Norm.unwrap (nfType t))
+  (Norm.unwrap (nfType t) refl)
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
 nfType (Syn.con t) = Norm.con (nfTypeTC t)
-nfType (Syn.ibuiltin b) = Norm.conv⊢ refl (itype-lem b) (Norm.ibuiltin b)
+nfType (Syn.builtin b) = Norm.conv⊢ refl (btype-lem b) (Norm.builtin b / refl)
 nfType (Syn.error A) = Norm.error (nf A)
 
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A

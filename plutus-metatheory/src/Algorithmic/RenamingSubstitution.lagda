@@ -31,7 +31,7 @@ open import Type.BetaNormal.Equality
 
 \begin{code}
 Ren : ∀{Φ Ψ} → ⋆.Ren Φ Ψ → Ctx Φ → Ctx Ψ → Set
-Ren ρ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renNf ρ⋆ A)
+Ren ρ⋆ Γ Δ = {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renNf ρ⋆ A
 
 ext : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
@@ -41,6 +41,7 @@ ext : ∀ {Φ Ψ Γ Δ}
   → Ren ρ⋆ (Γ , B) (Δ , renNf ρ⋆ B)
 ext ρ⋆ ρ Z     = Z
 ext ρ⋆ ρ (S x) = S (ρ x)
+
 \end{code}
 
 \begin{code}
@@ -79,20 +80,20 @@ ren ρ⋆ ρ (` x)    = ` (ρ x)
 ren ρ⋆ ρ (ƛ N)    = ƛ (ren ρ⋆ (ext ρ⋆ ρ) N)
 ren ρ⋆ ρ (L · M)  = ren ρ⋆ ρ L · ren ρ⋆ ρ M 
 ren ρ⋆ ρ (Λ N)    = Λ (ren (⋆.ext ρ⋆) (ext⋆ ρ⋆ ρ) N)
-ren ρ⋆ ρ (_·⋆_ {B = B} t A) = conv⊢
+ren ρ⋆ ρ (_·⋆_/_ {B = B} t A refl) = conv⊢
   refl
   (sym (ren[]Nf ρ⋆ B A))
-  (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A)
+  (ren ρ⋆ ρ t ·⋆ renNf ρ⋆ A / refl)
 ren ρ⋆ ρ (wrap A B M) = wrap
   (renNf ρ⋆ A)
   (renNf ρ⋆ B)
   (conv⊢ refl (ren-nf-μ ρ⋆ A B) (ren ρ⋆ ρ M))
-ren ρ⋆ ρ (unwrap {A = A}{B} M) = conv⊢
+ren ρ⋆ ρ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (ren-nf-μ ρ⋆ A B))
-  (unwrap (ren ρ⋆ ρ M)) 
+  (unwrap (ren ρ⋆ ρ M) refl) 
 ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
-ren ρ⋆ ρ (ibuiltin b) = conv⊢ refl (itype-ren b ρ⋆) (ibuiltin b)
+ren ρ⋆ ρ (builtin b / refl) = conv⊢ refl (btype-ren b ρ⋆) (builtin b / refl)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 \end{code}
 
@@ -138,10 +139,10 @@ exts⋆ : ∀ {Φ Ψ Γ Δ}
   → ∀ {K}
     --------------------------------
   → Sub (extsNf σ⋆) (Γ ,⋆ K) (Δ ,⋆ K)
-exts⋆ σ⋆ σ {K}(T {A = A} α) = conv⊢
+exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢
   refl
   (weakenNf-subNf σ⋆ A)
-  (weaken⋆ (σ α))
+  (weaken⋆ (σ x))
 \end{code}
 
 \begin{code}
@@ -168,20 +169,20 @@ sub σ⋆ σ (ƛ N)                     = ƛ (sub σ⋆ (exts σ⋆ σ) N)
 sub σ⋆ σ (L · M)                   = sub σ⋆ σ L · sub σ⋆ σ M
 sub σ⋆ σ (Λ {B = B} N) =
   Λ (conv⊢ refl (sub-nf-Π σ⋆ B) (sub (extsNf σ⋆) (exts⋆ σ⋆ σ) N))
-sub σ⋆ σ (_·⋆_ {B = B} L M) = conv⊢
+sub σ⋆ σ (_·⋆_/_ {B = B} L M refl) = conv⊢
   refl
   (sym (sub[]Nf' σ⋆ M B))
-  (sub σ⋆ σ L ·⋆ subNf σ⋆ M)
+  (sub σ⋆ σ L ·⋆ subNf σ⋆ M / refl)
 sub σ⋆ σ (wrap A B M) = wrap
   (subNf σ⋆ A)
   (subNf σ⋆ B)
   (conv⊢ refl (sub-nf-μ σ⋆ A B) (sub σ⋆ σ M))
-sub σ⋆ σ (unwrap {A = A}{B} M) = conv⊢
+sub σ⋆ σ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (sub-nf-μ σ⋆ A B))
-  (unwrap (sub σ⋆ σ M))
+  (unwrap (sub σ⋆ σ M) refl)
 sub σ⋆ σ (con c) = con (subTermCon σ⋆ c)
-sub σ⋆ σ (ibuiltin b) = conv⊢ refl (itype-sub b σ⋆) (ibuiltin b)
+sub σ⋆ σ (builtin b / refl) = conv⊢ refl (btype-sub b σ⋆) (builtin b / refl)
 sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 \end{code}
 
@@ -229,4 +230,165 @@ _[_]⋆ b A = sub
   (subNf-cons (ne ∘ `) A)
   lem
   b
+\end{code}
+
+# simply typed renaming
+
+These are easier to reason about and show up in the CEK machine as
+discharge is simply typed. Fully general rens/subs reasoning easily
+gets bogged down with type coercions.
+
+Note: This doesn't scale to substitution as we need to weaken by a
+type var to go under a Λ.
+
+\begin{code}
+Renˢ : ∀{Φ} → Ctx Φ → Ctx Φ → Set
+Renˢ Γ Δ = ∀{A} → Γ ∋ A → Δ ∋ A
+
+extˢ : ∀ {Φ Γ Δ}
+  → (ρ : Renˢ Γ Δ)
+  → {B : Φ ⊢Nf⋆ *}
+    -------------------------------
+  → Renˢ (Γ , B) (Δ , B)
+extˢ ρ Z     = Z
+extˢ ρ (S x) = S (ρ x)
+
+-- here we are manipulating the type contexts of the renaming but only
+-- by extending them with the same kind
+extˢ⋆ : ∀{Φ}{Γ Δ : Ctx Φ}
+  → (ρ : Renˢ Γ Δ)
+  → ∀ {K}
+    ----------------------
+  → Renˢ (Γ ,⋆ K) (Δ ,⋆ K)
+extˢ⋆ ρ (T x) = T (ρ x)
+
+renˢ : ∀ {Φ Γ Δ}
+  → (ρ : Renˢ Γ Δ)
+  → {A : Φ ⊢Nf⋆ *}
+  → Γ ⊢ A
+    -----
+  → Δ ⊢ A
+renˢ ρ (` x)           = ` (ρ x)
+renˢ ρ (ƛ M)           = ƛ (renˢ (extˢ ρ) M)
+renˢ ρ (L · M)         = renˢ ρ L · renˢ ρ M
+renˢ ρ (Λ M)           = Λ (renˢ (extˢ⋆ ρ) M)
+renˢ ρ (M ·⋆ A / p) = renˢ ρ M ·⋆ A / p
+renˢ ρ (wrap A B M)    = wrap A B (renˢ ρ M)
+renˢ ρ (unwrap M p) = unwrap (renˢ ρ M) p
+renˢ ρ (con c)         = con c
+renˢ ρ (builtin b / p) = builtin b / p
+renˢ ρ (error _) = error _
+
+weakenˢ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
+  → Γ ⊢ A
+    ---------
+  → Γ , B ⊢ A
+weakenˢ M = renˢ S M
+
+-- cannot define this using renˢ
+{-
+weaken⋆ˢ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}
+  → Γ ⊢ A
+    ------------------
+  → Γ ,⋆ K ⊢ weakenNf A
+-}
+
+extˢ-id : ∀ {Φ Γ}{A B : Φ ⊢Nf⋆ *}(x : Γ , A ∋ B)
+  → extˢ id x ≡ x
+extˢ-id Z     = refl
+extˢ-id (S x) = refl
+
+extˢ-comp : ∀ {Φ Γ Δ Θ}{A B : Φ ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(x : Γ , B ∋ A)
+  → extˢ (ρ ∘ ρ') x ≡ extˢ ρ (extˢ ρ' x)
+extˢ-comp Z     = refl
+extˢ-comp (S x) = refl
+
+extˢ⋆-id : ∀ {Φ Γ}{K}{A : Φ ,⋆ K ⊢Nf⋆ *}(x : Γ ,⋆ K ∋ A)
+  → extˢ⋆ id x ≡ x
+extˢ⋆-id (T x) = refl
+
+extˢ⋆-comp : ∀ {Φ Γ Δ Θ}{K}{A : Φ ,⋆ K ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(x : Γ ,⋆ K ∋ A)
+  → extˢ⋆ (ρ ∘ ρ') x ≡ extˢ⋆ ρ (extˢ⋆ ρ' x)
+extˢ⋆-comp (T x) = refl
+
+extˢ-cong : ∀{Φ}{Γ Δ : Ctx Φ}{ρ ρ' : Renˢ Γ Δ}
+          → (∀{A}(x : Γ ∋ A) → ρ x ≡ ρ' x)
+          → ∀{A B}(x : Γ , A ∋ B)
+            --------------------------------
+          → extˢ ρ x ≡ extˢ ρ' x
+extˢ-cong p Z = refl
+extˢ-cong p (S x) = cong S (p x)
+
+extˢ⋆-cong : ∀{Φ}{Γ Δ : Ctx Φ}{ρ ρ' : Renˢ Γ Δ}
+          → (∀{A}(x : Γ ∋ A) → ρ x ≡ ρ' x)
+          → ∀{K B}(x : Γ ,⋆ K ∋ B)
+            --------------------------------
+          → extˢ⋆ ρ x ≡ extˢ⋆ ρ' x
+extˢ⋆-cong p (T x) = cong T (p x)
+
+renˢ-cong : ∀{Φ}{Γ Δ : Ctx Φ}{ρ ρ' : Renˢ Γ Δ}
+          → (∀{A}(x : Γ ∋ A) → ρ x ≡ ρ' x)
+          → ∀{A}(M : Γ ⊢ A)
+            --------------------------------
+          → renˢ ρ M ≡ renˢ ρ' M
+renˢ-cong p (` x) = cong ` (p x)
+renˢ-cong p (ƛ M) = cong ƛ (renˢ-cong (extˢ-cong p) M)
+renˢ-cong p (L · M) = cong₂ _·_ (renˢ-cong p L) (renˢ-cong p M)
+renˢ-cong p (Λ M) = cong Λ (renˢ-cong (extˢ⋆-cong p) M)
+renˢ-cong p (M ·⋆ A / q) = cong (_·⋆ A / q) (renˢ-cong p M)
+renˢ-cong p (wrap A B M) = cong (wrap A B) (renˢ-cong p M)
+renˢ-cong p (unwrap M q) = cong (λ M → unwrap M q) (renˢ-cong p M)
+renˢ-cong p (con c) = refl
+renˢ-cong p (builtin b / q) = refl
+renˢ-cong p (error _) = refl
+
+renˢ-id : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}(M : Γ ⊢ A)
+  → renˢ id M ≡ M
+renˢ-id (` x) = refl
+renˢ-id (ƛ M) = cong ƛ (trans (renˢ-cong extˢ-id M) (renˢ-id M))
+renˢ-id (L · M) = cong₂ _·_ (renˢ-id L) (renˢ-id M)
+renˢ-id (Λ M) = cong Λ (trans (renˢ-cong extˢ⋆-id M) (renˢ-id M))
+renˢ-id (M ·⋆ A / p) = cong (_·⋆ A / p) (renˢ-id M)
+renˢ-id (wrap A B M) = cong (wrap A B) (renˢ-id M)
+renˢ-id (unwrap M p) = cong (λ M → unwrap M p) (renˢ-id M)
+renˢ-id (con c) = refl
+renˢ-id (builtin b / p) = refl
+renˢ-id (error _) = refl
+
+renˢ-comp : ∀ {Φ Γ Δ Θ}{A : Φ ⊢Nf⋆ *}
+  → {ρ : Renˢ Δ Θ}{ρ' : Renˢ Γ Δ}(M : Γ ⊢ A)
+  → renˢ (ρ ∘ ρ') M ≡ renˢ ρ (renˢ ρ' M)
+renˢ-comp (` x) = refl
+renˢ-comp (ƛ M) = cong ƛ (trans (renˢ-cong extˢ-comp M) (renˢ-comp M))
+renˢ-comp (L · M) = cong₂ _·_ (renˢ-comp L) (renˢ-comp M)
+renˢ-comp (Λ M) = cong Λ (trans (renˢ-cong extˢ⋆-comp M) (renˢ-comp M))
+renˢ-comp (M ·⋆ A / p) = cong (_·⋆ A / p) (renˢ-comp M)
+renˢ-comp (wrap A B M) = cong (wrap A B) (renˢ-comp M)
+renˢ-comp (unwrap M p) = cong (λ M → unwrap M p) (renˢ-comp M)
+renˢ-comp (con c) = refl
+renˢ-comp (builtin b / p) = refl
+renˢ-comp (error _) = refl
+
+
+Subˢ : ∀{Φ} → Ctx Φ → Ctx Φ → Set
+Subˢ Γ Δ = ∀{A} → Γ ∋ A → Δ ⊢ A
+
+extsˢ : ∀ {Φ Γ Δ}
+  → (σ : Subˢ Γ Δ)
+  → {B : Φ ⊢Nf⋆ *}
+    ---------------------------------
+  → Subˢ (Γ , B) (Δ , B)
+extsˢ σ Z     = ` Z
+extsˢ σ (S α) = weakenˢ (σ α)
+
+-- cannot define this using renˢ
+{-
+exts⋆ˢ : ∀{Φ}{Γ Δ : Ctx Φ}
+  → (σ : Subˢ Γ Δ)
+  → ∀ {K}
+    ----------------------
+  → Subˢ (Γ ,⋆ K) (Δ ,⋆ K)
+-}
 \end{code}

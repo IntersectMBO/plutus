@@ -13,11 +13,11 @@
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE NPlusKPatterns           #-}
+{-# LANGUAGE NamedFieldPuns           #-}
 {-# LANGUAGE OverloadedStrings        #-}
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
@@ -36,49 +36,50 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekEmitter
     , CekEmitterInfo(..)
     , EmitterMode(..)
-    , CekCarryingM (..)
-    , CekM
+    , CekM (..)
     , ErrorWithCause(..)
     , EvaluationError(..)
     , ExBudgetCategory(..)
     , StepKind(..)
     , PrettyUni
     , extractEvaluationResult
-    , runCek
+    , runCekDeBruijn
+    , dischargeCekValue
     )
 where
 
-import           ErrorCode
-import           PlutusPrelude
+import ErrorCode
+import PlutusPrelude
 
-import           UntypedPlutusCore.Core
-import           UntypedPlutusCore.Subst
+import UntypedPlutusCore.Core
 
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import Data.DeBruijnEnv as Env
+import PlutusCore.Builtin
+import PlutusCore.DeBruijn
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty
 
-import           Control.Lens.Review
-import           Control.Monad.Catch
-import           Control.Monad.Except
-import           Control.Monad.ST
-import           Control.Monad.ST.Unsafe
-import           Data.Array
-import           Data.Hashable                                            (Hashable)
-import qualified Data.Kind                                                as GHC
-import           Data.Proxy
-import           Data.Semigroup                                           (stimes)
-import           Data.Text                                                (Text)
-import           Data.Text.Prettyprint.Doc
-import           Data.Word64Array.Word8
-import           Universe
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+
+import Control.Lens.Review
+import Control.Monad.Catch
+import Control.Monad.Except
+import Control.Monad.ST
+import Control.Monad.ST.Unsafe
+import Data.Array hiding (index)
+import Data.Hashable (Hashable)
+import Data.Kind qualified as GHC
+import Data.Semigroup (stimes)
+import Data.Text (Text)
+import Data.Word
+import Data.Word64Array.Word8 hiding (Index)
+import Prettyprinter
+import Universe
 
 {- Note [Compilation peculiarities]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
@@ -185,13 +186,13 @@ instance Show (BuiltinRuntime (CekValue uni fun)) where
 data CekValue uni fun =
     -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay (Term Name uni fun ()) !(CekValEnv uni fun)
-  | VLamAbs Name (Term Name uni fun ()) !(CekValEnv uni fun)
+  | VDelay (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
+  | VLamAbs NamedDeBruijn (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
       !fun                   -- So that we know, for what builtin we're calculating the cost.
                              -- TODO: any chance we could sneak this into 'BuiltinRuntime'
                              -- where we have a partially instantiated costing function anyway?
-      (Term Name uni fun ()) -- This must be lazy. It represents the partial application of the
+      (Term NamedDeBruijn uni fun ()) -- This must be lazy. It represents the partial application of the
                              -- builtin function that we're going to run when it's fully saturated.
                              -- We need the 'Term' to be able to return it in case full saturation
                              -- is never achieved and a partial application needs to be returned
@@ -204,7 +205,7 @@ data CekValue uni fun =
                                             -- Check the docs of 'BuiltinRuntime' for details.
     deriving (Show)
 
-type CekValEnv uni fun = UniqueMap TermUnique (CekValue uni fun)
+type CekValEnv uni fun = RAList (CekValue uni fun)
 
 -- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -217,8 +218,9 @@ newtype CekBudgetSpender uni fun s = CekBudgetSpender
 -- under the hood.
 -- | Runtime budgeting info.
 data ExBudgetInfo cost uni fun s = ExBudgetInfo
-    { _exBudgetModeSpender  :: !(CekBudgetSpender uni fun s)  -- ^ A spending function.
-    , _exBudgetModeGetFinal :: !(ST s cost)                   -- ^ For accessing the final state.
+    { _exBudgetModeSpender       :: !(CekBudgetSpender uni fun s)  -- ^ A spending function.
+    , _exBudgetModeGetFinal      :: !(ST s cost) -- ^ For accessing the final state.
+    , _exBudgetModeGetCumulative :: !(ST s ExBudget) -- ^ For accessing the cumulative budget.
     }
 
 -- We make a separate data type here just to save the caller of the CEK machine from those pesky
@@ -292,7 +294,7 @@ data CekEmitterInfo uni fun s = CekEmitterInfo {
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
 newtype EmitterMode uni fun = EmitterMode
-    { unEmitterMode :: forall s. ST s (CekEmitterInfo uni fun s)
+    { unEmitterMode :: forall s. ST s ExBudget -> ST s (CekEmitterInfo uni fun s)
     }
 
 {- Note [Implicit parameters in the machine]
@@ -341,58 +343,16 @@ instance HasErrorCode CekUserError where
     errorCode CekEvaluationFailure {} = ErrorCode 37
     errorCode CekOutOfExError {}      = ErrorCode 36
 
-{- Note [Being generic over 'term' in errors]
-Our error for the CEK machine carries a term with it as a possible 'cause'. This is defined in
-terms of an underlying type that is generic over this 'term' type.
-
-The point is that in many different cases we can annotate an evaluation failure with a 'Term' that
-caused it. Originally we were using 'CekValue' instead of 'Term', however that meant that we had to
-ignore some important cases where we just can't produce a 'CekValue', for example if we encounter
-a free variable, we can't turn it into a 'CekValue' and report the result as the cause of the
-failure, which is bad. 'Term' is strictly more general than 'CekValue' and so we can always
-1. report things like free variables
-2. report a 'CekValue' turned into a 'Term' via 'dischargeCekValue'
-We need the latter, because the constant application machinery, in the context of the CEK machine,
-expects a list of 'CekValue's and so in the event of failure it has to report one of those
-arguments, so we have no option but to call the constant application machinery with 'CekValue'
-being the cause of a potential failure. But as mentioned, turning a 'CekValue' into a 'Term' is
-no problem and we need that elsewhere anyway, so we don't need any extra machinery for calling the
-constant application machinery over a list of 'CekValue's and turning the cause of a possible
-failure into a 'Term', apart from the straightforward generalization of the error type.
-
-Error handling is arranged as follows: we allow the CEK machine to throw terms and the builtin
-application machinery to throw values and in 'runCekM' we catch both kinds of errors and turn
-the latter into the former, so that to the outside it looks like the CEK machine is pure and
-can only return errors with terms in them, not values.
--}
-
-{- Note [Being generic over @term@ in 'CekM']
-We have a @term@-generic version of 'CekM' called 'CekCarryingM', which itself requires a
-@term@-generic version of 'CekEvaluationException' called 'CekEvaluationExceptionCarrying'.
-This enables us to implement a 'MonadError' instance that allow for throwing errors in both the CEK
-machine and the builtin application machinery (as Note [Being generic over 'term' in errors]
-explains, those are different kinds of errors) and otherwise we'd have to have more plumbing between
-these two and turning the builtin application machinery's 'MonadError' constraint into an explicit
-'Either' just to dispatch on it in the CEK machine and rethrow the error non-purely  (we used to
-have that) has to cost some. Plus, being @term@-generic also enables us to throw actual exceptions
-using the normal 'throwError', 'throwing_', 'throwingWithCause' etc business instead of duplicating
-all that API for exceptions (we used to have @lookupBuiltinExc@, @throwingWithCauseExc@ etc).
--}
-
 -- See Note [Being generic over @term@ in 'CekM'].
-type CekCarryingM :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
+type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
-newtype CekCarryingM term uni fun s a = CekCarryingM
-    { unCekCarryingM :: ST s a
+newtype CekM uni fun s a = CekM
+    { unCekM :: ST s a
     } deriving newtype (Functor, Applicative, Monad)
 
-type CekM uni fun = CekCarryingM (Term Name uni fun ()) uni fun
-
 -- | The CEK machine-specific 'EvaluationException'.
-type CekEvaluationExceptionCarrying term fun =
-    EvaluationException CekUserError (MachineError fun) term
-
-type CekEvaluationException uni fun = CekEvaluationExceptionCarrying (Term Name uni fun ()) fun
+type CekEvaluationException name uni fun =
+    EvaluationException CekUserError (MachineError fun) (Term name uni fun ())
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
 type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
@@ -434,34 +394,19 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
--- | Enable throwing/catching 'CekValue's within the received action and
--- catching 'Term's outside of it.
-withCekValueErrors
-    :: CekCarryingM (CekValue uni fun) uni fun s a
-    -> CekCarryingM (Term Name uni fun ()) uni fun s a
-withCekValueErrors = coerce
-
--- | Enable throwing/catching 'Term's within the received action and
--- catching 'CekValue's outside of it.
-withTermErrors
-    :: CekCarryingM (Term Name uni fun ()) uni fun s a
-    -> CekCarryingM (CekValue uni fun) uni fun s a
-withTermErrors = coerce
-
-instance (PrettyUni uni fun, PrettyPlc term, Typeable term) =>
-            MonadError (CekEvaluationExceptionCarrying term fun) (CekCarryingM term uni fun s) where
+instance PrettyUni uni fun => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
     -- See Note [Throwing exceptions in ST].
-    throwError = CekCarryingM . throwM
+    throwError = CekM . throwM
 
     -- See Note [Catching exceptions in ST].
-    a `catchError` h = CekCarryingM . unsafeIOToST $ aIO `catch` hIO where
-        aIO = unsafeRunCekCarryingM a
-        hIO = unsafeRunCekCarryingM . h
+    a `catchError` h = CekM . unsafeIOToST $ aIO `catch` hIO where
+        aIO = unsafeRunCekM a
+        hIO = unsafeRunCekM . h
 
-        -- | Unsafely run a 'CekCarryingM' computation in the 'IO' monad by converting the
+        -- | Unsafely run a 'CekM' computation in the 'IO' monad by converting the
         -- underlying 'ST' to it.
-        unsafeRunCekCarryingM :: CekCarryingM term uni fun s a -> IO a
-        unsafeRunCekCarryingM = unsafeSTToIO . unCekCarryingM
+        unsafeRunCekM :: CekM uni fun s a -> IO a
+        unsafeRunCekM = unsafeSTToIO . unCekM
 
 -- It would be really nice to define this instance, so that we can use 'makeKnown' directly in
 -- the 'CekM' monad without the 'WithEmitterT' nonsense. Unfortunately, GHC doesn't like
@@ -488,28 +433,46 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: CekValEnv uni fun -> Term Name uni fun () -> Term Name uni fun ()
-dischargeCekValEnv !valEnv =
-    -- We recursively discharge the environments of Cek values, but we will gradually end up doing
-    -- this to terms which have no free variables remaining, at which point we won't call this
-    -- substitution function any more and so we will terminate.
-    termSubstFreeNames $ \name -> do
-        val <- lookupName name valEnv
-        Just $ dischargeCekValue val
+dischargeCekValEnv :: forall uni fun. CekValEnv uni fun -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
+dischargeCekValEnv valEnv = go 0
+ where
+  -- The lamCnt is just a counter that measures how many lambda-abstractions
+  -- we have descended in the `go` loop.
+  go :: Word64 -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
+  go !lamCnt =  \case
+    LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
+    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word64  in
+        if lamCnt >= ix
+        -- the index n is less-than-or-equal than the number of lambdas we have descended
+        -- this means that n points to a bound variable, so we don't discharge it.
+        then var
+        else maybe
+               -- var is free, leave it alone
+               var
+               -- var is in the env, discharge its value
+               dischargeCekValue
+               -- index relative to (as seen from the point of view of) the environment
+               (Env.index valEnv $ ix - lamCnt)
+    Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
+    Delay ann term       -> Delay ann $ go lamCnt term
+    Force ann term       -> Force ann $ go lamCnt term
+    t -> t
 
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
-dischargeCekValue :: CekValue uni fun -> Term Name uni fun ()
+dischargeCekValue :: CekValue uni fun -> Term NamedDeBruijn uni fun ()
 dischargeCekValue = \case
-    VCon     val           -> Constant () val
-    VDelay   body env      -> dischargeCekValEnv env $ Delay () body
+    VCon     val                         -> Constant () val
+    VDelay   body env                    -> dischargeCekValEnv env $ Delay () body
     -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
     -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
     -- lambda, otherwise @name@ could clash with the names that we have in @env@.
-    VLamAbs  name body env -> dischargeCekValEnv env $ LamAbs () name body
+    VLamAbs (NamedDeBruijn n _ix) body env ->
+        -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
+        dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) body
     -- We only discharge a value when (a) it's being returned by the machine,
     -- or (b) it's needed for an error message.
-    VBuiltin _ term env _  -> dischargeCekValEnv env term
+    VBuiltin _ term env _                -> dischargeCekValEnv env term
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
@@ -517,12 +480,11 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 
 type instance UniOf (CekValue uni fun) = uni
 
-instance FromConstant (CekValue uni fun) where
-    fromConstant = VCon
+instance HasConstant (CekValue uni fun) where
+    asConstant _        (VCon val) = pure val
+    asConstant mayCause _          = throwNotAConstant mayCause
 
-instance AsConstant (CekValue uni fun) where
-    asConstant (VCon val) = pure val
-    asConstant term       = throwNotAConstant term
+    fromConstant = VCon
 
 {-|
 The context in which the machine operates.
@@ -532,7 +494,7 @@ we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun)                         -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun) (Term Name uni fun ()) !(Context uni fun) -- ^ @[_ N]@
+    | FrameApplyArg !(CekValEnv uni fun) (Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
     deriving (Show)
@@ -557,31 +519,25 @@ runCekM
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
-    -> (Either (CekEvaluationException uni fun) a, cost, [Text])
+    -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
-    exBudgetMode <- getExBudgetInfo
-    emitter <- getEmitterMode
+    ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
+    CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
     let ?cekRuntime = runtime
-        ?cekEmitter = _cekEmitterInfoEmit emitter
-        ?cekBudgetSpender = _exBudgetModeSpender exBudgetMode
+        ?cekEmitter = _cekEmitterInfoEmit
+        ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
     -- See Note Note [Being generic over 'term' in errors].
-    errValOrErrTermOrRes <- unCekCarryingM . tryError . withTermErrors $ tryError a
-    let errOrRes = join $ first (mapCauseInMachineException dischargeCekValue) errValOrErrTermOrRes
-    st <- _exBudgetModeGetFinal exBudgetMode
-    logs <- _cekEmitterInfoGetFinal emitter
+    errOrRes <- unCekM $ tryError a
+    st <- _exBudgetModeGetFinal
+    logs <- _cekEmitterInfoGetFinal
     pure (errOrRes, st, logs)
 
--- | Extend an environment with a variable name, the value the variable stands for
--- and the environment the value is defined in.
-extendEnv :: Name -> CekValue uni fun -> CekValEnv uni fun -> CekValEnv uni fun
-extendEnv = insertByName
-
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun s . (PrettyUni uni fun) => Name -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
-lookupVarName varName varEnv =
-    case lookupName varName varEnv of
+lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
+lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
+    case varEnv `Env.index` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
@@ -592,14 +548,14 @@ lookupVarName varName varEnv =
 evalBuiltinApp
     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
     => fun
-    -> Term Name uni fun ()
+    -> Term NamedDeBruijn uni fun ()
     -> CekValEnv uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
-    TypeSchemeResult _ -> do
+    RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        flip unWithEmitterT ?cekEmitter $ makeKnown x
+        makeKnown ?cekEmitter (Just term) x
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
@@ -610,8 +566,8 @@ enterComputeCek
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
     => Context uni fun
     -> CekValEnv uni fun
-    -> Term Name uni fun ()
-    -> CekM uni fun s (Term Name uni fun ())
+    -> Term NamedDeBruijn uni fun ()
+    -> CekM uni fun s (Term NamedDeBruijn uni fun ())
 enterComputeCek = computeCek (toWordArray 0) where
     -- | The computing part of the CEK machine.
     -- Either
@@ -623,8 +579,8 @@ enterComputeCek = computeCek (toWordArray 0) where
         :: WordArray
         -> Context uni fun
         -> CekValEnv uni fun
-        -> Term Name uni fun ()
-        -> CekM uni fun s (Term Name uni fun ())
+        -> Term NamedDeBruijn uni fun ()
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
     computeCek !unbudgetedSteps !ctx !env (Var _ varName) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BVar unbudgetedSteps
@@ -671,7 +627,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         :: WordArray
         -> Context uni fun
         -> CekValue uni fun
-        -> CekM uni fun s (Term Name uni fun ())
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     --- Instantiate all the free variable of the resulting term in case there are any.
     -- . ◅ V           ↦  [] V
     returnCek !unbudgetedSteps NoFrame val = do
@@ -697,15 +653,15 @@ enterComputeCek = computeCek (toWordArray 0) where
         :: WordArray
         -> Context uni fun
         -> CekValue uni fun
-        -> CekM uni fun s (Term Name uni fun ())
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
     forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
         let term' = Force () term
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            TypeSchemeAll  _ schK -> do
-                let runtime' = BuiltinRuntime (schK Proxy) f exF
+            RuntimeSchemeAll schK -> do
+                let runtime' = BuiltinRuntime schK f exF
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
@@ -728,26 +684,26 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> Context uni fun
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
-        -> CekM uni fun s (Term Name uni fun ())
-    applyEvaluate !unbudgetedSteps !ctx (VLamAbs name body env) arg =
-        computeCek unbudgetedSteps ctx (extendEnv name arg env) body
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
+        computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
-        let term' = Apply () term $ dischargeCekValue arg
+        let argTerm = dischargeCekValue arg
+            term' = Apply () term argTerm
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            TypeSchemeArrow _ schB -> do
-                -- The builtin application machinery wants to be able to throw a 'CekValue' rather
-                -- than a 'Term', hence 'withCekValueErrors'.
-                x <- withCekValueErrors $ readKnown arg
-                -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
-                -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
-                -- Maybe we could fuse the two?
-                let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
-                res <- evalBuiltinApp fun term' env runtime'
-                returnCek unbudgetedSteps ctx res
+            RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg of
+                Left err -> throwReadKnownErrorWithCause err
+                Right x  -> do
+                    -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
+                    -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
+                    -- Maybe we could fuse the two?
+                    let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+                    res <- evalBuiltinApp fun term' env runtime'
+                    returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ !_ val _ =
@@ -779,14 +735,14 @@ enterComputeCek = computeCek (toWordArray 0) where
 
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
-runCek
+runCekDeBruijn
     :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
-    -> Term Name uni fun ()
-    -> (Either (CekEvaluationException uni fun) (Term Name uni fun ()), cost, [Text])
-runCek params mode emitMode term =
+    -> Term NamedDeBruijn uni fun ()
+    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (Term NamedDeBruijn uni fun ()), cost, [Text])
+runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek NoFrame mempty term
+        enterComputeCek NoFrame Env.empty term

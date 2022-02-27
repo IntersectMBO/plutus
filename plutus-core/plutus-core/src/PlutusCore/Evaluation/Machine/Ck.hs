@@ -26,26 +26,24 @@ module PlutusCore.Evaluation.Machine.Ck
     , readKnownCk
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.Name
-import           PlutusCore.Pretty                       (PrettyConfigPlc, PrettyConst)
+import PlutusCore.Builtin
+import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.Name
+import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
 
-import           Control.Monad.Except
-import           Control.Monad.Morph
-import           Control.Monad.Reader
-import           Control.Monad.ST
-import           Data.Array
-import           Data.DList                              (DList)
-import qualified Data.DList                              as DList
-import           Data.Proxy
-import           Data.STRef
-import           Data.Text                               (Text)
-import           Universe
+import Control.Monad.Except
+import Control.Monad.Reader
+import Control.Monad.ST
+import Data.Array
+import Data.DList (DList)
+import Data.DList qualified as DList
+import Data.STRef
+import Data.Text (Text)
+import Universe
 
 infix 4 |>, <|
 
@@ -69,8 +67,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    TypeSchemeResult _ -> makeKnown x
-    _                  -> pure $ VBuiltin term runtime
+    RuntimeSchemeResult -> makeKnown emitCkM (Just term) x
+    _                   -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -95,19 +93,14 @@ data CkUserError =
     CkEvaluationFailure -- Error has been called or a builtin application has failed
     deriving (Show, Eq, Generic, NFData)
 
--- | The CK machine-specific 'EvaluationException' parameterized over @term@.
-type CkEvaluationExceptionCarrying term fun =
-    EvaluationException CkUserError (MachineError fun) term
-
--- See Note [Being generic over @term@ in 'CekM']
-type CkCarryingM term uni fun s =
-    ReaderT (CkEnv uni fun s)
-        (ExceptT (CkEvaluationExceptionCarrying term fun)
-            (ST s))
-
 -- | The CK machine-specific 'EvaluationException'.
 type CkEvaluationException uni fun =
-    CkEvaluationExceptionCarrying (Term TyName Name uni fun ()) fun
+    EvaluationException CkUserError (MachineError fun) (Term TyName Name uni fun ())
+
+type CkM uni fun s =
+    ReaderT (CkEnv uni fun s)
+        (ExceptT (CkEvaluationException uni fun)
+            (ST s))
 
 instance AsEvaluationFailure CkUserError where
     _EvaluationFailure = _EvaluationFailureVia CkEvaluationFailure
@@ -115,23 +108,20 @@ instance AsEvaluationFailure CkUserError where
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
-type CkM uni fun s = CkCarryingM (Term TyName Name uni fun ()) uni fun s
-
-instance MonadEmitter (CkCarryingM term uni fun s) where
-    emit str = do
-        mayLogsRef <- asks ckEnvMayEmitRef
-        case mayLogsRef of
-            Nothing      -> pure ()
-            Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
+emitCkM :: Text -> CkM uni fun s ()
+emitCkM str = do
+    mayLogsRef <- asks ckEnvMayEmitRef
+    case mayLogsRef of
+        Nothing      -> pure ()
+        Just logsRef -> lift . lift $ modifySTRef logsRef (`DList.snoc` str)
 
 type instance UniOf (CkValue uni fun) = uni
 
-instance FromConstant (CkValue uni fun) where
-    fromConstant = VCon
+instance HasConstant (CkValue uni fun) where
+    asConstant _        (VCon val) = pure val
+    asConstant mayCause _          = throwNotAConstant mayCause
 
-instance AsConstant (CkValue uni fun) where
-    asConstant (VCon val) = pure val
-    asConstant term       = throwNotAConstant term
+    fromConstant = VCon
 
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
@@ -283,8 +273,8 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        TypeSchemeAll  _ schK -> do
-            let runtime' = BuiltinRuntime (schK Proxy) f exF
+        RuntimeSchemeAll schK -> do
+            let runtime' = BuiltinRuntime schK f exF
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -304,19 +294,18 @@ applyEvaluate
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
 applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
-    let term' = Apply () term $ ckValueToTerm arg
+    let argTerm = ckValueToTerm arg
+        term' = Apply () term argTerm
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        TypeSchemeArrow _ schB -> do
-            -- The builtin application machinery wants to be able to throw a 'CekValue' rather
-            -- than a 'Term', hence 'withErrorDischarging'.
-            let dischargeError = hoist $ withExceptT $ mapCauseInMachineException ckValueToTerm
-            x <- dischargeError $ readKnown arg
-            let noCosting = error "The CK machine does not support costing"
-                runtime' = BuiltinRuntime schB (f x) noCosting
-            res <- evalBuiltinApp term' runtime'
-            stack <| res
+        RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
+            Left err -> throwReadKnownErrorWithCause err
+            Right x  -> do
+                let noCosting = error "The CK machine does not support costing"
+                    runtime' = BuiltinRuntime schB (f x) noCosting
+                res <- evalBuiltinApp term' runtime'
+                stack <| res
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =
@@ -374,4 +363,4 @@ readKnownCk
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
-readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnown
+readKnownCk runtime = evaluateCkNoEmit runtime >=> readKnownSelf

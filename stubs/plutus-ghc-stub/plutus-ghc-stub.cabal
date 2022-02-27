@@ -22,6 +22,7 @@ Cabal-Version: >=1.10
 
 Library
     Default-Language: Haskell2010
+    Default-Extensions: ImportQualifiedPost
     Exposed: False
 
     Build-Depends: base,

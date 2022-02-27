@@ -95,29 +95,29 @@ Let `x`, `y` range over variables.
 
 Computing a signature for a builtin. Ideally this should be done generically:
 ```
-ISIG : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-ISIG ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
-ISIG addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-ISIG lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-ISIG appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-ISIG lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG lessThanEqualsByteString =
+sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
+sig ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
+sig addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
+sig lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+sig lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+sig equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
+sig appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
+sig lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
+sig lessThanEqualsByteString =
   ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-ISIG sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-ISIG sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-ISIG verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-ISIG equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
-ISIG appendString = ∅ ,, ∅ , con string , con string ,, con string
-ISIG trace = ∅ ,, ∅ , con string ,, con unit
-ISIG _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
+sig sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+sig sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
+sig verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
+sig appendString = ∅ ,, ∅ , con string , con string ,, con string
+sig trace = ∅ ,, ∅ , con string ,, con unit
+sig _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
 ```
 
 Converting a signature to a totally unsaturated type:
@@ -132,15 +132,15 @@ isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
 Compute the type for a builtin:
 
 ```
-itype : Builtin → Φ ⊢⋆ *
-itype b = let Φ ,, Γ ,, C = ISIG b in sub (λ()) (isig2type Φ Γ C)
+btype : Builtin → Φ ⊢⋆ *
+btype b = let Φ ,, Γ ,, C = sig b in sub (λ()) (isig2type Φ Γ C)
 ```
 
 Two lemmas concerning renaming and substituting types of builtins:
 
 ```
-postulate itype-ren : ∀ b (ρ : Ren Φ Ψ) → itype b ≡ ren ρ (itype b)
-postulate itype-sub : ∀ b (ρ : Sub Φ Ψ) → itype b ≡ sub ρ (itype b)
+postulate btype-ren : ∀ b (ρ : Ren Φ Ψ) → btype b ≡ ren ρ (btype b)
+postulate btype-sub : ∀ b (ρ : Sub Φ Ψ) → btype b ≡ sub ρ (btype b)
 ```
 
 ## Terms
@@ -195,9 +195,9 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
         ---------------
       → Γ ⊢ con c
 
-  ibuiltin : (b :  Builtin)
-             --------------
-           → Γ ⊢ itype b
+  builtin : (b :  Builtin)
+            --------------
+          → Γ ⊢ btype b
 
   error : (A : Φ ⊢⋆ *)
           ------------

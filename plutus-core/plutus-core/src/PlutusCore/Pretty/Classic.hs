@@ -15,11 +15,11 @@ module PlutusCore.Pretty.Classic
     , prettyClassicDebug
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.ConfigName
 
-import           Data.Text.Prettyprint.Doc.Internal (Doc (Empty))
+import Prettyprinter.Internal (Doc (Empty))
 
 -- | Configuration for the classic pretty-printing.
 data PrettyConfigClassic configName = PrettyConfigClassic

@@ -11,39 +11,39 @@ module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Data
-import           PlutusCore.Evaluation.Machine.MachineParameters
-import           PlutusCore.Generators.Interesting
-import           PlutusCore.MkPlc                                hiding (error)
+import PlutusCore
+import PlutusCore.Builtin
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Generators.Interesting
+import PlutusCore.MkPlc hiding (error)
 
-import           PlutusCore.Examples.Builtins
-import           PlutusCore.Examples.Data.Data
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Data
-import qualified PlutusCore.StdLib.Data.Function                 as Plc
-import           PlutusCore.StdLib.Data.Integer
-import qualified PlutusCore.StdLib.Data.List                     as Builtin
-import           PlutusCore.StdLib.Data.Pair
-import qualified PlutusCore.StdLib.Data.ScottList                as Scott
-import           PlutusCore.StdLib.Data.Unit
+import PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Data.Data
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.Data
+import PlutusCore.StdLib.Data.Function qualified as Plc
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.List qualified as Builtin
+import PlutusCore.StdLib.Data.Pair
+import PlutusCore.StdLib.Data.ScottList qualified as Scott
+import PlutusCore.StdLib.Data.Unit
 
-import           Evaluation.Builtins.Common
+import Evaluation.Builtins.Common
 
-import           UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import           Control.Exception
-import           Data.ByteString                                 (ByteString)
-import           Data.Either
-import           Data.Proxy
-import           Data.Text                                       (Text)
-import           Hedgehog                                        hiding (Opaque, Size, Var)
-import qualified Hedgehog.Gen                                    as Gen
-import qualified Hedgehog.Range                                  as Range
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Control.Exception
+import Data.ByteString (ByteString)
+import Data.Either
+import Data.Proxy
+import Data.Text (Text)
+import Hedgehog hiding (Opaque, Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 defaultCekParametersExt
     :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
@@ -181,7 +181,7 @@ test_FailingSucc =
                     mkConstant @Integer @DefaultUni () 0
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
-            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+            traverse (try . evaluate) $ typecheckEvaluateCek defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
 
 -- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
@@ -209,7 +209,7 @@ test_FailingPlus =
                     ]
         typeErrOrEvalExcOrRes :: Either _ (Either BuiltinErrorCall _) <-
             -- Here we rely on 'typecheckAnd' lazily running the action after type checking the term.
-            traverse (try . evaluate) $ typecheckEvaluateCekNoEmit defaultCekParametersExt term
+            traverse (try . evaluate) $ typecheckEvaluateCek defaultCekParametersExt term
         typeErrOrEvalExcOrRes @?= Right (Left BuiltinErrorCall)
 
 -- | Test that evaluating a PLC builtin application that is expensive enough to exceed the budget
@@ -250,7 +250,7 @@ test_IdBuiltinList =
             listOfInteger = mkTyBuiltin @_ @[Integer] ()
             term
                 = mkIterApp () (mkIterInst () (mapFun Left Builtin.foldrList) [integer, listOfInteger])
-                    [ tyInst () (builtin () $ Right Cons) integer
+                    [ tyInst () (builtin () $ Left MkCons) integer
                     , mkConstant @[Integer] () []
                     , xsTerm
                     ]

@@ -16,24 +16,24 @@
 
 module PlutusCore.Examples.Builtins where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Builtin
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Pretty
 
-import qualified PlutusCore.StdLib.Data.ScottList        as Plc
+import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
-import           Control.Exception
-import           Data.Either
-import           Data.Hashable                           (Hashable)
-import qualified Data.Kind                               as GHC (Type)
-import           Data.Proxy
-import           Data.Text.Prettyprint.Doc
-import           Data.Tuple
-import           Data.Void
-import           GHC.Generics
-import           GHC.Ix
+import Control.Exception
+import Data.Either
+import Data.Hashable (Hashable)
+import Data.Kind qualified as GHC (Type)
+import Data.Proxy
+import Data.Tuple
+import Data.Void
+import GHC.Generics
+import GHC.Ix
+import Prettyprinter
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -102,8 +102,12 @@ data ExtensionFun
     | ExpensiveSucc
     | FailingPlus
     | ExpensivePlus
+    | UnsafeCoerce
+    | UnsafeCoerceEl
+    | Undefined
     | Absurd
-    | Cons
+    | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
+                  -- Who knows what machinery a tick could break, hence the @Prime@ part.
     | Comma
     | BiconstPair  -- A safe version of 'Comma' as discussed in
                    -- Note [Representable built-in functions over polymorphic built-in types].
@@ -130,17 +134,18 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
-    toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
-type instance ToBinds (PlcListRep a) = ToBinds a
+    type ToHoles (PlcListRep a) = '[RepHole a]
+    type ToBinds (PlcListRep a) = ToBinds a
 
-instance KnownTypeAst uni Void where
+    toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
+
+instance KnownTypeAst DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
-instance KnownType term Void where
-    makeKnown = absurd
-    readKnown = throwingWithCause _UnliftingError "Can't unlift a 'Void'" . Just
-type instance ToBinds Void = '[]
+instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
+    makeKnown _ _ = absurd
+    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving (Show, Eq, Exception)
@@ -158,7 +163,7 @@ data BuiltinErrorCall = BuiltinErrorCall
 --    to be handled correctly by design
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
-    toBuiltinMeaning :: forall term. HasConstantIn uni term => ExtensionFun -> BuiltinMeaning term ()
+    toBuiltinMeaning :: forall val. HasConstantIn uni val => ExtensionFun -> BuiltinMeaning val ()
 
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
@@ -177,25 +182,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (TyAppRep (TyVarRep ('TyNameRep "f" 0)) Integer)
-                => a -> a)
+            (Prelude.id :: fi ~ Opaque val (TyAppRep f Integer) => fi -> fi)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
         makeBuiltinMeaning
-            (Prelude.id
-                :: a ~ Opaque term (PlcListRep (TyVarRep ('TyNameRep "a" 0)))
-                => a -> a)
+            (Prelude.id :: la ~ Opaque val (PlcListRep a) => la -> la)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: ( f ~ 'TyNameRep "f" 0
-                   , a ~ 'TyNameRep @GHC.Type "a" 1
-                   , afa ~ Opaque term (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
-                   )
+                :: afa ~ Opaque val (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 
@@ -223,73 +221,75 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
-    toBuiltinMeaning Absurd =
+    toBuiltinMeaning UnsafeCoerce =
         makeBuiltinMeaning
-            (absurd
-                :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-                => Void -> a)
+            (Opaque . unOpaque)
             (\_ _ -> ExBudget 1 0)
 
-    toBuiltinMeaning Cons = makeBuiltinMeaning consPlc mempty where
-        consPlc
-            :: SomeConstant uni a
-            -> SomeConstantOf uni [] '[a]
-            -> EvaluationResult (SomeConstantOf uni [] '[a])
-        consPlc
-            (SomeConstant (Some (ValueOf uniA x)))
-            (SomeConstantOfArg uniA' (SomeConstantOfRes uniListA xs)) =
-                -- Checking that the type of the constant is the same as the type of the elements
-                -- of the unlifted list. Note that there's no way we could enforce this statically
-                -- since in UPLC one can create an ill-typed program that attempts to prepend
-                -- a value of the wrong type to a list.
-                case uniA `geq` uniA' of
-                    -- Should this rather be an 'UnliftingError'? For that we need
-                    -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing   -> EvaluationFailure
-                    Just Refl ->
-                        EvaluationSuccess . SomeConstantOfArg uniA $
-                            SomeConstantOfRes uniListA $ x : xs
+    toBuiltinMeaning UnsafeCoerceEl =
+        makeBuiltinMeaning
+            unsafeCoerceElPlc
+            (\_ _ -> ExBudget 1 0)
+      where
+        unsafeCoerceElPlc
+            :: SomeConstant DefaultUni [a]
+            -> EvaluationResult (SomeConstant DefaultUni [b])
+        unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+            DefaultUniList _ <- pure uniList
+            pure . SomeConstant $ someValueOf uniList xs
+
+    toBuiltinMeaning Undefined =
+        makeBuiltinMeaning
+            undefined
+            (\_ -> ExBudget 1 0)
+
+    toBuiltinMeaning Absurd =
+        makeBuiltinMeaning
+            absurd
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning ErrorPrime =
+        makeBuiltinMeaning
+            EvaluationFailure
+            (\_ -> ExBudget 1 0)
 
     toBuiltinMeaning Comma = makeBuiltinMeaning commaPlc mempty where
-        commaPlc :: SomeConstant uni a -> SomeConstant uni b -> SomeConstantOf uni (,) '[a, b]
+        commaPlc
+            :: SomeConstant uni a
+            -> SomeConstant uni b
+            -> SomeConstant uni (a, b)
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
-            let uniPairAB = DefaultUniPair uniA uniB
-            in SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes uniPairAB (x, y)))
+            SomeConstant $ someValueOf (DefaultUniPair uniA uniB) (x, y)
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
-            -> SomeConstantOf uni (,) '[a, b]
-            -> EvaluationResult (SomeConstantOf uni (,) '[a, b])
+            -> SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (a, b))
         biconstPairPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniB y)))
-            (SomeConstantOfArg uniA' (SomeConstantOfArg uniB' (SomeConstantOfRes uniPairAB _))) =
-                case (,) <$> (uniA `geq` uniA') <*> (uniB `geq` uniB') of
-                    -- Should this rather be an 'UnliftingError'? For that we need
-                    -- https://github.com/input-output-hk/plutus/pull/3035
-                    Nothing           -> EvaluationFailure
-                    Just (Refl, Refl) ->
-                        EvaluationSuccess . SomeConstantOfArg uniA . SomeConstantOfArg uniB $
-                            SomeConstantOfRes uniPairAB (x, y)
+            (SomeConstant (Some (ValueOf uniPairAB _))) = do
+                DefaultUniPair uniA' uniB' <- pure uniPairAB
+                Just Refl <- pure $ uniA `geq` uniA'
+                Just Refl <- pure $ uniB `geq` uniB'
+                pure . SomeConstant $ someValueOf uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
-        swapPlc :: SomeConstantOf uni (,) '[a, b] -> SomeConstantOf uni (,) '[b, a]
-        swapPlc (SomeConstantOfArg uniA (SomeConstantOfArg uniB (SomeConstantOfRes _ (x, y)))) =
-            SomeConstantOfArg uniB . SomeConstantOfArg uniA $
-                SomeConstantOfRes (DefaultUniPair uniB uniA) (y, x)
+        swapPlc
+            :: SomeConstant uni (a, b)
+            -> EvaluationResult (SomeConstant uni (b, a))
+        swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
+            DefaultUniPair uniA uniB <- pure uniPairAB
+            pure . SomeConstant $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
-            :: a ~ Opaque term (TyVarRep ('TyNameRep "a" 0))
-            => SomeConstantOf uni [] '[SomeConstantOf uni (,) '[a, Bool]]
-            -> EvaluationResult (SomeConstantOf uni [] '[SomeConstantOf uni (,) '[Bool, a]])
-        swapElsPlc (SomeConstantOfArg uniEl (SomeConstantOfRes _ xs)) = case uniEl of
-            DefaultUniPair uniA DefaultUniBool ->
-                EvaluationSuccess $
-                    let uniElS = DefaultUniPair DefaultUniBool uniA
-                        listUniElS = DefaultUniList uniElS
-                    in SomeConstantOfArg uniElS . SomeConstantOfRes listUniElS $ map swap xs
-            _ -> EvaluationFailure
+            :: SomeConstant uni [SomeConstant uni (a, Bool)]
+            -> EvaluationResult (SomeConstant uni [SomeConstant uni (Bool, a)])
+        swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
+            DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
+            let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
+            pure . SomeConstant . someValueOf uniList' $ map swap xs

@@ -39,15 +39,15 @@ module PlutusCore.Interpreter.LMachine
     , runL
     ) where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.MachineException
-import           PlutusCore.View
-import           PlutusPrelude
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.MachineException
+import PlutusCore.View
+import PlutusPrelude
 
-import           Control.Monad.Identity
-import           Data.IntMap                            (IntMap)
-import qualified Data.IntMap                            as IntMap
+import Control.Monad.Identity
+import Data.IntMap (IntMap)
+import Data.IntMap qualified as IntMap
 
 type Plain f = f TyName Name ()
 

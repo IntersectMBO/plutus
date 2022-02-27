@@ -9,19 +9,19 @@ module Evaluation.ApplyBuiltinName
     ) where
 
 
-import           PlutusCore                              (defaultBuiltinCostModel)
-import           UntypedPlutusCore
+import PlutusCore (defaultBuiltinCostModel)
+import UntypedPlutusCore
 
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Generators
+import PlutusCore.Builtin
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Generators
 
-import           Control.Monad.Except
-import           Data.Proxy
-import           Hedgehog
-import           Test.Tasty
-import           Test.Tasty.Hedgehog
+import Control.Monad.Except
+import Data.Proxy
+import Hedgehog
+import Test.Tasty
+import Test.Tasty.Hedgehog
 
 -- | A simplified (because we don't need the full generality here) CPS-transformed
 -- (so that we can provide the 'KnownType' constraint to the caller) version of

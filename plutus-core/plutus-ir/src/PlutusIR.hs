@@ -17,6 +17,7 @@ module PlutusIR (
     bindingSubtypes,
     bindingIds,
     Program (..),
+    applyProgram,
     TyName (..),
     Name (..),
     VarDecl (..),
@@ -25,4 +26,4 @@ module PlutusIR (
     tyVarDeclNameString
     ) where
 
-import           PlutusIR.Core
+import PlutusIR.Core

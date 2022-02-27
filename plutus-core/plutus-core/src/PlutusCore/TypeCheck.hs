@@ -1,12 +1,11 @@
 -- | Kind/type inference/checking.
 
-{-# LANGUAGE ConstraintKinds  #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE TypeFamilies    #-}
 
 module PlutusCore.TypeCheck
-    ( Typecheckable
+    ( ToKind
+    , Typecheckable
     -- * Configuration.
     , BuiltinTypes (..)
     , TypeCheckConfig (..)
@@ -22,20 +21,20 @@ module PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Constant
-import           PlutusCore.Core
-import           PlutusCore.Error
-import           PlutusCore.Name
-import           PlutusCore.Normalize
-import           PlutusCore.Quote
-import           PlutusCore.Rename
-import           PlutusCore.TypeCheck.Internal
+import PlutusCore.Builtin
+import PlutusCore.Core
+import PlutusCore.Error
+import PlutusCore.Name
+import PlutusCore.Normalize
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.TypeCheck.Internal
 
-import           Control.Monad.Except
-import           Data.Array
-import           Universe
+import Control.Monad.Except
+import Data.Array
+import Universe
 
 type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
 

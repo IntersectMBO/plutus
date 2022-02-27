@@ -1,21 +1,45 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-
 module CostModelInterface.Spec (test_costModelInterface) where
 
-import           PlutusCore
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.CostModelInterface
-import           PlutusCore.Evaluation.Machine.ExBudget
-import           PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostModelInterface
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.MachineParameters
 
-import qualified Data.Map                                         as Map
-import qualified Data.Text                                        as Text
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Data.Aeson
+import Data.ByteString.Lazy qualified as BSL
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Text qualified as Text
+import Instances.TH.Lift ()
+import Language.Haskell.TH.Syntax qualified as TH
+import System.FilePath
+import TH.RelativePaths
+import Test.Tasty
+import Test.Tasty.HUnit
+
+{- Note [Testing the expected ledger cost model parameters]
+The ledger is going to call us with a particular 'CostModelParams'. This will be originally derived from the model
+that we provide, but there's opportunity for things to move out of sync:
+1. The ledger could make a mistake and pass us the wrong parameters (e.g. mis-spelled)
+2. We could change how the loading works so that what they pass us ceases to work properly.
+
+So it's sensible to have some regression tests.
+
+We can't just test against out own 'defaultCostModelParams', since in the case of error 2 that would
+*also* change, so we instead need to have a checked-in version of the parameters.
+-}
+
+-- | A checked-in of the default cost model params, frozen by calling 'CostModelInterface.extractCostModelParams'
+-- See Note [Testing the expected ledger cost model parameters]
+ledgerParamsBS :: BSL.ByteString
+ledgerParamsBS = $(TH.lift =<< qReadFileLBS ("plutus-core" </> "test" </> "CostModelInterface" </> "defaultCostModelParams.json"))
 
 type CekCostModel = CostModel CekMachineCosts BuiltinCostModel
 
@@ -67,6 +91,12 @@ testSelfUpdate model = do
   updated <- applyParams model params
   updated @?= model
 
+-- Update a model with its no parameters and check that we get the same model back
+testUpdateEmpty :: CekCostModel -> IO ()
+testUpdateEmpty model = do
+  updated <- applyParams model mempty
+  updated @?= model
+
 -- Update a model model1 with the parameters from model2 and check that we get model2
 testOverwrite :: CekCostModel -> CekCostModel -> IO ()
 testOverwrite model1 model2 = do
@@ -74,17 +104,14 @@ testOverwrite model1 model2 = do
   updated <- applyParams model1 params
   updated @?= model2
 
--- Update a model with its own params with an extra entry.  This is OK:
--- 'fromJSON' will successfully decode anything that contains sufficient
--- information to construct a result of the expected type, but extra stuff can
--- be present as well.
+-- Update a model with its own params with an extra entry.  This is NOT OK.
 testSelfUpdateWithExtraEntry :: CekCostModel -> IO ()
 testSelfUpdateWithExtraEntry model =
     do
       params <- extractParams model
       let params' = Map.insert "XYZ" 123 params
-      model' <- applyParams model params'
-      model' @?= model
+          mModel = applyCostModelParams model params'
+      assertBool "Superfluous costparam was not caught." $ isNothing mModel
 
 -- Update a model with its own params with an entry deleted: this should
 -- be OK because the original member of the model will still be there.
@@ -111,7 +138,7 @@ testOtherUpdateWithMissingEntry model1 model2 =
       assertBool "The updated model is the same as the other model" (model1' /= model2)
       assertBool "The updated model is the same as the original"    (model1' /= model1)
 
--- Update a model with the params from another and then chdck that
+-- Update a model with the params from another and then check that
 -- extraction returns the same params.
 testExtractAfterUpdate ::  CekCostModel -> CekCostModel -> IO ()
 testExtractAfterUpdate model1 model2 =
@@ -120,6 +147,31 @@ testExtractAfterUpdate model1 model2 =
       updated <- applyParams model1 params
       params' <- extractParams updated
       params' @?= params
+
+-- | Test that we can deserialise the default ledger params
+testDeserialise :: IO ()
+testDeserialise = assertBool "Failed to decode default ledger cost params" $
+    isJust $ decode @CostModelParams ledgerParamsBS
+
+-- | Test that we can apply the ledger params to our cost model
+testApply :: IO ()
+testApply = assertBool "Failed to load the ledger cost params into the our cost model" $
+    isJust $ do
+        decodedParams <- decode @CostModelParams ledgerParamsBS
+        applyCostModelParams defaultCekCostModel decodedParams
+
+-- | Test to catch a mispelled/missing param.
+-- A parameter with that name exists in the ledger params but is missing from the cost model, and that is an error.
+testMispelled :: IO ()
+testMispelled = do
+    let params = fromJust $ decode @CostModelParams ledgerParamsBS
+        (cekVarCostValueM, paramsReducted) = deleteLookup cekVarCostCpuKey params
+        paramsMispelled = Map.insert cekVarCostCpuKeyMispelled (fromJust cekVarCostValueM) paramsReducted
+    assertBool "Failed to catch mispelled cost param" $
+        isNothing $ applyCostModelParams defaultCekCostModel paramsMispelled
+  where
+      cekVarCostCpuKeyMispelled = "cekVarCost--exBudgetCPU"
+      deleteLookup = Map.updateLookupWithKey (const $ const Nothing)
 
 test_costModelInterface :: TestTree
 test_costModelInterface =
@@ -132,11 +184,15 @@ test_costModelInterface =
              [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
              , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
              ]
+       , testGroup "update-empty is identity"
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testUpdateEmpty defaultCekCostModel
+             , testCase "randomCekCostModel  <- randomCekCostModel"  $ testUpdateEmpty randomCekCostModel
+             ]
        , testGroup "overwriting works"
              [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel
              , testCase "randomCekCostModel  <- defaultCekCostModel" $ testOverwrite randomCekCostModel  defaultCekCostModel
              ]
-       , testGroup "superfluous entry in params is OK in self-update"
+       , testGroup "superfluous entry in params is NOT OK in self-update"
              [ testCase "defaultCekCostModel" $ testSelfUpdateWithExtraEntry defaultCekCostModel
              , testCase "randomCekCostModel"  $ testSelfUpdateWithExtraEntry randomCekCostModel
              ]
@@ -154,4 +210,10 @@ test_costModelInterface =
              , testCase "randomCekCostModel  <- defaultCekCostModel" $ testExtractAfterUpdate randomCekCostModel  defaultCekCostModel
              , testCase "defaultCekCostModel <- randomCekCostModel"  $ testExtractAfterUpdate defaultCekCostModel randomCekCostModel
              ]
+       , testGroup "default ledger params"
+             [ testCase "default ledger params deserialize" testDeserialise
+             , testCase "default ledger params can be applied to default cost model" testApply
+             , testCase "mispelled param in ledger params " testMispelled
+             ]
      ]
+

@@ -372,7 +372,7 @@ inferType Γ (Λ K L) = do
 inferType Γ (L ·⋆ A) = do
   K ,, B ,, L ← isPi (inferType Γ L)
   A ← checkKind _ A K
-  return (B [ A ]Nf ,, L ·⋆ A)
+  return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
   A ← isStar (inferKind _ A)
   B ,, L ← inferType (Γ , A) L 
@@ -387,7 +387,7 @@ inferType {Φ} Γ (con c) = do
 inferType Γ (error A) = do
   A ← isStar (inferKind _ A)
   return (A ,, error A)
-inferType Γ (ibuiltin b) = inj₂ (itype b ,, ibuiltin b)
+inferType Γ (builtin b) = inj₂ (btype b ,, builtin b / refl)
 inferType Γ (wrap A B L) = do
   K ,, A ← isPat (inferKind _ A)
   B ← checkKind _ B K
@@ -395,5 +395,5 @@ inferType Γ (wrap A B L) = do
   return (μ A B ,, wrap A B L)
 inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu (inferType Γ L)
-  return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L)
+  return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```

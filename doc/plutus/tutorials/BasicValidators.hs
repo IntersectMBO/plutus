@@ -7,24 +7,24 @@
 {-# LANGUAGE ViewPatterns        #-}
 module BasicValidators where
 
-import qualified PlutusCore.Default   as PLC
-import           PlutusTx
-import           PlutusTx.Lift
-import           PlutusTx.Prelude
+import PlutusCore.Default qualified as PLC
+import PlutusTx
+import PlutusTx.Lift
+import PlutusTx.Prelude
 
-import           Ledger               hiding (validatorHash)
-import           Ledger.Ada
-import           Ledger.Typed.Scripts
-import           Ledger.Value
+import Plutus.V1.Ledger.Contexts
+import Plutus.V1.Ledger.Crypto
+import Plutus.V1.Ledger.Scripts
+import Plutus.V1.Ledger.Value
 
-import           Cardano.Api          (HasTextEnvelope, TextEnvelope, TextEnvelopeDescr, serialiseToTextEnvelope)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as BSL
 
-import qualified Data.ByteString.Lazy as BSL
+import Codec.Serialise
+import Flat qualified
 
-import           Codec.Serialise
-
-import           Prelude              (IO, print, show)
-import qualified Prelude              as Haskell
+import Prelude (IO, print, show)
+import Prelude qualified as Haskell
 
 myKeyHash :: PubKeyHash
 myKeyHash = Haskell.undefined
@@ -41,7 +41,6 @@ data EndDate = Fixed Integer | Never
 -- which ensures that the output is stable across time.
 unstableMakeIsData ''Date
 unstableMakeIsData ''EndDate
-
 -- BLOCK2
 alwaysSucceeds :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 alwaysSucceeds _ _ _ = ()
@@ -63,76 +62,39 @@ beforeEnd (Date _) Never     = True
 validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 -- The 'check' function takes a 'Bool' and fails if it is false.
 -- This is handy since it's more natural to talk about booleans.
-validateDate datum redeemer _ = check $ case (fromBuiltinData datum, fromBuiltinData redeemer) of
-    -- We can decode both the arguments at the same time: 'Just' means that
-    -- decoding succeeded.
-    (Just endDate, Just date) -> beforeEnd date endDate
-    -- One or the other failed to decode.
-    _                         -> False
+validateDate datum redeemer _ = check $ beforeEnd (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
+
+-- The 'Validator' type is jsut a wrapper around a bare 'Script' that has the correct type.
+dateValidator :: Validator
+dateValidator = mkValidatorScript $$(compile [|| validateDate ||])
 -- BLOCK4
 validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
-validatePayment _ _ ctx = check $ case fromBuiltinData ctx of
-    Just valCtx ->
-        -- The 'TxInfo' in the validation context is the representation of the
-        -- transaction being validated
-        let txinfo = scriptContextTxInfo valCtx
-        -- 'pubKeyOutputsAt' collects the 'Value' at all outputs which pay to
-        -- the given public key hash
-            values = pubKeyOutputsAt myKeyHash txinfo
-        -- 'fold' sums up all the values, we assert that there must be more
-        -- than 1 Ada (more stuff is fine!)
-        in fold values `geq` adaValueOf 1
-    _ -> False
--- BLOCK5
-data DateValidator
-instance ValidatorTypes DateValidator where
-    type instance RedeemerType DateValidator = Date
-    type instance DatumType DateValidator = EndDate
--- BLOCK6
-validateDateTyped :: EndDate -> Date -> ScriptContext -> Bool
-validateDateTyped endDate date _ = beforeEnd date endDate
-
-validateDateWrapped :: BuiltinData -> BuiltinData -> BuiltinData -> ()
-validateDateWrapped = wrapValidator validateDateTyped
--- BLOCK7
-dateInstance :: TypedValidator DateValidator
-dateInstance = mkTypedValidator @DateValidator
-    -- The first argument is the compiled validator.
-    $$(compile [|| validateDateTyped ||])
-    -- The second argument is a compiled wrapper.
-    -- Unfortunately we can't just inline wrapValidator here for technical reasons.
-    $$(compile [|| wrap ||])
-    where
-        wrap = wrapValidator
-
-dateValidatorHash :: ValidatorHash
-dateValidatorHash = validatorHash dateInstance
-
-dateValidator :: Validator
-dateValidator = validatorScript dateInstance
--- BLOCK8
+validatePayment _ _ ctx =
+    let valCtx = unsafeFromBuiltinData ctx
+    -- The 'TxInfo' in the validation context is the representation of the
+    -- transaction being validated
+        txinfo = scriptContextTxInfo valCtx
+    -- 'pubKeyOutputsAt' collects the 'Value' at all outputs which pay to
+    -- the given public key hash
+        values = pubKeyOutputsAt myKeyHash txinfo
+    -- 'fold' sums up all the values, we assert that there must be more
+    -- than 1 Ada (more stuff is fine!)
+    in check $ valueOf (fold values) adaSymbol adaToken >= 1
+--- BLOCK5
+-- We can serialize a 'Validator' directly to CBOR
 serializedDateValidator :: BSL.ByteString
 serializedDateValidator = serialise dateValidator
 
--- The module 'Ledger.Scripts' includes instances related to typeclass
--- 'Cardano.Api.HasTextEnvelope'
+-- The serialized forms can be written or read using normal Haskell IO functionality.
+showSerialised :: IO ()
+showSerialised = print serializedDateValidator
+-- BLOCK6
+-- We can serialize 'CompiledCode' also
+serializedCompiledCode :: BS.ByteString
+serializedCompiledCode = Flat.flat $ alwaysSucceedsCompiled
 
--- Envelope of the PLC 'Script'.
-envelopeDateValidator :: TextEnvelope
-envelopeDateValidator = serialiseToTextEnvelope Nothing (getValidator dateValidator)
-
--- Envelope of the 'Datum' representing the 'Date' datatype.
-envelopeDate :: Date -> TextEnvelope
-envelopeDate d = serialiseToTextEnvelope Nothing (Datum $ toBuiltinData d)
-
--- Envelope of the 'Redeemer' representing the 'EndDate' datatype.
-envelopeEndDate :: EndDate -> TextEnvelope
-envelopeEndDate d = serialiseToTextEnvelope Nothing (Redeemer $ toBuiltinData d)
-
-main :: IO ()
-main = do
-  print serializedDateValidator
-  print envelopeDateValidator
-  print $ envelopeDate (Date 0)
-  print $ envelopeEndDate Never
--- BLOCK9
+-- The 'loadFromFile' function is a drop-in replacement for 'compile', but
+-- takes the file path instead of the code to compile.
+validatorCodeFromFile :: CompiledCode (() -> () -> ScriptContext -> Bool)
+validatorCodeFromFile = $$(loadFromFile "plutus/howtos/myscript.uplc")
+-- BLOCK7

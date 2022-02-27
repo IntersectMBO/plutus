@@ -2,6 +2,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
         (tyvardecl a (type)) (tyvardecl b (type))
@@ -63,9 +66,6 @@
       )
       (builtin unConstrData)
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (termbind
       (strict)
       (vardecl
@@ -99,16 +99,15 @@
               (vardecl x [ [ Tuple2 a ] b ])
               [
                 { error [ [ Tuple2 a ] b ] }
-                [
-                  {
-                    [
-                      Unit_match
-                      [ [ { trace Unit } reconstructCaseError ] Unit ]
-                    ]
-                    (con unit)
-                  }
+                (let
+                  (nonrec)
+                  (termbind
+                    (strict)
+                    (vardecl wild Unit)
+                    [ [ { trace Unit } reconstructCaseError ] Unit ]
+                  )
                   unitval
-                ]
+                )
               ]
             )
             (lam
@@ -272,15 +271,15 @@
             (vardecl x [ Maybe a ])
             [
               { error [ Maybe a ] }
-              [
-                {
-                  [
-                    Unit_match [ [ { trace Unit } reconstructCaseError ] Unit ]
-                  ]
-                  (con unit)
-                }
+              (let
+                (nonrec)
+                (termbind
+                  (strict)
+                  (vardecl wild Unit)
+                  [ [ { trace Unit } reconstructCaseError ] Unit ]
+                )
                 unitval
-              ]
+              )
             ]
           )
           (lam

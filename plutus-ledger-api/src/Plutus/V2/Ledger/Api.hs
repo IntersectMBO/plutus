@@ -1,6 +1,4 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE TypeApplications   #-}
 {- |
 The interface to Plutus V2 for the ledger.
 -}
@@ -17,10 +15,6 @@ module Plutus.V2.Ledger.Api (
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
-    -- * Serialising scripts
-    , plutusScriptEnvelopeType
-    , plutusDatumEnvelopeType
-    , plutusRedeemerEnvelopeType
     -- * Costing-related types
     , ExBudget (..)
     , ExCPU (..)
@@ -65,6 +59,7 @@ module Plutus.V2.Ledger.Api (
     , TxOut(..)
     , TxOutRef(..)
     , TxInInfo(..)
+    , OutputDatum (..)
     -- *** Intervals
     , Interval (..)
     , Extended (..)
@@ -78,6 +73,9 @@ module Plutus.V2.Ledger.Api (
     , upperBound
     , strictLowerBound
     , strictUpperBound
+    -- *** Association maps
+    , Map
+    , fromList
     -- *** Newtypes for script/datum types and hash types
     , Validator (..)
     , mkValidatorScript
@@ -95,6 +93,7 @@ module Plutus.V2.Ledger.Api (
     , RedeemerHash (..)
     , Datum (..)
     , DatumHash (..)
+    , ScriptHash (..)
     -- * Data
     , Data (..)
     , BuiltinData (..)
@@ -109,10 +108,8 @@ module Plutus.V2.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import           Data.Text                 (Text)
-
-import           Plutus.V1.Ledger.Api      hiding (ScriptContext (..), TxInfo (..), plutusScriptEnvelopeType)
-import           Plutus.V2.Ledger.Contexts
-
-plutusScriptEnvelopeType :: Text
-plutusScriptEnvelopeType = "PlutusV2Script"
+import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..))
+import Plutus.V1.Ledger.Scripts (ScriptHash (..))
+import Plutus.V2.Ledger.Contexts
+import Plutus.V2.Ledger.Tx (OutputDatum (..))
+import PlutusTx.AssocMap (Map, fromList)

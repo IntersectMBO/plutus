@@ -10,22 +10,22 @@ module Expr
     ( test_expr
     ) where
 
-import           Text.Pretty
-import           Text.PrettyBy
-import           Text.PrettyBy.Fixity
+import Text.Pretty
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 
-import           Control.Monad.Combinators.Expr
-import           Data.Bifunctor
-import           Data.Char
-import           Data.Functor.Identity
-import           Data.String
-import           Data.Text                      (Text)
-import           Data.Void
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer     as Lexer
+import Control.Monad.Combinators.Expr
+import Data.Bifunctor
+import Data.Char
+import Data.Functor.Identity
+import Data.String
+import Data.Text (Text)
+import Data.Void
+import Test.Tasty
+import Test.Tasty.HUnit
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer qualified as Lexer
 
 data Expr
     = Var Text                   -- ^ A variable.

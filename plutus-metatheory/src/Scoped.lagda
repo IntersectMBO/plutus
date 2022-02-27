@@ -25,72 +25,6 @@ open import Utils
 \end{code}
 
 \begin{code}
-arity : Builtin → ℕ
-arity addInteger = 2
-arity subtractInteger = 2
-arity multiplyInteger = 2
-arity divideInteger = 2
-arity quotientInteger = 2
-arity remainderInteger = 2
-arity modInteger = 2
-arity lessThanInteger = 2
-arity lessThanEqualsInteger = 2
-arity equalsInteger = 2
-arity appendByteString = 2
-arity lessThanByteString = 2
-arity lessThanEqualsByteString = 2
-arity sha2-256 = 1
-arity sha3-256 = 1
-arity verifySignature = 3
-arity equalsByteString = 2
-arity ifThenElse = 3
-arity appendString = 2
-arity trace = 2
-arity equalsString = 2
-arity encodeUtf8 = 1
-arity decodeUtf8 = 1
-arity fstPair = 1
-arity sndPair = 1
-arity nullList = 1
-arity headList = 1
-arity tailList = 1
-arity chooseList = 3
-arity constrData = 2
-arity mapData = 1
-arity listData = 1
-arity iData = 1
-arity bData = 1
-arity unConstrData = 1
-arity unMapData = 1
-arity unListData = 1
-arity unIData = 1
-arity unBData = 1
-arity equalsData = 2
-arity chooseData = 6
-arity chooseUnit = 2
-arity mkPairData = 2
-arity mkNilData = 1
-arity mkNilPairData = 1
-arity mkCons = 2
-arity consByteString = 2
-arity sliceByteString = 3
-arity lengthOfByteString = 1
-arity indexByteString = 2
-arity blake2b-256 = 1
-
-
-arity⋆ : Builtin → ℕ
-arity⋆ ifThenElse = 1
-arity⋆ fstPair = 2
-arity⋆ sndPair = 2
-arity⋆ nullList = 1
-arity⋆ headList = 1
-arity⋆ tailList = 1
-arity⋆ chooseList = 2
-arity⋆ chooseData = 1
-arity⋆ chooseUnit = 1
-arity⋆ trace = 1
-arity⋆ _ = 0
 open import Type
 
 data ScopedTy (n : ℕ) : Set
@@ -253,7 +187,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
   con  :    TermCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
-  ibuiltin : (b : Builtin) → ScopedTm w
+  builtin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
   unwrap :  ScopedTm w → ScopedTm w
 
@@ -341,7 +275,7 @@ scopeCheckTm (t · u) = do
   u ← scopeCheckTm u
   return (t · u)
 scopeCheckTm (con c) = return (con c)
-scopeCheckTm (builtin b) = return (ibuiltin b)
+scopeCheckTm (builtin b) = return (builtin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
   A ← scopeCheckTy A
@@ -390,7 +324,7 @@ extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
 extricateScope (con c) = con c
 extricateScope (error A) = error (extricateScopeTy A)
-extricateScope (ibuiltin bn) = builtin bn
+extricateScope (builtin bn) = builtin bn
 extricateScope (wrap pat arg t) =
   wrap (extricateScopeTy pat) (extricateScopeTy arg) (extricateScope t)
 extricateScope (unwrap t) = unwrap (extricateScope t)
@@ -427,7 +361,7 @@ ugly (Λ _ t) = "(Λ " ++ ugly t ++ ")"
 ugly (t ·⋆ A) = "( " ++ ugly t ++ " ·⋆ " ++ "TYPE" ++ ")"
 
 ugly (con c) = "(con " -- ++ uglyTermCon c ++ ")"
-ugly (ibuiltin b) = "builtin " ++ uglyBuiltin b
+ugly (builtin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
   " " ++

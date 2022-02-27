@@ -19,28 +19,28 @@ module PlutusIR.TypeCheck.Internal
     ) where
 
 
-import           Control.Monad.Error.Lens
-import           Control.Monad.Except
-import           Control.Monad.Reader
-import           Data.Foldable
-import           Data.Ix
-import           PlutusCore                    (ToKind (..), typeAnn)
-import           PlutusCore.Error              as PLC
-import           PlutusCore.Quote
-import           PlutusCore.Rename             as PLC
-import           PlutusIR
-import           PlutusIR.Compiler.Datatype
-import           PlutusIR.Compiler.Provenance
-import           PlutusIR.Compiler.Types
-import           PlutusIR.Error
-import           PlutusIR.Transform.Rename     ()
-import           PlutusPrelude
+import Control.Monad.Error.Lens
+import Control.Monad.Except
+import Control.Monad.Reader
+import Data.Foldable
+import Data.Ix
+import PlutusCore (ToKind, typeAnn)
+import PlutusCore.Error as PLC
+import PlutusCore.Quote
+import PlutusCore.Rename as PLC
+import PlutusIR
+import PlutusIR.Compiler.Datatype
+import PlutusIR.Compiler.Provenance
+import PlutusIR.Compiler.Types
+import PlutusIR.Error
+import PlutusIR.Transform.Rename ()
+import PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import           PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
-import qualified PlutusIR.MkPir                as PIR
+import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
+import PlutusIR.MkPir qualified as PIR
 
-import           Universe
+import Universe
 
 {- Note [PLC Typechecker code reuse]
 For PIR kind-checking, we reuse `checkKindM`, `inferKindM` directly from the PLC typechecker.
@@ -312,8 +312,8 @@ checkTypeFromBinding recurs = \case
        checkConRes :: Type TyName uni a -> PirTCEnv uni fun e ()
        checkConRes ty =
            -- We earlier checked that datacons' type is *-kinded (using checkKindBinding), but this is not enough:
-           -- we must also check that its result type is EXACTLY `[[TypeCon tyarg1] ... tyargn]`
-           when (funResultType ty /= appliedTyCon) .
+           -- we must also check that its result type is EXACTLY `[[TypeCon tyarg1] ... tyargn]` (ignoring annotations)
+           when (void (funResultType ty) /= void appliedTyCon) .
                throwing _TypeErrorExt $ MalformedDataConstrResType ann appliedTyCon
 
        -- if nonrec binding, make sure that type-constructor is not part of the data-constructor's argument types.

@@ -1,3 +1,0 @@
-=== `nix`
-
-This contains miscellaneous Nix code.

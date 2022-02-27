@@ -3,67 +3,35 @@ evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to
 run to completion. -}
 
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
-import           Control.Exception
-import           Control.Monad.Except
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck
+import Test.Tasty
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
+import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
-import qualified Plutus.Benchmark.Clausify                as Clausify
-import qualified Plutus.Benchmark.Knights                 as Knights
-import           Plutus.Benchmark.Prime                   (Result (Composite, Prime))
-import qualified Plutus.Benchmark.Prime                   as Prime
-import qualified Plutus.Benchmark.Queens                  as Queens
+import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
 
-import qualified PlutusCore                               as PLC
-import           PlutusCore.Default
-import qualified PlutusTx                                 as Tx
-import qualified UntypedPlutusCore                        as UPLC
-import           UntypedPlutusCore.Evaluation.Machine.Cek as UPLC (EvaluationResult (..), unsafeEvaluateCekNoEmit)
+import PlutusBenchmark.NoFib.Clausify qualified as Clausify
+import PlutusBenchmark.NoFib.Knights qualified as Knights
+import PlutusBenchmark.NoFib.Prime (Result (Composite, Prime))
+import PlutusBenchmark.NoFib.Prime qualified as Prime
+import PlutusBenchmark.NoFib.Queens qualified as Queens
 
----------------- Evaluation ----------------
+import PlutusCore.Default
+import PlutusTx qualified as Tx
+import PlutusTx.Test qualified as Tx
 
-type Term = UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type Term' = UPLC.Term PLC.Name DefaultUni DefaultFun ()
-
-runCek :: Term -> EvaluationResult Term'
-runCek t = case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm t of
-    Left e   -> throw e
-    Right t' -> UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters t'
-
-termOfHaskellValue :: Tx.Lift DefaultUni a => a -> Term
-termOfHaskellValue v =
-    case Tx.getPlc $ Tx.liftCode v of
-      UPLC.Program _ _ term -> term
-
-runCekWithErrMsg :: Term -> String -> IO Term'
-runCekWithErrMsg term errMsg =
-    case runExcept @UPLC.FreeVariableError $ PLC.runQuoteT $ UPLC.unDeBruijnTerm term of
-        Left e -> assertFailure (show e)
-        Right t -> case UPLC.unsafeEvaluateCekNoEmit PLC.defaultCekParameters t of
-          EvaluationFailure        -> assertFailure errMsg
-          EvaluationSuccess result -> pure result
+runTestNested :: TestNested -> TestTree
+runTestNested = runTestNestedIn ["nofib", "test"]
 
 
-{- | Evaluate a PLC term using the CEK machine and compare it with an expected
-   Haskell value.  The Haskell value is lifted to a PLC term which we also
-   evaluate, since lifting may produce reducible terms.  We use this for
-   comparing the result of a compiled Plutus program with the value produced by
-   evaluating the program as a Haskell term: this will certainly be safe for
-   simple types, but it is not guaranteed that evaluation commutes with Plutus
-   compilation in general. -}
+-- Unit tests comparing PLC and Haskell computations on given inputs
+
 runAndCheck :: Tx.Lift DefaultUni a => Term -> a -> IO ()
-runAndCheck term  haskellValue = do
-  result   <- runCekWithErrMsg term "CEK evaluation failed for PLC program"
-  expected <- runCekWithErrMsg (termOfHaskellValue haskellValue) "CEK evaluation failed for lifted Haskell value"
-  result @?= expected
-
+runAndCheck term value = cekResultMatchesHaskellValue term (@?=) value
 
 ---------------- Clausify ----------------
 
@@ -78,8 +46,9 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4700
+               , runTestNested $ Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
-
 
 ---------------- Knights ----------------
 
@@ -95,8 +64,9 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3299
+              , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
-
 
 ---------------- Queens ----------------
 
@@ -112,6 +82,7 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
+               , runTestNested    $ Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -119,9 +90,10 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
+               , runTestNested    $ Tx.goldenBudget "queens5budget" $ Queens.mkQueensCode 5 Queens.Bt
                ]
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2707
              ]
-
 
 ---------------- Primes ----------------
 
@@ -152,14 +124,14 @@ testPrimalityPlc :: TestTree
 testPrimalityPlc = mkPrimalityTest "primality test (Plutus Core)"
                    (\n r -> runAndCheck (Prime.mkPrimalityTestTerm n) r)
 
--- QuickCheck tests on random six-digit numbers to make sure that the PLC and
--- Haskell versions give the same result.
+-- QuickCheck property tests on random six-digit numbers to make sure that the
+-- PLC and Haskell versions give the same result.
 sixDigits :: Gen Integer
 sixDigits = choose (100000, 999999)
 
 prop_primalityTest :: Integer -> Property
 prop_primalityTest n =
-    n >= 2 ==> (runCek $ Prime.mkPrimalityTestTerm n) === (runCek $ termOfHaskellValue (Prime.runPrimalityTest n))
+    n >= 2 ==> cekResultMatchesHaskellValue (Prime.mkPrimalityTestTerm n) (===) (Prime.runPrimalityTest n)
 
 testPrimalityQC :: TestTree
 testPrimalityQC = testProperty "primality test (QuickCheck)" (forAll sixDigits prop_primalityTest)

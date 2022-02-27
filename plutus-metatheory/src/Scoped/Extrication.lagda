@@ -86,9 +86,6 @@ extricateC (bool b)       = bool b
 extricateC unit           = unit
 extricateC (Data d)       = Data d
 
-open import Data.Product as P
-open import Function hiding (_∋_)
-
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
 extricateSub {Δ = ∅}     σ = []
@@ -97,127 +94,16 @@ extricateSub {Γ}{Δ ,⋆ K} σ =
            (+-comm (len⋆ Δ) 1)
            (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ])
 
-open import Data.List
-
-lemma⋆ : ∀ b → len⋆ (proj₁ (ISIG b)) ≡ arity⋆ b
-lemma⋆ addInteger = refl
-lemma⋆ subtractInteger = refl
-lemma⋆ multiplyInteger = refl
-lemma⋆ divideInteger = refl
-lemma⋆ quotientInteger = refl
-lemma⋆ remainderInteger = refl
-lemma⋆ modInteger = refl
-lemma⋆ lessThanInteger = refl
-lemma⋆ lessThanEqualsInteger = refl
-lemma⋆ equalsInteger = refl
-lemma⋆ appendByteString = refl
-lemma⋆ lessThanByteString = refl
-lemma⋆ lessThanEqualsByteString = refl
-lemma⋆ sha2-256 = refl
-lemma⋆ sha3-256 = refl
-lemma⋆ verifySignature = refl
-lemma⋆ equalsByteString = refl
-lemma⋆ ifThenElse = refl
-lemma⋆ appendString = refl
-lemma⋆ trace = refl
-lemma⋆ equalsString = refl
-lemma⋆ encodeUtf8 = refl
-lemma⋆ decodeUtf8 = refl
-lemma⋆ fstPair = refl
-lemma⋆ sndPair = refl
-lemma⋆ nullList = refl
-lemma⋆ headList = refl
-lemma⋆ tailList = refl
-lemma⋆ chooseList = refl
-lemma⋆ constrData = refl
-lemma⋆ mapData = refl
-lemma⋆ listData = refl
-lemma⋆ iData = refl
-lemma⋆ bData = refl
-lemma⋆ unConstrData = refl
-lemma⋆ unMapData = refl
-lemma⋆ unListData = refl
-lemma⋆ unIData = refl
-lemma⋆ unBData = refl
-lemma⋆ equalsData = refl
-lemma⋆ chooseData = refl
-lemma⋆ chooseUnit = refl
-lemma⋆ mkPairData = refl
-lemma⋆ mkNilData = refl
-lemma⋆ mkNilPairData = refl
-lemma⋆ mkCons = refl
-lemma⋆ consByteString = refl
-lemma⋆ sliceByteString = refl
-lemma⋆ lengthOfByteString = refl
-lemma⋆ indexByteString = refl
-lemma⋆ blake2b-256 = refl
-
-lemma : ∀ b → wtoℕTm (len (proj₁ (proj₂ (ISIG b)))) ≡ Scoped.arity b
-lemma addInteger = refl
-lemma subtractInteger = refl
-lemma multiplyInteger = refl
-lemma divideInteger = refl
-lemma quotientInteger = refl
-lemma remainderInteger = refl
-lemma modInteger = refl
-lemma lessThanInteger = refl
-lemma lessThanEqualsInteger = refl
-lemma equalsInteger = refl
-lemma appendByteString = refl
-lemma lessThanByteString = refl
-lemma lessThanEqualsByteString = refl
-lemma sha2-256 = refl
-lemma sha3-256 = refl
-lemma verifySignature = refl
-lemma equalsByteString = refl
-lemma ifThenElse = refl
-lemma appendString = refl
-lemma trace = refl
-lemma equalsString = refl
-lemma encodeUtf8 = refl
-lemma decodeUtf8 = refl
-lemma fstPair = refl
-lemma sndPair = refl
-lemma nullList = refl
-lemma headList = refl
-lemma tailList = refl
-lemma chooseList = refl
-lemma constrData = refl
-lemma mapData = refl
-lemma listData = refl
-lemma iData = refl
-lemma bData = refl
-lemma unConstrData = refl
-lemma unMapData = refl
-lemma unListData = refl
-lemma unIData = refl
-lemma unBData = refl
-lemma equalsData = refl
-lemma chooseData = refl
-lemma chooseUnit = refl
-lemma mkPairData = refl
-lemma mkNilData = refl
-lemma mkNilPairData = refl
-lemma mkCons = refl
-lemma consByteString = refl
-lemma sliceByteString = refl
-lemma lengthOfByteString = refl
-lemma indexByteString = refl
-lemma blake2b-256 = refl
-
-≡2≤‴ : ∀{m n} → m ≡ n → m ≤‴ n
-≡2≤‴ refl = ≤‴-refl
-
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
 extricate (` x) = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u) = extricate t · extricate u
 extricate (Λ {K = K} t) = Λ K (extricate t)
-extricate {Φ}{Γ} (_·⋆_ t A) = extricate t ScopedTm.·⋆ extricateNf⋆ A
+extricate {Φ}{Γ} (t ·⋆ A / refl) = extricate t ScopedTm.·⋆ extricateNf⋆ A
 extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
   (extricate t)
-extricate (unwrap t) = unwrap (extricate t)
+extricate (unwrap t refl) = unwrap (extricate t)
 extricate (con c) = con (extricateC c)
-extricate (ibuiltin b) = ibuiltin b
+extricate (builtin b / refl) = builtin b
 extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
 \end{code}

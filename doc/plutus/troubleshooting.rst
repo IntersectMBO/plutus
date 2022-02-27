@@ -4,8 +4,27 @@ Troubleshooting
 Plugin errors
 -------------
 
-Errors that start with ``GHC Core to PLC plugin`` are ``plutus-tx-plugin`` errors.
-The most common error is:
+Errors that start with ``GHC Core to PLC plugin`` are errors from ``plutus-tx-plugin``.
+
+.. note::
+   Often these errors arise due to GHC doing something to the code before the plugin gets to see it.
+   So the solution is often to prevent GHC from doing this, which is why we often recommend trying various GHC compiler flags.
+
+Haddock
+~~~~~~~
+
+The plugin will typically fail when producing Haddock documentation.
+However, in this instance you can simply tell it to defer any errors to runtime (which will never happen since you're building documentation).
+
+A easy way to do this is to add the following lines for your ``package-name`` to ``cabal.project``::
+
+  package package-name
+    haddock-options: "--optghc=-fplugin-opt PlutusTx.Plugin:defer-errors"
+
+Non-``INLINABLE`` functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common error is:
 
 ``Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function``
 
@@ -15,8 +34,8 @@ Some things you can do to fix it:
 - Make sure to add ``{-# INLINABLE functionname #-}`` to your function.
 - If there's an extra ``$c`` in front of the function name in the error, GHC has generated a specialised version of your function,
   which prevents the plugin from accessing it.
-  You can turn it off with ``{-# OPTIONS_GHC -fno-specialise #-}``
-- Other compiler options that could fix the issue are
+  You can turn off specialisation with ``{-# OPTIONS_GHC -fno-specialise #-}``
+- Other compiler options that can help:
 
   - ``{-# OPTIONS_GHC -fno-strictness #-}``
   - ``{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}``
@@ -25,27 +44,25 @@ Some things you can do to fix it:
 
   Some more details are in `the plutus-tx readme <https://github.com/input-output-hk/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
 
-If you don't need the plugin to succeed, f.e. when Haddock is building documentation,
-you can pass the flag ``-fdefer-plugin-errors``.
-
-.. note::
-  The recommended way to build documentation is with ``nix-build default.nix -A docs.site``
-
-
-Haskell language server issues
+Haskell Language Server issues
 ------------------------------
+
+For more advice on using Haskell Language Server (HLS), consult the `CONTRIBUTING guide <https://github.com/input-output-hk/plutus/blob/master/CONTRIBUTING.adoc>`_ in the ``plutus`` repository.
+
+Wrong version
+~~~~~~~~~~~~~
 
 ``ghcide compiled against GHC 8.10.3 but currently using 8.10.2.20201118``
 
-Your editor is not picking up the right version of the haskell language server (HLS).
-Plutus needs a custom version of HLS which is provided by Nix. So get this working in your editor, make sure to do these two things:
+Your editor is not picking up the right version of the Haskell Language Server (HLS).
+Plutus needs a custom version of HLS which is provided by Nix.
+So get this working in your editor, make sure to do these two things:
 
-- Start your editor from ``nix-shell``.
-- Most editors are configured to use ``haskell-language-server-wrapper``, which is a wrapper which picks the right HSL version.
+- Start your editor from ``nix-shell`` (or use ``direnv``)
+- Most editors are configured to use ``haskell-language-server-wrapper``, which is a wrapper which picks the right HLS version.
   Change this to just ``haskell-language-server``.
 
 If this doesn't work, run ``which haskell-language-server`` in `nix-shell`, and use this absolute path in the configuration of your editor.
-
 
 Error codes
 -----------
@@ -80,23 +97,24 @@ To reduce code size, on-chain errors only output codes. Here's what they mean:
 
 - Prelude errors
 
-  - ``P0: PlutusTx.Enum.().succ: bad argument``
-  - ``P1: PlutusTx.Enum.().pred: bad argument``
-  - ``P2: PlutusTx.Enum.().toEnum: bad argument``
-  - ``P3: PlutusTx.Enum.Bool.succ: bad argument``
-  - ``P4: PlutusTx.Enum.Bool.pred: bad argument``
-  - ``P5: PlutusTx.Enum.Bool.toEnum: bad argument``
-  - ``P6: PlutusTx.Enum.Ordering.succ: bad argument``
-  - ``P7: PlutusTx.Enum.Ordering.pred: bad argument``
-  - ``P8: PlutusTx.Enum.Ordering.toEnum: bad argument``
-  - ``P9: PlutusTx.List.!!: negative index``
-  - ``Pa: PlutusTx.List.!!: index too large``
-  - ``Pb: PlutusTx.List.head: empty list``
-  - ``Pc: PlutusTx.List.tail: empty list``
-  - ``Pd: Check has failed``
-  - ``Pe: Ratio has zero denominator``
-  - ``Pf: round default defn: Bad value``
-  - ``Pg: unsafeFromBuiltinData: Void is not supported``
+  - ``PT1: TH Generation of Indexed Data Error``
+  - ``PT2: Void is not supported``
+  - ``PT3: Ratio number can't have a zero denominator``
+  - ``PT4: 'round' got an incorrect input``
+  - ``PT5: 'check' input is 'False'``
+  - ``PT6: PlutusTx.List.!!: negative index``
+  - ``PT7: PlutusTx.List.!!: index too large``
+  - ``PT8: PlutusTx.List.head: empty list``
+  - ``PT9: PlutusTx.List.tail: empty list``
+  - ``PT10: PlutusTx.Enum.().succ: bad argument``
+  - ``PT11: PlutusTx.Enum.().pred: bad argument``
+  - ``PT12: PlutusTx.Enum.().toEnum: bad argument``
+  - ``PT13: PlutusTx.Enum.Bool.succ: bad argument``
+  - ``PT14: PlutusTx.Enum.Bool.pred: bad argument``
+  - ``PT15: PlutusTx.Enum.Bool.toEnum: bad argument``
+  - ``PT16: PlutusTx.Enum.Ordering.succ: bad argument``
+  - ``PT17: PlutusTx.Enum.Ordering.pred: bad argument``
+  - ``PT18: PlutusTx.Enum.Ordering.toEnum: bad argument``
 
 - State machine errors
 

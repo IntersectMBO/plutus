@@ -92,13 +92,13 @@
       };
     } // {
     src = (pkgs.lib).mkDefault (pkgs.fetchgit {
-      url = "5";
+      url = "3";
       rev = "minimal";
       sha256 = "";
       }) // {
-      url = "5";
+      url = "3";
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/cardano-prelude-test; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/cardano-prelude-test; echo source root reset to $sourceRoot";
     }

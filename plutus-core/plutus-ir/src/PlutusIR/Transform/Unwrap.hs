@@ -11,9 +11,9 @@ module PlutusIR.Transform.Unwrap (
   unwrapCancel
   ) where
 
-import           PlutusIR
+import PlutusIR
 
-import           Control.Lens (transformOf)
+import Control.Lens (transformOf)
 
 {-|
 A single non-recursive application of wrap/unwrap cancellation.

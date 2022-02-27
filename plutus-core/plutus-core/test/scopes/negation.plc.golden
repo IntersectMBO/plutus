@@ -1,28 +1,28 @@
 (program
   0.1.0
   (lam
-    x_6
-    (all a_7 (type) (fun a_7 (fun a_7 a_7)))
+    x_20
+    (all a_21 (type) (fun a_21 (fun a_21 a_21)))
     [
       [
         [
           {
             (abs
-              b_8
+              b_22
               (type)
               (lam
-                x_9
-                (all a_10 (type) (fun a_10 (fun a_10 a_10)))
-                (lam t_11 b_8 (lam f_12 b_8 [ [ { x_9 b_8 } t_11 ] f_12 ]))
+                x_23
+                (all a_24 (type) (fun a_24 (fun a_24 a_24)))
+                (lam t_25 b_22 (lam f_26 b_22 [ [ { x_23 b_22 } t_25 ] f_26 ]))
               )
             )
-            (all a_13 (type) (fun a_13 (fun a_13 a_13)))
+            (all a_27 (type) (fun a_27 (fun a_27 a_27)))
           }
-          x_6
+          x_20
         ]
-        (abs a_14 (type) (lam x_15 a_14 (lam y_16 a_14 y_16)))
+        (abs a_28 (type) (lam x_29 a_28 (lam y_30 a_28 y_30)))
       ]
-      (abs a_17 (type) (lam t_18 a_17 (lam f_19 a_17 t_18)))
+      (abs a_31 (type) (lam t_32 a_31 (lam f_33 a_31 t_32)))
     ]
   )
 )

@@ -3,17 +3,17 @@
 -- | The catalogue of all Plutus errors, obsolete or not.
 module Errors (allErrors) where
 
-import           ErrorCode
-import           Language.Haskell.TH                      as TH
+import ErrorCode
+import Language.Haskell.TH as TH
 
-import qualified PlutusCore.DeBruijn                      as PLC
-import qualified PlutusCore.Error                         as PLC
-import qualified PlutusCore.Evaluation.Machine.Exception  as PLC
-import qualified PlutusIR.Error                           as PIR
-import qualified PlutusTx.Code                            as PTX
-import qualified PlutusTx.Compiler.Error                  as PTX
-import qualified PlutusTx.Lift.Class                      as PTX
-import qualified UntypedPlutusCore.Evaluation.Machine.Cek as PLC
+import PlutusCore.DeBruijn qualified as PLC
+import PlutusCore.Error qualified as PLC
+import PlutusCore.Evaluation.Machine.Exception qualified as PLC
+import PlutusIR.Error qualified as PIR
+import PlutusTx.Code qualified as PTX
+import PlutusTx.Compiler.Error qualified as PTX
+import PlutusTx.Lift.Class qualified as PTX
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as PLC
 
 {- | A collection of error instances which are obsolete, together with their error codes bundled to one instance.
 See plutus-errors/README.md
@@ -35,8 +35,6 @@ allErrors =
    , 'PIR.MalformedDataConstrResType
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
-   , 'PLC.LexErr
-   , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType
    , 'PLC.BuiltinTypeNotAStar
    , 'PLC.UnknownBuiltinFunction

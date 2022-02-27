@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Eq (Eq(..), (/=)) where
 
-import                          PlutusTx.Bool
-import                qualified PlutusTx.Builtins as Builtins
-import                          PlutusTx.Either   (Either (..))
-import {-# SOURCE #-}           PlutusTx.Maybe    (Maybe (..))
+import PlutusTx.Bool
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Either (Either (..))
+import Prelude (Maybe (..))
 
 {- HLINT ignore -}
 

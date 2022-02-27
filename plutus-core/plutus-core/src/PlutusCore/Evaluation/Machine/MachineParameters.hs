@@ -5,12 +5,11 @@
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
-import           PlutusCore.Constant
+import PlutusCore.Builtin
 
-import           PlutusCore.Core.Type                   hiding (Type)
-import           PlutusCore.Evaluation.Machine.ExBudget ()
+import PlutusCore.Evaluation.Machine.ExBudget ()
 
-import           GHC.Types                              (Type)
+import GHC.Types (Type)
 
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in
@@ -39,10 +38,9 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
 toMachineParameters ::
-    ( UniOf (val uni fun) ~ uni
-      -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
-    , CostingPart uni fun ~ builtincosts
-    , HasConstant (val uni fun)
+    ( -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
+      CostingPart uni fun ~ builtincosts
+    , HasConstantIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
     => CostModel machinecosts builtincosts

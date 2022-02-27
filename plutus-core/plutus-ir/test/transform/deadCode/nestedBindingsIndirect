@@ -11,6 +11,6 @@
         (vardecl Constr (fun unit SomeType))
       )
     )
-    (lam arg SomeType arg)
+    [Constr (error unit)]
   )
 )

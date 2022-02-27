@@ -4,27 +4,28 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Errors.Spec where
 
-import           Common
-import           Lib
-import           PlcTestUtils
-import           Plugin.Lib
+import Test.Tasty.Extras
 
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code
-import           PlutusTx.Plugin
+import PlutusCore.Test
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
+import PlutusTx.Plugin
+import PlutusTx.Test ()
 
-import qualified PlutusCore.Default        as PLC
-
-import           Data.Proxy
-import           Data.String
+import Data.Proxy
+import Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
-import           GHC.Integer.GMP.Internals
+import GHC.Integer.GMP.Internals
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -51,7 +52,7 @@ negativeInt :: CompiledCode Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# i -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# _ -> True; _ -> False; } )
 
 stringLiteral :: CompiledCode String
 stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)

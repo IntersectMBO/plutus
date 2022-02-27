@@ -1,14 +1,15 @@
 module Main (main) where
 
-import qualified IsData.Spec as IsData
-import qualified Lift.Spec   as Lift
-import qualified Plugin.Spec as Plugin
-import qualified StdLib.Spec as Lib
-import qualified TH.Spec     as TH
+import Budget.Spec qualified as Budget
+import IsData.Spec qualified as IsData
+import Lift.Spec qualified as Lift
+import Optimization.Spec qualified as Optimization
+import Plugin.Spec qualified as Plugin
+import StdLib.Spec qualified as Lib
+import TH.Spec qualified as TH
 
-import           Common
-
-import           Test.Tasty
+import Test.Tasty
+import Test.Tasty.Extras
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
@@ -20,4 +21,6 @@ tests = testGroup "tests" <$> sequence [
   , Lift.tests
   , TH.tests
   , Lib.tests
+  , Budget.tests
+  , Optimization.tests
   ]

@@ -7,11 +7,11 @@ module PlutusIR.MkPir ( module MkPlc
                                , mkLet
                                ) where
 
-import           PlutusIR
+import PlutusIR
 
-import           PlutusCore.MkPlc   as MkPlc
+import PlutusCore.MkPlc as MkPlc
 
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 
 
 -- | A datatype definition as a type variable.

@@ -1,4 +1,4 @@
-cabal-version:       2.4
+cabal-version:       3.0
 name:                plutus-metatheory
 version:             0.1.0.0
 synopsis:            Command line tool for running plutus core programs
@@ -25,12 +25,18 @@ custom-setup
                 , process -any
                 , turtle -any
 
-common stuff
-  default-language: Haskell2010
-  ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
+    ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+
 
 library
-  import: stuff
+  import: lang
   hs-source-dirs: src
   build-depends: base -any,
                  bytestring -any,
@@ -42,7 +48,8 @@ library
                  process -any,
                  optparse-applicative -any,
                  text -any,
-                 transformers -any
+                 transformers -any,
+                 megaparsec -any
   exposed-modules:
     MAlonzo.Code.Main
     MAlonzo.Code.Agda.Builtin.Bool
@@ -145,6 +152,7 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
+    MAlonzo.Code.Declarative
     MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -207,10 +215,9 @@ library
     MAlonzo.Code.Utils
     MAlonzo.RTE
     MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
@@ -266,6 +273,7 @@ library
     MAlonzo.Code.Algorithmic.CC
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
+    MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
@@ -397,11 +405,9 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.RTE
-    MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.Reduction
-    MAlonzo.Code.Untyped.RenamingSubstitution
+    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
@@ -422,7 +428,7 @@ library
     MAlonzo.Code.Relation.Nullary.Negation.Core
 
 executable plc-agda
-  import: stuff
+  import: lang
   hs-source-dirs: exe
   main-is: Main.hs
   build-depends:
@@ -430,7 +436,7 @@ executable plc-agda
     plutus-metatheory
 
 test-suite test1
-  import: stuff
+  import: lang
   build-tool-depends:
     plutus-core:plc,
     plutus-core:uplc
@@ -443,7 +449,7 @@ test-suite test1
   main-is: TestSimple.hs
 
 test-suite test2
-  import: stuff
+  import: lang
   build-tool-depends: 
     plutus-core:plc,
     plutus-core:uplc
@@ -460,7 +466,7 @@ test-suite test2
     text -any
 
 test-suite test3
-  import: stuff
+  import: lang
   hs-source-dirs: test
   type: exitcode-stdio-1.0
   main-is: TestNEAT.hs
@@ -470,6 +476,7 @@ test-suite test3
     mtl -any,
     plutus-metatheory,
     plutus-core,
+    plutus-core:plutus-core-testlib,
     size-based -any,
     Stream -any,
     tasty -any,

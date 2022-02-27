@@ -9,11 +9,11 @@ module Plugins (
     ) where
 
 
-import           Control.Monad
-import           Data.List
-import qualified Data.Semigroup
-import           StubTypes
-import qualified TcRnTypes
+import Control.Monad
+import Data.List
+import Data.Semigroup qualified
+import StubTypes
+import TcRnTypes qualified
 
 plugins :: DynFlags -> [LoadedPlugin]
 plugins _ = []

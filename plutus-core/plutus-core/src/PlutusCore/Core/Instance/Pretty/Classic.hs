@@ -13,16 +13,16 @@
 
 module PlutusCore.Core.Instance.Pretty.Classic () where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core.Instance.Pretty.Common ()
-import           PlutusCore.Core.Type
-import           PlutusCore.Pretty.Classic
-import           PlutusCore.Pretty.PrettyConst
+import PlutusCore.Core.Instance.Pretty.Common ()
+import PlutusCore.Core.Type
+import PlutusCore.Pretty.Classic
+import PlutusCore.Pretty.PrettyConst
 
-import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Custom
-import           Universe
+import Prettyprinter
+import Prettyprinter.Custom
+import Universe
 
 instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) where
     prettyBy config = \case

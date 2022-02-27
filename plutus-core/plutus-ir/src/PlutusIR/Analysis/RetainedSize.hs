@@ -3,27 +3,28 @@
 
 module PlutusIR.Analysis.RetainedSize
     ( RetainedSize (..)
+    , Size (..)
     , termRetentionMap
     , annotateWithRetainedSize
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusIR.Analysis.Dependencies
-import           PlutusIR.Analysis.Size
-import           PlutusIR.Core
+import PlutusIR.Analysis.Dependencies
+import PlutusIR.Analysis.Size
+import PlutusIR.Core
 
-import qualified PlutusCore                     as PLC
-import           PlutusCore.Constant            (ToBuiltinMeaning)
-import           PlutusCore.Name
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin (ToBuiltinMeaning)
+import PlutusCore.Name
 
-import qualified Algebra.Graph                  as C
-import           Algebra.Graph.ToGraph
-import           Control.Lens
-import           Data.Graph.Dom                 (domTree)
-import           Data.IntMap.Strict             (IntMap)
-import qualified Data.IntMap.Strict             as IntMap
-import           Data.Tree
+import Algebra.Graph qualified as C
+import Algebra.Graph.ToGraph
+import Control.Lens
+import Data.Graph.Dom (domTree)
+import Data.IntMap.Strict (IntMap)
+import Data.IntMap.Strict qualified as IntMap
+import Data.Tree
 
 {- Note [Retained size analysis]
 WARNING: everything in this module assumes global uniqueness of variables.

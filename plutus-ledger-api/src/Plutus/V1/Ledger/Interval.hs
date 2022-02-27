@@ -38,17 +38,14 @@ module Plutus.V1.Ledger.Interval(
     , strictUpperBound
     ) where
 
-import           Codec.Serialise.Class     (Serialise)
-import           Control.DeepSeq           (NFData)
-import           Data.Aeson                (FromJSON, ToJSON)
-import           Data.Hashable             (Hashable)
-import           Data.Text.Prettyprint.Doc (Pretty (pretty), comma, (<+>))
-import           GHC.Generics              (Generic)
-import qualified Prelude                   as Haskell
+import Control.DeepSeq (NFData)
+import GHC.Generics (Generic)
+import Prelude qualified as Haskell
+import Prettyprinter (Pretty (pretty), comma, (<+>))
 
-import qualified PlutusTx
-import           PlutusTx.Lift             (makeLift)
-import           PlutusTx.Prelude
+import PlutusTx qualified
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Prelude
 
 -- | An interval of @a@s.
 --
@@ -58,7 +55,7 @@ import           PlutusTx.Prelude
 --   The interval can also be unbounded on either side.
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance Functor Interval where
   fmap f (Interval from to) = Interval (f <$> from) (f <$> to)
@@ -69,7 +66,7 @@ instance Pretty a => Pretty (Interval a) where
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance Functor Extended where
   fmap _ NegInf     = NegInf
@@ -87,7 +84,7 @@ type Closure = Bool
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
@@ -101,7 +98,7 @@ instance Pretty a => Pretty (UpperBound a) where
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
-    deriving anyclass (FromJSON, ToJSON, Serialise, Hashable, NFData)
+    deriving anyclass (NFData)
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c

@@ -2,16 +2,17 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction) where
+module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, saltFunction) where
 
-import           Codec.Serialise
-import           Data.ByteString.Lazy     (toStrict)
-import           Data.ByteString.Short
-import           Numeric.Natural
-import           Plutus.V1.Ledger.Api
-import qualified Plutus.V1.Ledger.Scripts as Scripts
-import qualified PlutusCore               as PLC
-import qualified UntypedPlutusCore        as UPLC
+import Codec.Serialise
+import Data.ByteString.Lazy (fromStrict, toStrict)
+import Data.ByteString.Short
+import Numeric.Natural
+import Plutus.V1.Ledger.Api
+import Plutus.V1.Ledger.Scripts qualified as Scripts
+import PlutusCore qualified as PLC
+import Universe (Some (Some))
+import UntypedPlutusCore qualified as UPLC
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating
@@ -36,3 +37,14 @@ alwaysFailingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ 
         body i | i == 0 = UPLC.Error ()
         -- We're using de Bruijn indices, so we can use the same binder each time!
         body i = UPLC.LamAbs () (UPLC.DeBruijn 0) $ body (i-1)
+
+
+-- | Wrap a script with lambda/app so that, for instance, it has a different hash but the same behavior.
+saltFunction :: Integer -> SerializedScript -> SerializedScript
+saltFunction salt b0 = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () version body
+    where
+        Scripts.Script (UPLC.Program () version b1) = deserialise $ fromStrict $ fromShort b0
+
+        body = UPLC.Apply ()
+            (UPLC.LamAbs () (UPLC.DeBruijn 0) b1)
+            (UPLC.Constant () $ Some $ PLC.ValueOf PLC.DefaultUniInteger salt)

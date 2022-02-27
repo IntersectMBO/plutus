@@ -2,20 +2,20 @@
 
 module CriterionExtensions (criterionMainWith) where
 
-import           Control.Monad          (unless)
-import           Control.Monad.Trans    (liftIO)
-import           Criterion.IO.Printf    (printError, writeCsv)
-import           Criterion.Internal     (runAndAnalyse, runFixedIters)
-import           Criterion.Main         (makeMatcher)
-import           Criterion.Main.Options (MatchType (..), Mode (..), describe, versionInfo)
-import           Criterion.Measurement  (initializeTime)
-import           Criterion.Monad        (withConfig)
-import           Criterion.Types
+import Control.Monad (unless)
+import Control.Monad.Trans (liftIO)
+import Criterion.IO.Printf (printError, writeCsv)
+import Criterion.Internal (runAndAnalyse, runFixedIters)
+import Criterion.Main (makeMatcher)
+import Criterion.Main.Options (MatchType (..), Mode (..), describe, versionInfo)
+import Criterion.Measurement (initializeTime)
+import Criterion.Monad (withConfig)
+import Criterion.Types
 
-import           Data.List              (sort)
-import           Options.Applicative    (execParser)
-import           System.Environment     (getProgName)
-import           System.Exit            (ExitCode (..), exitWith)
+import Data.List (sort)
+import Options.Applicative (execParser)
+import System.Environment (getProgName)
+import System.Exit (ExitCode (..), exitWith)
 
 
 {- | A modified version of Criterion's 'defaultMainWith' function. We want to be

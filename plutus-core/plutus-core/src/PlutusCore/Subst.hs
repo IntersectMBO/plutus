@@ -21,15 +21,15 @@ module PlutusCore.Subst
     , uniquesTerm
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore.Core
-import           PlutusCore.Name
+import PlutusCore.Core
+import PlutusCore.Name
 
-import           Control.Lens
-import           Data.Functor.Foldable (cata)
-import           Data.Set              as Set
-import           Data.Set.Lens         (setOf)
+import Control.Lens
+import Data.Functor.Foldable (cata)
+import Data.Set as Set
+import Data.Set.Lens (setOf)
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce

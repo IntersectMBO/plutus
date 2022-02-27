@@ -5,27 +5,27 @@ module Evaluation.Builtins.MakeRead
     ( test_makeRead
     ) where
 
-import qualified PlutusCore                              as TPLC
-import           PlutusCore.Constant
-import           PlutusCore.Default
-import           PlutusCore.Evaluation.Machine.Exception
-import           PlutusCore.Evaluation.Result
-import           PlutusCore.MkPlc                        hiding (error)
-import           PlutusCore.Pretty
-import           PlutusCore.StdLib.Data.Unit
+import PlutusCore qualified as TPLC
+import PlutusCore.Builtin
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Pretty
+import PlutusCore.StdLib.Data.Unit
 
-import           UntypedPlutusCore                       as UPLC (Name, Term, TyName)
+import UntypedPlutusCore as UPLC (Name, Term, TyName)
 
-import           Evaluation.Builtins.Common
+import Evaluation.Builtins.Common
 
-import           Hedgehog                                hiding (Size, Var)
-import qualified Hedgehog.Gen                            as Gen
-import qualified Hedgehog.Range                          as Range
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Test.Tasty.Hedgehog
+import Hedgehog hiding (Size, Var)
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
+import Test.Tasty
+import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
-import           Data.Text                               (Text)
+import Data.Text (Text)
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
@@ -35,7 +35,7 @@ readMakeHetero
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnownNoEmit @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+    xTerm <- makeKnownOrFail @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err

@@ -1,6 +1,9 @@
 (program
   (let
     (nonrec)
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
     (termbind
       (strict)
       (vardecl trace (all a (type) (fun (con string) (fun a a))))
@@ -10,9 +13,6 @@
       (nonstrict)
       (vardecl trace (all a (type) (fun (con string) (fun a a))))
       trace
-    )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
     )
     (lam ds (con string) [ [ { trace Unit } ds ] Unit ])
   )

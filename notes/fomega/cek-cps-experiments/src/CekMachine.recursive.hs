@@ -26,18 +26,18 @@ module PlutusCore.Interpreter.CekMachine
     , runCek
     ) where
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
-import           PlutusCore.Evaluation.Result           (EvaluationResult (..))
-import           PlutusCore.View
-import           PlutusPrelude
+import PlutusCore
+import PlutusCore.Constant
+import PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.View
+import PlutusPrelude
 
-import qualified Data.Text                              as T
-import qualified PlutusCore.Pretty                      as PLC
+import Data.Text qualified as T
+import PlutusCore.Pretty qualified as PLC
 
-import           Data.IntMap                            (IntMap)
-import qualified Data.IntMap                            as IntMap
+import Data.IntMap (IntMap)
+import Data.IntMap qualified as IntMap
 
 termStr :: Plain Term -> String
 termStr = T.unpack . PLC.prettyPlcDefText

@@ -15,24 +15,25 @@ module PlutusCore.StdLib.Data.ScottList
     , reverse
     , enumFromTo
     , sum
+    , sumr
     , product
     ) where
 
-import           Prelude                         hiding (enumFromTo, map, product, reverse, sum)
+import Prelude hiding (enumFromTo, map, product, reverse, sum)
 
-import           PlutusCore.Core
-import           PlutusCore.Default.Builtins
-import           PlutusCore.MkPlc
-import           PlutusCore.Name
-import           PlutusCore.Quote
+import PlutusCore.Core
+import PlutusCore.Default.Builtins
+import PlutusCore.MkPlc
+import PlutusCore.Name
+import PlutusCore.Quote
 
-import           PlutusCore.StdLib.Data.Bool
-import           PlutusCore.StdLib.Data.Function
-import           PlutusCore.StdLib.Data.Integer
-import           PlutusCore.StdLib.Data.Unit
-import           PlutusCore.StdLib.Type
+import PlutusCore.StdLib.Data.Bool
+import PlutusCore.StdLib.Data.Function
+import PlutusCore.StdLib.Data.Integer
+import PlutusCore.StdLib.Data.Unit
+import PlutusCore.StdLib.Type
 
-import           Universe
+import Universe
 
 -- | @List@ as a PLC type.
 --
@@ -259,6 +260,15 @@ sum = runQuote $ do
     return
         . mkIterApp () (mkIterInst () foldList [int, int])
         $ [ add , mkConstant @Integer () 0]
+
+-- > foldrList {integer} {integer} 0 addInteger
+sumr :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sumr = runQuote $ do
+    let int = mkTyBuiltin @_ @Integer ()
+        add = builtin () AddInteger
+    return
+        . mkIterApp () (mkIterInst () foldrList [int, int])
+        $ [ add, mkConstant @Integer () 0 ]
 
 -- |  'product' as a PLC term.
 --

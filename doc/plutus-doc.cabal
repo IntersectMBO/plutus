@@ -28,6 +28,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses
+                        ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -50,32 +51,21 @@ executable doc-doctests
       BasicPlutusTx
       BasicValidators
       BasicPolicies
-      BasicApps
-      GameModel
-      HandlingBlockchainEvents
-      HelloWorldApp
-      WriteScriptsTo
     build-depends:
       base >=4.9 && <5,
       template-haskell >=2.13.0.0,
       bytestring -any,
-      cardano-api -any,
+      flat -any,
       plutus-core -any,
       plutus-tx -any,
-      plutus-ledger -any,
-      plutus-contract -any,
-      playground-common -any,
-      plutus-use-cases -any,
+      plutus-ledger-api -any,
       prettyprinter -any,
       containers -any,
-      freer-extras -any,
       lens -any,
       serialise -any,
-      QuickCheck -any,
       random -any,
       text -any,
       aeson -any,
-      plutus-chain-index
 
     if !(impl(ghcjs) || os(ghcjs))
         build-depends: plutus-tx-plugin -any

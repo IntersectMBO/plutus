@@ -13,24 +13,27 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusTx.Lift.Instances () where
 
-import qualified PlutusCore          as PLC
+import PlutusCore qualified as PLC
 
-import           PlutusCore.Data
-import           PlutusTx.Builtins
-import           PlutusTx.Lift.Class
+import PlutusCore.Data
+import PlutusTx.Builtins
+import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Lift.Class
 
-import           PlutusIR
-import           PlutusIR.MkPir
 
-import qualified Data.ByteString     as BS
-import qualified Data.Kind           as GHC
-import           Data.Proxy
-import qualified Data.Text           as Text
+import PlutusIR
+import PlutusIR.MkPir
 
-import           GHC.TypeLits        (ErrorMessage (..), TypeError)
+import Data.ByteString qualified as BS
+import Data.Kind qualified as GHC
+import Data.Proxy
+import Data.Text qualified as Text
+
+import GHC.TypeLits (ErrorMessage (..), TypeError)
 
 -- We do not use qualified import because the whole module contains off-chain code
-import           Prelude             as Haskell
+import PlutusTx.Builtins.Class (FromBuiltin)
+import Prelude as Haskell
 
 -- Derived instances
 
@@ -109,10 +112,12 @@ instance uni `PLC.Includes` Text.Text => Typeable uni BuiltinString where
 instance uni `PLC.Includes` Text.Text => Lift uni BuiltinString where
     lift b = liftBuiltin $ fromBuiltin b
 
+instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
+    lift b = liftBuiltin $ fromBuiltin b
+
 -- Standard types
 -- These need to be in a separate file for TH staging reasons
 
-makeLift ''Data
 makeLift ''Bool
 makeLift ''Maybe
 makeLift ''Either
@@ -123,3 +128,4 @@ makeLift ''(,)
 makeLift ''(,,)
 makeLift ''(,,,)
 makeLift ''(,,,,)
+makeLift ''Data

@@ -7,23 +7,22 @@ module TypeSynthesis.Spec
     ( test_typecheck
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore
-import           PlutusCore.Constant
-import           PlutusCore.FsTree
-import           PlutusCore.Pretty
+import PlutusCore
+import PlutusCore.Builtin
+import PlutusCore.FsTree
+import PlutusCore.Pretty
 
-import           PlutusCore.Examples.Builtins
-import           PlutusCore.Examples.Everything (builtins, examples)
-import           PlutusCore.StdLib.Everything   (stdLib)
+import PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Everything (builtins, examples)
+import PlutusCore.StdLib.Everything (stdLib)
 
-import           Common
-
-import           Control.Monad.Except
-import           System.FilePath                ((</>))
-import           Test.Tasty
-import           Test.Tasty.HUnit
+import Control.Monad.Except
+import System.FilePath ((</>))
+import Test.Tasty
+import Test.Tasty.Extras
+import Test.Tasty.HUnit
 
 kindcheck
     :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)

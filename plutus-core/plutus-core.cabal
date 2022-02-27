@@ -1,4 +1,4 @@
-cabal-version: 2.4
+cabal-version: 3.0
 name: plutus-core
 version: 0.1.0.0
 license: Apache-2.0
@@ -19,6 +19,7 @@ extra-source-files:
     cost-model/data/cekMachineCosts.json
     cost-model/data/benching.csv
     cost-model/data/*.R
+    plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
     type: git
@@ -30,6 +31,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities
@@ -44,8 +46,10 @@ library
         PlutusCore.Check.Scoping
         PlutusCore.Check.Uniques
         PlutusCore.Check.Value
-        PlutusCore.Constant
-        PlutusCore.Constant.Dynamic.Emit
+        PlutusCore.Builtin
+        PlutusCore.Builtin.Debug
+        PlutusCore.Builtin.Elaborate
+        PlutusCore.Builtin.Emitter
         PlutusCore.Core
         PlutusCore.Data
         PlutusCore.DataFilePaths
@@ -71,15 +75,6 @@ library
         PlutusCore.Examples.Everything
         PlutusCore.Flat
         PlutusCore.FsTree
-        PlutusCore.Generators
-        PlutusCore.Generators.AST
-        PlutusCore.Generators.Interesting
-        PlutusCore.Generators.NEAT.Common
-        PlutusCore.Generators.NEAT.Spec
-        PlutusCore.Generators.NEAT.Term
-        PlutusCore.Generators.NEAT.Type
-        PlutusCore.Generators.Test
-        PlutusCore.Lexer
         PlutusCore.Mark
         PlutusCore.MkPlc
         PlutusCore.Name
@@ -123,7 +118,6 @@ library
         PlutusIR.Core.Plated
         PlutusIR.Core.Type
         PlutusIR.Error
-        PlutusIR.Generators.AST
         PlutusIR.Mark
         PlutusIR.MkPir
         PlutusIR.Parser
@@ -144,38 +138,40 @@ library
 
         UntypedPlutusCore
         UntypedPlutusCore.DeBruijn
-        UntypedPlutusCore.Evaluation.HOAS
         UntypedPlutusCore.Evaluation.Machine.Cek
         UntypedPlutusCore.Evaluation.Machine.Cek.Internal
         UntypedPlutusCore.Parser
         UntypedPlutusCore.Rename
+        UntypedPlutusCore.MkUPlc
+        UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core.Type
 
-        Common
         Crypto
         Data.ByteString.Hash
         Data.SatInt
-        Data.Text.Prettyprint.Doc.Custom
+        Prettyprinter.Custom
         ErrorCode
-        PlcTestUtils
         PlutusPrelude
         Universe
-    build-tool-depends: alex:alex -any, happy:happy >=1.17.1
     hs-source-dirs:
         plutus-core/src
         plutus-core/stdlib
         plutus-core/examples
         plutus-ir/src
         untyped-plutus-core/src
-        generators
         prelude
         common
     other-modules:
         PlutusCore.Analysis.Definitions
-        PlutusCore.Constant.Function
-        PlutusCore.Constant.Meaning
-        PlutusCore.Constant.Typed
+        PlutusCore.Builtin.HasConstant
+        PlutusCore.Builtin.KnownKind
+        PlutusCore.Builtin.KnownType
+        PlutusCore.Builtin.KnownTypeAst
+        PlutusCore.Builtin.Meaning
+        PlutusCore.Builtin.Polymorphism
+        PlutusCore.Builtin.Runtime
+        PlutusCore.Builtin.TypeScheme
         PlutusCore.Core.Instance
         PlutusCore.Core.Instance.Eq
         PlutusCore.Core.Instance.Pretty
@@ -193,16 +189,8 @@ library
         PlutusCore.Default.Universe
         PlutusCore.Eq
         PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Generators.Internal.Denotation
-        PlutusCore.Generators.Internal.Dependent
-        PlutusCore.Generators.Internal.Entity
-        PlutusCore.Generators.Internal.TypeEvalCheck
-        PlutusCore.Generators.Internal.TypedBuiltinGen
-        PlutusCore.Generators.Internal.Utils
-        PlutusCore.Lexer.Type
-        PlutusCore.Parsable
-        PlutusCore.Parser.Internal
-        PlutusCore.ParserCommon
+        PlutusCore.InlineUtils
+        PlutusCore.Parser.ParserCommon
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName
@@ -229,6 +217,7 @@ library
         PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore.Analysis.Definitions
+        UntypedPlutusCore.Analysis.Usages
         UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
@@ -245,22 +234,23 @@ library
         UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
         UntypedPlutusCore.Rename.Internal
+        UntypedPlutusCore.Simplify
         UntypedPlutusCore.Size
         UntypedPlutusCore.Subst
-        UntypedPlutusCore.Transform.Simplify
+        UntypedPlutusCore.Transform.ForceDelay
+        UntypedPlutusCore.Transform.Inline
 
         Data.Aeson.Flatten
         Data.Aeson.THReader
         Data.Functor.Foldable.Monadic
         Universe.Core
+        GHC.Natural.Extras
     build-depends:
-        Stream -any,
         aeson -any,
         algebraic-graphs >= 0.3,
         array -any,
         barbies -any,
         base >=4.9 && <5,
-        bifunctors -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -271,7 +261,6 @@ library
         cryptonite -any,
         data-default-class -any,
         deepseq -any,
-        dependent-map >=0.4.0.0,
         dependent-sum-template -any,
         deriving-aeson >= 0.2.3,
         deriving-compat -any,
@@ -284,8 +273,8 @@ library
         ghc-prim -any,
         hashable,
         hedgehog >=1.0,
+        int-cast -any,
         integer-gmp -any,
-        lazy-search -any,
         lens -any,
         megaparsec -any,
         mmorph -any,
@@ -297,16 +286,11 @@ library
         primitive -any,
         recursion-schemes -any,
         semigroupoids -any,
-        semigroups -any,
+        semigroups >=0.19.1,
         serialise -any,
-        size-based -any,
         some < 1.0.3,
-        sop-core -any,
-        tasty -any,
-        tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
         template-haskell -any,
+        th-compat -any,
         text -any,
         th-lift -any,
         th-lift-instances -any,
@@ -316,7 +300,63 @@ library
         unordered-containers -any,
         witherable -any,
         word-array -any,
-        cardano-crypto-class -any
+        cardano-crypto-class -any,
+        index-envs
+
+-- could split this up if we split up the main library for UPLC/PLC/PIR
+library plutus-core-testlib
+    import: lang
+    visibility: public
+    hs-source-dirs: testlib
+    exposed-modules:
+        PlutusCore.Test
+        PlutusCore.Generators
+        PlutusCore.Generators.AST
+        PlutusCore.Generators.Interesting
+        PlutusCore.Generators.NEAT.Common
+        PlutusCore.Generators.NEAT.Spec
+        PlutusCore.Generators.NEAT.Term
+        PlutusCore.Generators.NEAT.Type
+        PlutusCore.Generators.Test
+
+        PlutusIR.Test
+        PlutusIR.Generators.AST
+
+        Test.Tasty.Extras
+    other-modules:
+        PlutusCore.Generators.Internal.Denotation
+        PlutusCore.Generators.Internal.Dependent
+        PlutusCore.Generators.Internal.Entity
+        PlutusCore.Generators.Internal.TypeEvalCheck
+        PlutusCore.Generators.Internal.TypedBuiltinGen
+        PlutusCore.Generators.Internal.Utils
+    build-depends:
+        base >=4.9 && <5,
+        bifunctors -any,
+        bytestring -any,
+        containers -any,
+        dependent-map >=0.4.0.0,
+        filepath -any,
+        ghc-prim -any,
+        hedgehog >=1.0,
+        integer-gmp -any,
+        lazy-search -any,
+        lens -any,
+        megaparsec -any,
+        mmorph -any,
+        mtl -any,
+        plutus-core -any,
+        prettyprinter >=1.1.0.1,
+        prettyprinter-configurable -any,
+        size-based -any,
+        some < 1.0.3,
+        Stream -any,
+        tasty -any,
+        tasty-golden -any,
+        tasty-hedgehog -any,
+        tasty-hunit -any,
+        text -any,
+        transformers -any
 
 test-suite satint-test
   import: lang
@@ -358,6 +398,7 @@ test-suite plutus-core-test
         flat -any,
         hedgehog -any,
         plutus-core -any,
+        plutus-core-testlib -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,
@@ -366,7 +407,11 @@ test-suite plutus-core-test
         tasty-hedgehog -any,
         tasty-hunit -any,
         text -any,
-        transformers -any
+        transformers -any,
+        aeson -any,
+        template-haskell -any,
+        th-lift-instances -any,
+        th-utilities -any,
 
 test-suite plutus-ir-test
     import: lang
@@ -376,20 +421,15 @@ test-suite plutus-ir-test
     other-modules:
         NamesSpec
         ParserSpec
-        TestLib
         TransformSpec
         TypeSpec
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,
-        filepath -any,
+        plutus-core-testlib -any,
         flat -any,
         hedgehog -any,
-        lens -any,
         megaparsec -any,
-        mmorph -any,
-        mtl -any,
-        prettyprinter -any,
         tasty -any,
         tasty-hedgehog -any,
         text -any
@@ -404,16 +444,24 @@ test-suite untyped-plutus-core-test
         Evaluation.Builtins.Common
         Evaluation.Builtins.Definition
         Evaluation.Builtins.MakeRead
+        Evaluation.FreeVars
         Evaluation.Golden
         Evaluation.Machines
         Transform.Simplify
+        DeBruijn.Common
+        DeBruijn.Scope
+        DeBruijn.Spec
+        DeBruijn.UnDeBruijnify
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         hedgehog -any,
         flat -any,
+        lens -any,
         mtl -any,
         plutus-core -any,
+        plutus-core-testlib -any,
+        index-envs -any,
         prettyprinter -any,
         tasty -any,
         tasty-golden -any,
@@ -430,6 +478,8 @@ executable plc
         Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
+        aeson -any,
         base <5,
         bytestring -any,
         deepseq -any,
@@ -439,7 +489,9 @@ executable plc
         optparse-applicative -any,
         prettyprinter -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any,
+        megaparsec -any
 
 executable uplc
     import: lang
@@ -450,6 +502,7 @@ executable uplc
         Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
         aeson -any,
         base <5,
         bytestring -any,
@@ -461,30 +514,92 @@ executable uplc
         prettyprinter -any,
         split -any,
         text -any,
-        transformers -any
+        transformers -any,
+        lens -any,
+        megaparsec -any
 
 executable pir
     import: lang
     main-is: pir/Main.hs
     hs-source-dirs: executables
+    other-modules:
+        Common
+        Parsers
     build-depends:
         plutus-core -any,
+        plutus-core-testlib -any,
+        aeson -any,
         base <5,
         bytestring -any,
         flat -any,
         lens -any,
+        deepseq -any,
+        monoidal-containers -any,
         optparse-applicative -any,
-        transformers -any
+        mtl -any,
+        transformers -any,
+        bytestring -any,
+        containers -any,
+        prettyprinter -any,
+        cassava -any,
+        text -any,
+        megaparsec -any
+
+executable traceToStacks
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: executables/traceToStacks
+    other-modules:
+        Common
+    build-depends:
+        base >=4.9 && <5,
+        cassava -any,
+        integer-gmp -any,
+        bytestring -any,
+        optparse-applicative -any,
+        text -any,
+        vector -any,
+
+-- Tests for functions called by @traceToStacks@.
+test-suite traceToStacks-test
+    import: lang
+    type: exitcode-stdio-1.0
+    hs-source-dirs: executables/traceToStacks
+    default-language: Haskell2010
+    main-is: TestGetStacks.hs
+    other-modules:
+        Common
+    build-depends:
+        base -any,
+        bytestring -any,
+        cassava -any,
+        tasty -any,
+        tasty-hunit -any,
+        text -any,
+        vector -any,
 
 -- This runs the microbenchmarks used to generate the cost models for built-in functions,
 -- saving the results in cost-model/data/benching.csv.  It will take several hours.
 benchmark cost-model-budgeting-bench
     import: lang
     type: exitcode-stdio-1.0
-    main-is: Bench.hs
+    main-is: Main.hs
     other-modules:
+        Common
         CriterionExtensions
-        Nops
+        Generators
+        Benchmarks.Bool
+        Benchmarks.ByteStrings
+        Benchmarks.CryptoAndHashes
+        Benchmarks.Data
+        Benchmarks.Integers
+        Benchmarks.Lists
+        Benchmarks.Misc
+        Benchmarks.Nops
+        Benchmarks.Pairs
+        Benchmarks.Strings
+        Benchmarks.Tracing
+        Benchmarks.Unit
     hs-source-dirs: cost-model/budgeting-bench
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
@@ -500,7 +615,10 @@ benchmark cost-model-budgeting-bench
         hedgehog -any,
         mtl -any,
         optparse-applicative -any,
-        random -any
+        QuickCheck -any,
+        quickcheck-instances -any,
+        random -any,
+        text -any,
 
 
 -- This reads the CSV data generated by cost-model-budgeting-bench, builds the models
@@ -539,6 +657,7 @@ benchmark cost-model-test
     import: lang
     type: exitcode-stdio-1.0
     main-is: TestCostModels.hs
+    other-modules: TH
     hs-source-dirs: cost-model/test, cost-model/create-cost-model
     default-language: Haskell2010
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
@@ -554,6 +673,7 @@ benchmark cost-model-test
         hedgehog -any,
         inline-r -any,
         mmorph -any,
+        template-haskell -any,
         text -any,
         vector -any
     other-modules:

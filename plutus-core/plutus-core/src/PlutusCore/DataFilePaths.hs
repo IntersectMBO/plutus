@@ -9,7 +9,7 @@
 module PlutusCore.DataFilePaths
 where
 
-import           System.FilePath
+import System.FilePath
 
 costModelDataDir :: FilePath
 costModelDataDir = "cost-model" </> "data"

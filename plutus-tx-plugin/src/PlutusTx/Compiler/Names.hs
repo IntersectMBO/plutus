@@ -1,28 +1,29 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 
 -- | Functions for compiling GHC names into Plutus Core names.
 module PlutusTx.Compiler.Names where
 
 
-import                          PlutusTx.Compiler.Kind
-import {-# SOURCE #-}           PlutusTx.Compiler.Type
-import                          PlutusTx.Compiler.Types
-import                          PlutusTx.PLCTypes
+import PlutusTx.Compiler.Kind
+import {-# SOURCE #-} PlutusTx.Compiler.Type
+import PlutusTx.Compiler.Types
+import PlutusTx.PLCTypes
 
-import                qualified GhcPlugins              as GHC
+import GhcPlugins qualified as GHC
 
-import                qualified PlutusCore              as PLC
-import                qualified PlutusCore.MkPlc        as PLC
-import                          PlutusCore.Quote
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Quote
 
-import                          PlutusIR.Compiler.Names
+import PlutusIR.Compiler.Names
 
-import                          Data.Char
-import                          Data.List
-import                qualified Data.List.NonEmpty      as NE
-import                qualified Data.Map                as Map
-import                qualified Data.Text               as T
+import Data.Char
+import Data.List
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as Map
+import Data.Text qualified as T
 
 lookupName :: Scope uni fun -> GHC.Name -> Maybe (PLCVar uni fun)
 lookupName (Scope ns _) n = Map.lookup n ns
@@ -50,7 +51,7 @@ getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: Compiling uni fun m => GHC.Var -> m (PLCVar uni fun)
+compileVarFresh :: CompilingDefault uni fun m => GHC.Var -> m (PLCVar uni fun)
 compileVarFresh v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v

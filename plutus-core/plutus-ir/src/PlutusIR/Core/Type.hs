@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusIR.Core.Type (
@@ -17,21 +18,25 @@ module PlutusIR.Core.Type (
     Strictness (..),
     Binding (..),
     Term (..),
-    Program (..)
+    Program (..),
+    applyProgram,
+    termAnn,
+    progAnn,
+    progTerm,
     ) where
 
-import           PlutusPrelude
+import PlutusPrelude
 
-import           PlutusCore          (Kind, Name, TyName, Type (..))
-import qualified PlutusCore          as PLC
-import           PlutusCore.Constant (AsConstant (..), FromConstant (..), throwNotAConstant)
-import           PlutusCore.Core     (UniOf)
-import           PlutusCore.Flat     ()
-import           PlutusCore.MkPlc    (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
-import qualified PlutusCore.Name     as PLC
+import Control.Lens.TH
+import PlutusCore (Kind, Name, TyName, Type (..))
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
+import PlutusCore.Core (UniOf)
+import PlutusCore.Flat ()
+import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
+import PlutusCore.Name qualified as PLC
 
-
-import qualified Data.Text           as T
+import Data.Text qualified as T
 
 -- Datatypes
 
@@ -58,7 +63,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- Bindings
 
 -- | Each multi-let-group has to be marked with its scoping:
--- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifer cannot refer to itself or later-introduced identifiers of the group.
+-- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
@@ -124,11 +129,10 @@ data Term tyname name uni fun a =
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance AsConstant (Term tyname name uni fun ann) where
-    asConstant (Constant _ val) = pure val
-    asConstant term             = throwNotAConstant term
+instance HasConstant (Term tyname name uni fun ()) where
+    asConstant _        (Constant _ val) = pure val
+    asConstant mayCause _                = throwNotAConstant mayCause
 
-instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
@@ -146,7 +150,33 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 -- no version as PIR is not versioned
-data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deriving Generic
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
+    deriving stock Generic
+makeLenses ''Program
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
+
+applyProgram
+    :: Monoid a
+    => Program tyname name uni fun a
+    -> Program tyname name uni fun a
+    -> Program tyname name uni fun a
+applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
+
+termAnn :: Term tyname name uni fun a -> a
+termAnn t = case t of
+  Let a _ _ _    -> a
+  Var a _        -> a
+  TyAbs a _ _ _  -> a
+  LamAbs a _ _ _ -> a
+  Apply a _ _    -> a
+  Constant a _   -> a
+  Builtin a _    -> a
+  TyInst a _ _   -> a
+  Error a _      -> a
+  IWrap a _ _ _  -> a
+  Unwrap a _     -> a

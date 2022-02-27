@@ -1,8 +1,8 @@
 module Scott where
 
-import           AlgTypes
-import qualified Data.Set as S
-import           SystemF
+import AlgTypes
+import Data.Set qualified as S
+import SystemF
 
 -- note that "#R" is not a valid bnfc Ident(ifier), and as such it won't
 -- be the name of any variable output by the parser.

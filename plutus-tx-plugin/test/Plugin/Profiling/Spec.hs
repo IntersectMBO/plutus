@@ -6,48 +6,41 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
 
 -- | Tests for the profiling machinery.
 
 module Plugin.Profiling.Spec where
-import           Common
-import           Lib                       (goldenPir)
-import           PlcTestUtils              (ToUPlc (toUPlc), goldenUEvalProfile, rethrow, runUPlcProfile)
-import           Plugin.Basic.Spec
-import           Plugin.Lib                (MyExternalRecord (myExternal), andExternal, evenDirect)
 
-import           Plugin.Data.Spec
-import           Plugin.Functions.Spec     hiding (fib, recursiveFunctions)
-import           Plugin.Typeclasses.Spec
-import qualified PlutusCore.Default        as PLC
-import qualified PlutusTx.Builtins         as Builtins
-import           PlutusTx.Code             (CompiledCode)
-import           PlutusTx.Plugin           (plc)
+import Test.Tasty.Extras
 
-import           Control.Lens.Combinators  (_2)
-import           Control.Lens.Getter       (view)
-import           Data.Proxy
-import           Data.Text                 (Text)
-import qualified PlutusCore.Default        as Builtins
-import qualified PlutusTx.Builtins         as Builtins
-import           Prelude
-import           Prettyprinter.Internal    (pretty)
-import           Prettyprinter.Render.Text (hPutDoc)
-import           System.IO                 (IOMode (WriteMode), withFile)
+import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalProfile)
+import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code (CompiledCode)
+import PlutusTx.Plugin (plc)
+import PlutusTx.Test (goldenPir)
+
+import Data.Functor.Identity
+import Data.Proxy (Proxy (Proxy))
+import Prelude
 
 profiling :: TestNested
 profiling = testNested "Profiling" [
-  goldenUEvalProfile "fib" [toUPlc fibTest]
+  goldenPir "fib" fibTest
   , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalProfile "addInt" [toUPlc addIntTest]
-  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc  $ plc (Proxy @"3") (3::Integer)]
+  , goldenPir "addInt" addIntTest
+  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
   , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  -- ghc does the function application
+  , goldenUEvalProfile "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
+  , goldenPir "idCode" idTest
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
+  , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "argMismatch1" [toUPlc argMismatch1]
+  , goldenUEvalProfile "argMismatch2" [toUPlc argMismatch2]
   ]
 
 fact :: Integer -> Integer
@@ -93,11 +86,51 @@ letInFunMoreArgTest =
       -> let f n = Builtins.addInteger n 1 in
         Builtins.multiplyInteger z (Builtins.addInteger (f x) (f y)))
 
+-- Try a recursive function so it definitely won't be inlined
+letRecInFunTest :: CompiledCode (Integer -> Integer)
+letRecInFunTest =
+  plc
+    (Proxy @"letRecInFun")
+    (\(x::Integer) -> let f n = if Builtins.equalsInteger n 0 then 0 else Builtins.addInteger 1 (f (Builtins.subtractInteger n 1)) in f x)
+
 idTest :: CompiledCode Integer
-idTest = plc (Proxy @"id") (id (1::Integer))
+idTest = plc (Proxy @"id") (id (id (1::Integer)))
 
 swap :: (a,b) -> (b,a)
 swap (a,b) = (b,a)
 
 swapTest :: CompiledCode (Integer, Bool)
 swapTest = plc (Proxy @"swap") (swap (True,1))
+
+-- Two method typeclasses definitely get dictionaries, rather than just being passed as single functions
+class TwoMethods a where
+    methodA :: a -> a -> Integer
+    methodB :: a -> a -> Integer
+
+instance TwoMethods Integer where
+    {-# INLINABLE methodA #-}
+    methodA = Builtins.addInteger
+    {-# INLINABLE methodB #-}
+    methodB = Builtins.subtractInteger
+
+-- Make a function that uses the typeclass polymorphically to check that
+useTypeclass :: TwoMethods a => a -> a -> Integer
+useTypeclass a b = Builtins.addInteger (methodA a b) (methodB a b)
+
+-- Check that typeclass methods get traces
+typeclassTest :: CompiledCode (Integer -> Integer -> Integer)
+typeclassTest = plc (Proxy @"typeclass") (\(x::Integer) (y::Integer) -> useTypeclass x y)
+
+{-# INLINABLE newtypeFunction #-}
+newtypeFunction :: a -> Identity (a -> a)
+newtypeFunction _ = Identity (\a -> a)
+
+argMismatch1 :: CompiledCode Integer
+argMismatch1 = plc (Proxy @"argMismatch1") (runIdentity (newtypeFunction 1) 1)
+
+{-# INLINABLE obscuredFunction #-}
+obscuredFunction :: (a -> a -> a) -> a -> a -> a
+obscuredFunction f a = f a
+
+argMismatch2 :: CompiledCode Integer
+argMismatch2 = plc (Proxy @"argMismatch2") (obscuredFunction (\a _ -> a) 1 2)

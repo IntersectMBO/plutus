@@ -1,3 +1,3 @@
 module CoreSyn where
 
-import           StubTypes
+import StubTypes

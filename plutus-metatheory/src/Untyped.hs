@@ -2,14 +2,13 @@
 
 module Untyped where
 
-import           PlutusCore.Data
-import           PlutusCore.Default
-import           UntypedPlutusCore
+import PlutusCore.Data
+import PlutusCore.Default
+import UntypedPlutusCore
 
-import           Data.ByteString    as BS
-import           Data.Text          as T
-import           GHC.Natural
-import           Universe
+import Data.ByteString as BS
+import Data.Text as T
+import Universe
 
 
 -- Untyped (Raw) syntax
@@ -25,7 +24,7 @@ data UTerm = UVar Integer
            deriving Show
 
 unIndex :: Index -> Integer
-unIndex (Index n) = naturalToInteger n
+unIndex (Index n) = toInteger n
 
 convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
@@ -45,11 +44,11 @@ tmnames = ['a' .. 'z']
 uconv ::  Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
 uconv i (UVar x)     = Var
   ()
-  (NamedDeBruijn (T.pack [tmnames !! (i - 1 - fromIntegral x)])
-                 (Index (naturalFromInteger x)))
+  (NamedDeBruijn (T.pack [tmnames !! (i - 1 - fromInteger x)])
+                 (Index (fromInteger x)))
 uconv i (ULambda t)  = LamAbs
   ()
-  (NamedDeBruijn (T.pack [tmnames !! i]) (Index 0))
+  (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
   (uconv (i+1) t)
 uconv i (UApp t u)   = Apply () (uconv i t) (uconv i u)
 uconv i (UCon c)     = Constant () c

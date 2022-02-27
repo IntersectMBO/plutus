@@ -1,0 +1,38 @@
+name: Security Report
+description: Report a security issue
+#title: ""
+labels: ["security"]
+#assignees:
+#  -
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this security report.
+        Make sure you have read the security policy before filling this out. Depending on the issue, you may wish to email security@iohk.io instead.
+        Please also check the existing issues, [Plutus Docs](https://plutus.readthedocs.io/en/latest/) and [Cardano Stack Exchange](https://cardano.stackexchange.com/) before raising.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and specific description of what the issue is
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Do you have a proposed solution for this issue?
+      description: Describe what solutions you've considered
+    validations:
+      required: false
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System info
+      placeholder: |
+        OS: [e.g. Ubuntu]
+        Version: [e.g. 20.04]
+        Plutus: version or commit hash
+    validations:
+      required: false
+
