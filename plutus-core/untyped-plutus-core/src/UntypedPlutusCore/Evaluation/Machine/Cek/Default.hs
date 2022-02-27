@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -O2 #-}
 
--- | This module defines a 'ToBuiltinsRuntime' instance for 'CekValue'. It must be the only thing
+-- | This module defines a 'ToBuiltinsRuntime' instance for 'CekValue'. It MUST be the only thing
 -- that this module defines. The idea is that dumping the Core of this module gives you the whole
 -- builtins machinery compiled (and specialized to 'CekValue') and nothing else. There's no other
 -- way to observe what actually happens during evaluation of a builtin application and how the
