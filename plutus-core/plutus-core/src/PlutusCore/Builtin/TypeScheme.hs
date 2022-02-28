@@ -26,6 +26,7 @@ import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
 import Data.Kind qualified as GHC (Type)
@@ -73,7 +74,9 @@ data TypeScheme val (args :: [GHC.Type]) res where
         => TypeScheme val '[] res
     TypeSchemeArrow
         :: KnownType val arg
-        => TypeScheme val args res
+           -- Inlining 'readKnown' here, so that it gets specialized and optimized properly.
+        => (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
+        -> TypeScheme val args res
         -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
@@ -103,7 +106,7 @@ type family FoldArgsEx args where
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
 typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
-typeSchemeToType sch@(TypeSchemeArrow schB) =
+typeSchemeToType sch@(TypeSchemeArrow _ schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
     (_ :: Proxy '(text, uniq, kind)) ->
