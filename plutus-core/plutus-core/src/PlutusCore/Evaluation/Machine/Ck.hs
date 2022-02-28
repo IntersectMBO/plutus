@@ -59,8 +59,6 @@ data CkValue uni fun =
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving (Show)
 
-instance ToBuiltinsRuntime DefaultFun (CkValue DefaultUni DefaultFun)
-
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.

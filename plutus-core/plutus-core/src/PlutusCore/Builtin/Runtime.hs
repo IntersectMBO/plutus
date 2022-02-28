@@ -82,28 +82,13 @@ toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
     BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
--- | This is a function turned into a class for the sake of specialization and inspection.
--- Every instance of this class MUST use the default implementation of 'toBuiltinsRuntime',
--- i.e. not define 'toBuiltinsRuntime' at all. Having this class allows us to inline away lots of
--- abstractions used by the builtins machinery.
---
--- For performance-critical code both @fun@ and @val@ need to be specified as concrete data types
--- for inlining to happen. In other places it's fine to only specify one of them.
-class ToBuiltinsRuntime fun val where
-    -- Somehow getting rid of the @uni ~ UniOf val@ constraint by substituting @UniOf val@ for @uni@
-    -- completely breaks inlining of 'toBuiltinMeaning'.
-    -- | Calculate runtime info for all built-in functions given a cost model.
-    toBuiltinsRuntime :: uni ~ UniOf val => CostingPart uni fun -> BuiltinsRuntime fun val
-    default toBuiltinsRuntime
-        :: (HasConstantIn uni val, ToBuiltinMeaning uni fun)
-        => CostingPart uni fun -> BuiltinsRuntime fun val
-    -- Do we want to mark this as @INLINE@? Or @NOINLINE@? The former has the advantage of allowing
-    -- us to optimize some of the @cost@-related operations away at the cost of potentially blowing
-    -- up compilation times or even the size of the executable (probably not though). The latter is
-    -- the opposite. Currently we let GHC decide: it won't inline 'toBuiltinsRuntime' if it's huge.
-    toBuiltinsRuntime cost =
-        -- 'toBuiltinMeaning' can be a huge function, hence an explicit 'inline'.
-        BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
+{-# INLINE toBuiltinsRuntime #-}
+toBuiltinsRuntime
+    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
+    => cost -> BuiltinsRuntime fun val
+toBuiltinsRuntime cost =
+    -- 'toBuiltinMeaning' can be a huge function, hence an explicit 'inline'.
+    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

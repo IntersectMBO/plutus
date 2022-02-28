@@ -82,9 +82,7 @@ defaultCekParameters = toMachineParameters defaultCekCostModel
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
 
-defaultBuiltinsRuntime
-    :: (ToBuiltinsRuntime DefaultFun val, UniOf val ~ DefaultUni)
-    => BuiltinsRuntime DefaultFun val
+defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
 
 

@@ -127,14 +127,6 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
         BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . snd)
 
-instance
-    ( HasConstantIn DefaultUni val
-    , ToBuiltinMeaning DefaultUni fun1
-    , ToBuiltinMeaning DefaultUni fun2
-    ) => ToBuiltinsRuntime (Either fun1 fun2) val
-
-instance HasConstantIn DefaultUni val => ToBuiltinsRuntime ExtensionFun val
-
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni val
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) val
