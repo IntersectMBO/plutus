@@ -84,6 +84,12 @@ verifySchnorrSecp256k1Signature pk msg sig =
     loc = "Schnorr SECP256k1 signature verification"
 
 -- Helpers
+
+-- TODO: Something like 'failWithMessage x y *> foo' should really fail with
+-- 'EvaluationFailure' without evaluating 'foo', but currently it will. This
+-- requires a fix to how Emitter and EvaluationResult work, and since we don't
+-- expect 'failWithMessage' to be used this way, we note this for future
+-- reference only for when such fixes are made.
 failWithMessage :: forall (a :: Type) .
   Text -> Text -> Emitter (EvaluationResult a)
 failWithMessage location reason = do
