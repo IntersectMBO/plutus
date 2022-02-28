@@ -67,5 +67,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/slotting; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/slotting; echo source root reset to $sourceRoot";
     }

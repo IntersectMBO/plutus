@@ -91,6 +91,12 @@ testSelfUpdate model = do
   updated <- applyParams model params
   updated @?= model
 
+-- Update a model with its no parameters and check that we get the same model back
+testUpdateEmpty :: CekCostModel -> IO ()
+testUpdateEmpty model = do
+  updated <- applyParams model mempty
+  updated @?= model
+
 -- Update a model model1 with the parameters from model2 and check that we get model2
 testOverwrite :: CekCostModel -> CekCostModel -> IO ()
 testOverwrite model1 model2 = do
@@ -177,6 +183,10 @@ test_costModelInterface =
        , testGroup "self-update is identity"
              [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testSelfUpdate defaultCekCostModel
              , testCase "randomCekCostModel  <- randomCekCostModel"  $ testSelfUpdate randomCekCostModel
+             ]
+       , testGroup "update-empty is identity"
+             [ testCase "defaultCekCostModel <- defaultCekCostModel" $ testUpdateEmpty defaultCekCostModel
+             , testCase "randomCekCostModel  <- randomCekCostModel"  $ testUpdateEmpty randomCekCostModel
              ]
        , testGroup "overwriting works"
              [ testCase "defaultCekCostModel <- randomCekCostModel"  $ testOverwrite defaultCekCostModel randomCekCostModel

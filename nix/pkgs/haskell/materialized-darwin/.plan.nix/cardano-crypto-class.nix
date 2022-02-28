@@ -133,5 +133,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/cardano-crypto-class; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/cardano-crypto-class; echo source root reset to $sourceRoot";
     }
