@@ -5,7 +5,7 @@ import Crypto.ECC.Ed25519Donna
 import Crypto.Error (maybeCryptoError)
 import Data.ByteString qualified as BS
 
--- Ed25519-donna signature verification
+-- Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.
 verifySignature
     :: Alternative f
