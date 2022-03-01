@@ -42,6 +42,7 @@ test_deserializingBigConstants :: TestTree
 test_deserializingBigConstants = testGroup "64-byte deserialization limit"
     [ test_bigInteger
     , test_bigByteString
+    , test_nested
     ]
 
 type Term = UPLC.WithSizeLimits 64 (UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ())
@@ -77,3 +78,12 @@ test_bigByteString = testCase "big bytestring" $ do
         t2 = UPLC.WithSizeLimits $ UPLC.mkConstant () justUnder
     assertBool "justOver" (isLeft $ Flat.unflat @Term (Flat.flat t1))
     assertBool "justUnder" (isRight $ Flat.unflat @Term (Flat.flat t2))
+
+test_nested :: TestTree
+test_nested = testCase "nested" $ do
+    let  -- A 64-byte integer
+        justOver :: Integer
+        justOver = 2 ^ (64 * 8 :: Integer)
+        t1 :: Term
+        t1 = UPLC.WithSizeLimits $ UPLC.Delay () $ UPLC.mkConstant () justOver
+    assertBool "delayed" (isLeft $ Flat.unflat @Term (Flat.flat t1))

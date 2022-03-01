@@ -75,10 +75,10 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = toMachineParameters defaultCekCostModel
+defaultCekParameters = mkMachineParameters defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
+unitCekParameters = mkMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel

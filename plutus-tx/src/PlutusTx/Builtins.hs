@@ -125,8 +125,14 @@ blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 = BI.blake2b_256
 
 {-# INLINABLE verifySignature #-}
--- | Verify that the signature is a signature of the message by the public key.
-verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> Bool
+-- | Ed25519 signature verification. Verify that the signature is a signature of
+-- the message by the public key. This will fail if key or the signature are not
+-- of the expected length.
+verifySignature
+    :: BuiltinByteString  -- ^ Public Key (32 bytes)
+    -> BuiltinByteString  -- ^ Message    (arbirtary length)
+    -> BuiltinByteString  -- ^ Signature  (64 bytes)
+    -> Bool
 verifySignature pubKey message signature = fromBuiltin (BI.verifySignature pubKey message signature)
 
 {-# INLINABLE equalsByteString #-}

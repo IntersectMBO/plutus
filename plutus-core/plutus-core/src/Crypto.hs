@@ -21,12 +21,13 @@ import Data.Text (Text)
 import PlutusCore.Builtin.Emitter (Emitter, emitM)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
+-- | Ed25519 signature verification
+-- This will fail if the key or the signature are not of the expected length.
 verifySignature
-    :: forall (f :: Type -> Type)
-     . Alternative f
-    => BS.ByteString  -- ^ Public Key
-    -> BS.ByteString  -- ^ Message
-    -> BS.ByteString  -- ^ Signature
+    :: Alternative f
+    => BS.ByteString  -- ^ Public Key (32 bytes)
+    -> BS.ByteString  -- ^ Message    (arbitrary length)
+    -> BS.ByteString  -- ^ Signature  (64 bytes)
     -> f Bool
 verifySignature pubKey msg sig =
     maybe empty pure . maybeCryptoError $
