@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RoleAnnotations       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -29,6 +30,12 @@ import ErrorCode
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
+-- The final type parameter is inferred to be phantom, but we give it a nominal
+-- role, since it corresponds to the Haskell type of the program that was compiled into
+-- this 'CompiledCodeIn'. It could be okay to give it a representational role, since
+-- we compile newtypes the same as their underlying types, but people probably just
+-- shouldn't coerce the final parameter regardless, so we play it safe with a nominal role.
+type role CompiledCodeIn representational representational nominal
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
 -- done by code generation so it's not typechecked normally.
