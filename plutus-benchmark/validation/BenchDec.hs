@@ -27,5 +27,5 @@ main = benchWith mkDecBM
             bslCBOR :: BSL.ByteString = Serialise.serialise bsFlat
             -- strictify and "short" the result cbor to create a real `SerializedScript`
             benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
-        in whnf validateScript benchScript
+        in whnf isScriptWellFormed benchScript
 

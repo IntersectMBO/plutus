@@ -1,5 +1,9 @@
-{-# LANGUAGE TypeApplications #-}
 module Main where
+
+import Plutus.V1.Ledger.Api
+import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
+import Plutus.V1.Ledger.Scripts
+
 
 import Codec.Serialise qualified as Serialise (serialise)
 import Common
@@ -7,8 +11,6 @@ import Criterion
 import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Scripts
 
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
@@ -54,11 +56,11 @@ main = benchWith mkFullBM
             bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v term)
             -- strictify and "short" the result cbor to create a real `SerializedScript`
             benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
+
         in  whnf (\ script -> snd $ evaluateScriptCounting
                         -- no logs
                         Quiet
-                        -- no need to pass chain params
-                        mempty
+                        evalCtxForTesting
                         script
                         args
                  )

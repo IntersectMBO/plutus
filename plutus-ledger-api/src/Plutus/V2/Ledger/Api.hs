@@ -8,7 +8,7 @@ module Plutus.V2.Ledger.Api (
     , Script
     , fromCompiledCode
     -- * Validating scripts
-    , validateScript
+    , isScriptWellFormed
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -21,9 +21,10 @@ module Plutus.V2.Ledger.Api (
     , ExMemory (..)
     , SatInt
     -- ** Cost model
-    , validateCostModelParams
-    , defaultCostModelParams
+    , EvaluationContext
+    , mkEvaluationContext
     , CostModelParams
+    , isCostModelParamsWellFormed
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)

@@ -68,6 +68,7 @@
           "Plutus/V1/Ledger/Tx"
           "Plutus/V1/Ledger/Time"
           "Plutus/V1/Ledger/Value"
+          "Plutus/V1/Ledger/EvaluationContext"
           "Plutus/V2/Ledger/Api"
           "Plutus/V2/Ledger/Contexts"
           "Plutus/V2/Ledger/Tx"
