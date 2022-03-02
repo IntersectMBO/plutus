@@ -5,10 +5,9 @@ module PlutusCore.Builtin.Emitter
     , Emitter (..)
     , runEmitter
     , emit
-    , forThen_
     ) where
 
-import Control.Monad.Trans.Writer.Strict (Writer, runWriter, tell)
+import Control.Monad.Writer.Strict
 import Data.Text (Text)
 
 newtype ChurchList a = ChurchList
@@ -23,14 +22,13 @@ instance Monoid (ChurchList a) where
     mempty = ChurchList $ \_ -> id
     {-# INLINE mempty #-}
 
+instance Foldable ChurchList where
+    foldr f z (ChurchList k) = k f z
+    {-# INLINE foldr #-}
+
 singletonChurchList :: a -> ChurchList a
 singletonChurchList x = ChurchList ($ x)
 {-# INLINE singletonChurchList #-}
-
-forThen_ :: Applicative f => ChurchList a -> (a -> f ()) -> f b -> f b
-forThen_ (ChurchList k) f = k c where
-    c x z = f x *> z
-    {-# INLINE c #-}
 
 newtype Emitter a = Emitter
     { unEmitter :: Writer (ChurchList Text) a
