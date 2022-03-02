@@ -8,7 +8,7 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
       - uses: nixbuild/nix-quick-install-action@v10
         with:
           # 2.6 is the default, but it has https://github.com/NixOS/nix/issues/5998
@@ -20,7 +20,7 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
       - uses: nixbuild/nix-quick-install-action@v10
         with:
           # 2.6 is the default, but it has https://github.com/NixOS/nix/issues/5998
