@@ -72,6 +72,7 @@ import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array hiding (index)
+import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
@@ -284,7 +285,7 @@ defaultSlippage :: Slippage
 defaultSlippage = 200
 
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s = Text -> CekM uni fun s ()
+type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
@@ -557,10 +558,10 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         let !(errOrRes, logs) = makeKnownRun (Just term) x
-        forThen_ logs ?cekEmitter $
-            case errOrRes of
-                Left err  -> throwMakeKnownErrorWithCause err
-                Right res -> pure res
+        ?cekEmitter logs
+        case errOrRes of
+            Left err  -> throwMakeKnownErrorWithCause err
+            Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
