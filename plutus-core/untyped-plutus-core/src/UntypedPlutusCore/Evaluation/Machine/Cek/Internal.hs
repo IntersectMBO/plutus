@@ -72,7 +72,6 @@ import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array hiding (index)
-import Data.Foldable (traverse_)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
@@ -558,10 +557,10 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         let !(errOrRes, logs) = makeKnownRun (Just term) x
-        traverse_ ?cekEmitter logs
-        case errOrRes of
-            Left err  -> throwMakeKnownErrorWithCause err
-            Right res -> pure res
+        forThen_ logs ?cekEmitter $
+            case errOrRes of
+                Left err  -> throwMakeKnownErrorWithCause err
+                Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 

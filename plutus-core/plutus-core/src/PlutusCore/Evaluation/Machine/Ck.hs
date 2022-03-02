@@ -41,7 +41,6 @@ import Control.Monad.ST
 import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
-import Data.Foldable (traverse_)
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -70,10 +69,10 @@ evalBuiltinApp
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
     RuntimeSchemeResult -> do
         let (errOrRes, logs) = makeKnownRun (Just term) x
-        traverse_ emitCkM logs
-        case errOrRes of
-            Left err  -> throwMakeKnownErrorWithCause err
-            Right res -> pure res
+        forThen_ logs emitCkM $
+            case errOrRes of
+                Left err  -> throwMakeKnownErrorWithCause err
+                Right res -> pure res
     _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
