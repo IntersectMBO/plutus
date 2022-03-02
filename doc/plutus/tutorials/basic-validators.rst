@@ -35,7 +35,7 @@ Since ``Data`` is represented as a builtin type in Plutus Core, we use a special
 However, you will typically not want to use ``BuiltinData`` directly in your program, rather you will want to use your own datatypes.
 We can easily convert to and from ``BuiltinData`` with the :hsobj:`PlutusTx.IsData.Class.ToData`, :hsobj:`PlutusTx.IsData.Class.FromData`, and :hsobj:`PlutusTx.IsData.Class.UnsafeFromData` typeclasses.
 You usually don't need to write your own instances of these classes.
-Instead, you can use the ``makeIsData`` Template Haskell function to generate one.
+Instead, you can use the ``unstableMakeIsData`` Template Haskell function to generate one.
 
 .. note::
    The :hsobj:`PlutusTx.IsData.Class.UnsafeFromData` class provides ``unsafeFromBuiltinData``, which is the same as ``fromBuiltinData``, but is faster and fails with ``error`` rather than returning a ``Maybe``.
