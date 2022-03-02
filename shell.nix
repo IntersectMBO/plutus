@@ -4,7 +4,7 @@
 }:
 let
   inherit (packages) pkgs plutus docs;
-  inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
+  inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt glibcLocales;
   inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
 
@@ -100,4 +100,8 @@ haskell.project.shellFor {
   + lib.optionalString stdenv.isLinux ''
     ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
+
+  # This is no longer set automatically as of more recent `haskell.nix` revisions, 
+  # but is useful for users with LANG settings.
+  LOCALE_ARCHIVE = lib.optionalString (stdenv.hostPlatform.libc == "glibc") "${glibcLocales}/lib/locale/locale-archive";
 }
