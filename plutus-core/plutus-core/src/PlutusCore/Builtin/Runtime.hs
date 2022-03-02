@@ -97,7 +97,7 @@ data UnliftMode
     | UnliftWhenSaturated
 
 unliftMode :: UnliftMode
-unliftMode = UnliftWhenSaturated
+unliftMode = UnliftImmediately
 
 -- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
