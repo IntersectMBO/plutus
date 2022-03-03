@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -19,6 +20,7 @@ import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
+import Data.Data
 import Data.Hashable (Hashable (..))
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
@@ -81,7 +83,7 @@ BOOL
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinBool = BuiltinBool Bool
+data BuiltinBool = BuiltinBool Bool deriving stock Data
 
 {-# NOINLINE true #-}
 true :: BuiltinBool
@@ -100,7 +102,7 @@ UNIT
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinUnit = BuiltinUnit ()
+data BuiltinUnit = BuiltinUnit () deriving stock Data
 
 {-# NOINLINE unitval #-}
 unitval :: BuiltinUnit
@@ -165,7 +167,7 @@ BYTESTRING
 
 -- See Note [Opaque builtin types]
 -- | An opaque type representing Plutus Core ByteStrings.
-data BuiltinByteString = BuiltinByteString ByteString
+data BuiltinByteString = BuiltinByteString ByteString deriving stock Data
 
 instance Haskell.Show BuiltinByteString where
     show (BuiltinByteString bs) = show bs
@@ -255,7 +257,7 @@ STRING
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinString = BuiltinString Text
+data BuiltinString = BuiltinString Text deriving stock Data
 
 instance Haskell.Show BuiltinString where
     show (BuiltinString t) = show t
@@ -289,7 +291,7 @@ PAIR
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinPair a b = BuiltinPair (a, b)
+data BuiltinPair a b = BuiltinPair (a, b) deriving stock Data
 
 instance (Haskell.Show a, Haskell.Show b) => Haskell.Show (BuiltinPair a b) where
     show (BuiltinPair p) = show p
@@ -315,7 +317,7 @@ LIST
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinList a = BuiltinList [a]
+data BuiltinList a = BuiltinList [a] deriving stock Data
 
 instance Haskell.Show a => Haskell.Show (BuiltinList a) where
     show (BuiltinList l) = show l
@@ -372,7 +374,7 @@ that you want to be representable on-chain.
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
-data BuiltinData = BuiltinData PLC.Data
+data BuiltinData = BuiltinData PLC.Data deriving stock Data
 
 instance Haskell.Show BuiltinData where
     show (BuiltinData d) = show d
