@@ -26,19 +26,19 @@ instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
 -- b) We do not do equality "modulo init index, see deBruijnInitIndex". E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
 -- c) We do not do equality ""modulo annotations".
 -- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any annotations.
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term NamedDeBruijn uni fun ann)
 
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term FakeNamedDeBruijn uni fun ann)
 
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term DeBruijn uni fun ann)
 
-deriving instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
+deriving stock instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
                   Eq (Term name uni fun ann)
                   ) =>  Eq (Program name uni fun ann)
 

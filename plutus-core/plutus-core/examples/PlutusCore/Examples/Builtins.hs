@@ -114,7 +114,8 @@ data ExtensionFun
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
-    deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
+    deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
+    deriving anyclass (Hashable)
 
 instance Pretty ExtensionFun where pretty = viaShow
 
@@ -148,7 +149,8 @@ instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
-    deriving (Show, Eq, Exception)
+    deriving stock (Show, Eq)
+    deriving anyclass (Exception)
 
 -- See Note [Representable built-in functions over polymorphic built-in types].
 -- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates

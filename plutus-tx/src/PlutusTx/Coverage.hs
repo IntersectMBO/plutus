@@ -73,7 +73,8 @@ data CovLoc = CovLoc { _covLocFile      :: String
                      , _covLocEndLine   :: Int
                      , _covLocStartCol  :: Int
                      , _covLocEndCol    :: Int }
-  deriving (Ord, Eq, Show, Read, Generic, Serialise)
+  deriving stock (Ord, Eq, Show, Read, Generic)
+  deriving anyclass (Serialise)
   deriving Flat via (AsSerialize CovLoc)
 
 makeLenses ''CovLoc
@@ -84,7 +85,8 @@ instance Pretty CovLoc where
 
 data CoverageAnnotation = CoverLocation CovLoc
                         | CoverBool CovLoc Bool
-                        deriving (Ord, Eq, Show, Read, Generic, Serialise)
+                        deriving stock (Ord, Eq, Show, Read, Generic)
+                        deriving anyclass (Serialise)
                         deriving Flat via (AsSerialize CoverageAnnotation)
 
 instance Pretty CoverageAnnotation where
@@ -92,15 +94,16 @@ instance Pretty CoverageAnnotation where
   pretty (CoverBool loc b)   = pretty loc <+> "=" <+> pretty b
 
 data Metadata = ApplicationHeadSymbol String
-    deriving (Ord, Eq, Show, Generic, Serialise)
+    deriving stock (Ord, Eq, Show, Generic)
+    deriving anyclass (Serialise)
     deriving Flat via (AsSerialize Metadata)
 
 instance Pretty Metadata where
   pretty = viaShow
 
 newtype CoverageMetadata = CoverageMetadata { _metadataSet :: Set Metadata }
-    deriving (Ord, Eq, Show, Generic)
-    deriving anyclass Serialise
+    deriving stock (Ord, Eq, Show, Generic)
+    deriving anyclass (Serialise)
     deriving newtype (Semigroup, Monoid)
     deriving Flat via (AsSerialize CoverageMetadata)
 
@@ -112,7 +115,8 @@ instance Pretty CoverageMetadata where
 -- | This type keeps track of all coverage annotations and where they have been inserted / what
 -- annotations are expected to be found when executing a piece of code.
 data CoverageIndex = CoverageIndex { _coverageMetadata :: Map CoverageAnnotation CoverageMetadata }
-                      deriving (Ord, Eq, Show, Generic, Serialise)
+                      deriving stock (Ord, Eq, Show, Generic)
+                      deriving anyclass (Serialise)
                       deriving Flat via (AsSerialize CoverageIndex)
 
 makeLenses ''CoverageIndex
@@ -145,7 +149,7 @@ boolCaseCoverageAnn :: CovLoc -> Bool -> CoverageAnnotation
 boolCaseCoverageAnn src b = CoverBool src b
 
 newtype CoverageReport = CoverageReport { _coveredAnnotations :: Set CoverageAnnotation }
-  deriving (Ord, Eq, Show)
+  deriving stock (Ord, Eq, Show)
   deriving newtype (Semigroup, Monoid)
 
 makeLenses ''CoverageReport

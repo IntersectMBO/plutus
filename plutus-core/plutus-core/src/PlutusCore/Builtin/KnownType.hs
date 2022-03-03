@@ -153,7 +153,7 @@ faster than any kind of fancy encoding.
 data ReadKnownError
     = ReadKnownUnliftingError UnliftingError
     | ReadKnownEvaluationFailure
-    deriving (Eq)
+    deriving stock (Eq)
 
 makeClassyPrisms ''ReadKnownError
 

@@ -68,7 +68,7 @@ as importantly, what is not.
 data ScopedName
     = TypeName TyName
     | TermName Name
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord)
 
 isSameScope :: ScopedName -> ScopedName -> Bool
 isSameScope TypeName{} TypeName{} = True
@@ -80,24 +80,24 @@ isSameScope TermName{} TypeName{} = False
 data Stays
     = StaysOutOfScopeVariable  -- ^ An out-of-scope variable does not get renamed and hence stays.
     | StaysFreeVariable        -- ^ A free variable does not get renamed and hence stays.
-    deriving (Show)
+    deriving stock (Show)
 
 -- | Changing names.
 data Disappears
     = DisappearsBinding   -- ^ A binding gets renamed and hence the name that it binds disappears.
     | DisappearsVariable  -- ^ A bound variable gets renamed and hence its name disappears.
-    deriving (Show)
+    deriving stock (Show)
 
 -- | A name either stays or disappears.
 data NameAction
     = Stays Stays
     | Disappears Disappears
-    deriving (Show)
+    deriving stock (Show)
 
 data NameAnn
     = NameAction NameAction ScopedName
     | NotAName
-    deriving (Show)
+    deriving stock (Show)
 
 class ToScopedName name where
     toScopedName :: name -> ScopedName
@@ -156,14 +156,14 @@ data ScopeEntry
     | AppearedVariables
     | StayedOutOfScopeVariables
     | StayedFreeVariables
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord)
 
 -- | A 'ScopeInfo' is a set of 'ScopedName's for each of the 'ScopeEntry'.
 -- If a 'ScopeEntry' is not present in the map, the corresponding set of 'ScopeName's is considered
 -- to be empty.
 newtype ScopeInfo = ScopeInfo
     { unScopeInfo :: Map ScopeEntry (Set ScopedName)
-    } deriving (Show)
+    } deriving stock (Show)
 
 -- | Extract the set stored in the provided 'ScopeInfo' at the provided 'ScopeEntry'.
 to :: ScopeEntry -> ScopeInfo -> Set ScopedName
@@ -287,7 +287,7 @@ data ScopeError
     | OldBindingsClashWithFreeVariables (Set ScopedName)
     | OldBindingsClashWithNewBindings (Set ScopedName)
     | NewBindingsClashWithFreeVariabes (Set ScopedName)
-    deriving (Show)
+    deriving stock (Show)
 
 -- | Override the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
 overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo

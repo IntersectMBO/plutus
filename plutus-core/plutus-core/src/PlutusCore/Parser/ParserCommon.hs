@@ -28,7 +28,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
-    deriving (Show)
+    deriving stock (Show)
 
 type Parser =
     ParsecT ParseError T.Text (StateT ParserState Quote)

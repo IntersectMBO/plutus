@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE StrictData           #-}
-{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -83,7 +82,8 @@ data Support
     | OnDiagonal
     | BelowOrOnDiagonal
     | AboveOrOnDiagonal
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
 
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
@@ -155,7 +155,8 @@ data BuiltinCostModelBase f =
     , paramMkNilPairData            :: f ModelOneArgument
     , paramSerialiseData            :: f ModelOneArgument
     }
-    deriving (Generic, FunctorB, TraversableB, ConstraintsB)
+    deriving stock (Generic)
+    deriving anyclass (FunctorB, TraversableB, ConstraintsB)
 
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance ToJSON (BuiltinCostModelBase CostingFun)
@@ -173,11 +174,11 @@ type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
     , constraint (f ModelSixArguments))
 
 -- HLS doesn't like the AllBF from Barbies.
-deriving instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
-deriving instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
+deriving anyclass instance AllArgumentModels NFData  f => NFData  (BuiltinCostModelBase f)
+deriving anyclass instance AllArgumentModels Default f => Default (BuiltinCostModelBase f)
+deriving stock instance AllArgumentModels Lift    f => Lift    (BuiltinCostModelBase f)
+deriving stock instance AllArgumentModels Show    f => Show    (BuiltinCostModelBase f)
+deriving stock instance AllArgumentModels Eq      f => Eq      (BuiltinCostModelBase f)
 
 -- TODO there's probably a nice way to abstract over the number of arguments here. Feel free to implement it.
 
@@ -185,7 +186,8 @@ data CostingFun model = CostingFun
     { costingFunCpu    :: model
     , costingFunMemory :: model
     }
-    deriving (Show, Eq, Generic, Lift, Default, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (Default, NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "costingFun", CamelToSnake)] (CostingFun model)
 
@@ -195,7 +197,8 @@ data CostingFun model = CostingFun
 data ModelOneArgument =
     ModelOneArgumentConstantCost CostingInteger
     | ModelOneArgumentLinearCost ModelLinearSize
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"
@@ -231,7 +234,8 @@ runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope
 data ModelAddedSizes = ModelAddedSizes
     { modelAddedSizesIntercept :: CostingInteger
     , modelAddedSizesSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelAddedSizes", CamelToSnake)] ModelAddedSizes
 
@@ -240,14 +244,16 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: CostingInteger
     , modelSubtractedSizesSlope     :: CostingInteger
     , modelSubtractedSizesMinimum   :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelSubtractedSizes", CamelToSnake)] ModelSubtractedSizes
 
 data ModelLinearSize = ModelLinearSize
     { modelLinearSizeIntercept :: CostingInteger
     , modelLinearSizeSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelLinearSize", CamelToSnake)] ModelLinearSize
 
@@ -255,7 +261,8 @@ data ModelLinearSize = ModelLinearSize
 data ModelMultipliedSizes = ModelMultipliedSizes
     { modelMultipliedSizesIntercept :: CostingInteger
     , modelMultipliedSizesSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMultipliedSizes", CamelToSnake)] ModelMultipliedSizes
 
@@ -263,7 +270,8 @@ data ModelMultipliedSizes = ModelMultipliedSizes
 data ModelMinSize = ModelMinSize
     { modelMinSizeIntercept :: CostingInteger
     , modelMinSizeSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMinSize", CamelToSnake)] ModelMinSize
 
@@ -271,7 +279,8 @@ data ModelMinSize = ModelMinSize
 data ModelMaxSize = ModelMaxSize
     { modelMaxSizeIntercept :: CostingInteger
     , modelMaxSizeSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelMaxSize", CamelToSnake)] ModelMaxSize
 
@@ -280,7 +289,8 @@ data ModelConstantOrLinear = ModelConstantOrLinear
     { modelConstantOrLinearConstant  :: CostingInteger
     , modelConstantOrLinearIntercept :: CostingInteger
     , modelConstantOrLinearSlope     :: CostingInteger
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelConstantOrLinear", CamelToSnake)] ModelConstantOrLinear
 
@@ -288,7 +298,8 @@ data ModelConstantOrLinear = ModelConstantOrLinear
 data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
     { modelConstantOrTwoArgumentsConstant :: CostingInteger
     , modelConstantOrTwoArgumentsModel    :: ModelTwoArguments
-    } deriving (Show, Eq, Generic, Lift, NFData)
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[FieldLabelModifier (StripPrefix "modelConstantOrTwoArguments", CamelToSnake)] ModelConstantOrTwoArguments
 
@@ -305,7 +316,8 @@ data ModelTwoArguments =
   | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
   | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"
@@ -377,7 +389,8 @@ data ModelThreeArguments =
   | ModelThreeArgumentsLinearInX    ModelLinearSize
   | ModelThreeArgumentsLinearInY    ModelLinearSize
   | ModelThreeArgumentsLinearInZ    ModelLinearSize
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"
@@ -418,7 +431,8 @@ runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
 
 data ModelFourArguments =
       ModelFourArgumentsConstantCost CostingInteger
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"
@@ -453,7 +467,8 @@ runCostingFunFourArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 =
 
 data ModelFiveArguments =
       ModelFiveArgumentsConstantCost CostingInteger
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"
@@ -490,7 +505,8 @@ runCostingFunFiveArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 =
 
 data ModelSixArguments =
       ModelSixArgumentsConstantCost CostingInteger
-    deriving (Show, Eq, Generic, Lift, NFData)
+    deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
     deriving (FromJSON, ToJSON) via CustomJSON
         '[ TagSingleConstructors
          , SumTaggedObject "type" "arguments"

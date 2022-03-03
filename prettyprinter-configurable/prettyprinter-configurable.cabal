@@ -22,9 +22,8 @@ common lang
                         ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wnoncanonical-monoid-instances
-                 -Wunused-packages
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -Wmissing-deriving-strategies
 
 custom-setup
     setup-depends:

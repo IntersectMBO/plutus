@@ -112,7 +112,7 @@ data TermConstantG = TmIntegerG Integer
                    | TmBoolG Bool
                    | TmUnitG ()
                    | TmDataG Data
-                   deriving (Show, Eq)
+                   deriving stock (Show, Eq)
 
 deriveEnumerable ''Data
 
@@ -141,7 +141,7 @@ data TermG tyname name
     | WrapG (TermG tyname name)
     | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
     | ErrorG (TypeG tyname)
-    deriving (Eq, Show)
+    deriving stock (Eq, Show)
 
 deriveBifunctor ''TermG
 deriveEnumerable ''TermG

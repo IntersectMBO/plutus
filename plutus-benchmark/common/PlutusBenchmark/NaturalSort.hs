@@ -17,7 +17,7 @@ import Data.List (sortBy)
 data Component =
     Numeric Int
   | Other String
-    deriving (Eq, Ord, Show)
+    deriving stock (Eq, Ord, Show)
     -- Numeric < Other
 
 getComponent :: String -> Maybe (Component, String)
