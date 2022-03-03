@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -57,6 +58,7 @@ import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey, (.:))
 import Data.Aeson qualified as JSON
 import Data.Aeson.Extras qualified as JSON
 import Data.ByteString qualified as BS
+import Data.Data
 import Data.Hashable (Hashable)
 import Data.List qualified (sortBy)
 import Data.String (IsString (fromString))
@@ -79,7 +81,7 @@ import Prettyprinter.Extras
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving (IsString, Haskell.Show, Serialise, Pretty) via LedgerBytes
-    deriving stock (Generic)
+    deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, ToJSONKey, FromJSONKey,  NFData)
 
@@ -119,7 +121,7 @@ currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 -- | ByteString of a name of a token, shown as UTF-8 string when possible
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving (Serialise) via LedgerBytes
-    deriving stock (Generic)
+    deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, NFData)
     deriving Pretty via (PrettyShow TokenName)
@@ -178,7 +180,7 @@ instance FromJSON TokenName where
 
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
-    deriving stock (Generic)
+    deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (Hashable, NFData, ToJSON, FromJSON)
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
@@ -203,7 +205,7 @@ assetClass s t = AssetClass (s, t)
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Generic)
+    deriving stock (Generic, Data)
     deriving anyclass (ToJSON, FromJSON, Hashable, NFData)
     deriving newtype (Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
