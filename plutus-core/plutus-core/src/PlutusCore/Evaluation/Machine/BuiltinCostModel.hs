@@ -153,6 +153,7 @@ data BuiltinCostModelBase f =
     , paramMkPairData               :: f ModelTwoArguments
     , paramMkNilData                :: f ModelOneArgument
     , paramMkNilPairData            :: f ModelOneArgument
+    , paramSerialiseData            :: f ModelOneArgument
     }
     deriving (Generic, FunctorB, TraversableB, ConstraintsB)
 

@@ -18,6 +18,7 @@ import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
+import Data.ByteString.Lazy as BS (toStrict)
 import Data.Coerce (coerce)
 import Data.Hashable (Hashable (..))
 import Data.Maybe (fromMaybe)
@@ -458,3 +459,7 @@ unsafeDataAsB _                       = Haskell.error "not a B"
 {-# NOINLINE equalsData #-}
 equalsData :: BuiltinData -> BuiltinData -> BuiltinBool
 equalsData (BuiltinData b1) (BuiltinData b2) = BuiltinBool $ b1 Haskell.== b2
+
+{-# NOINLINE serialiseData #-}
+serialiseData :: BuiltinData -> BuiltinByteString
+serialiseData (BuiltinData b) = BuiltinByteString $ BS.toStrict $ serialise b
