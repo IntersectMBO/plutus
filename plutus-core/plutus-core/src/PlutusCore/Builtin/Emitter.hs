@@ -4,10 +4,11 @@ module PlutusCore.Builtin.Emitter
     , emit
     ) where
 
-import Control.Monad.Writer.Strict
+import Control.Monad.Trans.Writer.Strict (Writer, runWriter, tell)
 import Data.DList as DList
 import Data.Text (Text)
 
+-- | A monad for logging.
 newtype Emitter a = Emitter
     { unEmitter :: Writer (DList Text) a
     } deriving newtype (Functor, Applicative, Monad)
@@ -17,5 +18,5 @@ runEmitter = runWriter . unEmitter
 {-# INLINE runEmitter #-}
 
 emit :: Text -> Emitter ()
-emit text = Emitter . tell $ pure text
+emit = Emitter . tell . pure
 {-# INLINE emit #-}
