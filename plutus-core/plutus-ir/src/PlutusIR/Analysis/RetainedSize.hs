@@ -96,7 +96,7 @@ we know there's a bug somewhere and if it doesn't, we don't care about it.
 data RetainedSize
     = Retains Size
     | NotARetainer
-    deriving (Show)
+    deriving stock (Show)
 
 instance Pretty RetainedSize where
     pretty (Retains size) = "$" <> pretty size <> "$"

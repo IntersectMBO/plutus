@@ -62,7 +62,7 @@ basicEnum :: CompiledCode MyEnum
 basicEnum = plc (Proxy @"basicEnum") Enum1
 
 data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance P.Eq MyMonoData where
     {-# INLINABLE (==) #-}
@@ -98,7 +98,7 @@ atPattern :: CompiledCode ((Integer, Integer) -> Integer)
 atPattern = plc (Proxy @"atPattern") (\t@(_::Integer, y::Integer) -> let fst (a, _) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance P.Eq MyMonoRecord where
     {-# INLINABLE (==) #-}
@@ -182,7 +182,7 @@ newtypes = testNested "newtypes" [
    ]
 
 newtype MyNewtype = MyNewtype Integer
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 

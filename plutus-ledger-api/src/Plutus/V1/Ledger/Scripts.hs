@@ -169,7 +169,8 @@ fromCompiledCode = Script . toNameless . getPlc
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
+    deriving anyclass (NFData)
 
 applyArguments :: Script -> [PLC.Data] -> Script
 applyArguments (Script p) args =

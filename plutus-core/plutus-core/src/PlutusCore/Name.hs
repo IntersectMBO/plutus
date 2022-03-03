@@ -44,12 +44,14 @@ import Language.Haskell.TH.Syntax (Lift)
 data Name = Name
     { nameString :: T.Text -- ^ The identifier name, for use in error messages.
     , nameUnique :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
-    } deriving (Show, Generic, NFData, Lift, Hashable)
+    }
+    deriving stock (Show, Generic, Lift)
+    deriving anyclass (NFData, Hashable)
 
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName = TyName { unTyName :: Name }
-    deriving (Show, Generic, Lift)
+    deriving stock (Show, Generic, Lift)
     deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
 instance Wrapped TyName
 
@@ -75,19 +77,19 @@ instance Ord Name where
 
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
-    deriving (Eq, Show, Ord, Enum, Lift)
-    deriving newtype (NFData, Pretty, Hashable)
+    deriving stock (Eq, Show, Ord, Lift)
+    deriving newtype (Enum, NFData, Pretty, Hashable)
 
 -- | The unique of a type-level name.
 newtype TypeUnique = TypeUnique
     { unTypeUnique :: Unique
-    } deriving (Eq, Ord)
+    } deriving stock (Eq, Ord)
     deriving newtype Hashable
 
 -- | The unique of a term-level name.
 newtype TermUnique = TermUnique
     { unTermUnique :: Unique
-    } deriving (Eq, Ord)
+    } deriving stock (Eq, Ord)
     deriving newtype Hashable
 
 -- | Types which have a 'Unique' attached to them, mostly names.

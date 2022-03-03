@@ -57,7 +57,7 @@ data CompileContext uni fun = CompileContext {
 data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
-    deriving (Eq)
+    deriving stock (Eq)
 
 -- | Coverage options
 -- See Note [Coverage annotations]
@@ -77,7 +77,7 @@ data CoverageType = LocationCoverage -- ^ Check that all source locations that w
                                     -- we know the source location have been covered. For this to work at all we need
                                     -- `{-# OPTIONS_GHC -g #-}` turn on with
                                     -- `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-}`
-                    deriving (Ord, Eq, Show, Enum, Bounded)
+                    deriving stock (Ord, Eq, Show, Enum, Bounded)
 
 {- Note [Coverage order]
    The order in which `CoverageType` constructors appear in the type determine the order in
@@ -96,7 +96,7 @@ data CoverageType = LocationCoverage -- ^ Check that all source locations that w
 -- The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
 -- a problem if you compare things from different builds, which we don't do.
 newtype LexName = LexName GHC.Name
-    deriving (Eq)
+    deriving stock (Eq)
 
 instance Show LexName where
     show (LexName n) = GHC.occNameString $ GHC.occName n

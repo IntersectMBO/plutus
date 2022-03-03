@@ -34,23 +34,23 @@ instance
 -- c) We do not do equality ""modulo annotations".
 -- Note that we ignore the name part in case of the nameddebruijn
 -- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any annotations.
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
 
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term TyDeBruijn DeBruijn uni fun ann)
 
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann) =>
    Eq (Type NamedTyDeBruijn uni ann)
 
-deriving instance
+deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann) =>
    Eq (Type TyDeBruijn uni ann)
 
-deriving instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
+deriving stock instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
                   Eq (Term tyname name uni fun ann)
                   ) =>  Eq (Program tyname name uni fun ann)
 

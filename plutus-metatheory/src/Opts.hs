@@ -5,7 +5,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Options.Applicative
 
-data Input = FileInput T.Text | StdInput deriving (Show, Read)
+data Input = FileInput T.Text | StdInput deriving stock (Show, Read)
 
 
 fileInput :: Parser Input
@@ -23,7 +23,7 @@ stdInput = flag' StdInput
 input :: Parser Input
 input = fileInput <|> stdInput
 
-data EvalMode = U | TL | L | TCK | CK | TCEK deriving (Show, Read)
+data EvalMode = U | TL | L | TCK | CK | TCEK deriving stock (Show, Read)
 
 data EvalOptions = EvalOpts Input EvalMode
 

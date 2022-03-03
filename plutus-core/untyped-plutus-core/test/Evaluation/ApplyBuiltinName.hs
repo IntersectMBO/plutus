@@ -48,7 +48,7 @@ type AppErr =
 newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
-      deriving (MonadEmitter) via (NoEmitterT AppM)
+      deriving stock (MonadEmitter) via (NoEmitterT AppM)
 
 -- | This shows that the builtin application machinery accepts untyped terms.
 test_applyBuiltinFunction :: DefaultFun -> TestTree

@@ -122,7 +122,7 @@ infixl 4 <<$>>, <<*>>
 -- for anything that has a 'Pretty' instance.
 newtype ShowPretty a = ShowPretty
     { unShowPretty :: a
-    } deriving (Eq)
+    } deriving stock (Eq)
 
 instance Pretty a => Show (ShowPretty a) where
     show = display . unShowPretty

@@ -33,7 +33,7 @@ import Prettyprinter qualified as PP
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
 -- the priority of the context when displaying it. Lower numbers are more prioritised.
 data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
-    deriving Functor
+    deriving stock Functor
 makeClassyPrisms ''WithContext
 
 type CompileError uni fun = WithContext T.Text (Error uni fun ())

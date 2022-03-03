@@ -25,11 +25,11 @@ import Data.Text qualified as Text
 import PlutusCore.Name (Name, TyName (..))
 import PlutusCore.Quote (MonadQuote (..), freshName)
 
-data Z deriving (Eq, Ord, Show)
+data Z deriving stock (Eq, Ord, Show)
 
 data S n = FZ
          | FS n
-             deriving (Eq, Ord, Show, Functor)
+             deriving stock (Eq, Ord, Show, Functor)
 
 instance Enumerable Z where
   enumerate = datatype []

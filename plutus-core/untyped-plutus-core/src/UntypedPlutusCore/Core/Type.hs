@@ -118,7 +118,7 @@ type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term
 data UVarDecl name ann = UVarDecl
     { _uvarDeclAnn  :: ann
     , _uvarDeclName :: name
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.

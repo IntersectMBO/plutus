@@ -200,7 +200,7 @@ the given type/term, which are things like "must be able to type the constructor
 These are then cashed out into constraints on the instance.
 -}
 
-data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving (Show, Eq, Ord)
+data Dep = TypeableDep TH.Type | LiftDep TH.Type deriving stock (Show, Eq, Ord)
 type Deps = Set.Set Dep
 
 -- | Get all the named types which we depend on to define the current type.

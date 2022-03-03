@@ -44,7 +44,7 @@ genLowerBytes range = Gen.utf8 range Gen.lower
 data TermOf term a = TermOf
     { _termOfTerm  :: term  -- ^ The term
     , _termOfValue :: a     -- ^ The Haskell value.
-    } deriving (Functor, Foldable, Traversable)
+    } deriving stock (Functor, Foldable, Traversable)
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
