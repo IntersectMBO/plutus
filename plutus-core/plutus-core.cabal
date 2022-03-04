@@ -581,6 +581,7 @@ test-suite traceToStacks-test
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
 executable cost-model-budgeting-bench
+    import: lang
     main-is: Main.hs
     other-modules:
         Common
@@ -599,14 +600,6 @@ executable cost-model-budgeting-bench
         Benchmarks.Tracing
         Benchmarks.Unit
     hs-source-dirs: cost-model/budgeting-bench
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         plutus-core -any,
         base -any,
@@ -632,15 +625,8 @@ executable cost-model-budgeting-bench
 -- in plutus-core/cost-model/data/builtinCostModel.json.
 executable generate-cost-model
     main-is: Main.hs
+    import: lang
     hs-source-dirs: cost-model/create-cost-model
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         plutus-core -any,
         aeson-pretty -any,
@@ -670,9 +656,6 @@ benchmark cost-model-test
     main-is: TestCostModels.hs
     other-modules: TH
     hs-source-dirs: cost-model/test, cost-model/create-cost-model
-    default-language: Haskell2010
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base -any,
         plutus-core -any,

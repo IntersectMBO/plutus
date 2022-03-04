@@ -42,6 +42,7 @@ import System.Random (getStdGen)
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
+
   criterionMainWith
        True
        defaultConfig $
