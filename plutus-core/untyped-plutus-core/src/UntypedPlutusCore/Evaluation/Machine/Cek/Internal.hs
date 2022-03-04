@@ -285,8 +285,7 @@ defaultSlippage :: Slippage
 defaultSlippage = 200
 
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s =
-    DList Text -> CekM uni fun s (CekValue uni fun) -> CekM uni fun s (CekValue uni fun)
+type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
@@ -559,7 +558,8 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         let !(errOrRes, logs) = makeKnownRun (Just term) x
-        ?cekEmitter logs $ case errOrRes of
+        ?cekEmitter logs
+        case errOrRes of
             Left err  -> throwMakeKnownErrorWithCause err
             Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
