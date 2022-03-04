@@ -64,5 +64,5 @@
       rev = "minimal";
       sha256 = "";
       };
-    postUnpack = "sourceRoot+=/strict-containers; echo source root reset to \$sourceRoot";
+    postUnpack = "sourceRoot+=/strict-containers; echo source root reset to $sourceRoot";
     }

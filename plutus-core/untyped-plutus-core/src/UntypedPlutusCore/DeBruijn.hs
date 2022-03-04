@@ -9,6 +9,7 @@ module UntypedPlutusCore.DeBruijn
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
+    , FakeNamedDeBruijn (..)
     , FreeVariableError (..)
     , AsFreeVariableError (..)
     , deBruijnTerm

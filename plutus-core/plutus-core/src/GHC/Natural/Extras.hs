@@ -3,16 +3,12 @@
 
 module GHC.Natural.Extras (naturalToWord64Maybe, Natural (..)) where
 
+import Data.IntCast (intCastEq)
 import Data.Word (Word64)
 import GHC.Natural
 
+-- Note this will only work on 64bit platforms, but that's all we build on
+-- so that's okay.
 {-# INLINABLE naturalToWord64Maybe #-}
 naturalToWord64Maybe :: Natural -> Maybe Word64
-naturalToWord64Maybe n =
-#if WORD_SIZE_IN_BITS == 64
-    fromIntegral <$> naturalToWordMaybe n
-#else
-     if n <= (fromIntegral (maxBound :: Word64) :: Natural)
-     then Just $ fromIntegral n
-     else Nothing
-#endif
+naturalToWord64Maybe n = intCastEq <$> naturalToWordMaybe n

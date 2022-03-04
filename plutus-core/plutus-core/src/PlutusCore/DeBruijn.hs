@@ -9,6 +9,7 @@ module PlutusCore.DeBruijn
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
+    , FakeNamedDeBruijn (..)
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
@@ -27,6 +28,7 @@ module PlutusCore.DeBruijn
     , unDeBruijnTermWith
     , freeIndexAsConsistentLevel
     , deBruijnInitIndex
+    , fromFake, toFake
     ) where
 
 import PlutusCore.DeBruijn.Internal

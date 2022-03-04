@@ -23,6 +23,7 @@
 module Plutus.V1.Ledger.Scripts(
     -- * Scripts
     Script (..),
+    SerialiseViaFlat (..),
     scriptSize,
     fromCompiledCode,
     ScriptError (..),
@@ -64,6 +65,7 @@ import Prelude qualified as Haskell
 import Codec.CBOR.Decoding (decodeBytes)
 import Codec.Serialise (Serialise, decode, encode, serialise)
 import Control.DeepSeq (NFData)
+import Control.Lens hiding (Context)
 import Control.Monad.Except (MonadError, throwError)
 import Data.ByteString.Lazy qualified as BSL
 import Data.String
@@ -88,10 +90,13 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
-  deriving stock Generic
+  deriving stock (Generic)
+  deriving anyclass (NFData)
   -- See Note [Using Flat inside CBOR instance of Script]
   -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
-  deriving Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ())))
+  -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
+  -- about introducing a working version
+  deriving Serialise via (SerialiseViaFlat (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()))
 
 {-| Note [Using Flat inside CBOR instance of Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
@@ -147,8 +152,6 @@ instance Haskell.Ord Script where
 instance Haskell.Show Script where
     showsPrec _ _ = Haskell.showString "<Script>"
 
-instance NFData Script
-
 -- | The size of a 'Script'. No particular interpretation is given to this, other than that it is
 -- proportional to the serialized size of the script.
 scriptSize :: Script -> Integer
@@ -157,12 +160,11 @@ scriptSize (Script s) = UPLC.programSize s
 -- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
-fromCompiledCode = fromPlc . getPlc
-
-fromPlc :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Script
-fromPlc (UPLC.Program a v t) =
-    let nameless = UPLC.termMapNames UPLC.unNameDeBruijn t
-    in Script $ UPLC.Program a v nameless
+fromCompiledCode = Script . toNameless . getPlc
+    where
+      toNameless :: UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+                 -> UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()
+      toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
@@ -170,10 +172,10 @@ data ScriptError =
     deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
 
 applyArguments :: Script -> [PLC.Data] -> Script
-applyArguments (Script (UPLC.Program a v t)) args =
+applyArguments (Script p) args =
     let termArgs = Haskell.fmap (PLC.mkConstant ()) args
-        applied = PLC.mkIterApp () t termArgs
-    in Script (UPLC.Program a v applied)
+        applied t = PLC.mkIterApp () t termArgs
+    in Script $ over UPLC.progTerm applied p
 
 -- | Evaluate a script, returning the trace log.
 evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])

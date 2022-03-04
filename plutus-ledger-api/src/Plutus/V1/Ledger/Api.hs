@@ -1,6 +1,9 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
+
 {- |
 The interface to Plutus V1 for the ledger.
 -}
@@ -10,7 +13,7 @@ module Plutus.V1.Ledger.Api (
     , Script
     , fromCompiledCode
     -- * Validating scripts
-    , validateScript
+    , isScriptWellFormed
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -23,9 +26,10 @@ module Plutus.V1.Ledger.Api (
     , ExMemory (..)
     , SatInt
     -- ** Cost model
-    , validateCostModelParams
-    , defaultCostModelParams
+    , EvaluationContext
+    , mkEvaluationContext
     , CostModelParams
+    , isCostModelParamsWellFormed
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)
@@ -112,7 +116,6 @@ import Data.Bifunctor
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.Short
 import Data.Either
-import Data.Maybe (isJust)
 import Data.SatInt
 import Data.Text (Text)
 import Data.Tuple
@@ -122,18 +125,19 @@ import Plutus.V1.Ledger.Contexts
 import Plutus.V1.Ledger.Credential
 import Plutus.V1.Ledger.Crypto
 import Plutus.V1.Ledger.DCert
+import Plutus.V1.Ledger.EvaluationContext
 import Plutus.V1.Ledger.Interval hiding (singleton)
 import Plutus.V1.Ledger.Scripts as Scripts
 import Plutus.V1.Ledger.Time
 import Plutus.V1.Ledger.Value
 import PlutusCore as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams, applyCostModelParams)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty
+import PlutusPrelude (through)
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
 import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
@@ -160,11 +164,8 @@ anything, we're just going to create new versions.
 
 -- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
-validateScript :: SerializedScript -> Bool
-validateScript = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
-
-validateCostModelParams :: CostModelParams -> Bool
-validateCostModelParams = isJust . applyCostModelParams PLC.defaultCekCostModel
+isScriptWellFormed :: SerializedScript -> Bool
+isScriptWellFormed = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
 
 data VerboseMode = Verbose | Quiet
     deriving (Eq)
@@ -191,17 +192,25 @@ instance Pretty EvaluationError where
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
+{-| A variant of `Script` with a specialized `Serialise` instance
+that decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
+This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialized form of a `Script`.
+Rather than traversing the term and inserting fake names after deserializing, this lets us do at the same time as deserializing.
+-}
+newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+  -- Identical to the deriving instance for `Script`, *except* that it specifies `FakeNamedDeBruijn`
+  deriving CBOR.Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.FakeNamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())))
+
 -- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
 mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 mkTermToEvaluate bs args = do
-    s@(Script (UPLC.Program _ v _)) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
+    ScriptForExecution (UPLC.Program _ v t) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    let appliedScript = unScript $ Scripts.applyArguments s args
-        -- add fake names to keep the api working on NamedDeBruijn
-        namedT = UPLC.termMapNames UPLC.fakeNameDeBruijn $ UPLC._progTerm appliedScript
+    let termArgs = fmap (PLC.mkConstant ()) args
+        appliedT = PLC.mkIterApp () t termArgs
     -- make sure that term is closed, i.e. well-scoped
-    liftEither $ first DeBruijnError $ UPLC.checkScope namedT
-    pure namedT
+    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -211,20 +220,16 @@ mkTermToEvaluate bs args = do
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
     :: VerboseMode     -- ^ Whether to produce log output
-    -> CostModelParams -- ^ The cost model to use
+    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptRestricting verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
-        Just model -> pure model
-        Nothing    -> throwError CostModelParameterMismatch
-
     let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
             UPLC.runCekDeBruijn
-                (toMachineParameters model)
+                (toMachineParameters ectx)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
@@ -239,19 +244,16 @@ evaluateScriptRestricting verbose cmdata budget p args = swap $ runWriter @LogOu
 -- also returns the used budget.
 evaluateScriptCounting
     :: VerboseMode     -- ^ Whether to produce log output
-    -> CostModelParams -- ^ The cost model to use
+    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting verbose cmdata p args = swap $ runWriter @LogOutput $ runExceptT $ do
+evaluateScriptCounting verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate p args
-    model <- case applyCostModelParams PLC.defaultCekCostModel cmdata of
-        Just model -> pure model
-        Nothing    -> throwError CostModelParameterMismatch
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCekDeBruijn
-                (toMachineParameters model)
+                (toMachineParameters ectx)
                 UPLC.counting
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm

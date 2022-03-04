@@ -48,7 +48,7 @@ import Test.Tasty.Hedgehog
 defaultCekParametersExt
     :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
 defaultCekParametersExt =
-    toMachineParameters $ CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
+    mkMachineParameters $ CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
 
 -- | Check that 'Factorial' from the above computes to the same thing as
 -- a factorial defined in PLC itself.

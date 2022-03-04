@@ -7,8 +7,8 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import Data.Maybe
 import Plutus.V1.Ledger.Api as Api
+import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
 import Plutus.V1.Ledger.Scripts as Scripts
 import PlutusCore qualified as PLC
 import PlutusCore.Default
@@ -130,7 +130,7 @@ testAPI = "v1-api" `testWith` evalAPI
       evalAPI t =
           -- handcraft a serialized script
           let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
-          in isRight $ snd $ Api.evaluateScriptRestricting Quiet (fromJust defaultCostModelParams) (unExRestrictingBudget enormousBudget) s []
+          in isRight $ snd $ Api.evaluateScriptRestricting Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.
 testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestNested
