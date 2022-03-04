@@ -18,11 +18,8 @@ import Benchmarks.Strings qualified
 import Benchmarks.Tracing qualified
 import Benchmarks.Unit qualified
 
-import PlutusCore.DataFilePaths qualified as DFP
-
 import Criterion.Main
 import Criterion.Types as C
-import System.Directory
 import System.Random (getStdGen)
 
 
@@ -52,13 +49,10 @@ import System.Random (getStdGen)
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
-  createDirectoryIfMissing True DFP.costModelDataDir
-  csvExists <- doesFileExist DFP.benchingResultsFile
-  if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
   criterionMainWith
        True
-       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
+       defaultConfig $
             Benchmarks.Bool.makeBenchmarks            gen
         <>  Benchmarks.ByteStrings.makeBenchmarks     gen
         <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
@@ -80,5 +74,5 @@ main = do
 
   criterionMainWith
        False
-       (defaultConfig { C.csvFile = Just DFP.benchingResultsFile, C.timeLimit = 30 }) $
+       (defaultConfig { C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen
