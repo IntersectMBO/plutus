@@ -22,9 +22,6 @@ modelFile = costModelDataDir </> "models" <.> "R"
 benchingResultsFile :: FilePath
 benchingResultsFile = costModelDataDir </> "benching" <.> "csv"
 
-backupBenchingResultsFile :: FilePath
-backupBenchingResultsFile = benchingResultsFile <.> "backup"
-
 builtinCostModelFile :: FilePath
 builtinCostModelFile = costModelDataDir </> "builtinCostModel" <.> "json"
 
