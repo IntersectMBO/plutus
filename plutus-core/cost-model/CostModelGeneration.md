@@ -21,6 +21,24 @@ Generating a cost model for CPU time involves a number of steps.
   constant) and if that happens then a warning is printed and the coefficient is
   replaced by zero.
 
+     * When a new built-in function is added, new benchmarks will have to be
+       added in `plutus-core/cost-model/budgeting-bench` and new R code will
+       have to be added in `models.R` to process the results of the benchmark.
+       The benchmarks should aim to cover a wide range of inputs in order to get
+       a good idea of the worst-case behaviour of the function.  The exact form
+       of the R code will depend on the behaviour of the function being added
+       and will probably be based on the expected time complexity of the
+       function, backed up by examination of the initial benchmark results.  In
+       simpler cases it may be possible to re-use existing R code, but sometimes
+       more complex code may be required to obtain a good model of the behaviour
+       of the function.  Ideally the R model should accurate over a wide range
+       of inputs so that charges for "typical" inputs are reasonable but
+       worst-case inputs which require large computation times incur large
+       charges which penalise excessive computation.  Some experimentation may
+       be required to achieve this, and it may not always be possible to satisfy
+       both goals simultaneously.  In such cases it may be necessary to
+       sacrifice some accuracy in order to guarantee security.
+
 *  The form of the models for each builtin, together with the model
   coefficients fitted by R, are stored in the JSON file
   [`plutus-core/cost-model/data/builtinCostModel.json`](./data/builtinCostModel.json).
