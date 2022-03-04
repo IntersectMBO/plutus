@@ -23,13 +23,13 @@ import PlutusCore.Evaluation.Machine.ExMemory
 
 -- | No emitter.
 noEmitter :: EmitterMode uni fun
-noEmitter = EmitterMode $ \_ -> pure $ CekEmitterInfo (\_ -> pure ()) (pure mempty)
+noEmitter = EmitterMode $ \_ -> pure $ CekEmitterInfo (\_ -> id) (pure mempty)
 
 -- | Emits log only.
 logEmitter :: EmitterMode uni fun
 logEmitter = EmitterMode $ \_ -> do
     logsRef <- newSTRef DList.empty
-    let emitter logs = CekM $ modifySTRef logsRef (`DList.append` logs)
+    let emitter logs getRes = CekM (modifySTRef logsRef (`DList.append` logs)) *> getRes
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 -- A wrapper around encoding a record. `cassava` insists on including a trailing newline, which is
@@ -41,11 +41,13 @@ encodeRecord a = T.stripEnd $ T.decodeUtf8 $ BSL.toStrict $ BS.toLazyByteString 
 logWithTimeEmitter :: EmitterMode uni fun
 logWithTimeEmitter = EmitterMode $ \_ -> do
     logsRef <- newSTRef DList.empty
-    let emitter logs = CekM $ do
+    let emitter logs getRes = CekM (do
             time <- unsafeIOToST getCurrentTime
             let secs = let MkFixed s = nominalDiffTimeToSeconds $ utcTimeToPOSIXSeconds time in s
             let withTime = logs <&> \str -> encodeRecord (str, secs)
-            modifySTRef logsRef (`DList.append` withTime)
+            modifySTRef logsRef (`DList.append` withTime))
+          *>
+            getRes
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 instance CSV.ToField ExCPU where
@@ -58,8 +60,10 @@ instance CSV.ToField ExMemory where
 logWithBudgetEmitter :: EmitterMode uni fun
 logWithBudgetEmitter = EmitterMode $ \getBudget -> do
     logsRef <- newSTRef DList.empty
-    let emitter logs = CekM $ do
+    let emitter logs getRes = CekM (do
             ExBudget exCpu exMemory <- getBudget
             let withBudget = logs <&> \str -> encodeRecord (str, exCpu, exMemory)
-            modifySTRef logsRef (`DList.append` withBudget)
+            modifySTRef logsRef (`DList.append` withBudget))
+         *>
+            getRes
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
