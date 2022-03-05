@@ -192,12 +192,21 @@ Or we can specify the whole type of the denotation by type-applying 'makeBuiltin
             <costingFunction>
 
 Or we can simply annotate @(+)@ with its monomorphized type:
+
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
             ((+) :: Integer -> Integer -> Integer)
             <costingFunction>
 
 All of these are equivalent.
+
+It works the same way for a built-in function that has monomorphized polymorphic built-in types in
+its type signature, for example:
+
+    toBuiltinMeaning SumInteger =
+        makeBuiltinMeaning
+            (sum :: [Integer] -> Integer)
+            <costingFunction>
 
 3. Unconstrained type variables are fine, you don't need to instantiate them (but you may want to if
 you want some builtin to be less general than what Haskell infers for its denotation). For example
@@ -494,6 +503,190 @@ which gets elaborated to
 from which the final Plutus type of the builtin is computed:
 
     all a. a
+
+Read Note [How to add a built-in function: complicated cases] next.
+-}
+
+{- Note [How to add a built-in function: complicated cases]
+Now let's talk about more complicated built-in functions.
+
+1. In Note [Elaboration of polymorphism] we saw how a Haskell type variable gets elaborated to an
+@Opaque val VarN@ and we learned that this type can be used directly as opposed to being inferred.
+However there exist more ways to use 'Opaque' explicitly. Here's a simple example:
+
+    toBuiltinMeaning IdAssumeBool =
+        makeBuiltinMeaning
+            (Prelude.id :: Opaque val Bool -> Opaque val Bool)
+            <costingFunction>
+
+This creates a built-in function whose Plutus type is
+
+    id : bool -> bool
+
+i.e. the Plutus type signature of the built-in function is the same as with
+
+    toBuiltinMeaning IdBool =
+        makeBuiltinMeaning
+            (Prelude.id :: Bool -> Bool)
+            <costingFunction>
+
+but the two evaluate differently: the former takes a value and returns it right away while the
+latter takes a value, extracts a 'Bool' constant out of it and then lifts that constant back into
+@val@. The difference is not only in performance (obviously returning something right away is
+cheaper than unlifting-then-lifting-back), but also in semantics: the former returns its argument
+during evaluation regardless of what that argument is, so if someone generates Untyped Plutus Core
+directly, they can apply @IdAssumeBool@ to a term that doesn't evaluate to a 'Bool' constant or
+even a constant at all and that won't be a runtime error, while the latter has to be applied to
+a term evaluating to a 'Bool' constant in order not to fail at runtime.
+
+2. @val@ in @Opaque val rep@ is not completely arbitrary, it has to implement 'HasConstant', which
+makes it possible to unlift @val@ as a constant or lift a constant back into @val@. There's a
+'HasConstant' instance for @Opaque val rep@ whenever there's one for @val@, so if we, for some
+reason, wanted to have 'Opaque' in the type signature of the denotation, but still unlift the
+argument as a 'Bool', we could do that:
+
+    toBuiltinMeaning IdAssumeCheckBool =
+        makeBuiltinMeaning
+            idAssumeCheckBoolPlc
+            <costingFunction>
+      where
+        idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
+        idAssumeCheckBoolPlc val =
+            case asConstant @_ @UnliftingError Nothing val of
+                Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+                _                                       -> EvaluationFailure
+
+Here in the denotation we unlift the given value as a constant, check that its type tag is
+'DefaultUniBool' and return the unlifted 'Bool'. If any of that fails, we return an explicit
+'EvaluationFailure'.
+
+This achieves almost the same as 'IdBool', which keeps all the bookkeeping behind the scenes, but
+there are a couple of differences:
+
+- 'asConstant' is given 'Nothing' as the cause of a potential failure
+- in case of error its message is ignored
+
+We could fix the latter, but changing the former is non-trivial: in general, the cause of a failure
+can be an arbitrary term, not just a value, and the meaning of a built-in function doesn't know
+anything about general terms, it only deals with values. The cause of a potential failure is
+provided to the builtins machinery from the outside (from within the internals of the CEK machine
+for example) and refactoring the builtins machinery into being aware of failure causes would force
+us to attach a term representation to each argument, which would make for a horrible interface.
+
+3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift
+automatically to a constant and then unlift manually to 'Bool' using the 'SomeConstant' wrapper:
+
+    newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
+        { unSomeConstant :: Some (ValueOf uni)
+        }
+
+'SomeConstant' is similar to 'Opaque' in that it has a @rep@ representing a Plutus type.
+The difference is that 'Opaque' is a wrapper around an arbitrary value and 'SomeConstant' is a
+wrapper around a constant. 'SomeConstant' allows one to automatically unlift an argument of a
+built-in function as a constant with all 'asConstant' business kept behind the scenes, for example:
+
+    toBuiltinMeaning IdSomeConstantBool =
+        makeBuiltinMeaning
+            idSomeConstantBoolPlc
+            <costingFunction>
+      where
+        idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
+        idSomeConstantBoolPlc = \case
+            SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+            _                                              -> EvaluationFailure
+
+Note how we no longer call 'asConstant' manually, but still manually match on 'DefaultUniBool'.
+
+So there's a whole range of how "low-level" one can choose to be when defining a built-in function.
+However it's not always possible to use automatic unlifting, see next.
+
+4. If we try to define the following built-in function:
+
+    toBuiltinMeaning NullList =
+        makeBuiltinMeaning
+            (null :: [a] -> Bool)
+            <costingFunction>
+
+we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
+It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
+general case, plus it has to be very inefficient.
+
+Instead we have to use 'SomeConstant' to automatically unlift to a constant and then check that the
+value inside of it is a list (by matching on the type tag):
+
+    toBuiltinMeaning NullList =
+        makeBuiltinMeaning
+            nullPlc
+            <costingFunction>
+        where
+          nullPlc :: SomeConstant uni [a] -> EvaluationResult Bool
+          nullPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
+              DefaultUniList _ <- pure uniListA
+              pure $ null xs
+
+('EvaluationResult' has a 'MonadFail' instance allowing us to use the @<pat> <- pure <expr>@ idiom)
+
+As before, we have to match on the type tag, because there's no relation between @rep@ from
+@SomeConstant uni rep@ and the constant that the built-in function actually receives at runtime
+(someone could generate Untyped Plutus Core directly and apply 'nullPlc' to an 'Integer' or
+whatever). @rep@ is only for the Plutus type checker to look at, it doesn't influence evaluation
+in any way.
+
+Here's a similar built-in function:
+
+    toBuiltinMeaning FstPair =
+        makeBuiltinMeaning
+            fstPlc
+            <costingFunction>
+        where
+          fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
+          fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
+              DefaultUniPair uniA _ <- pure uniPairAB          -- [1]
+              pure . fromConstant . someValueOf uniA $ fst xy  -- [2]
+
+In this definition we extract the first element of a pair by checking that the given constant is
+indeed a pair [1] and lifting its first element into @val@ using the type tag for the first
+element [2] (extracted from the type tag for the whole pair constant [1]).
+
+Note that it's fine to mix automatic unlifting for polymorphism not related to built-in types and
+manual unlifting for arguments having non-monomorphized polymorphic built-in types, for example:
+
+    toBuiltinMeaning ChooseList =
+        makeBuiltinMeaning
+            choosePlc
+            <costingFunction>
+        where
+          choosePlc :: SomeConstant uni [a] -> b -> b -> EvaluationResult b
+          choosePlc (SomeConstant (Some (ValueOf uniListA xs))) a b = do
+            DefaultUniList _ <- pure uniListA
+            pure $ case xs of
+                []    -> a
+                _ : _ -> b
+
+Here @a@ appears inside @[]@, which is a polymorphic built-in type, and so we have to use
+'SomeConstant' and check that the given constant is indeed a list, while @b@ doesn't appear inside
+of any built-in type and so we don't need to instantiate it to 'Opaque' manually, the elaboration
+machinery will do it for us.
+
+Our final example is this:
+
+    toBuiltinMeaning MkCons =
+        makeBuiltinMeaning
+            consPlc
+            <costingFunction>
+        where
+          consPlc
+              :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+          consPlc
+            (SomeConstant (Some (ValueOf uniA x)))
+            (SomeConstant (Some (ValueOf uniListA xs))) = do
+                DefaultUniList uniA' <- pure uniListA                -- [1]
+                Just Refl <- pure $ uniA `geq` uniA'                 -- [2]
+                pure . fromConstant . someValueOf uniListA $ x : xs  -- [3]
+
+Here we prepend an element to a list [3] after checking that the second argument is indeed a
+list [1] and that the type tag of the element being prepended equals the type tag for elements of
+the list [2] (extracted from the type tag for the whole list constant [1]).
 -}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
