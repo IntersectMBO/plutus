@@ -7,6 +7,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -92,8 +93,12 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 -- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
+    | SumInteger
     | Const
     | Id
+    | IdAssumeBool
+    | IdAssumeCheckBool
+    | IdSomeConstantBool
     | IdFInteger
     | IdList
     | IdRank2
@@ -170,6 +175,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
 
+    toBuiltinMeaning SumInteger =
+        makeBuiltinMeaning
+            (sum :: [Integer] -> Integer)
+            mempty  -- Whatever.
+
     toBuiltinMeaning Const =
         makeBuiltinMeaning
             const
@@ -180,9 +190,35 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             Prelude.id
             (\_ _ -> ExBudget 1 0)
 
+    toBuiltinMeaning IdAssumeBool =
+        makeBuiltinMeaning
+            (Prelude.id :: Opaque val Bool -> Opaque val Bool)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning IdAssumeCheckBool =
+        makeBuiltinMeaning
+            idAssumeCheckBoolPlc
+            mempty  -- Whatever.
+      where
+        idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
+        idAssumeCheckBoolPlc val =
+            case asConstant @_ @UnliftingError Nothing val of
+                Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+                _                                       -> EvaluationFailure
+
+    toBuiltinMeaning IdSomeConstantBool =
+        makeBuiltinMeaning
+            idSomeConstantBoolPlc
+            mempty  -- Whatever.
+      where
+        idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
+        idSomeConstantBoolPlc = \case
+            SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+            _                                              -> EvaluationFailure
+
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id :: fi ~ Opaque val (TyAppRep f Integer) => fi -> fi)
+            (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
@@ -193,7 +229,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: afa ~ Opaque val (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                :: afa ~ Opaque val (TyForallRep a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 
