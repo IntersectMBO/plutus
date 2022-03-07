@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -19,7 +20,8 @@ import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
-import Data.Hashable (Hashable)
+import Data.Data
+import Data.Hashable (Hashable (..))
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
@@ -69,7 +71,7 @@ error = mustBeReplaced "error"
 BOOL
 -}
 
-newtype BuiltinBool = BuiltinBool Bool
+newtype BuiltinBool = BuiltinBool Bool deriving stock Data
 
 {-# NOINLINE true #-}
 true :: BuiltinBool
@@ -87,7 +89,7 @@ ifThenElse (BuiltinBool b) x y = if b then x else y
 UNIT
 -}
 
-newtype BuiltinUnit = BuiltinUnit ()
+newtype BuiltinUnit = BuiltinUnit () deriving stock Data
 
 {-# NOINLINE unitval #-}
 unitval :: BuiltinUnit
@@ -149,7 +151,7 @@ BYTESTRING
 
 -- | An opaque type representing Plutus Core ByteStrings.
 newtype BuiltinByteString = BuiltinByteString ByteString
-  deriving stock (Generic)
+  deriving stock (Generic, Data)
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord, Haskell.Semigroup, Haskell.Monoid)
   deriving newtype (Hashable, Serialise, NFData, BA.ByteArrayAccess, BA.ByteArray)
 
@@ -218,6 +220,7 @@ STRING
 -}
 
 newtype BuiltinString = BuiltinString Text
+    deriving stock Data
     deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE appendString #-}
@@ -245,6 +248,7 @@ PAIR
 -}
 
 newtype BuiltinPair a b = BuiltinPair (a, b)
+    deriving stock Data
     deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE fst #-}
@@ -264,6 +268,7 @@ LIST
 -}
 
 newtype BuiltinList a = BuiltinList [a]
+    deriving stock Data
     deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 {-# NOINLINE null #-}
@@ -315,6 +320,7 @@ For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
 newtype BuiltinData = BuiltinData PLC.Data
+    deriving stock Data
     deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
 
 -- NOT a builtin, only safe off-chain, hence the NOINLINE
