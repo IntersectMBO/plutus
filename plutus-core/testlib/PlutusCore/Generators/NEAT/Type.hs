@@ -44,7 +44,7 @@ data TypeBuiltinG = TyByteStringG
                   | TyStringG
                   | TyListG TypeBuiltinG
                   | TyDataG
-                      deriving (Show, Eq, Ord)
+                      deriving stock (Show, Eq, Ord)
 
 deriveEnumerable ''TypeBuiltinG
 
@@ -55,9 +55,9 @@ data TypeG n = TyVarG n
              | TyBuiltinG TypeBuiltinG
              | TyLamG (TypeG (S n))
              | TyAppG (TypeG n) (TypeG n) (Kind ())
-                 deriving (Eq, Ord, Show)
+                 deriving stock (Eq, Ord, Show)
 
-deriving instance Ord (Kind ())
+deriving stock instance Ord (Kind ())
 
 deriveEnumerable ''Kind
 

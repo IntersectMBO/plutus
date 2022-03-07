@@ -106,7 +106,8 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Hashable, Ix, PrettyBy PrettyConfigPlc)
+    deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
+    deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
 {- Note [Textual representation of names of built-in functions]. The plc parser
  parses builtin names by looking at an enumeration of all of the built-in

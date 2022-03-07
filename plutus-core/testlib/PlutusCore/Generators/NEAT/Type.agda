@@ -54,7 +54,7 @@ data TypeBuiltinG : Set where
   TyListG        : TypeBuiltinG → TypeBuiltinG
   TyDataG        : TypeBuiltinG
 
-{-# COMPILE AGDA2HS TypeBuiltinG deriving (Show, Eq, Ord) #-}
+{-# COMPILE AGDA2HS TypeBuiltinG deriving stock (Show, Eq, Ord) #-}
 
 {-# FOREIGN AGDA2HS
 deriveEnumerable ''TypeBuiltinG
@@ -79,10 +79,10 @@ data TypeG (n : Set) : Set where
   TyLamG : TypeG (S n) → TypeG n
   TyAppG : TypeG n → TypeG n → Kind ⊤ → TypeG n
 
-{-# COMPILE AGDA2HS TypeG deriving (Eq, Ord, Show) #-}
+{-# COMPILE AGDA2HS TypeG deriving stock (Eq, Ord, Show) #-}
 
 {-# FOREIGN AGDA2HS
-deriving instance Ord (Kind ())
+deriving stock instance Ord (Kind ())
 
 deriveEnumerable ''Kind
 

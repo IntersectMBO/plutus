@@ -49,7 +49,7 @@ terms can thus be used as backwards compatibility is not required.
 -}
 
 data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni fun a]
-    deriving (Functor, Show, Generic)
+    deriving stock (Functor, Show, Generic)
 
 varDeclNameString :: VarDecl tyname Name uni fun a -> String
 varDeclNameString = T.unpack . PLC.nameString . _varDeclName
@@ -67,7 +67,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
-    deriving (Show, Eq, Generic, Ord)
+    deriving stock (Show, Eq, Generic, Ord)
 
 -- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 -- The lattice is ordered by "power": a non-recursive binding group can be made recursive and it will still work, but not vice versa.
@@ -77,12 +77,12 @@ instance Semigroup Recursivity where
   Rec <> _    = Rec
 
 data Strictness = NonStrict | Strict
-    deriving (Show, Eq, Generic)
+    deriving stock (Show, Eq, Generic)
 
 data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni fun a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
                            | DatatypeBind a (Datatype tyname name uni fun a)
-    deriving (Functor, Show, Generic)
+    deriving stock (Functor, Show, Generic)
 
 -- Terms
 
@@ -125,7 +125,7 @@ data Term tyname name uni fun a =
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
-                        deriving (Functor, Show, Generic)
+                        deriving stock (Functor, Show, Generic)
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 

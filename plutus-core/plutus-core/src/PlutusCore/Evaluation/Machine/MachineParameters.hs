@@ -24,7 +24,7 @@ data CostModel machinecosts builtincosts =
     CostModel {
       machineCostModel :: machinecosts
     , builtinCostModel :: builtincosts
-    } deriving (Eq, Show)
+    } deriving stock (Eq, Show)
 
 {-| At execution time we need a 'BuiltinsRuntime' object which includes both the
   cost model for builtins and their denotations.  This bundles one of those

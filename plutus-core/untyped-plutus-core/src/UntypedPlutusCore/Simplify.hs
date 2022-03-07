@@ -14,7 +14,7 @@ import PlutusCore.Quote
 import Control.Lens.TH
 
 data SimplifyOpts a = SimplifyOpts { _soMaxSimplifierIterations  :: Int, _soInlineHints :: InlineHints Name a }
-  deriving (Show)
+  deriving stock (Show)
 
 makeLenses ''SimplifyOpts
 

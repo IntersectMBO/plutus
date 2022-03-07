@@ -44,7 +44,7 @@ instance DeBruijnEnv (BRAL.RAList a) where
 
 -- | A sequence implemented by a map from "levels" to values and a counter giving the "current" level.
 data RelativizedMap a = RelativizedMap (IM.IntMap a) {-# UNPACK #-} !Word64
-    deriving Show
+    deriving stock Show
 
 instance DeBruijnEnv (RelativizedMap a) where
     type Element (RelativizedMap a) = a

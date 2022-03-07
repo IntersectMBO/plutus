@@ -37,7 +37,8 @@ data ChessSet = Board
                 Integer      -- % Current move number
                 (Maybe Tile) -- % Initial square: see Note [deleteFirst] below
                 [Tile]       -- % All squares visited (in reverse: the last element is the initial square).
-                deriving (Generic, NFData)
+                deriving stock (Generic)
+                deriving anyclass (NFData)
 instance Tx.Eq ChessSet where
     _ == _ = True
 

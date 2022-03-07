@@ -59,7 +59,8 @@ import Universe
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Eq, Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving stock (Eq, Show, Functor, Generic, Lift)
+    deriving anyclass (NFData, Hashable)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -72,7 +73,8 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -85,12 +87,14 @@ data Term tyname name uni fun ann
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
 -- | Version of Plutus Core to be used for the program.
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Eq, Show, Functor, Generic, NFData, Hashable)
+    deriving stock (Eq, Show, Functor, Generic)
+    deriving anyclass (NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program
@@ -98,7 +102,8 @@ data Program tyname name uni fun ann = Program
     , _progVer  :: Version ann
     , _progTerm :: Term tyname name uni fun ann
     }
-    deriving (Show, Functor, Generic, NFData)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 makeLenses ''Program
 
 -- | Extract the universe from a type.
@@ -111,7 +116,7 @@ data TyVarDecl tyname ann = TyVarDecl
     { _tyVarDeclAnn  :: ann
     , _tyVarDeclName :: tyname
     , _tyVarDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''TyVarDecl
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
@@ -119,7 +124,7 @@ data VarDecl tyname name uni fun ann = VarDecl
     { _varDeclAnn  :: ann
     , _varDeclName :: name
     , _varDeclType :: Type tyname uni ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''VarDecl
 
 -- | A "type declaration", i.e. a kind for a type.
@@ -127,7 +132,7 @@ data TyDecl tyname uni ann = TyDecl
     { _tyDeclAnn  :: ann
     , _tyDeclType :: Type tyname uni ann
     , _tyDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''TyDecl
 
 tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname uni ann
@@ -143,7 +148,7 @@ instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni fun ann
 
 newtype Normalized a = Normalized
     { unNormalized :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
+    } deriving stock (Show, Eq, Functor, Foldable, Traversable, Generic)
       deriving newtype (NFData, Pretty, PrettyBy config)
       deriving Applicative via Identity
 

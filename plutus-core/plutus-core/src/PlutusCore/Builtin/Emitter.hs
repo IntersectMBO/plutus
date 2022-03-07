@@ -13,7 +13,7 @@ import Data.Text (Text)
 -- logging function.
 newtype Emitter a = Emitter
     { unEmitter :: forall m. Monad m => (Text -> m ()) -> m a
-    } deriving (Functor)
+    } deriving stock (Functor)
 
 -- newtype-deriving doesn't work with 'Emitter'.
 instance Applicative Emitter where

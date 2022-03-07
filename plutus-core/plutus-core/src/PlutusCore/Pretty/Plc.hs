@@ -40,7 +40,7 @@ import PlutusCore.Pretty.Readable
 data CondensedErrors
     = CondensedErrorsYes
     | CondensedErrorsNo
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 -- | Options for pretty-printing PLC entities.
 newtype PrettyConfigPlcOptions = PrettyConfigPlcOptions

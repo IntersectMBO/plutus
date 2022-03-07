@@ -21,7 +21,7 @@ data StackFrame
     -- | The resource spent on evaluating the functions it called.
     valSpentCalledFun :: Integer
   }
-  deriving (Show)
+  deriving stock (Show)
 
 data ProfileEvent =
   MkProfileEvent Integer Transition T.Text
@@ -33,7 +33,7 @@ data Transition =
 -- | Represent one of the "folded" flamegraph lines, which include fns it's in and resource spent.
 data StackVal =
   MkStackVal [T.Text] Integer
-  deriving (Eq)
+  deriving stock (Eq)
 
 instance Show StackVal where
   show (MkStackVal fns duration) =

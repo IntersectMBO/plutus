@@ -33,7 +33,7 @@ instance Show Type where
 data Kind where
   Star  :: Kind
   Arrow :: Kind -> Kind -> Kind
-  deriving (Eq)
+  deriving stock (Eq)
 
 instance Show Kind where
   show Star          = "*"

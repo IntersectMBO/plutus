@@ -54,7 +54,7 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierInline       :: Bool
     , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
     , _coProfile                  :: Bool
-    } deriving (Show)
+    } deriving stock (Show)
 
 makeLenses ''CompilationOpts
 
@@ -157,7 +157,7 @@ type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a)
 data SharedName =
     FixpointCombinator Integer
     | FixBy
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord)
 
 toProgramName :: SharedName -> Quote PLC.Name
 toProgramName (FixpointCombinator n) = freshName ("fix" <> T.pack (show n))
