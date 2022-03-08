@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -38,8 +39,20 @@ data NopFuns
     | Nop4
     | Nop5
     | Nop6
+    | Nop1a
+    | Nop2a
+    | Nop3a
+    | Nop4a
+    | Nop5a
+    | Nop6a
+    | Nop1z
+    | Nop2z
+    | Nop3z
+    | Nop4z
+    | Nop5z
+    | Nop6z
     deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
-    deriving anyclass (NFData, PrettyBy PrettyConfigPlc)
+    deriving anyclass (PrettyBy PrettyConfigPlc)
 
 instance Pretty NopFuns where
     pretty fun = pretty $ case show fun of
@@ -94,10 +107,11 @@ nopCostParameters = mkMachineParameters $ CostModel defaultCekMachineCosts nopCo
    arguments.  We have checked this and there there was no dependence: let's
    leave open the possibility of doing it again in case anything changes.
 -}
+
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
     type CostingPart uni NopFuns = NopCostModel
     toBuiltinMeaning
-        :: HasConstantIn uni val
+        :: forall val . HasConstantIn uni val
            => NopFuns -> BuiltinMeaning val NopCostModel
     toBuiltinMeaning Nop1 =
         makeBuiltinMeaning
@@ -128,6 +142,71 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ _ -> 66)
+             (runCostingFunSixArguments . paramNop6)
+    toBuiltinMeaning Nop1a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer)
+             (\x -> x)
+             (runCostingFunOneArgument . paramNop1)
+    toBuiltinMeaning Nop2a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
+             (\x _ -> x)
+             (runCostingFunTwoArguments . paramNop2)
+    toBuiltinMeaning Nop3a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer)
+             (\x _ _ -> x)
+             (runCostingFunThreeArguments . paramNop3)
+    toBuiltinMeaning Nop4a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
+             (\x _ _ _ -> x)
+             (runCostingFunFourArguments . paramNop4)
+    toBuiltinMeaning Nop5a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+             (\x _ _ _ _ -> x)
+             (runCostingFunFiveArguments . paramNop5)
+    toBuiltinMeaning Nop6a =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+             (\x _ _ _ _ _ -> x)
+             (runCostingFunSixArguments . paramNop6)
+    toBuiltinMeaning Nop1z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer)
+             (\z -> z)
+             (runCostingFunOneArgument . paramNop1)
+    toBuiltinMeaning Nop2z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
+             (\_ z -> z)
+             (runCostingFunTwoArguments . paramNop2)
+    toBuiltinMeaning Nop3z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
+             (\_ _ z -> z)
+             (runCostingFunThreeArguments . paramNop3)
+    toBuiltinMeaning Nop4z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer)
+             (\_ _ _ z -> z)
+             (runCostingFunFourArguments . paramNop4)
+    toBuiltinMeaning Nop5z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+             (\_ _ _ _ z -> z)
+             (runCostingFunFiveArguments . paramNop5)
+    toBuiltinMeaning Nop6z =
+        makeBuiltinMeaning
+             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+             (\_ _ _ _ _ z -> z)
              (runCostingFunSixArguments . paramNop6)
 
 ---------------- Calibration ----------------
@@ -235,5 +314,191 @@ benchNop6 gen =
             ]
            ]
 
+benchNop1a :: StdGen -> Benchmark
+benchNop1a gen =
+    let name = Nop1a
+        mem = 1
+        (x,_) = randNwords gen mem
+    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
+
+benchNop2a :: StdGen -> Benchmark
+benchNop2a gen =
+    let name = Nop2a
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,_)    = randNwords gen1 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
+           ]
+
+benchNop3a :: StdGen -> Benchmark
+benchNop3a gen =
+    let name = Nop3a
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,_)    = randNwords gen2 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
+            ]
+           ]
+
+benchNop4a :: StdGen -> Benchmark
+benchNop4a gen =
+    let name = Nop4a
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,_)    = randNwords gen3 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
+             ]
+            ]
+           ]
+
+benchNop5a :: StdGen -> Benchmark
+benchNop5a gen =
+    let name = Nop5a
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,_)    = randNwords gen4 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
+              ]
+             ]
+            ]
+           ]
+
+benchNop6a :: StdGen -> Benchmark
+benchNop6a gen =
+    let name = Nop6a
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,gen5) = randNwords gen4 mem
+        (v,_)    = randNwords gen5 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [bgroup (showMemoryUsage u)
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
+               ]
+              ]
+             ]
+            ]
+           ]
+
+benchNop1z :: StdGen -> Benchmark
+benchNop1z gen =
+    let name = Nop1z
+        mem = 1
+        (x,_) = randNwords gen mem
+    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
+
+benchNop2z :: StdGen -> Benchmark
+benchNop2z gen =
+    let name = Nop2z
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,_)    = randNwords gen1 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
+           ]
+
+benchNop3z :: StdGen -> Benchmark
+benchNop3z gen =
+    let name = Nop3z
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,_)    = randNwords gen2 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
+            ]
+           ]
+
+benchNop4z :: StdGen -> Benchmark
+benchNop4z gen =
+    let name = Nop4z
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,_)    = randNwords gen3 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
+             ]
+            ]
+           ]
+
+benchNop5z :: StdGen -> Benchmark
+benchNop5z gen =
+    let name = Nop5z
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,_)    = randNwords gen4 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
+              ]
+             ]
+            ]
+           ]
+
+benchNop6z :: StdGen -> Benchmark
+benchNop6z gen =
+    let name = Nop6z
+        mem = 1
+        (x,gen1) = randNwords gen  mem
+        (y,gen2) = randNwords gen1 mem
+        (z,gen3) = randNwords gen2 mem
+        (t,gen4) = randNwords gen3 mem
+        (u,gen5) = randNwords gen4 mem
+        (v,_)    = randNwords gen5 mem
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [bgroup (showMemoryUsage u)
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
+               ]
+              ]
+             ]
+            ]
+           ]
+
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen = [benchNop1 gen, benchNop2 gen, benchNop3 gen, benchNop4 gen, benchNop5 gen, benchNop6 gen]
+makeBenchmarks gen = [ benchNop1 gen, benchNop2 gen, benchNop3 gen, benchNop4 gen, benchNop5 gen, benchNop6 gen
+                     , benchNop1a gen, benchNop2a gen, benchNop3a gen, benchNop4a gen, benchNop5a gen, benchNop6a gen
+                     , benchNop1z gen, benchNop2z gen, benchNop3z gen, benchNop4z gen, benchNop5z gen, benchNop6z gen]
