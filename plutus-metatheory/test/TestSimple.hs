@@ -6,6 +6,7 @@ module Main where
 import Control.Exception
 import System.Environment
 import System.Exit
+import System.IO.Extra
 import System.Process
 
 import MAlonzo.Code.Main qualified as M
@@ -49,11 +50,11 @@ blah "plc" = []
 blah _     = ["--mode","U"]
 
 runTest :: String -> String -> String -> IO ()
-runTest command mode test = do
+runTest command mode test = withTempFile $ \tmp -> do
   example <- readProcess mode ["example", "-s",test] []
-  writeFile "tmp" example
+  writeFile tmp example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--file","tmp"] ++ blah mode)  M.main
+  withArgs ([command,"--file",tmp] ++ blah mode)  M.main
 
 runSucceedingTests :: String -> String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()

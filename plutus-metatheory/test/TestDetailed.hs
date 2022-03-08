@@ -15,6 +15,7 @@ import MAlonzo.Code.Main qualified as M
 import MAlonzo.Code.Raw qualified as R
 
 import Data.ByteString.Lazy.Char8 qualified as C
+import System.IO.Extra
 
 -- this function is based on this stackoverflow answer:
 -- https://stackoverflow.com/a/9664017
@@ -34,13 +35,13 @@ catchOutput act = do
 
 -- compare the output of plc vs plc-agda in its default (typed) mode
 compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
-compareResult eq mode test = do
+compareResult eq mode test = withTempFile $ \tmp -> do
   example <- readProcess "plc" ["example", "-s",test] []
-  writeFile "tmp" example
+  writeFile tmp example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "plc" [mode, "--input","tmp"] []
+  plcOutput <- readProcess "plc" [mode, "--input",tmp] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode,"--file","tmp"]  M.main)
+    (withArgs [mode,"--file",tmp]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ()) -- does this ever happen?
@@ -48,30 +49,30 @@ compareResult eq mode test = do
 
 -- compare the output of uplc vs plc-agda in untyped mode
 compareResultU :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
-compareResultU eq test = do
+compareResultU eq test = withTempFile $ \tmp -> do
   example <- readProcess "uplc" ["example","-s",test] []
-  writeFile "tmp" example
+  writeFile tmp example
   putStrLn $ "test: " ++ test
-  plcOutput <- readProcess "uplc" ["evaluate", "--input","tmp"] []
+  plcOutput <- readProcess "uplc" ["evaluate", "--input",tmp] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs ["evaluate","-mU","--file","tmp"]  M.main)
+    (withArgs ["evaluate","-mU","--file",tmp]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 -- compare the results of two different (typed) plc-agda modes
 compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
-compareResultMode mode1 mode2 eq test = do
+compareResultMode mode1 mode2 eq test = withTempFile $ \tmp -> do
   example <- readProcess "plc" ["example","-s",test] []
-  writeFile "tmp" example
+  writeFile tmp example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp","--mode",mode1]  M.main)
+    (withArgs ["evaluate","--file",tmp,"--mode",mode1]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   plcAgdaOutput2 <- catchOutput $ catch
-    (withArgs ["evaluate","--file","tmp","--mode",mode2]  M.main)
+    (withArgs ["evaluate","--file",tmp,"--mode",mode2]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())

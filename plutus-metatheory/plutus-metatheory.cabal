@@ -76,7 +76,7 @@ library
     MAlonzo.Code.Algebra.Structures
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
-    MAlonzo.Code.Algorithmic.Properties    
+    MAlonzo.Code.Algorithmic.Properties
     MAlonzo.Code.Algorithmic.CEKV
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.CC
@@ -102,7 +102,7 @@ library
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
     MAlonzo.Code.Data.Integer.Properties
-    MAlonzo.Code.Data.Integer.Show    
+    MAlonzo.Code.Data.Integer.Show
     MAlonzo.Code.Data.List.Base
     MAlonzo.Code.Data.List.Categorical
     MAlonzo.Code.Data.List.Extrema
@@ -216,7 +216,7 @@ library
     MAlonzo.RTE
     MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
@@ -294,7 +294,7 @@ library
     MAlonzo.Code.Data.Integer
     MAlonzo.Code.Data.Integer.Base
     MAlonzo.Code.Data.Integer.Properties
-    MAlonzo.Code.Data.Integer.Show    
+    MAlonzo.Code.Data.Integer.Show
     MAlonzo.Code.Data.List.Base
     MAlonzo.Code.Data.List.Categorical
     MAlonzo.Code.Data.List.Extrema
@@ -312,7 +312,7 @@ library
     MAlonzo.Code.Data.List.Relation.Binary.Lex.Core
     MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise
-    MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties    
+    MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
     MAlonzo.Code.Data.List.Relation.Unary.AllPairs.Core
@@ -407,7 +407,7 @@ library
     MAlonzo.Code.Utils
     MAlonzo.RTE
     MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.RenamingSubstitution    
+    MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
@@ -445,13 +445,14 @@ test-suite test1
   build-depends:
     base -any,
     plutus-metatheory,
-    process -any
+    process -any,
+    extra -any
   type:  exitcode-stdio-1.0
   main-is: TestSimple.hs
 
 test-suite test2
   import: lang
-  build-tool-depends: 
+  build-tool-depends:
     plutus-core:plc,
     plutus-core:uplc
   hs-source-dirs: test
@@ -464,7 +465,8 @@ test-suite test2
     directory -any,
     plutus-metatheory,
     process -any,
-    text -any
+    text -any,
+    extra -any
 
 test-suite test3
   import: lang
