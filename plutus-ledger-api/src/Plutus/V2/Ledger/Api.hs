@@ -12,6 +12,8 @@ module Plutus.V2.Ledger.Api (
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    -- ** Protocol version
+    , ProtocolVersion (..)
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput

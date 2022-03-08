@@ -10,6 +10,7 @@ import Data.Word (Word8)
 import Plutus.V1.Ledger.Api
 import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
 import Plutus.V1.Ledger.Examples
+import Spec.Builtins qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 
@@ -18,19 +19,29 @@ main = defaultMain tests
 
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
-    let (_, res) = evaluateScriptCounting Quiet evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting (ProtocolVersion 5 0) Quiet evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
     in assertBool "succeeds" (isRight res)
 
 alwaysFalse :: TestTree
 alwaysFalse = testCase "always false script returns false" $
-    let (_, res) = evaluateScriptCounting Quiet evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting (ProtocolVersion 5 0) Quiet evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
     in assertBool "fails" (isLeft res)
+
+unavailableBuiltins :: TestTree
+unavailableBuiltins = testCase "builtins are unavailable before v5" $
+    let (_, res) = evaluateScriptCounting (ProtocolVersion 4 0) Quiet evalCtxForTesting summingFunction []
+    in assertBool "fails" (isLeft res)
+
+availableBuiltins :: TestTree
+availableBuiltins = testCase "builtins are available after v5" $
+    let (_, res) = evaluateScriptCounting (ProtocolVersion 5 0) Quiet evalCtxForTesting summingFunction []
+    in assertBool "succeeds" (isRight res)
 
 saltedFunction :: TestTree
 saltedFunction =
     let evaluate f f' args =
-            ( evaluateScriptCounting Quiet evalCtxForTesting f args
-            , evaluateScriptCounting Quiet evalCtxForTesting f' args
+            ( evaluateScriptCounting (ProtocolVersion 5 0) Quiet evalCtxForTesting f args
+            , evaluateScriptCounting (ProtocolVersion 5 0) Quiet evalCtxForTesting f' args
             )
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->
@@ -68,9 +79,14 @@ saltedFunction =
 
 tests :: TestTree
 tests = testGroup "plutus-ledger-api" [
-    alwaysTrue
-    , alwaysFalse
-    , saltedFunction
+    testGroup "basic evaluation tests" [
+        alwaysTrue
+        , alwaysFalse
+        , saltedFunction
+        , unavailableBuiltins
+        , availableBuiltins
+    ]
     , Spec.Interval.tests
     , Spec.Eval.tests
+    , Spec.Builtins.tests
     ]

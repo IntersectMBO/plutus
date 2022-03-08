@@ -19,7 +19,8 @@ import Test.Tasty.HUnit
 import PlutusCore.MkPlc qualified as UPLC
 import UntypedPlutusCore qualified as UPLC
 
-import Flat
+import Flat qualified
+import Flat.Decoder qualified as Flat
 
 main :: IO ()
 main = defaultMain $ testGroup "Untyped Plutus Core"
@@ -41,7 +42,10 @@ test_deserializingBigConstants = testGroup "64-byte deserialization limit"
     , test_nested
     ]
 
-type Term = UPLC.WithSizeLimits 64 (UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ())
+type Term = UPLC.Term UPLC.Name UPLC.DefaultUni UPLC.DefaultFun ()
+
+limitedDecoder :: Flat.Get Term
+limitedDecoder = UPLC.decodeTerm (UPLC.Limit 64) (const True)
 
 test_bigInteger :: TestTree
 test_bigInteger = testCase "big integer" $ do
@@ -53,11 +57,11 @@ test_bigInteger = testCase "big integer" $ do
         justUnder :: Integer
         justUnder = 2 ^ (55 * 8 :: Integer) - 1
         t1 :: Term
-        t1 = UPLC.WithSizeLimits $ UPLC.mkConstant () justOver
+        t1 = UPLC.mkConstant () justOver
         t2 :: Term
-        t2 = UPLC.WithSizeLimits $ UPLC.mkConstant () justUnder
-    assertBool "justOver" (isLeft $ Flat.unflat @Term (Flat.flat t1))
-    assertBool "justUnder" (isRight $ Flat.unflat @Term (Flat.flat t2))
+        t2 = UPLC.mkConstant () justUnder
+    assertBool "justOver" (isLeft $ Flat.unflatWith limitedDecoder (Flat.flat t1))
+    assertBool "justUnder" (isRight $ Flat.unflatWith limitedDecoder (Flat.flat t2))
 
 test_bigByteString :: TestTree
 test_bigByteString = testCase "big bytestring" $ do
@@ -69,11 +73,11 @@ test_bigByteString = testCase "big bytestring" $ do
         justUnder :: ByteString
         justUnder = BS.replicate 60 1
         t1 :: Term
-        t1 = UPLC.WithSizeLimits $ UPLC.mkConstant () justOver
+        t1 = UPLC.mkConstant () justOver
         t2 :: Term
-        t2 = UPLC.WithSizeLimits $ UPLC.mkConstant () justUnder
-    assertBool "justOver" (isLeft $ Flat.unflat @Term (Flat.flat t1))
-    assertBool "justUnder" (isRight $ Flat.unflat @Term (Flat.flat t2))
+        t2 = UPLC.mkConstant () justUnder
+    assertBool "justOver" (isLeft $ Flat.unflatWith limitedDecoder (Flat.flat t1))
+    assertBool "justUnder" (isRight $ Flat.unflatWith limitedDecoder (Flat.flat t2))
 
 test_nested :: TestTree
 test_nested = testCase "nested" $ do
@@ -81,5 +85,5 @@ test_nested = testCase "nested" $ do
         justOver :: Integer
         justOver = 2 ^ (64 * 8 :: Integer)
         t1 :: Term
-        t1 = UPLC.WithSizeLimits $ UPLC.Delay () $ UPLC.mkConstant () justOver
-    assertBool "delayed" (isLeft $ Flat.unflat @Term (Flat.flat t1))
+        t1 = UPLC.Delay () $ UPLC.mkConstant () justOver
+    assertBool "delayed" (isLeft $ Flat.unflatWith limitedDecoder (Flat.flat t1))
