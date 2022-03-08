@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -25,7 +24,6 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.DeepSeq (NFData)
 import Criterion.Main
 import Data.Char (toLower)
 import Data.Ix (Ix)
