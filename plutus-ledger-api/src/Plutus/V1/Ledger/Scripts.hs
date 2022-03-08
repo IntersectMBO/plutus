@@ -157,7 +157,6 @@ instance Haskell.Show Script where
 scriptSize :: Script -> Integer
 scriptSize (Script s) = UPLC.programSize s
 
--- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = Script . toNameless . getPlc
