@@ -49,6 +49,9 @@ usable, so we need to decide this conditionally based on the protocol version.
 To do this we need to:
 - Know which protocol version a builtin was introduced in.
 - Given the protocol version, check a program for builtins that should not be usable yet.
+
+Note that this doesn't currently handle removals of builtins, although it fairly straighforwardly
+could do, just by tracking when they were removed.
 -}
 
 -- | A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.

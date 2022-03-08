@@ -21,7 +21,6 @@ import Flat.Decoder.Types
 import Flat.Encoder
 import Universe
 
-import Control.Monad (unless)
 import Data.Primitive (Ptr)
 import Foreign (minusPtr)
 
@@ -154,9 +153,8 @@ decodeTerm sizeLimit builtinPred = go
             let t :: Term name uni fun ann
                 t = Constant ann con
             case sizeLimit of
-                Limit n -> unless (fromIntegral usedBytes <= n) $ fail $ "Used more than " ++ show n ++ " bytes decoding the constant: " ++ show (prettyPlcDef t)
-                NoLimit -> pure ()
-            pure t
+                Limit n | fromIntegral usedBytes > n -> fail $ "Used more than " ++ show n ++ " bytes decoding the constant: " ++ show (prettyPlcDef t)
+                _ -> pure t
             where
                 -- Get the pointer where flat is currently decoding from. Requires digging into the innards of flat a bit.
                 getCurPtr :: Get (Ptr Word8)
@@ -168,8 +166,9 @@ decodeTerm sizeLimit builtinPred = go
             fun <- decode
             let t :: Term name uni fun ann
                 t = Builtin ann fun
-            unless (builtinPred fun) $ fail $ "Forbidden builtin function: " ++ show (prettyPlcDef t)
-            pure t
+            if builtinPred fun
+            then pure t
+            else fail $ "Forbidden builtin function: " ++ show (prettyPlcDef t)
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -210,6 +209,15 @@ decodeProgram
     -> Get (Program name uni fun ann)
 decodeProgram sizeLimit builtinPred = Program <$> decode <*> decode <*> decodeTerm sizeLimit builtinPred
 
+{- Note [Deserialization on the chain]
+As discussed in Note [Deserialization size limits], we want to limit how big constants are when deserializing.
+But the 'Flat' instances for plain terms and programs provided here don't do that: they implement unrestricted deserialization.
+
+In practice we use a specialized decoder for the on-chain decoding which calls 'decodeProgram' directly.
+Possibly we should remove these instances in future and only have instances for newtypes that clearly communicate
+the expected behaviour.
+-}
+
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
@@ -222,6 +230,7 @@ instance ( Closed uni
     decode = decodeTerm NoLimit (const True)
     size = sizeTerm
 
+-- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
 instance ( Closed uni
          , uni `Everywhere` Flat
          , PrettyPlc (Term name uni fun ann)
@@ -231,5 +240,5 @@ instance ( Closed uni
          , Flat (Binder name)
          ) => Flat (Program name uni fun ann) where
     encode (Program ann v t) = encode ann <> encode v <> encode t
-    decode = Program <$> decode <*> decode <*> decode
+
     size (Program a v t) n = n + getSize a + getSize v + getSize t

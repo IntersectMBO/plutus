@@ -205,6 +205,7 @@ scriptCBORDecoder :: ProtocolVersion -> CBOR.Decoder s ScriptForExecution
 scriptCBORDecoder pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn pv
+        -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
         flatDecoder = UPLC.decodeProgram (UPLC.Limit 64) (\f -> f `Set.member` availableBuiltins)
     in do
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
