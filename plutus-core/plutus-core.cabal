@@ -144,6 +144,7 @@ library
         UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
+        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Type
 
         Crypto
@@ -217,7 +218,6 @@ library
 
         UntypedPlutusCore.Analysis.Definitions
         UntypedPlutusCore.Analysis.Usages
-        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
         UntypedPlutusCore.Core.Instance.Flat
