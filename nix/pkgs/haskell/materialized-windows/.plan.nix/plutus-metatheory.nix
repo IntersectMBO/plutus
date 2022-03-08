@@ -268,6 +268,7 @@
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-metatheory" or (errorHandler.buildDepError "plutus-metatheory"))
             (hsPkgs."process" or (errorHandler.buildDepError "process"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
@@ -286,6 +287,7 @@
             (hsPkgs."plutus-metatheory" or (errorHandler.buildDepError "plutus-metatheory"))
             (hsPkgs."process" or (errorHandler.buildDepError "process"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
             ];
           build-tools = [
             (hsPkgs.buildPackages.plutus-core.components.exes.plc or (pkgs.buildPackages.plc or (errorHandler.buildToolDepError "plutus-core:plc")))
