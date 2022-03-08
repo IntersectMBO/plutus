@@ -27,7 +27,7 @@ data Formula =
   Con Formula Formula |
   Imp Formula Formula |
   Eqv Formula Formula
-      deriving (Haskell.Show)
+      deriving stock (Haskell.Show)
 Tx.makeLift ''Formula
 
 -- separate positive and negative literals, eliminating duplicates

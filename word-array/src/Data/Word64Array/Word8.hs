@@ -1,17 +1,10 @@
-{-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE BinaryLiterals             #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE InstanceSigs               #-}
-{-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE MagicHash                  #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UnboxedTuples              #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE BinaryLiterals      #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE UnboxedTuples       #-}
 
 module Data.Word64Array.Word8
   ( WordArray(..)
@@ -46,7 +39,8 @@ Hence the offset to find the "start" of the ith Word8 is (-8*i) + 56.
 
 -- | A vector of 8 'Word8's packed into a 'Word64'.
 newtype WordArray = WordArray { fromWordArray :: Word64 }
-  deriving (Eq, Ord, NFData)
+  deriving stock (Eq, Ord)
+  deriving newtype (NFData)
 
 instance Show WordArray where
     show = displayWordArray
@@ -54,7 +48,8 @@ instance Show WordArray where
 type instance Element WordArray = Word8
 
 newtype Index = Index { getIndex :: Int }
-  deriving (Show, Eq, Ord, Num)
+  deriving stock (Show, Eq, Ord)
+  deriving newtype (Num)
 
 instance Bounded Index where
   maxBound = 7

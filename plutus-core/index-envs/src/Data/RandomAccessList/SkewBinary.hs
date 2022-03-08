@@ -26,7 +26,7 @@ import GHC.Exts
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
 data Tree a = Leaf a
             | Node a !(Tree a) !(Tree a)
-            deriving (Eq, Show)
+            deriving stock (Eq, Show)
 
 -- | A strict list of complete binary trees accompanied by their size.
 -- The trees appear in >=-size order.
@@ -39,7 +39,7 @@ data RAList a = BHead
              -- the derived Eq instance is correct,
              -- because binary skew numbers have unique representation
              -- and hence all trees of the same size will have the same structure
-             deriving (Eq, Show)
+             deriving stock (Eq, Show)
 
 
 instance IsList (RAList a) where

@@ -131,7 +131,7 @@ could actually work and if we ever write a paper on builtins, we should mention 
 
 So what we do is we simply require the user to write
 
-    nullList :: Opaque val [a] -> Bool
+    nullList :: SomeConstant uni [a] -> Bool
 
 and unlift a @[a]@ manually within the definition of the builtin. This works, because the
 existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
@@ -145,7 +145,7 @@ try to escape? Maybe, but see point 2 from the above, we do want to get our hand
 universes sometimes and point 1 prevents us from doing that generically, so it doesn't seem like
 we could do that within some automated machinery.
 
-Overall, asking the user to manually unlift from @Opaque val [a]@ is just always going to be
+Overall, asking the user to manually unlift from @SomeConstant uni [a]@ is just always going to be
 faster than any kind of fancy encoding.
 -}
 
@@ -153,7 +153,7 @@ faster than any kind of fancy encoding.
 data ReadKnownError
     = ReadKnownUnliftingError UnliftingError
     | ReadKnownEvaluationFailure
-    deriving (Eq)
+    deriving stock (Eq)
 
 makeClassyPrisms ''ReadKnownError
 

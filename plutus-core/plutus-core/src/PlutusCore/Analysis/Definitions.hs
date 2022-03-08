@@ -35,11 +35,11 @@ them all and allow the client to chose if they want to throw some of them.
 type UniqueInfo ann = (Maybe (ScopedLoc ann), Set.Set (ScopedLoc ann))
 type UniqueInfos ann = UniqueMap Unique (UniqueInfo ann)
 
-data ScopedLoc ann = ScopedLoc ScopeType ann deriving (Eq, Ord)
+data ScopedLoc ann = ScopedLoc ScopeType ann deriving stock (Eq, Ord)
 
 -- | Tag for distinguishing between whether we are talking about the term scope
 -- for variables or the type scope for variables.
-data ScopeType = TermScope | TypeScope deriving (Eq, Ord)
+data ScopeType = TermScope | TypeScope deriving stock (Eq, Ord)
 
 lookupDef
     :: (Ord ann,

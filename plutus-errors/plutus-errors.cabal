@@ -27,10 +27,10 @@ common lang
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable DerivingStrategies DerivingVia
                         ImportQualifiedPost
-    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
+    ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wnoncanonical-monoid-instances
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -Wmissing-deriving-strategies
 
 library
   import: lang

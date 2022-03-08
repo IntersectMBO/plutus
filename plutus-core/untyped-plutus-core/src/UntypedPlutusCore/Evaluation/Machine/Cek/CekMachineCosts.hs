@@ -38,7 +38,7 @@ data CekMachineCosts =
     -- There's no entry for Error since we'll be exiting anyway; also, what would
     -- happen if calling 'Error' caused the budget to be exceeded?
     }
-    deriving (Eq, Show, Generic, Lift)
+    deriving stock (Eq, Show, Generic, Lift)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] CekMachineCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of

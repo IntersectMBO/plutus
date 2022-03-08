@@ -168,7 +168,7 @@ isScriptWellFormed :: SerializedScript -> Bool
 isScriptWellFormed = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
 
 data VerboseMode = Verbose | Quiet
-    deriving (Eq)
+    deriving stock (Eq)
 
 type LogOutput = [Text]
 

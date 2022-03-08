@@ -27,7 +27,7 @@ data Provenance a = Original a
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   -- | Added for accumulating difference provenances when floating lets
                   | MultipleSources (S.Set (Provenance a))
-                  deriving (Show, Eq, Ord)
+                  deriving stock (Show, Eq, Ord)
 
 instance Ord a => Semigroup (Provenance a) where
   MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
@@ -45,7 +45,7 @@ data DatatypeComponent = Constructor
                        | DestructorType
                        | DatatypeType
                        | PatternFunctor
-                       deriving (Show, Eq, Ord)
+                       deriving stock (Show, Eq, Ord)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case
@@ -57,7 +57,7 @@ instance PP.Pretty DatatypeComponent where
         PatternFunctor  -> "pattern functor"
 
 data GeneratedKind = RecursiveLet
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance PP.Pretty GeneratedKind where
     pretty = \case

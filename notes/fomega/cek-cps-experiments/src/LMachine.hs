@@ -83,13 +83,13 @@ throwLMachineException = throw .* MachineException
 data Closure = Closure
     { _closureValue       :: Plain Term
     , _closureEnvironment :: Environment
-    } deriving (Show)
+    } deriving stock (Show)
 
 -- | L machine environments
 -- Each entry is a mapping from the 'Unique' representing a variable to a heap location
 -- Some kind of vector might be more efficient than a map.
 newtype Environment = Environment (IntMap HeapLoc)
-    deriving (Show)
+    deriving stock (Show)
 
 -- | Heap location. Int gives us at least 2^32 = 4,294,967,296 different values
 -- (and 2^64 on a 64-bit machine) which should be big enough.
@@ -124,7 +124,7 @@ data Frame
     | FrameTyInstArg (Type TyName ())            -- ^ @{_ A}@
     | FrameUnwrap                                -- ^ @(unwrap _)@
     | FrameWrap () (TyName ()) (Type TyName ())  -- ^ @(wrap α A _)@
-      deriving (Show)
+      deriving stock (Show)
 
 -- | A context is a stack of frames.
 type EvaluationContext = [Frame]

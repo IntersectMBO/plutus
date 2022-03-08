@@ -228,7 +228,7 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 ---------------- Main ----------------
 
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
-     deriving (Haskell.Read, Haskell.Show)
+     deriving stock (Haskell.Read, Haskell.Show)
 
 {- Some prime numbers.  The larger ones are taken from
    https://primes.utm.edu/lists/small/small.html and
@@ -267,7 +267,8 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
+    deriving anyclass (NFData)
 -- Haskell.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers

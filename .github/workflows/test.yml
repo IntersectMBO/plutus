@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: nixbuild/nix-quick-install-action@v10
+      - uses: nixbuild/nix-quick-install-action@v11
         with:
           # 2.6 is the default, but it has https://github.com/NixOS/nix/issues/5998
           nix_version: 2.5.1
@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: nixbuild/nix-quick-install-action@v10
+      - uses: nixbuild/nix-quick-install-action@v11
         with:
           # 2.6 is the default, but it has https://github.com/NixOS/nix/issues/5998
           nix_version: 2.5.1

@@ -30,7 +30,7 @@ import Plutus.V1.Ledger.Scripts
 -- | Address with two kinds of credentials, normal and staking.
 data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass ( NFData)
+    deriving anyclass (NFData)
 
 instance Pretty Address where
     pretty (Address cred stakingCred) =

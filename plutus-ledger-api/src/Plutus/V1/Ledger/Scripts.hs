@@ -157,7 +157,6 @@ instance Haskell.Show Script where
 scriptSize :: Script -> Integer
 scriptSize (Script s) = UPLC.programSize s
 
--- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = Script . toNameless . getPlc
@@ -169,7 +168,8 @@ fromCompiledCode = Script . toNameless . getPlc
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
+    deriving anyclass (NFData)
 
 applyArguments :: Script -> [PLC.Data] -> Script
 applyArguments (Script p) args =

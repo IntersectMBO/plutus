@@ -90,7 +90,7 @@ compareProgram
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving stock Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2

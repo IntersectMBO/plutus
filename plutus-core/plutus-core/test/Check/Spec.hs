@@ -31,7 +31,7 @@ tests = testGroup "checks"
     , normalTypesCheck
     ]
 
-data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
+data Tag = Tag Int | Ignore deriving stock (Show, Eq, Ord)
 
 checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkTermUniques = Uniques.checkTerm (\case FreeVariable{} -> False; _ -> True)

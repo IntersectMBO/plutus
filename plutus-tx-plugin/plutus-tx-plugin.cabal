@@ -23,12 +23,12 @@ common lang
     default-extensions: ExplicitForAll ScopedTypeVariables
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable
+                        DeriveTraversable DerivingStrategies
                         ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wunused-packages
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -Wmissing-deriving-strategies
                  -- See Plutus Tx readme
                  -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
