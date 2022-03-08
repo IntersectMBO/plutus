@@ -27,6 +27,7 @@ module Plutus.V2.Ledger.Api (
     , mkEvaluationContext
     , CostModelParams
     , isCostModelParamsWellFormed
+    , costModelParamNames
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)
