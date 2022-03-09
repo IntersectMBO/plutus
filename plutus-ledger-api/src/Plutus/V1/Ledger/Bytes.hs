@@ -24,6 +24,7 @@ import Data.Aeson qualified as JSON
 import Data.Aeson.Extras qualified as JSON
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal (c2w, w2c)
+import Data.Data (Data)
 import Data.Either.Extras (unsafeFromEither)
 import Data.String (IsString (..))
 import Data.Text qualified as Text
@@ -68,7 +69,7 @@ fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
 --   servant instances for the Playground, and a convenient bridge
 --   type for PureScript.
 newtype LedgerBytes = LedgerBytes { getLedgerBytes :: P.BuiltinByteString }
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Eq, Ord, Generic, Data)
     deriving newtype (Serialise, P.Eq, P.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (JSON.ToJSONKey, JSON.FromJSONKey, NFData)
     deriving Pretty via (PrettyShow LedgerBytes)
