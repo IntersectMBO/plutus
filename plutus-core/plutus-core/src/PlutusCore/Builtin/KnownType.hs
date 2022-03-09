@@ -157,7 +157,7 @@ faster than any kind of fancy encoding.
 -- | The type of errors that 'makeKnown' can return.
 data MakeKnownError
     = MakeKnownEvaluationFailure
-    deriving (Eq)
+    deriving stock (Eq)
 
 -- | The type of errors that 'readKnown' can return.
 data ReadKnownError
