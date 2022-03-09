@@ -72,6 +72,7 @@ import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.Array hiding (index)
+import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
@@ -283,8 +284,17 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
+{- Note [DList-based emitting]
+Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
+(see 'CekEmitter'). That 'DList' comes from 'Emitter' and allows the latter to be an efficient
+monad for logging. We leak this implementation detail in the type of emitters, because it's the
+most efficient way of doing emitting, see
+https://github.com/input-output-hk/plutus/pull/4421#issuecomment-1059186586
+-}
+
+-- See Note [DList-based emitting].
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s = Text -> CekM uni fun s ()
+type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
@@ -554,7 +564,11 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        makeKnown ?cekEmitter (Just term) x
+        let !(errOrRes, logs) = makeKnownRun (Just term) x
+        ?cekEmitter logs
+        case errOrRes of
+            Left err  -> throwMakeKnownErrorWithCause err
+            Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
