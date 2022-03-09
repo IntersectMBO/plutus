@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns   #-}
 {-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE TypeFamilies   #-}
 
@@ -121,7 +120,7 @@ toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
             go schB $ \sch' toF' toExF' -> k
                 (RuntimeSchemeArrow sch')
                 (\getF x -> do
-                    let !getVal = readKnown (Just ()) x
+                    let getVal = readKnown (Just ()) x
                     case unliftMode of
                         UnliftImmediately   -> getVal <&> \val -> toF' (($ val) <$> getF)
                         UnliftWhenSaturated -> pure . toF' $ getF <*> getVal)
