@@ -204,7 +204,7 @@ data CekValue uni fun =
       (CekValEnv uni fun)    -- For discharging.
       !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
                                             -- Check the docs of 'BuiltinRuntime' for details.
-    deriving (Show)
+    deriving stock (Show)
 
 type CekValEnv uni fun = RAList (CekValue uni fun)
 
@@ -338,13 +338,13 @@ type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
-    deriving (Show, Eq, Generic, NFData)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (NFData)
 
 instance HasErrorCode CekUserError where
     errorCode CekEvaluationFailure {} = ErrorCode 37
     errorCode CekOutOfExError {}      = ErrorCode 36
 
--- See Note [Being generic over @term@ in 'CekM'].
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
 newtype CekM uni fun s a = CekM
@@ -498,7 +498,7 @@ data Context uni fun
     | FrameApplyArg !(CekValEnv uni fun) (Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
-    deriving (Show)
+    deriving stock (Show)
 
 toExMemory :: (Closed uni, uni `Everywhere` ExMemoryUsage) => CekValue uni fun -> ExMemory
 toExMemory = \case
@@ -529,7 +529,6 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
-    -- See Note Note [Being generic over 'term' in errors].
     errOrRes <- unCekM $ tryError a
     st <- _exBudgetModeGetFinal
     logs <- _cekEmitterInfoGetFinal

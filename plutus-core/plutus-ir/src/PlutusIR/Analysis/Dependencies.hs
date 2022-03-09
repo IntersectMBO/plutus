@@ -34,7 +34,7 @@ type DepState = StrictnessMap
 -- node indicating the root of the graph. We need the root node because when computing the
 -- dependency graph of, say, a term, there will not be a binding for the term itself which
 -- we can use to represent it in the graph.
-data Node = Variable PLC.Unique | Root deriving (Show, Eq, Ord)
+data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
 -- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from it), whose
 -- vertices are 'Node's.

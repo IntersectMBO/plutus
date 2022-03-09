@@ -23,6 +23,7 @@ module Universe.Core
     , ValueOf (..)
     , someValueOf
     , someValue
+    , someValueType
     , Contains (..)
     , Includes
     , DecodeUniM (..)
@@ -416,6 +417,9 @@ someValueOf uni = Some . ValueOf uni
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
+someValueType :: Some (ValueOf uni) -> SomeTypeIn uni
+someValueType (Some (ValueOf tag _)) = SomeTypeIn tag
+
 -- | A monad to decode types from a universe in.
 -- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
 -- an arbitrary amount of type tags from the input list of tags and so we have state, which is
@@ -604,7 +608,7 @@ Take for example @Show (Some f)@, we could implement it as
     instance (forall a. Show (f a)) => Show (Some f) where
         show (Some a) = "Some " ++ show a
 
-(with `-XQuantifiedConstraints`). Unfortunately, that breaks @deriving (Show)@ for every data type
+(with `-XQuantifiedConstraints`). Unfortunately, that breaks @deriving stock (Show)@ for every data type
 that has @Some f@ somewhere inside it and forces you to use a standalone deriving declaration for
 each such data type, which is rather annoying, because instance contexts tend to get huge,
 so it takes time to come up with them or to remember where to copy them from and they also occupy

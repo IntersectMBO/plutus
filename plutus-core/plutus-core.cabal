@@ -34,9 +34,8 @@ common lang
                         ImportQualifiedPost
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wnoncanonical-monoid-instances
-                 -Wunused-packages
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -Wmissing-deriving-strategies
 
 library
     import: lang
@@ -145,6 +144,7 @@ library
         UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
+        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Type
 
         Crypto
@@ -218,7 +218,6 @@ library
 
         UntypedPlutusCore.Analysis.Definitions
         UntypedPlutusCore.Analysis.Usages
-        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
         UntypedPlutusCore.Core.Instance.Flat

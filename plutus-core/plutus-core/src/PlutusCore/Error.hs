@@ -58,7 +58,8 @@ data ParseError
     | BuiltinTypeNotAStar T.Text SourcePos
     | UnknownBuiltinFunction T.Text SourcePos
     | InvalidBuiltinConstant T.Text T.Text SourcePos
-    deriving (Eq, Ord, Generic, NFData)
+    deriving stock (Eq, Ord, Generic)
+    deriving anyclass (NFData)
 
 makeClassyPrisms ''ParseError
 
@@ -70,14 +71,16 @@ data UniqueError ann
     = MultiplyDefined Unique ann ann
     | IncoherentUsage Unique ann ann
     | FreeVariable Unique ann
-    deriving (Show, Eq, Generic, NFData, Functor)
+    deriving stock (Show, Eq, Generic, Functor)
+    deriving anyclass (NFData)
 makeClassyPrisms ''UniqueError
 
 data NormCheckError tyname name uni fun ann
     = BadType ann (Type tyname uni ann) T.Text
     | BadTerm ann (Term tyname name uni fun ann) T.Text
-    deriving (Show, Functor, Generic, NFData)
-deriving instance
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
+deriving stock instance
     ( Eq (Term tyname name uni fun ann)
     , Eq (Type tyname uni ann)
     , GEq uni, Closed uni, uni `Everywhere` Eq
@@ -94,7 +97,8 @@ data TypeError term uni fun ann
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
     | UnknownBuiltinFunctionE ann fun
-    deriving (Show, Eq, Generic, NFData, Functor)
+    deriving stock (Show, Eq, Generic, Functor)
+    deriving anyclass (NFData)
 makeClassyPrisms ''TypeError
 
 data Error uni fun ann
@@ -103,9 +107,10 @@ data Error uni fun ann
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
     | FreeVariableErrorE FreeVariableError
-    deriving (Eq, Generic, NFData, Functor)
+    deriving stock (Eq, Generic, Functor)
+    deriving anyclass (NFData)
 makeClassyPrisms ''Error
-deriving instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParseError) => Show (Error uni fun ann)
+deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParseError) => Show (Error uni fun ann)
 
 instance AsParseError (Error uni fun ann) where
     _ParseError = _ParseErrorE

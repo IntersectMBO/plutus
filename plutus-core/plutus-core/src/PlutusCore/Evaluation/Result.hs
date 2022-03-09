@@ -55,7 +55,8 @@ _EvaluationFailureVia failure = prism (const failure) $ \a -> when (a /= failure
 data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
-    deriving (Show, Eq, Generic, Functor, Foldable, Traversable, NFData)
+    deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
+    deriving anyclass (NFData)
 
 -- This and the next one are two instances that allow us to write the following:
 --

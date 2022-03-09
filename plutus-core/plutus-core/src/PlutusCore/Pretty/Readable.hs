@@ -22,7 +22,7 @@ import Text.PrettyBy.Fixity as Export
 data ShowKinds
     = ShowKindsYes
     | ShowKindsNo
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable

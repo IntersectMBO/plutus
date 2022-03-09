@@ -63,7 +63,7 @@ import Plutus.V1.Ledger.Value
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
-    deriving (Eq, Ord, Generic)
+    deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
     deriving (Show, Pretty, IsString) via LedgerBytes

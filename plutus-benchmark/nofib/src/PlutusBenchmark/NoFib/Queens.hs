@@ -75,7 +75,7 @@ data Algorithm = Bt
                | Bjbt1
                | Bjbt2
                | Fc
-               deriving (Haskell.Show, Haskell.Read)
+               deriving stock (Haskell.Show, Haskell.Read)
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
@@ -198,7 +198,8 @@ type Var = Integer
 type Value = Integer
 
 data Assign = Var := Value
-    deriving (Haskell.Show, Haskell.Eq, Haskell.Ord, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Haskell.Ord, Generic)
+    deriving anyclass (NFData)
 instance TxPrelude.Eq Assign
     where (a := b) == (a' := b') = a==a' && b==b'
 instance TxPrelude.Ord Assign

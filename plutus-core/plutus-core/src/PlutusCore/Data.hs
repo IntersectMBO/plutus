@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -19,6 +20,7 @@ import Control.Monad.Except
 import Data.Bits (shiftR)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
+import Data.Data qualified
 import Data.Word (Word64, Word8)
 import GHC.Generics
 import Prelude
@@ -36,7 +38,7 @@ data Data =
     | List [Data]
     | I Integer
     | B BS.ByteString
-    deriving stock (Show, Eq, Ord, Generic)
+    deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
     deriving anyclass (NFData)
 
 instance Pretty Data where

@@ -23,7 +23,6 @@
 module Plutus.V1.Ledger.Scripts(
     -- * Scripts
     Script (..),
-    SerialiseViaFlat (..),
     scriptSize,
     fromCompiledCode,
     ScriptError (..),
@@ -62,15 +61,14 @@ module Plutus.V1.Ledger.Scripts(
 
 import Prelude qualified as Haskell
 
-import Codec.CBOR.Decoding (decodeBytes)
-import Codec.Serialise (Serialise, decode, encode, serialise)
+import Codec.CBOR.Extras (SerialiseViaFlat (..))
+import Codec.Serialise (Serialise, serialise)
 import Control.DeepSeq (NFData)
 import Control.Lens hiding (Context)
 import Control.Monad.Except (MonadError, throwError)
 import Data.ByteString.Lazy qualified as BSL
 import Data.String
 import Data.Text (Text)
-import Flat qualified
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
 import PlutusCore qualified as PLC
@@ -113,17 +111,6 @@ data structures that include scripts (for example, transactions) no-longer benef
 for CBOR's ability to self-describe it's format.
 -}
 
--- | Newtype for to provide 'Serialise' instances for types with a 'Flat' instance that
--- just encodes the flat-serialized value as a CBOR bytestring
-newtype SerialiseViaFlat a = SerialiseViaFlat a
-instance Flat.Flat a => Serialise (SerialiseViaFlat a) where
-  encode (SerialiseViaFlat a) = encode $ Flat.flat a
-  decode = do
-    bs <- decodeBytes
-    case Flat.unflat bs of
-      Left  err -> Haskell.fail (Haskell.show err)
-      Right v   -> Haskell.return (SerialiseViaFlat v)
-
 {- Note [Eq and Ord for Scripts]
 We need `Eq` and `Ord` instances for `Script`s mostly so we can put them in `Set`s.
 However, the `Eq` instance for `Program`s is *alpha-equivalence*, and we don't
@@ -157,7 +144,6 @@ instance Haskell.Show Script where
 scriptSize :: Script -> Integer
 scriptSize (Script s) = UPLC.programSize s
 
--- See Note [Normalized types in Scripts]
 -- | Turn a 'CompiledCode' (usually produced by 'compile') into a 'Script' for use with this package.
 fromCompiledCode :: CompiledCode a -> Script
 fromCompiledCode = Script . toNameless . getPlc
@@ -169,7 +155,8 @@ fromCompiledCode = Script . toNameless . getPlc
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
+    deriving anyclass (NFData)
 
 applyArguments :: Script -> [PLC.Data] -> Script
 applyArguments (Script p) args =

@@ -63,7 +63,7 @@ instance Rename a => Rename (Normalized a) where
 -- global conditions is preserved.
 newtype Dupable a = Dupable
     { unDupable :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable)
+    } deriving stock (Show, Eq, Functor, Foldable, Traversable)
       deriving (Applicative, Monad) via Identity
 
 -- | Extract the value stored in a @Dupable a@ and rename it.

@@ -203,7 +203,7 @@ instance Pretty ExBudget where
 
 newtype ExRestrictingBudget = ExRestrictingBudget
     { unExRestrictingBudget :: ExBudget
-    } deriving (Show, Eq)
+    } deriving stock (Show, Eq)
       deriving newtype (Semigroup, Monoid)
       deriving newtype (Pretty, PrettyBy config, NFData)
 

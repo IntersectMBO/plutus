@@ -38,7 +38,8 @@ data NopFuns
     | Nop4
     | Nop5
     | Nop6
-    deriving (Show, Eq, Ord, Enum, Bounded, Generic, NFData, Ix, PrettyBy PrettyConfigPlc)
+    deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
+    deriving anyclass (NFData, PrettyBy PrettyConfigPlc)
 
 instance Pretty NopFuns where
     pretty fun = pretty $ case show fun of

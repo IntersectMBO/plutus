@@ -191,7 +191,7 @@ data LinearModelRaw = LinearModelRaw
   , linearModelRawStdError  :: Double
   , linearModelRawStatistic :: Double
   , linearModelRawPValue    :: Double
-  } deriving (Show, Eq, Generic)
+  } deriving stock (Show, Eq, Generic)
 
 -- Reading via CSV because the R side did weird things in JSON
 instance FromNamedRecord LinearModelRaw where

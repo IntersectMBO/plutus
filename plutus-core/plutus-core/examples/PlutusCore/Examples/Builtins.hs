@@ -7,6 +7,7 @@
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -92,8 +93,12 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 -- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
+    | SumInteger
     | Const
     | Id
+    | IdAssumeBool
+    | IdAssumeCheckBool
+    | IdSomeConstantBool
     | IdFInteger
     | IdList
     | IdRank2
@@ -114,7 +119,8 @@ data ExtensionFun
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
-    deriving (Show, Eq, Ord, Enum, Bounded, Ix, Generic, Hashable)
+    deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
+    deriving anyclass (Hashable)
 
 instance Pretty ExtensionFun where pretty = viaShow
 
@@ -148,7 +154,8 @@ instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall
-    deriving (Show, Eq, Exception)
+    deriving stock (Show, Eq)
+    deriving anyclass (Exception)
 
 -- See Note [Representable built-in functions over polymorphic built-in types].
 -- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates
@@ -170,6 +177,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
 
+    toBuiltinMeaning SumInteger =
+        makeBuiltinMeaning
+            (sum :: [Integer] -> Integer)
+            mempty  -- Whatever.
+
     toBuiltinMeaning Const =
         makeBuiltinMeaning
             const
@@ -180,9 +192,35 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             Prelude.id
             (\_ _ -> ExBudget 1 0)
 
+    toBuiltinMeaning IdAssumeBool =
+        makeBuiltinMeaning
+            (Prelude.id :: Opaque val Bool -> Opaque val Bool)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning IdAssumeCheckBool =
+        makeBuiltinMeaning
+            idAssumeCheckBoolPlc
+            mempty  -- Whatever.
+      where
+        idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
+        idAssumeCheckBoolPlc val =
+            case asConstant @_ @UnliftingError Nothing val of
+                Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+                _                                       -> EvaluationFailure
+
+    toBuiltinMeaning IdSomeConstantBool =
+        makeBuiltinMeaning
+            idSomeConstantBoolPlc
+            mempty  -- Whatever.
+      where
+        idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
+        idSomeConstantBoolPlc = \case
+            SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
+            _                                              -> EvaluationFailure
+
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
-            (Prelude.id :: fi ~ Opaque val (TyAppRep f Integer) => fi -> fi)
+            (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning IdList =
@@ -193,7 +231,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: afa ~ Opaque val (TyForallRep a (TyAppRep (TyVarRep f) (TyVarRep a)))
+                :: afa ~ Opaque val (TyForallRep a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 

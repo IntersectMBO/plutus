@@ -47,7 +47,7 @@ import Prettyprinter
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
     = UnliftingErrorE Text
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
     deriving newtype (IsString, Semigroup, NFData)
 
 -- | Errors which can occur during a run of an abstract machine.
@@ -71,7 +71,8 @@ data MachineError fun
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
     | UnknownBuiltin fun
-    deriving (Show, Eq, Functor, Generic, NFData)
+    deriving stock (Show, Eq, Functor, Generic)
+    deriving anyclass (NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
@@ -80,7 +81,8 @@ data EvaluationError user internal
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
-    deriving (Show, Eq, Functor, Generic, NFData)
+    deriving stock (Show, Eq, Functor, Generic)
+    deriving anyclass (NFData)
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
@@ -101,7 +103,8 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
 data ErrorWithCause err cause = ErrorWithCause
     { _ewcError :: err
     , _ewcCause :: Maybe cause
-    } deriving (Eq, Functor, Foldable, Traversable, Generic, NFData)
+    } deriving stock (Eq, Functor, Foldable, Traversable, Generic)
+    deriving anyclass (NFData)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)

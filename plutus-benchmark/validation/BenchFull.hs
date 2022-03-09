@@ -58,6 +58,7 @@ main = benchWith mkFullBM
             benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
 
         in  whnf (\ script -> snd $ evaluateScriptCounting
+                        (ProtocolVersion 6 0)
                         -- no logs
                         Quiet
                         evalCtxForTesting

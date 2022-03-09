@@ -2,7 +2,7 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, saltFunction) where
+module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
 
 import Codec.Serialise
 import Data.ByteString.Lazy (fromStrict, toStrict)
@@ -11,6 +11,7 @@ import Numeric.Natural
 import Plutus.V1.Ledger.Api
 import Plutus.V1.Ledger.Scripts qualified as Scripts
 import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
 import Universe (Some (Some))
 import UntypedPlutusCore qualified as UPLC
 
@@ -38,6 +39,10 @@ alwaysFailingNAryFunction n = toShort $ toStrict $ serialise $ Scripts.Script $ 
         -- We're using de Bruijn indices, so we can use the same binder each time!
         body i = UPLC.LamAbs () (UPLC.DeBruijn 0) $ body (i-1)
 
+summingFunction :: SerializedScript
+summingFunction = toShort $ toStrict $ serialise $ Scripts.Script $ UPLC.Program () (PLC.defaultVersion ()) body
+    where
+        body = UPLC.Apply () (UPLC.Apply () (UPLC.Builtin () PLC.AddInteger) (PLC.mkConstant @Integer () 1)) (PLC.mkConstant @Integer () 2)
 
 -- | Wrap a script with lambda/app so that, for instance, it has a different hash but the same behavior.
 saltFunction :: Integer -> SerializedScript -> SerializedScript

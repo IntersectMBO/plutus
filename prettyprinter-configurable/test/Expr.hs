@@ -38,7 +38,7 @@ data Expr
     | Mul Expr Expr              -- ^ Multiplication.
     | Fac Expr                   -- ^ Factorial.
     | IfThenElse Expr Expr Expr  -- ^ @if_then_else_@
-    deriving (Show)
+    deriving stock (Show)
 
 -- Prefix and right-associative, so that @~(~b)@ is pretty-printed as @~~b@.
 notFixity :: Fixity
