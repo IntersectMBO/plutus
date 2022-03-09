@@ -819,7 +819,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Tracing
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emitM text)
+            (\text a -> a <$ emit text)
             (runCostingFunTwoArguments . paramTrace)
     -- Pairs
     toBuiltinMeaning FstPair =

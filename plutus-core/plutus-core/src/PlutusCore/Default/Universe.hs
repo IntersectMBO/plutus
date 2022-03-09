@@ -247,7 +247,7 @@ instance KnownTypeAst DefaultUni Int64 where
 
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int64 where
-    makeKnown emit mayCause = makeKnown emit mayCause . toInteger
+    makeKnown mayCause = makeKnown mayCause . toInteger
     {-# INLINE makeKnown #-}
 
     readKnown mayCause term =
@@ -267,7 +267,7 @@ instance KnownTypeAst DefaultUni Int where
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
-    makeKnown emit mayCause = makeKnown emit mayCause . intCastEq @Int @Int64
+    makeKnown mayCause = makeKnown mayCause . intCastEq @Int @Int64
     {-# INLINE makeKnown #-}
 
     readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
