@@ -114,6 +114,7 @@ instance AsEvaluationFailure CkUserError where
 instance Pretty CkUserError where
     pretty CkEvaluationFailure = "The provided Plutus code called 'error'."
 
+-- The 'DList' is just be consistent with the CEK machine (see Note [DList-based emitting]).
 emitCkM :: DList Text -> CkM uni fun s ()
 emitCkM logs = do
     mayLogsRef <- asks ckEnvMayEmitRef

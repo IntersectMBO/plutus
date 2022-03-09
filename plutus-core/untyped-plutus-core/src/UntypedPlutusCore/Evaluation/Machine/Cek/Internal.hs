@@ -284,6 +284,15 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
+{- Note [DList-based emitting]
+Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
+(see 'CekEmitter'). That 'DList' comes from 'Emitter' and allows the latter to be an efficient
+monad for logging. We leak this implementation detail in the type of emitters, because it's the
+most efficient way of doing emitting, see
+https://github.com/input-output-hk/plutus/pull/4421#issuecomment-1059186586
+-}
+
+-- See Note [DList-based emitting].
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
 type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
