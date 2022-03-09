@@ -22,6 +22,7 @@ import Data.Aeson (FromJSON (parseJSON), FromJSONKey, FromJSONKeyFunction (FromJ
                    ToJSONKey, ToJSONKeyFunction (ToJSONKeyValue), genericParseJSON, genericToJSON, (.:))
 import Data.Aeson qualified as JSON
 import Data.Aeson.Extras qualified as JSON
+import Data.Data (Data)
 import Data.Hashable (Hashable)
 import Data.String
 import GHC.Generics (Generic)
@@ -34,7 +35,7 @@ import Prettyprinter
 
 -- | A cryptographic public key.
 newtype PubKey = PubKey { getPubKey :: LedgerBytes }
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Eq, Ord, Generic, Data)
     deriving anyclass (Newtype, ToJSON, FromJSON, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
@@ -49,7 +50,7 @@ instance FromJSONKey PubKey where
 
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
-    deriving stock (Eq, Ord, Generic)
+    deriving stock (Eq, Ord, Generic, Data)
     deriving anyclass (ToJSON, FromJSON, Newtype, ToJSONKey, FromJSONKey, NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, Serialise, Hashable, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving IsString via LedgerBytes
