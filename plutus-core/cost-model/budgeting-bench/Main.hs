@@ -22,7 +22,6 @@ import Criterion.Main
 import Criterion.Types as C
 import System.Random (getStdGen)
 
-
 ---------------- Miscellaneous ----------------
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
