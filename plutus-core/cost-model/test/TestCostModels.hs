@@ -275,7 +275,7 @@ makeProp6 name fun param models =
 main :: IO ()
 main =
     withEmbeddedR R.defaultConfig $ runRegion $ do
-      models <- CostModelCreation.costModelsR DFP.builtinCostModelFile DFP.rModelFile
+      models <- CostModelCreation.costModelsR DFP.benchingResultsFile DFP.rModelFile
       H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
           where tests models =  -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
                     [ $(genTest 2 "addInteger")            Everywhere

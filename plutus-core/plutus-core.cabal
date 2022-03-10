@@ -580,9 +580,8 @@ test-suite traceToStacks-test
 -- This runs the microbenchmarks used to generate the cost models for built-in
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
-benchmark cost-model-budgeting-bench
+executable cost-model-budgeting-bench
     type: exitcode-stdio-1.0
-    import: lang
     main-is: Main.hs
     other-modules:
         Common
@@ -629,7 +628,8 @@ executable generate-cost-model
     import: lang
     hs-source-dirs: cost-model/create-cost-model
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities    build-depends:
+                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    build-depends:
         plutus-core -any,
         aeson-pretty -any,
         barbies -any,
