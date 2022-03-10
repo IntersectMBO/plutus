@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -43,6 +44,12 @@ data NopFuns
     | Nop4b
     | Nop5b
     | Nop6b
+    | Nop1c  -- SomeConstant
+    | Nop2c
+    | Nop3c
+    | Nop4c
+    | Nop5c
+    | Nop6c
     | Nop1o  -- Opaque: return first argument
     | Nop2o
     | Nop3o
@@ -177,6 +184,114 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ _ -> True)
              (runCostingFunSixArguments . paramNop6)
+    toBuiltinMeaning Nop1c =
+        makeBuiltinMeaning
+             nop1SomeConstantBool
+             (runCostingFunOneArgument . paramNop1)
+             where nop1SomeConstantBool :: SomeConstant uni Bool -> EvaluationResult Bool
+                   nop1SomeConstantBool b1 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                         _                                              -> EvaluationFailure
+    toBuiltinMeaning Nop2c =
+        makeBuiltinMeaning
+             nop2SomeConstantBool
+             (runCostingFunTwoArguments . paramNop2)
+             where nop2SomeConstantBool :: SomeConstant uni Bool -> SomeConstant uni Bool -> EvaluationResult Bool
+                   nop2SomeConstantBool b1 b2 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                             case b2 of
+                               SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                               _                                              -> EvaluationFailure
+                         _ -> EvaluationFailure
+    toBuiltinMeaning Nop3c =
+        makeBuiltinMeaning
+             nop3SomeConstantBool
+             (runCostingFunThreeArguments . paramNop3)
+             where nop3SomeConstantBool :: SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> EvaluationResult Bool
+                   nop3SomeConstantBool b1 b2 b3 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                             case b2 of
+                               SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                   case b3 of
+                                     SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                                     _                                              -> EvaluationFailure
+                               _ -> EvaluationFailure
+                         _ -> EvaluationFailure
+    toBuiltinMeaning Nop4c =
+        makeBuiltinMeaning
+             nop4SomeConstantBool
+             (runCostingFunFourArguments . paramNop4)
+             where nop4SomeConstantBool :: SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> EvaluationResult Bool
+                   nop4SomeConstantBool b1 b2 b3 b4 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                             case b2 of
+                               SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                   case b3 of
+                                     SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                         case b4 of
+                                           SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                                           _                                              -> EvaluationFailure
+                                     _ -> EvaluationFailure
+                               _ -> EvaluationFailure
+                         _ -> EvaluationFailure
+    toBuiltinMeaning Nop5c =
+        makeBuiltinMeaning
+             nop5SomeConstantBool
+             (runCostingFunFiveArguments . paramNop5)
+             where nop5SomeConstantBool :: SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> EvaluationResult Bool
+                   nop5SomeConstantBool b1 b2 b3 b4 b5 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                             case b2 of
+                               SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                   case b3 of
+                                     SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                         case b4 of
+                                           SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                               case b5 of
+                                                 SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                                                 _ -> EvaluationFailure
+                                           _ -> EvaluationFailure
+                                     _ -> EvaluationFailure
+                               _ -> EvaluationFailure
+                         _ -> EvaluationFailure
+
+    toBuiltinMeaning Nop6c =
+        makeBuiltinMeaning
+             nop6SomeConstantBool
+             (runCostingFunSixArguments . paramNop6)
+             where nop6SomeConstantBool :: SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> SomeConstant uni Bool -> SomeConstant uni Bool
+                                        -> EvaluationResult Bool
+                   nop6SomeConstantBool b1 b2 b3 b4 b5 b6 =
+                       case b1 of
+                         SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                             case b2 of
+                               SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                   case b3 of
+                                     SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                         case b4 of
+                                           SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                               case b5 of
+                                                 SomeConstant (Some (ValueOf DefaultUniBool _)) ->
+                                                     case b6 of
+                                                       SomeConstant (Some (ValueOf DefaultUniBool _)) -> EvaluationSuccess True
+                                                       _ -> EvaluationFailure
+                                                 _ -> EvaluationFailure
+                                           _ -> EvaluationFailure
+                                     _ -> EvaluationFailure
+                               _ -> EvaluationFailure
+                         _ -> EvaluationFailure
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
@@ -360,7 +475,6 @@ benchNop1b gen =
 benchNop2b :: StdGen -> Benchmark
 benchNop2b gen =
     let name = Nop2b
-        mem = 1
         (x,gen1) = randBool gen
         (y,_)    = randBool gen1
     in bgroup (show name)
@@ -371,7 +485,6 @@ benchNop2b gen =
 benchNop3b :: StdGen -> Benchmark
 benchNop3b gen =
     let name = Nop3b
-        mem = 1
         (x,gen1) = randBool gen
         (y,gen2) = randBool gen1
         (z,_)    = randBool gen2
@@ -385,7 +498,6 @@ benchNop3b gen =
 benchNop4b :: StdGen -> Benchmark
 benchNop4b gen =
     let name = Nop4b
-        mem = 1
         (x,gen1) = randBool gen
         (y,gen2) = randBool gen1
         (z,gen3) = randBool gen2
@@ -402,7 +514,6 @@ benchNop4b gen =
 benchNop5b :: StdGen -> Benchmark
 benchNop5b gen =
     let name = Nop5b
-        mem = 1
         (x,gen1) = randBool gen
         (y,gen2) = randBool gen1
         (z,gen3) = randBool gen2
@@ -422,7 +533,92 @@ benchNop5b gen =
 benchNop6b :: StdGen -> Benchmark
 benchNop6b gen =
     let name = Nop6b
-        mem = 1
+        (x,gen1) = randBool gen
+        (y,gen2) = randBool gen1
+        (z,gen3) = randBool gen2
+        (t,gen4) = randBool gen3
+        (u,gen5) = randBool gen4
+        (v,_)    = randBool gen5
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [bgroup (showMemoryUsage u)
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
+               ]
+              ]
+             ]
+            ]
+           ]
+
+benchNop1c :: StdGen -> Benchmark
+benchNop1c gen =
+    let name = Nop1c
+        (x,_) = randBool gen
+    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
+
+benchNop2c :: StdGen -> Benchmark
+benchNop2c gen =
+    let name = Nop2c
+        (x,gen1) = randBool gen
+        (y,_)    = randBool gen1
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
+           ]
+
+benchNop3c :: StdGen -> Benchmark
+benchNop3c gen =
+    let name = Nop3c
+        (x,gen1) = randBool gen
+        (y,gen2) = randBool gen1
+        (z,_)    = randBool gen2
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
+            ]
+           ]
+
+benchNop4c :: StdGen -> Benchmark
+benchNop4c gen =
+    let name = Nop4c
+        (x,gen1) = randBool gen
+        (y,gen2) = randBool gen1
+        (z,gen3) = randBool gen2
+        (t,_)    = randBool gen3
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
+             ]
+            ]
+           ]
+
+benchNop5c :: StdGen -> Benchmark
+benchNop5c gen =
+    let name = Nop5c
+        (x,gen1) = randBool gen
+        (y,gen2) = randBool gen1
+        (z,gen3) = randBool gen2
+        (t,gen4) = randBool gen3
+        (u,_)    = randBool gen4
+    in bgroup (show name)
+           [bgroup (showMemoryUsage x)
+            [bgroup (showMemoryUsage y)
+             [bgroup (showMemoryUsage z)
+              [bgroup (showMemoryUsage t)
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
+              ]
+             ]
+            ]
+           ]
+
+benchNop6c :: StdGen -> Benchmark
+benchNop6c gen =
+    let name = Nop6c
         (x,gen1) = randBool gen
         (y,gen2) = randBool gen1
         (z,gen3) = randBool gen2
@@ -623,5 +819,6 @@ benchNop6z gen =
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen = [ benchNop1i gen, benchNop2i gen, benchNop3i gen, benchNop4i gen, benchNop5i gen, benchNop6i gen
                      , benchNop1b gen, benchNop2b gen, benchNop3b gen, benchNop4b gen, benchNop5b gen, benchNop6b gen
+                     , benchNop1c gen, benchNop2c gen, benchNop3c gen, benchNop4c gen, benchNop5c gen, benchNop6c gen
                      , benchNop1o gen, benchNop2o gen, benchNop3o gen, benchNop4o gen, benchNop5o gen, benchNop6o gen
                      , benchNop1z gen, benchNop2z gen, benchNop3z gen, benchNop4z gen, benchNop5z gen, benchNop6z gen]
