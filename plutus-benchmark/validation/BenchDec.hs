@@ -7,6 +7,8 @@ import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
 import Plutus.V1.Ledger.Api
+import Plutus.V1.Ledger.Scripts
+import UntypedPlutusCore qualified as UPLC
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -21,11 +23,24 @@ main :: IO ()
 main = benchWith mkDecBM
   where
     mkDecBM :: FilePath -> BS.ByteString -> Benchmarkable
-    mkDecBM _file bsFlat =
+    mkDecBM file bsFlat =
         let
-            -- just "envelope" the flat strict-bytestring into a cbor's lazy serialised bytestring
-            bslCBOR :: BSL.ByteString = Serialise.serialise bsFlat
+            UPLC.Program _ v (fullyApplied :: Term) = unsafeUnflat file bsFlat
+
+            -- script arguments are not 64-byte size limited, so we make
+            -- sure to remove them from the fully-applied script, and then decode back just the "unsaturated" script
+            -- See Note [Deserialization size limits]
+            (unsaturated, _args) = peelDataArguments fullyApplied
+
+            -- we then have to re-encode it
+            bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v unsaturated)
             -- strictify and "short" the result cbor to create a real `SerializedScript`
+
             benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
-        in whnf isScriptWellFormed benchScript
+
+            -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
+        in whnf (\ s ->
+                     isScriptWellFormed (ProtocolVersion 6 0) s
+                     || error "validation script failed to decode"
+                ) benchScript
 

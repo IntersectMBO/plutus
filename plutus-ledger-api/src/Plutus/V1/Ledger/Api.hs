@@ -115,7 +115,6 @@ module Plutus.V1.Ledger.Api (
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
-import Codec.Serialise qualified as CBOR
 import Control.Monad.Except
 import Control.Monad.Writer
 import Data.Bifunctor
@@ -170,17 +169,16 @@ internally. That means we don't lose anything by exposing all the details: we're
 anything, we're just going to create new versions.
 -}
 
--- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
--- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
-isScriptWellFormed :: SerializedScript -> Bool
-isScriptWellFormed = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
+-- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
+-- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
+isScriptWellFormed :: ProtocolVersion -> SerializedScript -> Bool
+isScriptWellFormed pv = isRight . CBOR.deserialiseFromBytes (scriptCBORDecoder pv) . fromStrict . fromShort
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
     CekError (UPLC.CekEvaluationException PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError PLC.FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError CBOR.DeserialiseFailure -- ^ A serialisation error
-    | UnavailableBuiltin ProtocolVersion PLC.DefaultFun
     | IncompatibleVersionError (PLC.Version ()) -- ^ An error indicating a version tag that we don't support
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
@@ -190,7 +188,6 @@ instance Pretty EvaluationError where
     pretty (CekError e)      = prettyClassicDef e
     pretty (DeBruijnError e) = pretty e
     pretty (CodecError e) = viaShow e
-    pretty (UnavailableBuiltin pv f) = "The builtin" <+> pretty f <+> "is not available in protocol version" <+> pretty pv
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
