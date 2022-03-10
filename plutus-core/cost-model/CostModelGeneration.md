@@ -79,3 +79,8 @@ location on the command line, and perhaps use `paths` to locate the `models.R`
 file.  It would also be useful to supply a path to `cost-model-budgeting-bench`
 for output of the CSV results, but this is tricky because Criterion supplies the
 `main` function and does its own argument processing.
+
+
+MENTION THE TESTS, ADD STUFF ABOUT ARGUMENTS -- and the other thing about having
+to add a new entry in builtincostmodel.json manually when you add a new
+benchmark because of circularity.  When exactly do you have to do this?
