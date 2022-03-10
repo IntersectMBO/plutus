@@ -11,20 +11,20 @@ module CostModelCreation where
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
-import Barbies
+import Barbies (bmap, bsequence)
 import Control.Applicative
 import Control.Exception (TypeError (..))
-import Control.Monad.Catch
+import Control.Monad.Catch (throwM)
 import Data.ByteString.Hash qualified as PlutusHash
-import Data.ByteString.Lazy qualified as BSL
-import Data.Coerce
-import Data.Csv
-import Data.Either.Extra
-import Data.Functor.Compose
-import Data.Text as T
-import Data.Text.Encoding qualified as T
-import Data.Vector
-import GHC.Generics
+import Data.ByteString.Lazy qualified as BSL (fromStrict)
+import Data.Coerce (coerce)
+import Data.Csv (FromNamedRecord, FromRecord, HasHeader (..), decode, parseNamedRecord, (.:))
+import Data.Either.Extra (maybeToEither)
+import Data.Functor.Compose (Compose (..))
+import Data.Text (Text)
+import Data.Text.Encoding qualified as T (encodeUtf8)
+import Data.Vector (Vector, find)
+import GHC.Generics (Generic)
 
 import H.Prelude (MonadR, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
@@ -38,9 +38,9 @@ msToPs = ceiling . (1e6 *)
 {- See Note [Creation of the Cost Model]
 -}
 
--- TODO some generics magic
+-- TODO some generics magic.
 -- Mentioned in CostModel.md. Change here, change there.
--- The names of the models in R
+-- The names of the models in R.
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger               = "addIntegerModel"
@@ -104,7 +104,6 @@ costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Cons
 costModelsR bmfile rfile = do
   list <- [r| source(rfile_hs);  modelFun(bmfile_hs) |]
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
--- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
