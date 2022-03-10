@@ -178,24 +178,24 @@ instance GEqL DefaultUni (Esc Bool) where
     geqL DefaultUniBool = Just Refl
     geqL _              = Nothing
 
-instance GEqL DefaultUni (Esc a) => GEqL DefaultUni (Esc [a]) where
-    geqL (DefaultUniList a) = do
-        Refl <- geqL @DefaultUni @(Esc a) a
-        Just Refl
-    geqL _                  = Nothing
+-- instance GEqL DefaultUni (Esc a) => GEqL DefaultUni (Esc [a]) where
+--     geqL (DefaultUniList a) = do
+--         Refl <- geqL @DefaultUni @(Esc a) a
+--         Just Refl
+--     geqL _                  = Nothing
 
-instance (GEqL DefaultUni (Esc a), GEqL DefaultUni (Esc b)) => GEqL DefaultUni (Esc (a, b)) where
-    geqL (DefaultUniPair a b) = do
-        Refl <- geqL @DefaultUni @(Esc a) a
-        Refl <- geqL @DefaultUni @(Esc b) b
-        Just Refl
-    geqL _ = Nothing
+-- instance (GEqL DefaultUni (Esc a), GEqL DefaultUni (Esc b)) => GEqL DefaultUni (Esc (a, b)) where
+--     geqL (DefaultUniPair a b) = do
+--         Refl <- geqL @DefaultUni @(Esc a) a
+--         Refl <- geqL @DefaultUni @(Esc b) b
+--         Just Refl
+--     geqL _ = Nothing
 
--- instance DefaultUni `Contains` [a] => GEqL DefaultUni (Esc [a]) where
---     geqL = geq knownUni
+instance DefaultUni `Contains` [a] => GEqL DefaultUni (Esc [a]) where
+    geqL = geq knownUni
 
--- instance DefaultUni `Contains` (a, b) => GEqL DefaultUni (Esc (a, b)) where
---     geqL = geq knownUni
+instance DefaultUni `Contains` (a, b) => GEqL DefaultUni (Esc (a, b)) where
+    geqL = geq knownUni
 
 instance GEqL DefaultUni (Esc Data) where
     geqL DefaultUniData = Just Refl
@@ -256,27 +256,27 @@ instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Data
 --     , DefaultUni `Contains` (a, b)
 --     , GEqL DefaultUni (Esc (a, b))
 --     ) => KnownTypeIn DefaultUni term (a, b)
-instance
-    ( HasConstantIn DefaultUni term
-    , DefaultUni `Contains` a
-    , GEqL DefaultUni (Esc a)
-    ) => KnownTypeIn DefaultUni term [a]
-instance
-    ( HasConstantIn DefaultUni term
-    , DefaultUni `Contains` a
-    , DefaultUni `Contains` b
-    , GEqL DefaultUni (Esc a)
-    , GEqL DefaultUni (Esc b)
-    ) => KnownTypeIn DefaultUni term (a, b)
+-- instance
+--     ( HasConstantIn DefaultUni term
+--     , DefaultUni `Contains` a
+--     , GEqL DefaultUni (Esc a)
+--     ) => KnownTypeIn DefaultUni term [a]
+-- instance
+--     ( HasConstantIn DefaultUni term
+--     , DefaultUni `Contains` a
+--     , DefaultUni `Contains` b
+--     , GEqL DefaultUni (Esc a)
+--     , GEqL DefaultUni (Esc b)
+--     ) => KnownTypeIn DefaultUni term (a, b)
 
--- instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
---     KnownTypeIn DefaultUni term [a]
--- instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
---     KnownTypeIn DefaultUni term (a, b)
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    KnownTypeIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    KnownTypeIn DefaultUni term (a, b)
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
--- instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
