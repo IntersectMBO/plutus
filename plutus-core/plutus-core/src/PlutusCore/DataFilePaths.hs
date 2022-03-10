@@ -14,16 +14,18 @@ import System.FilePath
 costModelDataDir :: FilePath
 costModelDataDir = "cost-model" </> "data"
 
--- A literal version of this is also used in CostModelCreation.hs
-modelFile :: FilePath
-modelFile = costModelDataDir </> "models" <.> "R"
-
--- A literal version of this is also used in CostModelCreation.hs
-benchingResultsFile :: FilePath
-benchingResultsFile = costModelDataDir </> "benching" <.> "csv"
-
 builtinCostModelFile :: FilePath
 builtinCostModelFile = costModelDataDir </> "builtinCostModel" <.> "json"
 
 cekMachineCostsFile :: FilePath
 cekMachineCostsFile = costModelDataDir </> "cekMachineCosts" <.> "json"
+
+-- | The file containing the R models: only needed for cost-model-test
+rModelFile :: FilePath
+rModelFile = costModelDataDir </> "models" <.> "R"
+
+-- | The file containig the benchmark results for the built-in functions:
+-- only needed for cost-model-test
+benchingResultsFile :: FilePath
+benchingResultsFile = costModelDataDir </> "benching" <.> "csv"
+
