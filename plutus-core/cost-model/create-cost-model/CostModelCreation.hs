@@ -101,17 +101,13 @@ builtinCostModelNames = BuiltinCostModelBase
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
 costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR bmfile rfile = do
-  list <- [r|
-    source(rfile_hs)
-    modelFun(bmfile_hs)
-  |]
+  list <- [r| source(rfile_hs);  modelFun(bmfile_hs) |]
   bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
-  -- TODO ^ use btraverse instead
+-- TODO ^ use btraverse instead
 
 -- Creates the cost model from the csv benchmarking files
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
 createBuiltinCostModel bmfile rfile = do
---  putStrLn $ "*** " Prelude.++ show  DataFilePaths.modelFile
   withEmbeddedR defaultConfig $ runRegion $ do
     models <- costModelsR bmfile rfile
     let getParams x y = x (getConst $ y models)
