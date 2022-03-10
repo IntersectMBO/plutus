@@ -40,7 +40,7 @@ checkCsvSet cfg =
         putStrLn ""
         putStrLn "or"
         putStrLn ""
-        putStrLn $ "   cabal bench " ++ prog ++ " --benchmark-option \"--csv <file>\""
+        putStrLn $ "   cabal bench " ++ prog ++ " --benchmark-options \"--csv <file>\""
         putStrLn ""
         putStrLn "With `cabal run` the CSV file location will be relative to the current shell directory,"
         putStrLn "with `cabal bench`, it will be relative to the plutus-core directory."
