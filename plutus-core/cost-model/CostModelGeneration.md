@@ -2,17 +2,18 @@
 
 Generating a cost model for CPU time involves a number of steps.
 
-*  Run `cabal bench plutus-core:cost-model-budgeting-bench` on the
+*  Run `cabal run plutus-core:cost-model-budgeting-bench -- --csv <file>` on the
   reference machine.  This will run Criterion benchmarks for the built-in
   functions and will take many hours.  Each function is run many times with a
   selection of inputs of different sizes.  The benchmarks for the builtins are
   small, executing single Plutus Core terms on the CEK machine.
 
 *  The results of the benchmarks (execution versus sizes of inputs) are
-   stored in a CSV file called `benching.csv` in `plutus-core/cost-model/data`.
-   There's a checked-in copy [here](./data/benching.csv).
+   stored in CSV format in the file named in the `--csv` option, which is mandatory.
 
-* Run `cabal bench plutus-core:update-cost-model`.  This runs some R code in
+* Change directory to `plutus-core/cost-model/data/` and run
+  `cabal bench plutus-core:generate-cost-model -b <file>`, where `<file>` is the
+  CSV file produced by `cost-model-budgeting-bench`.  This runs some R code in
   [`plutus-core/cost-model/data/models.R`](./data/models.R) which fits a linear
   model to the data for each builtin; the general form of the model for each
   builtin is coded into `models.R`. Certain checks are performed during this
@@ -21,7 +22,7 @@ Generating a cost model for CPU time involves a number of steps.
   constant) and if that happens then a warning is printed and the coefficient is
   replaced by zero.
 
-     * When a new built-in function is added, new benchmarks will have to be
+      * When a new built-in function is added, new benchmarks will have to be
        added in `plutus-core/cost-model/budgeting-bench` and new R code will
        have to be added in `models.R` to process the results of the benchmark.
        The benchmarks should aim to cover a wide range of inputs in order to get
@@ -39,18 +40,36 @@ Generating a cost model for CPU time involves a number of steps.
        both goals simultaneously.  In such cases it may be necessary to
        sacrifice some accuracy in order to guarantee security.
 
-*  The form of the models for each builtin, together with the model
-  coefficients fitted by R, are stored in the JSON file
-  [`plutus-core/cost-model/data/builtinCostModel.json`](./data/builtinCostModel.json).
-  The model coefficients are converted from floating point numbers to 64-bit
-  integers (representing times in picoseconds) in order to ensure
-  reproducibility of results on different platforms (and we have in fact
+* The output of `generate-cost-model` is a JSON object describing the form of
+  the models for each builtin, together with the model coefficients fitted by R.
+  By default this is written to the terminal, but an output file can be
+  specified with `-o`.  The model coefficients are converted from floating point
+  numbers to 64-bit integers (representing times in picoseconds) in order to
+  ensure reproducibility of results on different platforms (and we have in fact
   observed differences in the final decimal places of the output of the R models
   on different machines).
 
-*  When the rest of the `plutus-core` package is compiled, the contents of
+* The specific cost model data to be used by the Plutus Core evaluator should be
+  checked in to git in the file
+  [`plutus-core/cost-model/data/builtinCostModel.json`](./data/builtinCostModel.json).
+  The CSV file containing the benchmark results used to generate the cost model
+  should be checked in in
+  [`plutus-core/cost-model/data/benching.csv`](./data/benching.csv); this is not
+  strictly necessary but it can be useful to have the raw data available if
+  the details of the cost model need to be looked at at some later time.
+  
+* When the rest of the `plutus-core` package is compiled, the contents of
   `builtCostModel.json` are read and used by some Template Haskell code to
-  construct Haskell functions which implement the cost models.
+  construct Haskell functions which implement the cost models.  When a new
+  built-in function is added, a circularity problem may arise where a costing
+  function for the new function is required in the JSON data when the
+  newly-added function is being compiled, at a point where we have not yet been
+  able to run the benchmarks.  See the Note "Modifying the Cost Model" in
+  [`PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
+  for how to deal with this.  (See also the extensive notes on "How to add a
+  built-in function" in
+  [`PlutusCore/Default/Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs)
+  for technical details of how to implement a new built-in function).
 
 * To ensure consistency, `cabal bench plutus-core:cost-model-test` runs some
   QuickCheck tests to run the R models and the Haskell models and checks that
@@ -61,7 +80,7 @@ Generating a cost model for CPU time involves a number of steps.
   some unsafe operations intereacting with the R runtime, so these tests are
   currently disguised as benchmarks to prevent them being run in CI. **The tests
   should therefore be run manually whenever new cost models are added or the R
-  code is modified.**
+  code is modified.** (Also, remember to add new tests when a new builtin is added).
 
 * (Not yet automated).  After the cost model for builtins has been generated we
   run some more benchmarks which consist of entire Plutus core programs making
@@ -87,18 +106,3 @@ Generating a cost model for CPU time involves a number of steps.
    argument sizes).  This can be done automatically with `uplc evaluate --counting`
    (see [plutus-core/executables](../../plutus-core/executables)).
 
-
-### Note
-
-We use `cabal bench` to run `cost-model-budgeting-bench` and `update-cost-model`
-to make sure that the program reads and writes files in
-`plutus-core/cost-model/data/`.  It might be more convenient to supply the
-location on the command line, and perhaps use `paths` to locate the `models.R`
-file.  It would also be useful to supply a path to `cost-model-budgeting-bench`
-for output of the CSV results, but this is tricky because Criterion supplies the
-`main` function and does its own argument processing.
-
-
-MENTION THE TESTS, ADD STUFF ABOUT ARGUMENTS -- and the other thing about having
-to add a new entry in builtincostmodel.json manually when you add a new
-benchmark because of circularity.  When exactly do you have to do this?

@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators #-}
 
--- See Note [Creation of the Cost Model]
+-- See CostModelGeneration.md
 module Main (main) where
 
 import CriterionExtensions (criterionMainWith)
@@ -26,13 +26,7 @@ import System.Random (getStdGen)
 
 {- Creates the .csv file consumed by create-cost-model. The data in this file is
    the time taken for all the builtin operations, as measured by criterion.  See
-   also Note [Creation of the Cost Model]. -}
-
-{- TODO: Some care is required here regarding the current working directory.  If
-   you run this benchmark via `cabal bench` or `stack bench` (but not `cabal
-   run`) then the current directory will be `plutus-core`.  If you use nix it'll
-   be the current shell directory, so you'll need to run it from `plutus-core`
-   (NOT `plutus`, where `default.nix` is).  See SCP-2005. -}
+   also 'CostModelGeneration.md'. -}
 
 {- Experimentation and examination of implementations suggests that the cost
    models for certain builtins can be re-used for others, and we do this in
@@ -48,7 +42,6 @@ import System.Random (getStdGen)
 main :: IO ()
 main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
-
   criterionMainWith
        True
        defaultConfig $
