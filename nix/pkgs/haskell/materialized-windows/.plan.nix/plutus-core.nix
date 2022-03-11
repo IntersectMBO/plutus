@@ -506,7 +506,7 @@
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
           buildable = true;
-          modules = [ "CreateCostModel" ];
+          modules = [ "CreateBuiltinCostModel" ];
           hsSourceDirs = [ "cost-model/create-cost-model" ];
           mainPath = [ "Main.hs" ];
           };
