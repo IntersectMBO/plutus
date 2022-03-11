@@ -13,7 +13,7 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
 
 ## At present, times in the becnhmarking data are typically of the order of
-## 10^(-6) seconds. We scale these up to milliseconds because the resulting
+## 10^(-6) seconds. WE SCALE THESE UP TO MILLISECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
 ## picoseconds) because then everything fits into integral values with little
@@ -39,15 +39,15 @@ upper.outlier.cutoff <- function(v) {
     q3 + 1.5*(q3-q1)
 }
 
-discard.upper.outliers <- function(fr,name) {
-    cutoff <- upper.outlier.cutoff(fr$MeanUB)
-    new.fr <- filter(fr, MeanUB < cutoff)
+discard.upper.outliers <- function(fr,fname) {
+    cutoff <- upper.outlier.cutoff(fr$t.mean.ub)
+    new.fr <- filter(fr, t.mean.ub < cutoff)
     nrows = nrow(fr)
     new.nrows = nrow(new.fr)
     if (new.nrows <= 0.9 * nrows) {
-        cat (sprintf ("*** WARNING: %d outliers have been discarded from %d datapoints for %s\n", nrows-new.nrows, nrows, name ));
+        cat (sprintf ("*** WARNING: %d outliers have been discarded from %d datapoints for %s\n", nrows-new.nrows, nrows, fname ));
     }
-    new.fr
+    return (new.fr)
 }
 
 arity <- function(name) {
@@ -112,7 +112,8 @@ get.bench.data <- function(path) {
     dat <- read.csv(
         path,
         header=TRUE,
-        stringsAsFactors=FALSE
+        stringsAsFactors=FALSE,
+        comment.char="#"
     )
 
     benchname <- regex("([[:alnum:]_]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
@@ -131,25 +132,25 @@ get.bench.data <- function(path) {
     benchmark_name_to_numbers <- function(name) {
         a <- str_match(name, benchname)
         r <- as.data.frame(a[,-1]) # Discard the first column (which is the entire match)
-        names(r) <- c("BuiltinName", numbercols)
-        r
+        names(r) <- c("name", numbercols)
+        return (r)
     }
 
-    numbers <- benchmark_name_to_numbers(dat$Name)
+    numbers <- benchmark_name_to_numbers(dat$benchmark)
 
     mutated <- numbers %>%
                   mutate(across(all_of(numbercols), function(x) { as.numeric(as.character(x))})) %>%
-                  mutate(across("BuiltinName", as.character))
+                  mutate(across("name", as.character))
 
     cbind(dat, mutated) %>%
-        mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), seconds.to.milliseconds))
+        mutate(across(c("t", "t.mean.lb", "t.mean.ub", "t.sd", "t.sd.lb", "t.sd.ub"), seconds.to.milliseconds))
 }
 
-filter.and.check.nonempty <- function (frame, name) {
-    filtered <- filter (frame, BuiltinName == name)
+filter.and.check.nonempty <- function (frame, fname) {
+    filtered <- filter (frame, name == fname)
 ##    cat (sprintf ("Reading data for %s\n", name))
     if (nrow(filtered) == 0) {
-        stop ("No data found for ", name)
+        stop ("No data found for ", fname)
     } else filtered
 
 }
@@ -159,14 +160,14 @@ adjustModel <- function (m, fname) {
     ## Given a linear model, check its coefficients and if any is negative then
     ## make it 1000 and issue a warning.  This is somewhat suspect but will
     ## prevent us from getting models which predict negative costs.
-
     ## See also https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
 
+    default <- 1/1000  ## 1 ns, or 1000 ps (remember we're working in ms here)
     ensurePositive <- function(x, name) {
         if (x<0) {
-            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to 1000.\n",
-                         x, name, fname))
-            1000
+            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to %s.\n",
+                         x, name, fname, default))
+            default
         }
         else x
     }
@@ -175,7 +176,7 @@ adjustModel <- function (m, fname) {
     ## This will invalidate some of the information in the model (such as the
     ## residuals), but we don't use that anyway.  Maybe we should just return the
     ## vector of coefficients?
-    m
+    return (m)
 }
 
 
@@ -183,46 +184,59 @@ modelFun <- function(path) {
 ##    cat ("** Reading CSV, creating R models **\n")
     data <- get.bench.data(path)
 
-    ## Look for a single entry with the given name and return the "Mean" value
+    ## Look for a single entry with the given name and return the 't' value
     ## (ie, the mean execution time) for that entry.  If <name> occurs multiple
     ## times, return the mean value, and if it's not present return zero,
     ## issuing a warning in both cases
-    get.mean.time <- function(name) {
-        t <- data %>% filter (BuiltinName == name)  %>% dplyr::pull("Mean")  # NOT 'select': we need a vector here, not a frame.
+    get.mean.time <- function(fname) {
+        t <- data %>% filter (name == fname)  %>% dplyr::pull("t")  # NOT 'select': we need a vector here, not a frame.
         len <- length(t)
 
         if (len == 1) {
             r <- t
         }
         else if (len == 0) {
-            cat(sprintf ("* WARNING: %s not found in input - returning 0\n", name))
+            cat(sprintf ("* WARNING: %s not found in input - returning 0\n", fname))
             r <- 0
         } else {
-            cat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value\n", name))
+            cat(sprintf ("* WARNING: multiple entries for %s in input - returning mean value\n", fname))
             r <- mean(t)
         }
 
         if (r < 0) {
-            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0\n", name))
+            cat (sprintf ("* WARNING: mean time for %s is negative - returning 0\n", fname))
             return (0)
         }
         return (r)
     }
 
-    nops <- c("Nop1", "Nop2", "Nop3", "Nop4", "Nop5", "Nop6")
+    nops <- c("Nop1o", "Nop2o", "Nop3o", "Nop4o", "Nop5o", "Nop6o")
     overhead <- sapply(nops, get.mean.time)
 
-    discard.overhead <- function(frame, name) {
-        args.overhead <- overhead[arity(name)]
-        mean.time <- mean(frame$Mean)
+
+    ## The next function discards the overhead for calling a builtin, as
+    ## determined by the Nop* benchmarks.  This means that the costing function
+    ## should just measure the cost of running the denotation; we assume that
+    ## the overhead of applyEvalute and so on in the evaluator is absorbed in the
+    ## average cost of a CEK step.  
+    discard.overhead <- function(frame, fname) {
+        args.overhead <- overhead[arity(fname)]
+        mean.time <- mean(frame$t)
         if (mean.time > args.overhead) {
-            mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x - args.overhead }))
+            mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
         }
         else {
-            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): set to zero\n",
-                          name, mean.time, args.overhead));
-            mutate(frame,across(c("Mean", "MeanLB", "MeanUB"), function(x) { x/10000 }))
-            ## FIXME.  Don't understand this: putting function(x){0} causes a failure when the model is read from R.
+            ## Sometimes the total time taken to run a builtin is less than the
+            ## cost of a Nop (don't know why), so the adjusted time would be
+            ## negative.  In this case we set the time to a small default.
+            
+            default = 0.001  ## 0.001 microseconds, ie 1 nanosecond.
+            ## For some reason, making the default 0 causes a failure when the model is read from R:
+            ##   `Failed reading: conversion error: expected Double, got "NA" (Failed reading: takeWhile1)) at ""`
+
+            cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): adjusted time set to %.1f ns\n",
+                          fname, mean.time, args.overhead, default*1000));
+            mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { default }))
         }
     }
 
@@ -231,11 +245,9 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname) %>%
             discard.upper.outliers (fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ 1, data=filtered)
+        m <- lm(t ~ 1, data=filtered)
         adjustModel (m,fname)
     }
-
-    ## filtered leaks from one model to the next, so make sure you don't mistype!
 
     ##### Integers #####
 
@@ -244,7 +256,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ pmax(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmax(x_mem, y_mem), filtered)
         adjustModel (m, fname)
     }
 
@@ -256,7 +268,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ I(x_mem + y_mem), filtered)
+        m <- lm(t ~ I(x_mem + y_mem), filtered)
         adjustModel (m, fname)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
@@ -274,7 +286,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ I(x_mem * y_mem), filtered)
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
     }
 
@@ -289,7 +301,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
 
@@ -300,7 +312,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
 
@@ -311,7 +323,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
 
@@ -322,8 +334,9 @@ modelFun <- function(path) {
         fname <- "AppendByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
+            filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)
+        m <- lm(t ~ I(x_mem + y_mem), data=filtered)
         adjustModel(m,fname)
     }
     ## Note that this is symmetrical in the arguments: a new bytestring is
@@ -334,7 +347,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ y_mem, data=filtered)
+        m <- lm(t ~ y_mem, data=filtered)
         adjustModel(m,fname)
     }
     ## Depends on the size of the second argument, which has to be copied into
@@ -353,7 +366,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -362,7 +375,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ pmin(x_mem, y_mem), data=filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
 
@@ -375,7 +388,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -384,7 +397,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-      m <- lm(Mean ~ x_mem, data=filtered)
+      m <- lm(t ~ x_mem, data=filtered)
       adjustModel(m,fname)
     }
 
@@ -393,7 +406,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-      m <- lm(Mean ~ x_mem, data=filtered)
+      m <- lm(t ~ x_mem, data=filtered)
       adjustModel(m,fname)
     }
 
@@ -410,7 +423,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -423,7 +436,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter (x_mem > 0 & y_mem > 0)    %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ I(x_mem + y_mem), data=filtered)  ## Both strings are copied in full
+        m <- lm(t ~ I(x_mem + y_mem), data=filtered)  ## Both strings are copied in full
         adjustModel(m,fname)
     }
 
@@ -433,7 +446,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -442,7 +455,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -451,7 +464,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+        m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
@@ -532,12 +545,12 @@ modelFun <- function(path) {
         fname <- "EqualsData"
         f <- data %>% filter.and.check.nonempty(fname)
         min.x <- min(f$x_mem)
-        min.t <- mean (f$Mean[f$x_mem==min.x])
-        m <- lm(f$Mean - min.t ~ I(f$x_mem - min.x) + 0)
+        min.t <- mean (f$t[f$x_mem==min.x])
+        m <- lm(f$t - min.t ~ I(f$x_mem - min.x) + 0)
         s <- coef(m)[1]  ## Not 2: we've used +0, so the intercept doesn't appear in the model
         v <- c(min.t-s*min.x, s) ## ie, f(x) = min.t +s(x-min.x)
         pr <- function(x) { v[1] + v[2]*x }  ## What this model predicts.
-        errors = (f$Mean-pr(f$x))/f$Mean  ## Residuals as fraction of observed values.
+        errors = (f$t-pr(f$x))/f$t  ## Residuals as fraction of observed values.
         over = -errors[errors<0]   ## Overpredictions (observed value < prediction) - good, or at least acceptable.
         under = errors[errors>=0]  ## Underpredictions (observed value >= prediction) - bad
         cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
@@ -545,7 +558,7 @@ modelFun <- function(path) {
         cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
             (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
         names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")  ## Make it look like what the Haskell code's expecting. The space after the comma is important.
-        m2 <- lm(Mean ~ pmin(x_mem, y_mem), data=f) ## A model with the structure expected by CostModelCreation.
+        m2 <- lm(t ~ pmin(x_mem, y_mem), data=f) ## A model with the structure expected by CostModelCreation.
         m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it.
         adjustModel(m2,fname)
     }
