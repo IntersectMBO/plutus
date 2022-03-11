@@ -102,15 +102,19 @@ checkInputFile file filespec advice = do
   exists <- doesFileExist file
   if not exists
   then do
+    putStrLn ""
     putStrLn $ "ERROR: Cannot open " ++ filespec ++ " " ++ file
     putStrLn advice
+    putStrLn ""
     exitFailure
   else do
     perms <- getPermissions file
     if not $ readable perms
     then do
+      putStrLn ""
       putStrLn $ "ERROR: cannot read " ++ filespec ++ " "  ++ file
       putStrLn advice
+      putStrLn ""
       exitFailure
     else pure ()
 
