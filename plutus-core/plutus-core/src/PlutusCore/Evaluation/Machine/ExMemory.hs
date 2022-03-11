@@ -206,7 +206,7 @@ instance ExMemoryUsage Data where
         where sizeData d =
                   nodeMem +
                      case d of
-                       Constr _ l -> sizeDataList l
+                       Constr n l -> memoryUsage n +  sizeDataList l
                        Map l      -> sizeDataPairs l
                        List l     -> sizeDataList l
                        I n        -> memoryUsage n

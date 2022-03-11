@@ -210,6 +210,13 @@ modelFun <- function(path) {
         return (r)
     }
 
+
+    ## We have benchmarks which measure the cost of calling no-op benchmarks
+    ## which unlift their arguments in a number of different ways.  The ones we
+    ## use here are for nops taking Opaque arguments.  Heuristically this
+    ## appears to give a good trade-off between including the overhead in the
+    ## cost of calling the benchmark and absorbing it in the cost of a CEK
+    ## machine step.
     nops <- c("Nop1o", "Nop2o", "Nop3o", "Nop4o", "Nop5o", "Nop6o")
     overhead <- sapply(nops, get.mean.time)
 
