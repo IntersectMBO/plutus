@@ -11,22 +11,10 @@ import Criterion
 import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
+import Data.Either
 
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudget
 import UntypedPlutusCore qualified as UPLC
-
-type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-
--- | If the term is an application of something to some arguments, peel off
--- those arguments which are 'Data' constants.
-peelDataArguments :: Term -> (Term, [PLC.Data])
-peelDataArguments = go []
-    where
-        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown Nothing arg of
-            Left _  -> (t, acc)
-            Right d -> go (d:acc) t'
-        go acc t = (t, acc)
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -57,12 +45,16 @@ main = benchWith mkFullBM
             -- strictify and "short" the result cbor to create a real `SerializedScript`
             benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
 
-        in  whnf (\ script -> snd $ evaluateScriptCounting
+        in  whnf (\ script ->
+                      (isRight $ snd $ evaluateScriptRestricting
                         (ProtocolVersion 6 0)
                         -- no logs
                         Quiet
                         evalCtxForTesting
+                        -- uses restricting(enormous) instead of counting to include the periodic budget-overspent check
+                        (unExRestrictingBudget enormousBudget)
                         script
-                        args
+                        args)
+                      || error "script failed to run"
                  )
             benchScript
