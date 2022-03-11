@@ -2,18 +2,18 @@
 
 Generating a cost model for CPU time involves a number of steps.
 
-*  Run `cabal run plutus-core:cost-model-budgeting-bench -- --csv <file>` on the
+* Run `cabal run plutus-core:cost-model-budgeting-bench -- --csv <file>` on the
   reference machine.  This will run Criterion benchmarks for the built-in
   functions and will take many hours.  Each function is run many times with a
   selection of inputs of different sizes.  The benchmarks for the builtins are
   small, executing single Plutus Core terms on the CEK machine.
 
-*  The results of the benchmarks (execution versus sizes of inputs) are
-   stored in CSV format in the file named in the `--csv` option, which is mandatory.
+* The results of the benchmarks (execution versus sizes of inputs) are
+  stored in CSV format in the file named in the `--csv` option, which is mandatory.
 
-* Change directory to `plutus-core/cost-model/data/` and run
-  `cabal bench plutus-core:generate-cost-model -b <file>`, where `<file>` is the
-  CSV file produced by `cost-model-budgeting-bench`.  This runs some R code in
+* Change directory to `plutus-core/cost-model/data/` and run `cabal run
+  plutus-core:generate-cost-model -- --csv <file>`, where `<file>` is the CSV file
+  produced by `cost-model-budgeting-bench`.  This runs some R code in
   [`plutus-core/cost-model/data/models.R`](./data/models.R) which fits a linear
   model to the data for each builtin; the general form of the model for each
   builtin is coded into `models.R`. Certain checks are performed during this

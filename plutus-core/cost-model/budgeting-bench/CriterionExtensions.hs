@@ -1,5 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE LambdaCase #-}
 
 module CriterionExtensions (criterionMainWith) where
 
@@ -21,7 +20,7 @@ import System.Directory (doesFileExist, renameFile)
 import System.Environment (getProgName)
 import System.Exit (exitFailure)
 import System.FilePath ((<.>))
-
+import System.IO (hPutStrLn, stderr)
 
 {- | We require the user to specify a CSV output file: without this, Criterion
    won't save the output that we really need.  We previously wrote the data to a
@@ -31,22 +30,23 @@ import System.FilePath ((<.>))
 -}
 checkCsvSet :: Config -> IO ()
 checkCsvSet cfg =
-    case csvFile cfg of
-      Nothing -> do
-        prog <- getProgName
-        putStrLn ""
-        putStrLn "ERROR: a CSV output file must be specified for the benchmarking results."
-        putStrLn "Use"
-        putStrLn ""
-        putStrLn $ "   cabal run " ++ prog ++ " -- --csv <file>"
-        putStrLn ""
-        putStrLn "The CSV file location will be relative to the current shell directory."
-        exitFailure
-      Just file  -> do
-        csvExists <- doesFileExist file
-        if csvExists
-        then renameFile file (file <.> "backup")
-        else pure ()
+    let putStrLnErr = hPutStrLn stderr
+    in case csvFile cfg of
+         Nothing -> do
+           prog <- getProgName
+           putStrLnErr ""
+           putStrLnErr "ERROR: a CSV output file must be specified for the benchmarking results."
+           putStrLnErr "Use"
+           putStrLnErr ""
+           putStrLnErr $ "   cabal run " ++ prog ++ " -- --csv <file>"
+           putStrLnErr ""
+           putStrLnErr "The CSV file location will be relative to the current shell directory."
+           exitFailure
+         Just file  -> do
+           csvExists <- doesFileExist file
+           if csvExists
+           then renameFile file (file <.> "backup")
+           else pure ()
 
 {- | A modified version of Criterion's 'defaultMainWith' function. We want to be
    able to run different benchmarks with different time limits, but that doesn't

@@ -7,6 +7,7 @@ import Data.ByteString.Lazy qualified as BSL (ByteString, putStr, writeFile)
 import Options.Applicative
 import System.Directory
 import System.Exit
+import System.IO (hPutStrLn, stderr)
 
 {- | This takes a CSV file of benchmark results for built-in functions, runs the R
    code in `models.R` to construct costing functions based on the benchmark
@@ -47,10 +48,9 @@ benchmarkFile = namedBenchmarkFile <|> pure defaultBenchmarkFile
 -- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
 namedBenchmarkFile :: Parser BenchmarkFile
 namedBenchmarkFile = BenchmarkFile <$> strOption
-  (  long "bmfile"
-  <> short 'b'
+  (  long "csv"
   <> metavar "FILENAME"
-  <> help "File containing built-in function benchmark results")
+  <> help "CSV file containing built-in function benchmark results")
 
 
 rFile :: Parser RFile
@@ -99,20 +99,21 @@ arguments = info
 
 checkInputFile :: FilePath -> String -> String -> IO ()
 checkInputFile file filespec advice = do
+  let putStrLnErr = hPutStrLn stderr
   exists <- doesFileExist file
   if not exists
   then do
-    putStrLn ""
-    putStrLn $ "ERROR: Cannot open " ++ filespec ++ " " ++ file
-    putStrLn advice
+    putStrLnErr ""
+    putStrLnErr $ "ERROR: Cannot open " ++ filespec ++ " " ++ file
+    putStrLnErr advice
     exitFailure
   else do
     perms <- getPermissions file
     if not $ readable perms
     then do
-      putStrLn ""
-      putStrLn $ "ERROR: cannot read " ++ filespec ++ " "  ++ file
-      putStrLn advice
+      putStrLnErr ""
+      putStrLnErr $ "ERROR: cannot read " ++ filespec ++ " "  ++ file
+      putStrLnErr advice
       exitFailure
     else pure ()
 
@@ -125,7 +126,7 @@ checkRFile file =
 
 checkBenchmarkFile :: FilePath -> IO ()
 checkBenchmarkFile file =
-  let advice = "Supply the path to a suitable benchmark results file with -b.\n"
+  let advice = "Supply the path to a suitable benchmark results file with --csv.\n"
                ++ "The default results file is plutus-core/cost-model/data/benching.csv."
   in checkInputFile file "benchmark results file" advice
 
