@@ -581,6 +581,7 @@ test-suite traceToStacks-test
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
 executable cost-model-budgeting-bench
+    import: lang
     main-is: Main.hs
     other-modules:
         Common
@@ -600,11 +601,6 @@ executable cost-model-budgeting-bench
         Benchmarks.Unit
     hs-source-dirs: cost-model/budgeting-bench
     default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
@@ -631,14 +627,10 @@ executable cost-model-budgeting-bench
 -- JSON file (see the help).  The 'official' cost model should be checked in
 -- in plutus-core/cost-model/data/builtinCostModel.json.
 executable generate-cost-model
+    import: lang
     main-is: Main.hs
     hs-source-dirs: cost-model/create-cost-model
     default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
@@ -656,7 +648,7 @@ executable generate-cost-model
         text -any,
         vector -any
     other-modules:
-        CreateCostModel
+        CreateBuiltinCostModel
 
 -- The cost models for builtins are generated using R and converted into a JSON
 -- form that can later be used to construct Haskell functions.  This tests that
