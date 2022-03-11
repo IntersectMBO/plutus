@@ -43,7 +43,7 @@ defaultBuiltinCostModel =
    the previous version.  When this happens, uncomment the three lines below (and
    comment out the three above) then rerun
 
-      cabal bench plutus-core:generate-cost-model
+      cabal run plutus-core:generate-cost-model
 
    (You may also need to add 'data-default' to the 'build-depends' for the
    library in plutus-core.cabal). This will generate a new JSON file filled with
