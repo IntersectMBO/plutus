@@ -61,12 +61,8 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
 -- says in Note [Modifying the cost model] in ExBudgetingDefaults.hs.
 
 -- | The main model which contains all data required to predict the cost of
--- builtin functions. See Note [Creation of the Cost Model] for how this is
+-- builtin functions. See 'CostModelGeneration.md' for how this is
 -- generated. Calibrated for the CEK machine.
-
--- See Note [Modifying the cost model] in ExBudgetingDefaults.hs for an
--- explanation of how to regenerate the cost model file when this is changed.
-
 
 {- | Many of the builtins have simple costs in for certain combinations of
    arguments but more complicated costs for other combinations: for example,

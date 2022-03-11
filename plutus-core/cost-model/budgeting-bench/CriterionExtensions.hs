@@ -14,10 +14,12 @@ import Criterion.Monad (withConfig)
 import Criterion.Types
 
 import Data.List (sort)
+import Data.Maybe (fromJust)
+import Data.Time.Clock (getCurrentTime)
 import Options.Applicative (execParser)
 import System.Directory (doesFileExist, renameFile)
 import System.Environment (getProgName)
-import System.Exit (ExitCode (..), exitWith)
+import System.Exit (exitFailure)
 import System.FilePath ((<.>))
 
 
@@ -34,18 +36,12 @@ checkCsvSet cfg =
         prog <- getProgName
         putStrLn ""
         putStrLn "ERROR: a CSV output file must be specified for the benchmarking results."
-        putStrLn "Use either "
+        putStrLn "Use"
         putStrLn ""
         putStrLn $ "   cabal run " ++ prog ++ " -- --csv <file>"
         putStrLn ""
-        putStrLn "or"
-        putStrLn ""
-        putStrLn $ "   cabal bench " ++ prog ++ " --benchmark-options \"--csv <file>\""
-        putStrLn ""
-        putStrLn "With `cabal run` the CSV file location will be relative to the current shell directory,"
-        putStrLn "with `cabal bench`, it will be relative to the plutus-core directory."
-        putStrLn ""
-        exitWith $ ExitFailure 5
+        putStrLn "The CSV file location will be relative to the current shell directory."
+        exitFailure
       Just file  -> do
         csvExists <- doesFileExist file
         if csvExists
@@ -59,6 +55,7 @@ checkCsvSet cfg =
    adds an option to stop it doing that so we only get one header (at the top,
    where it belongs).  This also calls `checkCsvSet` to make sure that a CSV
    output file has been specified. -}
+-- TODO: bypass Criterion's command line parser altogether.
 criterionMainWith :: Bool ->  Config -> [Benchmark] -> IO ()
 criterionMainWith writeHeader defCfg bs =
   execParser (describe defCfg) >>=
@@ -76,7 +73,12 @@ criterionMainWith writeHeader defCfg bs =
             shouldRun <- selectBenches matchType benches bsgroup
             withConfig cfg $ do
               if writeHeader
-              then  writeCsv ("Name","Mean","MeanLB","MeanUB","Stddev","StddevLB", "StddevUB")
+              then do
+                let file = fromJust $ csvFile cfg  -- OK because of checkCsvSet
+                time <- liftIO getCurrentTime
+                liftIO $ appendFile file $ "# Plutus Core cost model benchmark results\n"
+                liftIO $ appendFile file $ "# Started at " ++ show time ++ "\n"
+                writeCsv ("Name","Mean","MeanLB","MeanUB","Stddev","StddevLB", "StddevUB")
               else return ()
               liftIO initializeTime
               runAndAnalyse shouldRun bsgroup
@@ -93,4 +95,4 @@ parseError :: String -> IO a
 parseError msg = do
   _ <- printError "Error: %s\n" msg
   _ <- printError "Run \"%s --help\" for usage information\n" =<< getProgName
-  exitWith (ExitFailure 64)
+  exitFailure

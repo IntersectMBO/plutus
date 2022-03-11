@@ -6,7 +6,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module CostModelCreation where
+module CreateBuiltinCostModel where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -35,8 +35,7 @@ import Language.R.QQ (r)
 msToPs :: Double -> CostingInteger
 msToPs = ceiling . (1e6 *)
 
-{- See Note [Creation of the Cost Model]
--}
+{- See CostModelGeneration.md for a description of what this does. -}
 
 -- TODO some generics magic.
 -- Mentioned in CostModel.md. Change here, change there.
@@ -97,14 +96,21 @@ builtinCostModelNames = BuiltinCostModelBase
   }
 
 
--- Loads the models from R
+-- | Loads the models from R.
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
 costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR bmfile rfile = do
-  list <- [r| source(rfile_hs);  modelFun(bmfile_hs) |]
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
+  list <- [r|
+             source(rfile_hs)
+             modelFun(bmfile_hs)
+          |]
+  let makeCostModelEntry name =
+          let n = getConst name
+          in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]
+  bsequence $ bmap makeCostModelEntry builtinCostModelNames
 
--- Creates the cost model from the csv benchmarking files
+-- ! Creates the cost model from a CSV benchmarking results file and a file
+-- containing R modelling code.
 createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
 createBuiltinCostModel bmfile rfile = do
   withEmbeddedR defaultConfig $ runRegion $ do
