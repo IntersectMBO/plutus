@@ -581,7 +581,6 @@ test-suite traceToStacks-test
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
 executable cost-model-budgeting-bench
-    type: exitcode-stdio-1.0
     main-is: Main.hs
     other-modules:
         Common
