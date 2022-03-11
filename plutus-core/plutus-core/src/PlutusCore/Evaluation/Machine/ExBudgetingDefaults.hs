@@ -43,16 +43,16 @@ defaultBuiltinCostModel =
    the previous version.  When this happens, uncomment the three lines below (and
    comment out the three above) then rerun
 
-      cabal bench plutus-core:update-cost-model
+      cabal bench plutus-core:generate-cost-model
 
    (You may also need to add 'data-default' to the 'build-depends' for the
    library in plutus-core.cabal). This will generate a new JSON file filled with
    default values.  After that, restore this file to its previous state and then
-   run "update-cost-model" again to fill in the JSON file with the correct
+   run "generate-cost-model" again to fill in the JSON file with the correct
    values (assuming that suitable benchmarking data is in benching.csv and that
    models.R contains R code to generate cost models for any new functions).
 
-   Alternatively, modify builtinCostModelFile by hand so that it matches the new
+   Alternatively, modify 'builtinCostModel.json' by hand so that it matches the new
    format.
  -}
 

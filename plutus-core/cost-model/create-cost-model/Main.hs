@@ -1,6 +1,6 @@
 module Main where
 
-import CostModelCreation
+import CreateBuiltinCostModel (createBuiltinCostModel)
 
 import Data.Aeson.Encode.Pretty
 import Data.ByteString.Lazy qualified as BSL (ByteString, putStr, writeFile)
@@ -8,10 +8,16 @@ import Options.Applicative
 import System.Directory
 import System.Exit
 
+{- | This takes a CSV file of benchmark results for built-in functions, runs the R
+   code in `models.R` to construct costing functions based on the benchmark
+   results, and then produces JSON output containing the types and coefficients
+   of the costing functions. For best results, run this in
+   `plutus-core/cost-model/data` to make `models.R` easy to find; if that's
+   inconvenient for some reason, use the `-m` option to provide a path to
+   `models.R`.
 
-{- See Note [Creation of the Cost Model]
+   See also CostModelGeneration.md.
 -}
-
 
 -- | The file containing the benchmark results, 'benching.csv' by default.  We
 -- can't read this from stdin because we have to supply the filename to inline R
@@ -21,7 +27,7 @@ data BenchmarkFile = BenchmarkFile FilePath
 defaultBenchmarkFile :: BenchmarkFile
 defaultBenchmarkFile = BenchmarkFile "benching.csv"
 
--- | The file containing the R modelling code, "models.R" by default.
+-- | The file containing the R modelling code, `models.R` by default.
 -- This is a bit tricky because it's in a fixed location, so it could be difficult
 -- to find.  See the warning message later.
 data RFile = RFile FilePath
