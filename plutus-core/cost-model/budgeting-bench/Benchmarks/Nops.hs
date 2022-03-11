@@ -35,7 +35,7 @@ import System.Random (StdGen)
    the evaluator. -}
 benchUnitTerm :: Benchmark
 benchUnitTerm =
-    bgroup "Unit" [benchWith nopCostParameters (showMemoryUsage ()) $ mkUnit ]
+    bgroup "UnitTerm" [benchWith nopCostParameters (showMemoryUsage ()) $ mkUnit ]
 
 
 {- | Arguments to bultins can be treated in several different ways. These
