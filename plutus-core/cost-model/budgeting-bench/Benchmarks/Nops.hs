@@ -20,11 +20,14 @@ import Generators (randBool, randNwords)
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
-import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
 import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Criterion.Main
+import Criterion.Main (Benchmark, bgroup)
+
+import Control.DeepSeq (NFData)
 import Data.Char (toLower)
 import Data.Ix (Ix)
 import GHC.Generics (Generic)
@@ -38,30 +41,38 @@ benchUnitTerm =
     bgroup "UnitTerm" [benchWith nopCostParameters (showMemoryUsage ()) $ mkUnit ]
 
 
-{- | Arguments to bultins can be treated in several different ways. These
+{- | Arguments to builtins can be treated in several different ways.  Constants of
+   built-in types are unlifted to Haskell values automatically and Opaque values
+   don't need to be unlifted; unlifting can also be done manually using
+   SomeConstant.  Each of these has different costs, and each is used in the
+   existing set of builtins (and even for a single function different arguments
+   may be handled in different ways, as in ifThenElse where the first argument
+   is a built-in Bool value but the last two are Opaque PLC values).  These
    benchmarks are intended to give some idea of how much overhead each of these
-   involves; the results are used in the R code that we use to fit cost models. -}
+   processses incurs; the results are used in the R code that we use to fit cost
+   models. There's also a cost for lifting the result of a builtin call back to
+   a Plutus value, and that's included in the benchmark results as well. -}
 
-data NopFuns
-    = Nop1b  -- Bool
+data NopFun
+    = Nop1b  -- Built-in Bool
     | Nop2b
     | Nop3b
     | Nop4b
     | Nop5b
     | Nop6b
-    | Nop1i  -- Integer
+    | Nop1i  -- Built-in Integer
     | Nop2i
     | Nop3i
     | Nop4i
     | Nop5i
     | Nop6i
-    | Nop1c  -- SomeConstant
+    | Nop1c  -- Integer: lifted via SomeConstant
     | Nop2c
     | Nop3c
     | Nop4c
     | Nop5c
     | Nop6c
-    | Nop1o  -- Opaque: return first argument
+    | Nop1o  -- Opaque Integer: no unlifting required
     | Nop2o
     | Nop3o
     | Nop4o
@@ -70,7 +81,7 @@ data NopFuns
     deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving anyclass (PrettyBy PrettyConfigPlc)
 
-instance Pretty NopFuns where
+instance Pretty NopFun where
     pretty fun = pretty $ case show fun of
         ""    -> ""
         c : s -> toLower c : s
@@ -86,9 +97,9 @@ data NopCostModel =
     }
 
 {- | A fake cost model for nops.  This is just to make sure that the overhead of
-   calling the costing function is included, so the precise contents don't
-   matter as long as the basic form is correct (and benchmarks suggest that nops
-   indeed have constant costs). -}
+   calling a costing function of the expected form is included, so the precise
+   contents don't matter as long as the basic form is correct (and benchmarks
+   suggest that nops indeed have constant costs). -}
 nopCostModel :: NopCostModel
 nopCostModel =
     NopCostModel
@@ -113,22 +124,25 @@ nopCostModel =
                   (ModelSixArgumentsConstantCost 600)
     }
 
-nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFuns
+nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun
 nopCostParameters = mkMachineParameters $ CostModel defaultCekMachineCosts nopCostModel
 
 {- | The meanings of the builtins.  Each one takes a number of arguments and
    returns a result without doing any other work.  A builtin can process its
    arguments in several different ways (see Note [How to add a built-in
    function]), and these have different costs.  We measure all of these here to
-   facilitate cost analysis in the face of future changes in the builtin
-   machinery.
+   facilitate exploration of their different contributions to execution costs
+   (which may change if there are changes in the builtin machinery in future).
+   Most of the builtins take Integers since we can easily change the sizes of
+   these to check that the size doesn't influence the cost; we also have some
+   nops over Bool to check that the type doesn't influence the cost either.
 -}
-
-instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
-    type CostingPart uni NopFuns = NopCostModel
+instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
+    type CostingPart uni NopFun = NopCostModel
+    -- Built-in Bools
     toBuiltinMeaning
         :: forall val . HasConstantIn uni val
-           => NopFuns -> BuiltinMeaning val NopCostModel
+           => NopFun -> BuiltinMeaning val NopCostModel
     toBuiltinMeaning Nop1b =
         makeBuiltinMeaning
              @(Bool -> Bool)
@@ -159,6 +173,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ _ -> True)
              (runCostingFunSixArguments . paramNop6)
+    -- Built-in Integers
     toBuiltinMeaning Nop1i =
         makeBuiltinMeaning
              @(Integer -> Integer)
@@ -189,6 +204,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ _ -> 66)
              (runCostingFunSixArguments . paramNop6)
+    -- Integers unlifted via SomeConstant
     toBuiltinMeaning Nop1c =
         makeBuiltinMeaning
              nop1SomeConstantInteger
@@ -296,10 +312,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
                                      _ -> EvaluationFailure
                                _ -> EvaluationFailure
                          _ -> EvaluationFailure
+    -- Opaque Integes.  We return the first argument instead of a constant
+    -- becauses we can't make a value of the correct type if we don't know what
+    -- `val` is.  That presumably doesn't make much difference though.
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
-             (\x -> x)  -- Return the first argument since it's tricky to make a value of the correct type.
+             (\x -> x)
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning Nop2o =
         makeBuiltinMeaning
@@ -342,373 +361,145 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFuns where
    return a constant or one of the arguments. -}
 
 -- There seems to be quite a lot of variation in repeated runs of these benchmarks.
+-- In general we have Built-in > SomeConstant > Opaque though.
 
-benchNop1b :: StdGen -> Benchmark
-benchNop1b gen =
-    let name = Nop1b
-        (x,_) = randBool gen
-    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
+{- | `benchNopN` generates N random inputs and makes a benchmark measuring how
+   long it takes the given function to run with those arguments.  Take care that
+   N matches the number of arguments of the function or else you'll be
+   benchmarking an overapplication (which will fail) or a partial application
+   (which will succeed, but would give misleading results).  For example, only
+   apply benchNop5 to a Nop5 function, not to something like Nop6i or Nop2o.
+ -}
 
-benchNop2b :: StdGen -> Benchmark
-benchNop2b gen =
-    let name = Nop2b
-        (x,gen1) = randBool gen
-        (y,_)    = randBool gen1
-    in bgroup (show name)
+benchNop1
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop1 nop rand gen =
+    let (x,_) = rand gen
+    in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
+
+benchNop2
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop2 nop rand gen =
+    let (x,gen1) = rand gen
+        (y,_)    = rand gen1
+    in bgroup (show nop)
            [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
+            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 nop [] x y]
            ]
 
-benchNop3b :: StdGen -> Benchmark
-benchNop3b gen =
-    let name = Nop3b
-        (x,gen1) = randBool gen
-        (y,gen2) = randBool gen1
-        (z,_)    = randBool gen2
-    in bgroup (show name)
+benchNop3
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop3 nop rand gen =
+    let (x,gen1) = rand gen
+        (y,gen2) = rand gen1
+        (z,_)    = rand gen2
+    in bgroup (show nop)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
+             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 nop [] x y z]
             ]
            ]
 
-benchNop4b :: StdGen -> Benchmark
-benchNop4b gen =
-    let name = Nop4b
-        (x,gen1) = randBool gen
-        (y,gen2) = randBool gen1
-        (z,gen3) = randBool gen2
-        (t,_)    = randBool gen3
-    in bgroup (show name)
+benchNop4
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop4 nop rand gen =
+    let (x,gen1) = rand gen
+        (y,gen2) = rand gen1
+        (z,gen3) = rand gen2
+        (t,_)    = rand gen3
+    in bgroup (show nop)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
              [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
+              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 nop [] x y z t]
              ]
             ]
            ]
 
-benchNop5b :: StdGen -> Benchmark
-benchNop5b gen =
-    let name = Nop5b
-        (x,gen1) = randBool gen
-        (y,gen2) = randBool gen1
-        (z,gen3) = randBool gen2
-        (t,gen4) = randBool gen3
-        (u,_)    = randBool gen4
-    in bgroup (show name)
+benchNop5
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop5 nop rand gen =
+    let (x,gen1) = rand gen
+        (y,gen2) = rand gen1
+        (z,gen3) = rand gen2
+        (t,gen4) = rand gen3
+        (u,_)    = rand gen4
+    in bgroup (show nop)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
              [bgroup (showMemoryUsage z)
               [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
+               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
               ]
              ]
             ]
            ]
 
-benchNop6b :: StdGen -> Benchmark
-benchNop6b gen =
-    let name = Nop6b
-        (x,gen1) = randBool gen
-        (y,gen2) = randBool gen1
-        (z,gen3) = randBool gen2
-        (t,gen4) = randBool gen3
-        (u,gen5) = randBool gen4
-        (v,_)    = randBool gen5
-    in bgroup (show name)
+benchNop6
+    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    => NopFun
+    -> (StdGen -> (a, StdGen))
+    -> StdGen
+    -> Benchmark
+benchNop6 nop rand gen =
+    let (x,gen1) = rand gen
+        (y,gen2) = rand gen1
+        (z,gen3) = rand gen2
+        (t,gen4) = rand gen3
+        (u,gen5) = rand gen4
+        (v,_)    = rand gen5
+    in bgroup (show nop)
            [bgroup (showMemoryUsage x)
             [bgroup (showMemoryUsage y)
              [bgroup (showMemoryUsage z)
               [bgroup (showMemoryUsage t)
                [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
+                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
                ]
               ]
              ]
             ]
            ]
 
-benchNop1i :: StdGen -> Benchmark
-benchNop1i gen =
-    let name = Nop1i
-        mem = 1
-        (x,_) = randNwords gen mem
-    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
 
-benchNop2i :: StdGen -> Benchmark
-benchNop2i gen =
-    let name = Nop2i
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,_)    = randNwords gen1 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
-           ]
-
-benchNop3i :: StdGen -> Benchmark
-benchNop3i gen =
-    let name = Nop3i
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,_)    = randNwords gen2 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
-            ]
-           ]
-
-benchNop4i :: StdGen -> Benchmark
-benchNop4i gen =
-    let name = Nop4i
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,_)    = randNwords gen3 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
-             ]
-            ]
-           ]
-
-benchNop5i :: StdGen -> Benchmark
-benchNop5i gen =
-    let name = Nop5i
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,_)    = randNwords gen4 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
-              ]
-             ]
-            ]
-           ]
-
-benchNop6i :: StdGen -> Benchmark
-benchNop6i gen =
-    let name = Nop6i
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,gen5) = randNwords gen4 mem
-        (v,_)    = randNwords gen5 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
-               ]
-              ]
-             ]
-            ]
-           ]
-
-benchNop1c :: StdGen -> Benchmark
-benchNop1c gen =
-    let name = Nop1c
-        mem = 1
-        (x,_) = randNwords gen mem
-    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
-
-benchNop2c :: StdGen -> Benchmark
-benchNop2c gen =
-    let name = Nop2c
-        mem = 1
-        (x,gen1) = randNwords gen mem
-        (y,_)    = randNwords gen1 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
-           ]
-
-benchNop3c :: StdGen -> Benchmark
-benchNop3c gen =
-    let name = Nop3c
-        mem = 1
-        (x,gen1) = randNwords gen mem
-        (y,gen2) = randNwords gen1 mem
-        (z,_)    = randNwords gen2 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
-            ]
-           ]
-
-benchNop4c :: StdGen -> Benchmark
-benchNop4c gen =
-    let name = Nop4c
-        mem = 1
-        (x,gen1) = randNwords gen mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,_)    = randNwords gen3 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
-             ]
-            ]
-           ]
-
-benchNop5c :: StdGen -> Benchmark
-benchNop5c gen =
-    let name = Nop5c
-        mem = 1
-        (x,gen1) = randNwords gen mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,_)    = randNwords gen4 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
-              ]
-             ]
-            ]
-           ]
-
-benchNop6c :: StdGen -> Benchmark
-benchNop6c gen =
-    let name = Nop6c
-        mem = 1
-        (x,gen1) = randNwords gen mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,gen5) = randNwords gen4 mem
-        (v,_)    = randNwords gen5 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
-               ]
-              ]
-             ]
-            ]
-           ]
-
-benchNop1o :: StdGen -> Benchmark
-benchNop1o gen =
-    let name = Nop1o
-        mem = 1
-        (x,_) = randNwords gen mem
-    in bgroup (show name) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 name [] x]
-
-benchNop2o :: StdGen -> Benchmark
-benchNop2o gen =
-    let name = Nop2o
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,_)    = randNwords gen1 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 name [] x y]
-           ]
-
-benchNop3o :: StdGen -> Benchmark
-benchNop3o gen =
-    let name = Nop3o
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,_)    = randNwords gen2 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 name [] x y z]
-            ]
-           ]
-
-benchNop4o :: StdGen -> Benchmark
-benchNop4o gen =
-    let name = Nop4o
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,_)    = randNwords gen3 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 name [] x y z t]
-             ]
-            ]
-           ]
-
-benchNop5o :: StdGen -> Benchmark
-benchNop5o gen =
-    let name = Nop5o
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,_)    = randNwords gen4 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 name [] x y z t u]
-              ]
-             ]
-            ]
-           ]
-
-benchNop6o :: StdGen -> Benchmark
-benchNop6o gen =
-    let name = Nop6o
-        mem = 1
-        (x,gen1) = randNwords gen  mem
-        (y,gen2) = randNwords gen1 mem
-        (z,gen3) = randNwords gen2 mem
-        (t,gen4) = randNwords gen3 mem
-        (u,gen5) = randNwords gen4 mem
-        (v,_)    = randNwords gen5 mem
-    in bgroup (show name)
-           [bgroup (showMemoryUsage x)
-            [bgroup (showMemoryUsage y)
-             [bgroup (showMemoryUsage z)
-              [bgroup (showMemoryUsage t)
-               [bgroup (showMemoryUsage u)
-                [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 name [] x y z t u v]
-               ]
-              ]
-             ]
-            ]
-           ]
-
+-- | The actual benchmarks
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen = [ benchUnitTerm
-                     , benchNop1b gen, benchNop2b gen, benchNop3b gen, benchNop4b gen, benchNop5b gen, benchNop6b gen
-                     , benchNop1i gen, benchNop2i gen, benchNop3i gen, benchNop4i gen, benchNop5i gen, benchNop6i gen
-                     , benchNop1c gen, benchNop2c gen, benchNop3c gen, benchNop4c gen, benchNop5c gen, benchNop6c gen
-                     , benchNop1o gen, benchNop2o gen, benchNop3o gen, benchNop4o gen, benchNop5o gen, benchNop6o gen ]
-
+makeBenchmarks gen =
+    [ benchUnitTerm ]
+    ++ mkBMs mkBmB (Nop1b, Nop2b, Nop3b, Nop4b, Nop5b, Nop6b)
+    ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i)
+    ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c)
+    ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o)
+   -- The subsidiary functions below make it a lot easier to see that we're
+   -- benchmarking the right things with the right benchmarking functions.
+   -- Maybe we could use some TH instead.
+    where mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
+              [ mkBM benchNop1 nop1
+              , mkBM benchNop2 nop2
+              , mkBM benchNop3 nop3
+              , mkBM benchNop4 nop4
+              , mkBM benchNop5 nop5
+              , mkBM benchNop6 nop6 ]
+          mkBmB benchfn nop = benchfn nop randBool gen
+          mkBmI benchfn nop = benchfn nop (flip randNwords 1)  gen
+          -- Benchmark using Integer inputs with memory usage 1
