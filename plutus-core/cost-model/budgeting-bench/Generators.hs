@@ -38,8 +38,8 @@ import Test.QuickCheck.Instances.ByteString ()
 {- In principle a random 5-word integer (for example) might only occupy 4 or
    fewer words, but we're generating uniformly distributed values so the
    probability of that happening should be at most 1 in 2^64. -}
-randNwords :: StdGen -> Int -> (Integer, StdGen)
-randNwords gen n = randomR (lb,ub) gen
+randNwords :: Int -> StdGen -> (Integer, StdGen)
+randNwords n gen = randomR (lb,ub) gen
     where lb = 2^(64*(n-1))
           ub = 2^(64*n) - 1
 
@@ -62,7 +62,7 @@ genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.
 makeSizedIntegers :: StdGen -> [Int] -> ([Integer], StdGen)
 makeSizedIntegers g [] = ([], g)
 makeSizedIntegers g (n:ns) =
-    let (m,g1) = randNwords g n
+    let (m,g1) = randNwords n g
         (ms,g2) = makeSizedIntegers g1 ns
     in (m:ms,g2)
 

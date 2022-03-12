@@ -501,5 +501,5 @@ makeBenchmarks gen =
               , mkBM benchNop5 nop5
               , mkBM benchNop6 nop6 ]
           mkBmB benchfn nop = benchfn nop randBool gen
-          mkBmI benchfn nop = benchfn nop (flip randNwords 1)  gen
+          mkBmI benchfn nop = benchfn nop (randNwords 1)  gen
           -- Benchmark using Integer inputs with memory usage 1
