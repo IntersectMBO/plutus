@@ -5,7 +5,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
 
 {- | A set of no-op built-in functions used in cost model calibration. Benchmarks
    based on these are used to estimate the overhead of calling a built-in
@@ -312,40 +311,38 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
                                      _ -> EvaluationFailure
                                _ -> EvaluationFailure
                          _ -> EvaluationFailure
-    -- Opaque Integes.  We return the first argument instead of a constant
-    -- becauses we can't make a value of the correct type if we don't know what
-    -- `val` is.  That presumably doesn't make much difference though.
+    -- Opaque Integers
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
-             (\x -> x)  -- \x -> Opaque (fromConstant $ someValueOf undefined 11) actually works, but there's no sensible uni to put in there.
+             (\_ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 11))
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning Nop2o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
-             (\x _ -> x)
+             (\_ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 22))
              (runCostingFunTwoArguments . paramNop2)
     toBuiltinMeaning Nop3o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer)
-             (\x _ _ -> x)
+             (\_ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 33))
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning Nop4o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
-             (\x _ _ _ -> x)
+             (\_ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 44))
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning Nop5o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
-             (\x _ _ _ _ -> x)
+             (\_ _ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 55))
              (runCostingFunFiveArguments . paramNop5)
     toBuiltinMeaning Nop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
-             (\x _ _ _ _ _ -> x)
+             (\_ _ _ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 66))
              (runCostingFunSixArguments . paramNop6)
 
 
@@ -358,7 +355,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
    from the time recorded for the real builtins.  Experiments suggest that the
    time taken to evaluate these doesn't depend on the types or the sizes of the
    arguments, so we just use functions which consume a number of arguments and
-   return a constant or one of the arguments. -}
+   return a constant. -}
 
 -- There seems to be quite a lot of variation in repeated runs of these benchmarks.
 -- In general we have Built-in > SomeConstant > Opaque though.
