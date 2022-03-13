@@ -318,7 +318,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
-             (\x -> x)
+             (\x -> x)  -- \x -> Opaque (fromConstant $ someValueOf undefined 11) actually works, but there's no sensible uni to put in there.
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning Nop2o =
         makeBuiltinMeaning
