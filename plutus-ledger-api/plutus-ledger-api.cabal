@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: plutus-ledger-api
-version: 0.1.0.0
+version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
@@ -66,9 +66,9 @@ library
         cborg -any,
         containers -any,
         flat -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         mtl -any,
-        plutus-tx -any,
+        plutus-tx ^>=1.0,
         serialise -any,
         template-haskell -any,
         text -any,
@@ -92,9 +92,9 @@ test-suite plutus-ledger-api-test
         base >=4.9 && <5,
         mtl -any,
         containers -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         plutus-core:plutus-core-testlib -any,
-        plutus-ledger-api -any,
+        plutus-ledger-api ^>=1.0,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,

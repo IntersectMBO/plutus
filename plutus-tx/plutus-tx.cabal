@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: plutus-tx
-version: 0.1.0.0
+version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
@@ -90,7 +90,7 @@ library
         mtl -any,
         containers -any,
         flat -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         lens -any,
         ghc-prim -any,
         aeson -any,
@@ -110,7 +110,7 @@ library plutus-tx-testlib
         text -any,
         flat -any,
         filepath -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         plutus-core:plutus-core-testlib -any,
         plutus-tx -any,
         lens -any,
@@ -146,7 +146,7 @@ test-suite plutus-tx-test
         bytestring -any,
         hedgehog -any,
         hedgehog-fn -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         plutus-tx -any,
         pretty-show -any,
         tasty -any,
