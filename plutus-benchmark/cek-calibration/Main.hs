@@ -93,4 +93,4 @@ main2:: Haskell.IO ()
 main2 = writePlc (mkListProg 999)
 
 main :: Haskell.IO ()
-main = main1
+main = main2

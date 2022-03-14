@@ -126,6 +126,20 @@ nopCostModel =
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun
 nopCostParameters = mkMachineParameters $ CostModel defaultCekMachineCosts nopCostModel
 
+-- This is just to avoid some deeply nested case expressions for the NopNc
+-- functions below.  There is a Monad instance for EvaluationResult, but that
+-- appears to be a little slower than this.
+{-# INLINE (>:) #-}
+infixr >:
+(>:) :: uni ~ DefaultUni
+     => SomeConstant uni Integer
+     -> EvaluationResult Integer
+     -> EvaluationResult Integer
+n >: k =
+    case n of
+      SomeConstant (Some (ValueOf DefaultUniInteger _)) -> k
+      _                                                 -> EvaluationFailure
+
 {- | The meanings of the builtins.  Each one takes a number of arguments and
    returns a result without doing any other work.  A builtin can process its
    arguments in several different ways (see Note [How to add a built-in
@@ -206,111 +220,28 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     -- Integers unlifted via SomeConstant
     toBuiltinMeaning Nop1c =
         makeBuiltinMeaning
-             nop1SomeConstantInteger
+             (\c1 -> c1 >: EvaluationSuccess 11)
              (runCostingFunOneArgument . paramNop1)
-             where nop1SomeConstantInteger :: SomeConstant uni Integer -> EvaluationResult Integer
-                   nop1SomeConstantInteger b1 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 11
-                         _                                                 -> EvaluationFailure
     toBuiltinMeaning Nop2c =
         makeBuiltinMeaning
-             nop2SomeConstantInteger
+             (\c1 c2 -> c1 >: c2 >: EvaluationSuccess 22)
              (runCostingFunTwoArguments . paramNop2)
-             where nop2SomeConstantInteger :: SomeConstant uni Integer -> SomeConstant uni Integer -> EvaluationResult Integer
-                   nop2SomeConstantInteger b1 b2 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                             case b2 of
-                               SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 22
-                               _                                                 -> EvaluationFailure
-                         _ -> EvaluationFailure
     toBuiltinMeaning Nop3c =
         makeBuiltinMeaning
-             nop3SomeConstantInteger
+             (\c1 c2 c3 -> c1 >: c2 >: c3 >: EvaluationSuccess 33)
              (runCostingFunThreeArguments . paramNop3)
-             where nop3SomeConstantInteger :: SomeConstant uni Integer -> SomeConstant uni Integer
-                                        -> SomeConstant uni Integer -> EvaluationResult Integer
-                   nop3SomeConstantInteger b1 b2 b3 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                             case b2 of
-                               SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                   case b3 of
-                                     SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 33
-                                     _                                                 -> EvaluationFailure
-                               _ -> EvaluationFailure
-                         _ -> EvaluationFailure
     toBuiltinMeaning Nop4c =
         makeBuiltinMeaning
-             nop4SomeConstantInteger
+             (\c1 c2 c3 c4 -> c1 >: c2 >: c3 >: c4 >: EvaluationSuccess 44)
              (runCostingFunFourArguments . paramNop4)
-             where nop4SomeConstantInteger :: SomeConstant uni Integer -> SomeConstant uni Integer
-                                        -> SomeConstant uni Integer -> SomeConstant uni Integer
-                                        -> EvaluationResult Integer
-                   nop4SomeConstantInteger b1 b2 b3 b4 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                             case b2 of
-                               SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                   case b3 of
-                                     SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                         case b4 of
-                                           SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 44
-                                           _                                                 -> EvaluationFailure
-                                     _ -> EvaluationFailure
-                               _ -> EvaluationFailure
-                         _ -> EvaluationFailure
     toBuiltinMeaning Nop5c =
         makeBuiltinMeaning
-             nop5SomeConstantInteger
+             (\c1 c2 c3 c4 c5 -> c1 >: c2 >: c3 >: c4 >: c5 >: EvaluationSuccess 55)
              (runCostingFunFiveArguments . paramNop5)
-             where nop5SomeConstantInteger :: SomeConstant uni Integer -> SomeConstant uni Integer
-                                           -> SomeConstant uni Integer -> SomeConstant uni Integer
-                                           -> SomeConstant uni Integer -> EvaluationResult Integer
-                   nop5SomeConstantInteger b1 b2 b3 b4 b5 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                             case b2 of
-                               SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                   case b3 of
-                                     SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                         case b4 of
-                                           SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                               case b5 of
-                                                 SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 55
-                                                 _ -> EvaluationFailure
-                                           _ -> EvaluationFailure
-                                     _ -> EvaluationFailure
-                               _ -> EvaluationFailure
-                         _ -> EvaluationFailure
     toBuiltinMeaning Nop6c =
         makeBuiltinMeaning
-             nop6SomeConstantInteger
+             (\c1 c2 c3 c4 c5 c6 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: EvaluationSuccess 66)
              (runCostingFunSixArguments . paramNop6)
-             where nop6SomeConstantInteger :: SomeConstant uni Integer -> SomeConstant uni Integer
-                                           -> SomeConstant uni Integer -> SomeConstant uni Integer
-                                           -> SomeConstant uni Integer -> SomeConstant uni Integer
-                                           -> EvaluationResult Integer
-                   nop6SomeConstantInteger b1 b2 b3 b4 b5 b6 =
-                       case b1 of
-                         SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                             case b2 of
-                               SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                   case b3 of
-                                     SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                         case b4 of
-                                           SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                               case b5 of
-                                                 SomeConstant (Some (ValueOf DefaultUniInteger _)) ->
-                                                     case b6 of
-                                                       SomeConstant (Some (ValueOf DefaultUniInteger _)) -> EvaluationSuccess 66
-                                                       _ -> EvaluationFailure
-                                                 _ -> EvaluationFailure
-                                           _ -> EvaluationFailure
-                                     _ -> EvaluationFailure
-                               _ -> EvaluationFailure
-                         _ -> EvaluationFailure
     -- Opaque Integers
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
