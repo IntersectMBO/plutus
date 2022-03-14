@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: plutus-tx-plugin
-version: 0.1.0.0
+version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
@@ -63,14 +63,14 @@ library
         extra -any,
         flat -any,
         ghc-prim -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         lens -any,
         mtl -any,
         prettyprinter -any,
         template-haskell -any,
         text -any,
         transformers -any,
-        plutus-tx -any,
+        plutus-tx ^>=1.0,
         array -any
     if flag(use-ghc-stub)
         build-depends: plutus-ghc-stub
@@ -113,11 +113,11 @@ test-suite plutus-tx-tests
         flat -any,
         deepseq -any,
         integer-gmp -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         plutus-core:plutus-core-testlib -any,
-        plutus-tx -any,
+        plutus-tx ^>=1.0,
         plutus-tx:plutus-tx-testlib -any,
-        plutus-tx-plugin -any,
+        plutus-tx-plugin ^>=1.0,
         prettyprinter -any,
         mtl -any,
         template-haskell -any,
@@ -142,7 +142,7 @@ test-suite size
     build-depends:
         base >= 4.9 && < 5.0,
         plutus-tx:plutus-tx-testlib -any,
-        plutus-tx -any,
-        plutus-tx-plugin,
+        plutus-tx ^>=1.0,
+        plutus-tx-plugin ^>=1.0,
         tagged -any,
         tasty -any
