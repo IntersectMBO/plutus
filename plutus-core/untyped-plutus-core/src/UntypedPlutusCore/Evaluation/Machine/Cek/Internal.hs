@@ -282,7 +282,7 @@ type Slippage = Word8
 -- See Note [Cost slippage]
 -- | The default number of slippage (in machine steps) to allow.
 defaultSlippage :: Slippage
-defaultSlippage = 200
+defaultSlippage = 199
 
 {- Note [DList-based emitting]
 Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
