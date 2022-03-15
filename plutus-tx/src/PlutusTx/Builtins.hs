@@ -43,6 +43,7 @@ module PlutusTx.Builtins (
                                 , matchData
                                 , matchData'
                                 , equalsData
+                                , serialiseData
                                 , mkConstr
                                 , mkMap
                                 , mkList
@@ -261,6 +262,11 @@ matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (
 -- one depending on which corresponds to the actual constructor of the given value.
 chooseData :: forall a . BuiltinData -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
+
+{-# INLINABLE serialiseData #-}
+-- | Convert a String into a ByteString.
+serialiseData :: BuiltinData -> BuiltinByteString
+serialiseData = BI.serialiseData
 
 {-# INLINABLE mkConstr #-}
 -- | Constructs a 'BuiltinData' value with the @Constr@ constructor.

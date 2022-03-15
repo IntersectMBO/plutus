@@ -168,6 +168,8 @@ BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s')))
 BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₂ (V-con (integer i))
 BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
   inj₂ (V-con (bytestring b))
+BUILTIN serialiseData (app _ base (V-con (Data d))) =
+  inj₂ (V-con (bytestring (serialiseDATA d)))
 BUILTIN _ _ = inj₁ userError
 
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
@@ -225,6 +227,7 @@ ival unListData = V-I⇒ unListData (start _) base
 ival unIData = V-I⇒ unIData (start _) base
 ival unBData = V-I⇒ unBData (start _) base
 ival equalsData = V-I⇒ equalsData (start _) base
+ival serialiseData = V-I⇒ serialiseData (start _) base
 ival chooseData = V-IΠ chooseData (start _) base
 ival chooseUnit = V-IΠ chooseUnit (start _) base
 ival mkPairData = V-I⇒ mkPairData (start _) base

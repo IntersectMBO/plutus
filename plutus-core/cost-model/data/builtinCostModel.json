@@ -389,6 +389,22 @@
             "type": "constant_cost"
         }
     },
+    "serialiseData": {
+        "memory": {
+            "arguments": {
+                "slope": 0,
+                "intercept": 0
+            },
+            "type": "linear_cost"
+        },
+        "cpu": {
+            "arguments": {
+                "slope": 0,
+                "intercept": 0
+            },
+            "type": "linear_cost"
+        }
+    },
     "addInteger": {
         "memory": {
             "arguments": {
