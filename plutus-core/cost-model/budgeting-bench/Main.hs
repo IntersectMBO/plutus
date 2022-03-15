@@ -56,7 +56,7 @@ main = do
   csvExists <- doesFileExist DFP.benchingResultsFile
   if csvExists then renameFile DFP.benchingResultsFile DFP.backupBenchingResultsFile else pure ()
 
-{-  criterionMainWith
+  criterionMainWith
        True
        (defaultConfig { C.csvFile = Just DFP.benchingResultsFile }) $
             Benchmarks.Bool.makeBenchmarks            gen
@@ -70,7 +70,7 @@ main = do
         <>  Benchmarks.Strings.makeBenchmarks         gen
         <>  Benchmarks.Tracing.makeBenchmarks         gen
         <>  Benchmarks.Unit.makeBenchmarks            gen
--}
+
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
   -- FIXME: this doesn't quite work.  If you specify a benchmark name on the
