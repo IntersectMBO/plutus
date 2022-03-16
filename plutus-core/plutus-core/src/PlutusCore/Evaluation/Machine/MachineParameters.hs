@@ -1,6 +1,8 @@
-{-# LANGUAGE StrictData    #-}
-{-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE StrictData     #-}
+{-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE TypeOperators  #-}
+
 
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
@@ -9,6 +11,8 @@ import PlutusCore.Builtin
 
 import PlutusCore.Evaluation.Machine.ExBudget ()
 
+import Control.DeepSeq
+import GHC.Generics
 import GHC.Types (Type)
 
 {-| We need to account for the costs of evaluator steps and also built-in function
@@ -35,6 +39,8 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
       machineCosts    :: machinecosts
     , builtinsRuntime :: BuiltinsRuntime fun (term uni fun)
     }
+    deriving stock Generic
+    deriving anyclass NFData
 
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
 mkMachineParameters ::

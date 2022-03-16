@@ -15,6 +15,7 @@ import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 
+import Control.DeepSeq
 import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
@@ -33,6 +34,13 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
     RuntimeSchemeAll
         :: RuntimeScheme val args res
         -> RuntimeScheme val args res
+
+-- we use strictdata, so this is just for the purpose of completeness
+instance NFData (RuntimeScheme val args res) where
+    rnf r = case r of
+        RuntimeSchemeResult    -> rwhnf r
+        RuntimeSchemeArrow arg -> rnf arg
+        RuntimeSchemeAll arg   -> rnf arg
 
 -- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
 -- 'BuiltinRuntime's.
@@ -59,10 +67,15 @@ data BuiltinRuntime val =
                               -- can put @undefined@ here. TODO: we should test if making this
                               -- strict introduces any measurable speedup.
 
+instance NFData (BuiltinRuntime val) where
+    rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
+
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun val = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
+
+deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
 
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res

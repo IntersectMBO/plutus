@@ -23,7 +23,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses FlexibleContexts
-                        ImportQualifiedPost
+                        ImportQualifiedPost DerivingStrategies
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -Wunused-packages
