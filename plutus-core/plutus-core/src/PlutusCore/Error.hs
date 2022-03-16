@@ -15,7 +15,7 @@
 
 module PlutusCore.Error
     ( ParserError (..)
-    -- , AsParserError (..)
+    , AsParserError (..)
     , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
@@ -60,6 +60,7 @@ data ParserError
     | InvalidBuiltinConstant T.Text T.Text SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
+makeClassyPrisms ''ParserError
 
 instance Show ParserError
     where
