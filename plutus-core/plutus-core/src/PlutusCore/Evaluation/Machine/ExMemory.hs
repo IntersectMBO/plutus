@@ -206,7 +206,7 @@ instance ExMemoryUsage Data where
         where sizeData d =
                   nodeMem +
                      case d of
-                       Constr _ l -> sizeDataList l    -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
+                       Constr n l -> memoryUsage n +  sizeDataList l
                        Map l      -> sizeDataPairs l
                        List l     -> sizeDataList l
                        I n        -> memoryUsage n
