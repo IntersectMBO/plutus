@@ -1,27 +1,22 @@
-{-# LANGUAGE RankNTypes #-}
-
 module PlutusCore.Builtin.Emitter
     ( Emitter (..)
-    , emitM
+    , runEmitter
+    , emit
     ) where
 
+import Control.Monad.Trans.Writer.Strict (Writer, runWriter, tell)
+import Data.DList as DList
 import Data.Text (Text)
 
--- | A monad for logging that does not hardcode any concrete first-order encoding and instead packs
--- a @Monad m@ constraint and a @Text -> m ()@ argument internally, so that built-in functions that
--- do logging can work in any monad (for example, @CkM@ or @CekM@), for which there exists a
--- logging function.
+-- | A monad for logging.
 newtype Emitter a = Emitter
-    { unEmitter :: forall m. Monad m => (Text -> m ()) -> m a
-    } deriving stock (Functor)
+    { unEmitter :: Writer (DList Text) a
+    } deriving newtype (Functor, Applicative, Monad)
 
--- newtype-deriving doesn't work with 'Emitter'.
-instance Applicative Emitter where
-    pure x = Emitter $ \_ -> pure x
-    Emitter f <*> Emitter a = Emitter $ \emit -> f emit <*> a emit
+runEmitter :: Emitter a -> (a, DList Text)
+runEmitter = runWriter . unEmitter
+{-# INLINE runEmitter #-}
 
-instance Monad Emitter where
-    Emitter a >>= f = Emitter $ \emit -> a emit >>= \x -> unEmitter (f x) emit
-
-emitM :: Text -> Emitter ()
-emitM text = Emitter ($ text)
+emit :: Text -> Emitter ()
+emit = Emitter . tell . pure
+{-# INLINE emit #-}

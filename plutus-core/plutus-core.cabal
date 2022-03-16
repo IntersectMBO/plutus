@@ -1,13 +1,12 @@
 cabal-version: 3.0
 name: plutus-core
-version: 0.1.0.0
+version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
   NOTICE
 maintainer: michael.peyton-jones@iohk.io
 author: Plutus Core Team
-tested-with: ghc ==8.2.2 ghc ==8.4.3 ghc ==8.6.1
 synopsis: Language library for Plutus Core
 description:
     Pretty-printer, parser, and typechecker for Plutus Core.
@@ -144,6 +143,7 @@ library
         UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
+        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Type
 
         Crypto
@@ -217,7 +217,6 @@ library
 
         UntypedPlutusCore.Analysis.Definitions
         UntypedPlutusCore.Analysis.Usages
-        UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Instance
         UntypedPlutusCore.Core.Instance.Eq
         UntypedPlutusCore.Core.Instance.Flat

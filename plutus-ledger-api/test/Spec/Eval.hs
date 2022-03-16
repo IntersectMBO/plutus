@@ -130,7 +130,7 @@ testAPI = "v1-api" `testWith` evalAPI
       evalAPI t =
           -- handcraft a serialized script
           let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
-          in isRight $ snd $ Api.evaluateScriptRestricting Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
+          in isRight $ snd $ Api.evaluateScriptRestricting (ProtocolVersion 5 0) Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.
 testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestNested

@@ -1,6 +1,6 @@
 cabal-version: 3.0
 name: plutus-ledger-api
-version: 0.1.0.0
+version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
@@ -23,7 +23,7 @@ common lang
                         DeriveGeneric StandaloneDeriving DeriveLift
                         GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
                         DeriveTraversable MultiParamTypeClasses FlexibleContexts
-                        ImportQualifiedPost
+                        ImportQualifiedPost DerivingStrategies
     ghc-options: -Wall -Wnoncanonical-monad-instances
                  -Wincomplete-uni-patterns -Wincomplete-record-updates
                  -Wredundant-constraints -Widentities -Wunused-packages
@@ -36,9 +36,6 @@ library
     hs-source-dirs: src
     default-language: Haskell2010
     exposed-modules:
-        Data.Either.Extras
-        Prettyprinter.Extras
-
         Plutus.V1.Ledger.Address
         Plutus.V1.Ledger.Api
         Plutus.V1.Ledger.Bytes
@@ -57,15 +54,21 @@ library
         Plutus.V2.Ledger.Api
         Plutus.V2.Ledger.Contexts
         Plutus.V2.Ledger.Tx
+
+        Plutus.ApiCommon
+    other-modules:
+        Codec.CBOR.Extras
+        Data.Either.Extras
+        Prettyprinter.Extras
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
         cborg -any,
         containers -any,
         flat -any,
-        plutus-core -any,
+        plutus-core ^>=1.0,
         mtl -any,
-        plutus-tx -any,
+        plutus-tx ^>=1.0,
         serialise -any,
         template-haskell -any,
         text -any,
@@ -84,12 +87,14 @@ test-suite plutus-ledger-api-test
     other-modules:
         Spec.Interval
         Spec.Eval
+        Spec.Builtins
     build-depends:
         base >=4.9 && <5,
         mtl -any,
-        plutus-core -any,
+        containers -any,
+        plutus-core ^>=1.0,
         plutus-core:plutus-core-testlib -any,
-        plutus-ledger-api -any,
+        plutus-ledger-api ^>=1.0,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,

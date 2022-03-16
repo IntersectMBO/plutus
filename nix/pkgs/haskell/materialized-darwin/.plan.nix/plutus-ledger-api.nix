@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "3.0";
-      identifier = { name = "plutus-ledger-api"; version = "0.1.0.0"; };
+      identifier = { name = "plutus-ledger-api"; version = "1.0.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "michael.peyton-jones@iohk.io";
@@ -53,6 +53,7 @@
           ];
         buildable = true;
         modules = [
+          "Codec/CBOR/Extras"
           "Data/Either/Extras"
           "Prettyprinter/Extras"
           "Plutus/V1/Ledger/Address"
@@ -72,6 +73,7 @@
           "Plutus/V2/Ledger/Api"
           "Plutus/V2/Ledger/Contexts"
           "Plutus/V2/Ledger/Tx"
+          "Plutus/ApiCommon"
           ];
         hsSourceDirs = [ "src" ];
         };
@@ -80,6 +82,7 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
@@ -92,7 +95,7 @@
             (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
             ];
           buildable = true;
-          modules = [ "Spec/Interval" "Spec/Eval" ];
+          modules = [ "Spec/Interval" "Spec/Eval" "Spec/Builtins" ];
           hsSourceDirs = [ "test" ];
           mainPath = [ "Spec.hs" ];
           };

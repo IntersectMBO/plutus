@@ -17,6 +17,8 @@ module Plutus.V1.Ledger.Api (
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    -- ** Protocol version
+    , ProtocolVersion (..)
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
@@ -30,6 +32,7 @@ module Plutus.V1.Ledger.Api (
     , mkEvaluationContext
     , CostModelParams
     , isCostModelParamsWellFormed
+    , costModelParamNames
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)
@@ -109,16 +112,20 @@ module Plutus.V1.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import Codec.Serialise qualified as CBOR
+import Codec.CBOR.Decoding qualified as CBOR
+import Codec.CBOR.Extras
+import Codec.CBOR.Read qualified as CBOR
 import Control.Monad.Except
 import Control.Monad.Writer
 import Data.Bifunctor
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.Short
+import Data.Coerce (coerce)
 import Data.Either
 import Data.SatInt
-import Data.Text (Text)
+import Data.Set qualified as Set
 import Data.Tuple
+import Plutus.ApiCommon
 import Plutus.V1.Ledger.Address
 import Plutus.V1.Ledger.Bytes
 import Plutus.V1.Ledger.Contexts
@@ -162,18 +169,10 @@ internally. That means we don't lose anything by exposing all the details: we're
 anything, we're just going to create new versions.
 -}
 
--- | Check if a 'Script' is "valid". At the moment this just means "deserialises correctly", which in particular
--- implies that it is (almost certainly) an encoded script and cannot be interpreted as some other kind of encoded data.
-isScriptWellFormed :: SerializedScript -> Bool
-isScriptWellFormed = isRight . CBOR.deserialiseOrFail @Script . fromStrict . fromShort
-
-data VerboseMode = Verbose | Quiet
-    deriving stock (Eq)
-
-type LogOutput = [Text]
-
--- | Scripts to the ledger are serialised bytestrings.
-type SerializedScript = ShortByteString
+-- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
+-- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
+isScriptWellFormed :: ProtocolVersion -> SerializedScript -> Bool
+isScriptWellFormed pv = isRight . CBOR.deserialiseFromBytes (scriptCBORDecoder pv) . fromStrict . fromShort
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
@@ -192,23 +191,39 @@ instance Pretty EvaluationError where
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
-{-| A variant of `Script` with a specialized `Serialise` instance
-that decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
+-- | A variant of `Script` with a specialized decoder.
+newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+
+{- |
+This decoder decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
 This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialized form of a `Script`.
 Rather than traversing the term and inserting fake names after deserializing, this lets us do at the same time as deserializing.
 -}
-newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-  -- Identical to the deriving instance for `Script`, *except* that it specifies `FakeNamedDeBruijn`
-  deriving CBOR.Serialise via (SerialiseViaFlat (UPLC.WithSizeLimits 64 (UPLC.Program UPLC.FakeNamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())))
+scriptCBORDecoder :: ProtocolVersion -> CBOR.Decoder s ScriptForExecution
+scriptCBORDecoder pv =
+    -- See Note [New builtins and protocol versions]
+    let availableBuiltins = builtinsAvailableIn pv
+        -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
+        flatDecoder = UPLC.decodeProgram (UPLC.Limit 64) (\f -> f `Set.member` availableBuiltins)
+    in do
+        -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
+        (p :: UPLC.Program UPLC.FakeNamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()) <- decodeViaFlat flatDecoder
+        pure $ coerce p
 
 -- | Shared helper for the evaluation functions, deserializes the 'SerializedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
-mkTermToEvaluate :: (MonadError EvaluationError m) => SerializedScript -> [PLC.Data] -> m (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-mkTermToEvaluate bs args = do
+mkTermToEvaluate
+    :: (MonadError EvaluationError m)
+    => ProtocolVersion
+    -> SerializedScript
+    -> [PLC.Data]
+    -> m (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+mkTermToEvaluate pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ v t) <- liftEither $ first CodecError $ CBOR.deserialiseOrFail $ fromStrict $ fromShort bs
+    (_, ScriptForExecution (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseFromBytes (scriptCBORDecoder pv) $ fromStrict $ fromShort bs
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (PLC.mkConstant ()) args
         appliedT = PLC.mkIterApp () t termArgs
+
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
@@ -219,14 +234,16 @@ mkTermToEvaluate bs args = do
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: VerboseMode     -- ^ Whether to produce log output
+    :: ProtocolVersion
+    -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
-    appliedTerm <- mkTermToEvaluate p args
+evaluateScriptRestricting pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+    appliedTerm <- mkTermToEvaluate pv p args
+
     let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
             UPLC.runCekDeBruijn
                 (toMachineParameters ectx)
@@ -243,13 +260,14 @@ evaluateScriptRestricting verbose ectx budget p args = swap $ runWriter @LogOutp
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: VerboseMode     -- ^ Whether to produce log output
+    :: ProtocolVersion
+    -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
     -> SerializedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
-    appliedTerm <- mkTermToEvaluate p args
+evaluateScriptCounting pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
+    appliedTerm <- mkTermToEvaluate pv p args
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCekDeBruijn

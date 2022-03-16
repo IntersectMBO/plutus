@@ -11,7 +11,7 @@
     flags = {};
     package = {
       specVersion = "3.0";
-      identifier = { name = "plutus-core"; version = "0.1.0.0"; };
+      identifier = { name = "plutus-core"; version = "1.0.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "michael.peyton-jones@iohk.io";
@@ -151,7 +151,6 @@
           "PlutusIR/TypeCheck/Internal"
           "UntypedPlutusCore/Analysis/Definitions"
           "UntypedPlutusCore/Analysis/Usages"
-          "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Instance"
           "UntypedPlutusCore/Core/Instance/Eq"
           "UntypedPlutusCore/Core/Instance/Flat"
@@ -279,6 +278,7 @@
           "UntypedPlutusCore/MkUPlc"
           "UntypedPlutusCore/Check/Scope"
           "UntypedPlutusCore/Check/Uniques"
+          "UntypedPlutusCore/Core"
           "UntypedPlutusCore/Core/Type"
           "Crypto"
           "Data/ByteString/Hash"

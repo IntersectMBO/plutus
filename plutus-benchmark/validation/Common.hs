@@ -1,11 +1,20 @@
 {-# LANGUAGE TypeApplications #-}
-module Common (benchWith, unsafeUnflat, unsafeEvaluateCekNoEmit', throughCheckScope) where
+module Common (
+    benchWith
+    , unsafeUnflat
+    , unsafeEvaluateCekNoEmit'
+    , throughCheckScope
+    , peelDataArguments
+    , Term
+    ) where
 
 import PlutusBenchmark.Common (getConfig, getDataDir)
 import PlutusBenchmark.NaturalSort
 
 import Control.Monad.Except
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.Exception
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Scope (checkScope)
@@ -133,3 +142,16 @@ unsafeEvaluateCekNoEmit' =
                 PLC.defaultCekParameters
                 UPLC.restrictingEnormous
                 UPLC.noEmitter
+
+type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+
+-- | If the term is an application of something to some arguments, peel off
+-- those arguments which are 'Data' constants.
+peelDataArguments :: Term -> (Term, [PLC.Data])
+peelDataArguments = go []
+    where
+        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown Nothing arg of
+            Left _  -> (t, acc)
+            Right d -> go (d:acc) t'
+        go acc t = (t, acc)
+

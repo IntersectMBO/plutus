@@ -9,7 +9,6 @@ module UntypedPlutusCore (
     ) where
 
 import UntypedPlutusCore.Core as Export
-import UntypedPlutusCore.Core.Instance.Flat as Export
 import UntypedPlutusCore.DeBruijn as Export
 import UntypedPlutusCore.Parser as Parser (parseScoped)
 import UntypedPlutusCore.Simplify as Export
