@@ -54,7 +54,7 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 
 
-import Data.DeBruijnEnv as Env
+import        Data.RandomAccessList.SkewBinary
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -182,31 +182,6 @@ but functions are not printable and hence we provide a dummy instance.
 -- See Note [Show instance for BuiltinRuntime].
 instance Show (BuiltinRuntime (CekValue uni fun)) where
     show _ = "<builtin_runtime>"
-
--- 'Values' for the modified CEK machine.
-data CekValue uni fun =
-    -- This bang gave us a 1-2% speed-up at the time of writing.
-    VCon !(Some (ValueOf uni))
-  | VDelay (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
-  | VLamAbs NamedDeBruijn (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
-  | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
-      !fun                   -- So that we know, for what builtin we're calculating the cost.
-                             -- TODO: any chance we could sneak this into 'BuiltinRuntime'
-                             -- where we have a partially instantiated costing function anyway?
-      (Term NamedDeBruijn uni fun ()) -- This must be lazy. It represents the partial application of the
-                             -- builtin function that we're going to run when it's fully saturated.
-                             -- We need the 'Term' to be able to return it in case full saturation
-                             -- is never achieved and a partial application needs to be returned
-                             -- in the result. The laziness is important, because the arguments are
-                             -- discharged values and discharging is expensive, so we don't want to
-                             -- do it unless we really have to. Making this field strict resulted
-                             -- in a 3-4.5% slowdown at the time of writing.
-      (CekValEnv uni fun)    -- For discharging.
-      !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
-                                            -- Check the docs of 'BuiltinRuntime' for details.
-    deriving stock (Show)
-
-type CekValEnv uni fun = RAList (CekValue uni fun)
 
 -- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -462,7 +437,7 @@ dischargeCekValEnv valEnv = go 0
                -- var is in the env, discharge its value
                dischargeCekValue
                -- index relative to (as seen from the point of view of) the environment
-               (Env.index valEnv $ ix - lamCnt)
+               (safeIndexOne valEnv $ ix - lamCnt)
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
     Delay ann term       -> Delay ann $ go lamCnt term
     Force ann term       -> Force ann $ go lamCnt term
@@ -546,7 +521,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.index` coerce varIx of
+    case varEnv `safeIndexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
@@ -699,7 +674,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
-        computeCek unbudgetedSteps ctx (Env.cons arg env) body
+        computeCek unbudgetedSteps ctx (Cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
@@ -758,4 +733,4 @@ runCekDeBruijn
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek NoFrame Env.empty term
+        enterComputeCek NoFrame Nil term
