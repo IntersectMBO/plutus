@@ -197,6 +197,8 @@ BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s')))
 BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₂ (V-con (integer i))
 BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
   inj₂ (V-con (bytestring b))
+BUILTIN serialiseData (app _ base (V-con (Data d))) =
+  inj₂ (V-con (bytestring (serialiseDATA d)))
 BUILTIN _ {A} _ = inj₁ A
   
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
@@ -460,6 +462,9 @@ bappTermLem equalsData {as = as} (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
 bappTermLem equalsData (bubble (start _)) (app _ base _)
   | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem serialiseData {az = az} {as} p q
+  with <>>-cancel-both az ([] :< Term) as p
+bappTermLem serialiseData (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem chooseData (bubble (start _)) (app⋆ _ base refl) =
   _ ,, _ ,, refl
 bappTermLem chooseData
@@ -713,6 +718,9 @@ bappTypeLem unBData {az = az} p q
 bappTypeLem equalsData (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
 ... | refl ,, refl ,, ()
+bappTypeLem serialiseData {az = az} p q
+  with <>>-cancel-both' az _ ([] :< Term) _ p refl
+... | refl ,, refl ,, ()
 bappTypeLem chooseData (start _) base = _ ,, _ ,, refl
 bappTypeLem chooseData (bubble (bubble (bubble (bubble (bubble (bubble {as = az} p)))))) _
   with <>>-cancel-both' az _ ([] <>< arity chooseData) _ p refl
@@ -855,6 +863,7 @@ ival unListData = V-I⇒ unListData (start _) base
 ival unIData = V-I⇒ unIData (start _) base
 ival unBData = V-I⇒ unBData (start _) base
 ival equalsData = V-I⇒ equalsData (start _) base
+ival serialiseData = V-I⇒ serialiseData (start _) base
 ival chooseData = V-IΠ chooseData (start _) base
 ival chooseUnit = V-IΠ chooseUnit (start _) base
 ival mkPairData = V-I⇒ mkPairData (start _) base
