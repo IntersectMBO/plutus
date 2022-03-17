@@ -10,7 +10,7 @@ get an idea of the average cost of the basic CEK operations.
 -}
 -- TODO: these are currently run manually, but the process should be automated.
 
--- See Note [Creation of the Cost Model]
+-- See plutus-core/cost-model/CostModelGeneration.hs
 module Main (main) where
 
 

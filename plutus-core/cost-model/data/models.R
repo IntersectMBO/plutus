@@ -113,7 +113,8 @@ get.bench.data <- function(path) {
     dat <- read.csv(
         path,
         header=TRUE,
-        stringsAsFactors=FALSE
+        stringsAsFactors=FALSE,
+        comment.char="#"
     )
 
     benchname <- regex("([[:alnum:]_]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
