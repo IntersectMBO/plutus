@@ -18,7 +18,7 @@ import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
 import Data.Text (Text)
-import PlutusCore.Builtin.Emitter (Emitter, emitM)
+import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Ed25519 signature verification
@@ -94,5 +94,5 @@ verifySchnorrSecp256k1Signature pk msg sig =
 failWithMessage :: forall (a :: Type) .
   Text -> Text -> Emitter (EvaluationResult a)
 failWithMessage location reason = do
-  emitM $ location <> ": " <> reason
+  emit $ location <> ": " <> reason
   pure EvaluationFailure

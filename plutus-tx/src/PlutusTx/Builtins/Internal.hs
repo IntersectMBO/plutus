@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 -- This ensures that we don't put *anything* about these functions into the interface
@@ -15,13 +16,16 @@ module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
+import Control.Monad.Trans.Writer.Strict (runWriter)
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.Coerce (coerce)
 import Data.Data
+import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
+import Data.Kind (Type)
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
@@ -247,14 +251,10 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case Crypto.verifyEcdsaSecp256k1Signature vk msg sig of
-    Emitter f -> case f go of
-      EvaluationFailure -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
-      EvaluationSuccess b -> case b of
-        EvaluationFailure    -> mustBeReplaced "ECDSA Secp256k1 signature verification tracing errored."
-        EvaluationSuccess b' -> BuiltinBool b'
-  where
-    go :: Text -> EvaluationResult ()
-    go t = trace (BuiltinString t) . EvaluationSuccess $ ()
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        EvaluationSuccess b -> BuiltinBool b
 
 {-# NOINLINE verifySchnorrSecp256k1Signature #-}
 verifySchnorrSecp256k1Signature ::
@@ -264,14 +264,14 @@ verifySchnorrSecp256k1Signature ::
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case Crypto.verifySchnorrSecp256k1Signature vk msg sig of
-    Emitter f -> case f go of
-      EvaluationFailure -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
-      EvaluationSuccess b -> case b of
-        EvaluationFailure    -> mustBeReplaced "Schnorr Secp256k1 signature verification tracing errored."
-        EvaluationSuccess b' -> BuiltinBool b'
-  where
-    go :: Text -> EvaluationResult ()
-    go t = trace (BuiltinString t) . EvaluationSuccess $ ()
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
+        EvaluationSuccess b -> BuiltinBool b
+
+traceAll :: forall (a :: Type) (f :: Type -> Type) .
+  (Foldable f) => f Text -> a -> a
+traceAll logs x = Foldable.foldl' (\acc t -> trace (BuiltinString t) acc) x logs
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
