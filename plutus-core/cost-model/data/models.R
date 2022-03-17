@@ -554,7 +554,9 @@ modelFun <- function(path) {
 
     serialiseDataModel <- {
         fname <- "SerialiseData"
-        #FIXME
+        f <- data %>% filter.and.check.nonempty(fname)
+        m <- lm(Mean ~ x_mem, f)
+        adjustModel(m,fname)
     }
 
 

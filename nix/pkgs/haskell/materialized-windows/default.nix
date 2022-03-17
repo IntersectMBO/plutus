@@ -623,6 +623,7 @@
           "some".components.library.planned = lib.mkOverride 900 true;
           "dependent-sum-template".components.library.planned = lib.mkOverride 900 true;
           "plutus-ghc-stub".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "array".components.library.planned = lib.mkOverride 900 true;
           "quickcheck-instances".components.library.planned = lib.mkOverride 900 true;
           "js-chart".components.library.planned = lib.mkOverride 900 true;
@@ -636,7 +637,6 @@
           "ghc-boot-th".components.library.planned = lib.mkOverride 900 true;
           "scientific".components.library.planned = lib.mkOverride 900 true;
           "th-extras".components.library.planned = lib.mkOverride 900 true;
-          "plutus-core".components.benchmarks."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "hspec-discover".components.exes."hspec-discover".planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
           "rts".components.library.planned = lib.mkOverride 900 true;
@@ -658,7 +658,6 @@
           "vector-binary-instances".components.library.planned = lib.mkOverride 900 true;
           "parallel".components.library.planned = lib.mkOverride 900 true;
           "cryptonite".components.library.planned = lib.mkOverride 900 true;
-          "plutus-core".components.benchmarks."update-cost-model".planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.benchmarks."nofib-hs".planned = lib.mkOverride 900 true;
           "foldl".components.library.planned = lib.mkOverride 900 true;
           "plutus-errors".components.library.planned = lib.mkOverride 900 true;
@@ -748,6 +747,7 @@
           "dom-lt".components.library.planned = lib.mkOverride 900 true;
           "witherable".components.library.planned = lib.mkOverride 900 true;
           "abstract-par".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."generate-cost-model".planned = lib.mkOverride 900 true;
           "monad-par".components.library.planned = lib.mkOverride 900 true;
           "managed".components.library.planned = lib.mkOverride 900 true;
           "system-filepath".components.setup.planned = lib.mkOverride 900 true;
