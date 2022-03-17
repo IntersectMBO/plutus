@@ -64,6 +64,44 @@ The main documentation is located https://plutus.readthedocs.io/en/latest/[here]
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
 
+== Versioning and releases
+
+=== Versioning
+
+The core `plutus` packages are versioned as follows:
+
+* Package versioning follows the https://pvp.haskell.org/[PVP] on a best-effort basis (i.e. we will generally try to but we won't guarantee it).
+** The first-major-version component indicates the "era" which for our purposes means which major version of the *Cardano node* is being targeted.
+** The second-major-version component is used for releases which are major versions according to the PVP, but which are still compatible with the current "era".
+** The minor-version and below are used as normal.
+* Packages which are used downstream should all have the same version.
+* Other packages which are not used downstream (e.g. `plutus-benchmark`) can remain unversioned.
+
+In principle we could just have a single major version, but using two makes it easier to avoid mistakes.
+
+=== Branching and tagging
+
+The following branching and tagging rules are followed:
+
+* Version `X` is tagged as `vX`.
+* `master` is always targeting the next first-major-version.
+* First-major-version releases also have a release branch, `release/X`.
+** Changes will be backported from master to the release branch
+** Subsequent lesser releases will be made from that branch but do not create new branches.
+
+=== Version ranges
+
+Packages which depend on `plutus` packages should use version ranges to control which version of those packages they build against.
+
+* Packages in `plutus` which are used downstream should pin the major-version of each other (e.g. `plutus-tx-1.0.1` should depend on `plutus-core ^>= 1.0`).
+* Downstream packages should pin at least the first-major-version of `plutus` packages.
+** Upgrading to a new second-major-version should always be safe, with at most code breakage (following the PVP). Users may of course want to pin this version as well to avoid such breakage.
+* Downstream packages pulling in `plutus` packages via `source-repository-package` stanzas should always take tagged commits, or potentially commits from a release branch.
+
+=== Releases
+
+Currently there is no release process beyond bumping the package versions and making a tag/branch as appropriate.
+
 == Working with the project
 
 === How to submit an issue
