@@ -68,6 +68,7 @@ builtinFnList =
     , (UnIData,"unIData")
     , (UnBData,"unBData")
     , (EqualsData,"equalsData")
+    , (SerialiseData,"serialiseData")
     , (MkPairData,"mkPairData")
     , (MkNilData,"mkNilData")
     , (MkNilPairData,"mkNilPairData")
