@@ -75,7 +75,7 @@ builtinsIntroducedIn = Map.fromList [
           MkPairData, MkNilData, MkNilPairData
           ]),
   (ProtocolVersion 6 0, Set.fromList [
-          SerialiseData
+          SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
 
