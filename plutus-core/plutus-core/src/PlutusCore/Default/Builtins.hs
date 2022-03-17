@@ -1038,8 +1038,8 @@ instance Flat DefaultFun where
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
               VerifySignature                 -> 21
-              VerifyEcdsaSecp256k1Signature   -> 51
-              VerifySchnorrSecp256k1Signature -> 52
+              VerifyEcdsaSecp256k1Signature   -> 52
+              VerifySchnorrSecp256k1Signature -> 53
 
               AppendString                    -> 22
               EqualsString                    -> 23
@@ -1130,8 +1130,8 @@ instance Flat DefaultFun where
               go 48 = pure MkPairData
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
-              go 51 = pure VerifyEcdsaSecp256k1Signature
-              go 52 = pure VerifySchnorrSecp256k1Signature
+              go 52 = pure VerifyEcdsaSecp256k1Signature
+              go 53 = pure VerifySchnorrSecp256k1Signature
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

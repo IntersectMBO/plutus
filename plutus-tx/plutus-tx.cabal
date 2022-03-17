@@ -123,6 +123,7 @@ library plutus-tx-testlib
     , mtl
     , plutus-core
     , plutus-tx
+    , plutus-core:plutus-core-testlib ^>=1.0
     , prettyprinter
     , tagged
     , tasty
