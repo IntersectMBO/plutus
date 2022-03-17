@@ -225,6 +225,7 @@ builtinNames = [
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
     , 'Builtins.equalsData
+    , 'Builtins.serialiseData
     , 'Builtins.mkConstr
     , 'Builtins.mkMap
     , 'Builtins.mkList
@@ -355,6 +356,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.unsafeDataAsList $ mkBuiltin PLC.UnListData
     defineBuiltinTerm 'Builtins.unsafeDataAsB $ mkBuiltin PLC.UnBData
     defineBuiltinTerm 'Builtins.unsafeDataAsI $ mkBuiltin PLC.UnIData
+    defineBuiltinTerm 'Builtins.serialiseData $ mkBuiltin PLC.SerialiseData
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m

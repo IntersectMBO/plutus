@@ -163,4 +163,5 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramMkPairData               = unitCostTwoArguments
     , paramMkNilData                = unitCostOneArgument
     , paramMkNilPairData            = unitCostOneArgument
+    , paramSerialiseData            = unitCostOneArgument
     }

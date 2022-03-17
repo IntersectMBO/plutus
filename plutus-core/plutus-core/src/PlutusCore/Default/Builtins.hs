@@ -23,9 +23,11 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import Codec.Serialise (serialise)
 import Crypto (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature, verifySignature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
+import Data.ByteString.Lazy qualified as BS (toStrict)
 import Data.Char
 import Data.Ix
 import Data.Text (Text)
@@ -104,6 +106,7 @@ data DefaultFun
     | UnIData
     | UnBData
     | EqualsData
+    | SerialiseData
     -- Misc constructors
     -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
     -- constructors are often problematic (See note [Representable built-in
@@ -982,6 +985,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((==) @Data)
             (runCostingFunTwoArguments . paramEqualsData)
+    toBuiltinMeaning SerialiseData =
+        makeBuiltinMeaning
+            (BS.toStrict . serialise @Data)
+            (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
     toBuiltinMeaning MkPairData =
         makeBuiltinMeaning
@@ -1073,10 +1080,10 @@ instance Flat DefaultFun where
               UnIData                         -> 45
               UnBData                         -> 46
               EqualsData                      -> 47
-
               MkPairData                      -> 48
               MkNilData                       -> 49
               MkNilPairData                   -> 50
+              SerialiseData                   -> 51
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1130,6 +1137,7 @@ instance Flat DefaultFun where
               go 48 = pure MkPairData
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
+              go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t

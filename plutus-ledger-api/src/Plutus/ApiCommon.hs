@@ -73,6 +73,9 @@ builtinsIntroducedIn = Map.fromList [
           ChooseList, MkCons, HeadList, TailList, NullList,
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
+          ]),
+  (ProtocolVersion 6 0, Set.fromList [
+          SerialiseData
           ])
   ]
 
