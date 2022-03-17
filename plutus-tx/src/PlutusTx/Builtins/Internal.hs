@@ -29,7 +29,6 @@ import Data.Kind (Type)
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import GHC.Generics (Generic)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
