@@ -25,7 +25,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Text qualified as T
-import PlutusCore.Parser.ParserCommon
+import PlutusCore.Parser hiding (parseProgram, parseTerm)
 
 -- Parsers for UPLC terms
 
@@ -80,21 +80,21 @@ program = whitespace >> do
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm :: ByteString ->
-    Either (ParseErrorBundle T.Text PLC.ParseError) PTerm
+    Either (ParseErrorBundle T.Text PLC.ParserError) PTerm
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram :: ByteString ->
-    Either (ParseErrorBundle T.Text PLC.ParseError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+    Either (ParseErrorBundle T.Text PLC.ParserError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
-    (PLC.MonadQuote (Either (ParseErrorBundle T.Text PLC.ParseError)),
-    PLC.AsUniqueError (ParseErrorBundle T.Text PLC.ParseError) SourcePos)
+    (PLC.MonadQuote (Either (ParseErrorBundle T.Text PLC.ParserError)),
+    PLC.AsUniqueError (ParseErrorBundle T.Text PLC.ParserError) SourcePos)
     => ByteString
-    -> Either (ParseErrorBundle T.Text PLC.ParseError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+    -> Either (ParseErrorBundle T.Text PLC.ParserError) (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram

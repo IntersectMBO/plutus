@@ -74,7 +74,7 @@ class Executable p where
   -- | Parse a program.
   parseProgram ::
     BSL.ByteString ->
-      Either (ParseErrorBundle T.Text PLC.ParseError) (p PLC.SourcePos)
+      Either (ParseErrorBundle T.Text PLC.ParserError) (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -285,7 +285,7 @@ parseInput inp = do
     -- parse the UPLC program
     case parseProgram bsContents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParseErrorBundle T.Text PLC.ParseError) ->
+      Left (err :: ParseErrorBundle T.Text PLC.ParserError) ->
         errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right p -> do

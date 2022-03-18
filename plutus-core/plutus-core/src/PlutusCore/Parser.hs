@@ -3,20 +3,23 @@
 -- | Parsers for PLC terms in DefaultUni.
 
 module PlutusCore.Parser
-    ( parseProgram
+    ( module Export
+    , parseProgram
     , parseTerm
     , parseType
-    , ParseError(..)
+    , ParserError(..)
     ) where
 
 import Data.ByteString.Lazy (ByteString)
 import Data.Text qualified as T
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
-import PlutusCore.Error (ParseError (..))
+import PlutusCore.Error (ParserError (..))
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
 import PlutusCore.Name (Name, TyName)
-import PlutusCore.Parser.ParserCommon
+import PlutusCore.Parser.Builtin as Export
+import PlutusCore.Parser.ParserCommon as Export
+import PlutusCore.Parser.Type as Export
 import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 import Text.Megaparsec.Error (ParseErrorBundle)
 
@@ -76,7 +79,7 @@ term = choice $ map try
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseProgram ::
-    ByteString -> Either (ParseErrorBundle T.Text ParseError) (Program TyName Name DefaultUni DefaultFun SourcePos)
+    ByteString -> Either (ParseErrorBundle T.Text ParserError) (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parser for PLC programs.
@@ -90,12 +93,12 @@ program = whitespace >> do
 -- of handling any parse errors.
 parseTerm ::
     ByteString ->
-        Either (ParseErrorBundle T.Text ParseError) (Term TyName Name DefaultUni DefaultFun SourcePos)
+        Either (ParseErrorBundle T.Text ParserError) (Term TyName Name DefaultUni DefaultFun SourcePos)
 parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseType ::
     ByteString ->
-        Either (ParseErrorBundle T.Text ParseError) (Type TyName DefaultUni SourcePos)
+        Either (ParseErrorBundle T.Text ParserError) (Type TyName DefaultUni SourcePos)
 parseType = parseGen pType

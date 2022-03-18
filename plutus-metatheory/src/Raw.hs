@@ -158,7 +158,7 @@ unconv i (RUnWrap t)       = Unwrap () (unconv i t)
 -- imported in multiple places
 
 data ERROR = TypeError T.Text
-           | ParseError (M.ParseErrorBundle T.Text ParseError)
+           | ParseError (M.ParseErrorBundle T.Text ParserError)
            | ScopeError ScopeError
            | RuntimeError RuntimeError
            deriving Show

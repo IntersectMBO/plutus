@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -7,14 +6,16 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE ViewPatterns           #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module PlutusCore.Error
-    ( ParseError (..)
-    , AsParseError (..)
+    ( ParserError (..)
+    , AsParserError (..)
     , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
@@ -42,8 +43,7 @@ import Control.Monad.Except
 import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
-import Text.Megaparsec.Error (ShowErrorComponent, showErrorComponent)
-import Text.Megaparsec.Pos (SourcePos, sourcePosPretty)
+import Text.Megaparsec as M
 import Universe (Closed (Everywhere), GEq, GShow)
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
@@ -53,17 +53,16 @@ throwingEither r e = case e of
     Right v -> pure v
 
 -- | An error encountered during parsing.
-data ParseError
+data ParserError
     = UnknownBuiltinType T.Text SourcePos
     | BuiltinTypeNotAStar T.Text SourcePos
     | UnknownBuiltinFunction T.Text SourcePos
     | InvalidBuiltinConstant T.Text T.Text SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
+makeClassyPrisms ''ParserError
 
-makeClassyPrisms ''ParseError
-
-instance Show ParseError
+instance Show ParserError
     where
       show = show . pretty
 
@@ -102,7 +101,7 @@ data TypeError term uni fun ann
 makeClassyPrisms ''TypeError
 
 data Error uni fun ann
-    = ParseErrorE ParseError
+    = ParseErrorE ParserError
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
@@ -110,10 +109,10 @@ data Error uni fun ann
     deriving stock (Eq, Generic, Functor)
     deriving anyclass (NFData)
 makeClassyPrisms ''Error
-deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParseError) => Show (Error uni fun ann)
+deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
-instance AsParseError (Error uni fun ann) where
-    _ParseError = _ParseErrorE
+instance AsParserError (Error uni fun ann) where
+    _ParserError = _ParseErrorE
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -131,13 +130,13 @@ instance AsFreeVariableError (Error uni fun ann) where
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
-instance Pretty ParseError where
+instance Pretty ParserError where
     pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
 
-instance ShowErrorComponent ParseError where
+instance ShowErrorComponent ParserError where
     showErrorComponent = show . pretty
 
 instance Pretty ann => Pretty (UniqueError ann) where
@@ -197,7 +196,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Prett
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
 
-instance HasErrorCode ParseError where
+instance HasErrorCode ParserError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
