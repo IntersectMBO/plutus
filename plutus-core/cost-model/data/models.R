@@ -39,7 +39,8 @@ upper.outlier.cutoff <- function(v) {
     q3 + 1.5*(q3-q1)
 }
 
-discard.upper.outliers <- function(fr,fname) {
+discard.upper.outliers <- function(fr) {
+    fname <- fr$name[1]
     cutoff <- upper.outlier.cutoff(fr$t.mean.ub)
     new.fr <- filter(fr, t.mean.ub < cutoff)
     nrows = nrow(fr)
@@ -130,18 +131,18 @@ get.bench.data <- function(path) {
 
     numbercols = c("x_mem", "y_mem", "z_mem")
 
-    benchmark_name_to_numbers <- function(name) {
+    benchmark.name.to.numbers <- function(name) {
         a <- str_match(name, benchname)
         r <- as.data.frame(a[,-1]) # Discard the first column (which is the entire match)
         names(r) <- c("name", numbercols)
         return (r)
     }
 
-    numbers <- benchmark_name_to_numbers(dat$benchmark)
+    numbers <- benchmark.name.to.numbers (dat$benchmark)
 
-    mutated <- numbers %>%
-                  mutate(across(all_of(numbercols), function(x) { as.numeric(as.character(x))})) %>%
-                  mutate(across("name", as.character))
+    numbers %>%
+        mutate(across(all_of(numbercols), function(x) { as.numeric(as.character(x))})) %>%
+        mutate(across("name", as.character)) ->  mutated
 
     cbind(dat, mutated) %>%
         mutate(across(c("t", "t.mean.lb", "t.mean.ub", "t.sd", "t.sd.lb", "t.sd.ub"), seconds.to.milliseconds))
@@ -156,14 +157,13 @@ filter.and.check.nonempty <- function (frame, fname) {
 
 }
 
-
 adjustModel <- function (m, fname) {
     ## Given a linear model, check its coefficients and if any is negative then
-    ## make it 1000 and issue a warning.  This is somewhat suspect but will
-    ## prevent us from getting models which predict negative costs.
-    ## See also https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
+    ## make it 1000 ps and issue a warning.  This is somewhat suspect but will
+    ## prevent us from getting models which predict negative costs.  See also
+    ## https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
 
-    default <- 1/1000  ## 1 ns, or 1000 ps (remember we're working in ms here)
+    default <- 1/1000  ## 1 ns, or 1000 ps (remember: we're working in ms here)
     ensurePositive <- function(x, name) {
         if (x<0) {
             cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to %s.\n",
@@ -180,9 +180,78 @@ adjustModel <- function (m, fname) {
     return (m)
 }
 
+## Benchmark results for some functions involving Data exhibit a fan shape where
+## all the data points lie above the x-axis but below some sloping straight line
+## (this is because Data is heterogeneous but we only have a single size
+## measure, and objects of the same size can have significantly different
+## structures).  The "fit.fan" function is supposed to find an approximation
+## t=ax+b to this line, which should provide a conservative upper bound for
+## execution time in terms of input size. We do this by fitting a linear model,
+## discarding all of the points below the regression line, and repeating until
+## the number of underestimates produced by running the model on the full dataset
+## is greater than some threshold (default 90%) or until a limit on the number of
+## iterations (default 20) is exceeded.  If the process is iterated too many
+## times you can end up getting errors because you've discarded all of the data.
+## Setting the do.plot argument to TRUE  produces an informative plot, but this
+## should only be used interactively.
+
+
+fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
+    fname <- f$name[1]
+
+    ## The benchmark data we currently have is concentrated towards the origin,
+    ## which can cause some difficulty because lower values become too
+    ## influential.  We force the model to have an intercept which causes most
+    ## of the small-x data to lie below the regression line, although this
+    ## complicates matters somewhat.
+
+    min.x <- min(f$x_mem)           # Smallest x value
+    min.ts <- f$t[f$x_mem==min.x]   # All of the t values for this x value
+    t0 <- quantile(min.ts,0.8)  # Fixed intercept
+
+    npoints <- length(f$x_mem)
+    g <- f   # f is the original data, g is a copy that's updated every time round the loop
+
+    loops = 0
+    repeat {
+        m <- lm(t ~ x_mem, g)
+        slope <- m$coefficients["x_mem"]
+        pred <- function(v) {
+            sapply(v, function(z) { t0 + slope*z })  # Predictions with the fitted slope and our own intercept
+        }
+        nunder <- length(which(pred(f$x_mem) > f$t))      # Underestimated points in the full dataset.
+        loops = loops+1
+        if (nunder/npoints >= threshold || loops >= limit) break
+        g <- g[g$t>pred(g$x_mem),]  # Discard overestimated points (according to our adjusted model) and start again.
+    }
+
+    ## Report some diagnostic information (this will be seen when generate-cost-model is run)
+    predicted.t <- pred(f$x_mem)
+
+    errors = (f$t-predicted.t)/f$t  ## Residuals as fraction of observed values.
+    over = -errors[errors<0]        ## Overpredictions  (observed value < prediction) - good, or at least acceptable.
+    under = errors[errors>=0]       ## Underpredictions (observed value >= prediction) - bad
+
+    cat (sprintf("# INFO [%s]: %d model iteration%s\n", fname, loops, ifelse(loops==1,"","s")))
+    cat (sprintf(
+        "# INFO [%s]: prediction is an underestimate for %.1f%% of observations. Maximum underestimate = %.1f%%, mean = %.1f%% (%.1fx)\n",
+        fname, (length(under)/length(errors))*100,  max(under)*100, mean(under)*100, mean(predicted.t[errors>0]/f$t[errors>0])))
+    cat (sprintf(
+        "# INFO [%s]: prediction is an overestimate for %.1f%% of observations. Maximum overestimate  = %.1f%%, mean = %.1f%% (%.1fx)\n",
+        fname, (length(over)/length(errors))*100,  max(over)*100, mean(over)*100, mean(predicted.t[errors<0]/f$t[errors<0])))
+
+    ## Adjust m's intercept; this is questionable since the rest of the model
+    ## data becomes meaningless.
+    m$coefficients["(Intercept)"] <- t0  
+
+    if (do.plot) {
+        plot(f$x_mem,f$t)
+        abline(m,col=2)
+    }
+    return(m)
+}
 
 modelFun <- function(path) {
-##    cat ("** Reading CSV, creating R models **\n")
     data <- get.bench.data(path)
 
     ## Look for a single entry with the given name and return the 't' value
@@ -211,7 +280,6 @@ modelFun <- function(path) {
         return (r)
     }
 
-
     ## We have benchmarks which measure the cost of calling no-op benchmarks
     ## which unlift their arguments in a number of different ways.  The ones we
     ## use here are for nops taking Opaque arguments.  Heuristically this
@@ -221,13 +289,13 @@ modelFun <- function(path) {
     nops <- c("Nop1o", "Nop2o", "Nop3o", "Nop4o", "Nop5o", "Nop6o")
     overhead <- sapply(nops, get.mean.time)
 
-
     ## The next function discards the overhead for calling a builtin, as
     ## determined by the Nop* benchmarks.  This means that the costing function
     ## should just measure the cost of running the denotation; we assume that
     ## the overhead of applyEvalute and so on in the evaluator is absorbed in the
     ## average cost of a CEK step.  
-    discard.overhead <- function(frame, fname) {
+    discard.overhead <- function(frame) {
+        fname <- frame$name[1]
         args.overhead <- overhead[arity(fname)]
         mean.time <- mean(frame$t)
         if (mean.time > args.overhead) {
@@ -251,11 +319,12 @@ modelFun <- function(path) {
     constantModel <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
-            discard.upper.outliers (fname) %>%
-            discard.overhead (fname)
+            discard.upper.outliers () %>%
+            discard.overhead ()
         m <- lm(t ~ 1, data=filtered)
         adjustModel (m,fname)
     }
+
 
     ##### Integers #####
 
@@ -263,7 +332,7 @@ modelFun <- function(path) {
         fname <- "AddInteger"
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ pmax(x_mem, y_mem), filtered)
         adjustModel (m, fname)
     }
@@ -275,25 +344,26 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ I(x_mem + y_mem), filtered)
         adjustModel (m, fname)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
 
-    ## This is very compilcated.  It's constant above the diagonal but quadratic
-    ## below it.  For now we fit a crude model to the below-diagonal part and
-    ## an arbitrary value above the diagonal (see CreateCostModel.hs).  Later
-    ## we should find the actual mean value above the diagonal and try to
-    ## fit a better model below it.
+    ## This is very complicated.  It's constant above the diagonal but quadratic
+    ## below it.  For now we fit a crude model to the below-diagonal part and an
+    ## arbitrary value above the diagonal (see CreateCostModel.hs).  Later we
+    ## should find the actual mean value above the diagonal and try to fit a
+    ## better model below it.  Experiments suggest that a quadratic model gives
+    ## a good fit.
     divideIntegerModel <- {
         fname <- "DivideInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)    %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ I(x_mem * y_mem), filtered)
         adjustModel(m,fname)
     }
@@ -308,7 +378,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -319,7 +389,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -330,7 +400,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -343,7 +413,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ I(x_mem + y_mem), data=filtered)
         adjustModel(m,fname)
     }
@@ -354,7 +424,7 @@ modelFun <- function(path) {
         fname <- "ConsByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ y_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -373,7 +443,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -382,20 +452,21 @@ modelFun <- function(path) {
         fname <- "LessThanByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ pmin(x_mem, y_mem), data=filtered)
         adjustModel(m,fname)
     }
 
     lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
 
-    ## Cryptography and hashes
+
+    ###### Cryptography and hashes #####
 
     sha2_256Model <- {
         fname <- "Sha2_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -404,7 +475,7 @@ modelFun <- function(path) {
         fname <- "Sha3_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
       m <- lm(t ~ x_mem, data=filtered)
       adjustModel(m,fname)
     }
@@ -413,7 +484,7 @@ modelFun <- function(path) {
         fname <- "Blake2b_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
       m <- lm(t ~ x_mem, data=filtered)
       adjustModel(m,fname)
     }
@@ -430,12 +501,13 @@ modelFun <- function(path) {
         fname <- "VerifySignature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
 
 
+    
     ##### Strings #####
 
     appendStringModel <- {
@@ -443,17 +515,18 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter (x_mem > 0 & y_mem > 0)    %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ I(x_mem + y_mem), data=filtered)  ## Both strings are copied in full
         adjustModel(m,fname)
     }
 
     equalsStringModel <- {
+
         fname <- "EqualsString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -462,7 +535,7 @@ modelFun <- function(path) {
         fname <- "DecodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -471,7 +544,7 @@ modelFun <- function(path) {
         fname <- "EncodeUtf8"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
+            discard.overhead ()
         m <- lm(t ~ x_mem, data=filtered)
         adjustModel(m,fname)
     }
@@ -530,57 +603,31 @@ modelFun <- function(path) {
     ## large bytestring, and the comparison times for these are likely to be
     ## different.
 
-    ## Experiments with randomly generated heterogeneous data shows that if you
-    ## plot time taken against memory usage then you get a fan shape, with all
-    ## of the data lying below a particular straight line.  We want to identify
-    ## that line here and return it as an upper bound for execution time.
-
-    ## Heuristically, the following procedure appears to give good results.
-    ## With the current distribution of input data, about 10% of our 400 data
-    ## points for EqualsData have the smallest possible size (4, for a single
-    ## node containing an empty list).  We calculate the mean time (min.t) for
-    ## data points with this x-coordinate (min.x), then fit a linear model
-    ## constrained to pass through this point and look at its slope, s.  Since
-    ## this is a bit fragile, we print out some information about accuracy.
-
-    ## In the longer term we should try to find a better size estimate for Data.
-    ## This might allow us to get better predicitions, although it's likely that
-    ## the "memoryUsage" value would not represent actual memory usage, but
-    ## rather the cost of processing nodes in a Data tree vis-a-vis the cost
-    ## of processing integers and bytestrings.
- 
     equalsDataModel   <- {
         fname <- "EqualsData"
         f <- data %>% filter.and.check.nonempty(fname)
-        min.x <- min(f$x_mem)
-        min.t <- mean (f$t[f$x_mem==min.x])
-        m <- lm(f$t - min.t ~ I(f$x_mem - min.x) + 0)
-        s <- coef(m)[1]  ## Not 2: we've used +0, so the intercept doesn't appear in the model
-        v <- c(min.t-s*min.x, s) ## ie, f(x) = min.t +s(x-min.x)
-        pr <- function(x) { v[1] + v[2]*x }  ## What this model predicts.
-        errors = (f$t-pr(f$x))/f$t  ## Residuals as fraction of observed values.
-        over = -errors[errors<0]   ## Overpredictions (observed value < prediction) - good, or at least acceptable.
-        under = errors[errors>=0]  ## Underpredictions (observed value >= prediction) - bad
-        cat (sprintf("# INFO: EqualsData: prediction is an underestimate for %.1f%% of observations.  Maximum underestimate = %.1f%%, mean = %.1f%%\n",
-            (length(under)/length(errors))*100,  max(under)*100, mean(under)*100))
-        cat (sprintf("# INFO: EqualsData: prediction is an overestimate for %.1f%% of observations.  Maximum overestimate = %.1f%%, mean = %.1f%%\n",
-            (length(over)/length(errors))*100,  max(over)*100, mean(over)*100))
-        names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")  ## Make it look like what the Haskell code's expecting. The space after the comma is important.
-        m2 <- lm(t ~ pmin(x_mem, y_mem), data=f) ## A model with the structure expected by CostModelCreation.
-        m2$coefficients <- v   ## The rest of the data in the model now becomes nonsensical, but we don't use it.
+        m <- fit.fan(f)
+        v <- m$coefficients
+        names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")
+        ## ^ Make it look like what the Haskell code's expecting. The space after the comma is important.
+        m2 <- lm(t ~ pmin(x_mem, y_mem), data=f) # A model with the structure expected by CreateBuiltinCostModel.
+        m2$coefficients <- v
+        ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
+        ## FIXME: do something better.
         adjustModel(m2,fname)
     }
 
-    serialiseDataModel <- {  # FIXME
+    ## Similar to equalsData
+    serialiseDataModel <- {  
         fname <- "SerialiseData"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
-        m <- lm(t ~ x_mem, data=filtered)
+        f <- data %>% filter.and.check.nonempty(fname)
+        m <- fit.fan(f)
         adjustModel(m,fname)
     }
 
 
+    ##### Miscellaneous constructors #####
+     
     mkPairDataModel     <- constantModel ("MkPairData")
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
