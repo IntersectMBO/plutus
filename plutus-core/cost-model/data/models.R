@@ -13,14 +13,14 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
 
 ## At present, times in the becnhmarking data are typically of the order of
-## 10^(-6) seconds. WE SCALE THESE UP TO MILLISECONDS because the resulting
+## 10^(-6) seconds. WE SCALE THESE UP TO MICROSECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
 ## picoseconds) because then everything fits into integral values with little
 ## loss of precision.  This is safe because we're only using models which
 ## are linear in their inputs.
 
-seconds.to.milliseconds <- function(x) { x * 1e6 }
+seconds.to.microseconds <- function(x) { x * 1e6 }
 
 ## Discard any datapoints whose execution time is greater than 1.5 times the
 ## interquartile range above the third quartile, as is done in boxplots.  In our
@@ -145,7 +145,7 @@ get.bench.data <- function(path) {
         mutate(across("name", as.character)) ->  mutated
 
     cbind(dat, mutated) %>%
-        mutate(across(c("t", "t.mean.lb", "t.mean.ub", "t.sd", "t.sd.lb", "t.sd.ub"), seconds.to.milliseconds))
+        mutate(across(c("t", "t.mean.lb", "t.mean.ub", "t.sd", "t.sd.lb", "t.sd.ub"), seconds.to.microseconds))
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
@@ -163,7 +163,7 @@ adjustModel <- function (m, fname) {
     ## prevent us from getting models which predict negative costs.  See also
     ## https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
 
-    default <- 1/1000  ## 1 ns, or 1000 ps (remember: we're working in ms here)
+    default <- 1/1000  ## 1 ns, or 1000 ps (remember: we're working in µs here)
     ensurePositive <- function(x, name) {
         if (x<0) {
             cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to %s.\n",
@@ -188,12 +188,12 @@ adjustModel <- function (m, fname) {
 ## t=ax+b to this line, which should provide a conservative upper bound for
 ## execution time in terms of input size. We do this by fitting a linear model,
 ## discarding all of the points below the regression line, and repeating until
-## the number of underestimates produced by running the model on the full dataset
-## is greater than some threshold (default 90%) or until a limit on the number of
-## iterations (default 20) is exceeded.  If the process is iterated too many
-## times you can end up getting errors because you've discarded all of the data.
-## Setting the do.plot argument to TRUE  produces an informative plot, but this
-## should only be used interactively.
+## the number of underestimates produced by running the model on the full
+## dataset is greater than some threshold (default 90%) or until a limit on the
+## number of iterations (default 20) is exceeded.  If the process is iterated
+## too many times you can end up getting errors because you've discarded all of
+## the data.  Setting the do.plot argument to TRUE produces an informative plot,
+## but this should only be used interactively.
 
 
 fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
@@ -245,7 +245,7 @@ fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
     m$coefficients["(Intercept)"] <- t0  
 
     if (do.plot) {
-        plot(f$x_mem,f$t)
+        plot(f$x_mem,f$t, main=fname, xlab="Data size", ylab="Time (µs)")
         abline(m,col=2)
     }
     return(m)
