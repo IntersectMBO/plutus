@@ -2,22 +2,22 @@
 , ({ tally: ({ BStep BConst causes ({ cpu: 0
 | mem: 0
 })
-| BStep BVar causes ({ cpu: 4168220
+| BStep BVar causes ({ cpu: 3080000
 | mem: 14000
 })
-| BStep BLamAbs causes ({ cpu: 2798662
+| BStep BLamAbs causes ({ cpu: 2068000
 | mem: 9400
 })
-| BStep BApply causes ({ cpu: 3810944
+| BStep BApply causes ({ cpu: 2816000
 | mem: 12800
 })
-| BStep BDelay causes ({ cpu: 1101601
+| BStep BDelay causes ({ cpu: 814000
 | mem: 3700
 })
-| BStep BForce causes ({ cpu: 952736
+| BStep BForce causes ({ cpu: 704000
 | mem: 3200
 })
-| BStep BBuiltin causes ({ cpu: 178638
+| BStep BBuiltin causes ({ cpu: 132000
 | mem: 600
 })
 | BBuiltinApp Id causes ({ cpu: 6
@@ -26,7 +26,7 @@
 | BStartup causes ({ cpu: 100
 | mem: 100
 })})
-| budget: ({ cpu: 13010907
+| budget: ({ cpu: 9614106
 | mem: 43800
 })
 }) )

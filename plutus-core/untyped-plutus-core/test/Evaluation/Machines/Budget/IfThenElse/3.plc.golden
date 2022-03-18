@@ -1,32 +1,32 @@
 ( (Right (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> z)))))))))))))))))))))))
-, ({ tally: ({ BStep BConst causes ({ cpu: 89319
+, ({ tally: ({ BStep BConst causes ({ cpu: 66000
 | mem: 300
 })
-| BStep BVar causes ({ cpu: 4465950
+| BStep BVar causes ({ cpu: 3300000
 | mem: 15000
 })
-| BStep BLamAbs causes ({ cpu: 3275030
+| BStep BLamAbs causes ({ cpu: 2420000
 | mem: 11000
 })
-| BStep BApply causes ({ cpu: 4257539
+| BStep BApply causes ({ cpu: 3146000
 | mem: 14300
 })
-| BStep BDelay causes ({ cpu: 1280239
+| BStep BDelay causes ({ cpu: 946000
 | mem: 4300
 })
-| BStep BForce causes ({ cpu: 1012282
+| BStep BForce causes ({ cpu: 748000
 | mem: 3400
 })
-| BStep BBuiltin causes ({ cpu: 89319
+| BStep BBuiltin causes ({ cpu: 66000
 | mem: 300
 })
-| BBuiltinApp IfThenElse causes ({ cpu: 3
+| BBuiltinApp IfThenElse causes ({ cpu: 480120
 | mem: 3
 })
 | BStartup causes ({ cpu: 100
 | mem: 100
 })})
-| budget: ({ cpu: 14469781
+| budget: ({ cpu: 11172220
 | mem: 48703
 })
 }) )

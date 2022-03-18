@@ -40,7 +40,7 @@ criterionMainWith writeHeader defCfg bs =
             shouldRun <- selectBenches matchType benches bsgroup
             withConfig cfg $ do
               if writeHeader
-              then  writeCsv ("Name","Mean","MeanLB","MeanUB","Stddev","StddevLB", "StddevUB")
+              then  writeCsv ("Benchmark","t","t.mean.lb","t.mean.ub","t.sd","t.sd.lb", "t.sd.ub")
               else return ()
               liftIO initializeTime
               runAndAnalyse shouldRun bsgroup
