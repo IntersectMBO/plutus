@@ -64,7 +64,7 @@ benchConstrData gen = createTwoTermBuiltinBench ConstrData [] ints lists
 benchMapData :: Benchmark
 benchMapData = createOneTermBuiltinBench MapData [] pairs
     where pairs = take 50 . map unMap $ filter isMap dataSample
-          unMap = \case { Map l -> l ; _ -> error "Expected MAp" }
+          unMap = \case { Map l -> l ; _ -> error "Expected Map" }
 --
 -- Apply List
 benchListData :: Benchmark

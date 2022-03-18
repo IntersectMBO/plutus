@@ -374,7 +374,7 @@ polymorphic function to become a monomorphic denotation (denotations are always 
 variables in the type of that function need to be instantiated at the type of value that a given
 evaluator uses.
 
-If we used just @val@ rathen than @Opaque val rep@, we'd specialize
+If we used just @val@ rather than @Opaque val rep@, we'd specialize
 
     forall a. Bool -> a -> a -> a
 

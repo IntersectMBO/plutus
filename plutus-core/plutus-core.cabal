@@ -684,7 +684,7 @@ library index-envs
     build-depends:
         base -any,
         containers -any,
-        -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
+        -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
         ral == 0.1
 
 benchmark index-envs-bench
@@ -698,7 +698,7 @@ benchmark index-envs-bench
         index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
-        -- broken for ral-0.2 conflic with  cardano-binary:recursion-schemes
+        -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
         ral == 0.1
 
 test-suite index-envs-test

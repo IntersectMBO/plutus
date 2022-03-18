@@ -172,7 +172,7 @@ let
       })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
-      enableExecutableProfiling = true;
+      enableProfiling = true;
     };
   });
 
