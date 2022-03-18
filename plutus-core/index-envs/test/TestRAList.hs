@@ -61,8 +61,8 @@ testIxFn n ixFn = testGroup n
     , testProperty "prop_ixzero1" prop_ixzero1
     , testProperty "prop_ixzero2" prop_ixzero2
     , testProperty "prop_ixzero3" prop_ixzero3
-    , testProperty "prop_ixfail1" (expectFailure prop_ixfail1)
-    , testProperty "prop_ixfail2" (expectFailure prop_ixfail2)
+    , testProperty "prop_ixfail1" prop_ixfail1
+    , testProperty "prop_ixfail2" prop_ixfail2
     ]
   where
     unit_ix1 = ixFn hundred 0 == B.head hundred @? "index error"
@@ -83,8 +83,19 @@ testIxFn n ixFn = testGroup n
         not (B.null xs) ==>
         ixFn xs 0 == B.head @Integer xs
 
-    prop_ixfail1 (NonZero i) = total $ ixFn (applyN (B.Cons ()) i B.Nil) i
-    prop_ixfail2 (NonZero i) = total $ ixFn (B.Nil :: B.RAList ()) i
+    -- TODO: expectFailure just stops at first failure: https://github.com/nick8325/quickcheck/issues/320
+    prop_ixfail1 (NonZero i) = expectFailure $ ixFn (applyN (B.Cons ()) i B.Nil) i
+    -- TODO: expectFailure just stops at first failure: https://github.com/nick8325/quickcheck/issues/320
+    prop_ixfail2 (NonZero i) = expectFailure $ ixFn (B.Nil :: B.RAList ()) i
+
+testIndexOneZero = testGroup "indexOne(0)"
+    [ testProperty "prop_ixfail1" prop_ixfail1
+    , testProperty "prop_ixfail2" prop_ixfail2
+    ]
+    where
+      -- TODO: expectFailure just stops at first failure: https://github.com/nick8325/quickcheck/issues/320
+      prop_ixfail1 i = expectFailure $ (applyN (B.Cons ()) i B.Nil) `B.unsafeIndexOne` 0
+      prop_ixfail2 i = Nothing === applyN (B.Cons ()) i B.Nil `B.safeIndexOne` 0
 
 -- needed by QuickCheck TH
 $(pure [])
@@ -109,6 +120,8 @@ main = defaultMain $
     -- this tones down a bit the default max size from 100 to 10
     , localOption (QuickCheckMaxSize 10) $
         testProperty "prop_constail" $(monomorphic 'prop_constail)
+    , localOption (QuickCheckMaxSize 10) $
+        testIndexOneZero
     , testIxFn "indexZero" B.unsafeIndexZero
     -- change indexone to be 0-based
     , testIxFn "indexZeroViaOne" (\ e i -> B.unsafeIndexOne e $ i+1)

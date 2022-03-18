@@ -21,7 +21,7 @@ import Data.Maybe
 import Data.Word
 import GHC.Exts
 
--- | βA complete binary tree.
+-- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
 data Tree a = Leaf a
@@ -40,7 +40,6 @@ data RAList a = BHead
              -- because binary skew numbers have unique representation
              -- and hence all trees of the same size will have the same structure
              deriving stock (Eq, Show)
-
 
 instance IsList (RAList a) where
   type Item (RAList a) = a
@@ -124,7 +123,6 @@ safeIndexZero (BHead w t ts) !i  =
            else indexTree halfSize (offset - 1 - halfSize) t2
 
 -- 1-based
--- NOTE: no check if zero 0 index is passed, if 0 is passed it MAY overflow the index
 unsafeIndexOne :: RAList a -> Word64 -> a
 unsafeIndexOne Nil _ = error "out of bounds"
 unsafeIndexOne (BHead w t ts) !i =
@@ -133,6 +131,7 @@ unsafeIndexOne (BHead w t ts) !i =
     else unsafeIndexOne ts (i-w)
   where
     indexTree :: Word64 -> Word64 -> Tree a -> a
+    indexTree _ 0 _ = error "index zero"
     indexTree 1 1 (Leaf x) = x
     indexTree _ _ (Leaf _) = error "out of bounds"
     indexTree _ 1 (Node x _ _) = x
@@ -144,7 +143,6 @@ unsafeIndexOne (BHead w t ts) !i =
            else indexTree halfSize (offset' - halfSize) t2
 
 -- 1-based
--- NOTE: no check if zero 0 index is passed, if 0 is passed it MAY overflow the index
 safeIndexOne :: RAList a -> Word64 -> Maybe a
 safeIndexOne Nil _ = Nothing
 safeIndexOne (BHead w t ts) !i =
@@ -153,6 +151,7 @@ safeIndexOne (BHead w t ts) !i =
     else safeIndexOne ts (i-w)
   where
     indexTree :: Word64 -> Word64 -> Tree a -> Maybe a
+    indexTree _ 0 _ = Nothing -- "index zero"
     indexTree 1 1 (Leaf x) = Just x
     indexTree _ _ (Leaf _) = Nothing
     indexTree _ 1 (Node x _ _) = Just x
