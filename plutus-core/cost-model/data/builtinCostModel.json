@@ -502,6 +502,22 @@
             "type": "subtracted_sizes"
         }
     },
+    "serialiseData": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1000,
+                "slope": 255499
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
+    },
     "sha2_256": {
         "cpu": {
             "arguments": {

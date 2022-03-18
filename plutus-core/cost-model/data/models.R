@@ -571,9 +571,13 @@ modelFun <- function(path) {
         adjustModel(m2,fname)
     }
 
-    serialiseDataModel <- {
+    serialiseDataModel <- {  # FIXME
         fname <- "SerialiseData"
-        #FIXME
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead (fname)
+        m <- lm(t ~ x_mem, data=filtered)
+        adjustModel(m,fname)
     }
 
 
