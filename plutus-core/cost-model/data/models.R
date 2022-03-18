@@ -77,6 +77,7 @@ arity <- function(name) {
         "AppendString" = 2,
         "EqualsString" = 2,
         "EncodeUtf8" = 1,
+        "SerialiseData" = 1,
         "DecodeUtf8" = 1,
         "IfThenElse" = 3,
         "ChooseUnit" = 2,
@@ -570,6 +571,12 @@ modelFun <- function(path) {
         adjustModel(m2,fname)
     }
 
+    serialiseDataModel <- {
+        fname <- "SerialiseData"
+        #FIXME
+    }
+
+
     mkPairDataModel     <- constantModel ("MkPairData")
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
@@ -625,6 +632,7 @@ modelFun <- function(path) {
         equalsDataModel               = equalsDataModel,
         mkPairDataModel               = mkPairDataModel,
         mkNilDataModel                = mkNilDataModel,
-        mkNilPairDataModel            = mkNilPairDataModel
+        mkNilPairDataModel            = mkNilPairDataModel,
+        serialiseDataModel            = serialiseDataModel
     )
 }

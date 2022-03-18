@@ -126,6 +126,10 @@ benchEqualsData =
         where args1 = dataSampleForEq -- 400 elements: should take about 35 minutes to benchmark
               args2 = fmap copyData args1
 
+benchSerialiseData :: Benchmark
+benchSerialiseData =
+    createOneTermBuiltinBench SerialiseData [] args
+        where args = dataSampleForEq -- FIXME: is this a good sample for serialization?
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -141,4 +145,5 @@ makeBenchmarks gen =
     , benchUnIData
     , benchUnBData
     , benchEqualsData
+    , benchSerialiseData
     ]

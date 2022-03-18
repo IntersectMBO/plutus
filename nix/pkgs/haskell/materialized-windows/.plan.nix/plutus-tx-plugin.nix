@@ -11,7 +11,7 @@
     flags = { use-ghc-stub = false; };
     package = {
       specVersion = "3.0";
-      identifier = { name = "plutus-tx-plugin"; version = "0.1.0.0"; };
+      identifier = { name = "plutus-tx-plugin"; version = "1.0.0.0"; };
       license = "Apache-2.0";
       copyright = "";
       maintainer = "michael.peyton-jones@iohk.io";

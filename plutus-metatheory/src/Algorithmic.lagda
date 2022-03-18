@@ -140,6 +140,7 @@ sig unListData = _ ,, ∅ , con Data ,, con (list (con Data))
 sig unIData = _ ,, ∅ , con Data ,, con integer
 sig unBData = _ ,, ∅ , con Data ,, con bytestring
 sig equalsData = _ ,, ∅ , con Data , con Data ,, con bool
+sig serialiseData = _ ,, ∅ , con Data ,, con bytestring
 sig chooseData =
   _
   ,,

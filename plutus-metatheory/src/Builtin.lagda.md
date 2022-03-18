@@ -73,6 +73,7 @@ data Builtin : Set where
   unIData                  : Builtin
   unBData                  : Builtin
   equalsData               : Builtin
+  serialiseData            : Builtin
   -- Misc constructors
   mkPairData               : Builtin
   mkNilData                : Builtin
@@ -127,6 +128,7 @@ data Builtin : Set where
                                           | UnIData
                                           | UnBData
                                           | EqualsData
+                                          | SerialiseData
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
@@ -158,6 +160,7 @@ postulate
   equals    : ByteString → ByteString → Bool
   ENCODEUTF8 : String → ByteString
   DECODEUTF8 : ByteString → Maybe String
+  serialiseDATA : DATA → ByteString
 ```
 
 # What builtin operations should be compiled to if we compile to Haskell

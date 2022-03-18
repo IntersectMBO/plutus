@@ -14,6 +14,7 @@ import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
 
+import Control.DeepSeq
 import Data.Map as Map
 import Data.Maybe
 import Data.Set as Set
@@ -23,6 +24,7 @@ import Data.Text qualified as Text
 -- This is so that they can be computed once and cached, rather than recomputed on every evaluation.
 newtype EvaluationContext = EvaluationContext
     { toMachineParameters :: Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun }
+    deriving newtype NFData
 
 -- | Build the 'EvaluationContext'.
 --
