@@ -195,7 +195,6 @@ adjustModel <- function (m, fname) {
 ## the data.  Setting the do.plot argument to TRUE produces an informative plot,
 ## but this should only be used interactively.
 
-
 fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
     fname <- f$name[1]
 
