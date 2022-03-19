@@ -221,7 +221,7 @@ fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
         nunder <- length(which(pred(f$x_mem) > f$t))  # Underestimated points in the full dataset.
         loops = loops+1
         if (nunder/npoints >= threshold || loops >= limit) break
-        g <- g[g$t>pred(g$x_mem),]  # Discard overestimated points (according to our adjusted model) and start again.
+        g <- g[g$t>pred(g$x_mem),]  # Discard points below our regression line and start again.
     }
 
     ## Report some diagnostic information.  This will be seen when generate-cost-model is run.
