@@ -227,18 +227,18 @@ fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
 
     ## Report some diagnostic information.  This will be seen when generate-cost-model is run.
     predicted.t <- pred(f$x_mem)
-
-    errors = (f$t-predicted.t)/f$t  ## Residuals as fraction of observed values.
-    over = -errors[errors<0]        ## Overpredictions  (observed value < prediction) - good, or at least acceptable.
-    under = errors[errors>=0]       ## Underpredictions (observed value >= prediction) - bad
+    overestimates <- which (predicted.t > f$t)
+    overprediction.ratio = predicted.t[overestimates]/f$t[overestimates]
+    underestimates <- which (predicted.t < f$t)
+    underprediction.ratio = f$t[underestimates]/predicted.t[underestimates]
 
     cat (sprintf("# INFO [%s]: %d model iteration%s\n", fname, loops, ifelse(loops==1,"","s")))
     cat (sprintf(
-        "# INFO [%s]: prediction is an underestimate for %.1f%% of observations. Maximum underestimate = %.1f%%, mean = %.1f%% (%.1fx)\n",
-        fname, (length(under)/length(errors))*100,  max(under)*100, mean(under)*100, mean(predicted.t[errors>0]/f$t[errors>0])))
+        "# INFO [%s]: %.1f%% of predictions are underestimates. Observation exceeds prediction by a maximum factor of %.2fx (mean %.2fx).\n",
+        fname, (length(underestimates)/length(f$x))*100, max(underprediction.ratio), mean(underprediction.ratio)))
     cat (sprintf(
-        "# INFO [%s]: prediction is an overestimate for %.1f%% of observations. Maximum overestimate  = %.1f%%, mean = %.1f%% (%.1fx)\n",
-        fname, (length(over)/length(errors))*100,  max(over)*100, mean(over)*100, mean(predicted.t[errors<0]/f$t[errors<0])))
+        "# INFO [%s]: %.1f%% of predictions are overestimates. Prediction exceeds observation by a maximum factor of %.2fx (mean %.2fx).\n",
+        fname, (length(overestimates)/length(f$x))*100, max(overprediction.ratio), mean(overprediction.ratio)))
 
     ## Adjust m's intercept; this is questionable since the rest of the model
     ## data becomes meaningless.
