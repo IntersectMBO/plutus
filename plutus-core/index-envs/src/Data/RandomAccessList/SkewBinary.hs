@@ -1,8 +1,9 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE TypeFamilies    #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE BangPatterns         #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE PatternSynonyms      #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 module Data.RandomAccessList.SkewBinary
     ( RAList(Cons,Nil)
     , safeIndexZero
@@ -10,16 +11,14 @@ module Data.RandomAccessList.SkewBinary
     , safeIndexOne
     , unsafeIndexOne
     , Data.RandomAccessList.SkewBinary.null
-    , Data.RandomAccessList.SkewBinary.head
-    , Data.RandomAccessList.SkewBinary.tail
     , uncons
     ) where
 
 import Data.Bits (unsafeShiftR)
-import Data.List qualified as List (unfoldr)
-import Data.Maybe
 import Data.Word
 import GHC.Exts
+
+import Data.RandomAccessList.Class qualified as RAL
 
 -- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
@@ -40,11 +39,7 @@ data RAList a = BHead
              -- because binary skew numbers have unique representation
              -- and hence all trees of the same size will have the same structure
              deriving stock (Eq, Show)
-
-instance IsList (RAList a) where
-  type Item (RAList a) = a
-  fromList = foldr cons Nil
-  toList = List.unfoldr uncons
+             deriving (IsList) via RAL.AsRAL (RAList a)
 
 {-# INLINABLE null #-}
 null :: RAList a -> Bool
@@ -75,16 +70,6 @@ uncons = \case
             -- split the node in two)
         in Just (x, BHead halfSize t1 $ BHead halfSize t2 ts)
     Nil -> Nothing
-
-{-# INLINABLE head #-}
--- O(1) worst-case
-head :: RAList a -> a
-head = fst . fromMaybe (error "empty RAList") . uncons
-
-{-# INLINABLE tail #-}
--- O(1) worst-case
-tail :: RAList a -> RAList a
-tail = snd. fromMaybe (error "empty RAList") . uncons
 
 -- 0-based
 unsafeIndexZero :: RAList a -> Word64 -> a
@@ -162,4 +147,20 @@ safeIndexOne (BHead w t ts) !i =
            then indexTree halfSize offset' t1
            else indexTree halfSize (offset' - halfSize) t2
 
+instance RAL.RandomAccessList (RAList a) where
+    type Element (RAList a) = a
 
+    {-# INLINABLE empty #-}
+    empty = Nil
+    {-# INLINABLE cons #-}
+    cons = Cons
+    {-# INLINABLE uncons #-}
+    uncons = uncons
+    {-# INLINABLE indexZero #-}
+    indexZero = safeIndexZero
+    {-# INLINABLE indexOne #-}
+    indexOne = safeIndexOne
+    {-# INLINABLE unsafeIndexZero #-}
+    unsafeIndexZero = unsafeIndexZero
+    {-# INLINABLE unsafeIndexOne #-}
+    unsafeIndexOne = unsafeIndexOne

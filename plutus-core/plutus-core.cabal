@@ -682,11 +682,16 @@ library index-envs
     hs-source-dirs: index-envs/src
     default-language: Haskell2010
     exposed-modules:
-      Data.DeBruijnEnv
+      Data.RandomAccessList.Class
       Data.RandomAccessList.SkewBinary
+      Data.RandomAccessList.SkewBinarySlab
+      Data.RandomAccessList.RelativizedMap
     build-depends:
         base -any,
         containers -any,
+        extra -any,
+        vector -any,
+        nonempty-vector -any,
         -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
         ral == 0.1
 
@@ -701,6 +706,7 @@ benchmark index-envs-bench
         index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
+        nonempty-vector -any,
         -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
         ral == 0.1
 
@@ -709,10 +715,14 @@ test-suite index-envs-test
     type: exitcode-stdio-1.0
     hs-source-dirs: index-envs/test
     default-language: Haskell2010
-    main-is: TestRAList.hs
+    main-is: Spec.hs
+    other-modules:
+        RAList.Spec
     build-depends:
         base -any,
         index-envs -any,
+        nonempty-vector -any,
+        QuickCheck -any,
         tasty -any,
         tasty-hunit -any,
         tasty-quickcheck -any
