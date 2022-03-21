@@ -167,7 +167,7 @@ import Text.Megaparsec (SourcePos, initialPos)
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
-printType ::(AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
+printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
     => BSL.ByteString
     -> m T.Text
@@ -179,7 +179,7 @@ printType bs = runQuoteT $ T.pack . show . pretty <$> do
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped :: (AsUniqueError e SourcePos,
+parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
         MonadError e m, MonadQuote m) =>
     BSL.ByteString
     -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
@@ -187,7 +187,7 @@ parseScoped :: (AsUniqueError e SourcePos,
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 -- | Parse a program and typecheck it.
-parseTypecheck :: ( AsUniqueError e SourcePos,
+parseTypecheck :: ( AsParserErrorBundle e, AsUniqueError e SourcePos,
    AsTypeError
    e
    (Term TyName Name DefaultUni DefaultFun ())
@@ -209,7 +209,7 @@ typecheckPipeline
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram
 
-format :: (Monad m,
+format :: (AsParserErrorBundle [Char], Monad m,
  PrettyBy
    config (Program TyName Name DefaultUni DefaultFun SourcePos), MonadQuote (Either [Char])) =>
  config -> BSL.ByteString -> m T.Text

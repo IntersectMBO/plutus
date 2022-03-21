@@ -10,12 +10,11 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module PlutusCore.Error
     ( ParserError (..)
-    , AsParserError (..)
+    , AsParserErrorBundle (..)
+    , ParserErrorBundle (..)
     , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
@@ -40,6 +39,8 @@ import PlutusCore.Pretty
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
+import Data.List.NonEmpty qualified as NE (head)
+import Data.Set qualified as Set
 import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
@@ -100,6 +101,12 @@ data TypeError term uni fun ann
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeError
 
+data ParserErrorBundle
+    = ParseErrorB (ParseErrorBundle T.Text ParserError)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (NFData)
+makeClassyPrisms ''ParserErrorBundle
+
 data Error uni fun ann
     = ParseErrorE ParserError
     | UniqueCoherencyErrorE (UniqueError ann)
@@ -111,8 +118,15 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
-instance AsParserError (Error uni fun ann) where
-    _ParserError = _ParseErrorE
+instance AsParserErrorBundle (Error uni fun ann) where
+    _ParserErrorBundle = prism' putError takeError
+
+putError :: ParserErrorBundle -> Error uni fun ann
+putError (ParseErrorB a) = ParseErrorE a
+
+takeError :: Error uni fun ann -> Maybe ParserErrorBundle
+takeError (ParseErrorE a) = Just (ParseErrorB a)
+takeError _               = Nothing
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -201,6 +215,13 @@ instance HasErrorCode ParserError where
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
+
+instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
+    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom InvalidBuiltinConstant {})))) _) = ErrorCode 10
+    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinFunction {})))) _) = ErrorCode 9
+    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinType {})))) _)     = ErrorCode 8
+    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom BuiltinTypeNotAStar {})))) _)    = ErrorCode 51
+    errorCode _ = error "errorCode: Not a valid parser error."
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21
