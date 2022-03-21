@@ -246,28 +246,27 @@ instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Text.Text
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term ()
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Bool
 instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Data
+-- instance
+--     ( HasConstantIn DefaultUni term
+--     , DefaultUni `Contains` [a]
+--     , GEqL DefaultUni (Esc [a])
+--     ) => KnownTypeIn DefaultUni term [a]
+-- instance
+--     ( HasConstantIn DefaultUni term
+--     , DefaultUni `Contains` (a, b)
+--     , GEqL DefaultUni (Esc (a, b))
+--     ) => KnownTypeIn DefaultUni term (a, b)
 instance
     ( HasConstantIn DefaultUni term
     , DefaultUni `Contains` [a]
-    , GEqL DefaultUni (Esc [a])
+    , GEqL DefaultUni (Esc a)
     ) => KnownTypeIn DefaultUni term [a]
 instance
     ( HasConstantIn DefaultUni term
     , DefaultUni `Contains` (a, b)
-    , GEqL DefaultUni (Esc (a, b))
+    , GEqL DefaultUni (Esc a)
+    , GEqL DefaultUni (Esc b)
     ) => KnownTypeIn DefaultUni term (a, b)
--- instance
---     ( HasConstantIn DefaultUni term
---     , DefaultUni `Contains` a
---     , GEqL DefaultUni (Esc a)
---     ) => KnownTypeIn DefaultUni term [a]
--- instance
---     ( HasConstantIn DefaultUni term
---     , DefaultUni `Contains` a
---     , DefaultUni `Contains` b
---     , GEqL DefaultUni (Esc a)
---     , GEqL DefaultUni (Esc b)
---     ) => KnownTypeIn DefaultUni term (a, b)
 
 -- instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
 --     KnownTypeIn DefaultUni term [a]
@@ -276,7 +275,7 @@ instance
 
 -- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
 -- (you'll also need to add a 'KnownTypeAst' instance as well).
-instance TestTypesFromTheUniverseAreAllKnown DefaultUni
+-- instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
