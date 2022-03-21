@@ -20,6 +20,7 @@ import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC (Type)
+import GHC.Exts (inline)
 import PlutusCore.Builtin.KnownType
 
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
@@ -90,13 +91,15 @@ toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
     BuiltinRuntime (typeSchemeToRuntimeScheme sch) f (exF cost)
 
+-- See Note [Inlining meanings of builtins].
 -- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.
 toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
     => cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . toBuiltinMeaning
+    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
+{-# INLINE toBuiltinsRuntime #-}
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
