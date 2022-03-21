@@ -25,7 +25,6 @@ import UntypedPlutusCore.Rename (Rename (rename))
 import Data.ByteString.Lazy (ByteString)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.Parser hiding (parseProgram, parseTerm)
-import PlutusCore.Quote (MonadQuote)
 
 -- Parsers for UPLC terms
 
@@ -79,12 +78,12 @@ program = whitespace >> do
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => ByteString -> m PTerm
+parseTerm :: (AsParserErrorBundle e, MonadError e m) => ByteString -> m PTerm
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => ByteString -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProgram :: (AsParserErrorBundle e, MonadError e m) => ByteString -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within

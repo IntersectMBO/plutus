@@ -108,7 +108,7 @@ data ParserErrorBundle
 makeClassyPrisms ''ParserErrorBundle
 
 data Error uni fun ann
-    = ParseErrorE ParserError
+    = ParseErrorE (ParseErrorBundle T.Text ParserError)
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
@@ -204,7 +204,7 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (ParseErrorE e)           = pretty $ errorBundlePretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e

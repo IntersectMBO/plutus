@@ -48,7 +48,7 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: ((AsParserErrorBundle e), MonadError e m) =>
+parse :: (AsParserErrorBundle e, MonadError e m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str =
     throwingEither
@@ -62,7 +62,7 @@ parseToParserErr p file str =
         Right a  -> Right a
 
 -- | Generic parser function.
-parseGen :: ((AsParserErrorBundle e), MonadError e m) => Parser a -> ByteString -> m a
+parseGen :: (AsParserErrorBundle e, MonadError e m) => Parser a -> ByteString -> m a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
 
 -- | Space consumer.

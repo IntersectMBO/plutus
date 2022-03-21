@@ -211,7 +211,7 @@ typecheckPipeline = inferTypeOfProgram
 
 format :: (AsParserErrorBundle [Char], Monad m,
  PrettyBy
-   config (Program TyName Name DefaultUni DefaultFun SourcePos), MonadQuote (Either [Char])) =>
+   config (Program TyName Name DefaultUni DefaultFun SourcePos)) =>
  config -> BSL.ByteString -> m T.Text
 format cfg bs = do
     case parseProgram bs of
