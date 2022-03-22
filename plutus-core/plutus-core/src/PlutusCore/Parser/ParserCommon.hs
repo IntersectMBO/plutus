@@ -14,6 +14,7 @@ import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
+import Control.Monad.Error.Lens (throwing)
 import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import Data.ByteString.Lazy (ByteString)
@@ -51,15 +52,9 @@ intern n = do
 parse :: (AsParserErrorBundle e, MonadError e m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str =
-    throwingEither
-        _ParserErrorBundle
-        (parseToParserErr p file str)
-
-parseToParserErr :: Parser a -> String -> T.Text -> Either ParserErrorBundle a
-parseToParserErr p file str =
     case runQuote $ evalStateT (runParserT p file str) initial of
-        Left peb -> Left (ParseErrorB peb)
-        Right a  -> Right a
+        Left peb -> throwing _ParserErrorBundle (ParseErrorB peb)
+        Right a  -> pure a
 
 -- | Generic parser function.
 parseGen :: (AsParserErrorBundle e, MonadError e m) => Parser a -> ByteString -> m a
