@@ -101,6 +101,8 @@ data TypeError term uni fun ann
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeError
 
+-- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
+-- on @ParseErrorBundle@.
 data ParserErrorBundle
     = ParseErrorB (ParseErrorBundle T.Text ParserError)
     deriving stock (Show, Eq, Generic)
@@ -118,15 +120,30 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
+-- To be able to carry megaparsec's @ParseErrorBundle@ straight instead of the wrapper @ParserErrorBundle@:
+-- Construct a simple prism of Prism' (Error uni fun ann) ParserErrorBundle with
+-- prism' :: (a -> s) -> (s -> Maybe a) -> Prism' s a
 instance AsParserErrorBundle (Error uni fun ann) where
     _ParserErrorBundle = prism' putError takeError
 
+-- (a -> s) function that specifies how we put a @ParserErrorBundle@ into @Error uni fun ann@.
 putError :: ParserErrorBundle -> Error uni fun ann
 putError (ParseErrorB a) = ParseErrorE a
 
+-- (s -> Maybe a) function that specifies how we get a @ParserErrorBundle@ from a @Error uni fun ann@.
 takeError :: Error uni fun ann -> Maybe ParserErrorBundle
 takeError (ParseErrorE a) = Just (ParseErrorB a)
 takeError _               = Nothing
+
+-- this instance is needed for @goldenPirM@.
+instance AsParserErrorBundle (ParseErrorBundle T.Text ParserError) where
+    _ParserErrorBundle = prism' putErrB takeErrB
+
+putErrB :: ParserErrorBundle -> ParseErrorBundle T.Text ParserError
+putErrB (ParseErrorB a) = a
+
+takeErrB :: ParseErrorBundle T.Text ParserError -> Maybe ParserErrorBundle
+takeErrB a = Just (ParseErrorB a)
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -221,7 +238,7 @@ instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
     errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinFunction {})))) _) = ErrorCode 9
     errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinType {})))) _)     = ErrorCode 8
     errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom BuiltinTypeNotAStar {})))) _)    = ErrorCode 51
-    errorCode _ = error "errorCode: Not a valid parser error."
+    errorCode (ParseErrorBundle _ _) = ErrorCode 99 --TODO
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21
