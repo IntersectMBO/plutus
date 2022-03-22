@@ -126,6 +126,13 @@ benchEqualsData =
         where args1 = dataSampleForEq -- 400 elements: should take about 35 minutes to benchmark
               args2 = fmap copyData args1
 
+benchSerialiseData :: Benchmark
+benchSerialiseData =
+    createOneTermBuiltinBench SerialiseData [] args
+        where args = dataSampleForEq
+    -- FIXME: see if we can find a better sample for this. More generally, how
+    -- does the internal structure of a Data object influence serialisation
+    -- time?  What causes a Data object to be quick or slow to serialise?
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
@@ -141,4 +148,5 @@ makeBenchmarks gen =
     , benchUnIData
     , benchUnBData
     , benchEqualsData
+    , benchSerialiseData
     ]

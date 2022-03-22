@@ -477,6 +477,7 @@ test_Data = testCase "Data" $ do
     evals @[(Data, Data)] [(B "", I 3)] UnMapData [cons $ Map [(B "", I 3)]]
     evals @[Data] [] UnListData [cons $ List []]
     evals @[Data] [I 3, I 4, B ""] UnListData [cons $ List [I 3, I 4, B ""]]
+    evals @ByteString "\162\ETX@Ehello8c" SerialiseData [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
     -- ChooseData
     let actualExp = mkIterApp ()
@@ -538,7 +539,6 @@ test_Crypto = testCase "Crypto" $ do
     -- b2sum -l 256 hex output: 256c83b297114d201b30179f3f0ef0cace9783622da5974326b436178aeef610
     evals @ByteString "%l\131\178\151\DC1M \ESC0\ETB\159?\SO\240\202\206\151\131b-\165\151C&\180\&6\ETB\138\238\246\DLE"
         Blake2b_256 [cons @ByteString "hello world"]
-
 
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree

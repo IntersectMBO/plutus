@@ -95,6 +95,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkPairData               = "mkPairDataModel"
   , paramMkNilData                = "mkNilDataModel"
   , paramMkNilPairData            = "mkNilPairDataModel"
+  , paramSerialiseData            = "serialiseDataModel"
   }
 
 
@@ -175,6 +176,7 @@ createBuiltinCostModel =
     paramUnIData                  <- getParams unIData        paramUnIData
     paramUnBData                  <- getParams unBData        paramUnBData
     paramEqualsData               <- getParams equalsData     paramEqualsData
+    paramSerialiseData            <- getParams serialiseData  paramSerialiseData
     -- Misc constructors
     paramMkPairData               <- getParams mkPairData     paramMkPairData
     paramMkNilData                <- getParams mkNilData      paramMkNilData
@@ -675,6 +677,14 @@ equalsData cpuModelR = do
      that in here and adjust it to be linear in 'min x_mem y_mem', since in the
      worst case it may have to examine almost all of the smaller argument before
      realising that the two arguments are different. -}
+
+serialiseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+serialiseData cpuModelR = do
+  -- FIXME: add cpumodel for serialisedata
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  -- FIXME: add memmodel for serialisedata
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 0
+  pure $ CostingFun cpuModel memModel
 
 ---------------- Misc constructors ----------------
 

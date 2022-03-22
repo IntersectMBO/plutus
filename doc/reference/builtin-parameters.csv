@@ -35,7 +35,7 @@ decodeUtf8,decodeUtf8-memory-arguments-slope,Linear model coefficient for the me
 divideInteger,divideInteger-cpu-arguments-constant,Constant CPU cost (argument sizes above diagonal)
 divideInteger,divideInteger-cpu-arguments-model-arguments-intercept,Linear model intercept for the CPU calculation (argument sizes on or below diagonal)
 divideInteger,divideInteger-cpu-arguments-model-arguments-slope,Linear model coefficient for the CPU calculation (argument sizes on or below diagonal)
-divideInteger,divideInteger-memory-arguments-intercept,Linear model intercept for the memory calculation (argument sizes on or below diagonal) 
+divideInteger,divideInteger-memory-arguments-intercept,Linear model intercept for the memory calculation (argument sizes on or below diagonal)
 divideInteger,divideInteger-memory-arguments-minimum,Constant memory cost (argument sizes above diagonal)
 divideInteger,divideInteger-memory-arguments-slope,Linear model coefficient for the memory calculation (argument sizes on or below diagonal)
 encodeUtf8,encodeUtf8-cpu-arguments-intercept,Linear model intercept for the CPU calculation below diagonal
@@ -98,7 +98,7 @@ modInteger,modInteger-cpu-arguments-model-arguments-slope,Linear model coefficie
 modInteger,modInteger-memory-arguments-intercept,Linear model intercept for the memory calculation
 modInteger,modInteger-memory-arguments-minimum,Constant memory cost (argument sizes above diagonal)
 modInteger,modInteger-memory-arguments-slope,Linear model coefficient for the memory calculation (argument sizes on or below diagonal)
-multiplyInteger,multiplyInteger-cpu-arguments-intercept,Linear model intercept for the CPU calculation 
+multiplyInteger,multiplyInteger-cpu-arguments-intercept,Linear model intercept for the CPU calculation
 multiplyInteger,multiplyInteger-cpu-arguments-slope,Linear model coefficient for the CPU calculation
 multiplyInteger,multiplyInteger-memory-arguments-intercept,Linear model intercept for the memory calculation
 multiplyInteger,multiplyInteger-memory-arguments-slope,Linear model coefficient for the memory calculation
@@ -116,6 +116,10 @@ remainderInteger,remainderInteger-cpu-arguments-model-arguments-slope,Linear mod
 remainderInteger,remainderInteger-memory-arguments-intercept,Linear model intercept for the memory calculation (argument sizes on or below diagonal)
 remainderInteger,remainderInteger-memory-arguments-minimum,Constant memory cost (argument sizes above diagonal)
 remainderInteger,remainderInteger-memory-arguments-slope,Linear model coefficient for the memory calculation (argument sizes on or below diagonal)
+serialiseData,serialiseData-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+serialiseData,serialiseData-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+serialiseData,serialiseData-memory-arguments-intercept,Linear model intercept for the memory calculation
+serialiseData,serialiseData-memory-arguments-slope,Linear model coefficient for the memory calculation
 sha2_256,sha2_256-cpu-arguments-intercept,Linear model intercept for the CPU calculation
 sha2_256,sha2_256-cpu-arguments-slope,Linear model coefficient for the CPU calculation
 sha2_256,sha2_256-memory-arguments,Constant memory cost
