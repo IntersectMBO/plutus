@@ -345,6 +345,7 @@ main =
                     , $(genTest 1 "unIData")
                     , $(genTest 1 "unBData")
                     , $(genTest 2 "equalsData") Everywhere
+                    , $(genTest 1 "serialiseData")
 
                     -- Misc constructors
                     , $(genTest 2 "mkPairData") Everywhere

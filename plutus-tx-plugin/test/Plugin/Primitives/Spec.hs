@@ -59,6 +59,8 @@ primitives = testNested "Primitives" [
   , goldenPir "stringLiteral" stringLiteral
   , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Builtins.BuiltinString), liftProgram ("hello" :: Builtins.BuiltinString)]
   , goldenPir "encodeUtf8" stringEncode
+  , goldenPir "serialiseData" dataEncode
+  , goldenUEval "serialiseDataApply" [ toUPlc dataEncode, toUPlc constructData1 ]
   , goldenUEval "constructData1" [ constructData1 ]
   -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
   -- debugging when it isn't
@@ -161,6 +163,9 @@ stringEquals = plc (Proxy @"string32Equals") (\(x :: Builtins.BuiltinString) (y 
 
 stringEncode :: CompiledCode (Builtins.BuiltinByteString)
 stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")
+
+dataEncode :: CompiledCode (Builtins.BuiltinData -> Builtins.BuiltinByteString)
+dataEncode = plc (Proxy @"dataEncode") Builtins.serialiseData
 
 constructData1 :: CompiledCode (Builtins.BuiltinData)
 constructData1 = plc (Proxy @"constructData1") (Builtins.mkI 1)
