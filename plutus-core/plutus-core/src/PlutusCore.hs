@@ -208,21 +208,10 @@ typecheckPipeline
     -> Program TyName Name DefaultUni DefaultFun a
     -> m (Normalized (Type TyName DefaultUni ()))
 typecheckPipeline = inferTypeOfProgram
-
-format :: (AsParserErrorBundle [Char], Monad m,
- PrettyBy
-   config (Program TyName Name DefaultUni DefaultFun SourcePos)) =>
- config -> BSL.ByteString -> m T.Text
-format cfg bs = do
-    case parseProgram bs of
-        -- when fail, pretty print the parse errors.
-        Left err ->
-            errorWithoutStackTrace err
-        -- otherwise,
-        Right p -> do
-            -- run @rename@ through the program
-            renamed <- runQuoteT $ rename p
-            runQuoteT $ fmap (displayBy cfg) $ rename renamed
+format
+    :: (AsParserErrorBundle e, MonadError e m)
+    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 -- | Take one PLC program and apply it to another.
 applyProgram
