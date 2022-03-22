@@ -231,7 +231,6 @@ benchmark validation
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
 
 ---------------- validation-decode ----------------
 
@@ -253,7 +252,6 @@ benchmark validation-decode
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
     , plutus-ledger-api -any
     , serialise -any
 
@@ -277,7 +275,6 @@ benchmark validation-full
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
     , plutus-ledger-api -any
     , serialise -any
 
