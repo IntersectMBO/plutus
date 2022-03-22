@@ -513,7 +513,7 @@
         "memory": {
             "arguments": {
                 "intercept": 0,
-                "slope": 0
+                "slope": 2
             },
             "type": "linear_cost"
         }
