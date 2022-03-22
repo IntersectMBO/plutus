@@ -223,9 +223,7 @@ mkTermToEvaluate pv bs args = do
     unless (v == PLC.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (PLC.mkConstant ()) args
         appliedT = PLC.mkIterApp () t termArgs
-
-    -- make sure that term is closed, i.e. well-scoped
-    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+    pure appliedT
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
