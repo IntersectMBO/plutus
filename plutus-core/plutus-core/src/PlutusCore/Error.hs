@@ -110,7 +110,7 @@ data ParserErrorBundle
 makeClassyPrisms ''ParserErrorBundle
 
 data Error uni fun ann
-    = ParseErrorE (ParseErrorBundle T.Text ParserError)
+    = ParseErrorE ParserErrorBundle
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
@@ -120,20 +120,8 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
--- To be able to carry megaparsec's @ParseErrorBundle@ straight instead of the wrapper @ParserErrorBundle@:
--- Construct a simple prism of Prism' (Error uni fun ann) ParserErrorBundle with
--- prism' :: (a -> s) -> (s -> Maybe a) -> Prism' s a
 instance AsParserErrorBundle (Error uni fun ann) where
-    _ParserErrorBundle = prism' putError takeError
-
--- (a -> s) function that specifies how we put a @ParserErrorBundle@ into @Error uni fun ann@.
-putError :: ParserErrorBundle -> Error uni fun ann
-putError (ParseErrorB a) = ParseErrorE a
-
--- (s -> Maybe a) function that specifies how we get a @ParserErrorBundle@ from a @Error uni fun ann@.
-takeError :: Error uni fun ann -> Maybe ParserErrorBundle
-takeError (ParseErrorE a) = Just (ParseErrorB a)
-takeError _               = Nothing
+    _ParserErrorBundle = _ParseErrorE
 
 -- this instance is needed for @goldenPirM@.
 instance AsParserErrorBundle (ParseErrorBundle T.Text ParserError) where
@@ -221,11 +209,11 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE e)           = pretty $ errorBundlePretty e
-    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
-    prettyBy config (TypeErrorE e)            = prettyBy config e
-    prettyBy config (NormCheckErrorE e)       = prettyBy config e
-    prettyBy _      (FreeVariableErrorE e)    = pretty e
+    prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
+    prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
+    prettyBy config (TypeErrorE e)                = prettyBy config e
+    prettyBy config (NormCheckErrorE e)           = prettyBy config e
+    prettyBy _      (FreeVariableErrorE e)        = pretty e
 
 instance HasErrorCode ParserError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
@@ -257,8 +245,8 @@ instance HasErrorCode (TypeError _a _b _c _d) where
     errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
 
 instance HasErrorCode (Error _a _b _c) where
-    errorCode (ParseErrorE e)           = errorCode e
-    errorCode (UniqueCoherencyErrorE e) = errorCode e
-    errorCode (TypeErrorE e)            = errorCode e
-    errorCode (NormCheckErrorE e)       = errorCode e
-    errorCode (FreeVariableErrorE e)    = errorCode e
+    errorCode (ParseErrorE (ParseErrorB e)) = errorCode e
+    errorCode (UniqueCoherencyErrorE e)     = errorCode e
+    errorCode (TypeErrorE e)                = errorCode e
+    errorCode (NormCheckErrorE e)           = errorCode e
+    errorCode (FreeVariableErrorE e)        = errorCode e
