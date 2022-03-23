@@ -18,5 +18,7 @@ let
   # ci.nix is a set of attributes that work fine as jobs (albeit in a slightly different structure, the platform comes
   # first), but we mainly just need to get rid of some extra attributes.
   ciJobsets = stripAttrsForHydra (filterDerivations ci);
+  # Don't require darwin jobs to succeed for now, until the mac builders are fixed
+  requiredJobsets = builtins.removeAttrs ciJobsets [ "darwin" ];
 in
-traceNames "" (ciJobsets // { required = derivationAggregate "required-plutus" ciJobsets; })
+traceNames "" (ciJobsets // { required = derivationAggregate "required-plutus" requiredJobsets; })

@@ -12,7 +12,6 @@ import PlutusPrelude
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Meaning
 import PlutusCore.Builtin.TypeScheme
-import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -26,10 +25,10 @@ import PlutusCore.Builtin.KnownType
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 data RuntimeScheme val (args :: [GHC.Type]) res where
     RuntimeSchemeResult
-        :: KnownTypeIn (UniOf val) val res
+        :: MakeKnown val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
-        :: KnownTypeIn (UniOf val) val arg
+        :: ReadKnown val arg
         => RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
     RuntimeSchemeAll
@@ -64,9 +63,7 @@ data BuiltinRuntime val =
         (RuntimeScheme val args res)
         ~(FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
                               -- it's fully saturated before figuring out what it's going to cost.
-        ~(FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
-                              -- can put @undefined@ here. TODO: we should test if making this
-                              -- strict introduces any measurable speedup.
+        (FoldArgsEx args)
 
 instance NFData (BuiltinRuntime val) where
     rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF

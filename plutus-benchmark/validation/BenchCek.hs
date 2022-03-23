@@ -21,6 +21,6 @@ main = benchWith mkCekBM
    mkCekBM file program =
        -- don't count the undebruijn . unflat cost
        -- `force` to try to ensure that deserialiation is not included in benchmarking time.
-       let !nterm = force (throughCheckScope $ toNamedDeBruijnTerm $ UPLC._progTerm $ unsafeUnflat file program)
+       let !nterm = force (toNamedDeBruijnTerm $ UPLC._progTerm $ unsafeUnflat file program)
        in whnf unsafeEvaluateCekNoEmit' nterm
 

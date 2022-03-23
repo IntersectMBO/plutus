@@ -149,8 +149,9 @@ instance KnownTypeAst DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
-instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
+instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown _ = absurd
+instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall

@@ -129,7 +129,10 @@ benchEqualsData =
 benchSerialiseData :: Benchmark
 benchSerialiseData =
     createOneTermBuiltinBench SerialiseData [] args
-        where args = dataSampleForEq -- FIXME: is this a good sample for serialization?
+        where args = dataSampleForEq
+    -- FIXME: see if we can find a better sample for this. More generally, how
+    -- does the internal structure of a Data object influence serialisation
+    -- time?  What causes a Data object to be quick or slow to serialise?
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =

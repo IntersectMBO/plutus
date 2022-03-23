@@ -18,12 +18,12 @@ module PlutusCore.Generators.Test
 
 import PlutusPrelude (ShowPretty (..))
 
-import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Internal.Dependent
 import PlutusCore.Generators.Internal.TypeEvalCheck
 import PlutusCore.Generators.Internal.Utils
 import PlutusCore.Name
