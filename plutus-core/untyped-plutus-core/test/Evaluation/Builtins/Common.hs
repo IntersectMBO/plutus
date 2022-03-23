@@ -56,7 +56,7 @@ typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
-       , KnownType (UPLC.Term Name uni fun ()) a
+       , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()

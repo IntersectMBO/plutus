@@ -367,7 +367,7 @@ unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmi
 
 -- | Unlift a value using the CK machine.
 readKnownCk
-    :: (Ix fun, KnownType (Term TyName Name uni fun ()) a)
+    :: (Ix fun, ReadKnown (Term TyName Name uni fun ()) a)
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
