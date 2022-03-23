@@ -27,6 +27,7 @@ module PlutusTx.Builtins (
                                 , subtractInteger
                                 , multiplyInteger
                                 , divideInteger
+                                , exponentInteger
                                 , modInteger
                                 , quotientInteger
                                 , remainderInteger
@@ -183,6 +184,10 @@ multiplyInteger x y = fromBuiltin (BI.multiplyInteger (toBuiltin x) (toBuiltin y
 -- | Divide two integers.
 divideInteger :: Integer -> Integer -> Integer
 divideInteger x y = fromBuiltin (BI.divideInteger (toBuiltin x) (toBuiltin y))
+
+{-# INLINABLE exponentInteger #-}
+exponentInteger :: Integer -> Integer -> Integer
+exponentInteger x y = fromBuiltin (BI.exponentInteger (toBuiltin x) (toBuiltin y))
 
 {-# INLINABLE modInteger #-}
 -- | Integer modulo operation.

@@ -138,6 +138,10 @@ multiplyInteger = coerce ((*) @Integer)
 divideInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinInteger
 divideInteger = coerce (div @Integer)
 
+{-# NOINLINE exponentInteger #-}
+exponentInteger :: BuiltinInteger -> BuildinInteger -> BuildinInteger
+exponentInteger = coerce ((^) @Integer)
+
 {-# NOINLINE modInteger #-}
 modInteger :: BuiltinInteger -> BuiltinInteger -> BuiltinInteger
 modInteger = coerce (mod @Integer)

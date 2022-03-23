@@ -41,10 +41,12 @@ module PlutusTx.Prelude (
     -- * Integer numbers
     Integer,
     divide,
+    exponent,
     modulo,
     quotient,
     remainder,
     even,
+    odd,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -138,6 +140,15 @@ check b = if b then () else traceError checkHasFailedError
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 
+{-# INLINABLE exponent #-}
+-- | Integer exponentiation
+--
+--   >>> exponent 5 2
+--   25 
+--
+exponent :: Integer -> Integer -> Integer
+exponent = Builtins.exponentInteger
+
 {-# INLINABLE modulo #-}
 -- | Integer remainder, always positive for a positive divisor
 --
@@ -153,7 +164,6 @@ modulo = Builtins.modInteger
 --   >>> quotient (-41) 5
 --   -8
 --
-
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
 
@@ -169,6 +179,10 @@ remainder = Builtins.remainderInteger
 {-# INLINABLE even #-}
 even :: Integer -> Bool
 even n = if modulo n 2 == 0 then True else False
+
+{-# INLINABLE odd #-}
+odd :: Integer -> Bool
+odd n = if even n then False else True
 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.
