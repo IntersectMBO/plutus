@@ -104,7 +104,7 @@ runCek params mode emitMode term =
         Left fvError -> throw fvError
         Right dbt -> do
             -- Don't use 'let': https://github.com/input-output-hk/plutus/issues/3876
-            case runCekDeBruijn params mode emitMode dbt of
+            case runCekDeBruijn params mode emitMode dbt undefined of
                 -- translating back the output
                 (res, cost', logs) -> (unDeBruijnResult res, cost', logs)
   where

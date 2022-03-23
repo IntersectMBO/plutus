@@ -7,7 +7,6 @@ import Criterion
 import PlutusBenchmark.Common
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Transform.Globalify
-import Debug.Trace
 {-|
  Benchmarks only for the CEK execution time of the data/*.flat validation scripts
 
@@ -21,7 +20,7 @@ main = benchWith mkCekBM
  where
    mkCekBM file program =
        let t = UPLC._progTerm $ unsafeUnflat file program
-           (gt,maxTop) = globalifyTerm t
+           (gt,!maxTop) = globalifyTerm t
            !nterm = force (toNamedDeBruijnTerm gt)
-       in traceShow (file,maxTop) $ whnf unsafeEvaluateCekNoEmit' nterm
+       in whnf (unsafeEvaluateCekNoEmit' maxTop) nterm
 

@@ -82,7 +82,7 @@ benchTermCek term =
 
 {- | Just run a term (used for tests etc.) -}
 runTermCek :: Term -> EvaluationResult Term
-runTermCek = unsafeExtractEvaluationResult . (\ (fstT,_,_) -> fstT) . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
+runTermCek t = unsafeExtractEvaluationResult . (\ (fstT,_,_) -> fstT) $ runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter t undefined
 
 type Result = EvaluationResult Term
 

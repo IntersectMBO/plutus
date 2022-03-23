@@ -63,7 +63,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
-import Data.Array.ST qualified as ST
+import Data.Primitive.SmallArray
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
@@ -341,7 +341,7 @@ type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
-type GivenCekArray uni fun s = (?cekArray :: ST.STArray s Int (CekValue uni fun))
+type GivenCekArray uni fun s = (?cekArray :: SmallMutableArray s (CekValue uni fun))
 
 -- | Constraint requiring all of the machine's implicit parameters.
 type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts, GivenCekArray uni fun s)
@@ -491,12 +491,13 @@ runCekM
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
+    -> Index
     -> (forall s. GivenCekReqs uni fun s => CekM uni fun s a)
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
+runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) maxTop a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    garray <- ST.newArray_ (0,200)
+    garray <- newSmallArray (coerce maxTop) undefined
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
@@ -516,7 +517,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv = do
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
-    else CekM $ ST.readArray ?cekArray (abs $ coerce varIx)
+    else CekM $ readSmallArray ?cekArray (abs $ coerce varIx)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
@@ -722,9 +723,10 @@ runCekDeBruijn
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term NamedDeBruijn uni fun ()
+    -> Index
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (Term NamedDeBruijn uni fun ()), cost, [Text])
-runCekDeBruijn params mode emitMode term =
-    runCekM params mode emitMode $ do
+runCekDeBruijn params mode emitMode term maxTop =
+    runCekM params mode emitMode maxTop $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
         enterComputeCek NoFrame Env.empty term
 
@@ -734,5 +736,5 @@ cons' n v e =
     if n > 0
     then pure $ Env.cons v e
     else do
-        CekM $ ST.writeArray ?cekArray (abs $ coerce n) v
+        CekM $ writeSmallArray ?cekArray (abs $ coerce n) v
         pure e

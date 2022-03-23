@@ -126,13 +126,14 @@ benchWith act = do
         env (BS.readFile $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
-unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-unsafeEvaluateCekNoEmit' =
-       (\(e, _, _) -> unsafeExtractEvaluationResult e) .
+unsafeEvaluateCekNoEmit' :: UPLC.Index -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
+unsafeEvaluateCekNoEmit' maxTop t =
+       (\(e, _, _) -> unsafeExtractEvaluationResult e) $
             UPLC.runCekDeBruijn
                 PLC.defaultCekParameters
                 UPLC.restrictingEnormous
                 UPLC.noEmitter
+                t maxTop
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 
