@@ -64,9 +64,7 @@ data BuiltinRuntime val =
         (RuntimeScheme val args res)
         ~(FoldArgs args res)  -- Must be lazy, because we don't want to compute the denotation when
                               -- it's fully saturated before figuring out what it's going to cost.
-        ~(FoldArgsEx args)    -- We make this lazy, so that evaluators that don't care about costing
-                              -- can put @undefined@ here. TODO: we should test if making this
-                              -- strict introduces any measurable speedup.
+        (FoldArgsEx args)
 
 instance NFData (BuiltinRuntime val) where
     rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
