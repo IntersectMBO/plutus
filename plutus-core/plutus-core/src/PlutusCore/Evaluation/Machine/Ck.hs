@@ -300,7 +300,7 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
+applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
     case sch of
@@ -309,8 +309,9 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
         RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
             Left err -> throwReadKnownErrorWithCause err
             Right x  -> do
-                let noCosting = error "The CK machine does not support costing"
-                    runtime' = BuiltinRuntime schB (f x) noCosting
+                -- The CK machine does not support costing, so we just apply the costing function
+                -- to 'mempty'.
+                let runtime' = BuiltinRuntime schB (f x) (exF mempty)
                 res <- evalBuiltinApp term' runtime'
                 stack <| res
         _ ->
