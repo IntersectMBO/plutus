@@ -1,17 +1,18 @@
-{-# LANGUAGE BlockArguments        #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE BlockArguments           #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DefaultSignatures        #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE KindSignatures           #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 
 module PlutusCore.Builtin.KnownType
     ( MakeKnownError
@@ -28,6 +29,7 @@ module PlutusCore.Builtin.KnownType
     , makeKnownRun
     , makeKnownOrFail
     , readKnownSelf
+    , Ignore
     ) where
 
 import PlutusPrelude (reoption)
@@ -43,6 +45,7 @@ import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.Coerce
 import Data.DList (DList)
+import Data.Kind qualified as GHC
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
@@ -231,13 +234,19 @@ the cause stored in it is not forced due to @Maybe@ being a lazy data type.
 -}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
-class uni ~ UniOf val => MakeKnownIn uni val a where
+type MakeKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
+class MakeKnownIn uni a where
+    type AssociateValueMake uni a :: GHC.Type -> GHC.Constraint
+    type AssociateValueMake uni a = HasConstantIn uni
+
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
-    makeKnown :: Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
+    makeKnown
+        :: (uni ~ UniOf val, AssociateValueMake uni a val)
+        => Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
     default makeKnown
-        :: KnownBuiltinType val a
+        :: KnownBuiltinTypeIn uni val a
         => Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
@@ -245,31 +254,37 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     makeKnown _ x = pure . fromConstant . someValue $! x
     {-# INLINE makeKnown #-}
 
-type MakeKnown val = MakeKnownIn (UniOf val) val
+type MakeKnown val a = (MakeKnownIn (UniOf val) a, AssociateValueMake (UniOf val) a val)
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
-class uni ~ UniOf val => ReadKnownIn uni val a where
+type ReadKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
+class ReadKnownIn uni a where
+    type AssociateValueRead uni a :: GHC.Type -> GHC.Constraint
+    type AssociateValueRead uni a = HasConstantIn uni
+
     -- See Note [Cause of failure].
     -- | Convert a PLC val to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
-    readKnown :: Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
+    readKnown
+        :: (uni ~ UniOf val, AssociateValueRead uni a val)
+        => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
     default readKnown
-        :: KnownBuiltinType val a
+        :: KnownBuiltinTypeIn uni val a
         => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
 
-type ReadKnown val = ReadKnownIn (UniOf val) val
+type ReadKnown val a = (ReadKnownIn (UniOf val) a, AssociateValueRead (UniOf val) a val)
 
 makeKnownRun
-    :: MakeKnownIn uni val a
+    :: MakeKnown val a
     => Maybe cause -> a -> (Either (ErrorWithCause MakeKnownError cause) val, DList Text)
 makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
 {-# INLINE makeKnownRun #-}
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
-makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
+makeKnownOrFail :: MakeKnown val a => a -> EvaluationResult val
 makeKnownOrFail = reoption . fst . makeKnownRun Nothing
 {-# INLINE makeKnownOrFail #-}
 
@@ -282,7 +297,8 @@ readKnownSelf
 readKnownSelf val = either throwReadKnownErrorWithCause pure $ readKnown (Just val) val
 {-# INLINE readKnownSelf #-}
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
+instance MakeKnownIn uni a => MakeKnownIn uni (EvaluationResult a) where
+    type AssociateValueMake uni (EvaluationResult a) = AssociateValueMake uni a
     makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
     makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
     {-# INLINE makeKnown #-}
@@ -293,41 +309,45 @@ instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
 -- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
 -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
 -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
-instance
-        ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (EvaluationResult a) where
+instance TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument") =>
+            ReadKnownIn uni (EvaluationResult a) where
+    type AssociateValueRead _ _ = Ignore
     readKnown mayCause _ =
         throwingWithCause _UnliftingError "Panic: 'TypeError' was bypassed" mayCause
 
-instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
+instance MakeKnownIn uni a => MakeKnownIn uni (Emitter a) where
+    type AssociateValueMake uni (Emitter a) = AssociateValueMake uni a
     makeKnown mayCause a = lift a >>= makeKnown mayCause
     {-# INLINE makeKnown #-}
 
-instance
-        ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (Emitter a) where
+instance TypeError ('Text "‘Emitter’ cannot appear in the type of an argument") =>
+            ReadKnownIn uni (Emitter a) where
+    type AssociateValueRead _ _ = Ignore
     readKnown mayCause _ =
         throwingWithCause _UnliftingError "Panic: 'TypeError' was bypassed" mayCause
 
-instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
+instance MakeKnownIn uni (SomeConstant uni rep) where
     makeKnown _ = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
-instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
+instance ReadKnownIn uni (SomeConstant uni rep) where
     readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
-instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
+instance uni ~ UniOf val => MakeKnownIn uni (Opaque val rep) where
+    type AssociateValueMake _ _ = (~) val
     makeKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
-instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
+instance uni ~ UniOf val => ReadKnownIn uni (Opaque val rep) where
+    type AssociateValueRead _ _ = (~) val
     readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE readKnown #-}
 
 -- Utils
+
+class    Ignore a
+instance Ignore a
 
 -- | Coerce the second argument to the result type of the first one. The motivation for this
 -- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
