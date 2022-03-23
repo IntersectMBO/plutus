@@ -221,6 +221,9 @@ instance HasErrorCode ParserError where
 instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
     errorCode _ = ErrorCode 52
 
+instance HasErrorCode ParserErrorBundle where
+    errorCode _ = ErrorCode 52
+
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21
       errorCode IncoherentUsage {} = ErrorCode 12
