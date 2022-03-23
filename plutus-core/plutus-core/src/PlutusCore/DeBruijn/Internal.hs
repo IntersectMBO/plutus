@@ -61,7 +61,7 @@ import ErrorCode
 import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
-newtype Index = Index Word64
+newtype Index = Index Int
     deriving stock (Generic)
     deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData)
 

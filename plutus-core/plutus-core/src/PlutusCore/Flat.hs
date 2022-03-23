@@ -335,7 +335,7 @@ instance Flat Index where
         n <- decode @Natural
         case naturalToWord64Maybe n of
             Nothing  -> fail $ "Index outside representable range: " ++ show n
-            Just w64 -> pure $ Index w64
+            Just w64 -> pure $ Index $ fromIntegral w64
     -- to be exact, we must not let this be generically derived,
     -- because the `gsize` would derive the size of the underlying Word64,
     -- whereas we want the size of Natural

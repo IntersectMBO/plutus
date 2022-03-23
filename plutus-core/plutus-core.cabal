@@ -145,6 +145,7 @@ library
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Type
+        UntypedPlutusCore.Transform.Globalify
 
         Crypto
         Data.ByteString.Hash

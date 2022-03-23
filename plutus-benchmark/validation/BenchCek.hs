@@ -6,7 +6,8 @@ import Control.DeepSeq (force)
 import Criterion
 import PlutusBenchmark.Common
 import UntypedPlutusCore as UPLC
-
+import UntypedPlutusCore.Transform.Globalify
+import Debug.Trace
 {-|
  Benchmarks only for the CEK execution time of the data/*.flat validation scripts
 
@@ -19,8 +20,8 @@ main :: IO ()
 main = benchWith mkCekBM
  where
    mkCekBM file program =
-       -- don't count the undebruijn . unflat cost
-       -- `force` to try to ensure that deserialiation is not included in benchmarking time.
-       let !nterm = force (toNamedDeBruijnTerm $ UPLC._progTerm $ unsafeUnflat file program)
-       in whnf unsafeEvaluateCekNoEmit' nterm
+       let t = UPLC._progTerm $ unsafeUnflat file program
+           (gt,maxTop) = globalifyTerm t
+           !nterm = force (toNamedDeBruijnTerm gt)
+       in traceShow (file,maxTop) $ whnf unsafeEvaluateCekNoEmit' nterm
 

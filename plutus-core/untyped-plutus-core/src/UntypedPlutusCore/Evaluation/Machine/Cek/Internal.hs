@@ -63,6 +63,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
+import Data.Array.ST qualified as ST
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
@@ -340,9 +341,10 @@ type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
 type GivenCekSlippage = (?cekSlippage :: Slippage)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
+type GivenCekArray uni fun s = (?cekArray :: ST.STArray s Int (CekValue uni fun))
 
 -- | Constraint requiring all of the machine's implicit parameters.
-type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
+type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts, GivenCekArray uni fun s)
 
 data CekUserError
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
@@ -440,49 +442,10 @@ instance Pretty CekUserError where
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 
--- see Note [Scoping].
--- | Instantiate all the free variables of a term by looking them up in an environment.
--- Mutually recursive with dischargeCekVal.
-dischargeCekValEnv :: forall uni fun. CekValEnv uni fun -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
-dischargeCekValEnv valEnv = go 0
- where
-  -- The lamCnt is just a counter that measures how many lambda-abstractions
-  -- we have descended in the `go` loop.
-  go :: Word64 -> Term NamedDeBruijn uni fun () -> Term NamedDeBruijn uni fun ()
-  go !lamCnt =  \case
-    LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word64  in
-        if lamCnt >= ix
-        -- the index n is less-than-or-equal than the number of lambdas we have descended
-        -- this means that n points to a bound variable, so we don't discharge it.
-        then var
-        else maybe
-               -- var is free, leave it alone
-               var
-               -- var is in the env, discharge its value
-               dischargeCekValue
-               -- index relative to (as seen from the point of view of) the environment
-               (Env.index valEnv $ ix - lamCnt)
-    Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
-    Delay ann term       -> Delay ann $ go lamCnt term
-    Force ann term       -> Force ann $ go lamCnt term
-    t -> t
-
 -- | Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
 -- they're bound to (which themselves have to be obtain by recursively discharging values).
 dischargeCekValue :: CekValue uni fun -> Term NamedDeBruijn uni fun ()
-dischargeCekValue = \case
-    VCon     val                         -> Constant () val
-    VDelay   body env                    -> dischargeCekValEnv env $ Delay () body
-    -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
-    -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
-    -- lambda, otherwise @name@ could clash with the names that we have in @env@.
-    VLamAbs (NamedDeBruijn n _ix) body env ->
-        -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
-        dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) body
-    -- We only discharge a value when (a) it's being returned by the machine,
-    -- or (b) it's needed for an error message.
-    VBuiltin _ term env _                -> dischargeCekValEnv env term
+dischargeCekValue = undefined
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
@@ -533,23 +496,27 @@ runCekM
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
+    garray <- ST.newArray_ (0,200)
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
+        ?cekArray = garray
     errOrRes <- unCekM $ tryError a
     st <- _exBudgetModeGetFinal
     logs <- _cekEmitterInfoGetFinal
     pure (errOrRes, st, logs)
 
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
-lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.index` coerce varIx of
+lookupVarName :: forall uni fun s . (PrettyUni uni fun, GivenCekArray uni fun s) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
+lookupVarName varName@(NamedDeBruijn _ varIx) varEnv = do
+    if varIx > 0
+    then case Env.index varEnv (fromIntegral varIx) of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
+    else CekM $ ST.readArray ?cekArray (abs $ coerce varIx)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
@@ -698,8 +665,9 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
-        computeCek unbudgetedSteps ctx (Env.cons arg env) body
+    applyEvaluate !unbudgetedSteps !ctx (VLamAbs (NamedDeBruijn _ n) body env) arg = do
+        res <- cons' n arg env
+        computeCek unbudgetedSteps ctx res  body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
@@ -759,3 +727,12 @@ runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
         enterComputeCek NoFrame Env.empty term
+
+{-# INLINE cons' #-}
+cons' :: GivenCekArray uni fun s => Index -> CekValue uni fun -> CekValEnv uni fun -> CekM uni fun s (CekValEnv uni fun)
+cons' n v e =
+    if n > 0
+    then pure $ Env.cons v e
+    else do
+        CekM $ ST.writeArray ?cekArray (abs $ coerce n) v
+        pure e
