@@ -6,7 +6,6 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE ViewPatterns           #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
@@ -39,8 +38,6 @@ import PlutusCore.Pretty
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
-import Data.List.NonEmpty qualified as NE (head)
-import Data.Set qualified as Set
 import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
@@ -222,11 +219,7 @@ instance HasErrorCode ParserError where
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
 
 instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom InvalidBuiltinConstant {})))) _) = ErrorCode 10
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinFunction {})))) _) = ErrorCode 9
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom UnknownBuiltinType {})))) _)     = ErrorCode 8
-    errorCode (ParseErrorBundle (NE.head -> (FancyError _ (Set.findMin -> (ErrorCustom BuiltinTypeNotAStar {})))) _)    = ErrorCode 51
-    errorCode (ParseErrorBundle _ _) = ErrorCode 99 --TODO
+    errorCode _ = ErrorCode 52
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21
