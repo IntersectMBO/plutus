@@ -62,7 +62,7 @@ newtype DenotationContext term = DenotationContext
 
 -- | The resulting type of a 'TypeScheme'.
 typeSchemeResult :: TypeScheme term args res -> AsKnownType term res
-typeSchemeResult TypeSchemeResult         = AsKnownType
+typeSchemeResult (TypeSchemeResult _)     = AsKnownType
 typeSchemeResult (TypeSchemeArrow _ schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAll _ schK)   = typeSchemeResult schK
 
@@ -70,7 +70,7 @@ typeSchemeResult (TypeSchemeAll _ schK)   = typeSchemeResult schK
 denoteVariable
     :: KnownType (Term TyName Name uni fun ()) res
     => Name -> res -> Denotation (Term TyName Name uni fun ()) Name res
-denoteVariable name meta = Denotation name (Var ()) meta TypeSchemeResult
+denoteVariable name meta = Denotation name (Var ()) meta $ TypeSchemeResult makeKnown
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation

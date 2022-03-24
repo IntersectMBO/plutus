@@ -67,8 +67,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
-    RuntimeSchemeResult -> do
-        let (errOrRes, logs) = makeKnownRun (Just term) x
+    RuntimeSchemeResult mk -> do
+        let (errOrRes, logs) = runMakeKnown $ mk (Just term) x
         emitCkM logs
         case errOrRes of
             Left err  -> throwMakeKnownErrorWithCause err

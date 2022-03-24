@@ -24,6 +24,7 @@ module PlutusCore.Builtin.KnownType
     , readKnownConstant
     , MakeKnownIn (..)
     , MakeKnown
+    , runMakeKnown
     , ReadKnownIn (..)
     , ReadKnown
     , makeKnownRun
@@ -276,6 +277,8 @@ class ReadKnownIn uni a where
     {-# INLINE readKnown #-}
 
 type ReadKnown val a = (ReadKnownIn (UniOf val) a, AssociateValueRead (UniOf val) a val)
+
+runMakeKnown = runEmitter . runExceptT
 
 makeKnownRun
     :: MakeKnown val a

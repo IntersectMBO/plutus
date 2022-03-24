@@ -10,6 +10,7 @@ module PlutusCore.Builtin.Runtime where
 
 import PlutusPrelude
 
+import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Meaning
 import PlutusCore.Builtin.TypeScheme
@@ -26,8 +27,8 @@ import PlutusCore.Builtin.KnownType
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 data RuntimeScheme val (args :: [GHC.Type]) res where
     RuntimeSchemeResult
-        :: MakeKnown val res
-        => RuntimeScheme val '[] res
+        :: (forall cause. Maybe cause -> res -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val)
+        -> RuntimeScheme val '[] res
     RuntimeSchemeArrow
         :: (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
         -> RuntimeScheme val args res
@@ -39,7 +40,7 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
 -- we use strictdata, so this is just for the purpose of completeness
 instance NFData (RuntimeScheme val args res) where
     rnf r = case r of
-        RuntimeSchemeResult       -> rwhnf r
+        RuntimeSchemeResult mk    -> mk `seq` rwhnf r
         RuntimeSchemeArrow rk arg -> rk `seq` rnf arg
         RuntimeSchemeAll arg      -> rnf arg
 
@@ -78,7 +79,7 @@ deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
 
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
-typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
+typeSchemeToRuntimeScheme (TypeSchemeResult mk) = RuntimeSchemeResult mk
 typeSchemeToRuntimeScheme (TypeSchemeArrow rk schB) =
     RuntimeSchemeArrow rk $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =

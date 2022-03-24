@@ -126,7 +126,7 @@ class KnownMonotype val args res a | args res -> a, a -> res where
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res res' where
-    knownMonotype = TypeSchemeResult
+    knownMonotype = TypeSchemeResult makeKnown
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance

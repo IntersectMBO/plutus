@@ -562,9 +562,9 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
-    RuntimeSchemeResult -> do
+    RuntimeSchemeResult mk -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = makeKnownRun (Just term) x
+        let !(errOrRes, logs) = runMakeKnown $ mk (Just term) x
         ?cekEmitter logs
         case errOrRes of
             Left err  -> throwMakeKnownErrorWithCause err

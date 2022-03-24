@@ -20,6 +20,7 @@ module PlutusCore.Builtin.TypeScheme
     , typeSchemeToType
     ) where
 
+import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.KnownTypeAst
@@ -29,6 +30,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
+import Control.Monad.Except
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Text qualified as Text
@@ -62,7 +64,8 @@ on readability of the Core output.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
         :: (KnownTypeAst (UniOf val) res, MakeKnown val res)
-        => TypeScheme val '[] res
+        => (forall cause. Maybe cause -> res -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val)
+        -> TypeScheme val '[] res
     TypeSchemeArrow
         :: (KnownTypeAst (UniOf val) arg, MakeKnown val arg)
         => (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
@@ -97,7 +100,7 @@ type family FoldArgsEx args where
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
-typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
+typeSchemeToType sch@(TypeSchemeResult _) = toTypeAst sch
 typeSchemeToType sch@(TypeSchemeArrow _ schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
