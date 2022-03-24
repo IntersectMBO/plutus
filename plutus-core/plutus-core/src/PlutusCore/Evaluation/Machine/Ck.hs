@@ -306,7 +306,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
+        RuntimeSchemeArrow rk schB -> case rk (Just argTerm) arg  of
             Left err -> throwReadKnownErrorWithCause err
             Right x  -> do
                 -- The CK machine does not support costing, so we just apply the costing function

@@ -133,7 +133,7 @@ instance
         ( KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
         , KnownMonotype val args res a
         ) => KnownMonotype val (arg ': args) res (arg -> a) where
-    knownMonotype = TypeSchemeArrow knownMonotype
+    knownMonotype = TypeSchemeArrow readKnown knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where

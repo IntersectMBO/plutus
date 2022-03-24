@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds      #-}
 {-# LANGUAGE GADTs          #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE RankNTypes     #-}
 {-# LANGUAGE TypeOperators  #-}
 
 {-# LANGUAGE StrictData     #-}
@@ -28,8 +29,8 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
         :: MakeKnown val res
         => RuntimeScheme val '[] res
     RuntimeSchemeArrow
-        :: ReadKnown val arg
-        => RuntimeScheme val args res
+        :: (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
+        -> RuntimeScheme val args res
         -> RuntimeScheme val (arg ': args) res
     RuntimeSchemeAll
         :: RuntimeScheme val args res
@@ -38,9 +39,9 @@ data RuntimeScheme val (args :: [GHC.Type]) res where
 -- we use strictdata, so this is just for the purpose of completeness
 instance NFData (RuntimeScheme val args res) where
     rnf r = case r of
-        RuntimeSchemeResult    -> rwhnf r
-        RuntimeSchemeArrow arg -> rnf arg
-        RuntimeSchemeAll arg   -> rnf arg
+        RuntimeSchemeResult       -> rwhnf r
+        RuntimeSchemeArrow rk arg -> rk `seq` rnf arg
+        RuntimeSchemeAll arg      -> rnf arg
 
 -- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
 -- 'BuiltinRuntime's.
@@ -78,8 +79,8 @@ deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
 -- | Convert a 'TypeScheme' to a 'RuntimeScheme'.
 typeSchemeToRuntimeScheme :: TypeScheme val args res -> RuntimeScheme val args res
 typeSchemeToRuntimeScheme TypeSchemeResult       = RuntimeSchemeResult
-typeSchemeToRuntimeScheme (TypeSchemeArrow schB) =
-    RuntimeSchemeArrow $ typeSchemeToRuntimeScheme schB
+typeSchemeToRuntimeScheme (TypeSchemeArrow rk schB) =
+    RuntimeSchemeArrow rk $ typeSchemeToRuntimeScheme schB
 typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
     RuntimeSchemeAll $ typeSchemeToRuntimeScheme schK
 
