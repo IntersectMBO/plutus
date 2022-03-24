@@ -35,7 +35,7 @@ import UntypedPlutusCore qualified as UPLC
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 
-import Text.Megaparsec.Error qualified as MP
+import PlutusCore.Error (ParserErrorBundle)
 
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
@@ -91,8 +91,8 @@ goldenPir op = goldenPirM (return . op)
 
 goldenPirM :: forall a b . Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
-    where parseOrError = either (return . T.pack . MP.errorBundlePretty) (fmap display . op)
-                         . (parse parser name :: T.Text -> Either (MP.ParseErrorBundle T.Text PLC.ParserError) a)
+    where parseOrError = either (return . T.pack . show) (fmap display . op)
+                         . (parse parser name :: T.Text -> Either ParserErrorBundle a)
 
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug

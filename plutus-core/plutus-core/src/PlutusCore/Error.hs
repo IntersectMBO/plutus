@@ -120,16 +120,6 @@ deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GS
 instance AsParserErrorBundle (Error uni fun ann) where
     _ParserErrorBundle = _ParseErrorE
 
--- this instance is needed for @goldenPirM@.
-instance AsParserErrorBundle (ParseErrorBundle T.Text ParserError) where
-    _ParserErrorBundle = prism' putErrB takeErrB
-
-putErrB :: ParserErrorBundle -> ParseErrorBundle T.Text ParserError
-putErrB (ParseErrorB a) = a
-
-takeErrB :: ParseErrorBundle T.Text ParserError -> Maybe ParserErrorBundle
-takeErrB a = Just (ParseErrorB a)
-
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
 
@@ -218,9 +208,6 @@ instance HasErrorCode ParserError where
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
 
-instance HasErrorCode (ParseErrorBundle T.Text ParserError) where
-    errorCode _ = ErrorCode 52
-
 instance HasErrorCode ParserErrorBundle where
     errorCode _ = ErrorCode 52
 
@@ -241,8 +228,8 @@ instance HasErrorCode (TypeError _a _b _c _d) where
     errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
 
 instance HasErrorCode (Error _a _b _c) where
-    errorCode (ParseErrorE (ParseErrorB e)) = errorCode e
-    errorCode (UniqueCoherencyErrorE e)     = errorCode e
-    errorCode (TypeErrorE e)                = errorCode e
-    errorCode (NormCheckErrorE e)           = errorCode e
-    errorCode (FreeVariableErrorE e)        = errorCode e
+    errorCode (ParseErrorE e)           = errorCode e
+    errorCode (UniqueCoherencyErrorE e) = errorCode e
+    errorCode (TypeErrorE e)            = errorCode e
+    errorCode (NormCheckErrorE e)       = errorCode e
+    errorCode (FreeVariableErrorE e)    = errorCode e

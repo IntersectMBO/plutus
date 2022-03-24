@@ -22,7 +22,6 @@ import PlutusCore (ParserError)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
-import Text.Megaparsec (ParseErrorBundle)
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
 instance Show PrettyProg where
@@ -72,7 +71,7 @@ propRoundTrip = property $ do
     code <- display <$> forAllWith display (runAstGen genProgram)
     let backward = fmap (display . prog)
         forward = fmap PrettyProg . (parse program "test" :: T.Text
-            -> Either (ParseErrorBundle T.Text ParserError) (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos))
+            -> Either ParserErrorBundle (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos))
     tripping code forward backward
 
 propIgnores :: Gen String -> Property
@@ -80,7 +79,7 @@ propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
     let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos -> String
         displayProgram = display
-        parse1 = displayProgram <$> ((parse program "test" $ T.pack original)::Either (ParseErrorBundle T.Text ParserError) (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos))
+        parse1 = displayProgram <$> ((parse program "test" $ T.pack original) :: Either ParserErrorBundle (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos))
         parse2 = displayProgram <$> (parse program "test" $ T.pack scrambled)
     parse1 === parse2
 
