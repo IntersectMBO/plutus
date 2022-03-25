@@ -19,7 +19,7 @@ jobs:
        # Check for '/benchmark' comments on a PR
        #
        # Pinning a particular commit to avoid https://github.com/Khan/pull-request-comment-trigger/issues/22
-      - uses: khan/pull-request-comment-trigger@ca8f46e213c14a9c38231cb031f66e16df796fe0
+      - uses: khan/pull-request-comment-trigger@edab8d9ba7759221187ef7120592a6fbfada0d18
         id: find-comment
         with:
           trigger: '/benchmark'
