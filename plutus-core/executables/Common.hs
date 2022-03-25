@@ -14,7 +14,7 @@ import PlutusPrelude (through)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
-import PlutusCore.Error (AsUniqueError, UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
@@ -55,7 +55,6 @@ import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
-import Text.Megaparsec.Error (ParseErrorBundle, errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -74,7 +73,7 @@ class Executable p where
   -- | Parse a program.
   parseProgram ::
     BSL.ByteString ->
-      Either (ParseErrorBundle T.Text PLC.ParserError) (p PLC.SourcePos)
+      Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -285,8 +284,8 @@ parseInput inp = do
     -- parse the UPLC program
     case parseProgram bsContents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParseErrorBundle T.Text PLC.ParserError) ->
-        errorWithoutStackTrace $ errorBundlePretty err
+      Left (err :: ParserErrorBundle) ->
+        errorWithoutStackTrace $ show err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program

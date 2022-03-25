@@ -4,7 +4,6 @@
 
 module PlutusIR.Parser
     ( parse
-    , parseQuoted
     , program
     , pType
     , pTerm

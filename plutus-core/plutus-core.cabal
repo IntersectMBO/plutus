@@ -400,6 +400,7 @@ test-suite plutus-core-test
         hedgehog -any,
         plutus-core -any,
         plutus-core-testlib -any,
+        megaparsec -any,
         mmorph -any,
         mtl -any,
         prettyprinter -any,

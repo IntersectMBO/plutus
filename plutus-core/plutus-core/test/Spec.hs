@@ -22,6 +22,7 @@ import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
 import PlutusCore.DeBruijn
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
@@ -131,7 +132,10 @@ reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
    because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
-    mapM_ (\t -> (fmap void . parseTerm . reprint $ t) @?= Right t) smallConsts
+    mapM_
+        (\t ->
+            (fmap
+                void . (parseTerm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). reprint $ t) @?= Right t) smallConsts
         where
           smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
@@ -174,7 +178,11 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTerm)
+    Hedgehog.tripping term reprint (fmap void . parseTm)
+    where
+        parseTm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+        parseTm = parseTerm
+
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
@@ -182,7 +190,10 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     Hedgehog.tripping prog (reprint . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) $ parseProgram p)
+                (\p -> fmap (TextualProgram . void) (parseProg p))
+    where
+        parseProg :: BSL.ByteString -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
+        parseProg = parseProgram
 
 type TestFunction = BSL.ByteString -> Either DefaultError T.Text
 
@@ -217,7 +228,7 @@ tests = testCase "example programs" $ fold
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     ]
     where
-        fmt :: BSL.ByteString -> Either ParserError T.Text
+        fmt :: BSL.ByteString -> Either ParserErrorBundle T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 
