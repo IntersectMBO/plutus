@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE DeriveAnyClass       #-}
@@ -210,17 +211,19 @@ runCostingFunOneArgument
     :: CostingFun ModelOneArgument
     -> ExMemory
     -> ExBudget
-runCostingFunOneArgument
-    (CostingFun cpu mem) mem1 =
-        ExBudget (ExCPU    $ runOneArgumentModel cpu mem1)
-                 (ExMemory $ runOneArgumentModel mem mem1)
+runCostingFunOneArgument (CostingFun cpu mem) =
+    let !runCpu = runOneArgumentModel cpu
+        !runMem = runOneArgumentModel mem
+    in \mem1 ->
+        ExBudget (ExCPU    $ runCpu mem1)
+                 (ExMemory $ runMem mem1)
 
 runOneArgumentModel
     :: ModelOneArgument
     -> ExMemory
     -> CostingInteger
-runOneArgumentModel (ModelOneArgumentConstantCost c) _ = c
-runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) (ExMemory s) =
+runOneArgumentModel (ModelOneArgumentConstantCost c) = \_ -> c
+runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
     s * slope + intercept
 
 
@@ -328,9 +331,12 @@ runCostingFunTwoArguments
     -> ExMemory
     -> ExMemory
     -> ExBudget
-runCostingFunTwoArguments (CostingFun cpu mem) mem1 mem2 =
-    ExBudget (ExCPU    $ runTwoArgumentModel cpu mem1 mem2)
-             (ExMemory $ runTwoArgumentModel mem mem1 mem2)
+runCostingFunTwoArguments (CostingFun cpu mem) =
+    let !runCpu = runTwoArgumentModel cpu
+        !runMem = runTwoArgumentModel mem
+    in \mem1 mem2 ->
+        ExBudget (ExCPU    $ runCpu mem1 mem2)
+                 (ExMemory $ runMem mem1 mem2)
 
 runTwoArgumentModel
     :: ModelTwoArguments
@@ -338,43 +344,47 @@ runTwoArgumentModel
     -> ExMemory
     -> CostingInteger
 runTwoArgumentModel
-    (ModelTwoArgumentsConstantCost c) _ _ = c
+    (ModelTwoArgumentsConstantCost c) = \_ _ -> c
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
         (size1 + size2) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
-    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) = \(ExMemory size1) (ExMemory size2) ->
         (max minSize (size1 - size2)) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
         (size1 * size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
         (min size1 size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) (ExMemory size1) (ExMemory size2) =
+    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
         (max size1 size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) (ExMemory size1) (ExMemory _) =
+    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) (ExMemory _) ->
         size1 * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) (ExMemory _) (ExMemory size2) =
+    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) = \(ExMemory _) (ExMemory size2) ->
         size2 * slope + intercept
 runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) (ExMemory xSize) (ExMemory ySize) =
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) = \(ExMemory xSize) (ExMemory ySize) ->
         if xSize == ySize
         then xSize * slope + intercept
         else c
 runTwoArgumentModel -- Below the diagonal, return the constant. Above the diagonal, run the other model.
-    (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) xMem yMem =
-        if xMem > yMem
-        then c
-        else runTwoArgumentModel m xMem yMem
+    (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
+        let !run = runTwoArgumentModel m
+        in \xMem yMem ->
+            if xMem > yMem
+            then c
+            else run xMem yMem
 runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagonal, run the other model.
-    (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) xMem yMem =
-        if xMem < yMem
-        then c
-        else runTwoArgumentModel m xMem yMem
+    (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) =
+        let !run = runTwoArgumentModel m
+        in \xMem yMem ->
+            if xMem < yMem
+            then c
+            else run xMem yMem
 
 
 ---------------- Three-argument costing functions ----------------
@@ -402,14 +412,14 @@ runThreeArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runThreeArgumentModel (ModelThreeArgumentsConstantCost c) _ _ _ = c
-runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) (ExMemory size1) (ExMemory size2) (ExMemory size3) =
+runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = \_ _ _ -> c
+runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) (ExMemory size3) ->
     (size1 + size2 + size3) * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) (ExMemory size1) _ _ =
+runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) _ _ ->
     size1 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) _ (ExMemory size2) _ =
+runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) = \_ (ExMemory size2) _ ->
     size2 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) _ _ (ExMemory size3) =
+runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = \_ _ (ExMemory size3) ->
     size3 * slope + intercept
 
 runCostingFunThreeArguments
@@ -418,9 +428,12 @@ runCostingFunThreeArguments
     -> ExMemory
     -> ExMemory
     -> ExBudget
-runCostingFunThreeArguments (CostingFun cpu mem) mem1 mem2 mem3 =
-    ExBudget (ExCPU    $ runThreeArgumentModel cpu mem1 mem2 mem3)
-             (ExMemory $ runThreeArgumentModel mem mem1 mem2 mem3)
+runCostingFunThreeArguments (CostingFun cpu mem) =
+    let !runCpu = runThreeArgumentModel cpu
+        !runMem = runThreeArgumentModel mem
+    in \mem1 mem2 mem3 ->
+        ExBudget (ExCPU    $ runCpu mem1 mem2 mem3)
+                 (ExMemory $ runMem mem1 mem2 mem3)
 
 
 ---------------- Four-argument costing functions ----------------
@@ -445,7 +458,7 @@ runFourArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runFourArgumentModel (ModelFourArgumentsConstantCost c) _ _ _ _ = c
+runFourArgumentModel (ModelFourArgumentsConstantCost c) = \_ _ _ _ -> c
 
 runCostingFunFourArguments
     :: CostingFun ModelFourArguments
@@ -454,9 +467,12 @@ runCostingFunFourArguments
     -> ExMemory
     -> ExMemory
     -> ExBudget
-runCostingFunFourArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 =
-    ExBudget (ExCPU    $ runFourArgumentModel cpu mem1 mem2 mem3 mem4)
-             (ExMemory $ runFourArgumentModel mem mem1 mem2 mem3 mem4)
+runCostingFunFourArguments (CostingFun cpu mem) =
+    let !runCpu = runFourArgumentModel cpu
+        !runMem = runFourArgumentModel mem
+    in \mem1 mem2 mem3 mem4 ->
+        ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4)
+                 (ExMemory $ runMem mem1 mem2 mem3 mem4)
 
 
 ---------------- Five-argument costing functions ----------------
@@ -482,7 +498,7 @@ runFiveArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runFiveArgumentModel (ModelFiveArgumentsConstantCost c) _ _ _ _ _ = c
+runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = \_ _ _ _ _ -> c
 
 runCostingFunFiveArguments
     :: CostingFun ModelFiveArguments
@@ -492,10 +508,12 @@ runCostingFunFiveArguments
     -> ExMemory
     -> ExMemory
     -> ExBudget
-runCostingFunFiveArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 =
-    ExBudget (ExCPU    $ runFiveArgumentModel cpu mem1 mem2 mem3 mem4 mem5)
-             (ExMemory $ runFiveArgumentModel mem mem1 mem2 mem3 mem4 mem5)
-
+runCostingFunFiveArguments (CostingFun cpu mem) =
+    let !runCpu = runFiveArgumentModel cpu
+        !runMem = runFiveArgumentModel mem
+    in \mem1 mem2 mem3 mem4 mem5 ->
+        ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5)
+                 (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5)
 
 ---------------- Six-argument costing functions ----------------
 
@@ -521,7 +539,7 @@ runSixArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runSixArgumentModel (ModelSixArgumentsConstantCost c) _ _ _ _ _ _ = c
+runSixArgumentModel (ModelSixArgumentsConstantCost c) = \_ _ _ _ _ _ -> c
 
 runCostingFunSixArguments
     :: CostingFun ModelSixArguments
@@ -532,7 +550,9 @@ runCostingFunSixArguments
     -> ExMemory
     -> ExMemory
     -> ExBudget
-runCostingFunSixArguments (CostingFun cpu mem) mem1 mem2 mem3 mem4 mem5 mem6 =
-    ExBudget (ExCPU    $ runSixArgumentModel cpu mem1 mem2 mem3 mem4 mem5 mem6)
-             (ExMemory $ runSixArgumentModel mem mem1 mem2 mem3 mem4 mem5 mem6)
-
+runCostingFunSixArguments (CostingFun cpu mem) =
+    let !runCpu = runSixArgumentModel cpu
+        !runMem = runSixArgumentModel mem
+    in \mem1 mem2 mem3 mem4 mem5 mem6 ->
+        ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5 mem6)
+                 (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5 mem6)
