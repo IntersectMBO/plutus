@@ -96,7 +96,6 @@ postulate
 
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
-{-# FOREIGN GHC import Text.Megaparsec.Error #-}
 
 postulate
   TermN : Set -- term with names
@@ -136,6 +135,7 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Parser #-}
 {-# FOREIGN GHC import PlutusCore.Pretty #-}
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import PlutusCore.Error #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 
@@ -148,7 +148,7 @@ postulate
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}
-{-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParserError #-}
+{-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
 {-# COMPILE GHC parse = parseProgram  #-}
 {-# COMPILE GHC parseU = U.parseProgram  #-}
