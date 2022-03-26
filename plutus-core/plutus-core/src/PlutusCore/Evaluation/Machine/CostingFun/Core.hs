@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 {-# LANGUAGE StrictData     #-}
-{-# OPTIONS_GHC -O2         #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , ModelAddedSizes(..)

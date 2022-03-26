@@ -1,5 +1,3 @@
-{-# LANGUAGE RankNTypes           #-}
-
 {-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE DataKinds            #-}
