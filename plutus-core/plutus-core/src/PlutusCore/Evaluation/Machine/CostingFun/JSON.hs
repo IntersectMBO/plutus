@@ -10,6 +10,9 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -O0               #-}
+
+-- | A separate module for JSON instances, so that we can stick @-O0@ on it and avoid spending
+-- a lot of time optimizing loads of Core whose performance doesn't matter.
 module PlutusCore.Evaluation.Machine.CostingFun.JSON () where
 
 import Data.Aeson

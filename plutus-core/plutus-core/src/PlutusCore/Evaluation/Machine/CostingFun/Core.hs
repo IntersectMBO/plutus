@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 {-# LANGUAGE StrictData     #-}
+
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , ModelAddedSizes(..)
@@ -45,7 +46,6 @@ data CostingFun model = CostingFun
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (Default, NFData)
 
-
 ---------------- One-argument costing functions ----------------
 
 data ModelOneArgument =
@@ -55,6 +55,38 @@ data ModelOneArgument =
     deriving anyclass (NFData)
 instance Default ModelOneArgument where
     def = ModelOneArgumentConstantCost 0
+
+{- Note [Optimizations of runCostingFun*]
+We optimize all @runCostingFun*@ functions in the same way:
+
+1. the two @run*Model@ functions are called right after matching on the first argument, so that
+   they are partially computed and cached, which results in them being called only once per builtin
+2. the resulting lambda is wrapped with a call to 'lazy', so that GHC doesn't float the let-bound
+   functions inside the lambda
+3. the whole definition is marked with @INLINE@, because it gets worker-wrapper transformed and we
+   don't want to keep the worker separate from the wrapper as it just results in unnecessary
+   wrapping-unwrapping
+
+In order for @run*Model@ functions to be able to partially compute we need to define them
+accordingly, i.e. by matching on the first argument and returning a lambda, which also requires a
+call to 'lazy', otherwise GHC pulls the matching outside of the resulting lambda (meaning we don't
+get any partial computation, any bit of evaluation happens only upon full saturation).
+
+Since we want @run*Model@ functions to partially compute, we mark them as @NOINLINE@ to prevent GHC
+from inlining them and breaking the sharing friendliness. Without the @NOINLINE@ Core doesn't seem
+to be worse, however it was verified that no @NOINLINE@ causes a slowdown in both the @validation@
+and @nofib@ benchmarks.
+
+Note that looking at the generated Core isn't really enough. We might have enemies down the pipeline,
+for example @-fstg-lift-lams@ looks suspicious:
+
+> Enables the late lambda lifting optimisation on the STG intermediate language. This selectively
+> lifts local functions to top-level by converting free variables into function parameters.
+
+This wasn't investigated.
+
+These optimizations gave us a ~2.5% speedup at the time this Note was written.
+-}
 
 runCostingFunOneArgument
     :: CostingFun ModelOneArgument

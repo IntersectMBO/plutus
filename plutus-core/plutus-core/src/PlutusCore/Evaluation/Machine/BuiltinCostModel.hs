@@ -8,7 +8,9 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 {-# LANGUAGE StrictData           #-}
+-- So that we don't spend a lot of time optimizing loads of Core whose performance doesn't matter.
 {-# OPTIONS_GHC -O0               #-}
+
 module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
