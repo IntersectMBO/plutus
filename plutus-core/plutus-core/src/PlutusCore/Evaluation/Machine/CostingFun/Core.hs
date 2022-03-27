@@ -75,7 +75,6 @@ runOneArgumentModel
 runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = lazy $ \(ExMemory s) ->
     s * slope + intercept
-{-# NOINLINE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
 
@@ -215,7 +214,6 @@ runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagon
             if xMem < yMem
             then c
             else run xMem yMem
-{-# NOINLINE runTwoArgumentModel #-}
 
 
 ---------------- Three-argument costing functions ----------------
@@ -247,7 +245,6 @@ runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept s
     size2 * slope + intercept
 runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = lazy $ \_ _ (ExMemory size3) -> lazy $
     size3 * slope + intercept
-{-# NOINLINE runThreeArgumentModel #-}
 
 runCostingFunThreeArguments
     :: CostingFun ModelThreeArguments
@@ -282,7 +279,6 @@ runFourArgumentModel
     -> ExMemory
     -> CostingInteger
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> c
-{-# NOINLINE runFourArgumentModel #-}
 
 runCostingFunFourArguments
     :: CostingFun ModelFourArguments
@@ -319,7 +315,6 @@ runFiveArgumentModel
     -> ExMemory
     -> CostingInteger
 runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> c
-{-# NOINLINE runFiveArgumentModel #-}
 
 runCostingFunFiveArguments
     :: CostingFun ModelFiveArguments
@@ -357,7 +352,6 @@ runSixArgumentModel
     -> ExMemory
     -> CostingInteger
 runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> c
-{-# NOINLINE runSixArgumentModel #-}
 
 runCostingFunSixArguments
     :: CostingFun ModelSixArguments
