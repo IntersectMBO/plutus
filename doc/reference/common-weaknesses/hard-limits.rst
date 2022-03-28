@@ -9,12 +9,12 @@ Many resources on Cardano are limited in some fashion. At a high level, limits c
 Hard limits are clear, easy to specify, and provide hard guarantees for the protocol, but they have the disadvantage that there is no way to evade the limit.
 This means that there is a discontinuity at the limit: beforehand you can always do more by paying more, but after the limit there is nothing you can do.
 
-Most of the limits for resources on Cardano are hard limits:
+Currently, these resources on Cardano have hard limits:
 
-- Transaction size has a hard limit.
-- Block size has a hard limit.
-- UTXO size has a hard limit.
-- Script execution units have a hard limit.
+- Transaction size
+- Block size
+- UTXO size
+- Script execution units
 
 If an application *requires* a transaction that exceeds one of these limits, then the application will be stuck unless the limit is increased or removed.
 This is most common when scripts are involved, since a script can require a very particular shape of transaction, regardless of whether this exceeds limits.
@@ -22,7 +22,7 @@ This is most common when scripts are involved, since a script can require a very
 Examples:
 
 - A script requires providing a datum which is extremely large and exceeds the transaction size limit.
-- A script needs more execution units than the limit under unusual circumstances, rendering the output which it locks unspendable.
+- A script which locks an output needs more execution units than the limit.
 - A script requires creating a single output containing a very large amount of tokens, which exceeds the output size limit.
 
 Risks
@@ -69,4 +69,4 @@ If `CIP-32 <https://cips.cardano.org/cips/cip32/>`_ is implemented, this can be 
 Reducing script size costs through reference inputs
 ---------------------------------------------------
 
-If `CIP-33 <https://cips.cardano.org/cips/cip33/>`_ is implemented, then the contribution of scripts to transaction size can be massively reduced by using a reference script instead of including the script entire.
+If `CIP-33 <https://cips.cardano.org/cips/cip33/>`_ is implemented, then the contribution of scripts to transaction size can be massively reduced by using a reference script instead of including the entire script.
