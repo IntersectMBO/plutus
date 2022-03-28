@@ -20,6 +20,7 @@ import PlutusCore.Name (Name, TyName)
 import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
+import PlutusCore.Quote (MonadQuote)
 import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 
 -- | A parsable PLC term.
@@ -77,7 +78,7 @@ term = choice $ map try
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m) =>
+parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Text -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgram = parseGen program
 
@@ -90,12 +91,12 @@ program = whitespace >> do
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParserErrorBundle e, MonadError e m) =>
+parseTerm :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Text -> m (Term TyName Name DefaultUni DefaultFun SourcePos)
 parseTerm = parseGen term
 
 -- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseType :: (AsParserErrorBundle e, MonadError e m) =>
+parseType :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Text -> m (Type TyName DefaultUni SourcePos)
 parseType = parseGen pType

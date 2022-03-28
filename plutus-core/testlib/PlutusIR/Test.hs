@@ -101,21 +101,21 @@ ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
 goldenPlcFromPir ::
-    ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
+    (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
     Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenPlcFromPirCatch ::
-    ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
+    (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
     Parser a -> String -> TestNested
 goldenPlcFromPirCatch = goldenPirM (\ast -> ppCatch $ do
                                            p <- toTPlc ast
                                            withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenEvalPir ::
-    ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+    (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
     Parser a -> String -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])
 

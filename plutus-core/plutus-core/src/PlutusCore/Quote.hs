@@ -23,9 +23,9 @@ module PlutusCore.Quote
     , markNonFreshMax
     ) where
 
-import PlutusPrelude
+import PlutusPrelude (fromMaybe)
 
-import PlutusCore.Name
+import PlutusCore.Name (Name (Name), TyName (TyName), Unique (..))
 
 import Control.Monad.Except
 import Control.Monad.Morph as MM
