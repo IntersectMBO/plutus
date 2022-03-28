@@ -34,6 +34,9 @@ class RandomAccessList e where
     -- | Un-prepend an element to the list.
     uncons :: e -> Maybe (Element e, e)
 
+    -- | Get the length of the list. May have linear complexity, but useful.
+    length :: e -> Word64
+
     {-# INLINABLE consSlab #-}
     -- | Prepend many elements to the list. Has a default implementation, but
     -- implementations can provide more efficient ones.
@@ -80,6 +83,8 @@ instance RandomAccessList [a] where
     cons = (:)
     {-# INLINABLE uncons #-}
     uncons = List.uncons
+    {-# INLINABLE length #-}
+    length = fromIntegral . List.length
     {-# INLINABLE indexZero #-}
     indexZero l w = l List.!? fromIntegral w
 
@@ -92,6 +97,8 @@ instance RandomAccessList (RAL.RAList  a) where
     cons = RAL.cons
     {-# INLINABLE uncons #-}
     uncons = RAL.uncons
+    {-# INLINABLE length #-}
+    length = fromIntegral . RAL.length
     {-# INLINABLE indexZero #-}
     indexZero l w = l RAL.!? fromIntegral w
 

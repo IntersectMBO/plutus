@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE Rank2Types           #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -8,9 +9,10 @@
 module RAList.Spec (tests) where
 
 import Control.Exception
-import Data.Maybe (isNothing)
+import Data.List qualified as List
+import Data.Maybe (fromJust, isNothing)
 import Data.Proxy
-import Data.RandomAccessList.Class
+import Data.RandomAccessList.Class as RAL
 import Data.RandomAccessList.RelativizedMap qualified as RM
 import Data.RandomAccessList.SkewBinary qualified as B
 import Data.RandomAccessList.SkewBinarySlab qualified as BS
@@ -24,7 +26,21 @@ instance (Element e ~ a, RandomAccessList e, Arbitrary a) => Arbitrary (AsRAL e)
     arbitrary = fromList <$> arbitrary
 
 deriving via (AsRAL (B.RAList a)) instance Arbitrary a => Arbitrary (B.RAList a)
-deriving via (AsRAL (BS.RAList a)) instance Arbitrary a => Arbitrary (BS.RAList a)
+
+instance Arbitrary a => Arbitrary (BS.RAList a) where
+    arbitrary = sized $ \sz -> go sz empty
+        where
+            go :: Int -> BS.RAList a -> Gen (BS.RAList a)
+            go 0 acc = pure acc
+            go sz acc = do
+                toAdd <- choose (1, sz)
+                elemsToAdd <- vector toAdd
+                asSlab <- arbitrary
+                let extended = if asSlab
+                    then RAL.consSlab (fromJust $ NEV.fromList elemsToAdd) acc
+                    else List.foldl' (\env val -> RAL.cons val env) acc elemsToAdd
+                go (sz - toAdd) extended
+
 deriving via (AsRAL (RM.RelativizedMap a)) instance Arbitrary a => Arbitrary (RM.RelativizedMap a)
 
 type RALTestable e a = (a ~ Element e, RandomAccessList e, Eq a, Eq e, Show a, Show e, Arbitrary a, Arbitrary e, IsList e, Item e ~ a)
@@ -48,43 +64,46 @@ prop_empty :: forall e a . (RALTestable e a) => Proxy e -> Property
 prop_empty _ = fromList @e empty === empty
 
 prop_cons :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_cons _ = forAll arbitrary $ \(l :: [a], e :: a) -> cons @e e (fromList l) === fromList (cons e l)
+prop_cons _ = forAll arbitrary $ \(l :: e, e :: a) -> cons e (toList l) === toList (cons e l)
 
 prop_uncons :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_uncons _ = forAll arbitrary $ \(l :: [a]) -> uncons @e (fromList l) === (fmap $ fmap fromList) (uncons l)
+prop_uncons _ = forAll arbitrary $ \(l :: e) -> uncons (toList l) === (fmap $ fmap toList) (uncons l)
+
+prop_length :: forall e a . (RALTestable e a) => Proxy e -> Property
+prop_length _ = forAll arbitrary $ \(l :: e) -> RAL.length (toList l) === RAL.length l
 
 -- Includes some out-of-range indices above the length
 prop_indexZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexZero _ = forAll arbitrary $ \(l :: [a]) -> forAll (chooseWord64 (0, fromIntegral $ 2*(length l-1))) $ \i ->
-    let r1 = indexZero @e (fromList l) i
+prop_indexZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+    let r1 = indexZero (toList l) i
         r2 = indexZero l i
     in cover 10 (isNothing r1) "failed lookups" $ r1 == r2
 
 -- Includes some out-of-range indices above the length
 prop_unsafeIndexZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_unsafeIndexZero _ = forAll arbitrary $ \(l :: [a]) -> forAll (chooseWord64 (0, fromIntegral $ 2*(length l-1))) $ \i ->
-    ioProperty $ sameModuloExceptions (evaluate $ indexZero @e (fromList l) i) (evaluate $ indexZero l i)
+prop_unsafeIndexZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+    ioProperty $ sameModuloExceptions (evaluate $ indexZero (toList l) i) (evaluate $ indexZero l i)
 
 -- Includes some out-of-range indices above the length, and 0 which is out-of-range below
 prop_indexOne :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexOne _ = forAll arbitrary $ \(l :: [a]) -> forAll (chooseWord64 (0, fromIntegral $ 2*(length l-1))) $ \i ->
-    let r1 = indexOne @e (fromList l) i
+prop_indexOne _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+    let r1 = indexOne (toList l) i
         r2 = indexOne l i
     in cover 10 (isNothing r1) "failed lookups" $ r1 == r2
 
 -- Includes some out-of-range indices above the length, and 0 which is out-of-range below
 prop_unsafeIndexOne :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_unsafeIndexOne _ = forAll arbitrary $ \(l :: [a]) -> forAll (chooseWord64 (0, fromIntegral $ 2*(length l-1))) $ \i ->
-    ioProperty $ sameModuloExceptions (evaluate $ indexOne @e (fromList l) i) (evaluate $ indexOne l i)
+prop_unsafeIndexOne _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+    ioProperty $ sameModuloExceptions (evaluate $ indexOne (toList l) i) (evaluate $ indexOne l i)
 
 prop_consSlab :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_consSlab _ = forAll arbitrary $ \(l :: [a], es :: [a]) -> case NEV.fromList es of
+prop_consSlab _ = forAll arbitrary $ \(l :: e, es :: [a]) -> case NEV.fromList es of
     Nothing  -> discard
-    Just nev -> consSlab @e nev (fromList l) === fromList (consSlab nev l)
+    Just nev -> consSlab nev (toList l) === toList (consSlab nev l)
 
 prop_indexOneZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexOneZero _ = forAll arbitrary $ \(l :: [a]) -> forAll (chooseWord64 (0, fromIntegral $ 2*(length l-1))) $ \i ->
-    let r1 = indexZero @e (fromList l) i
+prop_indexOneZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+    let r1 = indexZero (toList l) i
         r2 = indexOne l (i+1)
     in cover 10 (isNothing r1) "failed lookups" $ r1 === r2
 
@@ -101,6 +120,7 @@ ralProps p = testGroup "RandomAccessList correctness properties"
     [ testProperty "empty" $ prop_empty p
     , testProperty "cons" $ prop_cons p
     , testProperty "uncons" $ prop_uncons p
+    , testProperty "length" $ prop_length p
     , testProperty "indexZero" $ prop_indexZero p
     , testProperty "unsafeIndexZero" $ prop_unsafeIndexZero p
     , testProperty "indexOne" $ prop_indexOne p

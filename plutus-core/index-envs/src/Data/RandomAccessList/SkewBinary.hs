@@ -156,6 +156,9 @@ instance RAL.RandomAccessList (RAList a) where
     cons = Cons
     {-# INLINABLE uncons #-}
     uncons = uncons
+    {-# INLINABLE length #-}
+    length Nil             = 0
+    length (BHead sz _ tl) = sz + RAL.length tl
     {-# INLINABLE indexZero #-}
     indexZero = safeIndexZero
     {-# INLINABLE indexOne #-}

@@ -203,6 +203,9 @@ instance RAL.RandomAccessList (RAList a) where
     cons = Cons
     {-# INLINABLE uncons #-}
     uncons = uncons
+    {-# INLINABLE length #-}
+    length Nil            = 0
+    length (BHead _ t tl) = treeCount t + RAL.length tl
     {-# INLINABLE consSlab #-}
     consSlab = consSlab
     {-# INLINABLE indexZero #-}

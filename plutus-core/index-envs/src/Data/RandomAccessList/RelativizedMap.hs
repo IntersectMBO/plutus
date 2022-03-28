@@ -26,6 +26,8 @@ instance RAL.RandomAccessList (RelativizedMap a) where
     uncons (RelativizedMap im l) = case IM.maxViewWithKey im of
         Nothing            -> Nothing
         Just ((_, a), res) -> Just (a, RelativizedMap res (l-1))
+    {-# INLINABLE length #-}
+    length (RelativizedMap _ l) = l
     {-# INLINABLE indexZero #-}
     indexZero (RelativizedMap _ 0) _  = Nothing
     indexZero (RelativizedMap im l) w = let maxIndex = l-1 in if w > maxIndex then Nothing else IM.lookup (fromIntegral maxIndex - fromIntegral w) im
