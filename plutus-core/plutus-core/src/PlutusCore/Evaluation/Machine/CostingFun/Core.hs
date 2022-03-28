@@ -104,7 +104,7 @@ runOneArgumentModel
     :: ModelOneArgument
     -> ExMemory
     -> CostingInteger
-runOneArgumentModel (ModelOneArgumentConstantCost c) = \_ -> c
+runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
     s * slope + intercept
 {-# NOINLINE runOneArgumentModel #-}
