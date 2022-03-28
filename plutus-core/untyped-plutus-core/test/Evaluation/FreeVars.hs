@@ -106,7 +106,7 @@ illOverApp = mkIterApp ()
 
 test_freevars :: TestTree
 test_freevars = testGroup "FreeVars" [ testCekInternalFree
-                                     , testDischargeFree
+                                     --, testDischargeFree
                                      ]
 
 true :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
@@ -147,6 +147,7 @@ testCekInternalFree = testCase "cekInternal" $ do
              . termMapNames fakeNameDeBruijn
       fstT (x,_,_) =x
 
+{-
 -- | Test the behaviour of discharge function against open terms (containing free variables)
 -- by manually constructing CekValue's and Cek Environment's.
 testDischargeFree :: TestTree
@@ -179,3 +180,4 @@ testDischargeFree = testCase "discharge" $ do
  where
      dis = dischargeCekValue
      n = termMapNames fakeNameDeBruijn
+-}
