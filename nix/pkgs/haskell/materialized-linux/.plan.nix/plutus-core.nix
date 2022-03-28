@@ -196,6 +196,8 @@
           "PlutusCore/Evaluation/Machine/BuiltinCostModel"
           "PlutusCore/Evaluation/Machine/Ck"
           "PlutusCore/Evaluation/Machine/CostModelInterface"
+          "PlutusCore/Evaluation/Machine/CostingFun/Core"
+          "PlutusCore/Evaluation/Machine/CostingFun/JSON"
           "PlutusCore/Evaluation/Machine/ExBudget"
           "PlutusCore/Evaluation/Machine/ExMemory"
           "PlutusCore/Evaluation/Machine/Exception"
