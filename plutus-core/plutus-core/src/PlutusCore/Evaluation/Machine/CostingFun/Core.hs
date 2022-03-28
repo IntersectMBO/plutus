@@ -70,6 +70,7 @@ In order for @run*Model@ functions to be able to partially compute we need to de
 accordingly, i.e. by matching on the first argument and returning a lambda. We wrap one of the
 clauses with a call to 'lazy', so that GHC does not "optimize" the function by moving matching to
 the inside of the resulting lambda (which would defeat the whole purpose of caching the function).
+It's enough to put 'lazy' in only one of the clauses for all of them to be compiled the right way.
 We consistently choose the @*ConstantCost@ clause, because it doesn't need to be optimized anyway
 and so a call to 'lazy' doesn't hurt there.
 
