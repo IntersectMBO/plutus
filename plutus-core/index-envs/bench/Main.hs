@@ -29,12 +29,12 @@ ralWorkloads _ =
             [ bgroup "create" $ flip fmap [100, 250] $ \sz ->
                         bench (show sz) $ whnf (creator sz) empty
             , bgroup "query-front" $ flip fmap [100, 250] $ \sz ->
-                        bench (show sz) $ whnf (queryUpTo 100) (creator sz empty)
+                        bench (show sz) $ whnf (query [0..100]) (creator sz empty)
             , bgroup "query-back" $ flip fmap [100, 250] $ \sz ->
-                        bench (show sz) $ whnf (queryFrom (sz - 100)) (creator sz empty)
+                        bench (show sz) $ whnf (query [sz - 100..sz]) (creator sz empty)
             , bgroup "query-rand" $ flip fmap [100, 250] $ \sz ->
                     let ws = randWords sz
-                    in bench (show sz) $ whnf (queryListed ws) (creator sz empty)
+                    in bench (show sz) $ whnf (query ws) (creator sz empty)
             , bgroup "create/front100/cons100/back100/cons100/rand" $ flip fmap [100, 250] $ \sz ->
                     let qsize = 100
                         ws = randWords sz
@@ -64,34 +64,21 @@ consNSlabM :: (RandomAccessList e, Element e ~ ()) => Word64 -> Word64 -> e -> e
 consNSlabM slabNo slabSize = applyN slabNo (consSlab slab)
    where slab = fromJust $ NEV.replicate (fromIntegral slabSize) ()
 
--- | Accesses all indices from i down to 0.
-queryUpTo :: (RandomAccessList e) => Word64 -> e -> ()
-queryUpTo 0 _ = ()
-queryUpTo !i d = indexZero d i' `seq` queryUpTo i' d
-    where i' = i-1
-
--- | Accesses all indices from i up to the maximum.
-queryFrom :: (RandomAccessList e) => Word64 -> e -> ()
-queryFrom = go
-    where go !i d = case indexZero d i of
-            Just _  -> go (i+1) d
-            Nothing -> ()
-
 -- | Accesses the given indices.
-queryListed :: (RandomAccessList e, Element e ~ ()) => [Word64] -> e -> Element e
-queryListed [] _     = ()
-queryListed (i:is) d = indexZero d i `seq` queryListed is d
+query :: (RandomAccessList e, Element e ~ ()) => [Word64] -> e -> Element e
+query [] _     = ()
+query (i:is) d = indexZero d i `seq` query is d
 
 -- | A mixed worload.
 mix :: (RandomAccessList e, Element e ~ ()) => Word64 -> Word64 -> Word64 -> Word64 -> Word64 -> [Word64] -> e -> Element e
 mix sz front cons1 back cons2 rand d =
-    queryUpTo front d
+    query [0..front] d
     `seq`
     let d1 = consN cons1 d
-    in queryFrom (sz - back) d1
+    in query [(sz - back)..sz] d1
     `seq`
     let d2 = consN cons2 d1
-    in queryListed rand d2
+    in query rand d2
 
 main :: IO ()
 main = defaultMain
