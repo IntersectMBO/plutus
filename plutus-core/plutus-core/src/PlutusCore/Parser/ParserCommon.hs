@@ -14,6 +14,8 @@ import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
+import Control.Monad.Error.Lens (throwing)
+import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Internal (unpackChars)
@@ -21,7 +23,6 @@ import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
 import PlutusCore.Quote
-
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 
@@ -48,17 +49,16 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
-parse :: Parser a -> String -> T.Text -> Either (ParseErrorBundle T.Text ParserError) a
-parse p file str = runQuote $ parseQuoted p file str
+parse :: (AsParserErrorBundle e, MonadError e m) =>
+    Parser a -> String -> T.Text -> m a
+parse p file str =
+    case runQuote $ evalStateT (runParserT p file str) initial of
+        Left peb -> throwing _ParserErrorBundle (ParseErrorB peb)
+        Right a  -> pure a
 
 -- | Generic parser function.
-parseGen :: Parser a -> ByteString -> Either (ParseErrorBundle T.Text ParserError) a
+parseGen :: (AsParserErrorBundle e, MonadError e m) => Parser a -> ByteString -> m a
 parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
-
-parseQuoted ::
-    Parser a -> String -> T.Text ->
-        Quote (Either (ParseErrorBundle T.Text ParserError) a)
-parseQuoted p file str = flip evalStateT initial $ runParserT p file str
 
 -- | Space consumer.
 whitespace :: Parser ()

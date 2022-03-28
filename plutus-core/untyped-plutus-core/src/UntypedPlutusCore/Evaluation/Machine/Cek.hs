@@ -201,7 +201,7 @@ unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEm
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 readKnownCek
     :: ( uni `Everywhere` ExMemoryUsage
-       , KnownType (Term Name uni fun ()) a
+       , ReadKnown (Term Name uni fun ()) a
        , Ix fun, PrettyUni uni fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun

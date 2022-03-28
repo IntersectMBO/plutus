@@ -61,6 +61,7 @@ allErrors =
    , 'PLC.EmptyBuiltinArityMachineError
    , 'PLC.CekOutOfExError
    , 'PLC.CekEvaluationFailure
+   , 'PLC.ParseErrorB
    , 'PTX.ImpossibleDeserialisationFailure
    , 'PTX.CompilationError
    , 'PTX.UnsupportedError
