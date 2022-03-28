@@ -60,16 +60,18 @@ We optimize all @runCostingFun*@ functions in the same way:
 
 1. the two @run*Model@ functions are called right after matching on the first argument, so that
    they are partially computed and cached, which results in them being called only once per builtin
-2. the resulting lambda is wrapped with a call to 'lazy', so that GHC doesn't float the let-bound
-   functions inside the lambda
+2. we use a strict case-expression for matching, which GHC can't move inside the resulting lambda
+   (unlike a strict let-expression for example)
 3. the whole definition is marked with @INLINE@, because it gets worker-wrapper transformed and we
    don't want to keep the worker separate from the wrapper as it just results in unnecessary
    wrapping-unwrapping
 
 In order for @run*Model@ functions to be able to partially compute we need to define them
-accordingly, i.e. by matching on the first argument and returning a lambda, which also requires a
-call to 'lazy', otherwise GHC pulls the matching outside of the resulting lambda (meaning we don't
-get any partial computation, any bit of evaluation happens only upon full saturation).
+accordingly, i.e. by matching on the first argument and returning a lambda. We wrap one of the
+clauses with a call to 'lazy', so that GHC does not "optimize" the function by moving matching to
+the inside of the resulting lambda (which would defeat the whole purpose of caching the function).
+We consistently choose the @*ConstantCost@ clause, because it doesn't need to be optimized anyway
+and so a call to 'lazy' doesn't hurt there.
 
 Since we want @run*Model@ functions to partially compute, we mark them as @NOINLINE@ to prevent GHC
 from inlining them and breaking the sharing friendliness. Without the @NOINLINE@ Core doesn't seem
@@ -84,7 +86,7 @@ for example @-fstg-lift-lams@ looks suspicious:
 
 This wasn't investigated.
 
-These optimizations gave us a ~2.5% speedup at the time this Note was written.
+These optimizations gave us a ~3.2% speedup at the time this Note was written.
 -}
 
 runCostingFunOneArgument
@@ -102,7 +104,7 @@ runOneArgumentModel
     :: ModelOneArgument
     -> ExMemory
     -> CostingInteger
-runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
+runOneArgumentModel (ModelOneArgumentConstantCost c) = \_ -> c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
     s * slope + intercept
 {-# NOINLINE runOneArgumentModel #-}
