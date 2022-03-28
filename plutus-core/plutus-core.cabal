@@ -724,5 +724,4 @@ test-suite index-envs-test
         nonempty-vector -any,
         QuickCheck -any,
         tasty -any,
-        tasty-hunit -any,
         tasty-quickcheck -any

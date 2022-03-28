@@ -8,8 +8,8 @@ module Evaluation.FreeVars
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import Data.DeBruijnEnv as Env
 import Data.Either
+import Data.RandomAccessList.Class qualified as Env
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.MkPlc
@@ -153,7 +153,7 @@ testDischargeFree :: TestTree
 testDischargeFree = testCase "discharge" $ do
     -- free variable is left alone
     -- dis( empty |- (delay (\.9999)) ) === (delay (\.9999))
-    dis (VDelay (n outLam) empty) @?= Delay () (n outLam)
+    dis (VDelay (n outLam) Env.empty) @?= Delay () (n outLam)
 
     -- x is bound so it is left alone
     -- y is discharged from the env
@@ -168,7 +168,7 @@ testDischargeFree = testCase "discharge" $ do
            ]
          )
          )
-         (cons (VCon $ someValue ()) empty)
+         (Env.cons (VCon $ someValue ()) Env.empty)
         )
         @?= n (mkLam $ mkIterApp ()
                           (Var () (DeBruijn 1))
