@@ -51,12 +51,12 @@ intern n = do
 parse :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str = do
-    let res = fmap toParserErrorBundle (evalStateT (runParserT p file str) initial)
+    let res = fmap toError (evalStateT (runParserT p file str) initial)
     liftQuote res
 
-toParserErrorBundle :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a
-toParserErrorBundle (Left err) = Left $ ParseErrorB err
-toParserErrorBundle (Right a)  = Right a
+toError :: Either (ParseErrorBundle T.Text ParserError) a -> Either (Error uni fun ann) a
+toError (Left err) = Left $ ParseErrorE $ ParseErrorB err
+toError (Right a)  = Right a
 
 -- | Generic parser function.
 parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> T.Text -> m a
