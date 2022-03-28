@@ -116,10 +116,10 @@ remainderInteger,remainderInteger-cpu-arguments-model-arguments-slope,Linear mod
 remainderInteger,remainderInteger-memory-arguments-intercept,Linear model intercept for the memory calculation (argument sizes on or below diagonal)
 remainderInteger,remainderInteger-memory-arguments-minimum,Constant memory cost (argument sizes above diagonal)
 remainderInteger,remainderInteger-memory-arguments-slope,Linear model coefficient for the memory calculation (argument sizes on or below diagonal)
-serialiseData,serialiseData-cpu-arguments-intercept,TODO
-serialiseData,serialiseData-cpu-arguments-slope,TODO
-serialiseData,serialiseData-memory-arguments-intercept,TODO
-serialiseData,serialiseData-memory-arguments-slope,TODO
+serialiseData,serialiseData-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+serialiseData,serialiseData-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+serialiseData,serialiseData-memory-arguments-intercept,Linear model intercept for the memory calculation
+serialiseData,serialiseData-memory-arguments-slope,Linear model coefficient for the memory calculation
 sha2_256,sha2_256-cpu-arguments-intercept,Linear model intercept for the CPU calculation
 sha2_256,sha2_256-cpu-arguments-slope,Linear model coefficient for the CPU calculation
 sha2_256,sha2_256-memory-arguments,Constant memory cost

@@ -198,8 +198,8 @@
     "equalsData": {
         "cpu": {
             "arguments": {
-                "intercept": 1083531,
-                "slope": 12717
+                "intercept": 1171539,
+                "slope": 18595
             },
             "type": "min_size"
         },
@@ -505,15 +505,15 @@
     "serialiseData": {
         "cpu": {
             "arguments": {
-                "intercept": 1000,
-                "slope": 255499
+                "intercept": 1194288,
+                "slope": 389135
             },
             "type": "linear_cost"
         },
         "memory": {
             "arguments": {
                 "intercept": 0,
-                "slope": 0
+                "slope": 2
             },
             "type": "linear_cost"
         }

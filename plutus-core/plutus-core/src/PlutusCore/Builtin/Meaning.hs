@@ -1,6 +1,7 @@
 -- GHC doesn't like the definition of 'makeBuiltinMeaning'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
+{-# LANGUAGE AllowAmbiguousTypes       #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -124,21 +125,24 @@ class KnownMonotype val args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme val args res
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
-instance (res ~ res', KnownType val res) => KnownMonotype val '[] res res' where
+instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+            KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
-instance (KnownType val arg, KnownMonotype val args res a) =>
-            KnownMonotype val (arg ': args) res (arg -> a) where
+instance
+        ( KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        , KnownMonotype val args res a
+        ) => KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
-    knownPolytype :: Proxy binds -> TypeScheme val args res
+    knownPolytype :: TypeScheme val args res
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
-    knownPolytype _ = knownMonotype
+    knownPolytype = knownMonotype
 
 -- Here we unpack an existentially packed @kind@ and constrain it afterwards!
 -- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
@@ -147,7 +151,7 @@ instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
-    knownPolytype _ = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype (Proxy @binds)
+    knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
 
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
@@ -161,4 +165,4 @@ makeBuiltinMeaning
        , ElaborateFromTo 0 j val a, KnownPolytype binds val args res a
        )
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning val cost
-makeBuiltinMeaning = BuiltinMeaning (knownPolytype (Proxy @binds) :: TypeScheme val args res)
+makeBuiltinMeaning = BuiltinMeaning $ knownPolytype @binds @val @args @res

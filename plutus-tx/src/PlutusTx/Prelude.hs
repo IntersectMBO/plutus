@@ -45,6 +45,7 @@ module PlutusTx.Prelude (
     quotient,
     remainder,
     even,
+    odd,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -169,6 +170,10 @@ remainder = Builtins.remainderInteger
 {-# INLINABLE even #-}
 even :: Integer -> Bool
 even n = if modulo n 2 == 0 then True else False
+
+{-# INLINABLE odd #-}
+odd :: Integer -> Bool
+odd n = if even n then False else True
 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.

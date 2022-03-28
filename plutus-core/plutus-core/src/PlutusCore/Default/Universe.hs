@@ -158,9 +158,10 @@ instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
 
-{- Note [Constraints of KnownTypeIn instances]
+{- Note [Constraints of ReadKnownIn and MakeKnownIn instances]
 For a monomorphic data type @X@ one only needs to add a @HasConstantIn DefaultUni term@ constraint
-in order to be able to provide a @KnownTypeIn DefaultUni term X@ instance.
+in order to be able to provide a @ReadTypeIn DefaultUni term X@ instance and the same applies to
+'MakeKnownIn'.
 
 For a polymorphic data type @Y@ in addition to the same @HasConstantIn DefaultUni term@ constraint
 one also needs to add @DefaultUni `Contains` Y@, where @Y@ contains all of its type variables.
@@ -181,35 +182,41 @@ Core as some things don't get inlined properly. Somehow GHC is not able to see t
 family that it fully reduces anyway.
 
 Finally, instead of writing @DefaultUni `Contains` Y@ we could write @DefaultUni `Contains` a@
-for each argument type @a@ in @Y@ (because that implies @DefaultUni `Contains` Y@), however
+for each argument type @a@ in @Y@ (because that implies @DefaultUni `Contains` Y@), however GHC
+creates a redundant @let@ in that case (@-fno-cse@ or some other technique for preventing GHC from
+doing CSE may solve that problem). For now we do the simplest thing and just write
+@DefaultUni `Contains` Y@.
 
-1. GHC creates a redundant @let@ in that case (@-fno-cse@ or some other technique for preventing GHC
-   from doing CSE should solve that problem)
-2. even with the previous point resolved the following Core gets generated:
-
-    case $fGCompareTYPEDefaultUni_$cgeq
-           (DefaultUniApply @~ <Co:5> lvl2_r18Ea dt4_XGBM)
-           (uniAct_afrq `cast` <Co:6>)
-    of { <...> }
-
-I.e. @geq@ does not partially evaluate for some reason. Maybe it does at a later stage, though.
-So for now we do the simplest thing and just write @DefaultUni `Contains` Y@.
+A call to 'geq' does not get inlined due to 'geq' being recursive. It's an obvious inefficiency and
+one that can be fixed, see https://github.com/input-output-hk/plutus/pull/4462
+It's some pretty annoying boilerplate and for now we've decided it's not worth it.
 -}
 
--- See Note [Constraints of KnownTypeIn instances].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Data
+-- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Data
 instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
-    KnownTypeIn DefaultUni term [a]
+    MakeKnownIn DefaultUni term [a]
 instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
-    KnownTypeIn DefaultUni term (a, b)
+    MakeKnownIn DefaultUni term (a, b)
 
--- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
--- (you'll also need to add a 'KnownTypeAst' instance as well).
+-- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Data
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    ReadKnownIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    ReadKnownIn DefaultUni term (a, b)
+
+-- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
 {- Note [Int as Integer]
@@ -246,10 +253,11 @@ instance KnownTypeAst DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int64 where
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
     makeKnown mayCause = makeKnown mayCause . toInteger
     {-# INLINE makeKnown #-}
 
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
     readKnown mayCause term =
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
@@ -264,12 +272,13 @@ instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
     makeKnown mayCause = makeKnown mayCause . intCastEq @Int @Int64
     {-# INLINE makeKnown #-}
 
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
     {-# INLINE readKnown #-}
 

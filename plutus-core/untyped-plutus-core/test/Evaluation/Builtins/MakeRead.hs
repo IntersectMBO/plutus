@@ -30,8 +30,8 @@ import Data.Text (Text)
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) b
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
@@ -44,15 +44,15 @@ readMakeHetero x = do
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
 readMake
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        )
     => a -> EvaluationResult a
 readMake = readMakeHetero
 
 builtinRoundtrip
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        , Show a, Eq a
        )
     => Gen a -> Property

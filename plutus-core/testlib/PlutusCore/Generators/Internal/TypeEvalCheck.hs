@@ -20,6 +20,7 @@ module PlutusCore.Generators.Internal.TypeEvalCheck
 
 import PlutusPrelude
 
+import PlutusCore.Generators.Internal.Dependent
 import PlutusCore.Generators.Internal.TypedBuiltinGen
 import PlutusCore.Generators.Internal.Utils
 
