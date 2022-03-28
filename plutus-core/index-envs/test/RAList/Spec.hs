@@ -27,6 +27,9 @@ instance (Element e ~ a, RandomAccessList e, Arbitrary a) => Arbitrary (AsRAL e)
 
 deriving via (AsRAL (B.RAList a)) instance Arbitrary a => Arbitrary (B.RAList a)
 
+-- | The other RALs have unique representations for a given size, so generating them
+-- from equivalent lists is fine. This isn't true for the slab version! So we write
+-- a manual generator that appends stuff randomly as slabs or not.
 instance Arbitrary a => Arbitrary (BS.RAList a) where
     arbitrary = sized $ \sz -> go sz empty
         where
