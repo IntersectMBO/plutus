@@ -41,6 +41,7 @@ module PlutusTx.Prelude (
     -- * Integer numbers
     Integer,
     divide,
+    exponent,
     modulo,
     quotient,
     remainder,
@@ -139,6 +140,15 @@ check b = if b then () else traceError checkHasFailedError
 divide :: Integer -> Integer -> Integer
 divide = Builtins.divideInteger
 
+{-# INLINABLE exponent #-}
+-- | Integer exponentiation
+--
+--   >>> exponent 5 2
+--   25 
+--
+exponent :: Integer -> Integer -> Integer
+exponent = Builtins.exponentInteger
+
 {-# INLINABLE modulo #-}
 -- | Integer remainder, always positive for a positive divisor
 --
@@ -154,7 +164,6 @@ modulo = Builtins.modInteger
 --   >>> quotient (-41) 5
 --   -8
 --
-
 quotient :: Integer -> Integer -> Integer
 quotient = Builtins.quotientInteger
 
