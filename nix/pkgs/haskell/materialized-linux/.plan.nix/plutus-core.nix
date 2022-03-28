@@ -357,10 +357,18 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
-          modules = [ "Data/DeBruijnEnv" "Data/RandomAccessList/SkewBinary" ];
+          modules = [
+            "Data/RandomAccessList/Class"
+            "Data/RandomAccessList/SkewBinary"
+            "Data/RandomAccessList/SkewBinarySlab"
+            "Data/RandomAccessList/RelativizedMap"
+            ];
           hsSourceDirs = [ "index-envs/src" ];
           };
         };
@@ -641,13 +649,15 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
+          modules = [ "RAList/Spec" ];
           hsSourceDirs = [ "index-envs/test" ];
-          mainPath = [ "TestRAList.hs" ];
+          mainPath = [ "Spec.hs" ];
           };
         };
       benchmarks = {
@@ -677,6 +687,7 @@
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
