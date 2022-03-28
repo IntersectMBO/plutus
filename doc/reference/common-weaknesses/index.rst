@@ -9,3 +9,4 @@ This section provides a listing of common *weaknesses* in Plutus applications.
    :titlesonly:
 
    double-satisfaction
+   hard-limits
