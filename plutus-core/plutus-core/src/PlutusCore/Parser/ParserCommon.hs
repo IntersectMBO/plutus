@@ -14,7 +14,6 @@ import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
-import Control.Monad.Error.Lens (throwing)
 import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import PlutusCore.Core.Type
@@ -51,12 +50,12 @@ intern n = do
 parse :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str = do
-    let res = fmap toError (evalStateT (runParserT p file str) initial)
-    liftQuote res
+    let res = fmap toErrorB (evalStateT (runParserT p file str) initial)
+    throwingEither _ParserErrorBundle =<< liftQuote res
 
-toError :: Either (ParseErrorBundle T.Text ParserError) a -> Either (Error uni fun ann) a
-toError (Left err) = Left $ ParseErrorE $ ParseErrorB err
-toError (Right a)  = Right a
+toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a
+toErrorB (Left err) = Left $ ParseErrorB err
+toErrorB (Right a)  = Right a
 
 -- | Generic parser function.
 parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> T.Text -> m a
