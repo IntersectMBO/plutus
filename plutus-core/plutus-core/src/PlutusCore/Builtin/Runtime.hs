@@ -38,7 +38,7 @@ type ReadKnownM = Either (ErrorWithCause ReadKnownError ())
 
 type family ToDenotationType val (n :: Nat) :: GHC.Type where
     ToDenotationType val 'Z     = MakeKnownM val
-    ToDenotationType val ('S n) = val -> ReadKnownM (ToDenotationType val n)
+    ToDenotationType val ('S n) = val -> ToDenotationType val n
 
 type family ToCostingType (n :: Nat) :: GHC.Type where
     ToCostingType 'Z     = ExBudget
@@ -78,17 +78,14 @@ data BuiltinRuntime val =
 data BuiltinRuntimeOptions n val cost =
     BuiltinRuntimeOptions
         (RuntimeScheme n)
-        (ToDenotationType val n)
-        (ToDenotationType val n)
-        (cost -> ToCostingType n)
+        ~(ToDenotationType val n)
+        ~(cost -> ToCostingType n)
 
 fromBuiltinRuntimeOptions
-    :: UnliftingMode -> cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
-fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions sch fImm fDef exF) =
+    :: cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
+fromBuiltinRuntimeOptions cost (BuiltinRuntimeOptions sch f exF) =
     BuiltinRuntime sch f $ exF cost where
-        f = case unlMode of
-                UnliftingImmediate -> fImm
-                UnliftingDeferred  -> fDef
+{-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where
     rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
@@ -99,13 +96,6 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
     }
 
 deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
-
-data UnliftingMode
-    = UnliftingImmediate
-    | UnliftingDeferred
-
-unliftingMode :: UnliftingMode
-unliftingMode = UnliftingDeferred
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

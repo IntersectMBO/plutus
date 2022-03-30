@@ -277,6 +277,7 @@
           "UntypedPlutusCore/DeBruijn"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
+          "UntypedPlutusCore/Evaluation/Machine/Cek/Debug"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/MkUPlc"

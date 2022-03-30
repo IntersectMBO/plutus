@@ -134,7 +134,6 @@ type family GetArgs a :: [GHC.Type] where
 class KnownMonotype val args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme val args res
     knownMonoruntime :: RuntimeScheme (Length args)
-    toImmediateF :: FoldArgs args res -> ToDenotationType val (Length args)
     toDeferredF :: ReadKnownM (FoldArgs args res) -> ToDenotationType val (Length args)
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
@@ -142,8 +141,8 @@ instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
-    toImmediateF = makeKnown (Just ())
     toDeferredF getRes = liftEither getRes >>= makeKnown (Just ())
+    {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance
@@ -152,8 +151,8 @@ instance
         ) => KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
-    toImmediateF f val = toImmediateF @val @args @res . f <$> readKnown (Just ()) val
-    toDeferredF getF val = pure . toDeferredF @val @args @res $ getF <*> readKnown (Just ()) val
+    toDeferredF getF = \arg -> toDeferredF @val @args @res $! getF <*> readKnown (Just ()) arg
+    {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownMonotype val args res a =>
@@ -192,13 +191,13 @@ makeBuiltinMeaning f
     = BuiltinMeaning (knownPolytype @binds @val @args @res) f
     . BuiltinRuntimeOptions
         (knownPolyruntime @binds @val @args @res)
-        (toImmediateF @val @args @res f)
         (toDeferredF @val @args @res $ pure f)
+{-# INLINE makeBuiltinMeaning #-}
 
-toBuiltinRuntime
-    :: UnliftingMode -> cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
-    fromBuiltinRuntimeOptions unlMode cost runtimeOpts
+toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
+toBuiltinRuntime cost (BuiltinMeaning _ _ runtimeOpts) =
+    fromBuiltinRuntimeOptions cost runtimeOpts
+{-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].
 -- | Calculate runtime info for all built-in functions given denotations of builtins
@@ -207,6 +206,5 @@ toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
     => cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $
-        toBuiltinRuntime UnliftingDeferred cost . inline toBuiltinMeaning
+    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
 {-# INLINE toBuiltinsRuntime #-}
