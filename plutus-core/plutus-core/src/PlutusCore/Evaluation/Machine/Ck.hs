@@ -69,7 +69,7 @@ evalBuiltinApp
 evalBuiltinApp term = \case
     BuiltinRuntimeResult getRes -> case getRes of
         Left err -> throwReadKnownErrorWithCause $ term <$ err
-        Right (_, getY) -> do
+        Right (ExBudgeted _ getY) -> do
             let (errOrY, logs) = runEmitter $ runExceptT getY
             emitCkM logs
             case errOrY of

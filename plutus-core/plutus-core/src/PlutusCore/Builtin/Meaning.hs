@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 {-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -145,7 +146,10 @@ class KnownMonotype val args res a | args res -> a, a -> res where
 instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
-    knownMonoruntime getFs = BuiltinRuntimeResult $ fmap (makeKnown $ Just ()) <$> getFs
+    knownMonoruntime getFs =
+        BuiltinRuntimeResult $
+            getFs <&> \(cost, y) ->
+                ExBudgeted cost $ makeKnown (Just ()) y
     {-# INLINE knownMonoruntime #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
@@ -156,10 +160,11 @@ instance
     knownMonotype = TypeSchemeArrow knownMonotype
     knownMonoruntime getFs =
         BuiltinRuntimeArrow $ \mem arg ->
-            knownMonoruntime @val @args @res $ do
+            knownMonoruntime @val @args @res $! do
                 (exF, f) <- getFs
                 x <- readKnown (Just ()) arg
-                pure (exF mem, f x)
+                let !exY = exF mem
+                pure (exY, f x)
     {-# INLINE knownMonoruntime #-}
 
 -- | A class that allows us to derive a polytype for a builtin.

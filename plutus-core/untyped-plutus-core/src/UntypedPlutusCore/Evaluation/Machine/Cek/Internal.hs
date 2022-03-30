@@ -565,7 +565,7 @@ evalBuiltinApp
 evalBuiltinApp fun term env = \case
     BuiltinRuntimeResult getRes -> case getRes of
         Left err -> throwReadKnownErrorWithCause $ term <$ err
-        Right (cost, getY) -> do
+        Right (ExBudgeted cost getY) -> do
             spendBudgetCek (BBuiltinApp fun) cost
             let !(errOrY, logs) = runEmitter $ runExceptT getY
             ?cekEmitter logs
