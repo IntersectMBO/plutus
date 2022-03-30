@@ -178,6 +178,8 @@ compileReadableToPlc =
     >=> through check
     >=> (<$ logVerbose "  !!! thunkRecursions")
     >=> (pure . ThunkRec.thunkRecursions)
+    -- Thunking recursions breaks global uniqueness
+    >=> PLC.rename
     >=> through check
     -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
     -- See Note [Using unit versus force/delay]
