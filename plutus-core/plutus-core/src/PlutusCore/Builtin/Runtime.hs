@@ -78,8 +78,8 @@ data BuiltinRuntime val =
 data BuiltinRuntimeOptions n val cost =
     BuiltinRuntimeOptions
         (RuntimeScheme n)
-        ~(ToDenotationType val n)
-        ~(cost -> ToCostingType n)
+        (ToDenotationType val n)
+        (cost -> ToCostingType n)
 
 fromBuiltinRuntimeOptions
     :: cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
