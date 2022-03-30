@@ -129,9 +129,11 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
     toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . fst)
+        BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch fImm fDef toExF) ->
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch fImm fDef (toExF . fst))
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . snd)
+        BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch fImm fDef toExF) ->
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch fImm fDef (toExF . snd))
 
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term

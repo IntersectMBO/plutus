@@ -12,9 +12,6 @@ module PlutusCore.Builtin.Runtime where
 
 import PlutusPrelude
 
-import PlutusCore.Builtin.HasConstant
-import PlutusCore.Builtin.Meaning
-import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -22,7 +19,6 @@ import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC (Type)
-import GHC.Exts (inline)
 import PlutusCore.Builtin.KnownType
 
 import PlutusCore.Builtin.Emitter
@@ -79,6 +75,21 @@ data BuiltinRuntime val =
                                    -- to cost.
         (ToCostingType n)
 
+data BuiltinRuntimeOptions n val cost =
+    BuiltinRuntimeOptions
+        (RuntimeScheme n)
+        (ToDenotationType val n)
+        (ToDenotationType val n)
+        (cost -> ToCostingType n)
+
+fromBuiltinRuntimeOptions
+    :: UnliftingMode -> cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
+fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions sch fImm fDef exF) =
+    BuiltinRuntime sch f $ exF cost where
+        f = case unlMode of
+                UnliftingImmediate -> fImm
+                UnliftingDeferred  -> fDef
+
 instance NFData (BuiltinRuntime val) where
     rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
 
@@ -89,50 +100,12 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
 
 deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
 
-data UnliftMode
-    = UnliftImmediately
-    | UnliftWhenSaturated
+data UnliftingMode
+    = UnliftingImmediate
+    | UnliftingDeferred
 
-unliftMode :: UnliftMode
-unliftMode = UnliftWhenSaturated
-
--- | Instantiate a 'BuiltinMeaning' given denotations of built-in functions and a cost model.
-toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime cost (BuiltinMeaning sch f exF) =
-    go sch $ \sch' toF' toExF' -> BuiltinRuntime sch' (toF' $ pure f) (toExF' $ exF cost) where
-        go
-            :: TypeScheme val args res
-            -> (forall n.
-                    RuntimeScheme n
-                -> (ReadKnownM (FoldArgs args res) -> ToDenotationType val n)
-                -> (FoldArgsEx args -> ToCostingType n)
-                -> BuiltinRuntime val)
-            -> BuiltinRuntime val
-        go TypeSchemeResult       k =
-            k
-                RuntimeSchemeResult
-                (\getRes -> liftEither getRes >>= makeKnown (Just ()))
-                id
-        go (TypeSchemeArrow schB) k =
-            go schB $ \sch' toF' toExF' -> k
-                (RuntimeSchemeArrow sch')
-                (\getF x -> do
-                    let getVal = readKnown (Just ()) x
-                    case unliftMode of
-                        UnliftImmediately   -> getVal <&> \val -> toF' (($ val) <$> getF)
-                        UnliftWhenSaturated -> pure . toF' $ getF <*> getVal)
-                (toExF' .)
-        go (TypeSchemeAll _ schK) k = go schK $ k . RuntimeSchemeAll
-
--- See Note [Inlining meanings of builtins].
--- | Calculate runtime info for all built-in functions given denotations of builtins
--- and a cost model.
-toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
-    => cost -> BuiltinsRuntime fun val
-toBuiltinsRuntime cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime cost . inline toBuiltinMeaning
-{-# INLINE toBuiltinsRuntime #-}
+unliftingMode :: UnliftingMode
+unliftingMode = UnliftingDeferred
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
