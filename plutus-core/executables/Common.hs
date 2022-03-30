@@ -280,7 +280,7 @@ parseInput ::
   -- | The output is either a UPLC or PLC program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
-    bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
+    bsContents <- T.pack <$> getInput inp
     -- parse the UPLC program
     case parseProgram bsContents of
       -- when fail, pretty print the parse errors.

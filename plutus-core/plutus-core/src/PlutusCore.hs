@@ -11,6 +11,7 @@ module PlutusCore
     , parseType
     , parseScoped
     , topSourcePos
+    , bsToText
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
@@ -161,6 +162,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Encoding (decodeUtf8')
 import PlutusCore.Parser (parseProgram, parseTerm, parseType)
 import Text.Megaparsec (SourcePos, initialPos)
 
@@ -172,16 +175,22 @@ printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Te
     => BSL.ByteString
     -> m T.Text
 printType bs = runQuoteT $ T.pack . show . pretty <$> do
-    scoped <- parseScoped bs
+    scoped <- parseScoped $ bsToText bs
     config <- getDefTypeCheckConfig topSourcePos
     inferTypeOfProgram config scoped
+
+bsToText :: BSL.ByteString -> T.Text
+bsToText bs = toStrict $
+    case decodeUtf8' bs of
+        Left err  -> error $ show err
+        Right txt -> txt
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
         MonadError e m, MonadQuote m) =>
-    BSL.ByteString
+    T.Text
     -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
@@ -197,7 +206,7 @@ parseTypecheck :: ( AsParserErrorBundle e, AsUniqueError e SourcePos,
  MonadError e m, MonadQuote m) =>
     TypeCheckConfig DefaultUni DefaultFun
     -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
-parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
+parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped . bsToText
 
 -- | Typecheck a program.
 typecheckPipeline
@@ -211,7 +220,7 @@ typecheckPipeline = inferTypeOfProgram
 format
     :: (AsParserErrorBundle e, MonadError e m)
     => PrettyConfigPlc -> BSL.ByteString -> m T.Text
-format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram . bsToText)
 
 -- | Take one PLC program and apply it to another.
 applyProgram

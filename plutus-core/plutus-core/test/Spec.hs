@@ -135,7 +135,7 @@ testLexConstant =
     mapM_
         (\t ->
             (fmap
-                void . (parseTerm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). reprint $ t) @?= Right t) smallConsts
+                void . (parseTerm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). bsToText . reprint $ t) @?= Right t) smallConsts
         where
           smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
@@ -178,9 +178,9 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term reprint (fmap void . parseTm . bsToText)
     where
-        parseTm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+        parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
         parseTm = parseTerm
 
 
@@ -190,9 +190,9 @@ propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
     Hedgehog.tripping prog (reprint . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) (parseProg p))
+                (\p -> fmap (TextualProgram . void) (parseProg $ bsToText p))
     where
-        parseProg :: BSL.ByteString -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
+        parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
         parseProg = parseProgram
 
 type TestFunction = BSL.ByteString -> Either DefaultError T.Text
