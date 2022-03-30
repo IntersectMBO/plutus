@@ -41,7 +41,6 @@ import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
-import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as T
 import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
@@ -72,7 +71,7 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    BSL.ByteString ->
+    T.Text ->
       Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
