@@ -562,15 +562,17 @@ evalBuiltinApp
     -> CekValEnv uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
-    RuntimeSchemeResult -> do
-        spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = runEmitter $ runExceptT getX
-        ?cekEmitter logs
-        case errOrRes of
-            Left err -> throwReadKnownErrorWithCause $ term <$ err
-            Right x  -> pure x
-    _ -> pure $ VBuiltin fun term env runtime
+evalBuiltinApp fun term env = \case
+    BuiltinRuntimeResult getRes -> case getRes of
+        Left err -> throwReadKnownErrorWithCause $ term <$ err
+        Right (cost, getY) -> do
+            spendBudgetCek (BBuiltinApp fun) cost
+            let !(errOrY, logs) = runEmitter $ runExceptT getY
+            ?cekEmitter logs
+            case errOrY of
+                Left err -> throwReadKnownErrorWithCause $ term <$ err
+                Right y  -> pure y
+    runtime -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
@@ -669,13 +671,12 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
-    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
+    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env runtime) = do
         let term' = Force () term
-        case sch of
+        case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            RuntimeSchemeAll schK -> do
-                let runtime' = BuiltinRuntime schK f exF
+            BuiltinRuntimeAll runtime' -> do
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
@@ -703,18 +704,17 @@ enterComputeCek = computeCek (toWordArray 0) where
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
+    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env runtime) arg = do
         let argTerm = dischargeCekValue arg
             term' = Apply () term argTerm
-        case sch of
+        case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            RuntimeSchemeArrow schB -> do
+            BuiltinRuntimeArrow toRuntime' -> do
                 -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                 -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                 -- Maybe we could fuse the two?
-                let runtime' = BuiltinRuntime schB (f arg) . exF $ toExMemory arg
-                res <- evalBuiltinApp fun term' env runtime'
+                res <- evalBuiltinApp fun term' env $ toRuntime' (toExMemory arg) arg
                 returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')

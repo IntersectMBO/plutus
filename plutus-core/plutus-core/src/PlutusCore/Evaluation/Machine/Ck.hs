@@ -66,14 +66,16 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
-    RuntimeSchemeResult -> do
-        let (errOrRes, logs) = runEmitter $ runExceptT getX
-        emitCkM logs
-        case errOrRes of
-            Left err -> throwReadKnownErrorWithCause $ term <$ err
-            Right x  -> pure x
-    _                   -> pure $ VBuiltin term runtime
+evalBuiltinApp term = \case
+    BuiltinRuntimeResult getRes -> case getRes of
+        Left err -> throwReadKnownErrorWithCause $ term <$ err
+        Right (_, getY) -> do
+            let (errOrY, logs) = runEmitter $ runExceptT getY
+            emitCkM logs
+            case errOrY of
+                Left err -> throwReadKnownErrorWithCause $ term <$ err
+                Right y  -> pure y
+    runtime -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -274,14 +276,13 @@ instantiateEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> substTyInTerm tn ty body -- No kind check - too expensive at run time.
-instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
+instantiateEvaluate stack ty (VBuiltin term runtime) = do
     let term' = TyInst () term ty
-    case sch of
+    case runtime of
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        RuntimeSchemeAll schK -> do
-            let runtime' = BuiltinRuntime schK f exF
+        BuiltinRuntimeAll runtime' -> do
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -300,17 +301,16 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
+applyEvaluate stack (VBuiltin term runtime) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
-    case sch of
+    case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        RuntimeSchemeArrow schB -> do
+        BuiltinRuntimeArrow toRuntime' -> do
             -- The CK machine does not support costing, so we just apply the costing function
             -- to 'mempty'.
-            let runtime' = BuiltinRuntime schB (f arg) (exF mempty)
-            res <- evalBuiltinApp term' runtime'
+            res <- evalBuiltinApp term' $ toRuntime' mempty arg
             stack <| res
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
