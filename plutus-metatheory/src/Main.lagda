@@ -150,11 +150,11 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = parseProgram  #-}
-{-# COMPILE GHC parseU = U.parseProgram  #-}
-{-# COMPILE GHC parseTm = parseTerm  #-}
-{-# COMPILE GHC parseTy = parseType  #-}
-{-# COMPILE GHC parseTmU = U.parseTerm  #-}
+{-# COMPILE GHC parse = parseProgram . bsToText #-}
+{-# COMPILE GHC parseU = U.parseProgram . bsToText  #-}
+{-# COMPILE GHC parseTm = parseTerm . bsToText #-}
+{-# COMPILE GHC parseTy = parseType . bsToText #-}
+{-# COMPILE GHC parseTmU = U.parseTerm . bsToText #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
