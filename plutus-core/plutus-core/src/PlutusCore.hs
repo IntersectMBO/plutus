@@ -182,7 +182,7 @@ printType bs = runQuoteT $ T.pack . show . pretty <$> do
 bsToText :: BSL.ByteString -> T.Text
 bsToText bs = toStrict $
     case decodeUtf8' bs of
-        Left err  -> error $ show err
+        Left err  -> error $ "bsToText: Decoding from bytestring to text failed with unicode exception: " <> show err
         Right txt -> txt
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
