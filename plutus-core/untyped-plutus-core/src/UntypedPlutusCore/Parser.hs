@@ -89,7 +89,7 @@ parseProgram = parseGen program
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
-    (AsParserErrorBundle e, PLC.MonadQuote m, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
+    (AsParserErrorBundle e, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
     => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term

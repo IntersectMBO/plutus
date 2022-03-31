@@ -31,6 +31,7 @@ import PlutusCore.Pretty
 
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
+import Data.Foldable (for_)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
@@ -131,10 +132,11 @@ type DefaultError = Error DefaultUni DefaultFun SourcePos
    because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
-    mapM_
-        (\t ->
-            (fmap
-                void . (parseTerm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). displayPlcDef $ t) @?= Right t) smallConsts
+    for_ smallConsts $ \t -> do
+            let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+                res = runQuoteT $ parseTerm $ reprint t
+            -- using `void` here to get rid of `SourcePos`
+            fmap void res @?= Right t
         where
           smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
@@ -180,7 +182,7 @@ propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
     where
         parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
-        parseTm = parseTerm
+        parseTm tm = runQuoteT $ parseTerm tm
 
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
@@ -192,7 +194,7 @@ propParser = property $ do
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
-        parseProg = parseProgram
+        parseProg p = runQuoteT $ parseProgram p
 
 type TestFunction = T.Text -> Either DefaultError T.Text
 
