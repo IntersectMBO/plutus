@@ -26,11 +26,9 @@ import PlutusCore.Evaluation.Machine.ExMemory
 
 data Nat = Z | S Nat
 
-data ExBudgeted val = ExBudgeted {-# UNPACK #-} ExBudget ~(MakeKnownM val)
-
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 data BuiltinRuntime val
-    = BuiltinRuntimeResult (ReadKnownM (ExBudgeted val))
+    = BuiltinRuntimeResult {-# UNPACK #-} ExBudget ~(MakeKnownM val)
     | BuiltinRuntimeArrow (ExMemory -> val -> BuiltinRuntime val)
     | BuiltinRuntimeAll (BuiltinRuntime val)
 

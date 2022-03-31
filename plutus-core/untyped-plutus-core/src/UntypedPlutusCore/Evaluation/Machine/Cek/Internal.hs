@@ -563,15 +563,13 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
 evalBuiltinApp fun term env = \case
-    BuiltinRuntimeResult getRes -> case getRes of
-        Left err -> throwReadKnownErrorWithCause $ term <$ err
-        Right (ExBudgeted cost getY) -> do
-            spendBudgetCek (BBuiltinApp fun) cost
-            let !(errOrY, logs) = runEmitter $ runExceptT getY
-            ?cekEmitter logs
-            case errOrY of
-                Left err -> throwReadKnownErrorWithCause $ term <$ err
-                Right y  -> pure y
+    BuiltinRuntimeResult cost getY -> do
+        spendBudgetCek (BBuiltinApp fun) cost
+        let !(errOrY, logs) = runEmitter $ runExceptT getY
+        ?cekEmitter logs
+        case errOrY of
+            Left err -> throwReadKnownErrorWithCause $ term <$ err
+            Right y  -> pure y
     runtime -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 

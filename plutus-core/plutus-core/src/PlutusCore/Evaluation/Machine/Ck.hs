@@ -67,14 +67,12 @@ evalBuiltinApp
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term = \case
-    BuiltinRuntimeResult getRes -> case getRes of
-        Left err -> throwReadKnownErrorWithCause $ term <$ err
-        Right (ExBudgeted _ getY) -> do
-            let (errOrY, logs) = runEmitter $ runExceptT getY
-            emitCkM logs
-            case errOrY of
-                Left err -> throwReadKnownErrorWithCause $ term <$ err
-                Right y  -> pure y
+    BuiltinRuntimeResult _ getY -> do
+        let (errOrY, logs) = runEmitter $ runExceptT getY
+        emitCkM logs
+        case errOrY of
+            Left err -> throwReadKnownErrorWithCause $ term <$ err
+            Right y  -> pure y
     runtime -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()

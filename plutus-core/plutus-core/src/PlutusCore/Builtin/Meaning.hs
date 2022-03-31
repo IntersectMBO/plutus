@@ -32,6 +32,7 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
+import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -140,16 +141,13 @@ type family GetArgs a :: [GHC.Type] where
 -- | A class that allows us to derive a monotype for a builtin.
 class KnownMonotype val args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme val args res
-    knownMonoruntime :: ReadKnownM (FoldArgsEx args, FoldArgs args res) -> BuiltinRuntime val
+    knownMonoruntime :: FoldArgsEx args -> ReadKnownM (FoldArgs args res) -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
-    knownMonoruntime getFs =
-        BuiltinRuntimeResult $
-            getFs <&> \(cost, y) ->
-                ExBudgeted cost $ makeKnown (Just ()) y
+    knownMonoruntime exB getY = BuiltinRuntimeResult exB $ liftEither getY >>= makeKnown (Just ())
     {-# INLINE knownMonoruntime #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
@@ -158,20 +156,16 @@ instance
         , KnownMonotype val args res a
         ) => KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype
-    knownMonoruntime getFs =
+    knownMonoruntime exF getF =
         BuiltinRuntimeArrow $ \mem arg ->
-            knownMonoruntime @val @args @res $! do
-                (exF, f) <- getFs
-                x <- readKnown (Just ()) arg
-                let !exY = exF mem
-                pure (exY, f x)
+            (knownMonoruntime @val @args @res $! exF mem) $! getF <*> readKnown (Just ()) arg
     {-# INLINE knownMonoruntime #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownMonotype val args res a =>
         KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
     knownPolytype :: TypeScheme val args res
-    knownPolyruntime :: ReadKnownM (FoldArgsEx args, FoldArgs args res) -> BuiltinRuntime val
+    knownPolyruntime :: FoldArgsEx args -> ReadKnownM (FoldArgs args res) -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
@@ -187,7 +181,7 @@ instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
-    knownPolyruntime = BuiltinRuntimeAll . knownPolyruntime @binds @val @args @res
+    knownPolyruntime exF = BuiltinRuntimeAll . knownPolyruntime @binds @val @args @res exF
     {-# INLINE knownPolyruntime #-}
 
 -- See Note [Automatic derivation of type schemes]
@@ -204,7 +198,7 @@ makeBuiltinMeaning
     => a -> (cost -> FoldArgsEx args) -> BuiltinMeaning val cost
 makeBuiltinMeaning f exF =
     BuiltinMeaning (knownPolytype @binds @val @args @res) f $
-        \cost -> knownPolyruntime @binds @val @args @res $ pure (exF cost, f)
+        \cost -> knownPolyruntime @binds @val @args @res (exF cost) (pure f)
 {-# INLINE makeBuiltinMeaning #-}
 
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
