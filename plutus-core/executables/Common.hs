@@ -91,7 +91,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram = PLC.parseProgram
+  parseProgram = PLC.runQuoteT . PLC.parseProgram
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -102,7 +102,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram = UPLC.parseProgram
+  parseProgram = PLC.runQuoteT . UPLC.parseProgram
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
