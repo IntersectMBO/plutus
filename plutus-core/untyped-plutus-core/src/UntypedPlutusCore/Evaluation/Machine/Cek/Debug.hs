@@ -14,4 +14,4 @@ import GHC.Exts (inline)
 toBuiltinsRuntimeDef
     :: (cost ~ CostingPart uni fun, uni ~ DefaultUni, fun ~ DefaultFun)
     => cost -> BuiltinsRuntime fun (CekValue uni fun)
-toBuiltinsRuntimeDef = inline toBuiltinsRuntime
+toBuiltinsRuntimeDef = inline toBuiltinsRuntime UnliftingImmediate

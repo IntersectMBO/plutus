@@ -9,7 +9,8 @@ module Plutus.V1.Ledger.EvaluationContext
     , evalCtxForTesting
     ) where
 
-import PlutusCore as Plutus (DefaultFun, DefaultUni, defaultCekCostModel, defaultCostModelParams)
+import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel, defaultCostModelParams,
+                             defaultUnliftingMode)
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
@@ -53,10 +54,19 @@ inlining).
 -- | Build the 'EvaluationContext'.
 --
 -- The input is a `Map` of strings to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
-mkEvaluationContext :: Plutus.CostModelParams
-                    -> Maybe EvaluationContext
-mkEvaluationContext newCMP =
-    EvaluationContext . inline Plutus.mkMachineParameters <$> Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+mkEvaluationContextUnliftingImmediate :: Plutus.CostModelParams -> Maybe EvaluationContext
+mkEvaluationContextUnliftingImmediate newCMP =
+    EvaluationContext . inline Plutus.mkMachineParameters UnliftingImmediate <$>
+        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+
+mkEvaluationContextUnliftingDeferred :: Plutus.CostModelParams -> Maybe EvaluationContext
+mkEvaluationContextUnliftingDeferred newCMP =
+    EvaluationContext . inline Plutus.mkMachineParameters UnliftingImmediate <$>
+        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+
+mkEvaluationContext :: UnliftingMode -> Plutus.CostModelParams -> Maybe EvaluationContext
+mkEvaluationContext UnliftingImmediate = mkEvaluationContextUnliftingImmediate
+mkEvaluationContext UnliftingDeferred  = mkEvaluationContextUnliftingDeferred
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 isCostModelParamsWellFormed :: Plutus.CostModelParams -> Bool
@@ -73,4 +83,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = fromJust $ mkEvaluationContext mempty
+evalCtxForTesting = fromJust $ mkEvaluationContext defaultUnliftingMode mempty

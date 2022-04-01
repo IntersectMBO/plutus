@@ -117,6 +117,7 @@ module PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
+    , UnliftingMode (..)
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
@@ -132,6 +133,7 @@ module PlutusCore
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
+    , defaultUnliftingMode
     , unitCekParameters
     -- * CEK machine costs
     , cekMachineCostsPrefix
@@ -140,6 +142,7 @@ module PlutusCore
 
 import PlutusPrelude
 
+import PlutusCore.Builtin
 import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.Core
 import PlutusCore.DeBruijn

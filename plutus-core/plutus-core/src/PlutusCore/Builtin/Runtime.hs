@@ -38,7 +38,7 @@ type ReadKnownM = Either (ErrorWithCause ReadKnownError ())
 
 type family ToDenotationType val (n :: Nat) :: GHC.Type where
     ToDenotationType val 'Z     = MakeKnownM val
-    ToDenotationType val ('S n) = val -> ToDenotationType val n
+    ToDenotationType val ('S n) = val -> ReadKnownM (ToDenotationType val n)
 
 type family ToCostingType (n :: Nat) :: GHC.Type where
     ToCostingType 'Z     = ExBudget
@@ -79,12 +79,20 @@ data BuiltinRuntimeOptions n val cost =
     BuiltinRuntimeOptions
         (RuntimeScheme n)
         (ToDenotationType val n)
+        (ToDenotationType val n)
         (cost -> ToCostingType n)
 
+data UnliftingMode
+    = UnliftingImmediate
+    | UnliftingDeferred
+
 fromBuiltinRuntimeOptions
-    :: cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
-fromBuiltinRuntimeOptions cost (BuiltinRuntimeOptions sch f exF) =
+    :: UnliftingMode -> cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
+fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions sch immF defF exF) =
     BuiltinRuntime sch f $ exF cost where
+        f = case unlMode of
+                UnliftingImmediate -> immF
+                UnliftingDeferred  -> defF
 {-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where

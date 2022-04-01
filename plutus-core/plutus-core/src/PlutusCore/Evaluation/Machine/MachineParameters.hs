@@ -51,8 +51,9 @@ mkMachineParameters ::
     , HasConstantIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
-    => CostModel machinecosts builtincosts
+    => UnliftingMode
+    -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
-mkMachineParameters (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime builtinCosts)
+mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)
 {-# INLINE mkMachineParameters #-}
