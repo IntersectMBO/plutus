@@ -76,7 +76,7 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultUnliftingMode :: UnliftingMode
-defaultUnliftingMode = UnliftingImmediate
+defaultUnliftingMode = UnliftingDeferred
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
