@@ -195,10 +195,10 @@ propParser = property $ do
         parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
         parseProg = parseProgram
 
-type TestFunction = BSL.ByteString -> Either DefaultError T.Text
+type TestFunction = T.Text -> Either DefaultError T.Text
 
 asIO :: TestFunction -> FilePath -> IO BSL.ByteString
-asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
+asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f . bsToText) . BSL.readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
@@ -228,7 +228,7 @@ tests = testCase "example programs" $ fold
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     ]
     where
-        fmt :: BSL.ByteString -> Either ParserErrorBundle T.Text
+        fmt :: T.Text -> Either ParserErrorBundle T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 

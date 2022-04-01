@@ -172,10 +172,10 @@ topSourcePos = initialPos "top"
 
 printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
-    => BSL.ByteString
+    => T.Text
     -> m T.Text
-printType bs = runQuoteT $ T.pack . show . pretty <$> do
-    scoped <- parseScoped $ bsToText bs
+printType txt = runQuoteT $ T.pack . show . pretty <$> do
+    scoped <- parseScoped txt
     config <- getDefTypeCheckConfig topSourcePos
     inferTypeOfProgram config scoped
 
@@ -219,8 +219,8 @@ typecheckPipeline
 typecheckPipeline = inferTypeOfProgram
 format
     :: (AsParserErrorBundle e, MonadError e m)
-    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
-format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram . bsToText)
+    => PrettyConfigPlc -> T.Text -> m T.Text
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 -- | Take one PLC program and apply it to another.
 applyProgram
