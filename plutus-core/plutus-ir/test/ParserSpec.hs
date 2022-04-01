@@ -73,6 +73,7 @@ propRoundTrip = property $ do
         forward = fmap PrettyProg . parseProg
     tripping code forward backward
 
+-- we need to specify the signature of `parseProgram`
 parseProg :: T.Text
     -> Either
         ParserErrorBundle

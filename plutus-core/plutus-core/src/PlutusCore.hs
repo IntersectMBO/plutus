@@ -90,7 +90,6 @@ module PlutusCore
     , normalizeTypesInProgram
     , AsTypeError (..)
     , TypeError
-    , parseTypecheck
     -- for testing
     , typecheckPipeline
     -- * Errors
@@ -194,19 +193,6 @@ parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
     -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
-
--- | Parse a program and typecheck it.
-parseTypecheck :: ( AsParserErrorBundle e, AsUniqueError e SourcePos,
-   AsTypeError
-   e
-   (Term TyName Name DefaultUni DefaultFun ())
-   DefaultUni
-   DefaultFun
-   SourcePos,
- MonadError e m, MonadQuote m) =>
-    TypeCheckConfig DefaultUni DefaultFun
-    -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
-parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped . bsToText
 
 -- | Typecheck a program.
 typecheckPipeline
