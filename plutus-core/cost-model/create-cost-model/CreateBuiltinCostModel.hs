@@ -30,7 +30,7 @@ import H.Prelude (MonadR, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
 
--- | Convert milliseconds represented as a float to picoseconds represented as a
+-- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 microToPico :: Double -> CostingInteger
 microToPico = ceiling . (1e6 *)
