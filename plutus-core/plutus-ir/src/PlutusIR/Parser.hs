@@ -22,6 +22,7 @@ import Prelude hiding (fail)
 import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
+import PlutusCore (MonadQuote)
 import PlutusCore.Error (AsParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
@@ -126,8 +127,8 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
--- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
+-- | Parse a PIR program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m) =>
+parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Text -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program

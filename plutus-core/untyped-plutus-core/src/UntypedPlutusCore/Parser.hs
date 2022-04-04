@@ -23,7 +23,7 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
-import PlutusCore.Error (AsParserErrorBundle, ParserErrorBundle)
+import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.Parser hiding (parseProgram, parseTerm)
 
 -- Parsers for UPLC terms

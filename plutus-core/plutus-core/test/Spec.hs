@@ -134,7 +134,7 @@ testLexConstant :: Assertion
 testLexConstant =
     for_ smallConsts $ \t -> do
             let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
-                res = runQuoteT $ parseTerm $ reprint t
+                res = runQuoteT $ parseTerm $ displayPlcDef t
             -- using `void` here to get rid of `SourcePos`
             fmap void res @?= Right t
         where

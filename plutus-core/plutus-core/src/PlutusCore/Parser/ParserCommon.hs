@@ -57,7 +57,7 @@ toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserError
 toErrorB (Left err) = Left $ ParseErrorB err
 toErrorB (Right a)  = Right a
 
--- | Generic parser function.
+-- | Generic parser function in which the file path is just "test".
 parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> T.Text -> m a
 parseGen stuff = parse stuff "test"
 
