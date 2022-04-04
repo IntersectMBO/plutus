@@ -56,14 +56,18 @@ nix-shell --run "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
-echo -e "Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
-echo -e "<details>" >>bench-compare-result.log
-echo -e "<summary>Results table</summary>" >>bench-compare-result.log
-# This blank line is important, otherwise Github doesn't render markdown in the body of the details element.
+{
+# The blank line is important, otherwise Github doesn't render markdown in the body of the details element.
 # See https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d for examples
-echo -e "" >>bench-compare-result.log
-./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}" >>bench-compare-result.log
-echo -e "</details>" >>bench-compare-result.log
+cat <<EOF >> bench-compare-result.log
+Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
+<details>
+<summary>Results table</summary>
+
+EOF
+./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}"
+echo -e "</details>"
+} > bench-compare-result.log
 
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
