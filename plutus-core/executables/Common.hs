@@ -267,9 +267,9 @@ helpText lang =
 ---------------- Reading programs from files ----------------
 
 -- Read a PLC source program
-getInput :: Input -> IO String
-getInput (FileInput file) = readFile file
-getInput StdInput         = getContents
+getInput :: Input -> IO T.Text
+getInput (FileInput file) = T.readFile file
+getInput StdInput         = T.getContents
 
 -- | Read and parse a source program
 parseInput ::
@@ -279,9 +279,9 @@ parseInput ::
   -- | The output is either a UPLC or PLC program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
-    bsContents <- T.pack <$> getInput inp
+    contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram bsContents of
+    case parseProgram contents of
       -- when fail, pretty print the parse errors.
       Left (err :: ParserErrorBundle) ->
         errorWithoutStackTrace $ show err
