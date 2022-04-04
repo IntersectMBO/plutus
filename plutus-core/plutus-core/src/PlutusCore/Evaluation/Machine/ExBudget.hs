@@ -97,7 +97,7 @@ possible to adjust them at runtime.
        involves the use of floating-point numbers.
 
        Builtin execution times are typically of the order of 10^(-6) or 10^(-7)
-       seconds, and the benching data is converted to milliseconds in 'models.R'
+       seconds, and the benching data is converted to microseconds in 'models.R'
        because it's sometimes useful to work with the data interactively and this
        makes the numbers a lot more human-readable.
 
@@ -105,7 +105,7 @@ possible to adjust them at runtime.
        CreateBuiltinCostModel and written out to a JSON file.  To avoid the
        use of floats in JSON and in cost prediction at runtime (which might be
        machine-dependent if floats were used), numbers are multiplied by 10^6
-       and rounded to the nearest integer, shfting from the millisecond scale to
+       and rounded to the nearest integer, shfting from the microsecond scale to
        the picosecond scale.  This rescaling is safe because all of our models
        are (currently) linear in their inputs.
 

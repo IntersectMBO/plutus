@@ -12,15 +12,15 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
 import Barbies (bmap, bsequence)
-import Control.Applicative
-import Control.Exception (TypeError (..))
+import Control.Applicative (Const (Const, getConst))
+import Control.Exception (TypeError (TypeError))
 import Control.Monad.Catch (throwM)
 import Data.ByteString.Hash qualified as PlutusHash
 import Data.ByteString.Lazy qualified as BSL (fromStrict)
 import Data.Coerce (coerce)
-import Data.Csv (FromNamedRecord, FromRecord, HasHeader (..), decode, parseNamedRecord, (.:))
+import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
 import Data.Either.Extra (maybeToEither)
-import Data.Functor.Compose (Compose (..))
+import Data.Functor.Compose (Compose (Compose))
 import Data.Text (Text)
 import Data.Text.Encoding qualified as T (encodeUtf8)
 import Data.Vector (Vector, find)
@@ -30,10 +30,10 @@ import H.Prelude (MonadR, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
 
--- | Convert milliseconds represented as a float to picoseconds represented as a
+-- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
-msToPs :: Double -> CostingInteger
-msToPs = ceiling . (1e6 *)
+microToPico :: Double -> CostingInteger
+microToPico = ceiling . (1e6 *)
 
 {- See CostModelGeneration.md for a description of what this does. -}
 
@@ -223,7 +223,7 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (msToPs intercept, msToPs slope)
+        pure $ (microToPico intercept, microToPico slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -238,7 +238,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (msToPs intercept, msToPs slope1, msToPs slope2)
+        pure $ (microToPico intercept, microToPico slope1, microToPico slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
