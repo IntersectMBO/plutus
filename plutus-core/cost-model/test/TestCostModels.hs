@@ -42,7 +42,7 @@ import Hedgehog.Range qualified as Range
    versions use CostingIntegers, and there will be some difference in precision
    because of this. (B) The R models produce results in milliseconds and the
    Haskell versions produce results in picoseconds. We deal with (B) by using
-   the msToPs function from CreateBuiltinCostModel to convert R results to
+   the microToPico function from CreateBuiltinCostModel to convert R results to
    picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
    for exact equality of the outputs but instead check that the R result and the
    Haskell result agreee to within a factor of 1/100 (one percent).
@@ -138,10 +138,10 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
   let
     predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
-      let
-        xD = fromIntegral x :: Double
-      in
-       msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
+        let
+            xD = fromIntegral x :: Double
+        in
+          microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
     predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = memUsageGen
@@ -166,7 +166,7 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = case domain of
@@ -194,7 +194,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
         yD = fromIntegral y :: Double
         zD = fromIntegral z :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
@@ -223,8 +223,8 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
         vD = fromIntegral v :: Double
         wD = fromIntegral w :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
-                                     u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+                                          u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
                                                      (ExMemory x) (ExMemory y) (ExMemory z) (ExMemory u) (ExMemory v) (ExMemory w)
