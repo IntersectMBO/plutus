@@ -40,7 +40,7 @@ import Hedgehog.Range qualified as Range
    produce the same results as the Haskell versions. However there are a couple
    of subtleties.  (A) The R models use floating point numbers and the Haskell
    versions use CostingIntegers, and there will be some difference in precision
-   because of this. (B) The R models produce results in milliseconds and the
+   because of this. (B) The R models produce results in microseconds and the
    Haskell versions produce results in picoseconds. We deal with (B) by using
    the microToPico function from CreateBuiltinCostModel to convert R results to
    picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
