@@ -11,7 +11,6 @@ module PlutusCore
     , parseType
     , parseScoped
     , topSourcePos
-    , bsToText
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
@@ -159,10 +158,7 @@ import PlutusCore.TypeCheck as TypeCheck
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Control.Monad.Except
-import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
-import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Encoding (decodeUtf8')
 import PlutusCore.Parser (parseProgram, parseTerm, parseType)
 import Text.Megaparsec (SourcePos, initialPos)
 
@@ -177,12 +173,6 @@ printType txt = runQuoteT $ T.pack . show . pretty <$> do
     scoped <- parseScoped txt
     config <- getDefTypeCheckConfig topSourcePos
     inferTypeOfProgram config scoped
-
-bsToText :: BSL.ByteString -> T.Text
-bsToText bs = toStrict $
-    case decodeUtf8' bs of
-        Left err  -> error $ "bsToText: Decoding from bytestring to text failed with unicode exception: " <> show err
-        Right txt -> txt
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
