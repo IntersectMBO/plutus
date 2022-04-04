@@ -70,6 +70,7 @@ recursion = testNested "recursion"
     , goldenEvalPir pTerm "even3Eval"
     , goldenPlcFromPir pTerm "stupidZero"
     , goldenPlcFromPir pTerm "mutuallyRecursiveValues"
+    , goldenEvalPir pTerm "errorBinding"
     ]
 
 serialization :: TestNested

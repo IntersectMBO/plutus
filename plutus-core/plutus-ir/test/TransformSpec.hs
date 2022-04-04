@@ -51,6 +51,7 @@ thunkRecursions = testNested "thunkRecursions"
     $ map (goldenPir ThunkRec.thunkRecursions pTerm)
     [ "listFold"
     , "monoMap"
+    , "errorBinding"
     ]
 
 nonStrict :: TestNested
