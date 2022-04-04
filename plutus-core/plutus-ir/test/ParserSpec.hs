@@ -73,11 +73,12 @@ propRoundTrip = property $ do
         forward = fmap PrettyProg . parseProg
     tripping code forward backward
 
+-- we need to specify the signature of `parseProgram`
 parseProg :: T.Text
     -> Either
         ParserErrorBundle
         (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseProg = parse program "test"
+parseProg = parseProgram
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do

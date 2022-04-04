@@ -17,8 +17,6 @@ import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 import Control.Monad.Error.Lens (throwing)
 import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
-import Data.ByteString.Lazy (ByteString)
-import Data.ByteString.Lazy.Internal (unpackChars)
 import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
@@ -56,9 +54,9 @@ parse p file str =
         Left peb -> throwing _ParserErrorBundle (ParseErrorB peb)
         Right a  -> pure a
 
--- | Generic parser function.
-parseGen :: (AsParserErrorBundle e, MonadError e m) => Parser a -> ByteString -> m a
-parseGen stuff bs = parse stuff "test" $ (T.pack . unpackChars) bs
+-- | Generic parser function in which the file path is just "test".
+parseGen :: (AsParserErrorBundle e, MonadError e m) => Parser a -> T.Text -> m a
+parseGen stuff = parse stuff "test"
 
 -- | Space consumer.
 whitespace :: Parser ()

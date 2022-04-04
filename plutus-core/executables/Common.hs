@@ -41,7 +41,6 @@ import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
-import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as T
 import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
@@ -72,7 +71,7 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    BSL.ByteString ->
+    T.Text ->
       Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
@@ -268,9 +267,9 @@ helpText lang =
 ---------------- Reading programs from files ----------------
 
 -- Read a PLC source program
-getInput :: Input -> IO String
-getInput (FileInput file) = readFile file
-getInput StdInput         = getContents
+getInput :: Input -> IO T.Text
+getInput (FileInput file) = T.readFile file
+getInput StdInput         = T.getContents
 
 -- | Read and parse a source program
 parseInput ::
@@ -280,9 +279,9 @@ parseInput ::
   -- | The output is either a UPLC or PLC program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
-    bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
+    contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram bsContents of
+    case parseProgram contents of
       -- when fail, pretty print the parse errors.
       Left (err :: ParserErrorBundle) ->
         errorWithoutStackTrace $ show err

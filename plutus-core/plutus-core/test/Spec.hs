@@ -33,11 +33,13 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
+import Data.Text.IO (readFile)
 import Data.Word (Word64)
 import Flat (flat, unflat)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.HUnit
@@ -124,9 +126,6 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
 
 type DefaultError = Error DefaultUni DefaultFun SourcePos
 
-reprint :: PrettyPlc a => a -> BSL.ByteString
-reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
-
 {-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here
    because there are only three possibilities (@()@, @false@, and @true@). -}
@@ -135,7 +134,7 @@ testLexConstant =
     mapM_
         (\t ->
             (fmap
-                void . (parseTerm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). reprint $ t) @?= Right t) smallConsts
+                void . (parseTerm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)). displayPlcDef $ t) @?= Right t) smallConsts
         where
           smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
@@ -178,9 +177,9 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
     where
-        parseTm :: BSL.ByteString -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+        parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
         parseTm = parseTerm
 
 
@@ -189,16 +188,16 @@ propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
-    Hedgehog.tripping prog (reprint . unTextualProgram)
+    Hedgehog.tripping prog (displayPlcDef . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
-        parseProg :: BSL.ByteString -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
+        parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
         parseProg = parseProgram
 
-type TestFunction = BSL.ByteString -> Either DefaultError T.Text
+type TestFunction = T.Text -> Either DefaultError T.Text
 
 asIO :: TestFunction -> FilePath -> IO BSL.ByteString
-asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
+asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
@@ -228,7 +227,7 @@ tests = testCase "example programs" $ fold
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
     ]
     where
-        fmt :: BSL.ByteString -> Either ParserErrorBundle T.Text
+        fmt :: T.Text -> Either ParserErrorBundle T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 

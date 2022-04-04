@@ -89,7 +89,6 @@ module PlutusCore
     , normalizeTypesInProgram
     , AsTypeError (..)
     , TypeError
-    , parseTypecheck
     -- for testing
     , typecheckPipeline
     -- * Errors
@@ -159,7 +158,6 @@ import PlutusCore.TypeCheck as TypeCheck
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Control.Monad.Except
-import Data.ByteString.Lazy qualified as BSL
 import Data.Text qualified as T
 import PlutusCore.Parser (parseProgram, parseTerm, parseType)
 import Text.Megaparsec (SourcePos, initialPos)
@@ -169,10 +167,10 @@ topSourcePos = initialPos "top"
 
 printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
-    => BSL.ByteString
+    => T.Text
     -> m T.Text
-printType bs = runQuoteT $ T.pack . show . pretty <$> do
-    scoped <- parseScoped bs
+printType txt = runQuoteT $ T.pack . show . pretty <$> do
+    scoped <- parseScoped txt
     config <- getDefTypeCheckConfig topSourcePos
     inferTypeOfProgram config scoped
 
@@ -181,23 +179,10 @@ printType bs = runQuoteT $ T.pack . show . pretty <$> do
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
         MonadError e m, MonadQuote m) =>
-    BSL.ByteString
+    T.Text
     -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
-
--- | Parse a program and typecheck it.
-parseTypecheck :: ( AsParserErrorBundle e, AsUniqueError e SourcePos,
-   AsTypeError
-   e
-   (Term TyName Name DefaultUni DefaultFun ())
-   DefaultUni
-   DefaultFun
-   SourcePos,
- MonadError e m, MonadQuote m) =>
-    TypeCheckConfig DefaultUni DefaultFun
-    -> BSL.ByteString -> m (Normalized (Type TyName DefaultUni ()))
-parseTypecheck cfg = typecheckPipeline cfg <=< parseScoped
 
 -- | Typecheck a program.
 typecheckPipeline
@@ -210,7 +195,7 @@ typecheckPipeline
 typecheckPipeline = inferTypeOfProgram
 format
     :: (AsParserErrorBundle e, MonadError e m)
-    => PrettyConfigPlc -> BSL.ByteString -> m T.Text
+    => PrettyConfigPlc -> T.Text -> m T.Text
 format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 -- | Take one PLC program and apply it to another.
