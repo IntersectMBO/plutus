@@ -568,8 +568,8 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
         let !(errOrRes, logs) = runEmitter $ runExceptT getX
         ?cekEmitter logs
         case errOrRes of
-            Left err -> throwReadKnownErrorWithCause $ term <$ err
-            Right x  -> pure x
+            Left err  -> throwKnownTypeErrorWithCause $ term <$ err
+            Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
 
@@ -710,7 +710,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
             RuntimeSchemeArrow schB -> case f arg of
-                Left err -> throwReadKnownErrorWithCause $ argTerm <$ err
+                Left err -> throwKnownTypeErrorWithCause $ argTerm <$ err
                 Right y  -> do
                     -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.

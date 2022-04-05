@@ -76,7 +76,7 @@ defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
 defaultUnliftingMode :: UnliftingMode
-defaultUnliftingMode = UnliftingDeferred
+defaultUnliftingMode = UnliftingImmediate
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
@@ -87,7 +87,7 @@ unitCekParameters =
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime UnliftingImmediate defaultBuiltinCostModel
+defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

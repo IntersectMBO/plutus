@@ -277,7 +277,6 @@
           "UntypedPlutusCore/DeBruijn"
           "UntypedPlutusCore/Evaluation/Machine/Cek"
           "UntypedPlutusCore/Evaluation/Machine/Cek/Internal"
-          "UntypedPlutusCore/Evaluation/Machine/Cek/Debug"
           "UntypedPlutusCore/Parser"
           "UntypedPlutusCore/Rename"
           "UntypedPlutusCore/MkUPlc"
@@ -618,6 +617,7 @@
           buildable = true;
           modules = [
             "Evaluation/Builtins"
+            "Evaluation/Builtins/Coherence"
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
