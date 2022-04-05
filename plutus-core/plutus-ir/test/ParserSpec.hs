@@ -18,6 +18,7 @@ import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
+import PlutusCore (runQuoteT)
 import PlutusCore.Error (ParserErrorBundle)
 import Test.Tasty
 import Test.Tasty.Extras
@@ -73,12 +74,12 @@ propRoundTrip = property $ do
         forward = fmap PrettyProg . parseProg
     tripping code forward backward
 
--- we need to specify the signature of `parseProgram`
 parseProg :: T.Text
     -> Either
         ParserErrorBundle
         (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseProg = parseProgram
+parseProg p =
+    runQuoteT $ parse program "test" p
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do

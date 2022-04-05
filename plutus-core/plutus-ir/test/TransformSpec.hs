@@ -2,6 +2,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module TransformSpec (transform) where
 
 import Test.Tasty.Extras

@@ -91,8 +91,15 @@ goldenPir op = goldenPirM (return . op)
 
 goldenPirM :: forall a b . Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
-    where parseOrError = either (return . T.pack . show) (fmap display . op)
-                         . (parse parser name :: T.Text -> Either ParserErrorBundle a)
+    where
+        parseOrError :: T.Text -> IO T.Text
+        parseOrError =
+            let parseTxt :: T.Text -> Either ParserErrorBundle a
+                parseTxt txt = runQuoteT $ parse parser name txt
+            in
+            either (return . T.pack . show) (fmap display . op)
+                         . parseTxt
+
 
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug

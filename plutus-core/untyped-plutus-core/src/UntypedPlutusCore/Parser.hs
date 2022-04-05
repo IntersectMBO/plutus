@@ -78,18 +78,18 @@ program = whitespace >> do
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseTerm :: (AsParserErrorBundle e, MonadError e m) => Text -> m PTerm
+parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m PTerm
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m) => Text -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProgram :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
-    (AsParserErrorBundle e, PLC.MonadQuote m, PLC.AsUniqueError e SourcePos, MonadError e m)
+    (AsParserErrorBundle e, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
     => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
