@@ -34,8 +34,14 @@ import GHC.Generics
 type DefaultMachineParameters =
     Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 
--- | An opaque type that contains all the static parameters that the evaluator needs to evaluate a script.
--- This is so that they can be computed once and cached, rather than recomputed on every evaluation.
+-- | An opaque type that contains all the static parameters that the evaluator needs to evaluate a
+-- script.  This is so that they can be computed once and cached, rather than recomputed on every
+-- evaluation.
+--
+-- There are two sets of parameters: one is with immediate unlifting and the other one is with
+-- deferred unlifting. We have to keep both of them, because depending on the language version
+-- either one has to be used or the other. We also compile them separately due to all the inlining
+-- and optimization that need to happen for things to be efficient.
 data EvaluationContext = EvaluationContext
     { machineParametersImmediate :: DefaultMachineParameters
     , machineParametersDeferred  :: DefaultMachineParameters
