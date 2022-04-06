@@ -70,6 +70,7 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
+    -- | Get the 'BuiltinMeaning' of a built-in function.
     toBuiltinMeaning :: HasConstantIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.

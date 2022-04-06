@@ -1,8 +1,16 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
+-- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
+-- ticks for the simplifier not to run out of them.
+{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
+
 module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
     , isCostModelParamsWellFormed
+    , machineParametersImmediate
+    , machineParametersDeferred
     , toMachineParameters
     , costModelParamNames
     , costModelParamsForTesting
@@ -21,12 +29,24 @@ import Data.Maybe
 import Data.Set as Set
 import Data.Text qualified as Text
 import GHC.Exts (inline)
+import GHC.Generics
+
+type DefaultMachineParameters =
+    Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 
 -- | An opaque type that contains all the static parameters that the evaluator needs to evaluate a script.
 -- This is so that they can be computed once and cached, rather than recomputed on every evaluation.
-newtype EvaluationContext = EvaluationContext
-    { toMachineParameters :: Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun }
-    deriving newtype NFData
+data EvaluationContext = EvaluationContext
+    { machineParametersImmediate :: DefaultMachineParameters
+    , machineParametersDeferred  :: DefaultMachineParameters
+    }
+    deriving stock Generic
+    deriving anyclass NFData
+
+toMachineParameters :: EvaluationContext -> DefaultMachineParameters
+toMachineParameters = case defaultUnliftingMode of
+    UnliftingImmediate -> machineParametersImmediate
+    UnliftingDeferred  -> machineParametersDeferred
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -50,23 +70,21 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
+mkMachineParametersFor :: UnliftingMode -> Plutus.CostModelParams -> Maybe DefaultMachineParameters
+mkMachineParametersFor unlMode newCMP =
+    inline Plutus.mkMachineParameters unlMode <$>
+        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+{-# INLINE mkMachineParametersFor #-}
+
 -- See Note [Inlining meanings of builtins].
 -- | Build the 'EvaluationContext'.
 --
 -- The input is a `Map` of strings to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
-mkEvaluationContextUnliftingImmediate :: Plutus.CostModelParams -> Maybe EvaluationContext
-mkEvaluationContextUnliftingImmediate newCMP =
-    EvaluationContext . inline Plutus.mkMachineParameters UnliftingImmediate <$>
-        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
-
-mkEvaluationContextUnliftingDeferred :: Plutus.CostModelParams -> Maybe EvaluationContext
-mkEvaluationContextUnliftingDeferred newCMP =
-    EvaluationContext . inline Plutus.mkMachineParameters UnliftingImmediate <$>
-        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
-
-mkEvaluationContext :: UnliftingMode -> Plutus.CostModelParams -> Maybe EvaluationContext
-mkEvaluationContext UnliftingImmediate = mkEvaluationContextUnliftingImmediate
-mkEvaluationContext UnliftingDeferred  = mkEvaluationContextUnliftingDeferred
+mkEvaluationContext :: Plutus.CostModelParams -> Maybe EvaluationContext
+mkEvaluationContext newCMP =
+    EvaluationContext
+        <$> inline mkMachineParametersFor UnliftingImmediate newCMP
+        <*> inline mkMachineParametersFor UnliftingDeferred newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 isCostModelParamsWellFormed :: Plutus.CostModelParams -> Bool
@@ -83,4 +101,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = fromJust $ mkEvaluationContext defaultUnliftingMode mempty
+evalCtxForTesting = fromJust $ mkEvaluationContext mempty
