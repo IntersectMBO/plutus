@@ -93,15 +93,14 @@ data BuiltinRuntime val =
 -- is performed immediately after a builtin gets the argument and so can fail immediately too, while
 -- with deferred unlifting all arguments are unlifted upon full saturation, hence no failure can
 -- occur until that. The former makes it much harder to specify the behaviour of builtins and
--- so 'UnliftingDeferred' is the prefered mode. 'UnliftingDeferred' is faster too, but not by much
--- (in the order of a few percent of total evaluation time).
+-- so 'UnliftingDeferred' is the preferred mode.
 data UnliftingMode
     = UnliftingImmediate
     | UnliftingDeferred
 
 -- | A 'BuiltinRuntimeOptions' is a precursor to 'BuiltinRuntime'. One gets the latter from the
 -- former by choosing the runtime denotation of the builtin (either '_broImmediateF' for immediate
--- unlifting or '_broDeferredF' for deferred unlifting, see 'UnliftingMode' for detauls) and by
+-- unlifting or '_broDeferredF' for deferred unlifting, see 'UnliftingMode' for details) and by
 -- instantiating '_broToExF' with a cost model to get the costing function for the builtin.
 data BuiltinRuntimeOptions n val cost = BuiltinRuntimeOptions
     { _broRuntimeScheme :: RuntimeScheme n

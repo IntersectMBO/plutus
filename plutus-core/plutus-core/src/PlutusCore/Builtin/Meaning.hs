@@ -137,6 +137,18 @@ type family GetArgs a where
     GetArgs _        = '[]
 
 -- | A class that allows us to derive a monotype for a builtin.
+-- We could've easily computed a 'RuntimeScheme' from a 'TypeScheme' but not statically (due to
+-- unfolding not working for recursive functions and 'TypeScheme' is recursive, i.e. the conversion
+-- can only be a recursive function), and so it would cause us to retain a lot of
+-- evaluation-irrelevant stuff in the constructors of 'TypeScheme', which makes it much harder to
+-- read the Core. Technically speaking, we could convert a 'TypeScheme' to a 'RuntimeScheme'
+-- statically if we changed the definition of 'TypeScheme' and made it a singleton, but then the
+-- conversion function would have to become a class anyway and we'd just replicate what we have here,
+-- except in a much more complicated way.
+-- It's also more efficient to generate 'RuntimeScheme's directly, but that shouldn't really matter, -- given that they computed only once and cached afterwards.
+--
+-- Similarly, we could've computed 'toImmediateF' and 'toDeferredF' from a 'TypeScheme' but not
+-- statically again, and that would break inlining and basically all the optimization.
 class KnownMonotype val args res a | args res -> a, a -> res where
     knownMonotype :: TypeScheme val args res
     knownMonoruntime :: RuntimeScheme (Length args)
