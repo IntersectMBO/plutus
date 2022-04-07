@@ -91,7 +91,8 @@ type TypeEvalCheckM uni fun = Either (TypeEvalCheckError uni fun)
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
+    :: ( uni ~ DefaultUni, fun ~ DefaultFun
+       , KnownType uni a, AssociateValueMake uni a (Term TyName Name uni fun ())
        , PrettyPlc internal
        )
     => (Term TyName Name uni fun () ->
@@ -117,7 +118,9 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a)
+    :: ( uni ~ DefaultUni, fun ~ DefaultFun
+       , KnownType uni a, AssociateValueMake uni a (Term TyName Name uni fun ())
+       )
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do
