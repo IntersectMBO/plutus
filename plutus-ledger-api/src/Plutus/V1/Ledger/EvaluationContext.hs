@@ -1,15 +1,24 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
+-- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
+-- ticks for the simplifier not to run out of them.
+{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
+
 module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
     , isCostModelParamsWellFormed
+    , machineParametersImmediate
+    , machineParametersDeferred
     , toMachineParameters
     , costModelParamNames
     , costModelParamsForTesting
     , evalCtxForTesting
     ) where
 
-import PlutusCore as Plutus (DefaultFun, DefaultUni, defaultCekCostModel, defaultCostModelParams)
+import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel, defaultCostModelParams,
+                             defaultUnliftingMode)
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
@@ -20,12 +29,30 @@ import Data.Maybe
 import Data.Set as Set
 import Data.Text qualified as Text
 import GHC.Exts (inline)
+import GHC.Generics
 
--- | An opaque type that contains all the static parameters that the evaluator needs to evaluate a script.
--- This is so that they can be computed once and cached, rather than recomputed on every evaluation.
-newtype EvaluationContext = EvaluationContext
-    { toMachineParameters :: Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun }
-    deriving newtype NFData
+type DefaultMachineParameters =
+    Plutus.MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+
+-- | An opaque type that contains all the static parameters that the evaluator needs to evaluate a
+-- script.  This is so that they can be computed once and cached, rather than recomputed on every
+-- evaluation.
+--
+-- There are two sets of parameters: one is with immediate unlifting and the other one is with
+-- deferred unlifting. We have to keep both of them, because depending on the language version
+-- either one has to be used or the other. We also compile them separately due to all the inlining
+-- and optimization that need to happen for things to be efficient.
+data EvaluationContext = EvaluationContext
+    { machineParametersImmediate :: DefaultMachineParameters
+    , machineParametersDeferred  :: DefaultMachineParameters
+    }
+    deriving stock Generic
+    deriving anyclass NFData
+
+toMachineParameters :: EvaluationContext -> DefaultMachineParameters
+toMachineParameters = case defaultUnliftingMode of
+    UnliftingImmediate -> machineParametersImmediate
+    UnliftingDeferred  -> machineParametersDeferred
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -49,14 +76,21 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
+mkMachineParametersFor :: UnliftingMode -> Plutus.CostModelParams -> Maybe DefaultMachineParameters
+mkMachineParametersFor unlMode newCMP =
+    inline Plutus.mkMachineParameters unlMode <$>
+        Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+{-# INLINE mkMachineParametersFor #-}
+
 -- See Note [Inlining meanings of builtins].
 -- | Build the 'EvaluationContext'.
 --
 -- The input is a `Map` of strings to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
-mkEvaluationContext :: Plutus.CostModelParams
-                    -> Maybe EvaluationContext
+mkEvaluationContext :: Plutus.CostModelParams -> Maybe EvaluationContext
 mkEvaluationContext newCMP =
-    EvaluationContext . inline Plutus.mkMachineParameters <$> Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
+    EvaluationContext
+        <$> inline mkMachineParametersFor UnliftingImmediate newCMP
+        <*> inline mkMachineParametersFor UnliftingDeferred newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 isCostModelParamsWellFormed :: Plutus.CostModelParams -> Bool

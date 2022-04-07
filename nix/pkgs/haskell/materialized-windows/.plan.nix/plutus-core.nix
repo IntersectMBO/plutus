@@ -543,6 +543,7 @@
           buildable = true;
           modules = [
             "Evaluation/Builtins"
+            "Evaluation/Builtins/Coherence"
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
