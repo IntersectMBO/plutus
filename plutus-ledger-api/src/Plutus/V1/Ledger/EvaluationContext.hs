@@ -17,11 +17,12 @@ module Plutus.V1.Ledger.EvaluationContext
     , evalCtxForTesting
     ) where
 
-import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel, defaultCostModelParams,
-                             defaultUnliftingMode)
+import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel, defaultCostModelParams)
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
+
+import Plutus.ApiCommon
 
 import Control.DeepSeq
 import Data.Map as Map
@@ -49,8 +50,8 @@ data EvaluationContext = EvaluationContext
     deriving stock Generic
     deriving anyclass NFData
 
-toMachineParameters :: EvaluationContext -> DefaultMachineParameters
-toMachineParameters = case defaultUnliftingMode of
+toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
+toMachineParameters pv = case unliftingModeIn pv of
     UnliftingImmediate -> machineParametersImmediate
     UnliftingDeferred  -> machineParametersDeferred
 
