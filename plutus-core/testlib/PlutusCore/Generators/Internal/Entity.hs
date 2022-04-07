@@ -78,7 +78,7 @@ instance (PrettyBy config head, PrettyBy config arg) => PrettyBy config (IterApp
         parens $ foldl' (\fun arg -> fun <+> prettyBy config arg) (prettyBy config appHead) appSpine
 
 -- | One iterated application of a @head@ to @arg@s represented in three distinct ways.
-data IterAppValue uni fun head arg r = KnownType (UniOf arg) r => IterAppValue
+data IterAppValue uni fun head arg r = KnownType arg r => IterAppValue
     { _iterTerm :: Plain Term uni fun  -- ^ As a PLC 'Term'.
     , _iterApp  :: IterApp head arg    -- ^ As an 'IterApp'.
     , _iterTbv  :: r                   -- ^ As a Haskell value.
@@ -111,8 +111,8 @@ revealUnique (Name name uniq) =
 -- TODO: we can generate more types here.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: forall term m c uni. (uni ~ DefaultUni, Monad m)
-    => (forall a. AsKnownType uni a -> GenT m c) -> GenT m c
+    :: forall term m c uni. (uni ~ DefaultUni, HasConstantIn uni term, Monad m)
+    => (forall a. AsKnownType term a -> GenT m c) -> GenT m c
 withTypedBuiltinGen k = Gen.choice
     [ k @Integer       AsKnownType
     , k @BS.ByteString AsKnownType
@@ -124,7 +124,7 @@ withTypedBuiltinGen k = Gen.choice
 withCheckedTermGen
     :: forall m c uni fun. (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
-    -> (forall a. AssociateValueMake uni a (Plain Term uni fun) => AsKnownType uni a ->
+    -> (forall a. AsKnownType (Plain Term uni fun) a ->
             TermOf (Plain Term uni fun) (EvaluationResult (Plain Term uni fun)) ->
                 GenT m c)
     -> GenT m c
@@ -148,7 +148,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme uni args res
+        :: TypeScheme (Plain Term uni fun) args res
         -> Plain Term uni fun
         -> ([Plain Term uni fun] -> [Plain Term uni fun])
         -> FoldArgs args res
@@ -184,7 +184,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
     go
         :: DenotationContext (Plain Term uni fun)
         -> Int
-        -> AsKnownType uni r
+        -> AsKnownType (Plain Term uni fun) r
         -> GenT (QuoteT m) (TermOf (Plain Term uni fun) r)
     go context depth akt
         -- FIXME: should be using 'variables' but this is now the same as 'recursive'
@@ -231,7 +231,7 @@ genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
      :: forall m c uni fun. (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
-     => (forall a. KnownType uni a => TermOf (Plain Term uni fun) a -> GenT m c)
+     => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k =
     withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> genTermLoose akt >>= k

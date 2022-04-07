@@ -48,7 +48,7 @@ data TermOf term a = TermOf
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
-type TypedBuiltinGenT term m = forall a. AsKnownType (UniOf term) a -> GenT m (TermOf term a)
+type TypedBuiltinGenT term m = forall a. AsKnownType term a -> GenT m (TermOf term a)
 
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen term = TypedBuiltinGenT term Identity
@@ -58,7 +58,7 @@ instance (PrettyBy config a, PrettyBy config term) =>
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm
-    :: (Monad m, KnownType (UniOf term) a, AssociateValueMake (UniOf term) a term, PrettyConst a)
+    :: (Monad m, KnownType term a, PrettyConst a)
     => GenT m a -> GenT m (TermOf term a)
 attachCoercedTerm a = do
     x <- a
@@ -73,10 +73,7 @@ attachCoercedTerm a = do
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: forall a term m.
-        ( GShow (UniOf term), KnownType (UniOf term) a, AssociateValueMake (UniOf term) a term
-        , PrettyConst a, Monad m
-        )
+    :: forall a term m. (GShow (UniOf term), KnownType term a, PrettyConst a, Monad m)
     => GenT m a                  -- ^ A new generator.
     -> TypedBuiltinGenT term m   -- ^ An old typed built-ins generator.
     -> TypedBuiltinGenT term m   -- ^ The updated typed built-ins generator.

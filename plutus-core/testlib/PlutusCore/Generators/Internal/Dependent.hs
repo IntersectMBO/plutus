@@ -18,6 +18,7 @@ module PlutusCore.Generators.Internal.Dependent
 import PlutusPrelude
 
 import PlutusCore.Builtin
+import PlutusCore.Core
 
 import Data.GADT.Compare
 import Universe
@@ -28,16 +29,16 @@ liftOrdering LT = GLT
 liftOrdering EQ = error "'liftOrdering': 'Eq'"
 liftOrdering GT = GGT
 
-type KnownType uni a = (KnownTypeAst uni a, MakeKnownIn uni a)
+type KnownType val a = (KnownTypeAst (UniOf val) a, MakeKnown val a)
 
 -- | Contains a proof that @a@ is a 'KnownType'.
-data AsKnownType uni a where
-    AsKnownType :: KnownType uni a => AsKnownType uni a
+data AsKnownType term a where
+    AsKnownType :: KnownType term a => AsKnownType term a
 
-instance GShow uni => Pretty (AsKnownType uni a) where
-    pretty a@AsKnownType = pretty $ toTypeAst @_ @uni a
+instance GShow (UniOf term) => Pretty (AsKnownType term a) where
+    pretty a@AsKnownType = pretty $ toTypeAst @_ @(UniOf term) a
 
-instance GShow uni => GEq (AsKnownType uni) where
+instance GShow (UniOf term) => GEq (AsKnownType term) where
     a `geq` b = do
         -- TODO: there is a HUGE problem here. @EvaluationResult a@ and @a@ have the same string
         -- representation currently, so we need to either fix that or come up with a more sensible
@@ -48,11 +49,11 @@ instance GShow uni => GEq (AsKnownType uni) where
         guard $ display @String a == display b
         Just $ unsafeCoerce Refl
 
-instance GShow uni => GCompare (AsKnownType uni) where
+instance GShow (UniOf term) => GCompare (AsKnownType term) where
     a `gcompare` b
         | Just Refl <- a `geq` b = GEQ
         | otherwise              = liftOrdering $ display @String a `compare` display b
 
 -- | Turn any @proxy a@ into an @AsKnownType a@ provided @a@ is a 'KnownType'.
-proxyAsKnownType :: KnownType uni a => proxy a -> AsKnownType uni a
+proxyAsKnownType :: KnownType term a => proxy a -> AsKnownType term a
 proxyAsKnownType _ = AsKnownType
