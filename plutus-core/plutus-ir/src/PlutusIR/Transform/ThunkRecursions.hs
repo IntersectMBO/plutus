@@ -4,9 +4,13 @@
 -- compilable to PLC. See Note [Thunking recursions] for details.
 module PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
 
-import PlutusPrelude
-
+import Control.Lens (transformOf)
+import Data.List.NonEmpty (partition)
+import Data.Maybe (mapMaybe)
+import PlutusCore.Builtin
 import PlutusIR
+import PlutusIR.MkPir (mkLet, mkVar)
+import PlutusIR.Purity (isPure)
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values
@@ -67,6 +71,27 @@ in and edit the body of the function definition.
 Fortunately, we can implement this quite simply by using another feature of PIR: non-strict
 let bindings. Non-strict let bindings are exactly delayed like this, so we can simply toggle
 any recursive, non-function bindings to become non-strict bindings.
+
+We *do* still need a strict adapter binding, so that any effects of the RHS of the binding
+will still get triggered, e.g.
+
+    let rec x = error
+            y = x
+    in x
+
+becomes
+
+    let rec x = \() -> error
+            y = x ()
+    in let x = x () -- error gets triggered here
+    in x
+
+To do this without having to do lots of substitutions, we use the same identifier for the
+recursive binding and the adapter binding, so this pass destroys global uniqueness.
+
+At the moment we only do this for bindings whose RHS is potentially impure, although in
+principle it could be an improvement in other cases because it would allow using the faster
+strict binding in the body. Unclear.
 -}
 
 isFunctionType :: Type tyname uni a -> Bool
@@ -74,16 +99,35 @@ isFunctionType = \case
     TyFun {} -> True
     _        -> False
 
-thunkBinding :: Binding tyname name uni fun a -> Binding tyname name uni fun a
-thunkBinding = \case
-    TermBind x Strict d@(VarDecl _ _ ty) rhs | not $ isFunctionType ty -> TermBind x NonStrict d rhs
-    b                                                                  -> b
+strictNonFunctionBinding :: Binding tyname name uni fun a -> Bool
+strictNonFunctionBinding = \case
+    TermBind _ Strict (VarDecl _ _ ty) _ | not $ isFunctionType ty -> True
+    _                                                              -> False
 
-thunkRecursions :: Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursions = \case
+nonStrictify :: Binding tyname name uni fun a -> Binding tyname name uni fun a
+nonStrictify = \case
+    TermBind x _ d rhs -> TermBind x NonStrict d rhs
+    b                  -> b
+
+mkStrictifyingBinding :: ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
+mkStrictifyingBinding = \case
+    -- Only need to strictify if the previous binding was not definitely pure
+    -- Also, we're reusing the same variable here, see Note [Thunking recursions]
+    TermBind x _ d rhs | not (isPure (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
+    _                                                       -> Nothing
+
+thunkRecursionsStep :: ToBuiltinMeaning uni fun => Term tyname name uni fun a -> Term tyname name uni fun a
+thunkRecursionsStep (Let a Rec bs t) =
     -- See Note [Thunking recursions]
-    t@(Let _ Rec _ _) -> t
-        & over termSubterms thunkRecursions
-        & over termBindings thunkBinding
-    t -> t &
-        over termSubterms thunkRecursions
+    let (toThunk, noThunk) = partition strictNonFunctionBinding bs
+        newBindings = fmap nonStrictify toThunk ++ noThunk
+        strictifiers = mapMaybe mkStrictifyingBinding toThunk
+    in mkLet a Rec newBindings $ mkLet a NonRec strictifiers t
+thunkRecursionsStep t = t
+
+-- | Thunk recursions to turn recusive values of non-function type into recursive values of function type,
+-- so we can compile them.
+--
+-- Note: this pass breaks global uniqueness!
+thunkRecursions :: ToBuiltinMeaning uni fun => Term tyname name uni fun a -> Term tyname name uni fun a
+thunkRecursions = transformOf termSubterms thunkRecursionsStep

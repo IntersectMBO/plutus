@@ -6,16 +6,14 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE ViewPatterns           #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- appears in the generated instances
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module PlutusCore.Error
     ( ParserError (..)
-    , AsParserError (..)
+    , AsParserErrorBundle (..)
+    , ParserErrorBundle (..)
     , NormCheckError (..)
     , AsNormCheckError (..)
     , UniqueError (..)
@@ -100,8 +98,16 @@ data TypeError term uni fun ann
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeError
 
+-- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
+-- on @ParseErrorBundle@.
+data ParserErrorBundle
+    = ParseErrorB (ParseErrorBundle T.Text ParserError)
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass (NFData)
+makeClassyPrisms ''ParserErrorBundle
+
 data Error uni fun ann
-    = ParseErrorE ParserError
+    = ParseErrorE ParserErrorBundle
     | UniqueCoherencyErrorE (UniqueError ann)
     | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
@@ -111,8 +117,8 @@ data Error uni fun ann
 makeClassyPrisms ''Error
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
 
-instance AsParserError (Error uni fun ann) where
-    _ParserError = _ParseErrorE
+instance AsParserErrorBundle (Error uni fun ann) where
+    _ParserErrorBundle = _ParseErrorE
 
 instance AsUniqueError (Error uni fun ann) ann where
     _UniqueError = _UniqueCoherencyErrorE
@@ -190,17 +196,20 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
 
 instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE e)           = pretty e
-    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
-    prettyBy config (TypeErrorE e)            = prettyBy config e
-    prettyBy config (NormCheckErrorE e)       = prettyBy config e
-    prettyBy _      (FreeVariableErrorE e)    = pretty e
+    prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
+    prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
+    prettyBy config (TypeErrorE e)                = prettyBy config e
+    prettyBy config (NormCheckErrorE e)           = prettyBy config e
+    prettyBy _      (FreeVariableErrorE e)        = pretty e
 
 instance HasErrorCode ParserError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
     errorCode UnknownBuiltinFunction {} = ErrorCode 9
     errorCode UnknownBuiltinType {}     = ErrorCode 8
     errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
+
+instance HasErrorCode ParserErrorBundle where
+    errorCode _ = ErrorCode 52
 
 instance HasErrorCode (UniqueError _a) where
       errorCode FreeVariable {}    = ErrorCode 21

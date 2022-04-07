@@ -66,13 +66,13 @@ instance
 
 postulate
   ByteString : Set
-  getContents : IO ByteString
-  readFile : String → IO ByteString
+  getContents : IO String
+  readFile : String → IO String
 
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
 {-# COMPILE GHC ByteString = type BSL.ByteString #-}
-{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
-{-# COMPILE GHC getContents = BSL.getContents #-}
+{-# COMPILE GHC readFile = \s -> TextIO.readFile (T.unpack s) #-}
+{-# COMPILE GHC getContents = TextIO.getContents #-}
 
 -- System.Exit stuff
 
@@ -96,7 +96,6 @@ postulate
 
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
-{-# FOREIGN GHC import Text.Megaparsec.Error #-}
 
 postulate
   TermN : Set -- term with names
@@ -111,9 +110,9 @@ postulate
   unconvTm : RawTm → Term
   convP : Program → RawTm
   ParseError : Set
-  parse : ByteString → Either ParseError ProgramN
-  parseTm : ByteString → Either ParseError TermN
-  parseTy : ByteString → Either ParseError TypeN
+  parse : String → Either ParseError ProgramN
+  parseTm : String → Either ParseError TermN
+  parseTy : String → Either ParseError TypeN
   showTerm : RawTm → String
   deBruijnify : ProgramN → Either FreeVariableError Program
   deBruijnifyTm : TermN → Either FreeVariableError Term
@@ -125,8 +124,8 @@ postulate
   TermU : Set
   deBruijnifyU : ProgramNU → Either FreeVariableError ProgramU
   deBruijnifyTmU : TermNU → Either FreeVariableError TermU
-  parseU : ByteString → Either ParseError ProgramNU
-  parseTmU : ByteString → Either ParseError TermNU
+  parseU : String → Either ParseError ProgramNU
+  parseTmU : String → Either ParseError TermNU
   convPU : ProgramU → U.Untyped
   convTmU : TermU → U.Untyped
   unconvTmU : U.Untyped → TermU
@@ -136,6 +135,8 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Parser #-}
 {-# FOREIGN GHC import PlutusCore.Pretty #-}
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import PlutusCore.Error #-}
+{-# FOREIGN GHC import PlutusCore.Quote #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 
@@ -148,13 +149,13 @@ postulate
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
 {-# FOREIGN GHC import Data.Functor #-}
-{-# COMPILE GHC ParseError = type Text.Megaparsec.Error.ParseErrorBundle T.Text PlutusCore.ParserError #-}
+{-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = parseProgram  #-}
-{-# COMPILE GHC parseU = U.parseProgram  #-}
-{-# COMPILE GHC parseTm = parseTerm  #-}
-{-# COMPILE GHC parseTy = parseType  #-}
-{-# COMPILE GHC parseTmU = U.parseTerm  #-}
+{-# COMPILE GHC parse = runQuoteT . parseProgram  #-}
+{-# COMPILE GHC parseU = runQuoteT . U.parseProgram  #-}
+{-# COMPILE GHC parseTm = runQuoteT . parseTerm  #-}
+{-# COMPILE GHC parseTy = runQuoteT . parseType  #-}
+{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm  #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
@@ -225,7 +226,7 @@ uglyTypeError builtinError = "builtinError"
 
 {-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError) #-}
 
-parsePLC : ByteString → Either ERROR (ScopedTm Z)
+parsePLC : String → Either ERROR (ScopedTm Z)
 parsePLC plc = do
   namedprog ← withE parseError $ parse plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
@@ -234,7 +235,7 @@ parsePLC plc = do
   -- shifter is run
 
 open import Data.Empty
-parseUPLC : ByteString → Either ERROR (⊥ U.⊢)
+parseUPLC : String → Either ERROR (⊥ U.⊢)
 parseUPLC plc = do
   namedprog ← withE parseError $ parseU plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
@@ -293,11 +294,11 @@ executeUPLC t = do
           _    → inj₁ (runtimeError gasError)
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 
-evalByteString : EvalMode → ByteString → Either ERROR String
-evalByteString U b = do
+evalString : EvalMode → String → Either ERROR String
+evalString U b = do
   t ← parseUPLC b
   executeUPLC t
-evalByteString m b = do
+evalString m b = do
 {-
   -- some debugging code
   namedprog ← withE parseError $ parse b
@@ -316,8 +317,8 @@ evalByteString m b = do
   t ← parsePLC b
   executePLC m t
 
-typeCheckByteString : ByteString → Either ERROR String
-typeCheckByteString b = do
+typeCheckString : String → Either ERROR String
+typeCheckString b = do
   t ← parsePLC b
   (A ,, _) ← withE (λ e → typeError (uglyTypeError e) ) $ typeCheckPLC t
 {-
@@ -335,7 +336,7 @@ junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.Show.show (pos n) ∷ junk
 
-blah : ByteString → ByteString → String
+blah : String → String → String
 blah plc1 plc2 with parseTm plc1 | parseTm plc2
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = rawPrinter (convTm plc1'') ++ " || " ++ rawPrinter (convTm plc2'')
@@ -344,7 +345,7 @@ blah plc1 plc2 | _ | _ = "parsing failed"
 
 {-# COMPILE GHC blah as blah #-}
 
-printTy : ByteString → String
+printTy : String → String
 printTy b with parseTy b
 ... | inj₁ _ = "parseTy error"
 ... | inj₂ A  with deBruijnifyTy A
@@ -353,7 +354,7 @@ printTy b with parseTy b
 
 {-# COMPILE GHC printTy as printTy #-}
 
-alphaTy : ByteString → ByteString → Bool
+alphaTy : String → String → Bool
 alphaTy plc1 plc2 with parseTy plc1 | parseTy plc2
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTy plc1' | deBruijnifyTy plc2'
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTy (convTy plc1'') (convTy plc2'')
@@ -362,7 +363,7 @@ alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
 
-alphaTm : ByteString → ByteString → Bool
+alphaTm : String → String → Bool
 alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
 alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
 alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
@@ -371,7 +372,7 @@ alphaTm plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTm as alphaTm #-}
 
-alphaU : ByteString → ByteString → Bool
+alphaU : String → String → Bool
 alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
 alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
 alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = U.decUTm (convTmU plc1'') (convTmU plc2'')
@@ -412,12 +413,12 @@ postulate execP : IO Command
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (Either ERROR String)
-evalInput m (FileInput fn) = fmap (evalByteString m) (readFile fn)
-evalInput m StdInput       = fmap (evalByteString m) getContents
+evalInput m (FileInput fn) = fmap (evalString m) (readFile fn)
+evalInput m StdInput       = fmap (evalString m) getContents
 
 tcInput : Input → IO (Either ERROR String)
-tcInput (FileInput fn) = fmap typeCheckByteString (readFile fn)
-tcInput StdInput       = fmap typeCheckByteString getContents
+tcInput (FileInput fn) = fmap typeCheckString (readFile fn)
+tcInput StdInput       = fmap typeCheckString getContents
 
 
 main' : Command → IO ⊤

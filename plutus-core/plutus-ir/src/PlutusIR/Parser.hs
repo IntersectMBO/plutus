@@ -4,22 +4,26 @@
 
 module PlutusIR.Parser
     ( parse
-    , parseQuoted
     , program
     , pType
     , pTerm
+    , parseProgram
     , Parser
     , SourcePos
     ) where
 
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
-import PlutusCore.Parser
+import PlutusCore.Parser hiding (parseProgram)
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
 import Prelude hiding (fail)
 
 import Control.Monad.Combinators.NonEmpty qualified as NE
+import Control.Monad.Except (MonadError)
+import Data.Text (Text)
+import PlutusCore (MonadQuote)
+import PlutusCore.Error (AsParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 -- | A parsable PIR pTerm.
@@ -122,3 +126,9 @@ program = whitespace >> do
         Program p <$> pTerm
     notFollowedBy anySingle
     return prog
+
+-- | Parse a PIR program. The resulting program will have fresh names. The underlying monad must be capable
+-- of handling any parse errors.
+parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
+    Text -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProgram = parseGen program

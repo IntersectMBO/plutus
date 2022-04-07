@@ -196,6 +196,8 @@
           "PlutusCore/Evaluation/Machine/BuiltinCostModel"
           "PlutusCore/Evaluation/Machine/Ck"
           "PlutusCore/Evaluation/Machine/CostModelInterface"
+          "PlutusCore/Evaluation/Machine/CostingFun/Core"
+          "PlutusCore/Evaluation/Machine/CostingFun/JSON"
           "PlutusCore/Evaluation/Machine/ExBudget"
           "PlutusCore/Evaluation/Machine/ExMemory"
           "PlutusCore/Evaluation/Machine/Exception"
@@ -357,10 +359,18 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
-          modules = [ "Data/DeBruijnEnv" "Data/RandomAccessList/SkewBinary" ];
+          modules = [
+            "Data/RandomAccessList/Class"
+            "Data/RandomAccessList/SkewBinary"
+            "Data/RandomAccessList/SkewBinarySlab"
+            "Data/RandomAccessList/RelativizedMap"
+            ];
           hsSourceDirs = [ "index-envs/src" ];
           };
         };
@@ -539,6 +549,7 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -606,6 +617,7 @@
           buildable = true;
           modules = [
             "Evaluation/Builtins"
+            "Evaluation/Builtins/Coherence"
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
@@ -640,13 +652,15 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
+          modules = [ "RAList/Spec" ];
           hsSourceDirs = [ "index-envs/test" ];
-          mainPath = [ "TestRAList.hs" ];
+          mainPath = [ "Spec.hs" ];
           };
         };
       benchmarks = {
@@ -676,6 +690,7 @@
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;

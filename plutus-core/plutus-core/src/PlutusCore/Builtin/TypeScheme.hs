@@ -15,22 +15,15 @@
 module PlutusCore.Builtin.TypeScheme
     ( TypeScheme (..)
     , argProxy
-    , FoldArgs
-    , FoldArgsEx
     , typeSchemeToType
     ) where
 
-import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
-import Control.Monad.Except
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Text qualified as Text
@@ -64,12 +57,10 @@ on readability of the Core output.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
         :: (KnownTypeAst (UniOf val) res, MakeKnown val res)
-        => (forall cause. Maybe cause -> res -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val)
-        -> TypeScheme val '[] res
+        => TypeScheme val '[] res
     TypeSchemeArrow
-        :: (KnownTypeAst (UniOf val) arg, MakeKnown val arg)
-        => (forall cause. Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) arg)
-        -> TypeScheme val args res
+        :: (KnownTypeAst (UniOf val) arg, ReadKnown val arg, MakeKnown val arg)
+        => TypeScheme val args res
         -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
@@ -82,26 +73,11 @@ data TypeScheme val (args :: [GHC.Type]) res where
 argProxy :: TypeScheme val (arg ': args) res -> Proxy arg
 argProxy _ = Proxy
 
--- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
---
--- >>> :set -XDataKinds
--- >>> :kind! FoldArgs [Text, Bool] Integer
--- FoldArgs [Text, Bool] Integer :: *
--- = Text -> Bool -> Integer
-type family FoldArgs args res where
-    FoldArgs '[]           res = res
-    FoldArgs (arg ': args) res = arg -> FoldArgs args res
-
--- | Calculates the parameters of the costing function for a builtin.
-type family FoldArgsEx args where
-    FoldArgsEx '[]           = ExBudget
-    FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
-
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
-typeSchemeToType sch@(TypeSchemeResult _) = toTypeAst sch
-typeSchemeToType sch@(TypeSchemeArrow _ schB) =
+typeSchemeToType sch@TypeSchemeResult = toTypeAst sch
+typeSchemeToType sch@(TypeSchemeArrow schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of
     (_ :: Proxy '(text, uniq, kind)) ->

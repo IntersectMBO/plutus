@@ -124,7 +124,9 @@ nopCostModel =
     }
 
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun
-nopCostParameters = mkMachineParameters $ CostModel defaultCekMachineCosts nopCostModel
+nopCostParameters =
+    mkMachineParameters defaultUnliftingMode $
+        CostModel defaultCekMachineCosts nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that

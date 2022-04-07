@@ -45,10 +45,6 @@
       url = "github:michaelpj/sphinxcontrib-haddock";
       flake = false;
     };
-    stackage-nix = {
-      url = "github:input-output-hk/stackage.nix";
-      flake = false;
-    };
   };
 
   outputs = _: { };

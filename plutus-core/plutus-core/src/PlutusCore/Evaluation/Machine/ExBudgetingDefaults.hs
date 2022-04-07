@@ -8,6 +8,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
+    , defaultUnliftingMode
     , defaultBuiltinCostModel
     , unitCekMachineCosts
     , unitCekParameters
@@ -74,14 +75,19 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
+defaultUnliftingMode :: UnliftingMode
+defaultUnliftingMode = UnliftingImmediate
+
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = mkMachineParameters defaultCekCostModel
+defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-unitCekParameters = mkMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
+unitCekParameters =
+    mkMachineParameters defaultUnliftingMode $
+        CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
+defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called
