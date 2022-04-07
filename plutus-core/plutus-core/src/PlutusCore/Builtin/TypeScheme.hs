@@ -14,8 +14,6 @@
 module PlutusCore.Builtin.TypeScheme
     ( TypeScheme (..)
     , argProxy
-    , FoldArgs
-    , FoldArgsEx
     , typeSchemeToType
     ) where
 
@@ -23,8 +21,6 @@ import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
 import Data.Kind qualified as GHC (Type)
@@ -74,21 +70,6 @@ data TypeScheme val (args :: [GHC.Type]) res where
 
 argProxy :: TypeScheme val (arg ': args) res -> Proxy arg
 argProxy _ = Proxy
-
--- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
---
--- >>> :set -XDataKinds
--- >>> :kind! FoldArgs [Text, Bool] Integer
--- FoldArgs [Text, Bool] Integer :: *
--- = Text -> Bool -> Integer
-type family FoldArgs args res where
-    FoldArgs '[]           res = res
-    FoldArgs (arg ': args) res = arg -> FoldArgs args res
-
--- | Calculates the parameters of the costing function for a builtin.
-type family FoldArgsEx args where
-    FoldArgsEx '[]           = ExBudget
-    FoldArgsEx (arg ': args) = ExMemory -> FoldArgsEx args
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.

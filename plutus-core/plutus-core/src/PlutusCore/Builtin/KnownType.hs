@@ -14,12 +14,12 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Builtin.KnownType
-    ( MakeKnownError
-    , ReadKnownError
-    , throwReadKnownErrorWithCause
-    , throwMakeKnownErrorWithCause
+    ( KnownTypeError
+    , throwKnownTypeErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
+    , MakeKnownM
+    , ReadKnownM
     , readKnownConstant
     , MakeKnownIn (..)
     , MakeKnown
@@ -50,10 +50,12 @@ import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Universe
 
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @uni@\".
+-- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+-- in @uni@\".
 type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, GShow uni, GEq uni, uni `Contains` a)
 
--- | A constraint for \"@a@ is a 'KnownType' by means of being included in @UniOf term@\".
+-- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+-- in @UniOf term@\".
 type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
@@ -62,7 +64,7 @@ It's critically important that 'readKnown' runs in the concrete 'Either' rather 
 https://github.com/input-output-hk/plutus/pull/4307
 
 Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
-'ReadKnownError' data type gave us a speedup of up to 4%.
+'KnownTypeError' data type gave us a speedup of up to 4%.
 
 All the same considerations apply to 'makeKnown': https://github.com/input-output-hk/plutus/pull/4421
 
@@ -162,43 +164,27 @@ constraints are completely different in the two cases and we keep the two concep
 (there doesn't seem to be any cons to that).
 -}
 
--- | The type of errors that 'makeKnown' can return.
-data MakeKnownError
-    = MakeKnownEvaluationFailure
+-- | The type of errors that 'readKnown' and 'makeKnown' can return.
+data KnownTypeError
+    = KnownTypeUnliftingError UnliftingError
+    | KnownTypeEvaluationFailure
     deriving stock (Eq)
 
--- | The type of errors that 'readKnown' can return.
-data ReadKnownError
-    = ReadKnownUnliftingError UnliftingError
-    | ReadKnownEvaluationFailure
-    deriving stock (Eq)
+makeClassyPrisms ''KnownTypeError
 
-makeClassyPrisms ''MakeKnownError
-makeClassyPrisms ''ReadKnownError
+instance AsUnliftingError KnownTypeError where
+    _UnliftingError = _KnownTypeUnliftingError
 
-instance AsEvaluationFailure MakeKnownError where
-    _EvaluationFailure = _EvaluationFailureVia MakeKnownEvaluationFailure
+instance AsEvaluationFailure KnownTypeError where
+    _EvaluationFailure = _EvaluationFailureVia KnownTypeEvaluationFailure
 
-instance AsUnliftingError ReadKnownError where
-    _UnliftingError = _ReadKnownUnliftingError
-
-instance AsEvaluationFailure ReadKnownError where
-    _EvaluationFailure = _EvaluationFailureVia ReadKnownEvaluationFailure
-
--- | Throw a @ErrorWithCause ReadKnownError cause@.
-throwMakeKnownErrorWithCause
-    :: (MonadError (ErrorWithCause err cause) m, AsEvaluationFailure err)
-    => ErrorWithCause MakeKnownError cause -> m void
-throwMakeKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
-    MakeKnownEvaluationFailure -> throwingWithCause _EvaluationFailure () cause
-
--- | Throw a @ErrorWithCause ReadKnownError cause@.
-throwReadKnownErrorWithCause
+-- | Throw a @ErrorWithCause KnownTypeError cause@.
+throwKnownTypeErrorWithCause
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
-    => ErrorWithCause ReadKnownError cause -> m void
-throwReadKnownErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
-    ReadKnownUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
-    ReadKnownEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
+    => ErrorWithCause KnownTypeError cause -> m void
+throwKnownTypeErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
+    KnownTypeUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
+    KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
 
 typeMismatchError
     :: GShow uni
@@ -214,17 +200,35 @@ typeMismatchError uniExp uniAct = fromString $ concat
 -- failure message and evaluation is about to be shut anyway.
 {-# NOINLINE typeMismatchError #-}
 
+{- Note [MakeKnownM and ReadKnownM being type synonyms]
+Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
+is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
+make 'MakeKnownM' and 'ReadKnownM' type synonyms for convenience: that way we don't need to derive
+a ton of instances (and add new ones whenever we need them), wrap and unwrap all the time
+(including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
+'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
+-}
+
+-- See Note [MakeKnownM and ReadKnownM being type synonyms].
+-- | The monad that 'makeKnown' runs in.
+type MakeKnownM cause = ExceptT (ErrorWithCause KnownTypeError cause) Emitter
+
+-- See Note [MakeKnownM and ReadKnownM being type synonyms].
+-- | The monad that 'readKnown' runs in.
+type ReadKnownM cause = Either (ErrorWithCause KnownTypeError cause)
+
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant
     :: forall val a cause. KnownBuiltinType val a
-    => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
--- See Note [Performance of KnownTypeIn instances].
+    => Maybe cause -> val -> ReadKnownM cause a
+-- Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
         -- 'geq' matches on its first argument first, so we make the type tag that will be known
-        -- statically (because this function will be inlined) go first in order for GHC to optimize some of the matching away.
+        -- statically (because this function will be inlined) go first in order for GHC to
+        -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
             Nothing   -> Left $
@@ -245,10 +249,8 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
-    makeKnown :: Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
-    default makeKnown
-        :: KnownBuiltinType val a
-        => Maybe cause -> a -> ExceptT (ErrorWithCause MakeKnownError cause) Emitter val
+    makeKnown :: Maybe cause -> a -> MakeKnownM cause val
+    default makeKnown :: KnownBuiltinType val a => Maybe cause -> a -> MakeKnownM cause val
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
@@ -262,10 +264,8 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
     -- See Note [Cause of failure].
     -- | Convert a PLC val to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
-    readKnown :: Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
-    default readKnown
-        :: KnownBuiltinType val a
-        => Maybe cause -> val -> Either (ErrorWithCause ReadKnownError cause) a
+    readKnown :: Maybe cause -> val -> ReadKnownM cause a
+    default readKnown :: KnownBuiltinType val a => Maybe cause -> val -> ReadKnownM cause a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
@@ -274,7 +274,7 @@ type ReadKnown val = ReadKnownIn (UniOf val) val
 
 makeKnownRun
     :: MakeKnownIn uni val a
-    => Maybe cause -> a -> (Either (ErrorWithCause MakeKnownError cause) val, DList Text)
+    => Maybe cause -> a -> (ReadKnownM cause val, DList Text)
 makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
 {-# INLINE makeKnownRun #-}
 
@@ -289,7 +289,7 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either throwReadKnownErrorWithCause pure $ readKnown (Just val) val
+readKnownSelf val = either throwKnownTypeErrorWithCause pure $ readKnown (Just val) val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
