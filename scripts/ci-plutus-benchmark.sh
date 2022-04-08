@@ -59,8 +59,9 @@ echo "[ci-plutus-benchmark]: Comparing results ..."
 {
 # The blank line is important, otherwise Github doesn't render markdown in the body of the details element.
 # See https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d for examples
-cat <<EOF >> bench-compare-result.log
-Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)\n" >bench-compare-result.log
+cat <<EOF 
+Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) and '$PR_BRANCH_REF' (PR)
+
 <details>
 <summary>Results table</summary>
 
