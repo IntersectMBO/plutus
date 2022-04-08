@@ -35,7 +35,7 @@ data Denotation term object res = forall args. Denotation
       -- ^ How to embed the object into a term.
     , _denotationItself :: FoldArgs args res
       -- ^ The denotation of the object. E.g. the denotation of 'AddInteger' is '(+)'.
-    , _denotationScheme :: TypeScheme term args res
+    , _denotationScheme :: TypeScheme (UniOf term) args res
       -- ^ The 'TypeScheme' of the object. See 'intIntInt' for example.
     }
 
@@ -52,7 +52,7 @@ data DenotationContextMember term res =
 --   2. a bound variable of functional type with the result being @integer@
 --   3. the 'AddInteger' 'Builtin' or any other 'Builtin' which returns an @integer@.
 newtype DenotationContext term = DenotationContext
-    { unDenotationContext :: DMap (AsKnownType term) (Compose [] (DenotationContextMember term))
+    { unDenotationContext :: DMap (AsMakeKnown term) (Compose [] (DenotationContextMember term))
     }
 
 -- Here the only search that we need to perform is the search for things that return an appropriate
@@ -61,8 +61,8 @@ newtype DenotationContext term = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme term args res -> AsKnownType term res
-typeSchemeResult TypeSchemeResult       = AsKnownType
+typeSchemeResult :: TypeScheme (UniOf term) args res -> AsMakeKnown term res
+typeSchemeResult TypeSchemeResult       = AsMakeKnown
 typeSchemeResult (TypeSchemeArrow schB) = typeSchemeResult schB
 typeSchemeResult (TypeSchemeAll _ schK) = typeSchemeResult schK
 
@@ -79,7 +79,7 @@ insertDenotation
 insertDenotation denotation (DenotationContext vs) = DenotationContext $
     DMap.insertWith'
         (\(Compose xs) (Compose ys) -> Compose $ xs ++ ys)
-        AsKnownType
+        AsMakeKnown
         (Compose [DenotationContextMember denotation])
         vs
 
@@ -98,10 +98,10 @@ insertBuiltin
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 insertBuiltin fun =
-    case toBuiltinMeaning fun of
+    case toBuiltinMeaning @_ @_ @(Term TyName Name DefaultUni DefaultFun ()) fun of
         BuiltinMeaning sch meta _ ->
            case typeSchemeResult @(Term TyName Name DefaultUni DefaultFun ()) sch of
-               AsKnownType ->
+               AsMakeKnown ->
                    insertDenotation $ Denotation fun (Builtin ()) meta sch
 
 -- Builtins that may fail are commented out, because we cannot handle them right now.
