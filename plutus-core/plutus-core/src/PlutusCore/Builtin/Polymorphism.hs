@@ -60,7 +60,7 @@ We need to support polymorphism for built-in functions for these reasons:
 -- Haskell and back and instead can keep it intact.
 newtype Opaque val (rep :: GHC.Type) = Opaque
     { unOpaque :: val
-    } deriving newtype (Pretty, HasConstantIn uni)
+    } deriving newtype (Pretty, HasConstant)
 
 type instance UniOf (Opaque val rep) = UniOf val
 

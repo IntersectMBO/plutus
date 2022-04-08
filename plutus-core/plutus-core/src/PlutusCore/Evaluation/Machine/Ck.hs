@@ -124,7 +124,7 @@ emitCkM logs = do
 
 type instance UniOf (CkValue uni fun) = uni
 
-instance HasConstantIn uni (CkValue uni fun) where
+instance HasConstant (CkValue uni fun) where
     asConstant _        (VCon val) = pure val
     asConstant mayCause _          = throwNotAConstant mayCause
 

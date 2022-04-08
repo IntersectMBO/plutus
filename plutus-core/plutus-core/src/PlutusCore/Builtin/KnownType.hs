@@ -251,7 +251,7 @@ the cause stored in it is not forced due to @Maybe@ being a lazy data type.
 type MakeKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class MakeKnownIn uni a where
     type AssociateValueMake uni a :: GHC.Type -> GHC.Constraint
-    type AssociateValueMake uni a = HasConstantIn uni
+    type AssociateValueMake uni a = HasConstant
 
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
@@ -274,7 +274,7 @@ type MakeKnown val a = (MakeKnownIn (UniOf val) a, AssociateValueMake (UniOf val
 type ReadKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class ReadKnownIn uni a where
     type AssociateValueRead uni a :: GHC.Type -> GHC.Constraint
-    type AssociateValueRead uni a = HasConstantIn uni
+    type AssociateValueRead uni a = HasConstant
 
     -- See Note [Cause of failure].
     -- | Convert a PLC val to the corresponding Haskell value.

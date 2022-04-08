@@ -209,7 +209,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
-            case asConstant @_ @_ @UnliftingError Nothing val of
+            case asConstant @_ @UnliftingError Nothing val of
                 Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
                 _                                       -> EvaluationFailure
 
