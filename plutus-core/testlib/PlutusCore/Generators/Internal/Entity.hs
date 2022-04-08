@@ -130,7 +130,7 @@ withCheckedTermGen
     -> GenT m c
 withCheckedTermGen genTb k =
     withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> do
-        termWithMetaValue <- undefined -- genTb akt
+        termWithMetaValue <- genTb akt
         let termWithResult = unsafeTypeEvalCheck termWithMetaValue
         k akt termWithResult
 
@@ -148,7 +148,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
     result = go scheme (embed object) id meta
 
     go
-        :: TypeScheme uni args res
+        :: TypeScheme (Plain Term uni fun) args res
         -> Plain Term uni fun
         -> ([Plain Term uni fun] -> [Plain Term uni fun])
         -> FoldArgs args res
@@ -158,7 +158,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
         return $ IterAppValue term pia y
     go (TypeSchemeArrow schB) term args f = do  -- Another argument is required.
         BuiltinGensT genTb <- ask
-        TermOf v x <- liftT $ genTb AsMakeKnown  -- Get a Haskell and the correspoding PLC values.
+        TermOf v x <- liftT $ genTb AsKnownType  -- Get a Haskell and the correspoding PLC values.
         let term' = Apply () term v              -- Apply the term to the PLC value.
             args' = args . (v :)                 -- Append the PLC value to the spine.
             y     = f x                          -- Apply the Haskell function to the generated argument.
@@ -184,7 +184,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
     go
         :: DenotationContext (Plain Term uni fun)
         -> Int
-        -> AsMakeKnown (Plain Term uni fun) r
+        -> AsKnownType (Plain Term uni fun) r
         -> GenT (QuoteT m) (TermOf (Plain Term uni fun) r)
     go context depth akt
         -- FIXME: should be using 'variables' but this is now the same as 'recursive'
@@ -215,7 +215,7 @@ genTerm genBase context0 depth0 = Morph.hoist runQuoteT . go context0 depth0 whe
                 -- Get the 'Type' of the argument from a generated 'TypedBuiltin'.
                 let argTy = toTypeAst argKt
                 -- Generate the argument.
-                TermOf arg  x <- go context (depth - 1) $ undefined -- argKt
+                TermOf arg  x <- go context (depth - 1) argKt
                 -- Generate the body of the lambda abstraction adding the new variable to the context.
                 TermOf body y <- go (insertVariable name x context) (depth - 1) akt
                 -- Assemble the term.
@@ -234,4 +234,4 @@ withAnyTermLoose
      => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k =
-    withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> genTermLoose undefined >>= k
+    withTypedBuiltinGen @(Plain Term uni fun) $ \akt@AsKnownType -> genTermLoose akt >>= k

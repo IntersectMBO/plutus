@@ -60,7 +60,7 @@ type family FoldArgs args res where
 -- A costing function for a built-in function is computed from a cost model for all built-in
 -- functions from a certain set, hence the @cost@ parameter.
 data BuiltinMeaning val cost =
-    forall args res. AssociateValueMake (UniOf val) res val => BuiltinMeaning
+    forall args res. BuiltinMeaning
         (TypeScheme (UniOf val) args res)
         (FoldArgs args res)
         (BuiltinRuntimeOptions (Length args) val cost)
@@ -74,8 +74,8 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     toBuiltinMeaning :: HasConstantIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
-typeOfBuiltinFunction :: forall uni fun. ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
-typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) fun of
+typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
+typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
 {- Note [Automatic derivation of type schemes]
@@ -234,7 +234,6 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
 makeBuiltinMeaning
     :: forall a val cost binds args res j.
        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
-       , AssociateValueMake (UniOf val) res val
        , ElaborateFromTo 0 j val a, KnownPolytype binds val args res a
        )
     => a -> (cost -> ToCostingType (Length args)) -> BuiltinMeaning val cost
