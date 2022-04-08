@@ -491,7 +491,7 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 
 type instance UniOf (CekValue uni fun) = uni
 
-instance HasConstant (CekValue uni fun) where
+instance HasConstantIn uni (CekValue uni fun) where
     asConstant _        (VCon val) = pure val
     asConstant mayCause _          = throwNotAConstant mayCause
 
