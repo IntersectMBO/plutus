@@ -157,7 +157,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     -- Built-in Bools
     toBuiltinMeaning
         :: forall val . HasConstantIn uni val
-           => NopFun -> BuiltinMeaning uni NopCostModel
+           => NopFun -> BuiltinMeaning val NopCostModel
     toBuiltinMeaning Nop1b =
         makeBuiltinMeaning
              @(Bool -> Bool)

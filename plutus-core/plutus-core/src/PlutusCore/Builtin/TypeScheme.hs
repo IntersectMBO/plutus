@@ -53,29 +53,29 @@ on readability of the Core output.
 
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
--- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme uni [Text, Bool] Integer@.
-data TypeScheme uni (args :: [GHC.Type]) res where
+-- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@.
+data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
-        :: (KnownTypeAst uni res, MakeKnownIn uni res)
-        => TypeScheme uni '[] res
+        :: (KnownTypeAst (UniOf val) res, MakeKnown val res)
+        => TypeScheme val '[] res
     TypeSchemeArrow
-        :: (KnownTypeAst uni arg, ReadKnownIn uni arg, MakeKnownIn uni arg)
-        => TypeScheme uni args res
-        -> TypeScheme uni (arg ': args) res
+        :: (KnownTypeAst (UniOf val) arg, ReadKnown val arg, MakeKnown val arg)
+        => TypeScheme val args res
+        -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
            -- Here we require the user to manually provide the unique of a type variable.
            -- That's nothing but silly, but I do not see what else we can do with the current design.
         => Proxy '(text, uniq, kind)
-        -> TypeScheme uni args res
-        -> TypeScheme uni args res
+        -> TypeScheme val args res
+        -> TypeScheme val args res
 
-argProxy :: TypeScheme uni (arg ': args) res -> Proxy arg
+argProxy :: TypeScheme val (arg ': args) res -> Proxy arg
 argProxy _ = Proxy
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
-typeSchemeToType :: TypeScheme uni args res -> Type TyName uni ()
+typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
 typeSchemeToType sch@TypeSchemeResult = toTypeAst sch
 typeSchemeToType sch@(TypeSchemeArrow schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB

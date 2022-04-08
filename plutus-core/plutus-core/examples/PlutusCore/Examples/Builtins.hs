@@ -128,13 +128,10 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
             ToBuiltinMeaning uni (Either fun1 fun2) where
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
-    toBuiltinMeaning
-        :: forall val. HasConstantIn uni val
-        => Either fun1 fun2 -> BuiltinMeaning val (CostingPart uni fun1, CostingPart uni fun2)
-    toBuiltinMeaning (Left  fun) = case toBuiltinMeaning @_ @_ @val fun of
+    toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
         BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF toExF) ->
             BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF (toExF . fst))
-    toBuiltinMeaning (Right fun) = case toBuiltinMeaning @_ @_ @val fun of
+    toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
         BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF toExF) ->
             BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF (toExF . snd))
 

@@ -61,7 +61,7 @@ type family FoldArgs args res where
 -- functions from a certain set, hence the @cost@ parameter.
 data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
-        (TypeScheme (UniOf val) args res)
+        (TypeScheme val args res)
         (FoldArgs args res)
         (BuiltinRuntimeOptions (Length args) val cost)
 
@@ -87,7 +87,7 @@ respectively. 'KnownMonotype' turns every argument that the Haskell denotation o
 receives into a 'TypeSchemeArrow'. We extract the arguments from the type of the Haskell denotation
 using the 'GetArgs' type family. 'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'.
 We extract variables from the type of the Haskell denotation using the 'ToBinds' type family
-(in particular, see the @ToBinds (TypeScheme uni args res)@ type instances). Variables are
+(in particular, see the @ToBinds (TypeScheme val args res)@ type instances). Variables are
 collected in the order that they appear in (i.e. just like in Haskell). For example, processing
 a type signature like
 
@@ -150,7 +150,7 @@ type family GetArgs a where
 -- Similarly, we could've computed 'toImmediateF' and 'toDeferredF' from a 'TypeScheme' but not
 -- statically again, and that would break inlining and basically all the optimization.
 class KnownMonotype val args res a | args res -> a, a -> res where
-    knownMonotype :: TypeScheme (UniOf val) args res
+    knownMonotype :: TypeScheme val args res
     knownMonoruntime :: RuntimeScheme (Length args)
 
     -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
@@ -181,7 +181,7 @@ instance
         ( KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
         , KnownMonotype val args res a
         ) => KnownMonotype val (arg ': args) res (arg -> a) where
-    knownMonotype = TypeSchemeArrow $ knownMonotype @val
+    knownMonotype = TypeSchemeArrow knownMonotype
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
 
     -- Unlift, then recurse.
@@ -207,12 +207,12 @@ instance
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownMonotype val args res a =>
         KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
-    knownPolytype :: TypeScheme (UniOf val) args res
+    knownPolytype :: TypeScheme val args res
     knownPolyruntime :: RuntimeScheme (Length args)
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
-    knownPolytype = knownMonotype @val
+    knownPolytype = knownMonotype
     knownPolyruntime = knownMonoruntime @val @args @res
 
 -- Here we unpack an existentially packed @kind@ and constrain it afterwards!
@@ -222,7 +222,7 @@ instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
 instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
-    knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds @val
+    knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
     knownPolyruntime = RuntimeSchemeAll $ knownPolyruntime @binds @val @args @res
 
 -- See Note [Automatic derivation of type schemes]
