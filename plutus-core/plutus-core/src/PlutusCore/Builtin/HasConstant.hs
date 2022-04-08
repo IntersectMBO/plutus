@@ -15,6 +15,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
 import Control.Monad.Except
+import Type.Reflection
 import Universe
 
 -- | Throw an 'UnliftingError' saying that the received argument is not a constant.
@@ -37,7 +38,7 @@ class HasConstant term where
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 -- and connects @term@ and its @uni@.
-type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
+type HasConstantIn uni term = (UniOf term ~ uni, Typeable term, HasConstant term)
 
 instance HasConstant (Term TyName Name uni fun ()) where
     asConstant _        (Constant _ val) = pure val

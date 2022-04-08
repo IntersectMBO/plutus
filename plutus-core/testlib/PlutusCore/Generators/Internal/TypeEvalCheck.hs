@@ -20,7 +20,6 @@ module PlutusCore.Generators.Internal.TypeEvalCheck
 
 import PlutusPrelude
 
-import PlutusCore.Generators.Internal.Dependent
 import PlutusCore.Generators.Internal.TypedBuiltinGen
 import PlutusCore.Generators.Internal.Utils
 
@@ -91,11 +90,14 @@ type TypeEvalCheckM uni fun = Either (TypeEvalCheckError uni fun)
 -- See Note [Type-eval checking].
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 typeEvalCheckBy
-    :: ( uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a
+    :: ( uni ~ DefaultUni, fun ~ DefaultFun
+       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
        , PrettyPlc internal
        )
     => (Term TyName Name uni fun () ->
-           Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ()))
+           Either
+               (EvaluationException user internal (Term TyName Name uni fun ()))
+               (Term TyName Name uni fun ()))
        -- ^ An evaluator.
     -> TermOf (Term TyName Name uni fun ()) a
     -> TypeEvalCheckM uni fun (TermOf (Term TyName Name uni fun ()) (TypeEvalCheckResult uni fun))
@@ -117,7 +119,9 @@ typeEvalCheckBy eval (TermOf term (x :: a)) = TermOf term <$> do
 -- | Type check and evaluate a term and check that the expected result is equal to the actual one.
 -- Throw an error in case something goes wrong.
 unsafeTypeEvalCheck
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, KnownType (Term TyName Name uni fun ()) a)
+    :: ( uni ~ DefaultUni, fun ~ DefaultFun
+       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       )
     => TermOf (Term TyName Name uni fun ()) a
     -> TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ()))
 unsafeTypeEvalCheck termOfTbv = do

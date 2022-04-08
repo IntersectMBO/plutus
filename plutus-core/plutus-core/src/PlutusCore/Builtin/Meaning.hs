@@ -66,7 +66,7 @@ data BuiltinMeaning val cost =
         (BuiltinRuntimeOptions (Length args) val cost)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
-class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
+class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
@@ -74,8 +74,8 @@ class (Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     toBuiltinMeaning :: HasConstantIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
-typeOfBuiltinFunction :: ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
-typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name _ _ ()) fun of
+typeOfBuiltinFunction :: forall uni fun. ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
+typeOfBuiltinFunction fun = case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) fun of
     BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
 {- Note [Automatic derivation of type schemes]
@@ -163,7 +163,7 @@ class KnownMonotype val args res a | args res -> a, a -> res where
     toDeferredF :: ReadKnownM () (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
-instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res res' where
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
@@ -178,7 +178,7 @@ instance (res ~ res', KnownTypeAst (UniOf val) res, MakeKnown val res) =>
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance
-        ( KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
         , KnownMonotype val args res a
         ) => KnownMonotype val (arg ': args) res (arg -> a) where
     knownMonotype = TypeSchemeArrow knownMonotype

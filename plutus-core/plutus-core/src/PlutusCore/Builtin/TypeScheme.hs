@@ -12,7 +12,8 @@
 {-# LANGUAGE StrictData       #-}
 
 module PlutusCore.Builtin.TypeScheme
-    ( TypeScheme (..)
+    ( Typeable
+    , TypeScheme (..)
     , argProxy
     , typeSchemeToType
     ) where
@@ -27,6 +28,7 @@ import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.TypeLits
+import Type.Reflection
 
 infixr 9 `TypeSchemeArrow`
 
@@ -50,15 +52,17 @@ performance, because they're only evaluated once during initialization, but it c
 on readability of the Core output.
 -}
 
+-- We have these 'Typeable' constraints here just for the generators tests. It's fine since
+-- 'TypeScheme' is not used for evaluation and so we can shove into 'TypeScheme' whatever we want.
 -- | Type schemes of primitive operations.
 -- @as@ is a list of types of arguments, @r@ is the resulting type.
 -- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
-        :: (KnownTypeAst (UniOf val) res, MakeKnown val res)
+        :: (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res)
         => TypeScheme val '[] res
     TypeSchemeArrow
-        :: (KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
+        :: (Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
         => TypeScheme val args res -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
