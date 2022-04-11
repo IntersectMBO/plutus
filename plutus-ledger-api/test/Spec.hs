@@ -7,9 +7,9 @@ import Test.Tasty.QuickCheck
 import Control.Monad (void)
 import Data.Either
 import Data.Word (Word8)
+import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
+import Plutus.Ledger.Test.Examples
 import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
-import Plutus.V1.Ledger.Examples
 import Spec.Builtins qualified
 import Spec.Eval qualified
 import Spec.Interval qualified

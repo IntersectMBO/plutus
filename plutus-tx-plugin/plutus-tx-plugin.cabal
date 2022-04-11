@@ -117,7 +117,7 @@ test-suite plutus-tx-tests
         plutus-core:plutus-core-testlib -any,
         plutus-tx ^>=1.0,
         plutus-tx:plutus-tx-testlib -any,
-        plutus-tx-plugin ^>=1.0,
+        plutus-tx-plugin -any,
         prettyprinter -any,
         mtl -any,
         template-haskell -any,
@@ -141,8 +141,8 @@ test-suite size
     hs-source-dirs: test/size
     build-depends:
         base >= 4.9 && < 5.0,
-        plutus-tx:plutus-tx-testlib -any,
         plutus-tx ^>=1.0,
-        plutus-tx-plugin ^>=1.0,
+        plutus-tx:plutus-tx-testlib -any,
+        plutus-tx-plugin -any,
         tagged -any,
         tasty -any

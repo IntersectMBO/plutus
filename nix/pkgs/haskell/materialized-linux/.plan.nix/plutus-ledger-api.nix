@@ -63,7 +63,6 @@
           "Plutus/V1/Ledger/Credential"
           "Plutus/V1/Ledger/Crypto"
           "Plutus/V1/Ledger/DCert"
-          "Plutus/V1/Ledger/Examples"
           "Plutus/V1/Ledger/Interval"
           "Plutus/V1/Ledger/Scripts"
           "Plutus/V1/Ledger/Tx"
@@ -77,6 +76,25 @@
           ];
         hsSourceDirs = [ "src" ];
         };
+      sublibs = {
+        "plutus-ledger-api-testlib" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."plutus-tx" or (errorHandler.buildDepError "plutus-tx"))
+            (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            ];
+          buildable = true;
+          modules = [
+            "Plutus/Ledger/Test/Examples"
+            "Plutus/Ledger/Test/EvaluationContext"
+            "Plutus/Ledger/Test/Scripts"
+            ];
+          hsSourceDirs = [ "testlib" ];
+          };
+        };
       tests = {
         "plutus-ledger-api-test" = {
           depends = [
@@ -85,6 +103,7 @@
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-ledger-api" or (errorHandler.buildDepError "plutus-ledger-api"))
+            (hsPkgs."plutus-ledger-api".components.sublibs.plutus-ledger-api-testlib or (errorHandler.buildDepError "plutus-ledger-api:plutus-ledger-api-testlib"))
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
             (hsPkgs."tasty-hedgehog" or (errorHandler.buildDepError "tasty-hedgehog"))

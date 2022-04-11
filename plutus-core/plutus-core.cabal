@@ -394,7 +394,7 @@ test-suite plutus-core-test
         TypeSynthesis.Spec
     default-language: Haskell2010
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         bytestring -any,
         containers -any,
         filepath -any,
@@ -482,10 +482,10 @@ executable plc
         Common
         Parsers
     build-depends:
+        base >=4.9 && <5,
         plutus-core -any,
         plutus-core-testlib -any,
         aeson -any,
-        base <5,
         bytestring -any,
         deepseq -any,
         flat -any,
@@ -506,10 +506,10 @@ executable uplc
         Common
         Parsers
     build-depends:
+        base >=4.9 && <5,
         plutus-core -any,
         plutus-core-testlib -any,
         aeson -any,
-        base <5,
         bytestring -any,
         deepseq -any,
         flat -any,
@@ -531,10 +531,10 @@ executable pir
         Common
         Parsers
     build-depends:
+        base >=4.9 && <5,
         plutus-core -any,
         plutus-core-testlib -any,
         aeson -any,
-        base <5,
         bytestring -any,
         flat -any,
         lens -any,
@@ -575,7 +575,7 @@ test-suite traceToStacks-test
     other-modules:
         Common
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         bytestring -any,
         cassava -any,
         tasty -any,
@@ -608,7 +608,7 @@ executable cost-model-budgeting-bench
     hs-source-dirs: cost-model/budgeting-bench
     build-depends:
         plutus-core -any,
-        base -any,
+        base >=4.9 && <5,
         bytestring -any,
         criterion -any,
         criterion-measurement -any,
@@ -636,10 +636,10 @@ executable generate-cost-model
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
+        base >=4.9 && <5,
         plutus-core -any,
         aeson-pretty -any,
         barbies -any,
-        base -any,
         bytestring -any,
         cassava -any,
         exceptions -any,
@@ -665,7 +665,7 @@ benchmark cost-model-test
     other-modules: TH
     hs-source-dirs: cost-model/test, cost-model/create-cost-model
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         plutus-core -any,
         barbies -any,
         bytestring -any,
@@ -691,7 +691,7 @@ library index-envs
       Data.RandomAccessList.SkewBinarySlab
       Data.RandomAccessList.RelativizedMap
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         containers -any,
         extra -any,
         vector -any,
@@ -706,7 +706,7 @@ benchmark index-envs-bench
     default-language: Haskell2010
     main-is: Main.hs
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         index-envs -any,
         criterion >= 1.5.9.0,
         random >= 1.2.0,
@@ -723,7 +723,7 @@ test-suite index-envs-test
     other-modules:
         RAList.Spec
     build-depends:
-        base -any,
+        base >=4.9 && <5,
         index-envs -any,
         nonempty-vector -any,
         QuickCheck -any,

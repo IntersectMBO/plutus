@@ -27,9 +27,9 @@ common lang
 
 custom-setup
     setup-depends:
-        base,
-        Cabal,
-        cabal-doctest
+        base >=4.9 && <5,
+        Cabal -any,
+        cabal-doctest -any
 
 library
     import: lang
@@ -45,11 +45,11 @@ library
         Text.PrettyBy.Internal.Utils
         Text.PrettyBy.Monad
     build-depends:
-        base,
-        prettyprinter,
-        mtl,
-        text,
-        microlens
+        base >=4.9 && <5,
+        prettyprinter -any,
+        mtl -any,
+        text -any,
+        microlens -any
     ghc-options: -O2
 
 test-suite prettyprinter-configurable-test
@@ -63,17 +63,17 @@ test-suite prettyprinter-configurable-test
         Universal
         Expr
     build-depends:
-        prettyprinter-configurable,
-        base,
-        prettyprinter,
-        text,
-        megaparsec,
-        parser-combinators,
-        QuickCheck,
-        quickcheck-text,
-        tasty,
-        tasty-hunit,
-        tasty-quickcheck
+        base >=4.9 && <5,
+        prettyprinter-configurable -any,
+        prettyprinter -any,
+        text -any,
+        megaparsec -any,
+        parser-combinators -any,
+        QuickCheck -any,
+        quickcheck-text -any,
+        tasty -any,
+        tasty-hunit -any,
+        tasty-quickcheck -any
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N
 
@@ -83,7 +83,7 @@ test-suite prettyprinter-configurable-doctest
     main-is: Main.hs
     hs-source-dirs: doctest
     build-depends:
-        base,
-        doctest
+        base >=4.9 && <5,
+        doctest -any
     ghc-options:
         -threaded -rtsopts -with-rtsopts=-N
