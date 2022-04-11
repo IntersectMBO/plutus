@@ -93,7 +93,6 @@ test-suite plutus-ledger-api-test
         mtl -any,
         containers -any,
         plutus-core ^>=1.0,
-        plutus-core:plutus-core-testlib -any,
         plutus-ledger-api ^>=1.0,
         hedgehog -any,
         tasty -any,
