@@ -1,0 +1,1 @@
+(program 0.0.0 [ [ (builtin consByteString) (con integer 170)] (con bytestring #00ff) ])
