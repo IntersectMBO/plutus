@@ -149,10 +149,7 @@ testLexConstant =
   possible formats we have generators for Unicode characters and ASCII
   characters, and also Latin-1 ones (characters 0-255, including standard ASCII
   from 0-127); there is also a generator for UTF8-encoded Unicode. -}
--- TODO: replace PlutusCore.Generators.AST.genConstant with this.  We
--- can't do that at the moment because genConstant is used by the tests for the
--- plutus-ir parser, and that can't handle the full range of constants at the
--- moment.
+-- TODO: replace PlutusCore.Generators.AST.genConstant with this
 genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
 genConstantForTest = Gen.frequency
     [ (3,  someValue <$> pure ())
