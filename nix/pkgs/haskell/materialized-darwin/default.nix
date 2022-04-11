@@ -745,6 +745,7 @@
           "criterion".components.exes."criterion-report".planned = lib.mkOverride 900 true;
           "cardano-binary".components.library.planned = lib.mkOverride 900 true;
           "text-short".components.library.planned = lib.mkOverride 900 true;
+          "plutus-ledger-api".components.sublibs."plutus-ledger-api-testlib".planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.tests."plutus-benchmark-nofib-tests".planned = lib.mkOverride 900 true;
           "assoc".components.library.planned = lib.mkOverride 900 true;
           "process".components.library.planned = lib.mkOverride 900 true;

@@ -82,7 +82,7 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving anyclass (NFData)
 
 {-# INLINABLE mpsSymbol #-}
--- | The currency symbol of a monetay policy hash
+-- | The currency symbol of a monetary policy hash
 mpsSymbol :: MintingPolicyHash -> CurrencySymbol
 mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
 

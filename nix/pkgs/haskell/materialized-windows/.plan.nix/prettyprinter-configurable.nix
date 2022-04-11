@@ -64,8 +64,8 @@
       tests = {
         "prettyprinter-configurable-test" = {
           depends = [
-            (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."prettyprinter-configurable" or (errorHandler.buildDepError "prettyprinter-configurable"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
             (hsPkgs."text" or (errorHandler.buildDepError "text"))
             (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
