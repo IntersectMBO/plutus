@@ -335,7 +335,6 @@
           buildable = true;
           modules = [
             "PlutusCore/Generators/Internal/Denotation"
-            "PlutusCore/Generators/Internal/Dependent"
             "PlutusCore/Generators/Internal/Entity"
             "PlutusCore/Generators/Internal/TypeEvalCheck"
             "PlutusCore/Generators/Internal/TypedBuiltinGen"

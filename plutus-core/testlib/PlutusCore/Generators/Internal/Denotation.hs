@@ -1,21 +1,21 @@
 -- | This module defines tools for associating PLC terms with their corresponding
 -- Haskell values.
 
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE RankNTypes      #-}
 
 module PlutusCore.Generators.Internal.Denotation
-    ( Denotation(..)
+    ( KnownType
+    , Denotation(..)
     , DenotationContextMember(..)
     , DenotationContext(..)
+    , lookupInContext
     , denoteVariable
     , insertVariable
     , insertBuiltin
     , typedBuiltins
     ) where
-
-import PlutusCore.Generators.Internal.Dependent
 
 import PlutusCore.Builtin
 import PlutusCore.Core
@@ -25,6 +25,9 @@ import PlutusCore.Name
 import Data.Dependent.Map (DMap)
 import Data.Dependent.Map qualified as DMap
 import Data.Functor.Compose
+import Type.Reflection
+
+type KnownType val a = (KnownTypeAst (UniOf val) a, MakeKnown val a)
 
 -- | Haskell denotation of a PLC object. An object can be a 'Builtin' or a variable for example.
 data Denotation term object res = forall args. Denotation
@@ -35,7 +38,7 @@ data Denotation term object res = forall args. Denotation
     , _denotationItself :: FoldArgs args res
       -- ^ The denotation of the object. E.g. the denotation of 'AddInteger' is '(+)'.
     , _denotationScheme :: TypeScheme term args res
-      -- ^ The 'TypeScheme' of the object. See 'intIntInt' for example.
+      -- ^ The 'TypeScheme' of the object.
     }
 
 -- | A member of a 'DenotationContext'.
@@ -51,8 +54,17 @@ data DenotationContextMember term res =
 --   2. a bound variable of functional type with the result being @integer@
 --   3. the 'AddInteger' 'Builtin' or any other 'Builtin' which returns an @integer@.
 newtype DenotationContext term = DenotationContext
-    { unDenotationContext :: DMap (AsKnownType term) (Compose [] (DenotationContextMember term))
+    { unDenotationContext :: DMap TypeRep (Compose [] (DenotationContextMember term))
     }
+
+-- | Look up a list of 'Denotation's from 'DenotationContext' each of which has a type that ends in
+-- the same type as the one that the 'TypeRep' argument represents.
+lookupInContext
+    :: forall a term.
+       TypeRep a
+    -> DenotationContext term
+    -> [DenotationContextMember term a]
+lookupInContext tr = foldMap getCompose . DMap.lookup tr . unDenotationContext
 
 -- Here the only search that we need to perform is the search for things that return an appropriate
 -- @r@, be them variables or functions. Better if we also take types of arguments into account,
@@ -60,36 +72,36 @@ newtype DenotationContext term = DenotationContext
 -- (without @Void@).
 
 -- | The resulting type of a 'TypeScheme'.
-typeSchemeResult :: TypeScheme term args res -> AsKnownType term res
-typeSchemeResult TypeSchemeResult       = AsKnownType
-typeSchemeResult (TypeSchemeArrow schB) = typeSchemeResult schB
-typeSchemeResult (TypeSchemeAll _ schK) = typeSchemeResult schK
+withTypeSchemeResult :: TypeScheme term args res -> (KnownType term res => TypeRep res -> c) -> c
+withTypeSchemeResult TypeSchemeResult       k = k typeRep
+withTypeSchemeResult (TypeSchemeArrow schB) k = withTypeSchemeResult schB k
+withTypeSchemeResult (TypeSchemeAll _ schK) k = withTypeSchemeResult schK k
 
 -- | Get the 'Denotation' of a variable.
 denoteVariable
     :: KnownType (Term TyName Name uni fun ()) res
-    => Name -> res -> Denotation (Term TyName Name uni fun ()) Name res
-denoteVariable name meta = Denotation name (Var ()) meta TypeSchemeResult
+    => Name -> TypeRep res -> res -> Denotation (Term TyName Name uni fun ()) Name res
+denoteVariable name tr meta = withTypeable tr $ Denotation name (Var ()) meta TypeSchemeResult
 
 -- | Insert the 'Denotation' of an object into a 'DenotationContext'.
 insertDenotation
-    :: (GShow (UniOf term), KnownType term res)
-    => Denotation term object res -> DenotationContext term -> DenotationContext term
-insertDenotation denotation (DenotationContext vs) = DenotationContext $
+    :: TypeRep res -> Denotation term object res -> DenotationContext term -> DenotationContext term
+insertDenotation tr denotation (DenotationContext vs) = DenotationContext $
     DMap.insertWith'
         (\(Compose xs) (Compose ys) -> Compose $ xs ++ ys)
-        AsKnownType
+        tr
         (Compose [DenotationContextMember denotation])
         vs
 
 -- | Insert a variable into a 'DenotationContext'.
 insertVariable
-    :: (GShow uni, KnownType (Term TyName Name uni fun ()) a)
+    :: KnownType (Term TyName Name uni fun ()) a
     => Name
+    -> TypeRep a
     -> a
     -> DenotationContext (Term TyName Name uni fun ())
     -> DenotationContext (Term TyName Name uni fun ())
-insertVariable name = insertDenotation . denoteVariable name
+insertVariable name tr = insertDenotation tr . denoteVariable name tr
 
 -- | Insert a builtin into a 'DenotationContext'.
 insertBuiltin
@@ -99,12 +111,9 @@ insertBuiltin
 insertBuiltin fun =
     case toBuiltinMeaning fun of
         BuiltinMeaning sch meta _ ->
-           case typeSchemeResult sch of
-               AsKnownType ->
-                   insertDenotation $ Denotation fun (Builtin ()) meta sch
+            withTypeSchemeResult sch $ \tr ->
+                insertDenotation tr $ Denotation fun (Builtin ()) meta sch
 
--- Builtins that may fail are commented out, because we cannot handle them right now.
--- Look for "UNDEFINED BEHAVIOR" in "PlutusCore.Generators.Internal.Dependent".
 -- | A 'DenotationContext' that consists of 'DefaultFun's.
 typedBuiltins
     :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())
@@ -112,16 +121,20 @@ typedBuiltins
     = insertBuiltin AddInteger
     . insertBuiltin SubtractInteger
     . insertBuiltin MultiplyInteger
---     . insertBuiltin DivideInteger
---     . insertBuiltin RemainderInteger
---     . insertBuiltin QuotientInteger
---     . insertBuiltin ModInteger
+    -- We insert those, but they don't really get selected, because the 'TypeRep' of
+    -- @EvaluationResult Integer@ is different to the one of @Integer@ and when selection is
+    -- performed only the latter is considered. Maybe we should add @EvaluationResult Integer@ to
+    -- the set of built-in types to pick up from. Or maybe we should stop using 'TypeRep' and use
+    -- something custom. Or maybe we should just remove these tests altogether.
+    . insertBuiltin DivideInteger
+    . insertBuiltin RemainderInteger
+    . insertBuiltin QuotientInteger
+    . insertBuiltin ModInteger
     . insertBuiltin LessThanInteger
     . insertBuiltin LessThanEqualsInteger
     . insertBuiltin EqualsInteger
     . insertBuiltin AppendByteString
     . insertBuiltin Sha2_256
     . insertBuiltin Sha3_256
---     . insertBuiltin VerifySignature
     . insertBuiltin EqualsByteString
     $ DenotationContext mempty

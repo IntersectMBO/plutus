@@ -5,7 +5,6 @@ module PlutusCore.Generators
     ) where
 
 import PlutusCore.Generators.Internal.Denotation as Export
-import PlutusCore.Generators.Internal.Dependent as Export
 import PlutusCore.Generators.Internal.Entity as Export
 import PlutusCore.Generators.Internal.TypeEvalCheck as Export
 import PlutusCore.Generators.Internal.TypedBuiltinGen as Export
