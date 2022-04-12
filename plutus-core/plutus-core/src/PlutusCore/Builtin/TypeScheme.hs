@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
@@ -62,8 +63,9 @@ data TypeScheme val (args :: [GHC.Type]) res where
         :: (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res)
         => TypeScheme val '[] res
     TypeSchemeArrow
-        :: (Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
-        => TypeScheme val args res -> TypeScheme val (arg ': args) res
+        :: (Typeable arg, KnownTypeAst (UniOf val) arg, ReadKnown val arg, MakeKnown val arg)
+        => TypeScheme val args res
+        -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
            -- Here we require the user to manually provide the unique of a type variable.
@@ -78,7 +80,7 @@ argProxy _ = Proxy
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
 -- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
-typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
+typeSchemeToType sch@TypeSchemeResult = toTypeAst sch
 typeSchemeToType sch@(TypeSchemeArrow schB) =
     TyFun () (toTypeAst $ argProxy sch) $ typeSchemeToType schB
 typeSchemeToType (TypeSchemeAll proxy schK) = case proxy of

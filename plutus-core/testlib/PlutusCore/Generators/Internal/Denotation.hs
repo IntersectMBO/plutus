@@ -1,9 +1,10 @@
 -- | This module defines tools for associating PLC terms with their corresponding
 -- Haskell values.
 
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE TypeApplications #-}
 
 module PlutusCore.Generators.Internal.Denotation
     ( KnownType
@@ -109,7 +110,7 @@ insertBuiltin
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 insertBuiltin fun =
-    case toBuiltinMeaning fun of
+    case toBuiltinMeaning @_ @_ @(Term TyName Name DefaultUni DefaultFun ()) fun of
         BuiltinMeaning sch meta _ ->
             withTypeSchemeResult sch $ \tr ->
                 insertDenotation tr $ Denotation fun (Builtin ()) meta sch

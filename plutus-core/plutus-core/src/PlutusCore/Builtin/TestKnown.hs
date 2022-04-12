@@ -24,19 +24,15 @@ import Universe
 class    (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
 instance (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
 
--- | For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to satisfy
--- 'KnownBuiltinTypeIn'.
-class    (forall val. KnownBuiltinTypeIn uni val a => ReadKnownIn uni val a) =>
-    ImplementedReadKnownIn uni a
-instance (forall val. KnownBuiltinTypeIn uni val a => ReadKnownIn uni val a) =>
-    ImplementedReadKnownIn uni a
+-- | For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to be in
+-- the universe.
+class    (uni `Contains` a => ReadKnownIn uni a) => ImplementedReadKnownIn uni a
+instance (uni `Contains` a => ReadKnownIn uni a) => ImplementedReadKnownIn uni a
 
--- | For providing a 'MakeKnownIn' instance for a built-in type it's enough for that type to satisfy
--- 'KnownBuiltinTypeIn'.
-class    (forall val. KnownBuiltinTypeIn uni val a => MakeKnownIn uni val a) =>
-    ImplementedMakeKnownIn uni a
-instance (forall val. KnownBuiltinTypeIn uni val a => MakeKnownIn uni val a) =>
-    ImplementedMakeKnownIn uni a
+-- | For providing a 'MakeKnownIn' instance for a built-in type it's enough for that type to be in
+-- the univese.
+class    (uni `Contains` a => MakeKnownIn uni a) => ImplementedMakeKnownIn uni a
+instance (uni `Contains` a => MakeKnownIn uni a) => ImplementedMakeKnownIn uni a
 
 -- | An instance of this class not having any constraints ensures that every type (according to
 -- 'Everywhere') from the universe has 'KnownTypeAst, 'ReadKnownIn' and 'MakeKnownIn' instances.

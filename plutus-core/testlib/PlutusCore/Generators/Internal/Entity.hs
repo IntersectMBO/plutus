@@ -107,7 +107,7 @@ revealUnique (Name name uniq) =
 -- TODO: we can generate more types here.
 -- | Generate a 'Builtin' and supply its typed version to a continuation.
 withTypedBuiltinGen
-    :: (Typeable fun, Monad m)
+    :: Monad m
     => Proxy fun
     -> (forall a. (KnownTypeAst DefaultUni a, MakeKnown (Plain Term DefaultUni fun) a) =>
             TypeRep a -> GenT m c)
@@ -155,7 +155,7 @@ genIterAppValue (Denotation object embed meta scheme) = result where
 -- Arguments to functions and 'Builtin's are generated recursively.
 genTerm
     :: forall uni fun m.
-       (uni ~ DefaultUni, Typeable fun, Monad m)
+       (uni ~ DefaultUni, Monad m)
     => TypedBuiltinGenT (Plain Term uni fun) m
        -- ^ Ground generators of built-ins. The base case of the recursion.
     -> DenotationContext (Plain Term uni fun)
@@ -211,7 +211,7 @@ genTermLoose = genTerm genTypedBuiltinDef typedBuiltins 4
 -- | Generate a 'TypedBuiltin' and a 'TermOf' of the corresponding type,
 -- attach the 'TypedBuiltin' to the value part of the 'TermOf' and pass that to a continuation.
 withAnyTermLoose
-     :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+     :: forall m c uni fun. (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
      => (forall a. KnownType (Plain Term uni fun) a => TermOf (Plain Term uni fun) a -> GenT m c)
      -> GenT m c
 withAnyTermLoose k = withTypedBuiltinGen (Proxy @DefaultFun) $ \tr -> genTermLoose tr >>= k

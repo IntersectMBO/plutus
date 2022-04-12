@@ -193,28 +193,24 @@ It's some pretty annoying boilerplate and for now we've decided it's not worth i
 -}
 
 -- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Data
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
-    MakeKnownIn DefaultUni term [a]
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
-    MakeKnownIn DefaultUni term (a, b)
+instance MakeKnownIn DefaultUni Integer
+instance MakeKnownIn DefaultUni BS.ByteString
+instance MakeKnownIn DefaultUni Text.Text
+instance MakeKnownIn DefaultUni ()
+instance MakeKnownIn DefaultUni Bool
+instance MakeKnownIn DefaultUni Data
+instance DefaultUni `Contains` [a] => MakeKnownIn DefaultUni [a]
+instance DefaultUni `Contains` (a, b) => MakeKnownIn DefaultUni (a, b)
 
 -- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Data
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
-    ReadKnownIn DefaultUni term [a]
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
-    ReadKnownIn DefaultUni term (a, b)
+instance ReadKnownIn DefaultUni Integer
+instance ReadKnownIn DefaultUni BS.ByteString
+instance ReadKnownIn DefaultUni Text.Text
+instance ReadKnownIn DefaultUni ()
+instance ReadKnownIn DefaultUni Bool
+instance ReadKnownIn DefaultUni Data
+instance DefaultUni `Contains` [a] => ReadKnownIn DefaultUni [a]
+instance DefaultUni `Contains` (a, b) => ReadKnownIn DefaultUni (a, b)
 
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
@@ -253,11 +249,11 @@ instance KnownTypeAst DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
+instance MakeKnownIn DefaultUni Int64 where
     makeKnown mayCause = makeKnown mayCause . toInteger
     {-# INLINE makeKnown #-}
 
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
+instance ReadKnownIn DefaultUni Int64 where
     readKnown mayCause term =
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
@@ -272,13 +268,13 @@ instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
+instance MakeKnownIn DefaultUni Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
     makeKnown mayCause = makeKnown mayCause . intCastEq @Int @Int64
     {-# INLINE makeKnown #-}
 
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
+instance ReadKnownIn DefaultUni Int where
     readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
     {-# INLINE readKnown #-}
 
