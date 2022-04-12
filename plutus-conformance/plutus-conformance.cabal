@@ -1,15 +1,15 @@
 cabal-version: 3.0
-name: plutus-core
+name: plutus-conformance
 version: 1.0.0.0
 license: Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: michael.peyton-jones@iohk.io
+maintainer: Plutus Core Team
 author: Plutus Core Team
-synopsis: Language library for Plutus Core
+synopsis: Conformance Test Suite for Plutus Core
 description:
-    Pretty-printer, parser, and typechecker for Plutus Core.
+    Comprehensive Conformance Test Suite for Plutus Core.
 category: Language, Plutus
 build-type: Simple
 extra-doc-files: README.md
@@ -288,7 +288,6 @@ library
         prettyprinter-configurable -any,
         primitive -any,
         recursion-schemes -any,
-        secp256k1-haskell -any,
         semigroupoids -any,
         semigroups >=0.19.1,
         serialise -any,
@@ -328,7 +327,6 @@ library plutus-core-testlib
 
         Test.Tasty.Extras
     other-modules:
-        PlutusCore.Generators.Internal.Builtin
         PlutusCore.Generators.Internal.Denotation
         PlutusCore.Generators.Internal.Entity
         PlutusCore.Generators.Internal.TypeEvalCheck
@@ -398,7 +396,6 @@ test-suite plutus-core-test
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
-        extra -any,
         filepath -any,
         flat -any,
         hedgehog -any,
@@ -445,14 +442,12 @@ test-suite untyped-plutus-core-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     hs-source-dirs: untyped-plutus-core/test
-    ghc-options: -O2 -threaded -rtsopts -with-rtsopts=-N
     other-modules:
         Evaluation.Builtins
         Evaluation.Builtins.Coherence
         Evaluation.Builtins.Common
         Evaluation.Builtins.Definition
         Evaluation.Builtins.MakeRead
-        Evaluation.Builtins.SECP256k1
         Evaluation.FreeVars
         Evaluation.Golden
         Evaluation.Machines
@@ -464,7 +459,6 @@ test-suite untyped-plutus-core-test
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
-        cardano-crypto-class -any,
         hedgehog -any,
         flat -any,
         lens -any,
@@ -473,8 +467,6 @@ test-suite untyped-plutus-core-test
         plutus-core-testlib -any,
         index-envs -any,
         prettyprinter -any,
-        pretty-show -any,
-        secp256k1-haskell -any,
         tasty -any,
         tasty-golden -any,
         tasty-hedgehog -any,
@@ -734,6 +726,5 @@ test-suite index-envs-test
         index-envs -any,
         nonempty-vector -any,
         QuickCheck -any,
-        quickcheck-instances -any,
         tasty -any,
         tasty-quickcheck -any
