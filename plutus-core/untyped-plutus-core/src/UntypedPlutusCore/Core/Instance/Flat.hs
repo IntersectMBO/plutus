@@ -19,6 +19,7 @@ import Flat
 import Flat.Decoder
 import Flat.Decoder.Types
 import Flat.Encoder
+import Data.Semigroup
 import Universe
 
 import Data.Primitive (Ptr)
@@ -112,12 +113,25 @@ encodeTerm
 encodeTerm = \case
     Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
     Delay    ann t    -> encodeTermTag 1 <> encode ann <> encodeTerm t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
     Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
     Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
     Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
     Error    ann      -> encodeTermTag 6 <> encode ann
     Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    LamAbs ann n t -> encodeLam 0 ann n t
+
+encodeLam :: (Everywhere uni Flat, Closed uni,
+ PrettyBy PrettyConfigPlc (Term name1 uni fun ann), Flat a,
+ Flat fun, Flat ann, Flat name1, Flat (Binder name2),
+ Flat (Binder name1)) => Word8 -> a -> name2 -> Term name1 uni fun ann -> Encoding
+encodeLam l ann n | l == maxBound = error "error how did we manage to reach 256 deep lambdas.."
+                  | otherwise = \case
+    LamAbs _ _ t  -> encodeLam (l+1) ann n t
+    t ->
+        if l == 0
+        -- it is not worth to run-length encode
+        then encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
+        else encodeTermTag 8 <> encode l <> encode ann <> encode (Binder n) <> encodeTerm t
 
 data SizeLimit = NoLimit | Limit Integer
 
@@ -169,6 +183,12 @@ decodeTerm sizeLimit builtinPred = go
             if builtinPred fun
             then pure t
             else fail $ "Forbidden builtin function: " ++ show (prettyPlcDef t)
+        handleTerm 8 = do
+               len <- decode
+               ann <- decode
+               b <-  unBinder <$> decode
+               appEndo (stimes (len+1 :: Word8) (Endo $ LamAbs ann b)) <$> go
+
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -187,12 +207,17 @@ sizeTerm
 sizeTerm tm sz = termTagWidth + sz + case tm of
     Var      ann n    -> getSize ann + getSize n
     Delay    ann t    -> getSize ann + getSize t
-    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
     Apply    ann t t' -> getSize ann + getSize t + getSize t'
     Constant ann c    -> getSize ann + getSize c
     Force    ann t    -> getSize ann + getSize t
     Error    ann      -> getSize ann
     Builtin  ann bn   -> getSize ann + getSize bn
+    LamAbs   ann n t@LamAbs{} -> 8 + getSize ann + getSize n + skipLam t
+    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
+  where
+    skipLam = \case
+        LamAbs _ _ t -> skipLam t
+        t  -> getSize t
 
 decodeProgram
     :: forall name uni fun ann
