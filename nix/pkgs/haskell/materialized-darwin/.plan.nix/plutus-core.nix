@@ -172,6 +172,7 @@
           "UntypedPlutusCore/Size"
           "UntypedPlutusCore/Subst"
           "UntypedPlutusCore/Transform/ForceDelay"
+          "UntypedPlutusCore/Transform/LamDelay"
           "UntypedPlutusCore/Transform/Inline"
           "Data/Aeson/Flatten"
           "Data/Aeson/THReader"

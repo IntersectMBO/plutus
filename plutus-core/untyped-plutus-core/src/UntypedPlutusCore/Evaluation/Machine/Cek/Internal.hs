@@ -699,6 +699,8 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    applyEvaluate !unbudgetedSteps !ctx (VDelay body env) _arg =
+        computeCek unbudgetedSteps ctx env body
     applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to

@@ -4,6 +4,8 @@ module UntypedPlutusCore.Simplify ( simplifyTerm, simplifyProgram, SimplifyOpts 
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Transform.ForceDelay
 import UntypedPlutusCore.Transform.Inline
+import UntypedPlutusCore.Transform.LamDelay
+
 
 import Control.Monad
 import Data.List
@@ -39,6 +41,7 @@ simplifyTerm
     -> Term Name uni fun a
     -> m (Term Name uni fun a)
 simplifyTerm opts = simplifyNTimes (_soMaxSimplifierIterations opts)
+                    >=> pure . lamToDelay
     where
         -- Run the simplifier @n@ times
         simplifyNTimes :: Int -> Term Name uni fun a -> m (Term Name uni fun a)
