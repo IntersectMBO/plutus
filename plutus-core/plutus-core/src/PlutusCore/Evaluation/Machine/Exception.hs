@@ -160,7 +160,7 @@ silently without reporting that anything has gone wrong (but returning
 a non-zero exit code to the shell via `exitFailure`).  This is because
 UserEvaluationError is used in cases when a PLC program itself goes
 wrong (for example, a failure due to `(error)`, a failure during
-builtin evavluation, or exceeding the gas limit).  This is used to
+builtin evaluation, or exceeding the gas limit).  This is used to
 signal unsuccessful in validation and so is not regarded as a real
 error; in contrast, machine errors, typechecking failures,
 and so on are genuine errors and we report their context if available.

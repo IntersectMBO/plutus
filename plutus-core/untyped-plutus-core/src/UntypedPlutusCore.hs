@@ -15,7 +15,8 @@ import UntypedPlutusCore.Simplify as Export
 import UntypedPlutusCore.Size as Export
 import UntypedPlutusCore.Subst as Export
 
-import PlutusCore qualified as PLC
+import PlutusCore.Core qualified as PLC (defaultVersion)
+import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
 import PlutusCore.Name as Export
 
 -- | Take one UPLC program and apply it to another.
