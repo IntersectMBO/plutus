@@ -1,5 +1,9 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
+-- GHC worker-wrapper-transforms the denotation of a builtin without this flag, which only
+-- introduces a redundant indirection. There doesn't seem to be any performance difference, but the
+-- Core is tidier when the worker-wrapper optimization does not happen.
+{-# OPTIONS_GHC -fno-worker-wrapper #-}
 -- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
 -- ticks for the simplifier not to run out of them.
 {-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
