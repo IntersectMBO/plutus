@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
 
 -- | Common types and functions used across all the ledger API modules.
-module Plutus.ApiCommon where
+module PlutusLedgerApi.Common where
 
 import PlutusCore as Plutus hiding (Version)
 import PlutusCore as ScriptPlutus (Version)

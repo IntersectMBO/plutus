@@ -20,7 +20,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
-module Plutus.V1.Ledger.Scripts(
+module PlutusLedgerApi.V1.Scripts(
     -- * Scripts
     Script (..),
     scriptSize,
@@ -67,13 +67,13 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.String
 import Data.Text (Text)
 import GHC.Generics (Generic)
-import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause (..), EvaluationError (..))
 import PlutusCore.MkPlc qualified as PLC
+import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx (CompiledCode, FromData (..), ToData (..), UnsafeFromData (..), getPlc, makeLift)
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI

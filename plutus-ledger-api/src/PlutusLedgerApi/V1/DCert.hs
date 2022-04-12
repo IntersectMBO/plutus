@@ -12,12 +12,12 @@
 Digests of certificates that are included in transactions.
 
 -}
-module Plutus.V1.Ledger.DCert(DCert(..)) where
+module PlutusLedgerApi.V1.DCert(DCert(..)) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import Plutus.V1.Ledger.Credential (StakingCredential)
-import Plutus.V1.Ledger.Crypto (PubKeyHash)
+import PlutusLedgerApi.V1.Credential (StakingCredential)
+import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusTx qualified as PlutusTx
 import PlutusTx.Prelude qualified as P
 import Prettyprinter (Pretty (..), viaShow)

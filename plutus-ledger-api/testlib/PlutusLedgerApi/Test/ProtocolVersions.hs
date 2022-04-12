@@ -1,6 +1,6 @@
-module Plutus.Ledger.Test.ProtocolVersions where
+module PlutusLedgerApi.Test.ProtocolVersions where
 
-import Plutus.ApiCommon
+import PlutusLedgerApi.Common
 
 -- Based on https://github.com/input-output-hk/cardano-ledger/wiki/First-Block-of-Each-Era
 

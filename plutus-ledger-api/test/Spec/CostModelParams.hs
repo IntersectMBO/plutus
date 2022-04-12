@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.CostModelParams where
 
-import Plutus.V1.Ledger.EvaluationContext as V1
-import Plutus.V2.Ledger.EvaluationContext as V2
+import PlutusLedgerApi.V1.EvaluationContext as V1
+import PlutusLedgerApi.V2.EvaluationContext as V2
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel as Plutus
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus

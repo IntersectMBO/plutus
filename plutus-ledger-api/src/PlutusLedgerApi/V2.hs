@@ -2,7 +2,7 @@
 {- |
 The interface to Plutus V2 for the ledger.
 -}
-module Plutus.V2.Ledger.Api (
+module PlutusLedgerApi.V2 (
     -- * Scripts
     SerializedScript
     , Script
@@ -113,14 +113,15 @@ module Plutus.V2.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import Plutus.ApiCommon as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
-import Plutus.ApiCommon qualified as Common (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
-import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..), costModelParamNames,
-                             evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed, mkEvaluationContext)
-import Plutus.V1.Ledger.Scripts (ScriptHash (..))
-import Plutus.V2.Ledger.Contexts
-import Plutus.V2.Ledger.EvaluationContext
-import Plutus.V2.Ledger.Tx (OutputDatum (..))
+import PlutusLedgerApi.Common as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
+import PlutusLedgerApi.Common qualified as Common (evaluateScriptCounting, evaluateScriptRestricting,
+                                                   isScriptWellFormed)
+import PlutusLedgerApi.V1 hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..), costModelParamNames,
+                           evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed, mkEvaluationContext)
+import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
+import PlutusLedgerApi.V2.Contexts
+import PlutusLedgerApi.V2.EvaluationContext
+import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
 
 import PlutusCore.Data qualified as PLC

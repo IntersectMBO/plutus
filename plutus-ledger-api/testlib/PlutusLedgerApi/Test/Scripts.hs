@@ -1,10 +1,10 @@
-module Plutus.Ledger.Test.Scripts
+module PlutusLedgerApi.Test.Scripts
     (-- * Example scripts
     unitRedeemer,
     unitDatum
     ) where
 
-import Plutus.V1.Ledger.Scripts
+import PlutusLedgerApi.V1.Scripts
 import PlutusTx
 
 -- | @()@ as a datum.

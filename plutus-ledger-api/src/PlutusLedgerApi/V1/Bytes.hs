@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
-module Plutus.V1.Ledger.Bytes ( LedgerBytes (..)
+module PlutusLedgerApi.V1.Bytes ( LedgerBytes (..)
                 , fromHex
                 , bytes
                 , fromBytes

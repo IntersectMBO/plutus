@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Plutus.V2.Ledger.Tx(
+module PlutusLedgerApi.V2.Tx(
     -- * Transactions
     TxId (..),
     ScriptTag (..),
@@ -52,12 +52,12 @@ import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 
-import Plutus.V1.Ledger.Address
-import Plutus.V1.Ledger.Crypto
-import Plutus.V1.Ledger.Scripts
-import Plutus.V1.Ledger.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress, outValue, pubKeyHashTxOut,
-                            txOutDatum, txOutPubKey)
-import Plutus.V1.Ledger.Value
+import PlutusLedgerApi.V1.Address
+import PlutusLedgerApi.V1.Crypto
+import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V1.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress, outValue, pubKeyHashTxOut,
+                              txOutDatum, txOutPubKey)
+import PlutusLedgerApi.V1.Value
 
 -- | The datum attached to an output: either nothing; a datum hash; or the datum itself (an "inline datum").
 data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum

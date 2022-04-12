@@ -12,15 +12,15 @@
 Address and staking address credentials for outputs.
 
 -}
-module Plutus.V1.Ledger.Credential(
+module PlutusLedgerApi.V1.Credential(
     StakingCredential(..)
     , Credential(..)
     ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import Plutus.V1.Ledger.Crypto (PubKeyHash)
-import Plutus.V1.Ledger.Scripts (ValidatorHash)
+import PlutusLedgerApi.V1.Crypto (PubKeyHash)
+import PlutusLedgerApi.V1.Scripts (ValidatorHash)
 import PlutusTx qualified as PlutusTx
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx

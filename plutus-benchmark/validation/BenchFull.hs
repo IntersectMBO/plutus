@@ -1,9 +1,10 @@
 module Main where
 
-import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Scripts
-
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
+import PlutusLedgerApi.V1
+import PlutusLedgerApi.V1.Scripts
+import UntypedPlutusCore qualified as UPLC
 
 import Codec.Serialise qualified as Serialise (serialise)
 import Common
@@ -12,9 +13,6 @@ import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
 import Data.Either
-
-import PlutusCore.Evaluation.Machine.ExBudget
-import UntypedPlutusCore qualified as UPLC
 
 {-|
 for each data/*.flat validation script, it benchmarks

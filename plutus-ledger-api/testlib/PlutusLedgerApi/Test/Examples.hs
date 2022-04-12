@@ -2,18 +2,19 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.Ledger.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
+module PlutusLedgerApi.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
+
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusLedgerApi.V1
+import PlutusLedgerApi.V1.Scripts qualified as Scripts
+import UntypedPlutusCore qualified as UPLC
 
 import Codec.Serialise
 import Data.ByteString.Lazy (fromStrict, toStrict)
 import Data.ByteString.Short
 import Numeric.Natural
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Scripts qualified as Scripts
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc qualified as PLC
 import Universe (Some (Some))
-import UntypedPlutusCore qualified as UPLC
 
 {- Note [Manually constructing scripts]
 The scripts we provide here are *manually* constructed Plutus Core. Why not use our great machinery for easily creating

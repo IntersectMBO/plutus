@@ -1,15 +1,15 @@
 {-# LANGUAGE DerivingVia      #-}
 {-# LANGUAGE TypeApplications #-}
-module Plutus.V2.Ledger.EvaluationContext
+module PlutusLedgerApi.V2.EvaluationContext
     ( module V1.EvaluationContext
     , mkEvaluationContext
     , costModelParamNames
     , ParamName -- abstract
     ) where
 
-import Plutus.ApiCommon
-import Plutus.V1.Ledger.EvaluationContext as V1.EvaluationContext hiding (ParamName, costModelParamNames,
-                                                                   mkEvaluationContext)
+import PlutusLedgerApi.Common
+import PlutusLedgerApi.V1.EvaluationContext as V1.EvaluationContext hiding (ParamName, costModelParamNames,
+                                                                     mkEvaluationContext)
 
 import Control.Monad
 import Control.Monad.Except
