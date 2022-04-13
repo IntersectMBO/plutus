@@ -349,12 +349,12 @@ instance ReadKnownIn uni (SomeConstant uni rep) where
     readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
-instance MakeKnownIn uni (Opaque val rep) where
+instance uni ~ UniOf val => MakeKnownIn uni (Opaque val rep) where
     type AssociateValueMake _ _ = (~) val
     makeKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
-instance ReadKnownIn uni (Opaque val rep) where
+instance uni ~ UniOf val => ReadKnownIn uni (Opaque val rep) where
     type AssociateValueRead _ _ = (~) val
     readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE readKnown #-}

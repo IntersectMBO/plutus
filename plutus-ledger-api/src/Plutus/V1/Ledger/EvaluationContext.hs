@@ -2,7 +2,7 @@
 
 -- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
 -- ticks for the simplifier not to run out of them.
-{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
+{-# OPTIONS_GHC -fno-worker-wrapper -fsimpl-tick-factor=200 #-}
 
 module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
