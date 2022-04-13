@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE BlockArguments           #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
@@ -53,10 +54,13 @@ import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Universe
 
+class    (UniOf term ~ uni, HasConstant term) => HasConstantIn' uni term
+instance (UniOf term ~ uni, HasConstant term) => HasConstantIn' uni term
+
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (uni ~ UniOf val, HasConstant val, GShow uni, GEq uni, uni `Contains` a)
+    (HasConstantIn' uni val, GShow uni, GEq uni, uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -252,13 +256,13 @@ the cause stored in it is not forced due to @Maybe@ being a lazy data type.
 type MakeKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class MakeKnownIn uni a where
     type AssociateValueMake uni a :: GHC.Type -> GHC.Constraint
-    type AssociateValueMake uni a = HasConstant
+    type AssociateValueMake uni a = HasConstantIn' uni
 
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
     makeKnown
-        :: (uni ~ UniOf val, AssociateValueMake uni a val)
+        :: AssociateValueMake uni a val
         => Maybe cause -> a -> MakeKnownM cause val
     default makeKnown
         :: KnownBuiltinTypeIn uni val a
@@ -275,13 +279,13 @@ type MakeKnown val a = (MakeKnownIn (UniOf val) a, AssociateValueMake (UniOf val
 type ReadKnownIn :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class ReadKnownIn uni a where
     type AssociateValueRead uni a :: GHC.Type -> GHC.Constraint
-    type AssociateValueRead uni a = HasConstant
+    type AssociateValueRead uni a = HasConstantIn' uni
 
     -- See Note [Cause of failure].
     -- | Convert a PLC val to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown
-        :: (uni ~ UniOf val, AssociateValueRead uni a val)
+        :: AssociateValueRead uni a val
         => Maybe cause -> val -> ReadKnownM cause a
     default readKnown
         :: KnownBuiltinTypeIn uni val a
@@ -293,9 +297,9 @@ class ReadKnownIn uni a where
 type ReadKnown val a = (ReadKnownIn (UniOf val) a, AssociateValueRead (UniOf val) a val)
 
 makeKnownRun
-    :: MakeKnown val a
+    :: forall val a cause. MakeKnown val a
     => Maybe cause -> a -> (ReadKnownM cause val, DList Text)
-makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
+makeKnownRun mayCause = runEmitter . runExceptT . makeKnown @(UniOf val) mayCause
 {-# INLINE makeKnownRun #-}
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
@@ -305,17 +309,18 @@ makeKnownOrFail = reoption . fst . makeKnownRun Nothing
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: ( ReadKnown val a
+    :: forall val a err.
+       ( ReadKnown val a
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either throwKnownTypeErrorWithCause pure $ readKnown (Just val) val
+readKnownSelf val = either throwKnownTypeErrorWithCause pure $ readKnown @(UniOf val) (Just val) val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni a => MakeKnownIn uni (EvaluationResult a) where
     type AssociateValueMake uni (EvaluationResult a) = AssociateValueMake uni a
     makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
-    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
+    makeKnown mayCause (EvaluationSuccess x) = makeKnown @uni mayCause x
     {-# INLINE makeKnown #-}
 
 -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
@@ -332,7 +337,7 @@ instance TypeError ('Text "‘EvaluationResult’ cannot appear in the type of a
 
 instance MakeKnownIn uni a => MakeKnownIn uni (Emitter a) where
     type AssociateValueMake uni (Emitter a) = AssociateValueMake uni a
-    makeKnown mayCause a = lift a >>= makeKnown mayCause
+    makeKnown mayCause a = lift a >>= makeKnown @uni mayCause
     {-# INLINE makeKnown #-}
 
 instance TypeError ('Text "‘Emitter’ cannot appear in the type of an argument") =>
@@ -349,12 +354,12 @@ instance ReadKnownIn uni (SomeConstant uni rep) where
     readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
     {-# INLINE readKnown #-}
 
-instance uni ~ UniOf val => MakeKnownIn uni (Opaque val rep) where
+instance MakeKnownIn uni (Opaque val rep) where
     type AssociateValueMake _ _ = (~) val
     makeKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
-instance uni ~ UniOf val => ReadKnownIn uni (Opaque val rep) where
+instance ReadKnownIn uni (Opaque val rep) where
     type AssociateValueRead _ _ = (~) val
     readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE readKnown #-}

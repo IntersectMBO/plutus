@@ -250,7 +250,7 @@ instance KnownTypeAst DefaultUni Int64 where
 
 -- See Note [Int as Integer].
 instance MakeKnownIn DefaultUni Int64 where
-    makeKnown mayCause = makeKnown mayCause . toInteger
+    makeKnown mayCause = makeKnown @DefaultUni mayCause . toInteger
     {-# INLINE makeKnown #-}
 
 instance ReadKnownIn DefaultUni Int64 where
@@ -271,11 +271,11 @@ instance KnownTypeAst DefaultUni Int where
 instance MakeKnownIn DefaultUni Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
-    makeKnown mayCause = makeKnown mayCause . intCastEq @Int @Int64
+    makeKnown mayCause = makeKnown @DefaultUni mayCause . intCastEq @Int @Int64
     {-# INLINE makeKnown #-}
 
 instance ReadKnownIn DefaultUni Int where
-    readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
+    readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown @DefaultUni mayCause term
     {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]

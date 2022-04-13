@@ -168,12 +168,12 @@ instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val 
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = inline makeKnown (Just ())
+    toImmediateF = inline (makeKnown @(UniOf val)) (Just ())
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftEither'.
-    toDeferredF getRes = liftEither getRes >>= inline makeKnown (Just ())
+    toDeferredF getRes = liftEither getRes >>= inline (makeKnown @(UniOf val)) (Just ())
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
@@ -185,7 +185,7 @@ instance
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
 
     -- Unlift, then recurse.
-    toImmediateF f = fmap (toImmediateF @val @args @res . f) . inline readKnown (Just ())
+    toImmediateF f = fmap (toImmediateF @val @args @res . f) . inline (readKnown @(UniOf val)) (Just ())
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
@@ -201,7 +201,7 @@ instance
         -- of how unlifting is aligned.
         --
         -- 'pure' signifies that no failure can occur at this point.
-        pure . toDeferredF @val @args @res $! getF <*> inline readKnown (Just ()) arg
+        pure . toDeferredF @val @args @res $! getF <*> inline (readKnown @(UniOf val)) (Just ()) arg
     {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
