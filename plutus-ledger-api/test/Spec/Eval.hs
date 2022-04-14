@@ -15,7 +15,6 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
 import Test.Tasty
-import Test.Tasty.Extras
 import Test.Tasty.HUnit
 import UntypedPlutusCore as UPLC
 
@@ -112,8 +111,11 @@ illOverApp = mkIterApp ()
              , one
              ]
 
+illTypedPartialBuiltin :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
+illTypedPartialBuiltin = Apply () (Builtin () AddInteger) (mkConstant () True)
+
 -- Evaluates using the Scripts module.
-testScripts :: TestNested
+testScripts :: TestTree
 testScripts = "v1-scripts" `testWith` evalScripts
   where
       evalScripts :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
@@ -123,18 +125,18 @@ testScripts = "v1-scripts" `testWith` evalScripts
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
 -}
-testAPI :: TestNested
-testAPI = "v1-api" `testWith` evalAPI
-  where
-      evalAPI :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      evalAPI t =
-          -- handcraft a serialized script
-          let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
-          in isRight $ snd $ Api.evaluateScriptRestricting (ProtocolVersion 5 0) Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
+testAPI :: TestTree
+testAPI = "v1-api" `testWith` evalAPI (ProtocolVersion 5 0)
+
+evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
+evalAPI pv t =
+    -- handcraft a serialized script
+    let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
+    in isRight $ snd $ Api.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.
-testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestNested
-testWith str evalFn = pure . testCase str $ do
+testWith :: String -> (UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool) -> TestTree
+testWith str evalFn = testCase str $ do
     evalFn outDelay @?= False
     evalFn outLam @?= False
     evalFn outConst @?= False
@@ -146,13 +148,17 @@ testWith str evalFn = pure . testCase str $ do
     evalFn illOverSat @?= False
     evalFn illOverApp @?= False
 
+testUnlifting :: TestTree
+testUnlifting = testCase "check unlifting behaviour changes in V6" $ do
+    evalAPI (ProtocolVersion 5 0) illTypedPartialBuiltin @?= False
+    evalAPI (ProtocolVersion 6 0) illTypedPartialBuiltin @?= True
+
 tests :: TestTree
-tests = runTestNestedIn ["plutus-ledger-api"] $
-          testNested "eval"
+tests = testGroup "eval"
             [ testScripts
             , testAPI
+            , testUnlifting
             ]
-
 
 mkProg :: UPLC.Term DeBruijn DefaultUni DefaultFun () ->  UPLC.Program DeBruijn DefaultUni DefaultFun ()
 mkProg = Program () $ PLC.defaultVersion ()

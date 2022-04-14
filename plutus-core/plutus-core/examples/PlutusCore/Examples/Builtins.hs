@@ -129,14 +129,16 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
     toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . fst)
+        BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF toExF) ->
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF (toExF . fst))
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning sch toF toExF -> BuiltinMeaning sch toF (toExF . snd)
+        BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF toExF) ->
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF (toExF . snd))
 
 defBuiltinsRuntimeExt
     :: HasConstantIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
-defBuiltinsRuntimeExt = toBuiltinsRuntime (defaultBuiltinCostModel, ())
+defBuiltinsRuntimeExt = toBuiltinsRuntime defaultUnliftingMode (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
@@ -149,8 +151,9 @@ instance KnownTypeAst DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
-instance UniOf term ~ DefaultUni => KnownTypeIn DefaultUni term Void where
+instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown _ = absurd
+instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
     readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
 
 data BuiltinErrorCall = BuiltinErrorCall

@@ -85,7 +85,9 @@ nopCostModel =
     }
 
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFuns
-nopCostParameters = mkMachineParameters $ CostModel defaultCekMachineCosts nopCostModel
+nopCostParameters =
+    mkMachineParameters defaultUnliftingMode $
+        CostModel defaultCekMachineCosts nopCostModel
 
 {- | The meanings of the builtins.  Each one takes a number of integer arguments
    and returns an integer without doing any other work.  We could have used

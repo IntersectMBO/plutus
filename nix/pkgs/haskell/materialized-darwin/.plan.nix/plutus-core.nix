@@ -106,6 +106,7 @@
           "PlutusCore/Builtin/Meaning"
           "PlutusCore/Builtin/Polymorphism"
           "PlutusCore/Builtin/Runtime"
+          "PlutusCore/Builtin/TestKnown"
           "PlutusCore/Builtin/TypeScheme"
           "PlutusCore/Core/Instance"
           "PlutusCore/Core/Instance/Eq"
@@ -542,6 +543,7 @@
           buildable = true;
           modules = [
             "Evaluation/Builtins"
+            "Evaluation/Builtins/Coherence"
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"

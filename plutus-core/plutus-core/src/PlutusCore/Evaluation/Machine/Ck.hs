@@ -66,12 +66,12 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch x _) = case sch of
+evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
     RuntimeSchemeResult -> do
-        let (errOrRes, logs) = makeKnownRun (Just term) x
+        let (errOrRes, logs) = runEmitter $ runExceptT getX
         emitCkM logs
         case errOrRes of
-            Left err  -> throwMakeKnownErrorWithCause err
+            Left err  -> throwKnownTypeErrorWithCause $ term <$ err
             Right res -> pure res
     _ -> pure $ VBuiltin term runtime
 
@@ -300,17 +300,18 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f _)) arg = do
+applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg  of
-            Left err -> throwReadKnownErrorWithCause err
-            Right x  -> do
-                let noCosting = error "The CK machine does not support costing"
-                    runtime' = BuiltinRuntime schB (f x) noCosting
+        RuntimeSchemeArrow schB -> case f arg of
+            Left err -> throwKnownTypeErrorWithCause $ argTerm <$ err
+            Right y  -> do
+                -- The CK machine does not support costing, so we just apply the costing function
+                -- to 'mempty'.
+                let runtime' = BuiltinRuntime schB y (exF mempty)
                 res <- evalBuiltinApp term' runtime'
                 stack <| res
         _ ->
@@ -366,7 +367,7 @@ unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmi
 
 -- | Unlift a value using the CK machine.
 readKnownCk
-    :: (Ix fun, KnownType (Term TyName Name uni fun ()) a)
+    :: (Ix fun, ReadKnown (Term TyName Name uni fun ()) a)
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a
