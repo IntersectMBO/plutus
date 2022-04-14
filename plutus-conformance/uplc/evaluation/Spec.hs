@@ -15,9 +15,24 @@ import UntypedPlutusCore.Parser as UPLC
 
 main :: IO ()
 main = do
-    uplcFiles <- findByExtension [".uplc"] "plutus-conformance/uplc/evaluation/textual-inputs"
-    lProgInText <- traverse readFile uplcFiles
+    inputFiles <- findByExtension [".uplc"] "plutus-conformance/uplc/evaluation/textual-inputs"
+    outputFiles <- findByExtension [".expected"] "plutus-conformance/uplc/evaluation/outputs"
+    lProg <- traverse (readFile) inputFiles
+    lEvaluatedRes <- traverse readFile outputFiles
+    let tests = mkTestContents inputFiles lEvaluatedRes lProg
     defaultMain undefined --(testUplcEvaluationTextual lProg)
+
+data TestContent =
+    MkTestContent {
+        testName    :: FilePath
+        , expected  :: EvaluationResult UplcProg
+        , inputProg :: UplcProg
+    }
+
+mkTestContents :: [FilePath] -> [EvaluationResult UplcProg] -> [UplcProg] -> [TestContent]
+mkTestContents (hdF:tlF) (hdR:tlR) (hdI:tlI) =
+    MkTestContent hdF hdR hdI : mkTestContents tlF tlR tlI
+mkTestContents [] [] [] = []
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
@@ -30,11 +45,17 @@ evalUplcProg p = pure $
         termToProg
         (unsafeEvaluateCekNoEmit PLC.defaultCekParameters (UPLC._progTerm p))
 
-testUplcEvaluation :: (UplcProg -> IO (EvaluationResult UplcProg)) -> TestTree
-testUplcEvaluation = undefined
+mkTestCases :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> [TestTree]
+mkTestCases (hdTests:tlTests) runner =
+    testCase (testName hdTests) ((expected hdTests) @=? (runner (inputProg hdTests))) : mkTestCases tlTests runner
+mkTestCases [] runner = []
+
+testUplcEvaluation :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> TestTree
+testUplcEvaluation lTest runner =
+    testGroup "UPLC evaluation tests" $ mkTestCases lTest runner
 
 testUplcEvaluationTextual :: (Text -> IO Text) -> TestTree
-testUplcEvaluationTextual runner = testUplcEvaluation undefined --(evalUplcProg . UPLC.parseProgram <$> runner . pack . show)
+testUplcEvaluationTextual runner = testUplcEvaluation undefined undefined --(evalUplcProg . UPLC.parseProgram <$> runner . pack . show)
 
 -- runAgdaImpl = callProcess “agdaImpl …”
 
