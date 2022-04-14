@@ -141,7 +141,7 @@ type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 peelDataArguments :: Term -> (Term, [PLC.Data])
 peelDataArguments = go []
     where
-        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown Nothing arg of
+        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown arg of
             Left _  -> (t, acc)
             Right d -> go (d:acc) t'
         go acc t = (t, acc)

@@ -39,8 +39,6 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
-import Control.Lens ((#))
-import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.Coerce
 import Data.DList (DList)
@@ -164,27 +162,13 @@ constraints are completely different in the two cases and we keep the two concep
 (there doesn't seem to be any cons to that).
 -}
 
--- | The type of errors that 'readKnown' and 'makeKnown' can return.
-data KnownTypeError
-    = KnownTypeUnliftingError UnliftingError
-    | KnownTypeEvaluationFailure
-    deriving stock (Eq)
-
-makeClassyPrisms ''KnownTypeError
-
-instance AsUnliftingError KnownTypeError where
-    _UnliftingError = _KnownTypeUnliftingError
-
-instance AsEvaluationFailure KnownTypeError where
-    _EvaluationFailure = _EvaluationFailureVia KnownTypeEvaluationFailure
-
 -- | Throw a @ErrorWithCause KnownTypeError cause@.
 throwKnownTypeErrorWithCause
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
-    => ErrorWithCause KnownTypeError cause -> m void
-throwKnownTypeErrorWithCause (ErrorWithCause rkErr cause) = case rkErr of
-    KnownTypeUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr cause
-    KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () cause
+    => cause -> KnownTypeError -> m void
+throwKnownTypeErrorWithCause cause = \case
+    KnownTypeUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr $ Just cause
+    KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
 
 typeMismatchError
     :: GShow uni
@@ -211,19 +195,17 @@ a ton of instances (and add new ones whenever we need them), wrap and unwrap all
 
 -- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'makeKnown' runs in.
-type MakeKnownM cause = ExceptT (ErrorWithCause KnownTypeError cause) Emitter
+type MakeKnownM = ExceptT KnownTypeError Emitter
 
 -- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'readKnown' runs in.
-type ReadKnownM cause = Either (ErrorWithCause KnownTypeError cause)
+type ReadKnownM = Either KnownTypeError
 
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
-readKnownConstant
-    :: forall val a cause. KnownBuiltinType val a
-    => Maybe cause -> val -> ReadKnownM cause a
+readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 -- Note [Performance of ReadKnownIn and MakeKnownIn instances]
-readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
+readKnownConstant val = asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
         -- 'geq' matches on its first argument first, so we make the type tag that will be known
@@ -231,8 +213,7 @@ readKnownConstant mayCause val = asConstant mayCause val >>= oneShot \case
         -- optimize some of the matching away.
         case uniExp `geq` uniAct of
             Just Refl -> pure x
-            Nothing   -> Left $
-                ErrorWithCause (_UnliftingError # typeMismatchError uniExp uniAct) mayCause
+            Nothing   -> Left . KnownTypeUnliftingError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 {- Note [Cause of failure]
@@ -249,12 +230,12 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
-    makeKnown :: Maybe cause -> a -> MakeKnownM cause val
-    default makeKnown :: KnownBuiltinType val a => Maybe cause -> a -> MakeKnownM cause val
+    makeKnown :: a -> MakeKnownM val
+    default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
     -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
     -- so care must be taken to ensure that every value of a type from the universe gets forced
     -- to NF whenever it's forced to WHNF.
-    makeKnown _ x = pure . fromConstant . someValue $! x
+    makeKnown x = pure . fromConstant . someValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -264,8 +245,8 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
     -- See Note [Cause of failure].
     -- | Convert a PLC val to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
-    readKnown :: Maybe cause -> val -> ReadKnownM cause a
-    default readKnown :: KnownBuiltinType val a => Maybe cause -> val -> ReadKnownM cause a
+    readKnown :: val -> ReadKnownM a
+    default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
     -- If 'inline' is not used, proper inlining does not happen for whatever reason.
     readKnown = inline readKnownConstant
     {-# INLINE readKnown #-}
@@ -274,13 +255,13 @@ type ReadKnown val = ReadKnownIn (UniOf val) val
 
 makeKnownRun
     :: MakeKnownIn uni val a
-    => Maybe cause -> a -> (ReadKnownM cause val, DList Text)
-makeKnownRun mayCause = runEmitter . runExceptT . makeKnown mayCause
+    => a -> (ReadKnownM val, DList Text)
+makeKnownRun = runEmitter . runExceptT . makeKnown
 {-# INLINE makeKnownRun #-}
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
-makeKnownOrFail = reoption . fst . makeKnownRun Nothing
+makeKnownOrFail = reoption . fst . makeKnownRun
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
@@ -289,12 +270,12 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either throwKnownTypeErrorWithCause pure $ readKnown (Just val) val
+readKnownSelf val = either (throwKnownTypeErrorWithCause val) pure $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown mayCause EvaluationFailure     = throwingWithCause _EvaluationFailure () mayCause
-    makeKnown mayCause (EvaluationSuccess x) = makeKnown mayCause x
+    makeKnown EvaluationFailure     = throwing_ _EvaluationFailure
+    makeKnown (EvaluationSuccess x) = makeKnown x
     {-# INLINE makeKnown #-}
 
 -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
@@ -307,34 +288,32 @@ instance
         ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown mayCause _ =
-        throwingWithCause _UnliftingError "Panic: 'TypeError' was bypassed" mayCause
+    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown mayCause a = lift a >>= makeKnown mayCause
+    makeKnown = lift >=> makeKnown
     {-# INLINE makeKnown #-}
 
 instance
         ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
-    readKnown mayCause _ =
-        throwingWithCause _UnliftingError "Panic: 'TypeError' was bypassed" mayCause
+    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown _ = coerceArg $ pure . fromConstant
+    makeKnown = coerceArg $ pure . fromConstant
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
-    readKnown = coerceVia (\asC mayCause -> fmap SomeConstant . asC mayCause) asConstant
+    readKnown = coerceVia (fmap SomeConstant .) asConstant
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
+    makeKnown = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown _ = coerceArg pure  -- A faster @pure . Opaque@.
+    readKnown = coerceArg pure  -- A faster @pure . Opaque@.
     {-# INLINE readKnown #-}
 
 -- Utils

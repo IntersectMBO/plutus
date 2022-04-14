@@ -160,7 +160,7 @@ class KnownMonotype val args res a | args res -> a, a -> res where
     -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
-    toDeferredF :: ReadKnownM () (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
+    toDeferredF :: ReadKnownM (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
 
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
 instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
@@ -168,12 +168,12 @@ instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val 
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = makeKnown (Just ())
+    toImmediateF = makeKnown
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftEither'.
-    toDeferredF getRes = liftEither getRes >>= makeKnown (Just ())
+    toDeferredF getRes = liftEither getRes >>= makeKnown
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
@@ -185,7 +185,7 @@ instance
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
 
     -- Unlift, then recurse.
-    toImmediateF f = fmap (toImmediateF @val @args @res . f) . readKnown (Just ())
+    toImmediateF f = fmap (toImmediateF @val @args @res . f) . readKnown
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
@@ -201,7 +201,7 @@ instance
         -- of how unlifting is aligned.
         --
         -- 'pure' signifies that no failure can occur at this point.
-        pure . toDeferredF @val @args @res $! getF <*> readKnown (Just ()) arg
+        pure . toDeferredF @val @args @res $! getF <*> readKnown arg
     {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.

@@ -130,8 +130,8 @@ data Term tyname name uni fun a =
 type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance HasConstant (Term tyname name uni fun ()) where
-    asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = throwNotAConstant mayCause
+    asConstant (Constant _ val) = pure val
+    asConstant _                = throwNotAConstant
 
     fromConstant = Constant ()
 

@@ -51,12 +51,12 @@ instance NFData (RuntimeScheme n) where
 -- argument of the denotation and calling 'makeKnown' over its result.
 type ToRuntimeDenotationType :: GHC.Type -> Peano -> GHC.Type
 type family ToRuntimeDenotationType val n where
-    ToRuntimeDenotationType val 'Z     = MakeKnownM () val
+    ToRuntimeDenotationType val 'Z     = MakeKnownM val
     -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
     -- the price (about 1-2% of total evaluation time) for now.
-    ToRuntimeDenotationType val ('S n) = val -> ReadKnownM () (ToRuntimeDenotationType val n)
+    ToRuntimeDenotationType val ('S n) = val -> ReadKnownM (ToRuntimeDenotationType val n)
 
 -- | Compute the costing type for a builtin given the number of arguments that the builtin takes.
 type ToCostingType :: Peano -> GHC.Type
