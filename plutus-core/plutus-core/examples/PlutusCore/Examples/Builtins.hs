@@ -152,9 +152,9 @@ instance KnownTypeAst DefaultUni Void where
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a
 instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
-    makeKnown _ = absurd
+    makeKnown = absurd
 instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
-    readKnown mayCause _ = throwingWithCause _UnliftingError "Can't unlift a 'Void'" mayCause
+    readKnown _ = throwing _UnliftingError "Can't unlift a 'Void'"
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)
@@ -207,7 +207,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
-            case asConstant @_ @UnliftingError Nothing val of
+            case asConstant val of
                 Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
                 _                                       -> EvaluationFailure
 

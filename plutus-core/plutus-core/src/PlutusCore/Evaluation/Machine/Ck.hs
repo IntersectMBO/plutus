@@ -71,7 +71,7 @@ evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
         let (errOrRes, logs) = runEmitter $ runExceptT getX
         emitCkM logs
         case errOrRes of
-            Left err  -> throwKnownTypeErrorWithCause $ term <$ err
+            Left err  -> throwKnownTypeErrorWithCause term err
             Right res -> pure res
     _ -> pure $ VBuiltin term runtime
 
@@ -125,8 +125,8 @@ emitCkM logs = do
 type instance UniOf (CkValue uni fun) = uni
 
 instance HasConstant (CkValue uni fun) where
-    asConstant _        (VCon val) = pure val
-    asConstant mayCause _          = throwNotAConstant mayCause
+    asConstant (VCon val) = pure val
+    asConstant _          = throwNotAConstant
 
     fromConstant = VCon
 
@@ -307,7 +307,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
         RuntimeSchemeArrow schB -> case f arg of
-            Left err -> throwKnownTypeErrorWithCause $ argTerm <$ err
+            Left err -> throwKnownTypeErrorWithCause argTerm err
             Right y  -> do
                 -- The CK machine does not support costing, so we just apply the costing function
                 -- to 'mempty'.

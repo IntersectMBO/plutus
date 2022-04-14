@@ -254,18 +254,18 @@ instance KnownTypeAst DefaultUni Int64 where
 
 -- See Note [Int as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
-    makeKnown mayCause = makeKnown mayCause . toInteger
+    makeKnown = makeKnown . toInteger
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
-    readKnown mayCause term =
+    readKnown term =
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
-        inline readKnownConstant mayCause term >>= oneShot \(i :: Integer) ->
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
                 then pure $ fromIntegral i
-                else throwingWithCause _EvaluationFailure () mayCause
+                else throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
 instance KnownTypeAst DefaultUni Int where
@@ -275,11 +275,11 @@ instance KnownTypeAst DefaultUni Int where
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
-    makeKnown mayCause = makeKnown mayCause . intCastEq @Int @Int64
+    makeKnown = makeKnown . intCastEq @Int @Int64
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
-    readKnown mayCause term = intCastEq @Int64 @Int <$> readKnown mayCause term
+    readKnown term = intCastEq @Int64 @Int <$> readKnown term
     {-# INLINE readKnown #-}
 
 {- Note [Stable encoding of tags]

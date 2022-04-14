@@ -17,13 +17,16 @@
 module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
     , AsUnliftingError (..)
+    , KnownTypeError (..)
     , MachineError (..)
     , AsMachineError (..)
     , EvaluationError (..)
     , AsEvaluationError (..)
     , ErrorWithCause (..)
     , EvaluationException
+    , throwNotAConstant
     , mapCauseInMachineException
+    , throwing
     , throwing_
     , throwingWithCause
     , extractEvaluationResult
@@ -37,7 +40,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Control.Lens
-import Control.Monad.Error.Lens (throwing_)
+import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
 import Data.String (IsString)
 import Data.Text (Text)
@@ -49,6 +52,12 @@ newtype UnliftingError
     = UnliftingErrorE Text
     deriving stock (Show, Eq)
     deriving newtype (IsString, Semigroup, NFData)
+
+-- | The type of errors that 'readKnown' and 'makeKnown' can return.
+data KnownTypeError
+    = KnownTypeUnliftingError UnliftingError
+    | KnownTypeEvaluationFailure
+    deriving stock (Eq)
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun
@@ -86,9 +95,15 @@ data EvaluationError user internal
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
+    , ''KnownTypeError
     , ''MachineError
     , ''EvaluationError
     ]
+
+instance AsUnliftingError KnownTypeError where
+    _UnliftingError = _KnownTypeUnliftingError
+instance AsEvaluationFailure KnownTypeError where
+    _EvaluationFailure = _EvaluationFailureVia KnownTypeEvaluationFailure
 
 instance internal ~ MachineError fun => AsMachineError (EvaluationError user internal) fun where
     _MachineError = _InternalEvaluationError
@@ -117,6 +132,10 @@ instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
 
 type EvaluationException user internal =
     ErrorWithCause (EvaluationError user internal)
+
+throwNotAConstant :: MonadError KnownTypeError m => m void
+throwNotAConstant = throwError $ KnownTypeUnliftingError "Not a constant"
+{-# INLINE throwNotAConstant #-}
 
 mapCauseInMachineException
     :: (term1 -> term2)
