@@ -54,7 +54,8 @@ import PlutusPrelude
 import UntypedPlutusCore.Core
 
 
-import Data.DeBruijnEnv as Env
+import Data.RandomAccessList.Class qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -206,7 +207,7 @@ data CekValue uni fun =
                                             -- Check the docs of 'BuiltinRuntime' for details.
     deriving stock (Show)
 
-type CekValEnv uni fun = RAList (CekValue uni fun)
+type CekValEnv uni fun = Env.RAList (CekValue uni fun)
 
 -- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
@@ -462,7 +463,7 @@ dischargeCekValEnv valEnv = go 0
                -- var is in the env, discharge its value
                dischargeCekValue
                -- index relative to (as seen from the point of view of) the environment
-               (Env.index valEnv $ ix - lamCnt)
+               (Env.indexOne valEnv $ ix - lamCnt)
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
     Delay ann term       -> Delay ann $ go lamCnt term
     Force ann term       -> Force ann $ go lamCnt term
@@ -491,8 +492,8 @@ instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
 type instance UniOf (CekValue uni fun) = uni
 
 instance HasConstant (CekValue uni fun) where
-    asConstant _        (VCon val) = pure val
-    asConstant mayCause _          = throwNotAConstant mayCause
+    asConstant (VCon val) = pure val
+    asConstant _          = throwNotAConstant
 
     fromConstant = VCon
 
@@ -546,7 +547,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun -> CekM uni fun s (CekValue uni fun)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.index` coerce varIx of
+    case varEnv `Env.indexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
@@ -561,13 +562,13 @@ evalBuiltinApp
     -> CekValEnv uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term env runtime@(BuiltinRuntime sch x cost) = case sch of
+evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = makeKnownRun (Just term) x
+        let !(errOrRes, logs) = runEmitter $ runExceptT getX
         ?cekEmitter logs
         case errOrRes of
-            Left err  -> throwMakeKnownErrorWithCause err
+            Left err  -> throwKnownTypeErrorWithCause term err
             Right res -> pure res
     _ -> pure $ VBuiltin fun term env runtime
 {-# INLINE evalBuiltinApp #-}
@@ -708,13 +709,13 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            RuntimeSchemeArrow schB -> case readKnown (Just argTerm) arg of
-                Left err -> throwReadKnownErrorWithCause err
-                Right x  -> do
+            RuntimeSchemeArrow schB -> case f arg of
+                Left err -> throwKnownTypeErrorWithCause argTerm err
+                Right y  -> do
                     -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
-                    let runtime' = BuiltinRuntime schB (f x) . exF $ toExMemory arg
+                    let runtime' = BuiltinRuntime schB y . exF $ toExMemory arg
                     res <- evalBuiltinApp fun term' env runtime'
                     returnCek unbudgetedSteps ctx res
             _ ->

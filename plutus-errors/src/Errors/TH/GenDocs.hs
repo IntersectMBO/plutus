@@ -10,7 +10,7 @@ import Language.Haskell.TH as TH
 import Prettyprinter qualified as PP
 
 -- | Generate haddock documentation for all errors and their codes,
--- by creating type-synonyms to lifted dataconstructors using a DataKinds trick.
+-- by creating type-synonyms to lifted data constructors using a DataKinds trick.
 -- Note: Template Haskell cannot currently generate Haddock comments. See: <https://gitlab.haskell.org/ghc/ghc/-/issues/5467>
 genDocs :: Q [TH.Dec]
 genDocs = let allCodes = $(genCodes allErrors)

@@ -204,7 +204,7 @@ scriptCBORDecoder pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn pv
         -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-        flatDecoder = UPLC.decodeProgram (UPLC.Limit 64) (\f -> f `Set.member` availableBuiltins)
+        flatDecoder = UPLC.decodeProgram UPLC.NoLimit (\f -> f `Set.member` availableBuiltins)
     in do
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()) <- decodeViaFlat flatDecoder
@@ -246,7 +246,7 @@ evaluateScriptRestricting pv verbose ectx budget p args = swap $ runWriter @LogO
 
     let (res, UPLC.RestrictingSt (PLC.ExRestrictingBudget final), logs) =
             UPLC.runCekDeBruijn
-                (toMachineParameters ectx)
+                (toMachineParameters pv ectx)
                 (UPLC.restricting $ PLC.ExRestrictingBudget budget)
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm
@@ -271,7 +271,7 @@ evaluateScriptCounting pv verbose ectx p args = swap $ runWriter @LogOutput $ ru
 
     let (res, UPLC.CountingSt final, logs) =
             UPLC.runCekDeBruijn
-                (toMachineParameters ectx)
+                (toMachineParameters pv ectx)
                 UPLC.counting
                 (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
                 appliedTerm

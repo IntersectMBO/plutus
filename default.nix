@@ -14,7 +14,6 @@
     pkgs = import sources.nixpkgs { inherit system; };
     sourcesOverride = {
       hackage = sources.hackage-nix;
-      stackage = sources.stackage-nix;
     };
   }
 , packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling; }

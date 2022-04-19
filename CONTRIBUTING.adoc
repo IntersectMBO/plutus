@@ -42,11 +42,9 @@ From here you can build the project packages directly with `cabal`.
 
 NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-index-state[we have pinned].
 
-For `stack`, you may want to use the Nix integration and point it at `shell.nix`, which will make sure you at least get the right GHC.
-
 [WARNING]
 ====
-You can also use `cabal` and `stack` outside the `nix-shell` environment to build the project.
+You can also use `cabal` outside the `nix-shell` environment to build the project.
 _However_ there are two caveats:
 
 * You may get different versions of packages.
@@ -136,7 +134,6 @@ You need to do a few things when adding a new package, in the following order:
 
 . Add the cabal file for the new package.
 . Add the package to link:cabal.project[`cabal.project`].
-. Add the package to link:stack.yaml[`stack.yaml`].
 . Update the xref:update-generated[package set].
 . Update the `xref:update-hie[hie-*.yaml` files].
 . Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.
@@ -144,11 +141,10 @@ You need to do a few things when adding a new package, in the following order:
 [[update-haskell-pins]]
 === How to update our pinned Haskell dependencies
 
-We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) and `extra-dep` (Stack) mechanisms.
+We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) mechanism.
 
 These can be managed normally, but ensure that:
 
-* The specifications remain in sync between `cabal.project` and `stack.yaml`.
 * You update the xref:update-generated[package set].
 * If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.

@@ -1,8 +1,9 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE LambdaCase      #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE TypeFamilies    #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE BangPatterns         #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE PatternSynonyms      #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns         #-}
 module Data.RandomAccessList.SkewBinary
     ( RAList(Cons,Nil)
     , safeIndexZero
@@ -10,18 +11,16 @@ module Data.RandomAccessList.SkewBinary
     , safeIndexOne
     , unsafeIndexOne
     , Data.RandomAccessList.SkewBinary.null
-    , Data.RandomAccessList.SkewBinary.head
-    , Data.RandomAccessList.SkewBinary.tail
     , uncons
     ) where
 
 import Data.Bits (unsafeShiftR)
-import Data.List qualified as List (unfoldr)
-import Data.Maybe
 import Data.Word
 import GHC.Exts
 
--- | βA complete binary tree.
+import Data.RandomAccessList.Class qualified as RAL
+
+-- | A complete binary tree.
 -- Note: the size of the tree is not stored/cached,
 -- unless it appears as a root tree in 'RAList', which the size is stored inside the Cons.
 data Tree a = Leaf a
@@ -40,12 +39,7 @@ data RAList a = BHead
              -- because binary skew numbers have unique representation
              -- and hence all trees of the same size will have the same structure
              deriving stock (Eq, Show)
-
-
-instance IsList (RAList a) where
-  type Item (RAList a) = a
-  fromList = foldr cons Nil
-  toList = List.unfoldr uncons
+             deriving (IsList) via RAL.AsRAL (RAList a)
 
 {-# INLINABLE null #-}
 null :: RAList a -> Bool
@@ -76,16 +70,6 @@ uncons = \case
             -- split the node in two)
         in Just (x, BHead halfSize t1 $ BHead halfSize t2 ts)
     Nil -> Nothing
-
-{-# INLINABLE head #-}
--- O(1) worst-case
-head :: RAList a -> a
-head = fst . fromMaybe (error "empty RAList") . uncons
-
-{-# INLINABLE tail #-}
--- O(1) worst-case
-tail :: RAList a -> RAList a
-tail = snd. fromMaybe (error "empty RAList") . uncons
 
 -- 0-based
 unsafeIndexZero :: RAList a -> Word64 -> a
@@ -124,7 +108,6 @@ safeIndexZero (BHead w t ts) !i  =
            else indexTree halfSize (offset - 1 - halfSize) t2
 
 -- 1-based
--- NOTE: no check if zero 0 index is passed, if 0 is passed it MAY overflow the index
 unsafeIndexOne :: RAList a -> Word64 -> a
 unsafeIndexOne Nil _ = error "out of bounds"
 unsafeIndexOne (BHead w t ts) !i =
@@ -133,6 +116,7 @@ unsafeIndexOne (BHead w t ts) !i =
     else unsafeIndexOne ts (i-w)
   where
     indexTree :: Word64 -> Word64 -> Tree a -> a
+    indexTree _ 0 _ = error "index zero"
     indexTree 1 1 (Leaf x) = x
     indexTree _ _ (Leaf _) = error "out of bounds"
     indexTree _ 1 (Node x _ _) = x
@@ -144,7 +128,6 @@ unsafeIndexOne (BHead w t ts) !i =
            else indexTree halfSize (offset' - halfSize) t2
 
 -- 1-based
--- NOTE: no check if zero 0 index is passed, if 0 is passed it MAY overflow the index
 safeIndexOne :: RAList a -> Word64 -> Maybe a
 safeIndexOne Nil _ = Nothing
 safeIndexOne (BHead w t ts) !i =
@@ -153,6 +136,7 @@ safeIndexOne (BHead w t ts) !i =
     else safeIndexOne ts (i-w)
   where
     indexTree :: Word64 -> Word64 -> Tree a -> Maybe a
+    indexTree _ 0 _ = Nothing -- "index zero"
     indexTree 1 1 (Leaf x) = Just x
     indexTree _ _ (Leaf _) = Nothing
     indexTree _ 1 (Node x _ _) = Just x
@@ -163,4 +147,23 @@ safeIndexOne (BHead w t ts) !i =
            then indexTree halfSize offset' t1
            else indexTree halfSize (offset' - halfSize) t2
 
+instance RAL.RandomAccessList (RAList a) where
+    type Element (RAList a) = a
 
+    {-# INLINABLE empty #-}
+    empty = Nil
+    {-# INLINABLE cons #-}
+    cons = Cons
+    {-# INLINABLE uncons #-}
+    uncons = uncons
+    {-# INLINABLE length #-}
+    length Nil             = 0
+    length (BHead sz _ tl) = sz + RAL.length tl
+    {-# INLINABLE indexZero #-}
+    indexZero = safeIndexZero
+    {-# INLINABLE indexOne #-}
+    indexOne = safeIndexOne
+    {-# INLINABLE unsafeIndexZero #-}
+    unsafeIndexZero = unsafeIndexZero
+    {-# INLINABLE unsafeIndexOne #-}
+    unsafeIndexOne = unsafeIndexOne

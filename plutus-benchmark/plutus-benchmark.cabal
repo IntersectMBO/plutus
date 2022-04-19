@@ -52,9 +52,9 @@ library plutus-benchmark-common
   other-modules:
       Paths_plutus_benchmark
   build-depends:
-      base >=4.7 && <5
-    , plutus-core -any
-    , plutus-tx -any
+      base >=4.9 && <5
+    , plutus-core ^>=1.0
+    , plutus-tx ^>=1.0
     , criterion -any
     , filepath -any
 
@@ -77,11 +77,11 @@ library nofib-internal
       PlutusBenchmark.NoFib.LastPiece
       PlutusBenchmark.NoFib.Prime
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , plutus-core -any
-    , plutus-tx -any
-    , plutus-tx-plugin -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , plutus-core ^>=1.0
+    , plutus-tx ^>=1.0
+    , plutus-tx-plugin ^>=1.0
     , deepseq -any
 
 executable nofib-exe
@@ -90,11 +90,11 @@ executable nofib-exe
   hs-source-dirs:
       nofib/exe
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , nofib-internal
-    , plutus-core -any
-    , plutus-tx -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , nofib-internal -any
+    , plutus-core ^>=1.0
+    , plutus-tx ^>=1.0
     , ansi-wl-pprint -any
     , bytestring -any
     , flat -any
@@ -111,9 +111,9 @@ benchmark nofib
   other-modules:
     Shared
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , nofib-internal
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , nofib-internal -any
     , criterion >= 1.5.9.0
 
 benchmark nofib-hs
@@ -125,9 +125,9 @@ benchmark nofib-hs
   other-modules:
     Shared
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , nofib-internal
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , nofib-internal -any
     , criterion -any
 
 test-suite plutus-benchmark-nofib-tests
@@ -136,12 +136,12 @@ test-suite plutus-benchmark-nofib-tests
     main-is: Spec.hs
     hs-source-dirs: nofib/test
     build-depends:
-        base >=4.7 && <5
-      , plutus-benchmark-common
-      , nofib-internal
-      , plutus-core -any
+        base >=4.9 && <5
+      , plutus-benchmark-common -any
+      , nofib-internal -any
+      , plutus-core ^>=1.0
       , plutus-core:plutus-core-testlib -any
-      , plutus-tx -any
+      , plutus-tx ^>=1.0
       , plutus-tx:plutus-tx-testlib -any
       , tasty -any
       , tasty-hunit -any
@@ -164,11 +164,11 @@ library lists-internal
       PlutusBenchmark.Lists.Sort.MergeSort
       PlutusBenchmark.Lists.Sort.QuickSort
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , plutus-core -any
-    , plutus-tx -any
-    , plutus-tx-plugin -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , plutus-core ^>=1.0
+    , plutus-tx ^>=1.0
+    , plutus-tx-plugin ^>=1.0
     , mtl -any
 
 executable list-sort-exe
@@ -177,11 +177,11 @@ executable list-sort-exe
   hs-source-dirs:
       lists/exe
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , lists-internal
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , lists-internal -any
     , monoidal-containers -any
-    , plutus-core -any
+    , plutus-core ^>=1.0
 
 benchmark lists
   import: lang
@@ -190,9 +190,9 @@ benchmark lists
   hs-source-dirs:
       lists/bench
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , lists-internal
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , lists-internal -any
     , criterion >= 1.5.9.0
 
 test-suite plutus-benchmark-lists-tests
@@ -204,9 +204,9 @@ test-suite plutus-benchmark-lists-tests
         Sort.Spec
         Sum.Spec
     build-depends:
-        base >=4.7 && <5
-      , plutus-benchmark-common
-      , lists-internal
+        base >=4.9 && <5
+      , plutus-benchmark-common -any
+      , lists-internal -any
       , tasty -any
       , tasty-quickcheck -any
 
@@ -221,9 +221,9 @@ benchmark validation
   other-modules:
       Common
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , plutus-core -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , plutus-core ^>=1.0
     , bytestring -any
     , criterion >= 1.5.9.0
     , deepseq -any
@@ -231,7 +231,6 @@ benchmark validation
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
 
 ---------------- validation-decode ----------------
 
@@ -244,17 +243,16 @@ benchmark validation-decode
   other-modules:
       Common
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , plutus-core -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , plutus-core ^>=1.0
     , bytestring -any
     , criterion >= 1.5.9.0
     , directory -any
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
-    , plutus-ledger-api -any
+    , plutus-ledger-api ^>=1.0
     , serialise -any
 
 ---------------- validation-full ----------------
@@ -268,17 +266,17 @@ benchmark validation-full
   other-modules:
       Common
   build-depends:
-      base >=4.7 && <5
-    , plutus-benchmark-common
-    , plutus-core -any
+      base >=4.9 && <5
+    , plutus-benchmark-common -any
+    , plutus-core ^>=1.0
     , bytestring -any
     , criterion >= 1.5.9.0
     , directory -any
     , filepath -any
     , flat -any
     , optparse-applicative -any
-    , mtl -any
-    , plutus-ledger-api -any
+    , plutus-ledger-api ^>=1.0
+    , plutus-ledger-api:plutus-ledger-api-testlib -any
     , serialise -any
 
 ---------------- Cek cost model calibration ----------------
@@ -294,10 +292,10 @@ benchmark cek-calibration
     -- package as unused...
     ghc-options: -Wno-unused-packages
     build-depends:
-        base -any
-      , plutus-core -any
-      , plutus-tx -any
-      , plutus-tx-plugin -any
+        base >=4.9 && <5
+      , plutus-core ^>=1.0
+      , plutus-tx ^>=1.0
+      , plutus-tx-plugin ^>=1.0
       , criterion >= 1.5.9.0
       , mtl -any
       , lens -any

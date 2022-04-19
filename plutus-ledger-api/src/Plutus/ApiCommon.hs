@@ -84,3 +84,8 @@ builtinsIntroducedIn = Map.fromList [
 -- See Note [New builtins and protocol versions]
 builtinsAvailableIn :: ProtocolVersion -> Set.Set PLC.DefaultFun
 builtinsAvailableIn pv = fold $ Map.elems $ Map.takeWhileAntitone (\introducedInPv -> introducedInPv <= pv) builtinsIntroducedIn
+
+-- | Which unlifting mode should we use in the given 'ProtocolVersion'
+unliftingModeIn :: ProtocolVersion -> PLC.UnliftingMode
+-- This just changes once in version 6.0
+unliftingModeIn pv = if pv >= ProtocolVersion 6 0 then PLC.UnliftingDeferred else PLC.UnliftingImmediate

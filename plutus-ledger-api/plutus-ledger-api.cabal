@@ -43,7 +43,6 @@ library
         Plutus.V1.Ledger.Credential
         Plutus.V1.Ledger.Crypto
         Plutus.V1.Ledger.DCert
-        Plutus.V1.Ledger.Examples
         Plutus.V1.Ledger.Interval
         Plutus.V1.Ledger.Scripts
         Plutus.V1.Ledger.Tx
@@ -79,6 +78,22 @@ library
         tagged -any,
         lens -any
 
+library plutus-ledger-api-testlib
+    import: lang
+    visibility: public
+    hs-source-dirs: testlib
+    exposed-modules:
+        Plutus.Ledger.Test.Examples
+        Plutus.Ledger.Test.EvaluationContext
+        Plutus.Ledger.Test.Scripts
+    build-depends:
+        base >=4.9 && <5,
+        plutus-core ^>=1.0,
+        plutus-tx ^>=1.0,
+        plutus-ledger-api -any,
+        serialise -any,
+        bytestring -any
+
 test-suite plutus-ledger-api-test
     import: lang
     type: exitcode-stdio-1.0
@@ -93,8 +108,8 @@ test-suite plutus-ledger-api-test
         mtl -any,
         containers -any,
         plutus-core ^>=1.0,
-        plutus-core:plutus-core-testlib -any,
-        plutus-ledger-api ^>=1.0,
+        plutus-ledger-api -any,
+        plutus-ledger-api-testlib -any,
         hedgehog -any,
         tasty -any,
         tasty-hedgehog -any,

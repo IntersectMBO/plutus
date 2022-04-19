@@ -2,6 +2,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module TransformSpec (transform) where
 
 import Test.Tasty.Extras
@@ -51,6 +52,7 @@ thunkRecursions = testNested "thunkRecursions"
     $ map (goldenPir ThunkRec.thunkRecursions pTerm)
     [ "listFold"
     , "monoMap"
+    , "errorBinding"
     ]
 
 nonStrict :: TestNested

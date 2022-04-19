@@ -107,6 +107,7 @@
           "PlutusCore/Builtin/Meaning"
           "PlutusCore/Builtin/Polymorphism"
           "PlutusCore/Builtin/Runtime"
+          "PlutusCore/Builtin/TestKnown"
           "PlutusCore/Builtin/TypeScheme"
           "PlutusCore/Core/Instance"
           "PlutusCore/Core/Instance/Eq"
@@ -127,6 +128,8 @@
           "PlutusCore/Evaluation/Machine/ExBudgetingDefaults"
           "PlutusCore/InlineUtils"
           "PlutusCore/Parser/ParserCommon"
+          "PlutusCore/Parser/Type"
+          "PlutusCore/Parser/Builtin"
           "PlutusCore/Pretty/Classic"
           "PlutusCore/Pretty/ConfigName"
           "PlutusCore/Pretty/Default"
@@ -194,6 +197,8 @@
           "PlutusCore/Evaluation/Machine/BuiltinCostModel"
           "PlutusCore/Evaluation/Machine/Ck"
           "PlutusCore/Evaluation/Machine/CostModelInterface"
+          "PlutusCore/Evaluation/Machine/CostingFun/Core"
+          "PlutusCore/Evaluation/Machine/CostingFun/JSON"
           "PlutusCore/Evaluation/Machine/ExBudget"
           "PlutusCore/Evaluation/Machine/ExMemory"
           "PlutusCore/Evaluation/Machine/Exception"
@@ -331,7 +336,6 @@
           buildable = true;
           modules = [
             "PlutusCore/Generators/Internal/Denotation"
-            "PlutusCore/Generators/Internal/Dependent"
             "PlutusCore/Generators/Internal/Entity"
             "PlutusCore/Generators/Internal/TypeEvalCheck"
             "PlutusCore/Generators/Internal/TypedBuiltinGen"
@@ -355,20 +359,28 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."containers" or (errorHandler.buildDepError "containers"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;
-          modules = [ "Data/DeBruijnEnv" "Data/RandomAccessList/SkewBinary" ];
+          modules = [
+            "Data/RandomAccessList/Class"
+            "Data/RandomAccessList/SkewBinary"
+            "Data/RandomAccessList/SkewBinarySlab"
+            "Data/RandomAccessList/RelativizedMap"
+            ];
           hsSourceDirs = [ "index-envs/src" ];
           };
         };
       exes = {
         "plc" = {
           depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
@@ -388,10 +400,10 @@
           };
         "uplc" = {
           depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
@@ -412,10 +424,10 @@
           };
         "pir" = {
           depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
             (hsPkgs."aeson" or (errorHandler.buildDepError "aeson"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
             (hsPkgs."flat" or (errorHandler.buildDepError "flat"))
             (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
@@ -450,6 +462,67 @@
           hsSourceDirs = [ "executables/traceToStacks" ];
           mainPath = [ "Main.hs" ];
           };
+        "cost-model-budgeting-bench" = {
+          depends = [
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
+            (hsPkgs."criterion-measurement" or (errorHandler.buildDepError "criterion-measurement"))
+            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
+            (hsPkgs."filepath" or (errorHandler.buildDepError "filepath"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
+            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
+            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
+            (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."time" or (errorHandler.buildDepError "time"))
+            ];
+          buildable = true;
+          modules = [
+            "Common"
+            "CriterionExtensions"
+            "Generators"
+            "Benchmarks/Bool"
+            "Benchmarks/ByteStrings"
+            "Benchmarks/CryptoAndHashes"
+            "Benchmarks/Data"
+            "Benchmarks/Integers"
+            "Benchmarks/Lists"
+            "Benchmarks/Misc"
+            "Benchmarks/Nops"
+            "Benchmarks/Pairs"
+            "Benchmarks/Strings"
+            "Benchmarks/Tracing"
+            "Benchmarks/Unit"
+            ];
+          hsSourceDirs = [ "cost-model/budgeting-bench" ];
+          mainPath = [ "Main.hs" ];
+          };
+        "generate-cost-model" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
+            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
+            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
+            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
+            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
+            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
+            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
+            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
+            (hsPkgs."text" or (errorHandler.buildDepError "text"))
+            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
+            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
+            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
+            ];
+          buildable = true;
+          modules = [ "CreateBuiltinCostModel" ];
+          hsSourceDirs = [ "cost-model/create-cost-model" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       tests = {
         "satint-test" = {
@@ -476,6 +549,7 @@
             (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
             (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
             (hsPkgs."plutus-core".components.sublibs.plutus-core-testlib or (errorHandler.buildDepError "plutus-core:plutus-core-testlib"))
+            (hsPkgs."megaparsec" or (errorHandler.buildDepError "megaparsec"))
             (hsPkgs."mmorph" or (errorHandler.buildDepError "mmorph"))
             (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
             (hsPkgs."prettyprinter" or (errorHandler.buildDepError "prettyprinter"))
@@ -546,6 +620,7 @@
           buildable = true;
           modules = [
             "Evaluation/Builtins"
+            "Evaluation/Builtins/Coherence"
             "Evaluation/Builtins/Common"
             "Evaluation/Builtins/Definition"
             "Evaluation/Builtins/MakeRead"
@@ -581,71 +656,18 @@
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
+            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
             (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
-            (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
             (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
             ];
           buildable = true;
+          modules = [ "RAList/Spec" ];
           hsSourceDirs = [ "index-envs/test" ];
-          mainPath = [ "TestRAList.hs" ];
+          mainPath = [ "Spec.hs" ];
           };
         };
       benchmarks = {
-        "cost-model-budgeting-bench" = {
-          depends = [
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
-            (hsPkgs."criterion-measurement" or (errorHandler.buildDepError "criterion-measurement"))
-            (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-            (hsPkgs."directory" or (errorHandler.buildDepError "directory"))
-            (hsPkgs."hedgehog" or (errorHandler.buildDepError "hedgehog"))
-            (hsPkgs."mtl" or (errorHandler.buildDepError "mtl"))
-            (hsPkgs."optparse-applicative" or (errorHandler.buildDepError "optparse-applicative"))
-            (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
-            (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
-            (hsPkgs."random" or (errorHandler.buildDepError "random"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            ];
-          buildable = true;
-          modules = [
-            "Common"
-            "CriterionExtensions"
-            "Generators"
-            "Benchmarks/Bool"
-            "Benchmarks/ByteStrings"
-            "Benchmarks/CryptoAndHashes"
-            "Benchmarks/Data"
-            "Benchmarks/Integers"
-            "Benchmarks/Lists"
-            "Benchmarks/Misc"
-            "Benchmarks/Nops"
-            "Benchmarks/Pairs"
-            "Benchmarks/Strings"
-            "Benchmarks/Tracing"
-            "Benchmarks/Unit"
-            ];
-          hsSourceDirs = [ "cost-model/budgeting-bench" ];
-          };
-        "update-cost-model" = {
-          depends = [
-            (hsPkgs."plutus-core" or (errorHandler.buildDepError "plutus-core"))
-            (hsPkgs."aeson-pretty" or (errorHandler.buildDepError "aeson-pretty"))
-            (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
-            (hsPkgs."base" or (errorHandler.buildDepError "base"))
-            (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
-            (hsPkgs."cassava" or (errorHandler.buildDepError "cassava"))
-            (hsPkgs."exceptions" or (errorHandler.buildDepError "exceptions"))
-            (hsPkgs."extra" or (errorHandler.buildDepError "extra"))
-            (hsPkgs."inline-r" or (errorHandler.buildDepError "inline-r"))
-            (hsPkgs."text" or (errorHandler.buildDepError "text"))
-            (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
-            ];
-          buildable = true;
-          modules = [ "CostModelCreation" ];
-          hsSourceDirs = [ "cost-model/create-cost-model" ];
-          };
         "cost-model-test" = {
           depends = [
             (hsPkgs."base" or (errorHandler.buildDepError "base"))
@@ -663,7 +685,7 @@
             (hsPkgs."vector" or (errorHandler.buildDepError "vector"))
             ];
           buildable = true;
-          modules = [ "TH" "CostModelCreation" ];
+          modules = [ "TH" "CreateBuiltinCostModel" ];
           hsSourceDirs = [ "cost-model/test" "cost-model/create-cost-model" ];
           };
         "index-envs-bench" = {
@@ -672,6 +694,7 @@
             (hsPkgs."plutus-core".components.sublibs.index-envs or (errorHandler.buildDepError "plutus-core:index-envs"))
             (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
             (hsPkgs."random" or (errorHandler.buildDepError "random"))
+            (hsPkgs."nonempty-vector" or (errorHandler.buildDepError "nonempty-vector"))
             (hsPkgs."ral" or (errorHandler.buildDepError "ral"))
             ];
           buildable = true;

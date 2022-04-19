@@ -1,7 +1,7 @@
 module Main where
 
+import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
 import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
 import Plutus.V1.Ledger.Scripts
 
 

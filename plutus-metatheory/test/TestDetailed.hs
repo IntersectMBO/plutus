@@ -14,7 +14,6 @@ import Distribution.TestSuite
 import MAlonzo.Code.Main qualified as M
 import MAlonzo.Code.Raw qualified as R
 
-import Data.ByteString.Lazy.Char8 qualified as C
 import System.IO.Extra
 
 -- this function is based on this stackoverflow answer:
@@ -34,7 +33,7 @@ catchOutput act = do
   return str
 
 -- compare the output of plc vs plc-agda in its default (typed) mode
-compareResult :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> IO Progress
+compareResult :: (T.Text -> T.Text -> Bool) -> String -> String -> IO Progress
 compareResult eq mode test = withTempFile $ \tmp -> do
   example <- readProcess "plc" ["example", "-s",test] []
   writeFile tmp example
@@ -45,10 +44,10 @@ compareResult eq mode test = withTempFile $ \tmp -> do
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ()) -- does this ever happen?
-  return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
+  return $ Finished $ if eq (T.pack plcOutput) (T.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 
 -- compare the output of uplc vs plc-agda in untyped mode
-compareResultU :: (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
+compareResultU :: (T.Text -> T.Text -> Bool) -> String -> IO Progress
 compareResultU eq test = withTempFile $ \tmp -> do
   example <- readProcess "uplc" ["example","-s",test] []
   writeFile tmp example
@@ -59,9 +58,9 @@ compareResultU eq test = withTempFile $ \tmp -> do
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcOutput) (C.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
+  return $ Finished $ if eq (T.pack plcOutput) (T.pack plcAgdaOutput) then Pass else Fail $ "plc: '" ++ plcOutput ++ "' " ++ "plc-agda: '" ++ plcAgdaOutput ++ "'"
 -- compare the results of two different (typed) plc-agda modes
-compareResultMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> IO Progress
+compareResultMode :: String -> String -> (T.Text -> T.Text -> Bool) -> String -> IO Progress
 compareResultMode mode1 mode2 eq test = withTempFile $ \tmp -> do
   example <- readProcess "plc" ["example","-s",test] []
   writeFile tmp example
@@ -76,7 +75,7 @@ compareResultMode mode1 mode2 eq test = withTempFile $ \tmp -> do
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
-  return $ Finished $ if eq (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2) then Pass else Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' " ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'" ++ " === "++ T.unpack (M.blah (C.pack plcAgdaOutput1) (C.pack plcAgdaOutput2))
+  return $ Finished $ if eq (T.pack plcAgdaOutput1) (T.pack plcAgdaOutput2) then Pass else Fail $ mode1 ++ ": '" ++ plcAgdaOutput1 ++ "' " ++ mode2 ++ ": '" ++ plcAgdaOutput2 ++ "'" ++ " === "++ T.unpack (M.blah (T.pack plcAgdaOutput1) (T.pack plcAgdaOutput2))
 
 testNames = ["succInteger"
             ,"unitval"
@@ -94,7 +93,7 @@ testNames = ["succInteger"
             ,"ApplyAdd2"
             ]
 -- test plc against plc-agda
-mkTest :: (C.ByteString -> C.ByteString -> Bool) -> String -> String -> TestInstance
+mkTest :: (T.Text -> T.Text -> Bool) -> String -> String -> TestInstance
 mkTest eq mode test = TestInstance
         { run = compareResult eq mode test
         , name = mode ++ " " ++ test
@@ -104,7 +103,7 @@ mkTest eq mode test = TestInstance
         }
 
 -- test uplc against plc-agda untyped mode
-mkTestU :: (C.ByteString -> C.ByteString -> Bool) -> String -> TestInstance
+mkTestU :: (T.Text -> T.Text -> Bool) -> String -> TestInstance
 mkTestU eq test = TestInstance
         { run = compareResultU eq test
         , name = "evaluate" ++ " " ++ test
@@ -114,7 +113,7 @@ mkTestU eq test = TestInstance
         }
 
 -- test different (typed) plc-agda modes against each other
-mkTestMode :: String -> String -> (C.ByteString -> C.ByteString -> Bool) -> String -> TestInstance
+mkTestMode :: String -> String -> (T.Text -> T.Text -> Bool) -> String -> TestInstance
 mkTestMode mode1 mode2 eq test = TestInstance
         { run = compareResultMode mode1 mode2 eq test
         , name = mode1 ++ " " ++  mode2 ++ " " ++ test

@@ -54,9 +54,6 @@ module Plutus.V1.Ledger.Scripts(
     ValidatorHash(..),
     MintingPolicyHash (..),
     StakeValidatorHash (..),
-    -- * Example scripts
-    unitRedeemer,
-    unitDatum,
     ) where
 
 import Prelude qualified as Haskell
@@ -372,14 +369,6 @@ runStakeValidatorScript
     -> m (PLC.ExBudget, [Text])
 runStakeValidatorScript context wps red =
     evaluateScript (applyStakeValidatorScript context wps red)
-
--- | @()@ as a datum.
-unitDatum :: Datum
-unitDatum = Datum $ toBuiltinData ()
-
--- | @()@ as a redeemer.
-unitRedeemer :: Redeemer
-unitRedeemer = Redeemer $ toBuiltinData ()
 
 makeLift ''ScriptHash
 

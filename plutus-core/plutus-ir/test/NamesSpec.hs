@@ -1,5 +1,3 @@
-{-# LANGUAGE TypeApplications #-}
-
 module NamesSpec
     ( names
     ) where

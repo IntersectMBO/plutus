@@ -12,6 +12,7 @@ import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.ExBudget ()
 
 import Control.DeepSeq
+import GHC.Exts (inline)
 import GHC.Generics
 import GHC.Types (Type)
 
@@ -42,6 +43,7 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
     deriving stock Generic
     deriving anyclass NFData
 
+-- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
 mkMachineParameters ::
     ( -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
@@ -49,7 +51,9 @@ mkMachineParameters ::
     , HasConstantIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
-    => CostModel machinecosts builtincosts
+    => UnliftingMode
+    -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
-mkMachineParameters (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (toBuiltinsRuntime builtinCosts)
+mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)
+{-# INLINE mkMachineParameters #-}

@@ -2,7 +2,7 @@
 {-|
 This module contains example values to be used for testing. These should NOT be used in non-test code!
 -}
-module Plutus.V1.Ledger.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
+module Plutus.Ledger.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where
 
 import Codec.Serialise
 import Data.ByteString.Lazy (fromStrict, toStrict)

@@ -97,7 +97,11 @@ bytestring :: uni `Includes` BS.ByteString => Type tyname uni ()
 bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
 
--- To make monomorhpic terms, make tys equal to [] in the mkApp functions
+-- To make monomorphic terms, make tys equal to [] in the mkApp functions
+
+-- Just make the term (con unit ()), which is about the simplest possible.
+mkUnit :: uni `Includes` () => PlainTerm uni fun
+mkUnit = erase $  mkConstant () ()
 
 -- Create a term instantiating a builtin and applying it to one argument
 mkApp1 :: (uni `Includes` a, NFData a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun

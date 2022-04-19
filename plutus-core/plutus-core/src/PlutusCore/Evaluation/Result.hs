@@ -53,7 +53,7 @@ _EvaluationFailureVia failure = prism (const failure) $ \a -> when (a /= failure
 -- On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
 -- a value of the PLC counterpart of type @a@.
 data EvaluationResult a
-    = EvaluationSuccess a
+    = EvaluationSuccess !a
     | EvaluationFailure
     deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
     deriving anyclass (NFData)

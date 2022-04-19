@@ -73,7 +73,7 @@ let
           plutus-metatheory.package.buildable = false;
           # These need R
           plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
-          plutus-core.components.benchmarks.update-cost-model.buildable = lib.mkForce false;
+          plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
         };
       })
       ({ pkgs, ... }:
@@ -173,7 +173,7 @@ let
       })
     ] ++ lib.optional enableHaskellProfiling {
       enableLibraryProfiling = true;
-      enableExecutableProfiling = true;
+      enableProfiling = true;
     };
   });
 

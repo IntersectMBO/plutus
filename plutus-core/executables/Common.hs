@@ -14,7 +14,7 @@ import PlutusPrelude (through)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
-import PlutusCore.Error (AsUniqueError, UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
@@ -41,7 +41,6 @@ import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
-import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO qualified as T
 import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
@@ -55,7 +54,6 @@ import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
-import Text.Megaparsec.Error (ParseErrorBundle, errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -73,8 +71,8 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    BSL.ByteString ->
-      Either (ParseErrorBundle T.Text PLC.ParseError) (p PLC.SourcePos)
+    T.Text ->
+      Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -93,7 +91,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram = PLC.parseProgram
+  parseProgram = PLC.runQuoteT . PLC.parseProgram
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -104,7 +102,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram = UPLC.parseProgram
+  parseProgram = PLC.runQuoteT . UPLC.parseProgram
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -269,9 +267,9 @@ helpText lang =
 ---------------- Reading programs from files ----------------
 
 -- Read a PLC source program
-getInput :: Input -> IO String
-getInput (FileInput file) = readFile file
-getInput StdInput         = getContents
+getInput :: Input -> IO T.Text
+getInput (FileInput file) = T.readFile file
+getInput StdInput         = T.getContents
 
 -- | Read and parse a source program
 parseInput ::
@@ -281,12 +279,12 @@ parseInput ::
   -- | The output is either a UPLC or PLC program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
-    bsContents <- BSL.fromStrict . encodeUtf8 . T.pack <$> getInput inp
+    contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram bsContents of
+    case parseProgram contents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParseErrorBundle T.Text PLC.ParseError) ->
-        errorWithoutStackTrace $ errorBundlePretty err
+      Left (err :: ParserErrorBundle) ->
+        errorWithoutStackTrace $ show err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program

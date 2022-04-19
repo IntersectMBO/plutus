@@ -6,42 +6,40 @@
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module CostModelCreation where
+module CreateBuiltinCostModel where
 
-import PlutusCore.DataFilePaths qualified as DataFilePaths
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
-import Barbies
-import Control.Applicative
-import Control.Exception (TypeError (..))
-import Control.Monad.Catch
+import Barbies (bmap, bsequence)
+import Control.Applicative (Const (Const, getConst))
+import Control.Exception (TypeError (TypeError))
+import Control.Monad.Catch (throwM)
 import Data.ByteString.Hash qualified as PlutusHash
-import Data.ByteString.Lazy qualified as BSL
-import Data.Coerce
-import Data.Csv
-import Data.Either.Extra
-import Data.Functor.Compose
-import Data.Text as T
-import Data.Text.Encoding qualified as T
-import Data.Vector
-import GHC.Generics
+import Data.ByteString.Lazy qualified as BSL (fromStrict)
+import Data.Coerce (coerce)
+import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
+import Data.Either.Extra (maybeToEither)
+import Data.Functor.Compose (Compose (Compose))
+import Data.Text (Text)
+import Data.Text.Encoding qualified as T (encodeUtf8)
+import Data.Vector (Vector, find)
+import GHC.Generics (Generic)
 
 import H.Prelude (MonadR, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
 
--- | Convert milliseconds represented as a float to picoseconds represented as a
+-- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
-msToPs :: Double -> CostingInteger
-msToPs = ceiling . (1e6 *)
+microToPico :: Double -> CostingInteger
+microToPico = ceiling . (1e6 *)
 
-{- See Note [Creation of the Cost Model]
--}
+{- See CostModelGeneration.md for a description of what this does. -}
 
--- TODO some generics magic
+-- TODO some generics magic.
 -- Mentioned in CostModel.md. Change here, change there.
--- The names of the models in R
+-- The names of the models in R.
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger               = "addIntegerModel"
@@ -99,22 +97,25 @@ builtinCostModelNames = BuiltinCostModelBase
   }
 
 
--- Loads the models from R
+-- | Loads the models from R.
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
-costModelsR :: MonadR m => m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
-costModelsR = do
+costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+costModelsR bmfile rfile = do
   list <- [r|
-    source(DataFilePaths.modelFile_hs)
-    modelFun(DataFilePaths.benchingResultsFile_hs)
-  |]
-  bsequence $ bmap (\name -> let n = getConst name in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]) builtinCostModelNames
-  -- TODO ^ use btraverse instead
+             source(rfile_hs)
+             modelFun(bmfile_hs)
+             |]
+  let makeCostModelEntry name =
+          let n = getConst name
+          in Compose $ fmap Const $ [r| list_hs [[n_hs]] |]
+  bsequence $ bmap makeCostModelEntry builtinCostModelNames
 
--- Creates the cost model from the csv benchmarking files
-createBuiltinCostModel :: IO BuiltinCostModel
-createBuiltinCostModel =
+-- ! Creates the cost model from a CSV benchmarking results file and a file
+-- containing R modelling code.
+createBuiltinCostModel :: FilePath -> FilePath -> IO BuiltinCostModel
+createBuiltinCostModel bmfile rfile = do
   withEmbeddedR defaultConfig $ runRegion $ do
-    models <- costModelsR
+    models <- costModelsR bmfile rfile
     let getParams x y = x (getConst $ y models)
 
     -- Integers
@@ -222,7 +223,7 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (msToPs intercept, msToPs slope)
+        pure $ (microToPico intercept, microToPico slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -237,7 +238,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (msToPs intercept, msToPs slope1, msToPs slope2)
+        pure $ (microToPico intercept, microToPico slope1, microToPico slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -680,9 +681,7 @@ equalsData cpuModelR = do
 
 serialiseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 serialiseData cpuModelR = do
-  -- FIXME: add cpumodel for serialisedata
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  -- FIXME: add memmodel for serialisedata
   let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 0
   pure $ CostingFun cpuModel memModel
 

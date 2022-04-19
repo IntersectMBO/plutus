@@ -22,8 +22,6 @@ module PlutusCore.Generators.Internal.TypedBuiltinGen
 
 import PlutusPrelude
 
-import PlutusCore.Generators.Internal.Dependent
-
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Pretty
@@ -34,6 +32,7 @@ import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter
+import Type.Reflection
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.
 genLowerBytes :: Monad m => Range Int -> GenT m BS.ByteString
@@ -48,7 +47,7 @@ data TermOf term a = TermOf
 
 -- | A function of this type generates values of built-in typed (see 'TypedBuiltin' for
 -- the list of such types) and returns it along with the corresponding PLC value.
-type TypedBuiltinGenT term m = forall a. AsKnownType term a -> GenT m (TermOf term a)
+type TypedBuiltinGenT term m = forall a. TypeRep a -> GenT m (TermOf term a)
 
 -- | 'TypedBuiltinGenT' specified to 'Identity'.
 type TypedBuiltinGen term = TypedBuiltinGenT term Identity
@@ -58,7 +57,7 @@ instance (PrettyBy config a, PrettyBy config term) =>
     prettyBy config (TermOf t x) = prettyBy config t <+> "~>" <+> prettyBy config x
 
 attachCoercedTerm
-    :: (Monad m, KnownType term a, PrettyConst a)
+    :: (Monad m, MakeKnown term a, PrettyConst a)
     => GenT m a -> GenT m (TermOf term a)
 attachCoercedTerm a = do
     x <- a
@@ -73,19 +72,19 @@ attachCoercedTerm a = do
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen
-    :: forall a term m. (GShow (UniOf term), KnownType term a, PrettyConst a, Monad m)
+    :: forall a term m. (Typeable a, MakeKnown term a, PrettyConst a, Monad m)
     => GenT m a                  -- ^ A new generator.
     -> TypedBuiltinGenT term m   -- ^ An old typed built-ins generator.
     -> TypedBuiltinGenT term m   -- ^ The updated typed built-ins generator.
-updateTypedBuiltinGen genX genTb akt@AsKnownType
-    | Just Refl <- proxyAsKnownType genX `geq` akt = attachCoercedTerm genX
-    | otherwise                                    = genTb akt
+updateTypedBuiltinGen genX genTb tr
+    | Just Refl <- typeRep @a `geq` tr = attachCoercedTerm genX
+    | otherwise                        = genTb tr
 
 -- | A built-ins generator that always fails.
-genTypedBuiltinFail :: (GShow (UniOf term), Monad m) => TypedBuiltinGenT term m
+genTypedBuiltinFail :: Monad m => TypedBuiltinGenT term m
 genTypedBuiltinFail tb = fail $ fold
     [ "A generator for the following built-in is not implemented: "
-    , display tb
+    , show tb
     ]
 
 -- | A default built-ins generator.

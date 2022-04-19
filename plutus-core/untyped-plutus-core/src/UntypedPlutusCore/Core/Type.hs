@@ -106,8 +106,8 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     error    = \ann _ -> Error ann
 
 instance TPLC.HasConstant (Term name uni fun ()) where
-    asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = TPLC.throwNotAConstant mayCause
+    asConstant (Constant _ val) = pure val
+    asConstant _                = TPLC.throwNotAConstant
 
     fromConstant = Constant ()
 

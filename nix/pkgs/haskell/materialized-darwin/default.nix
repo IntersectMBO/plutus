@@ -282,6 +282,7 @@
         "semigroupoids".flags.comonad = true;
         "hsc2hs".revision = (((hackage."hsc2hs")."0.68.8").revisions).default;
         "hsc2hs".flags.in-ghc-tree = false;
+        "nonempty-vector".revision = (((hackage."nonempty-vector")."0.2.1.0").revisions).default;
         "xml".revision = (((hackage."xml")."1.3.14").revisions).default;
         "quickcheck-instances".revision = (((hackage."quickcheck-instances")."0.3.27").revisions).default;
         "quickcheck-instances".flags.bytestring-builder = false;
@@ -629,6 +630,7 @@
           "plutus-metatheory".components.tests."test1".planned = lib.mkOverride 900 true;
           "profunctors".components.library.planned = lib.mkOverride 900 true;
           "exceptions".components.library.planned = lib.mkOverride 900 true;
+          "nonempty-vector".components.setup.planned = lib.mkOverride 900 true;
           "mmorph".components.library.planned = lib.mkOverride 900 true;
           "safe-exceptions".components.library.planned = lib.mkOverride 900 true;
           "strict-containers".components.library.planned = lib.mkOverride 900 true;
@@ -644,6 +646,7 @@
           "some".components.library.planned = lib.mkOverride 900 true;
           "dependent-sum-template".components.library.planned = lib.mkOverride 900 true;
           "plutus-ghc-stub".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "array".components.library.planned = lib.mkOverride 900 true;
           "doctest".components.exes."doctest".planned = lib.mkOverride 900 true;
           "quickcheck-instances".components.library.planned = lib.mkOverride 900 true;
@@ -657,7 +660,6 @@
           "ghc-boot-th".components.library.planned = lib.mkOverride 900 true;
           "scientific".components.library.planned = lib.mkOverride 900 true;
           "th-extras".components.library.planned = lib.mkOverride 900 true;
-          "plutus-core".components.benchmarks."cost-model-budgeting-bench".planned = lib.mkOverride 900 true;
           "hspec-discover".components.exes."hspec-discover".planned = lib.mkOverride 900 true;
           "splitmix".components.library.planned = lib.mkOverride 900 true;
           "rts".components.library.planned = lib.mkOverride 900 true;
@@ -680,7 +682,6 @@
           "vector-binary-instances".components.library.planned = lib.mkOverride 900 true;
           "parallel".components.library.planned = lib.mkOverride 900 true;
           "cryptonite".components.library.planned = lib.mkOverride 900 true;
-          "plutus-core".components.benchmarks."update-cost-model".planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.benchmarks."nofib-hs".planned = lib.mkOverride 900 true;
           "foldl".components.library.planned = lib.mkOverride 900 true;
           "plutus-errors".components.library.planned = lib.mkOverride 900 true;
@@ -755,6 +756,7 @@
           "cardano-binary".components.library.planned = lib.mkOverride 900 true;
           "text-short".components.library.planned = lib.mkOverride 900 true;
           "entropy".components.library.planned = lib.mkOverride 900 true;
+          "plutus-ledger-api".components.sublibs."plutus-ledger-api-testlib".planned = lib.mkOverride 900 true;
           "plutus-benchmark".components.tests."plutus-benchmark-nofib-tests".planned = lib.mkOverride 900 true;
           "assoc".components.library.planned = lib.mkOverride 900 true;
           "process".components.library.planned = lib.mkOverride 900 true;
@@ -778,6 +780,7 @@
           "dom-lt".components.library.planned = lib.mkOverride 900 true;
           "witherable".components.library.planned = lib.mkOverride 900 true;
           "abstract-par".components.library.planned = lib.mkOverride 900 true;
+          "plutus-core".components.exes."generate-cost-model".planned = lib.mkOverride 900 true;
           "monad-par".components.library.planned = lib.mkOverride 900 true;
           "managed".components.library.planned = lib.mkOverride 900 true;
           "system-filepath".components.setup.planned = lib.mkOverride 900 true;
@@ -859,6 +862,7 @@
           "random".components.library.planned = lib.mkOverride 900 true;
           "base".components.library.planned = lib.mkOverride 900 true;
           "kan-extensions".components.library.planned = lib.mkOverride 900 true;
+          "nonempty-vector".components.library.planned = lib.mkOverride 900 true;
           "integer-logarithms".components.library.planned = lib.mkOverride 900 true;
           "Glob".components.library.planned = lib.mkOverride 900 true;
           "integer-gmp".components.library.planned = lib.mkOverride 900 true;

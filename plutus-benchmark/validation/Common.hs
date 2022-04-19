@@ -3,7 +3,6 @@ module Common (
     benchWith
     , unsafeUnflat
     , unsafeEvaluateCekNoEmit'
-    , throughCheckScope
     , peelDataArguments
     , Term
     ) where
@@ -11,13 +10,11 @@ module Common (
 import PlutusBenchmark.Common (getConfig, getDataDir)
 import PlutusBenchmark.NaturalSort
 
-import Control.Monad.Except
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.Exception
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Check.Scope (checkScope)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
@@ -129,12 +126,6 @@ benchWith act = do
         env (BS.readFile $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
-throughCheckScope :: UPLC.HasIndex name => UPLC.Term name uni fun a -> UPLC.Term name uni fun a
-throughCheckScope t =
-     case runExcept $ checkScope @PLC.FreeVariableError t of
-        Right _ -> t
-        Left _  -> error "scopecheck failed"
-
 unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 unsafeEvaluateCekNoEmit' =
        (\(e, _, _) -> unsafeExtractEvaluationResult e) .
@@ -150,7 +141,7 @@ type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 peelDataArguments :: Term -> (Term, [PLC.Data])
 peelDataArguments = go []
     where
-        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown Nothing arg of
+        go acc t@(UPLC.Apply () t' arg) = case PLC.readKnown arg of
             Left _  -> (t, acc)
             Right d -> go (d:acc) t'
         go acc t = (t, acc)

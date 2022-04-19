@@ -43,6 +43,7 @@ import Data.List (genericIndex)
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import Type.Reflection
 
 -- | The type of terms-and-their-values generators.
 type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)
@@ -53,7 +54,7 @@ type TermGen a = Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a)
 -- >     == if i < j then i + j else i - j
 genOverapplication :: TermGen Integer
 genOverapplication = do
-    let typedInteger = AsKnownType
+    let typedInteger = typeRep
         integer = toTypeAst typedInteger
     TermOf ti i <- genTypedBuiltinDef typedInteger
     TermOf tj j <- genTypedBuiltinDef typedInteger
@@ -146,8 +147,9 @@ genNaiveFib = do
 -- along with the original 'Integer'
 genNatRoundtrip :: TermGen Integer
 genNatRoundtrip = do
-    let typedInt = AsKnownType @(Term TyName Name DefaultUni DefaultFun ())
-    TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $ genTypedBuiltinDef typedInt
+    let typedInt = typeRep
+    TermOf _ iv <- Gen.filter ((>= 0) . _termOfValue) $
+        genTypedBuiltinDef @(Term TyName Name DefaultUni DefaultFun ()) typedInt
     let term = apply () natToInteger $ metaIntegerToNat iv
     return $ TermOf term iv
 
@@ -174,7 +176,7 @@ natSum = runQuote $ do
 -- sum elements of the list (see 'Sum') and return it along with the sum of the original list.
 genScottListSum :: TermGen Integer
 genScottListSum = do
-    let typedInt = AsKnownType
+    let typedInt = typeRep
         intS = toTypeAst typedInt
     ps <- Gen.list (Range.linear 0 10) $ genTypedBuiltinDef typedInt
     let list = metaListToScottList intS $ Prelude.map _termOfTerm ps
@@ -186,9 +188,9 @@ genScottListSum = do
 -- means the same thing in Haskell and PLC. Terms are generated using 'genTermLoose'.
 genIfIntegers :: TermGen Integer
 genIfIntegers = do
-    let typedInt = AsKnownType
+    let typedInt = typeRep
         int = toTypeAst typedInt
-    TermOf b bv <- genTermLoose AsKnownType
+    TermOf b bv <- genTermLoose typeRep
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
     let instConst = Apply () $ mkIterInst () Function.const [int, unit]
@@ -202,7 +204,7 @@ genIfIntegers = do
 -- | Check that builtins can be partially applied.
 genApplyAdd1 :: TermGen Integer
 genApplyAdd1 = do
-    let typedInt = AsKnownType
+    let typedInt = typeRep
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
@@ -216,7 +218,7 @@ genApplyAdd1 = do
 -- | Check that builtins can be partially applied.
 genApplyAdd2 :: TermGen Integer
 genApplyAdd2 = do
-    let typedInt = AsKnownType
+    let typedInt = typeRep
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
     TermOf j jv <- genTermLoose typedInt
@@ -232,7 +234,7 @@ genApplyAdd2 = do
 genDivideByZero :: TermGen (EvaluationResult Integer)
 genDivideByZero = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
-    TermOf i _ <- genTermLoose $ AsKnownType @_ @Integer
+    TermOf i _ <- genTermLoose $ typeRep @Integer
     let term = mkIterApp () (Builtin () op) [i, mkConstant @Integer () 0]
     return $ TermOf term EvaluationFailure
 
@@ -240,7 +242,7 @@ genDivideByZero = do
 genDivideByZeroDrop :: TermGen (EvaluationResult Integer)
 genDivideByZeroDrop = do
     op <- Gen.element [DivideInteger, QuotientInteger, ModInteger, RemainderInteger]
-    let typedInt = AsKnownType
+    let typedInt = typeRep
         int = toTypeAst typedInt
     TermOf i iv <- genTermLoose typedInt
     let term =

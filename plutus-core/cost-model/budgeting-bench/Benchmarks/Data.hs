@@ -64,7 +64,7 @@ benchConstrData gen = createTwoTermBuiltinBench ConstrData [] ints lists
 benchMapData :: Benchmark
 benchMapData = createOneTermBuiltinBench MapData [] pairs
     where pairs = take 50 . map unMap $ filter isMap dataSample
-          unMap = \case { Map l -> l ; _ -> error "Expected MAp" }
+          unMap = \case { Map l -> l ; _ -> error "Expected Map" }
 --
 -- Apply List
 benchListData :: Benchmark
@@ -129,7 +129,10 @@ benchEqualsData =
 benchSerialiseData :: Benchmark
 benchSerialiseData =
     createOneTermBuiltinBench SerialiseData [] args
-        where args = dataSampleForEq -- FIXME: is this a good sample for serialization?
+        where args = dataSampleForEq
+    -- FIXME: see if we can find a better sample for this. More generally, how
+    -- does the internal structure of a Data object influence serialisation
+    -- time?  What causes a Data object to be quick or slow to serialise?
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
