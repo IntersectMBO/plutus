@@ -115,11 +115,7 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
     then res === Right (fromIntegral n)
     else Hedgehog.assert (isLeft res)
 
-{- The lexer contains some quite complex regular expressions for literal
-  constants, allowing escape sequences inside quoted strings among other
-  things.  The lexer returns 'TkLiteralConst' tokens and then individual
-  built-in types interpret these using their own parsing functions via the
-  'Parsable' class.  The following tests check that (A) the lexer/parser can
+{- The following tests check that (A) the parser can
   handle the output of the prettyprinter on constants from types in the default
   universe, and (B) that parsing is left inverse to printing for both constants
   and programs.  We have unit tests for the unit and boolean types, and property

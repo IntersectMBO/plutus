@@ -36,7 +36,7 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 
 ### Parser and pretty printer
 
-The lexer & parser are based on Alex & Happy and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
+The parsers are based on Megaparsec and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
 
 Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parameterised with the same attribute as the embedded names.
 
