@@ -39,216 +39,9 @@ common lang
 library
     import: lang
     exposed-modules:
-        -- PlutusCore
-        -- PlutusCore.Check.Normal
-        -- PlutusCore.Check.Scoping
-        -- PlutusCore.Check.Uniques
-        -- PlutusCore.Check.Value
-        -- PlutusCore.Builtin
-        -- PlutusCore.Builtin.Debug
-        -- PlutusCore.Builtin.Elaborate
-        -- PlutusCore.Builtin.Emitter
-        -- PlutusCore.Core
-        -- PlutusCore.Data
-        -- PlutusCore.DataFilePaths
-        -- PlutusCore.DeBruijn
-        -- PlutusCore.Default
-        -- PlutusCore.Error
-        -- PlutusCore.Evaluation.Machine.BuiltinCostModel
-        -- PlutusCore.Evaluation.Machine.Ck
-        -- PlutusCore.Evaluation.Machine.CostModelInterface
-        -- PlutusCore.Evaluation.Machine.CostingFun.Core
-        -- PlutusCore.Evaluation.Machine.CostingFun.JSON
-        -- PlutusCore.Evaluation.Machine.ExBudget
-        -- PlutusCore.Evaluation.Machine.ExMemory
-        -- PlutusCore.Evaluation.Machine.Exception
-        -- PlutusCore.Evaluation.Machine.MachineParameters
-        -- PlutusCore.Evaluation.Result
-        -- PlutusCore.Examples.Builtins
-        -- PlutusCore.Examples.Data.Data
-        -- PlutusCore.Examples.Data.InterList
-        -- PlutusCore.Examples.Data.List
-        -- PlutusCore.Examples.Data.Pair
-        -- PlutusCore.Examples.Data.Shad
-        -- PlutusCore.Examples.Data.TreeForest
-        -- PlutusCore.Examples.Data.Vec
-        -- PlutusCore.Examples.Everything
-        -- PlutusCore.Flat
-        -- PlutusCore.FsTree
-        -- PlutusCore.Mark
-        -- PlutusCore.MkPlc
-        -- PlutusCore.Name
-        -- PlutusCore.Normalize
-        -- PlutusCore.Normalize.Internal
-        -- PlutusCore.Parser
-        -- PlutusCore.Pretty
-        -- PlutusCore.Quote
-        -- PlutusCore.Rename
-        -- PlutusCore.Rename.Internal
-        -- PlutusCore.Rename.Monad
-        -- PlutusCore.StdLib.Data.Bool
-        -- PlutusCore.StdLib.Data.ChurchNat
-        -- PlutusCore.StdLib.Data.Data
-        -- PlutusCore.StdLib.Data.Function
-        -- PlutusCore.StdLib.Data.Integer
-        -- PlutusCore.StdLib.Data.List
-        -- PlutusCore.StdLib.Data.Nat
-        -- PlutusCore.StdLib.Data.Pair
-        -- PlutusCore.StdLib.Data.ScottList
-        -- PlutusCore.StdLib.Data.ScottUnit
-        -- PlutusCore.StdLib.Data.Sum
-        -- PlutusCore.StdLib.Data.Unit
-        -- PlutusCore.StdLib.Everything
-        -- PlutusCore.StdLib.Meta
-        -- PlutusCore.StdLib.Meta.Data.Function
-        -- PlutusCore.StdLib.Meta.Data.Tuple
-        -- PlutusCore.StdLib.Type
-        -- PlutusCore.Subst
-
-        -- PlutusIR
-        -- PlutusIR.Analysis.RetainedSize
-        -- PlutusIR.Compiler
-        -- PlutusIR.Compiler.Definitions
-        -- PlutusIR.Compiler.Names
-        -- PlutusIR.Core
-        -- PlutusIR.Core.Instance
-        -- PlutusIR.Core.Instance.Flat
-        -- PlutusIR.Core.Instance.Pretty
-        -- PlutusIR.Core.Instance.Scoping
-        -- PlutusIR.Core.Plated
-        -- PlutusIR.Core.Type
-        -- PlutusIR.Error
-        -- PlutusIR.Mark
-        -- PlutusIR.MkPir
-        -- PlutusIR.Parser
-        -- PlutusIR.Purity
-        -- PlutusIR.Subst
-        -- PlutusIR.Transform.Beta
-        -- PlutusIR.Transform.DeadCode
-        -- PlutusIR.Transform.Inline
-        -- PlutusIR.Transform.LetFloat
-        -- PlutusIR.Transform.LetMerge
-        -- PlutusIR.Transform.RecSplit
-        -- PlutusIR.Transform.NonStrict
-        -- PlutusIR.Transform.Rename
-        -- PlutusIR.Transform.Substitute
-        -- PlutusIR.Transform.ThunkRecursions
-        -- PlutusIR.Transform.Unwrap
-        -- PlutusIR.TypeCheck
-
-        -- UntypedPlutusCore
-        -- UntypedPlutusCore.DeBruijn
-        -- UntypedPlutusCore.Evaluation.Machine.Cek
-        -- UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-        -- UntypedPlutusCore.Parser
-        -- UntypedPlutusCore.Rename
-        -- UntypedPlutusCore.MkUPlc
-        -- UntypedPlutusCore.Check.Scope
-        -- UntypedPlutusCore.Check.Uniques
-        -- UntypedPlutusCore.Core
-        -- UntypedPlutusCore.Core.Type
-
-        -- Crypto
-        -- Data.ByteString.Hash
-        -- Data.SatInt
-        -- Prettyprinter.Custom
-        -- ErrorCode
-        -- PlutusPrelude
-        -- Universe
     hs-source-dirs:
         uplc/
-        -- plutus-core/src
-        -- plutus-core/stdlib
-        -- plutus-core/examples
-        -- plutus-ir/src
-        -- untyped-plutus-core/src
-        -- prelude
-        -- common
     other-modules:
-        -- PlutusCore.Analysis.Definitions
-        -- PlutusCore.Builtin.HasConstant
-        -- PlutusCore.Builtin.KnownKind
-        -- PlutusCore.Builtin.KnownType
-        -- PlutusCore.Builtin.KnownTypeAst
-        -- PlutusCore.Builtin.Meaning
-        -- PlutusCore.Builtin.Polymorphism
-        -- PlutusCore.Builtin.Runtime
-        -- PlutusCore.Builtin.TestKnown
-        -- PlutusCore.Builtin.TypeScheme
-        -- PlutusCore.Core.Instance
-        -- PlutusCore.Core.Instance.Eq
-        -- PlutusCore.Core.Instance.Pretty
-        -- PlutusCore.Core.Instance.Pretty.Classic
-        -- PlutusCore.Core.Instance.Pretty.Common
-        -- PlutusCore.Core.Instance.Pretty.Default
-        -- PlutusCore.Core.Instance.Pretty.Plc
-        -- PlutusCore.Core.Instance.Pretty.Readable
-        -- PlutusCore.Core.Instance.Recursive
-        -- PlutusCore.Core.Instance.Scoping
-        -- PlutusCore.Core.Plated
-        -- PlutusCore.Core.Type
-        -- PlutusCore.DeBruijn.Internal
-        -- PlutusCore.Default.Builtins
-        -- PlutusCore.Default.Universe
-        -- PlutusCore.Eq
-        -- PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        -- PlutusCore.InlineUtils
-        -- PlutusCore.Parser.ParserCommon
-        -- PlutusCore.Parser.Type
-        -- PlutusCore.Parser.Builtin
-        -- PlutusCore.Pretty.Classic
-        -- PlutusCore.Pretty.ConfigName
-        -- PlutusCore.Pretty.ConfigName
-        -- PlutusCore.Pretty.Default
-        -- PlutusCore.Pretty.Plc
-        -- PlutusCore.Pretty.PrettyConst
-        -- PlutusCore.Pretty.Readable
-        -- PlutusCore.Pretty.Utils
-        -- PlutusCore.Size
-        -- PlutusCore.TypeCheck
-        -- PlutusCore.TypeCheck.Internal
-
-        -- PlutusIR.Analysis.Dependencies
-        -- PlutusIR.Analysis.Size
-        -- PlutusIR.Analysis.Usages
-        -- PlutusIR.Compiler.Datatype
-        -- PlutusIR.Compiler.Error
-        -- PlutusIR.Compiler.Let
-        -- PlutusIR.Compiler.Lower
-        -- PlutusIR.Compiler.Provenance
-        -- PlutusIR.Compiler.Recursion
-        -- PlutusIR.Compiler.Types
-        -- PlutusIR.Normalize
-        -- PlutusIR.TypeCheck.Internal
-
-        -- UntypedPlutusCore.Analysis.Definitions
-        -- UntypedPlutusCore.Analysis.Usages
-        -- UntypedPlutusCore.Core.Instance
-        -- UntypedPlutusCore.Core.Instance.Eq
-        -- UntypedPlutusCore.Core.Instance.Flat
-        -- UntypedPlutusCore.Core.Instance.Pretty
-        -- UntypedPlutusCore.Core.Instance.Pretty.Classic
-        -- UntypedPlutusCore.Core.Instance.Pretty.Default
-        -- UntypedPlutusCore.Core.Instance.Pretty.Plc
-        -- UntypedPlutusCore.Core.Instance.Pretty.Readable
-        -- UntypedPlutusCore.Core.Instance.Recursive
-        -- UntypedPlutusCore.Core.Plated
-        -- UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-        -- UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-        -- UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
-        -- UntypedPlutusCore.Mark
-        -- UntypedPlutusCore.Rename.Internal
-        -- UntypedPlutusCore.Simplify
-        -- UntypedPlutusCore.Size
-        -- UntypedPlutusCore.Subst
-        -- UntypedPlutusCore.Transform.ForceDelay
-        -- UntypedPlutusCore.Transform.Inline
-
-        -- Data.Aeson.Flatten
-        -- Data.Aeson.THReader
-        -- Data.Functor.Foldable.Monadic
-        -- Universe.Core
-        -- GHC.Natural.Extras
     build-depends:
         aeson -any,
         algebraic-graphs >= 0.3,
@@ -313,30 +106,29 @@ test-suite uplc-eval-test
     main-is: Spec.hs
     hs-source-dirs: uplc/evaluation
     other-modules:
-        -- Evaluation.Builtins
-        -- Evaluation.Builtins.Coherence
-        -- Evaluation.Builtins.Common
-        -- Evaluation.Builtins.Definition
-        -- Evaluation.Builtins.MakeRead
-        -- Evaluation.FreeVars
-        -- Evaluation.Golden
-        -- Evaluation.Machines
-        -- Transform.Simplify
-        -- DeBruijn.Common
-        -- DeBruijn.Scope
-        -- DeBruijn.Spec
-        -- DeBruijn.UnDeBruijnify
     build-depends:
         base >=4.9 && <5,
-        bytestring -any,
-        hedgehog -any,
-        flat -any,
-        lens -any,
-        mtl -any,
-        plutus-core -any,
-        prettyprinter -any,
-        tasty -any,
         tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
+        text -any
+
+test-suite tplc-eval-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: tplc/evaluation
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        tasty-golden -any,
+        text -any
+
+test-suite tplc-typecheck-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: tplc/typecheck
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        tasty-golden -any,
         text -any

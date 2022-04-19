@@ -1,19 +1,8 @@
 # Plutus Core Conformance Test Suite
 
-The Haskell package `plutus-core` implements a range of functionality for manipulating Plutus Core programs. The implementation is based on the [Plutus Core language specification](../plutus-core-spec).
-
 ## Specification
 
-### Exported functionality: `PlutusCore`
-
-* Parser and pretty-printer for textual Plutus Core representation as per the Plutus Core specification
-
-* Binary serialisation and deserialisation using the `flat` package
-
-* Plutus Core abstract syntax
-
-* Renamer
-
+### Exported functionality:
 * Type checker
 
 * Evaluator (interpreter based on the CK machine) that closely follows the Plutus Core specification (the aim is to obviously match the specification without much concern for efficiency)
@@ -21,10 +10,6 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 ### Testing
 
 * Testsuite based on the `hedgehog` and `tasty` packages
-
-* Round trip testing of parser with pretty-printer and serialisation with deserialisation using `hedgehog`
-
-* Golden tests against sample PLC programs
 
 ### Documentation
 
@@ -36,7 +21,7 @@ The Haskell package `plutus-core` implements a range of functionality for manipu
 
 ### Parser and pretty printer
 
-The lexer & parser are based on Alex & Happy and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
+The parsers are based Megaparsec and the pretty printer uses the `prettyprinter` package. Names (identifiers) are interned using uniques as per `PlutusCore.Name`. They are also parameterised with an attribute used differently in different stages.
 
 Parsing, pretty-printing and the AST representation closely follow the Plutus Core specification. AST nodes are parameterised with the same attribute as the embedded names.
 
@@ -91,3 +76,8 @@ There is an executable that runs programs on the CK machine: you can feed a prog
 #### The CEK machine
 
 Similarly for untyped plutus core, the CEK machine can be used to evaluate untyped plutus core programs. Run `cabal run uplc evaluate -- -h` for a full list of options.
+
+## Contributing
+
+## Acknowledgement
+
