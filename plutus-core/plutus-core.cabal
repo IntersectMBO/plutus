@@ -726,5 +726,6 @@ test-suite index-envs-test
         index-envs -any,
         nonempty-vector -any,
         QuickCheck -any,
+        quickcheck-instances -any,
         tasty -any,
         tasty-quickcheck -any
