@@ -148,6 +148,19 @@ pattern (:->) :: Kind () -> Kind () -> Kind ()
 pattern (:->) a b = KindArrow () a b
 infixr 3 :->
 
+pattern BIF_Trace :: Term tyname name uni DefaultFun ()
+pattern BIF_Trace = Builtin () Trace
+
+pattern BIF_If :: Term tyname name uni DefaultFun ()
+pattern BIF_If = Builtin () IfThenElse
+
+pattern LIT_Loc :: CoverageAnnotation -> Term tyname name DefaultUni fun ()
+pattern LIT_Loc l <- Constant _ (Some (ValueOf DefaultUniString (readMaybe . Text.unpack -> Just l)))
+  where LIT_Loc l = Constant () (Some (ValueOf DefaultUniString (Text.pack (show l))))
+
+pattern Const :: DefaultUni (Esc a) -> a -> Term tyname name DefaultUni fun ()
+pattern Const b a = Constant () (Some (ValueOf b a))
+
 infixr 3 ->>
 (->>) :: (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
 (->>) = TyFun ()
@@ -355,6 +368,40 @@ substClosedType x sub ty =
     TyBuiltin{}   -> ty
     TyIFix{}      -> ty
 
+builtinKind :: SomeTypeIn DefaultUni -> Kind ()
+builtinKind (SomeTypeIn t) = case t of
+  DefaultUniProtoList -> Star :-> Star
+  DefaultUniProtoPair -> Star :-> Star :-> Star
+  DefaultUniApply f _ -> let _ :-> k = builtinKind (SomeTypeIn f) in k
+  _                   -> Star
+
+-- | Precondition: new kind is smaller or equal to old kind.
+--   TODO (later): also allow changing which context it's valid in
+fixKind :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ()) -> (Type TyName DefaultUni ())
+fixKind ctx ty k
+  | inferKind_ ctx ty == k = ty
+  | not $ k `leKind` inferKind_ ctx ty = errorDoc $ "fixKind not smaller:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
+  | otherwise = case ty of
+    TyVar _ _ | y : _ <- [ y | (y, k') <- Map.toList ctx, k == k' ] -> TyVar () y
+              | otherwise -> minimalType k
+    TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (inferKind_ ctx b) k) b
+    TyLam _ x kx b    ->
+      case k of
+        Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
+        KindArrow _ ka kb
+          | ka == kx  -> TyLam () x kx $ fixKind (Map.insert x kx ctx) b kb
+          | not $ kb `leKind` kb' ->
+            errorDoc $ "notgood:" <+> vcat [ "ctx =" <+> pretty (Map.toList ctx)
+                                           , "ty =" <+> pretty ty <+> ":" <+> pretty (inferKind_ ctx ty)
+                                           , "k =" <+> pretty k]
+          | otherwise -> TyLam () x ka $ fixKind ctx' b' kb
+            where
+              ctx' = Map.insert x ka ctx
+              b'   = substClosedType x (minimalType kx) b
+              kb'  = inferKind_ ctx' b'
+    TyBuiltin{}       -> minimalType k
+    _                 -> errorDoc $ "fixKind:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
+
 -- TODO: also shrink to new context
 --       need old context and new context
 shrinkKindAndType :: HasCallStack => Map TyName (Kind ()) -> ((Kind ()), (Type TyName DefaultUni ())) -> [((Kind ()), (Type TyName DefaultUni ()))]
@@ -400,20 +447,47 @@ minimalType ty =
     list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
     pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
+pretty, errorDoc, (<+>), (<?>), vcat, text, sep :: a
+pretty = error "TODO: pretty"
+errorDoc = error "TODO: errorDoc"
+(<+>) = error "TODO: (<+>)"
+(<?>) = error "TODO: (<?>)"
+vcat = error "TODO: vcat"
+text = error "TODO: text"
+sep = error "TODO: sep"
+
+inferKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> Maybe (Kind ())
+inferKind ctx ty = case ty of
+  TyVar _ x        -> Map.lookup x ctx
+  TyFun _ _ _      -> pure $ Star
+  TyApp _ a _      -> do KindArrow _ _ k <- inferKind ctx a; pure k
+  TyLam _ x k b    -> KindArrow () k <$> inferKind (Map.insert x k ctx) b
+  TyForall _ _ _ _ -> pure $ Star
+  TyBuiltin _ b    -> pure $ builtinKind b
+  TyIFix{}         -> error "inferKind: TyIFix"
+
 inferKind_ :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ())
 inferKind_ ctx ty =
   case inferKind ctx ty of
     Nothing -> errorDoc $ "inferKind:" <+> vcat ["ctx =" <+> pretty (Map.toList ctx), "ty =" <+> pretty ty]
     Just k  -> k
 
-{-
-shrinkType :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> [(Type TyName DefaultUni ())]
+shrinkType :: HasCallStack
+           => Map TyName (Kind ())
+           -> Type TyName DefaultUni ()
+           -> [Type TyName DefaultUni ()]
 shrinkType ctx ty = map snd $ shrinkKindAndType ctx (Star, ty)
 
-shrinkTypeAtKind :: HasCallStack => Map TyName (Kind ()) -> (Kind ()) -> (Type TyName DefaultUni ()) -> [(Type TyName DefaultUni ())]
+shrinkTypeAtKind :: HasCallStack
+                 => Map TyName (Kind ())
+                 -> Kind ()
+                 -> Type TyName DefaultUni ()
+                 -> [Type TyName DefaultUni ()]
 shrinkTypeAtKind ctx k ty = [ ty' | (k', ty') <- shrinkKindAndType ctx (k, ty), k == k' ]
 
-substTypeCapturePar :: Map TyName (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+substTypeCapturePar :: Map TyName (Type TyName DefaultUni ())
+                    -> Type TyName DefaultUni ()
+                    -> Type TyName DefaultUni ()
 substTypeCapturePar sub ty = case ty of
     TyVar _ x        -> maybe ty id (Map.lookup x sub)
     TyFun _ a b      -> TyFun () (substTypeCapturePar sub a) (substTypeCapturePar sub b)
@@ -427,7 +501,49 @@ data Polarity = Pos
               | Neg
               deriving (Ord, Eq, Show)
 
-substEscape :: Polarity -> Set TyName -> Map TyName (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+substType :: HasCallStack
+          => Map TyName (Type TyName DefaultUni ())
+          -> Type TyName DefaultUni ()
+          -> Type TyName DefaultUni ()
+substType = substType' True
+
+substType' :: HasCallStack
+           => Bool
+           -> Map TyName (Type TyName DefaultUni ())
+           -> Type TyName DefaultUni ()
+           -> Type TyName DefaultUni ()
+substType' nested sub ty0 = go fvs Set.empty sub ty0
+  where
+    fvs = Set.unions $ Map.keysSet sub : map fvType (Map.elems sub)
+
+    go :: HasCallStack => _
+    go fvs seen sub ty = case ty of
+      TyVar _ x | Set.member x seen -> errorDoc $ "substType' loop:" <?> vcat [ "sub =" <+> pretty sub
+                                                                              , "ty0 =" <+> pretty ty0]
+      TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
+                | otherwise -> maybe ty id $ Map.lookup x sub
+      TyFun _ a b      -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
+      TyApp _ a b      -> TyApp () (go fvs seen sub a) (go fvs seen sub b)
+      TyLam _ x k b
+        | Set.member x fvs -> TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
+        | otherwise        -> TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
+        where x' = freshenTyName (fvs <> fvType b) x
+      TyForall _ x k b
+        | Set.member x fvs -> TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
+        | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
+        where x' = freshenTyName (fvs <> fvType b) x
+      TyBuiltin{}      -> ty
+      TyIFix{}         -> error "substType: TyIFix"
+
+renameType :: TyName -> TyName -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+renameType x y | x == y    = id
+               | otherwise = substType (Map.singleton x (TyVar () y))
+
+substEscape :: Polarity
+            -> Set TyName
+            -> Map TyName (Type TyName DefaultUni ())
+            -> Type TyName DefaultUni ()
+            -> Type TyName DefaultUni ()
 substEscape pol fv sub ty = case ty of
   TyVar _ x      -> maybe ty (substEscape pol fv sub) (Map.lookup x sub)
   TyFun _ a b    -> TyFun () (substEscape pol fv sub a) (substEscape pol fv sub b)  -- TODO: pol was Neg
@@ -443,18 +559,6 @@ substEscape pol fv sub ty = case ty of
   TyBuiltin{}    -> ty
   TyIFix{}       -> ty
 
-
-
-inferKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> Maybe (Kind ())
-inferKind ctx ty = case ty of
-  TyVar _ x        -> Map.lookup x ctx
-  TyFun _ _ _      -> pure $ Star
-  TyApp _ a _      -> do KindArrow _ _ k <- inferKind ctx a; pure k
-  TyLam _ x k b    -> KindArrow () k <$> inferKind (Map.insert x k ctx) b
-  TyForall _ _ _ _ -> pure $ Star
-  TyBuiltin _ b    -> pure $ builtinKind b
-  TyIFix{}         -> error "inferKind: TyIFix"
-
 checkKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ()) -> Bool
 checkKind ctx ty k = case ty of
   TyVar _ x        -> Just k == Map.lookup x ctx
@@ -468,35 +572,19 @@ checkKind ctx ty k = case ty of
   TyBuiltin _ b    -> k == builtinKind b
   TyIFix{}         -> error "checkKind: TyIFix"
 
--- | Precondition: new kind is smaller or equal to old kind.
---   TODO (later): also allow changing which context it's valid in
-fixKind :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ()) -> (Type TyName DefaultUni ())
-fixKind ctx ty k
-  | inferKind_ ctx ty == k = ty
-  | not $ k `leKind` inferKind_ ctx ty = errorDoc $ "fixKind not smaller:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
-  | otherwise = case ty of
-    TyVar _ _ | y : _ <- [ y | (y, k') <- Map.toList ctx, k == k' ] -> TyVar () y
-              | otherwise -> minimalType k
-    TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (inferKind_ ctx b) k) b
-    TyLam _ x kx b    ->
-      case k of
-        Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
-        KindArrow _ ka kb
-          | ka == kx  -> TyLam () x kx $ fixKind (Map.insert x kx ctx) b kb
-          | not $ kb `leKind` kb' -> errorDoc $ "notgood:" <+> vcat ["ctx =" <+> pretty (Map.toList ctx),
-                                                                     "ty =" <+> pretty ty <+> ":" <+> pretty (inferKind_ ctx ty),
-                                                                     "k =" <+> pretty k]
-          | otherwise -> TyLam () x ka $ fixKind ctx' b' kb -- fixKind (Map.insert x ka ctx) (substClosedType x (minimalType kx) b) kb
-            where
-              ctx' = Map.insert x ka ctx
-              b'   = substClosedType x (minimalType kx) b
-              kb'  = inferKind_ ctx' b'
-    TyBuiltin{}       -> minimalType k
-    _                 -> errorDoc $ "fixKind:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
+addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
+          -> Map Name (Type TyName DefaultUni ())
+          -> Map Name (Type TyName DefaultUni ())
+addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
+addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
+addTmBind _                                = id
 
-fvTerm :: (Term TyName Name DefaultUni DefaultFun ()) -> Set Name
+fvTerm :: Term TyName Name DefaultUni DefaultFun ()
+       -> Set Name
 fvTerm tm = case tm of
-  Let _ Rec binds body -> Set.unions (fvTerm body : [ fvTerm body | TermBind _ _ _ body <- toList binds ]) `Set.difference` Map.keysSet (foldr addTmBind mempty binds)
+  Let _ Rec binds body -> Set.unions
+    (fvTerm body : [ fvTerm body | TermBind _ _ _ body <- toList binds ])
+    `Set.difference` Map.keysSet (foldr addTmBind mempty binds)
   Let _ _ binds body   -> foldr go (fvTerm body) binds
     where go (TermBind _ _ (VarDecl _ x _) body) free = fvTerm body <> Set.delete x free
           go _ free                                   = free
@@ -511,11 +599,7 @@ fvTerm tm = case tm of
   IWrap{} -> error "fvTerm: IWrap"
   Unwrap{} -> error "fvTerm: Unwrap"
 
-
-
-
-
-negativeVars :: (Type TyName DefaultUni ()) -> Set TyName
+negativeVars :: Type TyName DefaultUni () -> Set TyName
 negativeVars ty = case ty of
   TyFun _ a b      -> positiveVars a <> negativeVars b
   TyApp _ a b      -> negativeVars a <> negativeVars b
@@ -535,106 +619,22 @@ positiveVars ty = case ty of
   TyBuiltin{}      -> mempty
   TyIFix{}         -> error "positiveVars: TyIFix"
 
-dtypKind :: TyCtx -> DTyp -> (Kind ())
-dtypKind ctx ty = case pushWeakenTy ty of
-  DTVar x args -> kindApps k $ map (dtypKind ctx) args
-    where
-      k = case lookupCtx ctx x of
-            Left k                 -> k
-            Right (DDat _ _ k _ _) -> k
-      kindApps k [] = k
-      kindApps (KindArrow _ k1 k2) (k1' : ks)
-        | k1 == k1' = kindApps k2 ks
-      kindApps k ks = errorDoc $ "kindApps:" <?> vcat ["k =" <+> pretty k, "ks =" <+> pretty ks]
-  DTFun a b -> case (dtypKind ctx a, dtypKind ctx b) of
-    (Star, Star) -> Star
-    (ka, kb)           -> errorDoc $ "dtypKind DTFun:" <?> vcat
-                            [ "ctx =" <+> pretty ctx
-                            , "ty =" <+> pretty (DTFun a b)
-                            , "dom kind =" <+> pretty ka
-                            , "tgt kind =" <+> pretty kb ]
-  DTForall x k ty -> case dtypKind (ctx :> x ::: k) ty of
-    Star -> Star
-    k'      -> errorDoc $ "dtypKind DTForall:" <?> vcat
-                [ "ctx =" <+> pretty ctx
-                , "ty =" <+> pretty (DTForall x k ty)
-                , "body kind =" <+> pretty k' ]
-  DTLam x k ty    -> KindArrow () k (dtypKind (ctx :> x ::: k) ty)
-  DTyBuiltin k    -> k
-  DTWk{}          -> error "dtypKind: impossible"
-
-ceDoc :: Testable t => Doc -> t -> Property
-ceDoc d = counterexample (show d)
-
-letCE :: (Pretty a, Testable p) => String -> a -> (a -> p) -> Property
-letCE name x k = ceDoc (text name <+> "=" <+> pretty x) (k x)
-
-forAllDoc :: (Pretty a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
-forAllDoc name g shr k = forAllShrinkBlind g shr $ \ x -> ceDoc (text name <+> "=" <+> pretty x) (k x)
-
-genKindAndType :: Gen ((Kind ()), (Type TyName DefaultUni ()))
+genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndType = do
   k <- arbitrary
   t <- genClosedType_ k
   return (k, t)
 
-prop_interpTyKind :: Property
-prop_interpTyKind =
-  forAllDoc "k,ty" genKindAndType             (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  letCE     "dbty" (toDeBruijn_Typ [] ty)                                   $ \ dbty ->
-  letCE     "dty"  (interpTy Nil Nil dbty [])                               $ \ dty ->
-  letCE     "dk"   (dtypKind Nil dty)                                       $ \ dk ->
-  ceDoc (pretty dk <+> "/=" <+> pretty k) (dk == k)
-
-notSoBad :: Pretty [a] => [a] -> Property
-notSoBad []  = property True
-notSoBad bad = ceDoc (pretty bad) False
-
-prop_shrinkTypeSmaller :: Property
-prop_shrinkTypeSmaller =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  notSoBad [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
-
-prop_shrinkTypeSound :: Property
-prop_shrinkTypeSound =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkKind Map.empty ty k ==>
-  notSoBad [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty), not $ checkKind Map.empty ty k ]
-
-prop_genKindCorrect :: Property
-prop_genKindCorrect =
-  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
-  checkKind ctx ty k
-
-prop_genSmallSize :: Property
-prop_genSmallSize =
-  forAllDoc "_,ty" genKindAndType (const []) $ \ (_, ty) ->
-  letCE "size" (show $ typeSize ty) $ \ sz ->
-    read (init $ drop (length @[] @Char "Size {unSize = ") sz) < (60 :: Int)
-
-prop_shrinkKind :: Property
-prop_shrinkKind =
-  forAllDoc "k" arbitrary shrink $ \ k ->
-  notSoBad [ k' | k' <- shrink k, not $ ltKind k' k ]
-
-prop_fixKind :: Property
-prop_fixKind =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  notSoBad [ (ty', k') | k' <- shrink k, let ty' = fixKind Map.empty ty k', not $ checkKind Map.empty ty' k' ]
-
--- Terms --
-
-normalizeTy :: (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy ty = case runQuoteT $ normalizeType ty of
-  Left err  -> errorDoc $ "normalizeTy" <?> vcat [ "ty =" <+> pretty ty, "err =" <+> text (show @Err' err) ]
+  Left err  -> errorDoc $ "normalizeTy" <?> vcat [ "ty =" <+> pretty ty, "err =" <+> text (show @(Error DefaultUni DefaultFun ()) err) ]
   Right (Normalized ty') -> ty'
 
 unifyType :: Map TyName (Kind ())
           -> Set TyName
           -> Map TyName (Type TyName DefaultUni ())
-          -> (Type TyName DefaultUni ())
-          -> (Type TyName DefaultUni ())
+          -> Type TyName DefaultUni ()
+          -> Type TyName DefaultUni ()
           -> Maybe (Map TyName (Type TyName DefaultUni ()))
 unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
   where
@@ -677,38 +677,11 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
 
-renameType :: TyName -> TyName -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
-renameType x y | x == y    = id
-               | otherwise = substType (Map.singleton x (TyVar () y))
 
-substType :: HasCallStack => Map TyName (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
-substType = substType' True
-
-parSubstType :: Map TyName (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+parSubstType :: Map TyName (Type TyName DefaultUni ())
+             -> Type TyName DefaultUni ()
+             -> (Type TyName DefaultUni ())
 parSubstType = substType' False
-
-substType' :: HasCallStack => Bool -> Map TyName (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
-substType' nested sub ty0 = go fvs Set.empty sub ty0
-  where
-    fvs = Set.unions $ Map.keysSet sub : map fvType (Map.elems sub)
-
-    go :: HasCallStack => _
-    go fvs seen sub ty = case ty of
-      TyVar _ x | Set.member x seen -> errorDoc $ "substType' loop:" <?> vcat ["sub =" <+> pretty sub, "ty0 =" <+> pretty ty0]
-      TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
-                | otherwise -> maybe ty id $ Map.lookup x sub
-      TyFun _ a b      -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
-      TyApp _ a b      -> TyApp () (go fvs seen sub a) (go fvs seen sub b)
-      TyLam _ x k b
-        | Set.member x fvs -> TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
-        | otherwise        -> TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> fvType b) x
-      TyForall _ x k b
-        | Set.member x fvs -> TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
-        | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> fvType b) x
-      TyBuiltin{}      -> ty
-      TyIFix{}         -> error "substType: TyIFix"
 
 genCtx :: Gen (Map TyName (Kind ()))
 genCtx = do
@@ -720,6 +693,116 @@ genCtx = do
   ks <- vectorOf n arbitrary
   return $ Map.fromList $ zip xs ks
 
+genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
+genSubst ctx = do
+  xks <- sublistOf <=< shuffle $ Map.toList ctx
+  go ctx Map.empty xks
+  where
+    go _ _ [] = return mempty
+    go ctx counts ((x, k) : xs) = do
+      let ctx' = Map.delete x ctx
+          w    = fromMaybe 1 $ Map.lookup x counts
+      ty <- sized $ \ n -> resize (div n w) $ genTypeWithCtx ctx' k
+      let moreCounts = fmap (* w) $ fvTypeBag ty
+          counts'    = Map.unionWith (+) counts moreCounts
+      Map.insert x ty <$> go ctx' counts' xs
+
+shrinkSubst :: Map TyName (Kind ())
+            -> Map TyName (Type TyName DefaultUni ())
+            -> [Map TyName (Type TyName DefaultUni ())]
+shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
+  where
+    shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
+      where Just k = Map.lookup x ctx
+    pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
+      where fvs = fvType ty
+
+data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
+  deriving stock Show
+
+-- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
+--   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
+--   the given type for `InstArg`) at the `TyInsts`s has type `target`
+typeInstTerm :: HasCallStack
+             => Map TyName (Kind ())
+             -> Int
+             -> Type TyName DefaultUni ()
+             -> Type TyName DefaultUni ()
+             -> Maybe [TyInst]
+typeInstTerm ctx n target ty = do
+  sub <- unifyType (ctx <> ctx') flex Map.empty target b
+      -- We map any unsolved flexible variables to ∀ a. a
+  let defaultSub = minimalType <$> ctx'
+      doSub :: HasCallStack => _
+      doSub      = substType defaultSub . substType sub
+      doSubI (InstApp t) = InstApp (doSub t)
+      doSubI (InstArg t) = InstArg (doSub t)
+  pure $ map doSubI insts
+  where
+    fvs = fvType target <> fvType ty <> Map.keysSet ctx
+    (ctx', flex, insts, b) = view Map.empty Set.empty [] n fvs ty
+
+    view ctx' flex insts n fvs (TyForall _ x k b) = view (Map.insert x' k ctx') (Set.insert x' flex)
+                                                         (InstApp (TyVar () x') : insts) n (Set.insert x' fvs) b'
+      where (x', b') | Set.member x fvs = let x' = freshenTyName fvs x in (x', renameType x x' b)
+                     | otherwise        = (x, b)
+    view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
+    view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
+
+data Doc = TODODoc -- TODO
+  deriving stock Show
+
+-- TODO
+class Pretty a
+instance Pretty a
+
+ceDoc :: Testable t => Doc -> t -> Property
+ceDoc d = counterexample (show d)
+
+letCE :: (Pretty a, Testable p) => String -> a -> (a -> p) -> Property
+letCE name x k = ceDoc (text name <+> "=" <+> pretty x) (k x)
+
+forAllDoc :: (Pretty a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
+forAllDoc name g shr k = forAllShrinkBlind g shr $ \ x -> ceDoc (text name <+> "=" <+> pretty x) (k x)
+
+notSoBad :: Pretty [a] => [a] -> Property
+notSoBad []  = property True
+notSoBad bad = ceDoc (pretty bad) False
+
+prop_shrinkTypeSmaller :: Property
+prop_shrinkTypeSmaller =
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
+  notSoBad [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
+
+prop_shrinkTypeSound :: Property
+prop_shrinkTypeSound =
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
+  checkKind Map.empty ty k ==>
+  notSoBad [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty), not $ checkKind Map.empty ty k ]
+
+prop_genKindCorrect :: Property
+prop_genKindCorrect =
+  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
+  checkKind ctx ty k
+
+prop_genSmallSize :: Property
+prop_genSmallSize =
+  forAllDoc "_,ty" genKindAndType (const []) $ \ (_, ty) ->
+  letCE "size" (show $ typeSize ty) $ \ sz ->
+    read (init $ drop (length @[] @Char "Size {unSize = ") sz) < (60 :: Int)
+
+prop_shrinkKind :: Property
+prop_shrinkKind =
+  forAllDoc "k" arbitrary shrink $ \ k ->
+  notSoBad [ k' | k' <- shrink k, not $ ltKind k' k ]
+
+prop_fixKind :: Property
+prop_fixKind =
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
+  notSoBad [ (ty', k') | k' <- shrink k, let ty' = fixKind Map.empty ty k', not $ checkKind Map.empty ty' k' ]
+
+-- Terms --
 prop_unify :: Property
 prop_unify =
   forAllDoc "n"   arbitrary shrink $ \ (NonNegative n) ->
@@ -752,28 +835,6 @@ prop_unifyRename =
   letCE "rename ty" (either undefined id . runQuoteT $ rename ty) $ \ rnty ->
   isJust $ unifyType mempty mempty mempty ty rnty
 
-genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
-genSubst ctx = do
-  xks <- sublistOf <=< shuffle $ Map.toList ctx
-  go ctx Map.empty xks
-  where
-    go _ _ [] = return mempty
-    go ctx counts ((x, k) : xs) = do
-      let ctx' = Map.delete x ctx
-          w    = fromMaybe 1 $ Map.lookup x counts
-      ty <- sized $ \ n -> resize (div n w) $ genTypeWithCtx ctx' k
-      let moreCounts = fmap (* w) $ fvTypeBag ty
-          counts'    = Map.unionWith (+) counts moreCounts
-      Map.insert x ty <$> go ctx' counts' xs
-
-shrinkSubst :: Map TyName (Kind ()) -> Map TyName (Type TyName DefaultUni ()) -> [Map TyName (Type TyName DefaultUni ())]
-shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
-  where
-    shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
-      where Just k = Map.lookup x ctx
-    pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
-      where fvs = fvType ty
-
 prop_substType :: Property
 prop_substType =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
@@ -788,32 +849,13 @@ prop_substType =
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
 
-data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
-  deriving (Show)
-
--- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
---   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
---   the given type for `InstArg`) at the `TyInsts`s has type `target`
-typeInstTerm :: HasCallStack => Map TyName (Kind ()) -> Int -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> Maybe [TyInst]
-typeInstTerm ctx n target ty = do
-  sub <- unifyType (ctx <> ctx') flex Map.empty target b
-      -- We map any unsolved flexible variables to ∀ a. a
-  let defaultSub = minimalType <$> ctx'
-      doSub :: HasCallStack => _
-      doSub      = substType defaultSub . substType sub
-      doSubI (InstApp t) = InstApp (doSub t)
-      doSubI (InstArg t) = InstArg (doSub t)
-  pure $ map doSubI insts
-  where
-    fvs = fvType target <> fvType ty <> Map.keysSet ctx
-    (ctx', flex, insts, b) = view Map.empty Set.empty [] n fvs ty
-
-    view ctx' flex insts n fvs (TyForall _ x k b) = view (Map.insert x' k ctx') (Set.insert x' flex)
-                                                         (InstApp (TyVar () x') : insts) n (Set.insert x' fvs) b'
-      where (x', b') | Set.member x fvs = let x' = freshenTyName fvs x in (x', renameType x x' b)
-                     | otherwise        = (x, b)
-    view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
-    view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
+genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
+genConstant b = case b of
+  SomeTypeIn DefaultUniBool    -> Const DefaultUniBool <$> liftGen arbitrary
+  SomeTypeIn DefaultUniInteger -> Const DefaultUniInteger <$> liftGen arbitrary
+  SomeTypeIn DefaultUniUnit    -> pure $ Const DefaultUniUnit ()
+  SomeTypeIn DefaultUniString  -> Const DefaultUniString . fromString . getPrintableString <$> liftGen arbitrary
+  _                            -> errorDoc $ sep ["genConstant:", "ty =" <+> pretty b]
 
 inhabitType :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
@@ -873,6 +915,11 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
     fvArgs _                  = mempty
 
+typeArity :: Num a => Type tyname uni ann -> a
+typeArity (TyForall _ _ _ a) = typeArity a
+typeArity (TyFun _ _ b)      = 1 + typeArity b
+typeArity _                  = 0
+
 genAtomicTerm :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genAtomicTerm ty = do
   ctx  <- asks geTypes
@@ -885,10 +932,12 @@ genAtomicTerm ty = do
 noEscape :: GenTm a -> GenTm a
 noEscape = local $ \env -> env { geEscaping = NoEscape }
 
-genTermOfType :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
+genTermOfType :: Type TyName DefaultUni ()
+              -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genTermOfType ty = snd <$> genTerm (Just ty)
 
-genTerm :: Maybe (Type TyName DefaultUni ()) -> GenTm ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))
+genTerm :: Maybe (Type TyName DefaultUni ())
+        -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTerm mty = checkInvariant =<< do
   vars <- asks geTerms
   esc <- asks geEscaping
@@ -1058,7 +1107,7 @@ genTerm mty = checkInvariant =<< do
         [] -> (ty,) <$> inhabitType ty
         gs -> (ty,) <$> liftGenF oneof gs
 
-genDatatypeLet :: Bool -> ((Datatype TyName Name DefaultUni DefaultFun ()) -> GenTm a) -> GenTm a
+genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni DefaultFun () -> GenTm a) -> GenTm a
 genDatatypeLet rec cont = do
     k <- liftGen arbitrary
     let kindArgs (k :-> k') = k : kindArgs k'
@@ -1086,19 +1135,7 @@ genDatatypeLets cont = do
       go n k = genDatatypeLet False $ \ dat -> go (n - 1) (k . (dat :))
   go n cont
 
-typeArity :: Num a => Type tyname uni ann -> a
-typeArity (TyForall _ _ _ a) = typeArity a
-typeArity (TyFun _ _ b)      = 1 + typeArity b
-typeArity _                  = 0
-
-genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
-genConstant b = case b of
-  SomeTypeIn DefaultUniBool    -> Const DefaultUniBool <$> liftGen arbitrary
-  SomeTypeIn DefaultUniInteger -> Const DefaultUniInteger <$> liftGen arbitrary
-  SomeTypeIn DefaultUniUnit    -> pure $ Const DefaultUniUnit ()
-  SomeTypeIn DefaultUniString  -> Const DefaultUniString . fromString . getPrintableString <$> liftGen arbitrary
-  _                            -> errorDoc $ sep ["genConstant:", "ty =" <+> pretty b]
-
+{-
 shrinkClosedTypedTerm :: ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ())) -> [((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))]
 shrinkClosedTypedTerm (ty, LamAbs _ help helpType tm) = map (second $ LamAbs () help helpType) $ shrinkTypedTerm Map.empty (Map.singleton help helpType) (ty, tm)
 shrinkClosedTypedTerm p = shrinkTypedTerm mempty mempty p
@@ -1108,17 +1145,20 @@ scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (fvType ty)
   where
     inscope = Map.keysSet tyctx <> Set.fromList (map fst $ datatypes tm)
 
-mkHelp :: Map Name (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Term TyName Name DefaultUni DefaultFun ())
+mkHelp :: Map Name (Type TyName DefaultUni ())
+       -> Type TyName DefaultUni ()
+       -> Term TyName Name DefaultUni DefaultFun ()
 mkHelp _ (TyBuiltin _ b)          = minimalBuiltin b
 mkHelp (findHelp -> Just help) ty = TyInst () (Var () help) ty
 mkHelp _ ty                       = Error () ty
 
-addTmBind :: (Binding TyName Name DefaultUni DefaultFun ()) -> Map Name (Type TyName DefaultUni ()) -> Map Name (Type TyName DefaultUni ())
-addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
-addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
-addTmBind _                                = id
 
-shrinkTypedTerm :: HasCallStack => Map TyName (Kind ()) -> Map Name (Type TyName DefaultUni ()) -> ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ())) -> [((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))]
+
+shrinkTypedTerm :: HasCallStack
+                => Map TyName (Kind ())
+                -> Map Name (Type TyName DefaultUni ())
+                -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
+                -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
 shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
   where
     isHelp (Const _ _)            = True
@@ -1296,7 +1336,7 @@ fixupTerm _ _ tyctxNew ctxNew tyNew tm
   | isRight (typeCheckTermInContext tyctxNew ctxNew tm tyNew) = tm
   | otherwise                                                 = mkHelp ctxNew tyNew
 
-minimalBuiltin :: SomeTypeIn DefaultUni -> (Term TyName Name DefaultUni DefaultFun ())
+minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
 minimalBuiltin (SomeTypeIn b@DefaultUniUnit)    = Const b ()
 minimalBuiltin (SomeTypeIn b@DefaultUniInteger) = Const b 0
 minimalBuiltin (SomeTypeIn b@DefaultUniBool)    = Const b False
@@ -1315,7 +1355,9 @@ shrinkBind _ tyctx ctx bind =
     TypeBind _ (TyVarDecl _ a k) ty  -> [ TypeBind () (TyVarDecl () a k') ty'   | (k', ty') <- shrinkKindAndType tyctx (k, ty) ]
     DatatypeBind _ dat               -> [ DatatypeBind () dat' | dat' <- shrinkDat tyctx dat ]
 
-shrinkDat :: Map TyName (Kind ()) -> (Datatype TyName Name DefaultUni DefaultFun ()) -> [(Datatype TyName Name DefaultUni DefaultFun ())]
+shrinkDat :: Map TyName (Kind ())
+          -> Datatype TyName Name DefaultUni DefaultFun ()
+          -> [Datatype TyName Name DefaultUni DefaultFun ()]
 shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
   [ Datatype () dd xs m cs' | cs' <- shrinkList shrinkCon cs ]
   where
@@ -1331,20 +1373,22 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
         setTarget t (TyFun _ a b) = TyFun () a (setTarget t b)
         setTarget t _             = t
 
-helpType :: (Type TyName DefaultUni ())
+helpType :: Type TyName DefaultUni ()
 helpType = TyForall () a Star (TyVar () a)
   where a = tyvar "a" 0
 
-genTypeAndTerm_ :: Gen ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))
+genTypeAndTerm_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTypeAndTerm_ = runGenTm $ do
     (ty, body)    <- genTerm Nothing
     ~(Just (Var _ help)) <- asks geHelp
     return (ty, LamAbs () help helpType body)
 
-genTypeAndTermNoHelp_ :: Gen ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))
+genTypeAndTermNoHelp_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTypeAndTermNoHelp_ = runGenTm $ local (\ e -> e { geHelp = Nothing }) $ genTerm Nothing
 
-genFullyApplied :: (Type TyName DefaultUni ()) -> (Term TyName Name DefaultUni DefaultFun ()) -> Gen ((Type TyName DefaultUni ()), (Term TyName Name DefaultUni DefaultFun ()))
+genFullyApplied :: Type TyName DefaultUni ()
+                -> Term TyName Name DefaultUni DefaultFun ()
+                -> Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genFullyApplied typ trm = runGenTm $ local (\ e -> e { geHelp = Nothing }) $ go trm
   where
     go trm = case trm of
@@ -1358,7 +1402,10 @@ genFullyApplied typ trm = runGenTm $ local (\ e -> e { geHelp = Nothing }) $ go 
       genArgsApps b (Apply () trm arg)
     genArgsApps ty trm = return (ty, trm)
 
-genTermInContext_ :: Map TyName (Kind ()) -> Map Name (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> Gen (Term TyName Name DefaultUni DefaultFun ())
+genTermInContext_ :: Map TyName (Kind ())
+                  -> Map Name (Type TyName DefaultUni ())
+                  -> Type TyName DefaultUni ()
+                  -> Gen (Term TyName Name DefaultUni DefaultFun ())
 genTermInContext_ tyctx ctx ty =
   runGenTm $ local (\ e -> e { geTypes = tyctx, geTerms = ctx, geEscaping = NoEscape }) $
     snd <$> genTerm (Just ty)
@@ -1377,7 +1424,9 @@ prop_typeInstTerm =
   doTypeInstTermCheck ctx ty target
 
 doTypeInstTermCheck :: Map TyName (Kind ())
-                       -> Type TyName DefaultUni () -> (Type TyName DefaultUni ()) -> Property
+                    -> Type TyName DefaultUni ()
+                    -> Type TyName DefaultUni ()
+                    -> Property
 doTypeInstTermCheck ctx ty target =
   case [ ((n, insts), err)
        | n <- [0..arity ty+3],
@@ -1421,19 +1470,21 @@ prop_shrinkTermSound =
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
   isRight (typeCheckTerm tm $ TyFun () helpType ty) ==>
   not (null shrinks) ==>
-  --forAllDoc "shrinks" (if shrinking then pure shrinks else vectorOf 1 $ elements shrinks) (const []) $ \ shrinks ->
   notSoBad [ (ty, tm, (err, scopeCheckTyVars Map.empty (ty, tm)))
            | (ty, tm) <- shrinks, Left err <- [typeCheckTerm tm (TyFun () helpType ty)] ]
 
 shrinkRNF :: NFData a => Int -> (a -> [a]) -> a -> [a]
-shrinkRNF timeLimitMicroseconds shrinker a = catMaybes [ unsafePerformIO $ timeout timeLimitMicroseconds (rnf a' `seq` pure a') | a' <- shrinker a ]
+shrinkRNF timeLimitMicroseconds shrinker a =
+  catMaybes [ unsafePerformIO $ timeout timeLimitMicroseconds (rnf a' `seq` pure a') | a' <- shrinker a ]
 
 prop_canShrinkTerm :: Property
 prop_canShrinkTerm =
   let second = 1000000 in
   forAllDoc "ty,tm" genTypeAndTerm_ (shrinkRNF second shrinkClosedTypedTerm)   $ \ (ty, tm) ->
   let ss = shrinkClosedTypedTerm (ty, tm) in
-  foldr (.&&.) (counterexample "Can't count number of shrinks" $ within (10*second) (length ss `seq` property True)) [ within second (rnf s `seq` True) | s <- ss]
+  foldr (.&&.)
+    (counterexample "Can't count number of shrinks" $ within (10*second) (length ss `seq` property True))
+    [ within second (rnf s `seq` True) | s <- ss]
 
 prop_genWellTypedFullyApplied :: Property
 prop_genWellTypedFullyApplied =
@@ -1479,7 +1530,8 @@ prop_numShrink = forAllDoc "ty,tm"   genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   in
   tabulate "r" [printf "%0.1f" r] True
 
-compile :: (Term TyName Name DefaultUni DefaultFun ()) -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
+compile :: Term TyName Name DefaultUni DefaultFun ()
+        -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
 compile _tm = either Left Right $ runQuoteT $ do
   -- Make sure that names are unique (that's not guaranteed by QuickCheck)
   tm <- rename _tm
@@ -1571,7 +1623,7 @@ datatypes tm = case tm of
   _ -> error "nope"
 
 inferTypeInContext :: Map TyName (Kind ()) -> Map Name (Type TyName DefaultUni ()) -> (Term TyName Name DefaultUni DefaultFun ()) -> Either Doc (Type TyName DefaultUni ())
-inferTypeInContext tyctx ctx tm = either (Left . text . show) (Right . id) $ runQuoteT @(Either Err') $ do
+inferTypeInContext tyctx ctx tm = either (Left . text . show) (Right . id) $ runQuoteT @(Either (Error DefaultUni DefaultFun ())) $ do
   cfg <- getDefTypeCheckConfig ()
   Normalized _ty' <- runQuoteT $ inferType cfg tm'
   let ty' = substEscape Pos (Map.keysSet esc <> foldr (<>) (fvType _ty') (fvType <$> esc)) esc _ty' -- yuck
@@ -1626,6 +1678,7 @@ fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss
           fvs = fvType a
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
+-}
 
 -- Container
 
@@ -1645,8 +1698,3 @@ instance Container NonEmpty where
   oneHoleContexts (x :| xs) = (NonEmptyContext [] xs, x) : [ (NonEmptyContext (x : ys) zs, y) | (ListContext ys zs, y) <- oneHoleContexts xs ]
   plugHole (NonEmptyContext []       ys) z = z :| ys
   plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
-
--- instance Pretty TyInst where
---   pretty (InstApp ty) = "@" <> prettyPrec 11 ty
---   pretty (InstArg ty) = braces $ pretty ty
--}
