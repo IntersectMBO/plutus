@@ -316,6 +316,7 @@ library plutus-core-testlib
     exposed-modules:
         PlutusCore.Test
         PlutusCore.Generators
+        PlutusCore.Generators.PIR
         PlutusCore.Generators.AST
         PlutusCore.Generators.Interesting
         PlutusCore.Generators.NEAT.Common
