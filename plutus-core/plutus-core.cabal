@@ -348,7 +348,6 @@ library plutus-core-testlib
         integer-gmp -any,
         lazy-search -any,
         lens -any,
-        megaparsec -any,
         mmorph -any,
         mtl -any,
         plutus-core -any,
@@ -716,7 +715,6 @@ library index-envs
         base >=4.9 && <5,
         containers -any,
         extra -any,
-        vector -any,
         nonempty-vector -any,
         -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
         ral == 0.1

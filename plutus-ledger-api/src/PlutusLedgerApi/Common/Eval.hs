@@ -113,11 +113,12 @@ inlining).
 -}
 
 mkMachineParametersFor :: (MonadError CostModelApplyError m)
-                       => UnliftingMode
+                       => Version ()
+                       -> UnliftingMode
                        -> Plutus.CostModelParams
                        -> m DefaultMachineParameters
-mkMachineParametersFor unlMode newCMP =
-    inline Plutus.mkMachineParameters unlMode <$>
+mkMachineParametersFor ver unlMode newCMP =
+    inline Plutus.mkMachineParameters ver unlMode <$>
         Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
 {-# INLINE mkMachineParametersFor #-}
 
@@ -143,11 +144,11 @@ data EvaluationContext = EvaluationContext
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
 -}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext newCMP =
+mkDynEvaluationContext :: MonadError CostModelApplyError m => Version () -> Plutus.CostModelParams -> m EvaluationContext
+mkDynEvaluationContext ver newCMP =
     EvaluationContext
-        <$> inline mkMachineParametersFor UnliftingImmediate newCMP
-        <*> inline mkMachineParametersFor UnliftingDeferred newCMP
+        <$> inline mkMachineParametersFor ver UnliftingImmediate newCMP
+        <*> inline mkMachineParametersFor ver UnliftingDeferred newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

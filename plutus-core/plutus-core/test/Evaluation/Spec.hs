@@ -72,7 +72,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    toBuiltinMeaning AlwaysThrows = makeBuiltinMeaning f mempty
+    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f mempty
       where
         f :: Integer -> Integer
         f _ = error "This builtin function always throws an exception."
@@ -111,7 +111,7 @@ prop_builtinEvaluation bn mkGen f = property $ do
     f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
   where
     meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
-    meaning = toBuiltinMeaning bn
+    meaning = toBuiltinMeaning (defaultVersion ()) bn
 
     eval :: [Term uni fun] -> MakeKnownM (Term uni fun)
     eval args0 = case meaning of
@@ -165,7 +165,7 @@ genArgs genArg bn = sequenceA $ case meaning of
             TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
-    meaning = toBuiltinMeaning bn
+    meaning = toBuiltinMeaning (defaultVersion ()) bn
 
 type family Head a where
     Head (x ': xs) = x

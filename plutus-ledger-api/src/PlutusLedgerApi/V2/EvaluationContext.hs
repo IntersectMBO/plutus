@@ -14,6 +14,7 @@ module PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V2.ParamName as V2
 
+import PlutusCore.Core qualified as PLC
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 
 import Control.Monad
@@ -24,4 +25,4 @@ import Control.Monad.Except
 The input is a list of integer values passed from the ledger and are expected to appear in correct order.
 -}
 mkEvaluationContext :: MonadError CostModelApplyError m => [Integer] -> m EvaluationContext
-mkEvaluationContext = mkDynEvaluationContext . toCostModelParams <=< tagWithParamNames @V2.ParamName
+mkEvaluationContext = mkDynEvaluationContext (PLC.Version () 2 0 0) . toCostModelParams <=< tagWithParamNames @V2.ParamName

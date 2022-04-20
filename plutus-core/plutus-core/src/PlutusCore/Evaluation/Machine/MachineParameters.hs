@@ -8,6 +8,7 @@ module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
 import PlutusCore.Builtin
+import PlutusCore.Core.Type (Version)
 
 import PlutusCore.Evaluation.Machine.ExBudget ()
 
@@ -53,9 +54,10 @@ mkMachineParameters ::
     , HasMeaningIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
-    => UnliftingMode
+    => Version ann
+    -> UnliftingMode
     -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
-mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)
+mkMachineParameters ver unlMode (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime ver unlMode builtinCosts)
 {-# INLINE mkMachineParameters #-}

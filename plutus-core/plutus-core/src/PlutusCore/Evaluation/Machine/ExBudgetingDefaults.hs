@@ -18,6 +18,7 @@ where
 
 import PlutusCore.Builtin
 
+import PlutusCore.Core.Type (defaultVersion)
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -79,15 +80,15 @@ defaultUnliftingMode :: UnliftingMode
 defaultUnliftingMode = UnliftingImmediate
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
+defaultCekParameters = mkMachineParameters (defaultVersion ()) defaultUnliftingMode defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters =
-    mkMachineParameters defaultUnliftingMode $
+    mkMachineParameters (defaultVersion ()) defaultUnliftingMode $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
+defaultBuiltinsRuntime = toBuiltinsRuntime (defaultVersion ()) defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

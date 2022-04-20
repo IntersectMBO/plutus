@@ -3,6 +3,7 @@ module PlutusLedgerApi.Test.EvaluationContext
     , evalCtxForTesting
     ) where
 
+import PlutusCore.Core qualified as PLC
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusLedgerApi.Common
@@ -16,4 +17,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = unsafeFromEither $ mkDynEvaluationContext costModelParamsForTesting
+evalCtxForTesting = unsafeFromEither $ mkDynEvaluationContext (PLC.defaultVersion ()) costModelParamsForTesting

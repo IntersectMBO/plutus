@@ -626,6 +626,6 @@ runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
   let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
   mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
-      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm (PLC.defaultVersion ()) -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
 
 

@@ -37,11 +37,13 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Applicative
+import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
 import Data.Int
 import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
+import Data.Word
 import GHC.Exts (inline, oneShot)
 import Universe as Export
 
@@ -219,19 +221,21 @@ instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
-{- Note [Int as Integer]
+{- Note [Int/Word8 as Integer]
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
-like to use work over 'Int'.
+like to use work over 'Int' and 'Word8'.
 
-This is inconvenient and also error-prone: dealing with a function that takes an 'Int' means carefully
+This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8' means carefully
 downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
 wrong by e.g. blindly using 'fromInteger'.
 
-Moreover, there is a latent risk here: if we *were* to build on a 32-bit platform, then programs which
+Moreover, there is a latent risk for architecture-dependent sizes of datatypes:
+if we *were* to build on a 32-bit platform, then programs which
 use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
 
 So, what to do? We adopt the following strategy:
 - We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
 - We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
 
 This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
@@ -252,7 +256,7 @@ being "internal".
 instance KnownTypeAst DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Int as Integer].
+-- See Note [Int/Word8 as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
     makeKnown = makeKnown . toInteger
     {-# INLINE makeKnown #-}
@@ -274,7 +278,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Int as Integer].
+-- See Note [Int/Word8 as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
@@ -284,6 +288,24 @@ instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     readKnown term = intCastEq @Int64 @Int <$> readKnown term
     {-# INLINE readKnown #-}
+
+instance KnownTypeAst DefaultUni Word8 where
+    toTypeAst _ = toTypeAst $ Proxy @Word8
+
+-- See Note [Int/Word8 as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word8 where
+    makeKnown = makeKnown . toInteger
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 where
+    readKnown term =
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+           case toIntegralSized i of
+               Just w8 -> pure w8
+               _       -> throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
+
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

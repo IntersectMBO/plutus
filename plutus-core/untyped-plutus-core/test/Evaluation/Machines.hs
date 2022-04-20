@@ -79,7 +79,7 @@ bunchOfIdNats =
     FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
         idNatFile i = plcTermFile (show i) (idNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterApp () (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
 
         idNat idN 0 = apply () idN $ metaIntegerToNat 10
         idNat idN n = idNat idN' (n - 1) where
@@ -93,9 +93,9 @@ bunchOfIdNats =
 bunchOfIfThenElseNats :: PlcFolderContents DefaultUni DefaultFun
 bunchOfIfThenElseNats =
     FolderContents [treeFolderContents "IfThenElse" $ map ifThenElseNatFile [0 :: Int, 1.. 5]] where
-        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i) where
+        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterApp () (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
 
         ifThenElseNat idN 0 = apply () idN $ metaIntegerToNat 10
         ifThenElseNat idN n = ifThenElseNat idN' (n - 1) where
@@ -114,7 +114,7 @@ test_budget
     . testNested "Budget"
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime Plc.defaultUnliftingMode ()) bunchOfIdNats
+        , folder (toBuiltinsRuntime (Plc.defaultVersion ()) Plc.defaultUnliftingMode ()) bunchOfIdNats
         , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where

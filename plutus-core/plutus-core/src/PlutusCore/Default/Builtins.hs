@@ -16,6 +16,7 @@ module PlutusCore.Default.Builtins where
 import PlutusPrelude
 
 import PlutusCore.Builtin
+import PlutusCore.Core.Type (Version (..))
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -835,96 +836,100 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     -- Integers
     toBuiltinMeaning
-        :: forall val. HasMeaningIn uni val
-        => DefaultFun -> BuiltinMeaning val BuiltinCostModel
-    toBuiltinMeaning AddInteger =
+        :: forall val ann. HasMeaningIn uni val
+        => Version ann -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+    toBuiltinMeaning _ver AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)
             (runCostingFunTwoArguments . paramAddInteger)
-    toBuiltinMeaning SubtractInteger =
+    toBuiltinMeaning _ver SubtractInteger =
         makeBuiltinMeaning
             ((-) @Integer)
             (runCostingFunTwoArguments . paramSubtractInteger)
-    toBuiltinMeaning MultiplyInteger =
+    toBuiltinMeaning _ver MultiplyInteger =
         makeBuiltinMeaning
             ((*) @Integer)
             (runCostingFunTwoArguments . paramMultiplyInteger)
-    toBuiltinMeaning DivideInteger =
+    toBuiltinMeaning _ver DivideInteger =
         makeBuiltinMeaning
             (nonZeroArg div)
             (runCostingFunTwoArguments . paramDivideInteger)
-    toBuiltinMeaning QuotientInteger =
+    toBuiltinMeaning _ver QuotientInteger =
         makeBuiltinMeaning
             (nonZeroArg quot)
             (runCostingFunTwoArguments . paramQuotientInteger)
-    toBuiltinMeaning RemainderInteger =
+    toBuiltinMeaning _ver RemainderInteger =
         makeBuiltinMeaning
             (nonZeroArg rem)
             (runCostingFunTwoArguments . paramRemainderInteger)
-    toBuiltinMeaning ModInteger =
+    toBuiltinMeaning _ver ModInteger =
         makeBuiltinMeaning
             (nonZeroArg mod)
             (runCostingFunTwoArguments . paramModInteger)
-    toBuiltinMeaning EqualsInteger =
+    toBuiltinMeaning _ver EqualsInteger =
         makeBuiltinMeaning
             ((==) @Integer)
             (runCostingFunTwoArguments . paramEqualsInteger)
-    toBuiltinMeaning LessThanInteger =
+    toBuiltinMeaning _ver LessThanInteger =
         makeBuiltinMeaning
             ((<) @Integer)
             (runCostingFunTwoArguments . paramLessThanInteger)
-    toBuiltinMeaning LessThanEqualsInteger =
+    toBuiltinMeaning _ver LessThanEqualsInteger =
         makeBuiltinMeaning
             ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqualsInteger)
     -- Bytestrings
-    toBuiltinMeaning AppendByteString =
+    toBuiltinMeaning _ver AppendByteString =
         makeBuiltinMeaning
             BS.append
             (runCostingFunTwoArguments . paramAppendByteString)
-    toBuiltinMeaning ConsByteString =
-        makeBuiltinMeaning
-            (\n xs -> BS.cons (fromIntegral @Integer n) xs)
-            (runCostingFunTwoArguments . paramConsByteString)
-    toBuiltinMeaning SliceByteString =
+    toBuiltinMeaning (Version _ majorVer _ _) ConsByteString =
+        if majorVer > 2
+        then makeBuiltinMeaning
+              (\(n :: Word8) xs -> BS.cons n xs)
+              (runCostingFunTwoArguments . paramConsByteString)
+        else makeBuiltinMeaning
+               (\n xs -> BS.cons (fromIntegral @Integer n) xs)
+               (runCostingFunTwoArguments . paramConsByteString)
+    toBuiltinMeaning _ver SliceByteString =
         makeBuiltinMeaning
             (\start n xs -> BS.take n (BS.drop start xs))
             (runCostingFunThreeArguments . paramSliceByteString)
-    toBuiltinMeaning LengthOfByteString =
+    toBuiltinMeaning _ver LengthOfByteString =
         makeBuiltinMeaning
             BS.length
             (runCostingFunOneArgument . paramLengthOfByteString)
-    toBuiltinMeaning IndexByteString =
+    toBuiltinMeaning _ver IndexByteString =
         makeBuiltinMeaning
             (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
             -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
             (runCostingFunTwoArguments . paramIndexByteString)
-    toBuiltinMeaning EqualsByteString =
+    toBuiltinMeaning _ver EqualsByteString =
         makeBuiltinMeaning
             ((==) @BS.ByteString)
             (runCostingFunTwoArguments . paramEqualsByteString)
-    toBuiltinMeaning LessThanByteString =
+    toBuiltinMeaning _ver LessThanByteString =
         makeBuiltinMeaning
             ((<) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanByteString)
-    toBuiltinMeaning LessThanEqualsByteString =
+    toBuiltinMeaning _ver LessThanEqualsByteString =
         makeBuiltinMeaning
             ((<=) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanEqualsByteString)
     -- Cryptography and hashes
-    toBuiltinMeaning Sha2_256 =
+    toBuiltinMeaning _ver Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
-    toBuiltinMeaning Sha3_256 =
+    toBuiltinMeaning _ver Sha3_256 =
         makeBuiltinMeaning
             Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
-    toBuiltinMeaning Blake2b_256 =
+    toBuiltinMeaning _ver Blake2b_256 =
         makeBuiltinMeaning
             Hash.blake2b_256
             (runCostingFunOneArgument . paramBlake2b_256)
-    toBuiltinMeaning VerifyEd25519Signature =
+    toBuiltinMeaning _ver VerifyEd25519Signature =
         makeBuiltinMeaning
             (verifyEd25519Signature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
@@ -944,48 +949,48 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin-core/secp256k1.
      -}
-    toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
+    toBuiltinMeaning _ver VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature
             (runCostingFunThreeArguments . paramVerifyEcdsaSecp256k1Signature)
-    toBuiltinMeaning VerifySchnorrSecp256k1Signature =
+    toBuiltinMeaning _ver VerifySchnorrSecp256k1Signature =
         makeBuiltinMeaning
             verifySchnorrSecp256k1Signature
             (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
     -- Strings
-    toBuiltinMeaning AppendString =
+    toBuiltinMeaning _ver AppendString =
         makeBuiltinMeaning
             ((<>) @Text)
             (runCostingFunTwoArguments . paramAppendString)
-    toBuiltinMeaning EqualsString =
+    toBuiltinMeaning _ver EqualsString =
         makeBuiltinMeaning
             ((==) @Text)
             (runCostingFunTwoArguments . paramEqualsString)
-    toBuiltinMeaning EncodeUtf8 =
+    toBuiltinMeaning _ver EncodeUtf8 =
         makeBuiltinMeaning
             encodeUtf8
             (runCostingFunOneArgument . paramEncodeUtf8)
-    toBuiltinMeaning DecodeUtf8 =
+    toBuiltinMeaning _ver DecodeUtf8 =
         makeBuiltinMeaning
             (reoption @_ @EvaluationResult . decodeUtf8')
             (runCostingFunOneArgument . paramDecodeUtf8)
     -- Bool
-    toBuiltinMeaning IfThenElse =
+    toBuiltinMeaning _ver IfThenElse =
         makeBuiltinMeaning
             (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
     -- Unit
-    toBuiltinMeaning ChooseUnit =
+    toBuiltinMeaning _ver ChooseUnit =
         makeBuiltinMeaning
             (\() a -> a)
             (runCostingFunTwoArguments . paramChooseUnit)
     -- Tracing
-    toBuiltinMeaning Trace =
+    toBuiltinMeaning _ver Trace =
         makeBuiltinMeaning
             (\text a -> a <$ emit text)
             (runCostingFunTwoArguments . paramTrace)
     -- Pairs
-    toBuiltinMeaning FstPair =
+    toBuiltinMeaning _ver FstPair =
         makeBuiltinMeaning
             fstPlc
             (runCostingFunOneArgument . paramFstPair)
@@ -995,7 +1000,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               DefaultUniPair uniA _ <- pure uniPairAB
               pure . fromConstant . someValueOf uniA $ fst xy
           {-# INLINE fstPlc #-}
-    toBuiltinMeaning SndPair =
+    toBuiltinMeaning _ver SndPair =
         makeBuiltinMeaning
             sndPlc
             (runCostingFunOneArgument . paramSndPair)
@@ -1006,7 +1011,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               pure . fromConstant . someValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
     -- Lists
-    toBuiltinMeaning ChooseList =
+    toBuiltinMeaning _ver ChooseList =
         makeBuiltinMeaning
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)
@@ -1018,7 +1023,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 []    -> a
                 _ : _ -> b
           {-# INLINE choosePlc #-}
-    toBuiltinMeaning MkCons =
+    toBuiltinMeaning _ver MkCons =
         makeBuiltinMeaning
             consPlc
             (runCostingFunTwoArguments . paramMkCons)
@@ -1038,7 +1043,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 Just Refl <- pure $ uniA `geq` uniA'
                 pure . fromConstant . someValueOf uniListA $ x : xs
           {-# INLINE consPlc #-}
-    toBuiltinMeaning HeadList =
+    toBuiltinMeaning _ver HeadList =
         makeBuiltinMeaning
             headPlc
             (runCostingFunOneArgument . paramHeadList)
@@ -1049,7 +1054,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               x : _ <- pure xs
               pure . fromConstant $ someValueOf uniA x
           {-# INLINE headPlc #-}
-    toBuiltinMeaning TailList =
+    toBuiltinMeaning _ver TailList =
         makeBuiltinMeaning
             tailPlc
             (runCostingFunOneArgument . paramTailList)
@@ -1060,7 +1065,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
               _ : xs' <- pure xs
               pure . fromConstant $ someValueOf uniListA xs'
           {-# INLINE tailPlc #-}
-    toBuiltinMeaning NullList =
+    toBuiltinMeaning _ver NullList =
         makeBuiltinMeaning
             nullPlc
             (runCostingFunOneArgument . paramNullList)
@@ -1072,7 +1077,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE nullPlc #-}
 
     -- Data
-    toBuiltinMeaning ChooseData =
+    toBuiltinMeaning _ver ChooseData =
         makeBuiltinMeaning
             (\d
               xConstr
@@ -1084,77 +1089,77 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     I      {} -> xI
                     B      {} -> xB)
             (runCostingFunSixArguments . paramChooseData)
-    toBuiltinMeaning ConstrData =
+    toBuiltinMeaning _ver ConstrData =
         makeBuiltinMeaning
             Constr
             (runCostingFunTwoArguments . paramConstrData)
-    toBuiltinMeaning MapData =
+    toBuiltinMeaning _ver MapData =
         makeBuiltinMeaning
             Map
             (runCostingFunOneArgument . paramMapData)
-    toBuiltinMeaning ListData =
+    toBuiltinMeaning _ver ListData =
         makeBuiltinMeaning
             List
             (runCostingFunOneArgument . paramListData)
-    toBuiltinMeaning IData =
+    toBuiltinMeaning _ver IData =
         makeBuiltinMeaning
             I
             (runCostingFunOneArgument . paramIData)
-    toBuiltinMeaning BData =
+    toBuiltinMeaning _ver BData =
         makeBuiltinMeaning
             B
             (runCostingFunOneArgument . paramBData)
-    toBuiltinMeaning UnConstrData =
+    toBuiltinMeaning _ver UnConstrData =
         makeBuiltinMeaning
             (\case
                 Constr i ds -> EvaluationSuccess (i, ds)
                 _           -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnConstrData)
-    toBuiltinMeaning UnMapData =
+    toBuiltinMeaning _ver UnMapData =
         makeBuiltinMeaning
             (\case
                 Map es -> EvaluationSuccess es
                 _      -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnMapData)
-    toBuiltinMeaning UnListData =
+    toBuiltinMeaning _ver UnListData =
         makeBuiltinMeaning
             (\case
                 List ds -> EvaluationSuccess ds
                 _       -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnListData)
-    toBuiltinMeaning UnIData =
+    toBuiltinMeaning _ver UnIData =
         makeBuiltinMeaning
             (\case
                 I i -> EvaluationSuccess i
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnIData)
-    toBuiltinMeaning UnBData =
+    toBuiltinMeaning _ver UnBData =
         makeBuiltinMeaning
             (\case
                 B b -> EvaluationSuccess b
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnBData)
-    toBuiltinMeaning EqualsData =
+    toBuiltinMeaning _ver EqualsData =
         makeBuiltinMeaning
             ((==) @Data)
             (runCostingFunTwoArguments . paramEqualsData)
-    toBuiltinMeaning SerialiseData =
+    toBuiltinMeaning _ver SerialiseData =
         makeBuiltinMeaning
             (BS.toStrict . serialise @Data)
             (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
-    toBuiltinMeaning MkPairData =
+    toBuiltinMeaning _ver MkPairData =
         makeBuiltinMeaning
             ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
-    toBuiltinMeaning MkNilData =
+    toBuiltinMeaning _ver MkNilData =
         -- Nullary builtins don't work, so we need a unit argument.
         -- We don't really need this builtin, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
-    toBuiltinMeaning MkNilPairData =
+    toBuiltinMeaning _ver MkNilPairData =
         -- Nullary builtins don't work, so we need a unit argument.
         -- We don't really need this builtin, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.

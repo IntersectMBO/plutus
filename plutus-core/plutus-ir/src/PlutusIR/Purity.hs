@@ -8,6 +8,8 @@ module PlutusIR.Purity (isPure) where
 import PlutusIR
 
 import PlutusCore.Builtin
+import PlutusCore.Core.Type (defaultVersion)
+
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
@@ -35,7 +37,7 @@ isSaturated
     => BuiltinApp tyname name uni fun a
     -> Maybe Bool
 isSaturated (BuiltinApp fun args) =
-    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) fun of
+    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) (defaultVersion ()) fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.

@@ -40,6 +40,7 @@ import Data.ByteString (ByteString)
 import Data.Either
 import Data.Proxy
 import Data.Text (Text)
+import Data.Word
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -50,7 +51,7 @@ import Test.Tasty.Hedgehog
 defaultCekParametersExt
     :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
 defaultCekParametersExt =
-    mkMachineParameters defaultUnliftingMode $
+    mkMachineParameters (defaultVersion ()) defaultUnliftingMode $
         CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
 
 -- | Check that 'Factorial' from the above computes to the same thing as
@@ -123,7 +124,7 @@ test_IdFInteger =
 test_IdList :: TestTree
 test_IdList =
     testCase "IdList" $ do
-        let tyAct = typeOfBuiltinFunction @DefaultUni IdList
+        let tyAct = typeOfBuiltinFunction @DefaultUni (defaultVersion ()) IdList
             tyExp = let a = TyName . Name "a" $ Unique 0
                         listA = TyApp () Scott.listTy (TyVar () a)
                     in TyForall () a (Type ()) $ TyFun () listA listA
@@ -555,6 +556,37 @@ test_Other = testCase "Other" $ do
     let expr3 = mkIterApp () (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit defaultCekParameters expr3
 
+defaultCekParametersExtV0
+    :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
+defaultCekParametersExtV0 =
+    mkMachineParameters (Version () 0 5 9) defaultUnliftingMode $
+        CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
+
+defaultCekParametersExtV3
+    :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
+defaultCekParametersExtV3 =
+    mkMachineParameters (Version () 3 4 1) defaultUnliftingMode $
+        CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
+
+-- | Check that 'MajorVersion' fails for non-existing plutus-version 0
+test_Version :: TestTree
+test_Version =
+    testCase "Version" $ do
+        let expr1 = apply () (builtin () $ Right MajorVersion) unitval
+        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit defaultCekParametersExtV0 expr1
+        Right (EvaluationSuccess $ cons @Integer 3)  @=? typecheckEvaluateCekNoEmit defaultCekParametersExtV3 expr1
+
+-- | Check that 'ConsByteString' wraps around for plutus-version < 3, and fails in versions >=3.
+test_ConsByteString :: TestTree
+test_ConsByteString =
+    testCase "Version" $ do
+        let asciiBangWrapped = fromIntegral @Word8 @Integer maxBound
+                             + 1 -- to make word8 wraparound
+                             + 33 -- the index of '!' in ascii table
+            expr1 = mkIterApp () (builtin () $ Left ConsByteString) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit defaultCekParametersExtV0 expr1
+        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit defaultCekParametersExtV3 expr1
+
 -- shorthand
 cons :: (Contains DefaultUni a, TermLike term tyname name DefaultUni fun) => a -> term ()
 cons = mkConstant ()
@@ -609,4 +641,6 @@ test_definition =
         , test_Crypto
         , testSECP256k1
         , test_Other
+        , test_Version
+        , test_ConsByteString
         ]

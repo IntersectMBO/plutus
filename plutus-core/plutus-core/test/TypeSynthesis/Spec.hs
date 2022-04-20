@@ -103,7 +103,7 @@ test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => fun -> TestT
 test_typecheckFun name = goldenVsDoc testName path doc where
     testName = show name
     path     = "plutus-core" </> "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
+    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni (defaultVersion ()) name
 
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
