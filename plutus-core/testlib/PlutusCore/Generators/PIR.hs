@@ -51,7 +51,6 @@ import Data.String
 import Data.Text qualified as Text
 import GHC.Stack
 import GHC.Word
-import Plutus.V1.Ledger.Api
 import PlutusCore (typeSize)
 import PlutusCore.DeBruijn hiding (DeBruijn)
 import PlutusCore.Default
@@ -63,13 +62,9 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Error
 import PlutusIR.TypeCheck
-import PlutusTx.Code
-import PlutusTx.Compiler.Error hiding (Error)
-import PlutusTx.Coverage
 import System.IO.Unsafe
 import System.Timeout
 import Test.QuickCheck
-import Text.PrettyPrint hiding (integer, (<>))
 import Text.Printf
 import Text.Read (readMaybe)
 
