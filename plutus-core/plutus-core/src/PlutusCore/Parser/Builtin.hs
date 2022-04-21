@@ -8,7 +8,7 @@ import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
 import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, hexDigitChar)
+import Text.Megaparsec.Char (char, hexDigitChar, string)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import Data.ByteString (pack)
@@ -16,70 +16,9 @@ import PlutusCore.Default
 import PlutusCore.Parser.ParserCommon (Parser, lexeme, symbol, whitespace)
 import PlutusCore.Parser.Type (defaultUniType)
 
-
--- | The list of parsable default functions and their pretty print correspondence.
-builtinFnList :: [(DefaultFun, T.Text)]
-builtinFnList =
-    [ (AddInteger,"addInteger")
-    , (SubtractInteger,"subtractInteger")
-    , (MultiplyInteger,"multiplyInteger")
-    , (DivideInteger,"divideInteger")
-    , (QuotientInteger,"quotientInteger")
-    , (RemainderInteger,"remainderInteger")
-    , (ModInteger,"modInteger")
-    , (EqualsInteger,"equalsInteger")
-    , (LessThanInteger,"lessThanInteger")
-    , (LessThanEqualsInteger,"lessThanEqualsInteger")
-    , (AppendByteString,"appendByteString")
-    , (ConsByteString,"consByteString")
-    , (SliceByteString,"sliceByteString")
-    , (LengthOfByteString,"lengthOfByteString")
-    , (IndexByteString,"indexByteString")
-    , (EqualsByteString,"equalsByteString")
-    , (LessThanByteString,"lessThanByteString")
-    , (LessThanEqualsByteString,"lessThanEqualsByteString")
-    , (Sha2_256,"sha2_256")
-    , (Sha3_256,"sha3_256")
-    , (Blake2b_256,"blake2b_256")
-    , (VerifySignature,"verifySignature")
-    , (AppendString,"appendString")
-    , (EqualsString,"equalsString")
-    , (EncodeUtf8,"encodeUtf8")
-    , (DecodeUtf8,"decodeUtf8")
-    , (IfThenElse,"ifThenElse")
-    , (ChooseUnit,"chooseUnit")
-    , (Trace,"trace")
-    , (FstPair,"fstPair")
-    , (SndPair,"sndPair")
-    , (ChooseList,"chooseList")
-    , (MkCons,"mkCons")
-    , (HeadList,"headList")
-    , (TailList,"tailList")
-    , (NullList,"nullList")
-    , (ChooseData,"chooseData")
-    , (ConstrData,"constrData")
-    , (MapData,"mapData")
-    , (ListData,"listData")
-    , (IData,"iData")
-    , (BData,"bData")
-    , (UnConstrData,"unConstrData")
-    , (UnMapData,"unMapData")
-    , (UnListData,"unListData")
-    , (UnIData,"unIData")
-    , (UnBData,"unBData")
-    , (EqualsData,"equalsData")
-    , (SerialiseData,"serialiseData")
-    , (MkPairData,"mkPairData")
-    , (MkNilData,"mkNilData")
-    , (MkNilPairData,"mkNilPairData")
-    ]
-
 builtinFunction :: Parser DefaultFun
-builtinFunction =
-    choice $
-        map
-            (try . (\(fn, text) -> fn <$ symbol text))
-            builtinFnList
+builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
+    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
 signedInteger :: Parser Integer
 signedInteger = Lex.signed whitespace (lexeme Lex.decimal)
