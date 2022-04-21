@@ -16,7 +16,8 @@ import PlutusCore.Default
 import PlutusCore.Parser.ParserCommon (Parser, lexeme, symbol, whitespace)
 import PlutusCore.Parser.Type (defaultUniType)
 
-builtinFunction :: Parser DefaultFun
+-- | Atm the parser can only parse `DefaultFun`.
+builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
 builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
     where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
 
