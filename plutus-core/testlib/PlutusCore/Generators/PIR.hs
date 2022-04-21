@@ -278,16 +278,20 @@ matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
             setTarget _             = TyVar () r
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
-bindDat :: (Datatype TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
+bindDat :: Datatype TyName Name DefaultUni DefaultFun ()
+        -> GenTm a
+        -> GenTm a
 bindDat dat@(Datatype _ (TyVarDecl _ a k) _ _ _) cont =
   bindTyName a k $
   local (\ e -> e { geDatas = Map.insert a dat (geDatas e) }) $
   foldr (uncurry bindTmName) cont (matchType dat : constrTypes dat)
 
-bindBind :: (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
+bindBind :: Binding TyName Name DefaultUni DefaultFun ()
+         -> GenTm a
+         -> GenTm a
 bindBind (DatatypeBind _ dat)              = bindDat dat
 bindBind (TermBind _ _ (VarDecl _ x ty) _) = bindTmName x ty
-bindBind _                                 = error "why the f*ck are these even in the language guys?!"
+bindBind _                                 = error "unreachable"
 
 bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
 bindBinds = flip (foldr bindBind)
@@ -380,11 +384,15 @@ builtinKind (SomeTypeIn t) = case t of
 
 -- | Precondition: new kind is smaller or equal to old kind.
 --   TODO (later): also allow changing which context it's valid in
-fixKind :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ()) -> (Type TyName DefaultUni ())
+fixKind :: HasCallStack
+        => Map TyName (Kind ())
+        -> Type TyName DefaultUni ()
+        -> Kind ()
+        -> Type TyName DefaultUni ()
 fixKind ctx ty k
   | inferKind_ ctx ty == k = ty
   | not $ k `leKind` inferKind_ ctx ty =
-      errorDoc $ "fixKind not smaller:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
+      error "fixKind not smaller"
   | otherwise = case ty of
     TyVar _ _ | y : _ <- [ y | (y, k') <- Map.toList ctx, k == k' ] -> TyVar () y
               | otherwise -> minimalType k
@@ -394,17 +402,14 @@ fixKind ctx ty k
         Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
         KindArrow _ ka kb
           | ka == kx  -> TyLam () x kx $ fixKind (Map.insert x kx ctx) b kb
-          | not $ kb `leKind` kb' ->
-            errorDoc $ "notgood:" <+> vcat [ "ctx =" <+> pretty (Map.toList ctx)
-                                           , "ty =" <+> pretty ty <+> ":" <+> pretty (inferKind_ ctx ty)
-                                           , "k =" <+> pretty k]
+          | not $ kb `leKind` kb' -> error "notgood"
           | otherwise -> TyLam () x ka $ fixKind ctx' b' kb
             where
               ctx' = Map.insert x ka ctx
               b'   = substClosedType x (minimalType kx) b
               kb'  = inferKind_ ctx' b'
     TyBuiltin{}       -> minimalType k
-    _                 -> errorDoc $ "fixKind:" <+> vcat ["ty =" <+> pretty ty, "k =" <+> pretty k]
+    _                 -> error "fixKind"
 
 -- TODO: also shrink to new context
 --       need old context and new context
@@ -458,16 +463,6 @@ minimalType ty =
     list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
     pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
-pretty, errorDoc, (<+>), (<?>), vcat, text, sep, hsep :: a
-pretty = error "TODO: pretty"
-errorDoc = error "TODO: errorDoc"
-(<+>) = error "TODO: (<+>)"
-(<?>) = error "TODO: (<?>)"
-vcat = error "TODO: vcat"
-text = error "TODO: text"
-sep = error "TODO: sep"
-hsep = error "TODO: hsep"
-
 inferKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> Maybe (Kind ())
 inferKind ctx ty = case ty of
   TyVar _ x        -> Map.lookup x ctx
@@ -481,7 +476,7 @@ inferKind ctx ty = case ty of
 inferKind_ :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ())
 inferKind_ ctx ty =
   case inferKind ctx ty of
-    Nothing -> errorDoc $ "inferKind:" <+> vcat ["ctx =" <+> pretty (Map.toList ctx), "ty =" <+> pretty ty]
+    Nothing -> error "inferKind"
     Just k  -> k
 
 shrinkType :: HasCallStack
@@ -530,8 +525,7 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
 
     go :: HasCallStack => _
     go fvs seen sub ty = case ty of
-      TyVar _ x | Set.member x seen -> errorDoc $ "substType' loop:" <?> vcat [ "sub =" <+> pretty sub
-                                                                              , "ty0 =" <+> pretty ty0]
+      TyVar _ x | Set.member x seen -> error "substType' loop"
       TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
                 | otherwise -> maybe ty id $ Map.lookup x sub
       TyFun _ a b      -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
@@ -639,9 +633,7 @@ genKindAndType = do
 
 normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy ty = case runQuoteT $ normalizeType ty of
-  Left err  -> errorDoc $ "normalizeTy"
-                          <?> vcat [ "ty =" <+> pretty ty
-                                   , "err =" <+> text (show @(Error DefaultUni DefaultFun ()) err) ]
+  Left err               -> error "normalizeTy"
   Right (Normalized ty') -> ty'
 
 unifyType :: Map TyName (Kind ())
@@ -767,12 +759,16 @@ typeInstTerm ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
-data Doc = TODODoc -- TODO
+-- TODO TODO TODO
+data Doc = TODODoc
   deriving stock Show
-
--- TODO
 class Pretty a
 instance Pretty a
+pretty, text, (<+>), vcat :: a
+pretty = error "TODO: pretty"
+text = error "TODO: text"
+(<+>) = error "TODO: (<+>)"
+vcat = error "TODO: vcat"
 
 ceDoc :: Testable t => Doc -> t -> Property
 ceDoc d = counterexample (show d)
@@ -873,7 +869,7 @@ genConstant b = case b of
   SomeTypeIn DefaultUniInteger -> Const DefaultUniInteger <$> liftGen arbitrary
   SomeTypeIn DefaultUniUnit    -> pure $ Const DefaultUniUnit ()
   SomeTypeIn DefaultUniString  -> Const DefaultUniString . fromString . getPrintableString <$> liftGen arbitrary
-  _                            -> errorDoc $ sep ["genConstant:", "ty =" <+> pretty b]
+  _                            -> error "genConstant"
 
 inhabitType :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
@@ -992,10 +988,7 @@ genTerm mty = checkInvariant =<< do
       let unsMty = Set.mapMonotonic (nameUnique . unTyName) $ foldMap fvType mty
       uns <- getUniques
       when (not $ unsMty `Set.isSubsetOf` uns) $
-        errorDoc $ "genTerm - scope:" <+> vcat [ "mty =" <+> pretty mty
-                                               , "tyctx =" <+> pretty tyctx
-                                               , "trmctx =" <+> pretty trmctx
-                                               ]
+        error"genTerm - scope"
       -- Check that trm :: ty
       help <- asks geHelp
       let trmctx' = case help of
@@ -1003,13 +996,7 @@ genTerm mty = checkInvariant =<< do
             _                    -> trmctx
       case typeCheckTermInContext tyctx trmctx' trm ty of
         Right _  -> return (ty, trm)
-        Left err -> errorDoc $ "genTerm - type:" <+> vcat [ "mty =" <+> pretty mty
-                                                          , "tyctx =" <+> pretty tyctx
-                                                          , "trmctx =" <+> pretty trmctx
-                                                          , "trm =" <+> pretty trm
-                                                          , "ty =" <+> pretty ty
-                                                          , "err =" <+> pretty err
-                                                          ]
+        Left err -> error "genTerm - type"
 
     genTraceLoc mty = do
       (ty, tm) <- noEscape $ genTerm mty
@@ -1105,7 +1092,7 @@ genTerm mty = checkInvariant =<< do
           appl n tm (TyFun _ a b) = do
             (_, arg) <- genTerm (Just a)
             appl (n - 1) (Apply () tm arg) b
-          appl _ _ ty = errorDoc $ "appl:" <+> pretty ty
+          appl _ _ ty = error "appl"
 
           genV (x, ty0) = do
             let ty = normalizeTy ty0
@@ -1370,11 +1357,11 @@ inferTypeInContext tyctx ctx tm = either (Left . text . show) (Right . id)
 
     stripForalls sub [] ty                            = parSubstType sub ty
     stripForalls sub ((x, _) : xs) (TyForall _ y _ b) = stripForalls (Map.insert y (TyVar () x) sub) xs b
-    stripForalls _ xs ty                              = errorDoc $ hsep ["stripForalls", pretty xs, pretty ty]
+    stripForalls _ xs ty                              = error "stripForalls"
 
     stripFuns [] ty                  = ty
     stripFuns (_ : xs) (TyFun _ _ b) = stripFuns xs b
-    stripFuns xs ty                  = errorDoc $ hsep ["stripFuns", pretty xs, pretty ty]
+    stripFuns xs ty                  = error "stripFuns"
 
 datatypes :: Term TyName Name DefaultUni DefaultFun ()
           -> [(TyName, (Kind ()))]
@@ -1513,7 +1500,6 @@ genTermInContext_ tyctx ctx ty =
   runGenTm $ local (\ e -> e { geTypes = tyctx, geTerms = ctx, geEscaping = NoEscape }) $
     snd <$> genTerm (Just ty)
 
-{-
 prop_typeInstHelp :: Property
 prop_typeInstHelp =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
@@ -1601,7 +1587,7 @@ prop_genWellTypedFullyApplied =
 prop_varsStats :: Property
 prop_varsStats =
   forAllDoc "_,tm"      genTypeAndTerm_ shrinkClosedTypedTerm     $ \ (_, tm) ->
-  tabulate "vars" (map (filter isAlpha . show . pretty) $ vars tm) $ property True
+  tabulate "vars" (map (filter isAlpha . show . pretty @(_ -> Doc)) $ vars tm) $ property True
   where
     vars (Var _ x)        = [x]
     vars (TyInst _ a _)   = vars a
@@ -1634,38 +1620,39 @@ prop_numShrink = forAllDoc "ty,tm"   genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   in
   tabulate "r" [printf "%0.1f" r] True
 
-compile :: Term TyName Name DefaultUni DefaultFun ()
-        -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
-compile _tm = either Left Right $ runQuoteT $ do
-  -- Make sure that names are unique (that's not guaranteed by QuickCheck)
-  tm <- rename _tm
-  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
-  let hints = UPLC.InlineHints $ \a _ -> case a of
-                PIR.DatatypeComponent PIR.Destructor _ -> True
-                _                                      -> False
-      pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
-             & set (PIR.ccOpts . PIR.coOptimize) True
-             & set (PIR.ccOpts . PIR.coPedantic) False
-             & set (PIR.ccOpts . PIR.coVerbose) False
-             & set (PIR.ccOpts . PIR.coDebug) False
-             & set (PIR.ccOpts . PIR.coMaxSimplifierIterations)
-                      (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
-             & set PIR.ccTypeCheckConfig Nothing
-      uplcSimplOpts = UPLC.defaultSimplifyOpts
-            & set UPLC.soMaxSimplifierIterations (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
-            & set UPLC.soInlineHints hints
-
-  plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc $ fmap Original tm
-  plcTcError <- runExceptT @(PLC.Error _ _ _)
-             $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
-  case plcTcError of
-    Left _   -> error "wrong"
-    Right cc -> return $ DeserializedCode (UPLC.Program () (PLC.defaultVersion ()) $ void cc) Nothing mempty
-
-prop_compile :: Property
-prop_compile =
-  forAllDoc "_,tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (_, tm) ->
-  isRight $ compile tm
+-- TODO: we want this property somewhere!
+-- compile :: Term TyName Name DefaultUni DefaultFun ()
+--         -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
+-- compile _tm = either Left Right $ runQuoteT $ do
+--   -- Make sure that names are unique (that's not guaranteed by QuickCheck)
+--   tm <- rename _tm
+--   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+--   let hints = UPLC.InlineHints $ \a _ -> case a of
+--                 PIR.DatatypeComponent PIR.Destructor _ -> True
+--                 _                                      -> False
+--       pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
+--              & set (PIR.ccOpts . PIR.coOptimize) True
+--              & set (PIR.ccOpts . PIR.coPedantic) False
+--              & set (PIR.ccOpts . PIR.coVerbose) False
+--              & set (PIR.ccOpts . PIR.coDebug) False
+--              & set (PIR.ccOpts . PIR.coMaxSimplifierIterations)
+--                       (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
+--              & set PIR.ccTypeCheckConfig Nothing
+--       uplcSimplOpts = UPLC.defaultSimplifyOpts
+--             & set UPLC.soMaxSimplifierIterations (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
+--             & set UPLC.soInlineHints hints
+--
+--   plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc $ fmap Original tm
+--   plcTcError <- runExceptT @(PLC.Error _ _ _)
+--              $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
+--   case plcTcError of
+--     Left _   -> error "wrong"
+--     Right cc -> return $ DeserializedCode (UPLC.Program () (PLC.defaultVersion ()) $ void cc) Nothing mempty
+--
+-- prop_compile :: Property
+-- prop_compile =
+--   forAllDoc "_,tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (_, tm) ->
+--   isRight $ compile tm
 
 within' :: NFData a => Int -> a -> Bool
 within' t a = isJust $ unsafePerformIO $ timeout t (a `deepseq` pure a)
@@ -1674,7 +1661,6 @@ letCE' :: (Pretty a, NFData a, Testable p) => Int -> String -> a -> (a -> p) -> 
 letCE' timeout name tm cont =
   within' timeout tm ==>
     letCE name tm cont
--}
 
 typeCheckTerm :: Term TyName Name DefaultUni DefaultFun ()
               -> Type TyName DefaultUni ()
@@ -1693,7 +1679,7 @@ typeCheckTermInContext :: Map TyName (Kind ())
 typeCheckTermInContext tyctx ctx tm ty = do
     ty' <- inferTypeInContext tyctx ctx tm
     unless (isJust $ unifyType tyctx mempty mempty ty' ty) . Left $
-      "Types don't match:" <+> vcat [ "tyctx =" <+> pretty tyctx
+      "Types don't match" <+> vcat [ "tyctx =" <+> pretty tyctx
                                     , "ctx =" <+> pretty ctx
                                     , "tm =" <+> pretty tm
                                     , "ty =" <+> pretty ty
