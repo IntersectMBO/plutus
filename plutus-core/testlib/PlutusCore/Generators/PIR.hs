@@ -994,9 +994,9 @@ genTerm mty = checkInvariant =<< do
       let trmctx' = case help of
             Just (Var _ helpVar) -> Map.insert helpVar helpType trmctx
             _                    -> trmctx
-      case typeCheckTermInContext tyctx trmctx' trm ty of
-        Right _  -> return (ty, trm)
-        Left err -> error "genTerm - type"
+      if typeCheckTermInContext tyctx trmctx' trm ty
+      then return (ty, trm)
+      else error "genTerm - type"
 
     genTraceLoc mty = do
       (ty, tm) <- noEscape $ genTerm mty
@@ -1020,8 +1020,12 @@ genTerm mty = checkInvariant =<< do
     genIfTrace = do
       a <- genFreshTyName "a"
       let a' = TyVar () a
-      liftGen $ elements [(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniBool) ->> a' ->> a' ->> a', BIF_If)
-                         ,(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniString) ->> a' ->> a', BIF_Trace)]
+      liftGen $ elements [(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniBool)
+                                                  ->> a' ->> a' ->> a'
+                          , BIF_If)
+                         ,(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniString)
+                                                  ->> a' ->> a'
+                          , BIF_Trace)]
 
     genError Nothing = do
       ty <- genType Star
@@ -1230,7 +1234,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           | TyFun _ _ b <- [ty]
           , x `Set.notMember` fvTerm body ]
 
-        Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
+        Apply _ fun arg | Just argTy <- inferTypeInContext tyctx ctx arg ->
           [(argTy, arg), (TyFun () argTy ty, fun)] ++
           go tyctx ctx (TyFun () argTy ty, fun) ++
           go tyctx ctx (argTy, arg)
@@ -1285,7 +1289,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
                          -- TODO: use proper fixupType
                          | otherwise = substType (Map.singleton x $ minimalType k) tyInner
                 fun' = fixupTerm tyctx ctx tyctx ctx (TyForall () x k' tyInner') fun
-          ] where Right (TyForall _ x k tyInner) = inferTypeInContext tyctx ctx fun
+          ] where Just (TyForall _ x k tyInner) = inferTypeInContext tyctx ctx fun
 
         TyAbs _ x _ body | not $ Map.member x tyctx ->
           [ (TyForall () x k tyInner', TyAbs () x k body')
@@ -1306,12 +1310,12 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 
         Apply _ fun arg ->
           [ (ty', Apply () fun' arg')
-          | Right argTy <- [inferTypeInContext tyctx ctx arg]
+          | Just argTy <- [inferTypeInContext tyctx ctx arg]
           , (TyFun _ argTy' ty', fun') <- go tyctx ctx (TyFun () argTy ty, fun)
           , let arg' = fixupTerm tyctx ctx tyctx ctx argTy' arg
           ] ++
           [ (ty,  Apply () fun' arg')
-          | Right argTy <- [inferTypeInContext tyctx ctx arg]
+          | Just argTy <- [inferTypeInContext tyctx ctx arg]
           , (argTy', arg') <- go tyctx ctx (argTy, arg)
           , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
           ]
@@ -1327,8 +1331,8 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 inferTypeInContext :: Map TyName (Kind ())
                    -> Map Name (Type TyName DefaultUni ())
                    -> Term TyName Name DefaultUni DefaultFun ()
-                   -> Either Doc (Type TyName DefaultUni ())
-inferTypeInContext tyctx ctx tm = either (Left . text . show) (Right . id)
+                   -> Maybe (Type TyName DefaultUni ())
+inferTypeInContext tyctx ctx tm = either (const Nothing) Just
                                 $ runQuoteT @(Either (Error DefaultUni DefaultFun ())) $ do
   cfg <- getDefTypeCheckConfig ()
   Normalized _ty' <- runQuoteT $ inferType cfg tm'
@@ -1398,7 +1402,7 @@ fixupTerm_ :: Map TyName (Kind ())
            -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
   case inferTypeInContext tyctxNew ctxNew tm of
-    Left{}   -> case tm of
+    Nothing -> case tm of
       LamAbs _ x a tm | TyFun () _ b <- tyNew -> (a ->>) *** (LamAbs () x a)
                                               $ fixupTerm_ tyctxOld (Map.insert x a ctxOld)
                                                            tyctxNew (Map.insert x a ctxNew) b tm
@@ -1407,7 +1411,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
         in (ty', Apply () (Apply () (TyInst () BIF_Trace ty') s) tm')
       _ | TyBuiltin _ b <- tyNew -> (tyNew, minimalBuiltin b)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
-    Right ty -> (ty, tm)
+    Just ty -> (ty, tm)
 
 fixupTerm :: Map TyName (Kind ())
           -> Map Name (Type TyName DefaultUni ())
@@ -1417,8 +1421,8 @@ fixupTerm :: Map TyName (Kind ())
           -> Term TyName Name DefaultUni DefaultFun ()
           -> Term TyName Name DefaultUni DefaultFun ()
 fixupTerm _ _ tyctxNew ctxNew tyNew tm
-  | isRight (typeCheckTermInContext tyctxNew ctxNew tm tyNew) = tm
-  | otherwise                                                 = mkHelp ctxNew tyNew
+  | typeCheckTermInContext tyctxNew ctxNew tm tyNew = tm
+  | otherwise                                       = mkHelp ctxNew tyNew
 
 minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
 minimalBuiltin (SomeTypeIn b@DefaultUniUnit)    = Const b ()
@@ -1518,10 +1522,10 @@ doTypeInstTermCheck :: Map TyName (Kind ())
                     -> Type TyName DefaultUni ()
                     -> Property
 doTypeInstTermCheck ctx ty target =
-  case [ ((n, insts), err)
-       | n <- [0..arity ty+3],
-         Just insts <- [typeInstTerm ctx n target ty],
-         Left err <- [checkInst ctx x ty insts target]
+  case [ (n, insts)
+       | n <- [0..arity ty+3]
+       , Just insts <- [typeInstTerm ctx n target ty]
+       , not $ checkInst ctx x ty insts target
        ] of
     []  -> property True
     bad -> ceDoc (pretty bad) False
@@ -1541,27 +1545,21 @@ doTypeInstTermCheck ctx ty target =
 
 prop_genTypeCorrect :: Property
 prop_genTypeCorrect =
-  forAllDoc "ty,tm"   genTypeAndTerm_ (const [])   $ \ (ty, tm) ->
-  case typeCheckTerm tm (TyFun () helpType ty) of
-    Left err -> counterexample (show err) False
-    Right () -> property True
+  forAllDoc "ty,tm"   genTypeAndTerm_ (const [])   $ \ (ty, tm) -> typeCheckTerm tm (TyFun () helpType ty)
 
 prop_genTypeCorrectFullyApplied :: Property
 prop_genTypeCorrectFullyApplied =
-  forAllDoc "ty,tm"   genTypeAndTerm_ (const []) $ \ (ty, tm) ->
-  case typeCheckTerm tm (TyFun () helpType ty) of
-    Left err -> counterexample (show err) False
-    Right () -> property True
+  forAllDoc "ty,tm"   genTypeAndTerm_ (const []) $ \ (ty, tm) -> typeCheckTerm tm (TyFun () helpType ty)
 
 prop_shrinkTermSound :: Property
 prop_shrinkTermSound =
   forAllShrinkBlind (pure False) (\ sh -> [ True | not sh ]) $ \ _ ->
   forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
-  isRight (typeCheckTerm tm $ TyFun () helpType ty) ==>
+  (typeCheckTerm tm $ TyFun () helpType ty) ==>
   not (null shrinks) ==>
-  notSoBad [ (ty, tm, (err, scopeCheckTyVars Map.empty (ty, tm)))
-           | (ty, tm) <- shrinks, Left err <- [typeCheckTerm tm (TyFun () helpType ty)] ]
+  notSoBad [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
+           | (ty, tm) <- shrinks, not $ typeCheckTerm tm (TyFun () helpType ty) ]
 
 shrinkRNF :: NFData a => Int -> (a -> [a]) -> a -> [a]
 shrinkRNF timeLimitMicroseconds shrinker a =
@@ -1579,10 +1577,7 @@ prop_canShrinkTerm =
 prop_genWellTypedFullyApplied :: Property
 prop_genWellTypedFullyApplied =
   forAllDoc "ty, tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (ty, tm) ->
-  forAllDoc "ty', tm'" (genFullyApplied ty tm) (const []) $ \ (ty', tm') ->
-    case typeCheckTerm tm' ty' of
-      Right _  -> property True
-      Left err -> ceDoc err False
+  forAllDoc "ty', tm'" (genFullyApplied ty tm) (const []) $ \ (ty', tm') -> typeCheckTerm tm' ty'
 
 prop_varsStats :: Property
 prop_varsStats =
@@ -1599,10 +1594,7 @@ prop_varsStats =
 
 prop_inhabited :: Property
 prop_inhabited =
-  forAllDoc "ty,tm" (genInhab mempty) (shrinkTypedTerm mempty mempty) $ \ (ty, tm) ->
-      case typeCheckTerm tm ty of
-        Right _  -> property True
-        Left doc -> ceDoc doc False
+  forAllDoc "ty,tm" (genInhab mempty) (shrinkTypedTerm mempty mempty) $ \ (ty, tm) -> typeCheckTerm tm ty
   where
     genInhab ctx = runGenTm $ local (\ e -> e { geTypes = ctx, geHelp = Nothing }) $
       genDatatypeLets $ \ dats -> do
@@ -1664,7 +1656,7 @@ letCE' timeout name tm cont =
 
 typeCheckTerm :: Term TyName Name DefaultUni DefaultFun ()
               -> Type TyName DefaultUni ()
-              -> Either Doc ()
+              -> Bool
 typeCheckTerm = typeCheckTermInContext Map.empty Map.empty
 
 -- TODO: we probably need tests for this now that
@@ -1675,17 +1667,10 @@ typeCheckTermInContext :: Map TyName (Kind ())
                        -> Map Name (Type TyName DefaultUni ())
                        -> Term TyName Name DefaultUni DefaultFun ()
                        -> Type TyName DefaultUni ()
-                       -> Either Doc ()
-typeCheckTermInContext tyctx ctx tm ty = do
+                       -> Bool
+typeCheckTermInContext tyctx ctx tm ty = isJust $ do
     ty' <- inferTypeInContext tyctx ctx tm
-    unless (isJust $ unifyType tyctx mempty mempty ty' ty) . Left $
-      "Types don't match" <+> vcat [ "tyctx =" <+> pretty tyctx
-                                    , "ctx =" <+> pretty ctx
-                                    , "tm =" <+> pretty tm
-                                    , "ty =" <+> pretty ty
-                                    , "normalizeTy ty =" <+> pretty (normalizeTy ty)
-                                    , "ty' =" <+> pretty ty'
-                                    , "normalizeTy ty' =" <+> pretty (normalizeTy ty')]
+    unifyType tyctx mempty mempty ty' ty
 
 escapingSubst :: (Term TyName Name DefaultUni DefaultFun ()) -> Map TyName (Type TyName DefaultUni ())
 escapingSubst tm = case tm of
