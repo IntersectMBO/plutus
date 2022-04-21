@@ -10,6 +10,7 @@ module RAList.Spec (tests) where
 
 import Control.Exception
 import Data.List qualified as List
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (fromJust, isNothing)
 import Data.Proxy
 import Data.RandomAccessList.Class as RAL
@@ -19,6 +20,7 @@ import Data.RandomAccessList.SkewBinarySlab qualified as BS
 import Data.Vector.NonEmpty qualified as NEV
 import GHC.Exts
 import Test.QuickCheck.Gen
+import Test.QuickCheck.Instances ()
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
@@ -26,6 +28,7 @@ instance (Element e ~ a, RandomAccessList e, Arbitrary a) => Arbitrary (AsRAL e)
     arbitrary = fromList <$> arbitrary
 
 deriving via (AsRAL (B.RAList a)) instance Arbitrary a => Arbitrary (B.RAList a)
+deriving via (AsRAL (RM.RelativizedMap a)) instance Arbitrary a => Arbitrary (RM.RelativizedMap a)
 
 -- | The other RALs have unique representations for a given size, so generating them
 -- from equivalent lists is fine. This isn't true for the slab version! So we write
@@ -43,8 +46,6 @@ instance Arbitrary a => Arbitrary (BS.RAList a) where
                     then RAL.consSlab (fromJust $ NEV.fromList elemsToAdd) acc
                     else List.foldl' (\env val -> RAL.cons val env) acc elemsToAdd
                 go (sz - toAdd) extended
-
-deriving via (AsRAL (RM.RelativizedMap a)) instance Arbitrary a => Arbitrary (RM.RelativizedMap a)
 
 type RALTestable e a = (a ~ Element e, RandomAccessList e, Eq a, Eq e, Show a, Show e, Arbitrary a, Arbitrary e, IsList e, Item e ~ a)
 
@@ -100,9 +101,9 @@ prop_unsafeIndexOne _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0,
     ioProperty $ sameModuloExceptions (evaluate $ indexOne (toList l) i) (evaluate $ indexOne l i)
 
 prop_consSlab :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_consSlab _ = forAll arbitrary $ \(l :: e, es :: [a]) -> case NEV.fromList es of
-    Nothing  -> discard
-    Just nev -> consSlab nev (toList l) === toList (consSlab nev l)
+prop_consSlab _ = forAll arbitrary $ \(l :: e, es :: NonEmpty a) ->
+    let nev = NEV.fromNonEmpty es
+    in cover 90 (NEV.length nev > 1) "non-trivial" $ consSlab nev (toList l) === toList (consSlab nev l)
 
 prop_indexOneZero :: forall e a . (RALTestable e a) => Proxy e -> Property
 prop_indexOneZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
@@ -114,7 +115,7 @@ prop_indexOneZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2
 -- as the canonical version of that function on lists. In combination with a test that to/fromList form
 -- an isomorphism, this assures us that each function is correct.
 ralProps :: forall e a . (RALTestable e a) => Proxy e -> TestTree
-ralProps p = testGroup "RandomAccessList correctness properties"
+ralProps p = localOption (QuickCheckTests 10000) $ testGroup "RandomAccessList correctness properties"
   [ testGroup "to/fromList is an isomorphism"
     [ testProperty "fromList . toList == id"$ prop_fromToList p
     , testProperty "toList . fromList == id"$ prop_toFromList p
@@ -136,9 +137,9 @@ ralProps p = testGroup "RandomAccessList correctness properties"
 tests :: TestTree
 tests = testGroup "RandomAccessLists"
     [ testGroup "SkewBinary"
-      [ ralProps (Proxy :: (Proxy (B.RAList ()))) ]
+      [ ralProps (Proxy :: (Proxy (B.RAList Integer))) ]
     , testGroup "SkewBinarySlab"
-      [ ralProps (Proxy :: (Proxy (BS.RAList ()))) ]
+      [ ralProps (Proxy :: (Proxy (BS.RAList Integer))) ]
     , testGroup "RelativizedMap"
-      [ ralProps (Proxy :: (Proxy (RM.RelativizedMap ()))) ]
+      [ ralProps (Proxy :: (Proxy (RM.RelativizedMap Integer))) ]
     ]
