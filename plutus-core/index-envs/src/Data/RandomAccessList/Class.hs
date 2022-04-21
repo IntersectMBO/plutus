@@ -41,7 +41,7 @@ class RandomAccessList e where
     -- | Prepend many elements to the list. Has a default implementation, but
     -- implementations can provide more efficient ones.
     consSlab :: NEV.NonEmptyVector (Element e) -> e -> e
-    consSlab vec e = NEV.foldl' (\env val -> cons val env) e vec
+    consSlab vec e = NEV.foldr cons e vec
 
     {-# INLINABLE indexZero #-}
     -- | Lookup an element in the list. 0-based index.
@@ -72,7 +72,7 @@ head = fst . fromMaybe (error "empty list") . uncons
 {-# INLINABLE tail #-}
 -- O(1) worst-case
 tail :: (RandomAccessList e) => e -> e
-tail = snd. fromMaybe (error "empty list") . uncons
+tail = snd . fromMaybe (error "empty list") . uncons
 
 instance RandomAccessList [a] where
     type Element [a] = a
