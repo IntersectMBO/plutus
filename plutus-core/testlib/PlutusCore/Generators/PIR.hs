@@ -23,36 +23,30 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module PlutusCore.Generators.PIR where
 
-import Codec.Serialise
 import Control.Applicative ((<|>))
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
-import Control.Lens (set, (&), (<&>), (^.))
+import Control.Lens ((<&>))
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
-import Data.ByteString.Lazy (toStrict)
-import Data.ByteString.Short (toShort)
 import Data.Char
-import Data.Either
 import Data.Foldable
 import Data.List hiding (insert)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe
-import Data.Ord
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
 import Data.Text qualified as Text
 import GHC.Stack
-import GHC.Word
 import PlutusCore (typeSize)
-import PlutusCore.DeBruijn hiding (DeBruijn)
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -66,14 +60,8 @@ import System.IO.Unsafe
 import System.Timeout
 import Test.QuickCheck
 import Text.Printf
-import Text.Read (readMaybe)
 
-import PlutusCore qualified as PLC
-import PlutusIR.Compiler qualified as PIR
-import UntypedPlutusCore qualified as UPLC
 
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck hiding (Success)
 
 debug :: Bool
 debug = False
@@ -121,7 +109,7 @@ sizeSplit a b ga gb f = do
   f x <$> withSize nb (gb x)
 
 newtype FreqList a = FreqList { unFreqList :: [(Int, a)] }
-  deriving Functor
+  deriving stock Functor
 
 frequencyTm :: [(Int, GenTm a)] -> GenTm a
 frequencyTm = liftGenF (frequency . unFreqList) . FreqList
@@ -506,7 +494,7 @@ substTypeCapturePar sub ty = case ty of
 
 data Polarity = Pos
               | Neg
-              deriving (Ord, Eq, Show)
+              deriving stock (Ord, Eq, Show)
 
 substType :: HasCallStack
           => Map TyName (Type TyName DefaultUni ())
@@ -633,7 +621,7 @@ genKindAndType = do
 
 normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy ty = case runQuoteT $ normalizeType ty of
-  Left err               -> error "normalizeTy"
+  Left _                 -> error "normalizeTy"
   Right (Normalized ty') -> ty'
 
 unifyType :: Map TyName (Kind ())
@@ -930,6 +918,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
     fvArgs _                  = mempty
 
+
 typeArity :: Num a => Type tyname uni ann -> a
 typeArity (TyForall _ _ _ a) = typeArity a
 typeArity (TyFun _ _ b)      = 1 + typeArity b
@@ -988,7 +977,7 @@ genTerm mty = checkInvariant =<< do
       let unsMty = Set.mapMonotonic (nameUnique . unTyName) $ foldMap fvType mty
       uns <- getUniques
       when (not $ unsMty `Set.isSubsetOf` uns) $
-        error"genTerm - scope"
+        error "genTerm - scope"
       -- Check that trm :: ty
       help <- asks geHelp
       let trmctx' = case help of
@@ -1062,7 +1051,7 @@ genTerm mty = checkInvariant =<< do
         let mkBind (x, a, s) tm = TermBind () s
                                     (VarDecl () x a) tm
             b : bs = zipWith mkBind (zip3 xs as ss) tms
-        in tms `deepseq` (ty, Let () (if r then Rec else NonRec) (b :| bs) body)
+        in (ty, Let () (if r then Rec else NonRec) (b :| bs) body)
 
     genForall x k a = do
       -- TODO: this freshenTyName here might be a bit paranoid
@@ -1096,7 +1085,7 @@ genTerm mty = checkInvariant =<< do
           appl n tm (TyFun _ a b) = do
             (_, arg) <- genTerm (Just a)
             appl (n - 1) (Apply () tm arg) b
-          appl _ _ ty = error "appl"
+          appl _ _ _ = error "appl"
 
           genV (x, ty0) = do
             let ty = normalizeTy ty0
@@ -1361,11 +1350,11 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
 
     stripForalls sub [] ty                            = parSubstType sub ty
     stripForalls sub ((x, _) : xs) (TyForall _ y _ b) = stripForalls (Map.insert y (TyVar () x) sub) xs b
-    stripForalls _ xs ty                              = error "stripForalls"
+    stripForalls _ _ _                                = error "stripForalls"
 
     stripFuns [] ty                  = ty
     stripFuns (_ : xs) (TyFun _ _ b) = stripFuns xs b
-    stripFuns xs ty                  = error "stripFuns"
+    stripFuns _ _                    = error "stripFuns"
 
 datatypes :: Term TyName Name DefaultUni DefaultFun ()
           -> [(TyName, (Kind ()))]
@@ -1565,15 +1554,6 @@ shrinkRNF :: NFData a => Int -> (a -> [a]) -> a -> [a]
 shrinkRNF timeLimitMicroseconds shrinker a =
   catMaybes [ unsafePerformIO $ timeout timeLimitMicroseconds (rnf a' `seq` pure a') | a' <- shrinker a ]
 
-prop_canShrinkTerm :: Property
-prop_canShrinkTerm =
-  let second = 1000000 in
-  forAllDoc "ty,tm" genTypeAndTerm_ (shrinkRNF second shrinkClosedTypedTerm)   $ \ (ty, tm) ->
-  let ss = shrinkClosedTypedTerm (ty, tm) in
-  foldr (.&&.)
-    (counterexample "Can't count number of shrinks" $ within (10*second) (length ss `seq` property True))
-    [ within second (rnf s `seq` True) | s <- ss]
-
 prop_genWellTypedFullyApplied :: Property
 prop_genWellTypedFullyApplied =
   forAllDoc "ty, tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (ty, tm) ->
@@ -1737,11 +1717,3 @@ deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (TyVarDecl TyName ())
 deriving stock instance Eq (Datatype TyName Name DefaultUni DefaultFun ())
-
-deriving instance NFData (Term TyName Name DefaultUni DefaultFun ())
-deriving instance NFData (Binding TyName Name DefaultUni DefaultFun ())
-deriving instance NFData (VarDecl TyName Name DefaultUni DefaultFun ())
-deriving instance NFData (TyVarDecl TyName ())
-deriving instance NFData (Datatype TyName Name DefaultUni DefaultFun ())
-deriving instance NFData Strictness
-deriving instance NFData Recursivity
