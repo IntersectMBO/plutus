@@ -1735,13 +1735,15 @@ class Container f where
 
 instance Container [] where
   data OneHoleContext [] a = ListContext [a] [a]
-  oneHoleContexts (x : xs) = (ListContext [] xs, x) : [ (ListContext (x : ys) zs, y) | (ListContext ys zs, y) <- oneHoleContexts xs ]
+  oneHoleContexts (x : xs) = (ListContext [] xs, x) : [ (ListContext (x : ys) zs, y)
+                                                      | (ListContext ys zs, y) <- oneHoleContexts xs ]
   oneHoleContexts []       = []
   plugHole (ListContext xs ys) z = xs ++ [z] ++ ys
 
 instance Container NonEmpty where
   data OneHoleContext NonEmpty a = NonEmptyContext [a] [a]
-  oneHoleContexts (x :| xs) = (NonEmptyContext [] xs, x) : [ (NonEmptyContext (x : ys) zs, y) | (ListContext ys zs, y) <- oneHoleContexts xs ]
+  oneHoleContexts (x :| xs) = (NonEmptyContext [] xs, x) : [ (NonEmptyContext (x : ys) zs, y)
+                                                           | (ListContext ys zs, y) <- oneHoleContexts xs ]
   plugHole (NonEmptyContext []       ys) z = z :| ys
   plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
 
