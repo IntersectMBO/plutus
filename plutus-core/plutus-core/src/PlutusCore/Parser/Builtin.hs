@@ -6,20 +6,34 @@ module PlutusCore.Parser.Builtin where
 
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
-import PlutusPrelude
-import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, hexDigitChar, string)
+import PlutusPrelude (Word8)
+import Text.Megaparsec (MonadParsec (takeWhileP), choice, many, manyTill)
+import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import Data.ByteString (pack)
+import Data.Map (Map, empty, insert, lookup)
 import PlutusCore.Default
-import PlutusCore.Parser.ParserCommon (Parser, lexeme, symbol, whitespace)
+import PlutusCore.Parser.ParserCommon (Parser, isIdentifierChar, lexeme, symbol, whitespace)
 import PlutusCore.Parser.Type (defaultUniType)
+import PlutusCore.Pretty (display)
+import Prelude hiding (lookup)
 
--- | Atm the parser can only parse `DefaultFun`.
-builtinFunction :: (Bounded fun, Enum fun, Pretty fun) => Parser fun
-builtinFunction = lexeme $ choice $ map parseBuiltin [minBound .. maxBound]
-    where parseBuiltin builtin = try $ string (display builtin) >> pure builtin
+mkCachedBuiltin :: [DefaultFun] -> Map T.Text DefaultFun -> Map T.Text DefaultFun
+mkCachedBuiltin (hdFns:tlFns) builtinMap =
+    mkCachedBuiltin tlFns (insert (display hdFns) hdFns builtinMap)
+mkCachedBuiltin [] builtinMap = builtinMap
+
+cachedBuiltin :: Map T.Text DefaultFun
+cachedBuiltin = mkCachedBuiltin [minBound .. maxBound] empty
+
+-- | Parser for builtin functions. Atm the parser can only parse `DefaultFun`.
+builtinFunction :: Parser DefaultFun
+builtinFunction = lexeme $ do
+    txt <- takeWhileP (Just "identifier") isIdentifierChar
+    case lookup txt cachedBuiltin of
+        Nothing      -> error $ "Not a builtin" <> show cachedBuiltin <> show txt
+        Just builtin -> pure builtin
 
 signedInteger :: Parser Integer
 signedInteger = Lex.signed whitespace (lexeme Lex.decimal)
