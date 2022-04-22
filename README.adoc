@@ -63,6 +63,7 @@ The main documentation is located https://plutus.readthedocs.io/en/latest/[here]
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
+- https://arxiv.org/abs/2201.04919[Translation Certification for Smart Contracts]:  a certifier of Plutus IR compiler passes written in Coq.
 
 == Versioning and releases
 

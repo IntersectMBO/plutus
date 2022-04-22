@@ -263,6 +263,9 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+            -- We don't make use here of `toIntegralSized` because of performance considerations,
+            -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
+            -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
             if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
                 then pure $ fromIntegral i
                 else throwing_ _EvaluationFailure
