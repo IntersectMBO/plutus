@@ -38,8 +38,10 @@ import PlutusCore.Pretty
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
+import Data.Map (Map)
 import Data.Text qualified as T
 import ErrorCode
+import PlutusCore.Default (DefaultFun)
 import Prettyprinter (hardline, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe (Closed (Everywhere), GEq, GShow)
@@ -54,7 +56,7 @@ throwingEither r e = case e of
 data ParserError
     = UnknownBuiltinType T.Text SourcePos
     | BuiltinTypeNotAStar T.Text SourcePos
-    | UnknownBuiltinFunction T.Text SourcePos
+    | UnknownBuiltinFunction T.Text SourcePos (Map T.Text DefaultFun)
     | InvalidBuiltinConstant T.Text T.Text SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
@@ -117,7 +119,7 @@ instance Pretty SourcePos where
 instance Pretty ParserError where
     pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
-    pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction s loc lBuiltin)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+> ". Parsable functions are " <+> pretty (show lBuiltin)
     pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
 
 instance ShowErrorComponent ParserError where

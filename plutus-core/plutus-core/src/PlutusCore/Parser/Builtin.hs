@@ -7,32 +7,34 @@ module PlutusCore.Parser.Builtin where
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
 import PlutusPrelude (Word8)
-import Text.Megaparsec (MonadParsec (takeWhileP), choice, many, manyTill)
+import Text.Megaparsec (MonadParsec (takeWhileP), choice, customFailure, getSourcePos, many, manyTill)
 import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import Data.ByteString (pack)
 import Data.Map (Map, empty, insert, lookup)
 import PlutusCore.Default
+import PlutusCore.Error
 import PlutusCore.Parser.ParserCommon (Parser, isIdentifierChar, lexeme, symbol, whitespace)
 import PlutusCore.Parser.Type (defaultUniType)
 import PlutusCore.Pretty (display)
 import Prelude hiding (lookup)
 
-mkCachedBuiltin :: [DefaultFun] -> Map T.Text DefaultFun -> Map T.Text DefaultFun
-mkCachedBuiltin (hdFns:tlFns) builtinMap =
-    mkCachedBuiltin tlFns (insert (display hdFns) hdFns builtinMap)
-mkCachedBuiltin [] builtinMap = builtinMap
-
 cachedBuiltin :: Map T.Text DefaultFun
-cachedBuiltin = mkCachedBuiltin [minBound .. maxBound] empty
+cachedBuiltin
+  = foldl
+      (\ currMap fn -> insert (display fn) fn currMap)
+      empty
+      [minBound .. maxBound]
 
 -- | Parser for builtin functions. Atm the parser can only parse `DefaultFun`.
 builtinFunction :: Parser DefaultFun
 builtinFunction = lexeme $ do
-    txt <- takeWhileP (Just "identifier") isIdentifierChar
+    txt <- takeWhileP (Just "builtin function identifier") isIdentifierChar
     case lookup txt cachedBuiltin of
-        Nothing      -> error $ "Not a builtin" <> show cachedBuiltin <> show txt
+        Nothing      -> do
+            pos <- getSourcePos
+            customFailure $ UnknownBuiltinFunction txt pos cachedBuiltin
         Just builtin -> pure builtin
 
 signedInteger :: Parser Integer
