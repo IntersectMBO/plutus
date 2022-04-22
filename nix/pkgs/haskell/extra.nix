@@ -10,7 +10,6 @@
 , sources
 , index-state
 , compiler-nix-name
-, checkMaterialization
 , buildPackages
 , writeShellScript
 }:
@@ -18,10 +17,7 @@ let
   agdaProject = haskell-nix.hackage-project {
     name = "Agda";
     version = "2.6.2.1";
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./agda.sha);
-    # Should use the index-state from the target cabal.project, but that disables plan-sha256. Fixed
-    # in recent haskell.nix, delete the index-state passing when we update.
-    inherit compiler-nix-name index-state checkMaterialization;
+    inherit compiler-nix-name;
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the interface files for
       # the Agda that ships with the compiler. These go in the data files for the *library*, but they
@@ -53,19 +49,15 @@ let
   cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";
     version = "3.6.2.0";
-    inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cabal-install.sha);
+    inherit compiler-nix-name index-state;
   };
   cardanoRepoToolProject = haskell-nix.cabalProject' {
     src = sources.cardano-repo-tool;
-    inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile ./cardano-repo-tool.sha);
+    inherit compiler-nix-name index-state;
     sha256map = {
       "https://github.com/input-output-hk/nix-archive"."7dcf21b2af54d0ab267f127b6bd8fa0b31cfa49d" = "0mhw896nfqbd2iwibzymydjlb3yivi9gm0v2g1nrjfdll4f7d8ly";
     };
   };
-  # See https://github.com/input-output-hk/nix-tools/issues/97
-  hlsShaFile = if stdenv.isLinux then ./hls-linux.sha else ./hls-darwin.sha;
   hlsProject = haskell-nix.cabalProject' {
     # See https://github.com/haskell/haskell-language-server/issues/411.
     # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools *and* through HLS. But we need to have consistent versions in both
@@ -77,8 +69,7 @@ let
       constraints: stylish-haskell==0.13.0.0, hlint==3.2.8
     '';
     src = sources.haskell-language-server;
-    inherit compiler-nix-name index-state checkMaterialization;
-    plan-sha256 = lib.removeSuffix "\n" (builtins.readFile hlsShaFile);
+    inherit compiler-nix-name;
     modules = [{
       # for compatibility with the GHC patch for extensible interfaces, not needed on mainline GHC.
       packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
@@ -86,21 +77,10 @@ let
       packages.ghcide.flags.ghc-patched-unboxed-bytecode = true;
     }];
   };
-
-  updateShaFile = project: shaFile: writeShellScript "updateShaFile" ''
-    ${project.plan-nix.passthru.calculateMaterializedSha} > ${toString shaFile}
-  '';
-  updateAllShaFiles = writeShellScript "updateShaFiles" ''
-    ${updateShaFile cabalInstallProject ./cabal-install.sha}
-    ${updateShaFile agdaProject ./agda.sha}
-    ${updateShaFile hlsProject hlsShaFile}
-    ${updateShaFile cardanoRepoToolProject ./cardano-repo-tool.sha}
-  '';
 in
 {
   inherit (agdaProject.hsPkgs) Agda;
   inherit (hlsProject.hsPkgs) haskell-language-server hie-bios implicit-hie stylish-haskell hlint;
   inherit (cabalInstallProject.hsPkgs) cabal-install;
   inherit (cardanoRepoToolProject.hsPkgs) cardano-repo-tool;
-  inherit updateAllShaFiles;
 }
