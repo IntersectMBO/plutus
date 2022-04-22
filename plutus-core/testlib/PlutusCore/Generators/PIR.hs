@@ -27,6 +27,8 @@
 
 module PlutusCore.Generators.PIR where
 
+import Prettyprinter qualified as Pp
+
 import Control.Applicative ((<|>))
 import Control.Arrow hiding ((<+>))
 import Control.DeepSeq
@@ -47,6 +49,8 @@ import Data.String
 import Data.Text qualified as Text
 import GHC.Stack
 import PlutusCore (typeSize)
+import PlutusCore.Core (TyDecl (..))
+import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -59,9 +63,8 @@ import PlutusIR.TypeCheck
 import System.IO.Unsafe
 import System.Timeout
 import Test.QuickCheck
+import Text.PrettyPrint hiding (integer, (<>))
 import Text.Printf
-
-
 
 debug :: Bool
 debug = False
@@ -747,17 +750,6 @@ typeInstTerm ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
--- TODO TODO TODO
-data Doc = TODODoc
-  deriving stock Show
-class Pretty a
-instance Pretty a
-pretty, text, (<+>), vcat :: a
-pretty = error "TODO: pretty"
-text = error "TODO: text"
-(<+>) = error "TODO: (<+>)"
-vcat = error "TODO: vcat"
-
 ceDoc :: Testable t => Doc -> t -> Property
 ceDoc d = counterexample (show d)
 
@@ -966,8 +958,9 @@ genTerm mty = checkInvariant =<< do
                   [ (10, genTraceLoc mty) ] ++
                   []
   where
+    -- TODO: make this actualy work, these strings don't parse as locations
     mkLoc :: String -> Int -> Int -> Int -> Int -> String
-    mkLoc = error "TODO: mkLoc"
+    mkLoc file sl sc el ec = file ++ " " ++ show sl ++ " " ++ show sc ++ " " ++ show el ++ " " ++ show ec
 
     checkInvariant p | not debug = pure p
     checkInvariant (ty, trm) = do
@@ -1562,7 +1555,7 @@ prop_genWellTypedFullyApplied =
 prop_varsStats :: Property
 prop_varsStats =
   forAllDoc "_,tm"      genTypeAndTerm_ shrinkClosedTypedTerm     $ \ (_, tm) ->
-  tabulate "vars" (map (filter isAlpha . show . pretty @(_ -> Doc)) $ vars tm) $ property True
+  tabulate "vars" (map (filter isAlpha . show . pretty) $ vars tm) $ property True
   where
     vars (Var _ x)        = [x]
     vars (TyInst _ a _)   = vars a
@@ -1717,3 +1710,203 @@ deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (TyVarDecl TyName ())
 deriving stock instance Eq (Datatype TyName Name DefaultUni DefaultFun ())
+
+-- Sane pretty printer for Plutus IR
+
+class Pretty a where
+  pretty     :: a -> Doc
+  prettyPrec :: Int -> a -> Doc
+
+  pretty = prettyPrec 0
+  prettyPrec _ = pretty
+
+  {-# MINIMAL pretty | prettyPrec #-}
+
+(<?>) :: Doc -> Doc -> Doc
+a <?> b = hang a 2 b
+
+pParen :: Bool -> Doc -> Doc
+pParen False = id
+pParen True  = parens
+
+type PrettyTm tyname name uni fun = (Eq tyname, Pretty tyname, Pretty name, Pretty (SomeTypeIn uni), Pretty (Some (ValueOf uni)), Pretty fun)
+type PrettyTy tyname uni = (Eq tyname, Pretty tyname, Pretty (SomeTypeIn uni))
+
+instance Pretty Text.Text where
+  pretty = text . Text.unpack
+
+instance PrettyTm tyname name uni fun => Pretty (Program tyname name uni fun ann) where
+  prettyPrec p (Program _ t) = prettyPrec p t
+
+instance Pretty (SomeTypeIn DefaultUni) where
+  pretty = text . show . Pp.pretty
+
+instance Pretty (Some (ValueOf DefaultUni)) where
+  pretty c = text s
+    where s = show (Pp.pretty c)
+
+instance Pretty DefaultFun where
+  pretty = text . show . Pp.pretty
+
+instance Pretty Name where
+  pretty (Name x u)
+    | isDead x  = "_"
+    | otherwise = text . (++ ("{" ++ show (unUnique u) ++ "}")) . show . Pp.pretty $ x
+    where
+      isDead x = show (Pp.pretty x) == "dead"
+
+instance Pretty NamedDeBruijn where
+  pretty (NamedDeBruijn x idx)
+    | isDead x  = "_"
+    | otherwise = text . (++ ("{" ++ show idx ++ "}")) . show . Pp.pretty $ x
+    where
+      isDead x = show (Pp.pretty x) == "dead"
+
+instance Pretty TyName where
+  pretty (TyName x) = pretty x
+
+instance Pretty NamedTyDeBruijn where
+  pretty (NamedTyDeBruijn x) = pretty x
+
+instance Pretty (Kind ann) where
+  prettyPrec _ (Type _)           = "*"
+  prettyPrec p (KindArrow _ k k') = pParen (p > 1) $ sep [prettyPrec 2 k, "->" <+> prettyPrec 1 k']
+
+ppTyBind :: Pretty tyname => (tyname, Kind ann) -> Doc
+ppTyBind (x, Type{}) = pretty x
+ppTyBind (x, k)      = parens (pretty x <+> ":" <+> pretty k)
+
+ppAbstr :: Pretty b => Int -> (arg -> Doc) -> Doc -> ([arg], b) -> Doc
+ppAbstr p ppBind binder (binds, body) = pParen (p > 0) $
+  (binder <+> (fsep (map ppBind binds) <> ".")) <?> pretty body
+
+instance PrettyTy tyname uni => Pretty (Type tyname uni ann) where
+  prettyPrec p a = case a of
+    TyVar _ x     -> pretty x
+    TyBuiltin _ c -> pretty c
+    TyFun _ a b   -> pParen (p > 1)  $ sep [prettyPrec 2 a, "->" <+> prettyPrec 1 b]
+    TyIFix _ a b  -> pParen (p > 10) $ "Fix" <+> sep [prettyPrec 11 a, prettyPrec 11 b]
+    -- TyForall _ x Type{} (TyVar _ x') | x == x' -> "⊥"
+    TyForall{}    -> ppAbstr p ppTyBind "∀" (view a)
+      where
+        view (TyForall _ x k b) = first ((x, k):) $ view b
+        view a                  = ([], a)
+    TyLam{}     -> ppAbstr p ppTyBind "Λ" (viewLam a)
+      where
+        viewLam (TyLam _ x k b) = first ((x, k):) $ viewLam b
+        viewLam b               = ([], b)
+    TyApp{} -> pParen (p > 10) $ prettyPrec 10 hd <?> fsep (map (prettyPrec 11) args)
+      where
+        (hd, args) = viewApp a []
+        viewApp (TyApp _ a b) args = viewApp a (b : args)
+        viewApp a args             = (a, args)
+
+instance PrettyTm tyname name uni fun => Pretty (Binding tyname name uni fun ann) where
+  pretty bind = case bind of
+    TermBind _ s vdec t -> (pretty vdec <+> eq) <?> pretty t
+      where
+        eq | PlutusIR.Strict <- s = "[!]="
+           | otherwise            = "[~]="
+    TypeBind _ tydec a -> (pretty tydec <+> "=") <?> pretty a
+    DatatypeBind _ dt -> pretty dt
+
+instance PrettyTy tyname uni => Pretty (TyDecl tyname uni ann) where
+  prettyPrec p (TyDecl _ x k) = pParen (p > 0) $ pretty x <+> ":" <+> pretty k
+
+instance Pretty tyname => Pretty (TyVarDecl tyname ann) where
+  prettyPrec p (TyVarDecl _ x k) = pParen (p > 0) $ ppTyBind (x, k)
+
+instance (PrettyTy tyname uni, Pretty name) => Pretty (VarDecl tyname name uni fun ann) where
+  prettyPrec p (VarDecl _ x a) = pParen (p > 0) $ pretty x <+> ":" <+> pretty a
+
+instance PrettyTm tyname name uni fun => Pretty (Datatype tyname name uni fun ann) where
+  pretty (Datatype _ tydec pars name cs) =
+    vcat [ "data" <+> pretty tydec <+> fsep (map pretty pars) <+> "/" <+> pretty name <+> "where"
+         , nest 2 $ vcat $ map pretty cs ]
+
+instance PrettyTm tyname name uni fun => Pretty (Term tyname name uni fun ann) where
+  prettyPrec p t = case t of
+    Let _ rec binds body -> pParen (p > 0) $ sep [kw <+> vcat (map pretty $ toList binds), "in" <+> pretty body]
+      where
+        kw | Rec <- rec = "letrec"
+           | otherwise  = "let"
+    Var _ x              -> pretty x
+    TyAbs{}              -> ppAbstr p ppTyBind "Λ" (viewLam t)
+      where
+        viewLam (TyAbs _ x k b) = first ((x, k):) $ viewLam b
+        viewLam b               = ([], b)
+    LamAbs{}             -> ppAbstr p (prettyPrec 1) "λ" (viewLam t)
+      where
+        viewLam (LamAbs _ x a t) = first (VarDecl undefined x a:) $ viewLam t
+        viewLam t                = ([], t)
+    Apply{}              -> ppApp p t
+    TyInst{}             -> ppApp p t
+    Constant _ c         -> pretty c
+    Builtin _ b          -> pretty b
+    Error _ ty           -> pParen (p > 0) $ "error" <+> ":" <+> pretty ty
+    IWrap _ a b t        -> ppApp' p "Wrap" [Left a, Left b, Right t]
+    Unwrap _ t           -> ppApp' p "unwrap" [Right t]
+
+instance Pretty a => Pretty (Set a) where
+  pretty = braces . fsep . punctuate comma . map pretty . Set.toList
+
+instance {-# OVERLAPPABLE #-} Pretty a => Pretty [a] where
+  pretty = brackets . fsep . punctuate comma . map pretty
+
+ppApp :: PrettyTm tyname name uni fun => Int -> Term tyname name uni fun ann -> Doc
+ppApp p t = uncurry (ppApp' p . prettyPrec 10) (viewApp t)
+
+ppApp' :: PrettyTm tyname name uni fun
+       => Int
+       -> Doc
+       -> [Either (Type tyname uni ann) (Term tyname name uni fun ann)]
+       -> Doc
+ppApp' p hd args = pParen (p > 10) $ hd <?> fsep (map ppArg args)
+  where
+    ppArg (Left a)  = "@" <> prettyPrec 11 a
+    ppArg (Right t) = prettyPrec 11 t
+
+viewApp :: Term tyname name uni fun ann
+        -> (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
+viewApp t = go t []
+  where
+    go (Apply _ t s)  args = go t (Right s : args)
+    go (TyInst _ t a) args = go t (Left a : args)
+    go t args              = (t, args)
+
+angles :: Doc -> Doc
+angles d = hcat ["<", d, ">"]
+
+instance Pretty Int where
+  pretty = text . show
+
+instance (Pretty a, Pretty b) => Pretty (a, b) where
+  pretty (a, b) = parens $ sep [pretty a <> comma, pretty b]
+
+instance (Pretty a, Pretty b, Pretty c) => Pretty (a, b, c) where
+  pretty (a, b, c) = parens $ sep [pretty a <> comma, pretty b <> comma, pretty c]
+
+deriving via a instance Pretty a => Pretty (NonNegative a)
+
+instance (Pretty k, Pretty v) => Pretty (Map k v) where
+  pretty = pretty . Map.toList
+
+instance Pretty Doc where
+  pretty = id
+
+instance {-# OVERLAPPING #-} Pretty String where
+  pretty = text
+
+instance Pretty Bool where
+  pretty = text . show
+
+instance Pretty a => Pretty (Maybe a) where
+  prettyPrec _ Nothing  = "Nothing"
+  prettyPrec p (Just x) = pParen (p > 10) $ "Just" <+> prettyPrec 11 x
+
+instance Pretty () where
+  pretty () = "()"
+
+instance Pretty TyInst where
+  pretty (InstApp ty) = "@" <> prettyPrec 11 ty
+  pretty (InstArg ty) = braces $ pretty ty

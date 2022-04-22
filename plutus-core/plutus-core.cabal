@@ -366,7 +366,8 @@ library plutus-core-testlib
         serialise -any,
         deepseq -any,
         text -any,
-        transformers -any
+        transformers -any,
+        pretty -any
 
 test-suite satint-test
   import: lang
