@@ -1652,7 +1652,8 @@ typeCheckTermInContext tyctx ctx tm ty = isJust $ do
     ty' <- inferTypeInContext tyctx ctx tm
     unifyType tyctx mempty mempty ty' ty
 
-escapingSubst :: (Term TyName Name DefaultUni DefaultFun ()) -> Map TyName (Type TyName DefaultUni ())
+escapingSubst :: Term TyName Name DefaultUni DefaultFun ()
+              -> Map TyName (Type TyName DefaultUni ())
 escapingSubst tm = case tm of
   Var _ _           -> mempty
   Builtin _ _       -> mempty
@@ -1667,7 +1668,6 @@ escapingSubst tm = case tm of
       addTyBindSubst _                                 = id
   Error _ _ -> mempty
   _ -> error "IFix very bad no no no"
-
 
 var :: String -> Int -> Name
 var s i = Name (fromString s) (toEnum i)
