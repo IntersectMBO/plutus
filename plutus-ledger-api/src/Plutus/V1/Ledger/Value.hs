@@ -75,6 +75,8 @@ import PlutusTx.These
 import Prettyprinter
 import Prettyprinter.Extras
 
+-- ByteString representing the currency.
+-- Will be empty for Ada, 28 byte for PolicyId.
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
     deriving stock (Generic, Data)
@@ -96,7 +98,8 @@ currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 currencySymbol :: BS.ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
--- | ByteString of a name of a token, shown as UTF-8 string when possible
+-- | ByteString of a name of a token, shown as UTF-8 string when possible.
+-- Should be no longer than 32 bytes, empty for Ada.
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
