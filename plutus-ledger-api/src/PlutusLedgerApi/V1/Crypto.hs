@@ -19,6 +19,7 @@ import PlutusTx.Prelude qualified as PlutusTx
 import Prettyprinter
 
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
+-- Should be 28 bytes.
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
