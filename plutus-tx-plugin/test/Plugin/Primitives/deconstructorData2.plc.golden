@@ -239,6 +239,31 @@
           (termbind
             (strict)
             (vardecl
+              fst (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))
+            )
+            (builtin fstPair)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              snd (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b)))
+            )
+            (builtin sndPair)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              unsafeDataAsConstr
+              (fun
+                (con data)
+                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+              )
+            )
+            (builtin unConstrData)
+          )
+          (termbind
+            (strict)
+            (vardecl
               chooseList
               (all
                 a (type) (all b (type) (fun [ (con list) a ] (fun b (fun b b))))
@@ -264,7 +289,7 @@
             (termbind
               (strict)
               (vardecl
-                sfFromBuiltinBuiltinListNil_cfromBuiltin_go
+                unsafeDataAsList_go
                 (fun [ (con list) (con data) ] [ List (con data) ])
               )
               (lam
@@ -287,10 +312,7 @@
                       (con unit)
                       [
                         [ { Cons (con data) } [ { head (con data) } l ] ]
-                        [
-                          sfFromBuiltinBuiltinListNil_cfromBuiltin_go
-                          [ { tail (con data) } l ]
-                        ]
+                        [ unsafeDataAsList_go [ { tail (con data) } l ] ]
                       ]
                     )
                   ]
@@ -300,33 +322,6 @@
             )
             (let
               (nonrec)
-              (termbind
-                (strict)
-                (vardecl
-                  fst
-                  (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))
-                )
-                (builtin fstPair)
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  snd
-                  (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b)))
-                )
-                (builtin sndPair)
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  unsafeDataAsConstr
-                  (fun
-                    (con data)
-                    [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
-                  )
-                )
-                (builtin unConstrData)
-              )
               (termbind
                 (strict)
                 (vardecl
@@ -358,7 +353,7 @@
                         ]
                       ]
                       [
-                        sfFromBuiltinBuiltinListNil_cfromBuiltin_go
+                        unsafeDataAsList_go
                         [
                           { { snd (con integer) } [ (con list) (con data) ] } p
                         ]
