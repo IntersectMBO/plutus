@@ -35,6 +35,8 @@ import Codec.Serialise
 
 import PlutusCore.Flat
 
+import Control.DeepSeq
+import Data.Aeson (FromJSON, FromJSONKey, ToJSON, ToJSONKey)
 import Data.Foldable
 import Data.Map (Map)
 import Data.Map qualified as Map
@@ -77,6 +79,7 @@ data CovLoc = CovLoc { _covLocFile      :: String
                      , _covLocEndCol    :: Int }
   deriving (Ord, Eq, Show, Read, Generic, Serialise)
   deriving Flat via (AsSerialize CovLoc)
+  deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CovLoc
 
@@ -88,6 +91,7 @@ data CoverageAnnotation = CoverLocation CovLoc
                         | CoverBool CovLoc Bool
                         deriving (Ord, Eq, Show, Read, Generic, Serialise)
                         deriving Flat via (AsSerialize CoverageAnnotation)
+                        deriving anyclass (NFData, ToJSON, FromJSON, ToJSONKey, FromJSONKey)
 
 instance Pretty CoverageAnnotation where
   pretty (CoverLocation loc) = pretty loc
@@ -97,13 +101,14 @@ data Metadata = ApplicationHeadSymbol String
               | IgnoredAnnotation   -- ^ Location that is not interesting to cover.
     deriving (Ord, Eq, Show, Generic, Serialise)
     deriving Flat via (AsSerialize Metadata)
+    deriving anyclass (NFData, ToJSON, FromJSON)
 
 instance Pretty Metadata where
   pretty = viaShow
 
 newtype CoverageMetadata = CoverageMetadata { _metadataSet :: Set Metadata }
     deriving (Ord, Eq, Show, Generic)
-    deriving anyclass Serialise
+    deriving anyclass (Serialise, NFData, ToJSON, FromJSON)
     deriving newtype (Semigroup, Monoid)
     deriving Flat via (AsSerialize CoverageMetadata)
 
@@ -117,6 +122,7 @@ instance Pretty CoverageMetadata where
 data CoverageIndex = CoverageIndex { _coverageMetadata :: Map CoverageAnnotation CoverageMetadata }
                       deriving (Ord, Eq, Show, Generic, Serialise)
                       deriving Flat via (AsSerialize CoverageIndex)
+                      deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CoverageIndex
 
@@ -152,14 +158,16 @@ boolCaseCoverageAnn :: CovLoc -> Bool -> CoverageAnnotation
 boolCaseCoverageAnn src b = CoverBool src b
 
 newtype CoverageData = CoverageData { _coveredAnnotations :: Set CoverageAnnotation }
-  deriving (Ord, Eq, Show)
+  deriving (Ord, Eq, Show, Generic)
   deriving newtype (Semigroup, Monoid)
+  deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CoverageData
 
 data CoverageReport = CoverageReport { _coverageIndex :: CoverageIndex
                                      , _coverageData  :: CoverageData }
-  deriving (Ord, Eq, Show)
+  deriving (Ord, Eq, Show, Generic)
+  deriving anyclass (NFData, ToJSON, FromJSON)
 
 makeLenses ''CoverageReport
 
@@ -189,3 +197,4 @@ pprCoverageReport report =
     uncoveredAnns = allAnns Set.\\ (coveredAnns <> ignoredAnns)
 
     metadata ann = Map.lookup ann (report ^. coverageIndex . coverageMetadata)
+
