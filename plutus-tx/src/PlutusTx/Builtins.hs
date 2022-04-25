@@ -20,6 +20,8 @@ module PlutusTx.Builtins (
                                 , sha3_256
                                 , blake2b_256
                                 , verifySignature
+                                , verifyEcdsaSecp256k1Signature
+                                , verifySchnorrSecp256k1Signature
                                 , decodeUtf8
                                 -- * Integer builtins
                                 , Integer
@@ -163,6 +165,41 @@ greaterThanEqualsByteString x y = BI.ifThenElse (BI.lessThanByteString x y) Fals
 -- | Converts a ByteString to a String.
 decodeUtf8 :: BuiltinByteString -> BuiltinString
 decodeUtf8 = BI.decodeUtf8
+
+{-# INLINEABLE verifyEcdsaSecp256k1Signature #-}
+-- | Given an ECDSA SECP256k1 verification key, an ECDSA SECP256k1 signature,
+-- and an ECDSA SECP256k1 message hash (all as 'BuiltinByteString's), verify the
+-- hash with that key and signature.
+--
+-- = Important note
+--
+-- The verification key, the signature, and the message hash must all be of
+-- appropriate form and length. This function will error if any of
+-- these are not the case.
+verifyEcdsaSecp256k1Signature
+  :: BuiltinByteString -- ^ Verification key (64 bytes)
+  -> BuiltinByteString -- ^ Message hash (32 bytes)
+  -> BuiltinByteString -- ^ Signature (64 bytes)
+  -> Bool
+verifyEcdsaSecp256k1Signature vk msg sig =
+  fromBuiltin (BI.verifyEcdsaSecp256k1Signature vk msg sig)
+
+{-# INLINEABLE verifySchnorrSecp256k1Signature #-}
+-- | Given a Schnorr SECP256k1 verification key, a Schnorr SECP256k1 signature,
+-- and a message (all as 'BuiltinByteString's), verify the message with that key
+-- and signature.
+--
+-- = Important note
+--
+-- The verification key and signature must all be of appropriate form and
+-- length. This function will error if this is not the case.
+verifySchnorrSecp256k1Signature
+  :: BuiltinByteString -- ^ Verification key (64 bytes)
+  -> BuiltinByteString -- ^ Message
+  -> BuiltinByteString -- ^ Signature (64 bytes)
+  -> Bool
+verifySchnorrSecp256k1Signature vk msg sig =
+  fromBuiltin (BI.verifySchnorrSecp256k1Signature vk msg sig)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.

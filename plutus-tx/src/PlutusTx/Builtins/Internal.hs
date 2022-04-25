@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 -- This ensures that we don't put *anything* about these functions into the interface
@@ -15,6 +16,7 @@ module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
+import Control.Monad.Trans.Writer.Strict (runWriter)
 import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString as BS
@@ -22,11 +24,15 @@ import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy as BS (toStrict)
 import Data.Coerce (coerce)
 import Data.Data
+import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
+import Data.Kind (Type)
 import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
+import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (Pretty (..), viaShow)
 
@@ -236,6 +242,36 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b b
 verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
   BuiltinBool (fromMaybe False (Crypto.verifySignature pubKey message signature))
+
+{-# NOINLINE verifyEcdsaSecp256k1Signature #-}
+verifyEcdsaSecp256k1Signature ::
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinBool
+verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
+  case Crypto.verifyEcdsaSecp256k1Signature vk msg sig of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        EvaluationSuccess b -> BuiltinBool b
+
+{-# NOINLINE verifySchnorrSecp256k1Signature #-}
+verifySchnorrSecp256k1Signature ::
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinByteString ->
+  BuiltinBool
+verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
+  case Crypto.verifySchnorrSecp256k1Signature vk msg sig of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
+        EvaluationSuccess b -> BuiltinBool b
+
+traceAll :: forall (a :: Type) (f :: Type -> Type) .
+  (Foldable f) => f Text -> a -> a
+traceAll logs x = Foldable.foldl' (\acc t -> trace (BuiltinString t) acc) x logs
 
 {-# NOINLINE equalsByteString #-}
 equalsByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinBool
