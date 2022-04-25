@@ -24,7 +24,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifySignature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature, verifySignature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -68,6 +68,8 @@ data DefaultFun
     | Sha3_256
     | Blake2b_256
     | VerifySignature
+    | VerifyEcdsaSecp256k1Signature
+    | VerifySchnorrSecp256k1Signature
     -- Strings
     | AppendString
     | EqualsString
@@ -789,6 +791,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifySignature)
+    toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
+        makeBuiltinMeaning
+            verifyEcdsaSecp256k1Signature
+            mempty
+    toBuiltinMeaning VerifySchnorrSecp256k1Signature =
+        makeBuiltinMeaning
+            verifySchnorrSecp256k1Signature
+            mempty
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
@@ -1013,68 +1023,69 @@ decodeBuiltin = dBEBits8 builtinTagWidth
 -- See Note [Stable encoding of PLC]
 instance Flat DefaultFun where
     encode = encodeBuiltin . \case
-              AddInteger               -> 0
-              SubtractInteger          -> 1
-              MultiplyInteger          -> 2
-              DivideInteger            -> 3
-              QuotientInteger          -> 4
-              RemainderInteger         -> 5
-              ModInteger               -> 6
-              EqualsInteger            -> 7
-              LessThanInteger          -> 8
-              LessThanEqualsInteger    -> 9
+              AddInteger                      -> 0
+              SubtractInteger                 -> 1
+              MultiplyInteger                 -> 2
+              DivideInteger                   -> 3
+              QuotientInteger                 -> 4
+              RemainderInteger                -> 5
+              ModInteger                      -> 6
+              EqualsInteger                   -> 7
+              LessThanInteger                 -> 8
+              LessThanEqualsInteger           -> 9
 
-              AppendByteString         -> 10
-              ConsByteString           -> 11
-              SliceByteString          -> 12
-              LengthOfByteString       -> 13
-              IndexByteString          -> 14
-              EqualsByteString         -> 15
-              LessThanByteString       -> 16
-              LessThanEqualsByteString -> 17
+              AppendByteString                -> 10
+              ConsByteString                  -> 11
+              SliceByteString                 -> 12
+              LengthOfByteString              -> 13
+              IndexByteString                 -> 14
+              EqualsByteString                -> 15
+              LessThanByteString              -> 16
+              LessThanEqualsByteString        -> 17
 
-              Sha2_256                 -> 18
-              Sha3_256                 -> 19
-              Blake2b_256              -> 20
-              VerifySignature          -> 21
+              Sha2_256                        -> 18
+              Sha3_256                        -> 19
+              Blake2b_256                     -> 20
+              VerifySignature                 -> 21
+              VerifyEcdsaSecp256k1Signature   -> 52
+              VerifySchnorrSecp256k1Signature -> 53
 
-              AppendString             -> 22
-              EqualsString             -> 23
-              EncodeUtf8               -> 24
-              DecodeUtf8               -> 25
+              AppendString                    -> 22
+              EqualsString                    -> 23
+              EncodeUtf8                      -> 24
+              DecodeUtf8                      -> 25
 
-              IfThenElse               -> 26
+              IfThenElse                      -> 26
 
-              ChooseUnit               -> 27
+              ChooseUnit                      -> 27
 
-              Trace                    -> 28
+              Trace                           -> 28
 
-              FstPair                  -> 29
-              SndPair                  -> 30
+              FstPair                         -> 29
+              SndPair                         -> 30
 
-              ChooseList               -> 31
-              MkCons                   -> 32
-              HeadList                 -> 33
-              TailList                 -> 34
-              NullList                 -> 35
+              ChooseList                      -> 31
+              MkCons                          -> 32
+              HeadList                        -> 33
+              TailList                        -> 34
+              NullList                        -> 35
 
-              ChooseData               -> 36
-              ConstrData               -> 37
-              MapData                  -> 38
-              ListData                 -> 39
-              IData                    -> 40
-              BData                    -> 41
-              UnConstrData             -> 42
-              UnMapData                -> 43
-              UnListData               -> 44
-              UnIData                  -> 45
-              UnBData                  -> 46
-              EqualsData               -> 47
-
-              MkPairData               -> 48
-              MkNilData                -> 49
-              MkNilPairData            -> 50
-              SerialiseData            -> 51
+              ChooseData                      -> 36
+              ConstrData                      -> 37
+              MapData                         -> 38
+              ListData                        -> 39
+              IData                           -> 40
+              BData                           -> 41
+              UnConstrData                    -> 42
+              UnMapData                       -> 43
+              UnListData                      -> 44
+              UnIData                         -> 45
+              UnBData                         -> 46
+              EqualsData                      -> 47
+              MkPairData                      -> 48
+              MkNilData                       -> 49
+              MkNilPairData                   -> 50
+              SerialiseData                   -> 51
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1129,6 +1140,8 @@ instance Flat DefaultFun where
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
               go 51 = pure SerialiseData
+              go 52 = pure VerifyEcdsaSecp256k1Signature
+              go 53 = pure VerifySchnorrSecp256k1Signature
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
