@@ -176,6 +176,8 @@ builtinFnList =
     , (Sha3_256,"sha3_256")
     , (Blake2b_256,"blake2b_256")
     , (VerifySignature,"verifySignature")
+    , (VerifyEcdsaSecp256k1Signature ,"verifyEcdsaSecp256k1Signature")
+    , (VerifySchnorrSecp256k1Signature  ,"verifySchnorrSecp256k1Signature")
     , (AppendString,"appendString")
     , (EqualsString,"equalsString")
     , (EncodeUtf8,"encodeUtf8")

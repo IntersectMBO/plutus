@@ -40,13 +40,15 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
+          (hsPkgs."cereal" or (errorHandler.buildDepError "cereal"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
-          (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
+          (hsPkgs."integer-gmp" or (errorHandler.buildDepError "integer-gmp"))
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
+          (hsPkgs."secp256k1-haskell" or (errorHandler.buildDepError "secp256k1-haskell"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
@@ -54,39 +56,37 @@
           ];
         pkgconfig = [
           (pkgconfPkgs."libsodium" or (errorHandler.pkgConfDepError "libsodium"))
+          (pkgconfPkgs."libsecp256k1" or (errorHandler.pkgConfDepError "libsecp256k1"))
           ];
         buildable = true;
         modules = [
           "Cardano/Crypto/PackedBytes"
+          "Cardano/Crypto/Schnorr"
           "Cardano/Crypto/DSIGN"
-          "Cardano/Crypto/Hash"
-          "Cardano/Crypto/KES"
-          "Cardano/Crypto/VRF"
           "Cardano/Crypto/DSIGN/Class"
+          "Cardano/Crypto/DSIGN/EcdsaSecp256k1"
           "Cardano/Crypto/DSIGN/Ed25519"
           "Cardano/Crypto/DSIGN/Ed448"
           "Cardano/Crypto/DSIGN/Mock"
           "Cardano/Crypto/DSIGN/NeverUsed"
+          "Cardano/Crypto/DSIGN/SchnorrSecp256k1"
+          "Cardano/Crypto/Hash"
           "Cardano/Crypto/Hash/Blake2b"
           "Cardano/Crypto/Hash/Class"
+          "Cardano/Crypto/Hash/Keccak256"
           "Cardano/Crypto/Hash/NeverUsed"
           "Cardano/Crypto/Hash/SHA256"
           "Cardano/Crypto/Hash/SHA3_256"
           "Cardano/Crypto/Hash/Short"
-          "Cardano/Crypto/Hash/Keccak256"
+          "Cardano/Crypto/KES"
           "Cardano/Crypto/KES/Class"
+          "Cardano/Crypto/KES/CompactSingle"
+          "Cardano/Crypto/KES/CompactSum"
           "Cardano/Crypto/KES/Mock"
           "Cardano/Crypto/KES/NeverUsed"
           "Cardano/Crypto/KES/Simple"
           "Cardano/Crypto/KES/Single"
           "Cardano/Crypto/KES/Sum"
-          "Cardano/Crypto/PinnedSizedBytes"
-          "Cardano/Crypto/Seed"
-          "Cardano/Crypto/Util"
-          "Cardano/Crypto/VRF/Class"
-          "Cardano/Crypto/VRF/Mock"
-          "Cardano/Crypto/VRF/NeverUsed"
-          "Cardano/Crypto/VRF/Simple"
           "Cardano/Crypto/Libsodium"
           "Cardano/Crypto/Libsodium/C"
           "Cardano/Crypto/Libsodium/Constants"
@@ -97,6 +97,14 @@
           "Cardano/Crypto/Libsodium/MLockedBytes"
           "Cardano/Crypto/Libsodium/MLockedBytes/Internal"
           "Cardano/Crypto/Libsodium/UnsafeC"
+          "Cardano/Crypto/PinnedSizedBytes"
+          "Cardano/Crypto/Seed"
+          "Cardano/Crypto/Util"
+          "Cardano/Crypto/VRF"
+          "Cardano/Crypto/VRF/Class"
+          "Cardano/Crypto/VRF/Mock"
+          "Cardano/Crypto/VRF/NeverUsed"
+          "Cardano/Crypto/VRF/Simple"
           "Cardano/Foreign"
           ];
         hsSourceDirs = [ "src" ];
