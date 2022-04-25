@@ -26,7 +26,6 @@ module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , addLocationToCoverageIndex
                          , addBoolCaseToCoverageIndex
                          , coverageDataFromLogMsg
-                         , pprCoverageReport
                          ) where
 
 import Control.Lens
@@ -181,20 +180,20 @@ instance Monoid CoverageReport where
 coverageDataFromLogMsg :: String -> CoverageData
 coverageDataFromLogMsg = foldMap (CoverageData . Set.singleton) . readMaybe
 
-pprCoverageReport :: CoverageReport -> Doc ann
-pprCoverageReport report =
-  vsep $ ["=========[COVERED]=========="] ++
-         [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ metadata ann))
-         | ann <- Set.toList $ allAnns `Set.intersection` coveredAnns ] ++
-         ["========[UNCOVERED]========="] ++
-         (map pretty . Set.toList $ uncoveredAnns) ++
-         ["=========[IGNORED]=========="] ++
-         (map pretty . Set.toList $ ignoredAnns Set.\\ coveredAnns)
-  where
-    allAnns       = report ^. coverageIndex . coverageAnnotations
-    coveredAnns   = report ^. coverageData  . coveredAnnotations
-    ignoredAnns   = report ^. coverageIndex . ignoredAnnotations
-    uncoveredAnns = allAnns Set.\\ (coveredAnns <> ignoredAnns)
+instance Pretty CoverageReport where
+  pretty report =
+    vsep $ ["=========[COVERED]=========="] ++
+           [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ metadata ann))
+           | ann <- Set.toList $ allAnns `Set.intersection` coveredAnns ] ++
+           ["========[UNCOVERED]========="] ++
+           (map pretty . Set.toList $ uncoveredAnns) ++
+           ["=========[IGNORED]=========="] ++
+           (map pretty . Set.toList $ ignoredAnns Set.\\ coveredAnns)
+    where
+      allAnns       = report ^. coverageIndex . coverageAnnotations
+      coveredAnns   = report ^. coverageData  . coveredAnnotations
+      ignoredAnns   = report ^. coverageIndex . ignoredAnnotations
+      uncoveredAnns = allAnns Set.\\ (coveredAnns <> ignoredAnns)
 
-    metadata ann = Map.lookup ann (report ^. coverageIndex . coverageMetadata)
+      metadata ann = Map.lookup ann (report ^. coverageIndex . coverageMetadata)
 
