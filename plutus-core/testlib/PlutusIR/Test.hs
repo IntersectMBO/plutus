@@ -1,8 +1,6 @@
-{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -23,11 +21,11 @@ import PlutusCore qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Quote
+import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
-import PlutusIR.Parser as Parser
+import PlutusIR.Parser as Parser (Parser, parse)
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 import UntypedPlutusCore qualified as UPLC
