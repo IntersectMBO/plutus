@@ -3,8 +3,6 @@
   # on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , rootsOnly ? false
-  # We explicitly pass true here in the GitHub action but don't want to slow down hydra
-, checkMaterialization ? false
 }:
 let
   inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
@@ -54,7 +52,7 @@ let
       # given a system ("x86_64-linux") return an attrset of derivations to build
       _select = _: system: crossSystem:
         let
-          packages = import ./default.nix { inherit system crossSystem checkMaterialization; };
+          packages = import ./default.nix { inherit system crossSystem; };
           pkgs = packages.pkgs;
           plutus = packages.plutus;
           # Map `crossSystem.config` to a name used in `lib.platforms`

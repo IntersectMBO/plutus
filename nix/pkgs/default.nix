@@ -1,5 +1,4 @@
 { pkgs
-, checkMaterialization
 , system ? builtins.currentSystem
 , config ? { }
 , sources
@@ -13,7 +12,7 @@ let
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
-    inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+    inherit agdaWithStdlib enableHaskellProfiling;
 
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
@@ -90,20 +89,6 @@ let
   #
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
   fixPngOptimization = pkgs.callPackage ./fix-png-optimization { };
-  updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
-    # This runs the 'updateMaterialize' script in all platform combinations we care about.
-    # See the comment in ./haskell/haskell.nix
-
-    # Update the linux files (will do for all unixes atm).
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system windows)
-    $(nix-build default.nix -A plutus.haskell.project.projectCross.mingwW64.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
-
-    # This updates the sha files for the extra packages
-    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
-    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-darwin)
-  '';
 
   #
   # sphinx python packages
@@ -147,7 +132,7 @@ in
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
   inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios;
-  inherit fixStylishHaskell fixPngOptimization updateMaterialized;
+  inherit fixStylishHaskell fixPngOptimization;
   inherit plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;

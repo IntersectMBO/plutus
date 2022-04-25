@@ -9,7 +9,6 @@
 , z3
 , R
 , libsodium-vrf
-, checkMaterialization
 , compiler-nix-name
 , enableHaskellProfiling
   # Whether to set the `defer-plugin-errors` flag on those packages that need
@@ -29,18 +28,6 @@ let
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
         name = "plutus";
       };
-    # These files need to be regenerated when you change the cabal files.
-    # See ../CONTRIBUTING.doc for more information.
-    # Unfortuntely, they are *not* constant across all possible systems, so in some circumstances we need different sets of files
-    # At the moment, we only need one but conceivably we might need one for darwin in future.
-    # See https://github.com/input-output-hk/nix-tools/issues/97
-    materialized =
-      if pkgs.stdenv.hostPlatform.isLinux then ./materialized-linux
-      else if pkgs.stdenv.hostPlatform.isDarwin then ./materialized-darwin
-      else if pkgs.stdenv.hostPlatform.isWindows then ./materialized-windows
-      else builtins.error "Don't have materialized files for this platform";
-    # If true, we check that the generated files are correct. Set in the CI so we don't make mistakes.
-    inherit checkMaterialization;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
       "https://github.com/input-output-hk/cardano-base"."1587462ac8b2e50af2691f5ad93d3c2aa4674ed1" = "sha256-jrSDD2fXgHf4wo5THzfK/6tolvt8y9rNuJWYfBooqaQ=";
