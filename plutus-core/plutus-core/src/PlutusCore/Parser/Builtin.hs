@@ -12,7 +12,7 @@ import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import Data.ByteString (pack)
-import Data.Map (Map, empty, insert, lookup)
+import Data.Map.Strict (Map, fromList, lookup, toList)
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Parser.ParserCommon (Parser, isIdentifierChar, lexeme, symbol, whitespace)
@@ -21,11 +21,7 @@ import PlutusCore.Pretty (display)
 import Prelude hiding (lookup)
 
 cachedBuiltin :: Map T.Text DefaultFun
-cachedBuiltin
-  = foldl
-      (\ currMap fn -> insert (display fn) fn currMap)
-      empty
-      [minBound .. maxBound]
+cachedBuiltin = fromList [ (display fn, fn) | fn <- [minBound .. maxBound] ]
 
 -- | Parser for builtin functions. Atm the parser can only parse `DefaultFun`.
 builtinFunction :: Parser DefaultFun
@@ -33,8 +29,9 @@ builtinFunction = lexeme $ do
     txt <- takeWhileP (Just "builtin function identifier") isIdentifierChar
     case lookup txt cachedBuiltin of
         Nothing      -> do
+            let lBuiltin = fmap fst $ toList cachedBuiltin
             pos <- getSourcePos
-            customFailure $ UnknownBuiltinFunction txt pos cachedBuiltin
+            customFailure $ UnknownBuiltinFunction txt pos lBuiltin
         Just builtin -> pure builtin
 
 signedInteger :: Parser Integer
