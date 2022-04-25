@@ -90,14 +90,6 @@ haskell.project.shellFor {
 
   shellHook = ''
     ${pre-commit-check.shellHook}
-  ''
-  # Work around https://github.com/NixOS/nix/issues/3345, which makes
-  # tests etc. run single-threaded in a nix-shell.
-  # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
-  # Only necessary for linux - darwin doesn't even expose thread
-  # affinity APIs!
-  + lib.optionalString stdenv.isLinux ''
-    ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
 
   # This is no longer set automatically as of more recent `haskell.nix` revisions, 
