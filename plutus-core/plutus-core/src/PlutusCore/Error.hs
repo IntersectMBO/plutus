@@ -54,7 +54,7 @@ throwingEither r e = case e of
 data ParserError
     = UnknownBuiltinType T.Text SourcePos
     | BuiltinTypeNotAStar T.Text SourcePos
-    | UnknownBuiltinFunction T.Text SourcePos
+    | UnknownBuiltinFunction T.Text SourcePos [T.Text]
     | InvalidBuiltinConstant T.Text T.Text SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
@@ -117,7 +117,7 @@ instance Pretty SourcePos where
 instance Pretty ParserError where
     pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
     pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
-    pretty (UnknownBuiltinFunction s loc)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction s loc lBuiltin)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+> ". Parsable functions are " <+> pretty lBuiltin
     pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
 
 instance ShowErrorComponent ParserError where
