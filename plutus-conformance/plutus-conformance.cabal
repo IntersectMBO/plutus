@@ -14,12 +14,7 @@ category: Language, Plutus, Conformance
 build-type: Simple
 extra-doc-files: README.md
 extra-source-files:
-    cost-model/data/builtinCostModel.json
-    cost-model/data/cekMachineCosts.json
-    cost-model/data/benching.csv
-    cost-model/data/*.R
-    plutus-core/test/CostModelInterface/defaultCostModelParams.json
-
+    
 source-repository head
     type: git
     location: https://github.com/input-output-hk/plutus
@@ -38,67 +33,9 @@ common lang
 
 library
     import: lang
+    visibility: public
+    hs-source-dirs: src/
     exposed-modules:
-    hs-source-dirs:
-        uplc/
-    other-modules:
-    build-depends:
-        aeson -any,
-        algebraic-graphs >= 0.3,
-        array -any,
-        barbies -any,
-        base >=4.9 && <5,
-        bimap -any,
-        bytestring -any,
-        cardano-crypto,
-        cassava -any,
-        cborg -any,
-        composition-prelude >=1.1.0.1,
-        containers -any,
-        cryptonite -any,
-        data-default-class -any,
-        deepseq -any,
-        dependent-sum-template -any,
-        deriving-aeson >= 0.2.3,
-        deriving-compat -any,
-        dlist -any,
-        dom-lt -any,
-        exceptions -any,
-        extra -any,
-        filepath -any,
-        flat -any,
-        ghc-prim -any,
-        hashable,
-        hedgehog >=1.0,
-        int-cast -any,
-        integer-gmp -any,
-        lens -any,
-        megaparsec -any,
-        mmorph -any,
-        monoidal-containers,
-        mtl -any,
-        parser-combinators >= 0.4.0,
-        plutus-core,
-        prettyprinter >=1.1.0.1,
-        prettyprinter-configurable -any,
-        primitive -any,
-        recursion-schemes -any,
-        semigroupoids -any,
-        semigroups >=0.19.1,
-        serialise -any,
-        some < 1.0.3,
-        template-haskell -any,
-        th-compat -any,
-        text -any,
-        th-lift -any,
-        th-lift-instances -any,
-        th-utilities -any,
-        time -any,
-        transformers -any,
-        unordered-containers -any,
-        witherable -any,
-        word-array -any,
-        cardano-crypto-class -any,
 
 test-suite uplc-eval-test
     import: lang
@@ -109,7 +46,8 @@ test-suite uplc-eval-test
     build-depends:
         base >=4.9 && <5,
         tasty-golden -any,
-        text -any
+        text -any,
+        plutus-conformance
 
 test-suite tplc-eval-test
     import: lang
