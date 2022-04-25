@@ -10,6 +10,7 @@ module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , CoverageIndex(..)
                          , CoverageMetadata(..)
                          , Metadata(..)
+                         , CoverageData(..)
                          , CoverageReport(..)
                          , CovLoc(..)
                          , covLocFile
@@ -19,11 +20,12 @@ module PlutusTx.Coverage ( CoverageAnnotation(..)
                          , covLocEndCol
                          , metadataSet
                          , coverageAnnotations
+                         , ignoredAnnotations
                          , coverageMetadata
                          , coveredAnnotations
                          , addLocationToCoverageIndex
                          , addBoolCaseToCoverageIndex
-                         , coverageReportFromLogMsg
+                         , coverageDataFromLogMsg
                          , pprCoverageReport
                          ) where
 
@@ -92,6 +94,7 @@ instance Pretty CoverageAnnotation where
   pretty (CoverBool loc b)   = pretty loc <+> "=" <+> pretty b
 
 data Metadata = ApplicationHeadSymbol String
+              | IgnoredAnnotation   -- ^ Location that is not interesting to cover.
     deriving (Ord, Eq, Show, Generic, Serialise)
     deriving Flat via (AsSerialize Metadata)
 
@@ -120,6 +123,10 @@ makeLenses ''CoverageIndex
 coverageAnnotations :: Getter CoverageIndex (Set CoverageAnnotation)
 coverageAnnotations = coverageMetadata . to Map.keysSet
 
+ignoredAnnotations :: Getter CoverageIndex (Set CoverageAnnotation)
+ignoredAnnotations = coverageMetadata
+                   . to (Map.keysSet . Map.filter (Set.member IgnoredAnnotation . _metadataSet))
+
 instance Semigroup CoverageIndex where
   ci <> ci' = CoverageIndex (Map.unionWith (<>) (_coverageMetadata ci) (_coverageMetadata ci'))
 
@@ -144,19 +151,41 @@ addBoolCaseToCoverageIndex src b meta = do
 boolCaseCoverageAnn :: CovLoc -> Bool -> CoverageAnnotation
 boolCaseCoverageAnn src b = CoverBool src b
 
-newtype CoverageReport = CoverageReport { _coveredAnnotations :: Set CoverageAnnotation }
+newtype CoverageData = CoverageData { _coveredAnnotations :: Set CoverageAnnotation }
   deriving (Ord, Eq, Show)
   deriving newtype (Semigroup, Monoid)
 
+makeLenses ''CoverageData
+
+data CoverageReport = CoverageReport { _coverageIndex :: CoverageIndex
+                                     , _coverageData  :: CoverageData }
+  deriving (Ord, Eq, Show)
+
 makeLenses ''CoverageReport
 
-coverageReportFromLogMsg :: String -> CoverageReport
-coverageReportFromLogMsg = foldMap (CoverageReport . Set.singleton) . readMaybe
+instance Semigroup CoverageReport where
+  CoverageReport i1 d1 <> CoverageReport i2 d2 = CoverageReport (i1 <> i2) (d1 <> d2)
 
-pprCoverageReport :: CoverageIndex -> CoverageReport -> Doc ann
-pprCoverageReport covIdx report =
+instance Monoid CoverageReport where
+  mempty  = CoverageReport mempty mempty
+  mappend = (<>)
+
+coverageDataFromLogMsg :: String -> CoverageData
+coverageDataFromLogMsg = foldMap (CoverageData . Set.singleton) . readMaybe
+
+pprCoverageReport :: CoverageReport -> Doc ann
+pprCoverageReport report =
   vsep $ ["=========[COVERED]=========="] ++
-         [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ Map.lookup ann (_coverageMetadata covIdx)))
-         | ann <- Set.toList $ (covIdx ^. coverageAnnotations) `Set.intersection` (report ^. coveredAnnotations) ] ++
+         [ nest 4 $ vsep (pretty ann : (map pretty . Set.toList . foldMap _metadataSet $ metadata ann))
+         | ann <- Set.toList $ allAnns `Set.intersection` coveredAnns ] ++
          ["========[UNCOVERED]========="] ++
-         (map pretty . Set.toList $ (covIdx ^. coverageAnnotations) Set.\\ (report ^. coveredAnnotations))
+         (map pretty . Set.toList $ uncoveredAnns) ++
+         ["=========[IGNORED]=========="] ++
+         (map pretty . Set.toList $ ignoredAnns Set.\\ coveredAnns)
+  where
+    allAnns       = report ^. coverageIndex . coverageAnnotations
+    coveredAnns   = report ^. coverageData  . coveredAnnotations
+    ignoredAnns   = report ^. coverageIndex . ignoredAnnotations
+    uncoveredAnns = allAnns Set.\\ (coveredAnns <> ignoredAnns)
+
+    metadata ann = Map.lookup ann (report ^. coverageIndex . coverageMetadata)
