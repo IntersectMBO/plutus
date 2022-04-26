@@ -115,11 +115,7 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
     then res === Right (fromIntegral n)
     else Hedgehog.assert (isLeft res)
 
-{- The lexer contains some quite complex regular expressions for literal
-  constants, allowing escape sequences inside quoted strings among other
-  things.  The lexer returns 'TkLiteralConst' tokens and then individual
-  built-in types interpret these using their own parsing functions via the
-  'Parsable' class.  The following tests check that (A) the lexer/parser can
+{- The following tests check that (A) the parser can
   handle the output of the prettyprinter on constants from types in the default
   universe, and (B) that parsing is left inverse to printing for both constants
   and programs.  We have unit tests for the unit and boolean types, and property
@@ -153,10 +149,7 @@ testLexConstant =
   possible formats we have generators for Unicode characters and ASCII
   characters, and also Latin-1 ones (characters 0-255, including standard ASCII
   from 0-127); there is also a generator for UTF8-encoded Unicode. -}
--- TODO: replace PlutusCore.Generators.AST.genConstant with this.  We
--- can't do that at the moment because genConstant is used by the tests for the
--- plutus-ir parser, and that can't handle the full range of constants at the
--- moment.
+-- TODO: replace PlutusCore.Generators.AST.genConstant with this
 genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
 genConstantForTest = Gen.frequency
     [ (3,  someValue <$> pure ())

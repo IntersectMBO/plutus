@@ -1,7 +1,6 @@
 -- | This module defines functions useful for testing.
 
-{-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module PlutusCore.Generators.Test
     ( TypeEvalCheckError (..)

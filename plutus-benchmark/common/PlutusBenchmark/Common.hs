@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}

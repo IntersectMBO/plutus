@@ -9,27 +9,27 @@ import Data.Text.Internal.Read (hexDigitToInt)
 import PlutusPrelude (Word8)
 import Text.Megaparsec (MonadParsec (takeWhileP), choice, customFailure, getSourcePos, many, manyTill)
 import Text.Megaparsec.Char (char, hexDigitChar)
-import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Data.ByteString (pack)
-import Data.Map.Strict (Map, fromList, lookup, toList)
+import Data.Map.Strict qualified as Map
 import PlutusCore.Default
-import PlutusCore.Error
+import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon (Parser, isIdentifierChar, lexeme, symbol, whitespace)
 import PlutusCore.Parser.Type (defaultUniType)
 import PlutusCore.Pretty (display)
-import Prelude hiding (lookup)
+import Prelude
 
-cachedBuiltin :: Map T.Text DefaultFun
-cachedBuiltin = fromList [ (display fn, fn) | fn <- [minBound .. maxBound] ]
+cachedBuiltin :: Map.Map T.Text DefaultFun
+cachedBuiltin = Map.fromList [ (display fn, fn) | fn <- [minBound .. maxBound] ]
 
 -- | Parser for builtin functions. Atm the parser can only parse `DefaultFun`.
 builtinFunction :: Parser DefaultFun
 builtinFunction = lexeme $ do
     txt <- takeWhileP (Just "builtin function identifier") isIdentifierChar
-    case lookup txt cachedBuiltin of
+    case Map.lookup txt cachedBuiltin of
         Nothing      -> do
-            let lBuiltin = fmap fst $ toList cachedBuiltin
+            let lBuiltin = fmap fst $ Map.toList cachedBuiltin
             pos <- getSourcePos
             customFailure $ UnknownBuiltinFunction txt pos lBuiltin
         Just builtin -> pure builtin
