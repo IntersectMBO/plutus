@@ -12,7 +12,7 @@ import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 import Data.ByteString (pack)
-import Data.Map.Strict as Map (Map, fromList, lookup, toList)
+import Data.Map.Strict qualified as Map
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon (Parser, isIdentifierChar, lexeme, symbol, whitespace)

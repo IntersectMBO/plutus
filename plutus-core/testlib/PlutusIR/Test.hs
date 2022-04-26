@@ -25,7 +25,7 @@ import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
-import PlutusIR.Parser as Parser (Parser, parse)
+import PlutusIR.Parser (Parser, parse)
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 import UntypedPlutusCore qualified as UPLC
