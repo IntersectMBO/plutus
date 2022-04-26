@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE StrictData     #-}
-{-# LANGUAGE TypeFamilies   #-}
-{-# LANGUAGE TypeOperators  #-}
-
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE StrictData      #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE TypeOperators   #-}
 
 module PlutusCore.Evaluation.Machine.MachineParameters
 where
@@ -12,6 +12,7 @@ import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.ExBudget ()
 
 import Control.DeepSeq
+import Control.Lens
 import GHC.Exts (inline)
 import GHC.Generics
 import GHC.Types (Type)
@@ -27,9 +28,10 @@ import GHC.Types (Type)
 -}
 data CostModel machinecosts builtincosts =
     CostModel {
-      machineCostModel :: machinecosts
-    , builtinCostModel :: builtincosts
+      _machineCostModel :: machinecosts
+    , _builtinCostModel :: builtincosts
     } deriving stock (Eq, Show)
+makeLenses ''CostModel
 
 {-| At execution time we need a 'BuiltinsRuntime' object which includes both the
   cost model for builtins and their denotations.  This bundles one of those

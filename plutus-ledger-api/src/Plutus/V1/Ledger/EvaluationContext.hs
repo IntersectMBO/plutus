@@ -15,7 +15,9 @@ module Plutus.V1.Ledger.EvaluationContext
     , costModelParamNames
     ) where
 
-import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel, defaultCostModelParams)
+import Barbies
+import PlutusCore as Plutus (DefaultFun, DefaultUni, UnliftingMode (..), defaultCekCostModel)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
@@ -23,6 +25,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek as Plutus
 import Plutus.ApiCommon
 
 import Control.DeepSeq
+import Control.Lens
 import Data.Map as Map
 import Data.Maybe
 import Data.Set as Set
@@ -95,7 +98,23 @@ mkEvaluationContext newCMP =
 isCostModelParamsWellFormed :: Plutus.CostModelParams -> Bool
 isCostModelParamsWellFormed = isJust . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
--- | The set of valid names that a cost model parameter can take for the specific protocol version.
+-- | The set of valid names that a cost model parameter can take for this language version.
 -- It is used for the deserialization of `CostModelParams`.
 costModelParamNames :: Set.Set Text.Text
-costModelParamNames = Map.keysSet $ fromJust Plutus.defaultCostModelParams
+costModelParamNames = Map.keysSet $ fromJust $ extractCostModelParams $
+   defaultCekCostModel
+   & builtinCostModel
+   -- here we rely on 'Deriving.Aeson.OmitNothingFields'
+   -- to skip jsonifying any fields which are cleared.
+   %~ omitV2Builtins
+  where
+    -- "clears" some fields of builtincostmodel by setting them to Nothing. See 'MCostingFun'.
+    omitV2Builtins :: BuiltinCostModel -> BuiltinCostModelBase MCostingFun
+    omitV2Builtins bcm =
+            -- transform all costing-functions to (Just costingFun)
+            (bmap (MCostingFun . Just) bcm)
+            {
+              -- 'SerialiseData' builtin not available in V1
+              paramSerialiseData = mempty
+              -- TODO: do the same for schnorr and ellipticcurve costingfuns
+            }
