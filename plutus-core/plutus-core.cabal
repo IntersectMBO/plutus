@@ -397,6 +397,7 @@ test-suite plutus-core-test
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        extra -any,
         filepath -any,
         flat -any,
         hedgehog -any,
