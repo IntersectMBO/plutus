@@ -133,7 +133,7 @@ extractCostModelParams
     :: (ToJSON machinecosts, ToJSON builtincosts)
     => CostModel machinecosts builtincosts -> Maybe CostModelParams
 extractCostModelParams model = -- this is using the applicative instance of Maybe
-    Map.union <$> extractParams (machineCostModel model) <*> extractParams (builtinCostModel model)
+    Map.union <$> extractParams (_machineCostModel model) <*> extractParams (_builtinCostModel model)
 
 -- | Given a set of cost model parameters, split it into two parts according to
 -- some prefix and use those parts to update the components of a cost model.
@@ -153,8 +153,8 @@ applySplitCostModelParams
     -> Maybe (CostModel evaluatorcosts builtincosts)
 applySplitCostModelParams prefix model params =
     let SplitCostModelParams machineparams builtinparams = splitParams prefix params
-    in CostModel <$> applyParams (machineCostModel model) machineparams
-                 <*> applyParams (builtinCostModel model) builtinparams
+    in CostModel <$> applyParams (_machineCostModel model) machineparams
+                 <*> applyParams (_builtinCostModel model) builtinparams
 
 -- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams

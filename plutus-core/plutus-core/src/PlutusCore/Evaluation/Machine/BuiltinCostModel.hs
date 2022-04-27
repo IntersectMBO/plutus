@@ -34,6 +34,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , runCostingFunFiveArguments
     , runCostingFunSixArguments
     , Hashable
+    , MCostingFun (..)
     )
 where
 
@@ -47,6 +48,7 @@ import Data.Aeson
 import Data.Default.Class
 import Data.Hashable
 import Data.Kind qualified as Kind
+import Data.Monoid
 import Deriving.Aeson
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
@@ -163,6 +165,15 @@ deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCh
 deriving via CustomJSON '[FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
              (BuiltinCostModelBase CostingFun) instance FromJSON (BuiltinCostModelBase CostingFun)
 
+-- | Same as 'CostingFun' but maybe missing.
+-- We could use 'Compose Maybe CostinFun' instead but we would then need an orphan ToJSON instance.
+newtype MCostingFun a = MCostingFun (Maybe (CostingFun a))
+    deriving newtype (ToJSON)
+    deriving (Semigroup, Monoid) via (Alt Maybe (CostingFun a)) -- for mempty == MCostingFun Nothing
+
+-- Omit generating JSON for any costing functions that have not been set (are missing).
+deriving via CustomJSON '[OmitNothingFields, FieldLabelModifier (StripPrefix "param", LowerIntialCharacter)]
+             (BuiltinCostModelBase MCostingFun) instance ToJSON (BuiltinCostModelBase MCostingFun)
 
 -- Needed to help derive various instances for BuiltinCostModelBase
 type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
