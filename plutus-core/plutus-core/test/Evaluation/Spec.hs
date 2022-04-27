@@ -11,9 +11,11 @@
 
 module Evaluation.Spec where
 
+import Control.Exception
 import Control.Monad.Except
+import Control.Monad.Extra
 import Data.ByteString qualified as BS
-import Data.Functor ((<&>))
+import Data.Functor (($>), (<&>))
 import Data.Int (Int64)
 import Data.List.Extra qualified as List
 import Data.Text (Text)
@@ -22,13 +24,13 @@ import Data.Typeable (splitTyConApp)
 import Evaluation.Machines (test_machines)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
+import Hedgehog.Internal.Property (failWith)
 import Hedgehog.Range qualified as Range
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Generators
-import Prettyprinter
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Type.Reflection
@@ -40,35 +42,26 @@ test_builtinsDon'tThrow :: TestTree
 test_builtinsDon'tThrow =
     testGroup
         "Builtins don't throw"
-        . fmap (\fun -> testProperty (show fun) $ prop_builtinsDon'tThrow fun)
-        $ List.enumerate
-            -- TODO: remove this
-            List.\\ [ VerifySignature
-                    , VerifyEcdsaSecp256k1Signature
-                    , VerifySchnorrSecp256k1Signature
-                    ]
+        $ fmap (\fun -> testProperty (show fun) $ prop_builtinsDon'tThrow fun) List.enumerate
 
 prop_builtinsDon'tThrow :: DefaultFun -> Property
 prop_builtinsDon'tThrow bn = property $ do
     (args, argStrings) <- unzip <$> forAllNoShow (genArgs bn)
-    let (res, logs) = runEmitter . runExceptT $ eval args argStrings
-    case res of
-        Right _ -> success
-        Left err -> do
-            liftIO $ do
-                putStrLn "Builtin function evaluation failed"
-                putStrLn $ "Function: " <> show bn
-                putStrLn $ "Arguments: " <> show argStrings
-                putStrLn $
-                    "Error: "
-                        <> ( case err of
-                                KnownTypeEvaluationFailure -> "KnownTypeEvaluationFailure"
-                                KnownTypeUnliftingError e ->
-                                    "KnownTypeUnliftingError: "
-                                        <> show (pretty e)
-                           )
-                putStrLn $ "Execution log: " <> show logs
-            failure
+    mbErr <-
+        liftIO $
+            catch
+                (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args argStrings)
+                (pure . pure)
+    whenJust mbErr $ \(e :: SomeException) -> do
+        let msg =
+                "Builtin function evaluation failed"
+                    <> "Function: "
+                    <> show bn
+                    <> "Arguments: "
+                    <> show argStrings
+                    <> "Error: "
+                    <> show e
+        failWith Nothing msg
   where
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning bn
@@ -91,30 +84,16 @@ prop_builtinsDon'tThrow bn = property $ do
             (RuntimeSchemeAll sch', _) -> go sch' f args
             _ -> error $ "Wrong number of args for builtin " <> show bn <> ": " <> show argStrings
 
--- | Generate arguments to a builtin function
+-- | Generate arguments to a builtin function based on its `TypeScheme`.
 genArgs :: DefaultFun -> Gen [(Term, String)]
-genArgs bn = case bn of
-    -- These functions are partial, so we manually generate their arguments.
-    IndexByteString -> do
-        s <- Gen.utf8 (Range.linear 5 100) Gen.enumBounded
-        i :: Integer <- fromIntegral <$> Gen.int (Range.linear 0 (BS.length s - 1))
-        pure [mkArg s, mkArg i]
-    HeadList -> pure . pure . mkArg =<< Gen.list (Range.linear 1 100) genInteger
-    TailList -> genArgs HeadList
-    UnConstrData -> pure . pure . mkArg =<< genConstr 5
-    UnMapData -> pure . pure . mkArg =<< genMap 5
-    UnListData -> pure . pure . mkArg =<< genList 5
-    UnIData -> pure . pure . mkArg =<< genI
-    UnBData -> pure . pure . mkArg =<< genB
-    -- The rest are total functions and we generate the arguments based on their `TypeScheme`s.
-    _ -> sequenceA $ case meaning of
-        BuiltinMeaning tySch _ _ -> go tySch
-          where
-            go :: forall args res. TypeScheme Term args res -> [Gen (Term, String)]
-            go = \case
-                TypeSchemeResult    -> []
-                TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
-                TypeSchemeAll _ sch -> go sch
+genArgs bn = sequenceA $ case meaning of
+    BuiltinMeaning tySch _ _ -> go tySch
+      where
+        go :: forall args res. TypeScheme Term args res -> [Gen (Term, String)]
+        go = \case
+            TypeSchemeResult    -> []
+            TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
+            TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning bn
