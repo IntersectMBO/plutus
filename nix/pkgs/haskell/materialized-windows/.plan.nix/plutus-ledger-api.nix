@@ -50,6 +50,7 @@
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."tagged" or (errorHandler.buildDepError "tagged"))
           (hsPkgs."lens" or (errorHandler.buildDepError "lens"))
+          (hsPkgs."barbies" or (errorHandler.buildDepError "barbies"))
           ];
         buildable = true;
         modules = [
@@ -73,6 +74,7 @@
           "Plutus/V2/Ledger/Api"
           "Plutus/V2/Ledger/Contexts"
           "Plutus/V2/Ledger/Tx"
+          "Plutus/V2/Ledger/EvaluationContext"
           "Plutus/ApiCommon"
           ];
         hsSourceDirs = [ "src" ];

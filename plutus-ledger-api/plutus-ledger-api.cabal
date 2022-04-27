@@ -54,6 +54,7 @@ library
         Plutus.V2.Ledger.Api
         Plutus.V2.Ledger.Contexts
         Plutus.V2.Ledger.Tx
+        Plutus.V2.Ledger.EvaluationContext
 
         Plutus.ApiCommon
     other-modules:
@@ -77,7 +78,8 @@ library
         base16-bytestring >= 1,
         deepseq -any,
         tagged -any,
-        lens -any
+        lens -any,
+        barbies -any
 
 test-suite plutus-ledger-api-test
     import: lang
