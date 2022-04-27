@@ -14,9 +14,11 @@ module Evaluation.Spec where
 import Control.Exception
 import Control.Monad.Except
 import Control.Monad.Extra
+import Data.Bifunctor
 import Data.ByteString qualified as BS
-import Data.Functor (($>), (<&>))
+import Data.Functor (($>))
 import Data.Int (Int64)
+import Data.Kind qualified as GHC
 import Data.List.Extra qualified as List
 import Data.Text (Text)
 import Data.Type.Equality
@@ -46,7 +48,7 @@ test_builtinsDon'tThrow =
 
 prop_builtinsDon'tThrow :: DefaultFun -> Property
 prop_builtinsDon'tThrow bn = property $ do
-    (args, argStrings) <- unzip <$> forAllNoShow (genArgs bn)
+    (args, argStrings) <- first (fmap (Constant ())) . unzip <$> forAllNoShow (genArgs bn)
     mbErr <-
         liftIO $
             catch
@@ -85,11 +87,11 @@ prop_builtinsDon'tThrow bn = property $ do
             _ -> error $ "Wrong number of args for builtin " <> show bn <> ": " <> show argStrings
 
 -- | Generate arguments to a builtin function based on its `TypeScheme`.
-genArgs :: DefaultFun -> Gen [(Term, String)]
+genArgs :: DefaultFun -> Gen [(Some (ValueOf DefaultUni), String)]
 genArgs bn = sequenceA $ case meaning of
     BuiltinMeaning tySch _ _ -> go tySch
       where
-        go :: forall args res. TypeScheme Term args res -> [Gen (Term, String)]
+        go :: forall args res. TypeScheme Term args res -> [Gen (Some (ValueOf DefaultUni), String)]
         go = \case
             TypeSchemeResult    -> []
             TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
@@ -99,59 +101,47 @@ genArgs bn = sequenceA $ case meaning of
     meaning = toBuiltinMeaning bn
 
 -- | Generate one argument to a builtin function based on its `TypeRep`.
-genArg :: forall k (a :: k). TypeRep a -> Gen (Term, String)
+genArg :: forall k (a :: k). TypeRep a -> Gen (Some (ValueOf DefaultUni), String)
 genArg tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = pure $ mkArg ()
-    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = pure . mkArg =<< genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Int) = pure . mkArg =<< genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = pure . mkArg =<< Gen.bool
-    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = pure . mkArg =<< genByteString
-    | Just HRefl <- eqTypeRep tr (typeRep @Text) = pure . mkArg =<< genText
-    | Just HRefl <- eqTypeRep tr (typeRep @Data) = pure . mkArg =<< genData 5
+    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = mkArg <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Int) = mkArg <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = mkArg <$> Gen.bool
+    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = mkArg <$> genByteString
+    | Just HRefl <- eqTypeRep tr (typeRep @Text) = mkArg <$> genText
+    | Just HRefl <- eqTypeRep tr (typeRep @Data) = mkArg <$> genData 5
     | Just [SomeTypeRep tr1, SomeTypeRep tr2] <- matchTyCon @(,) tr = do
-        (arg1, argStr1) <- genArg tr1
-        (arg2, argStr2) <- genArg tr2
-        case (arg1, arg2) of
-            (Constant _ (Some (ValueOf uni1 val1)), Constant _ (Some (ValueOf uni2 val2))) ->
-                pure
-                    ( Constant
-                        ()
-                        ( someValueOf
-                            (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
-                            (val1, val2)
-                        )
-                    , show (argStr1, argStr2)
-                    )
-            _ -> error "genArg: encountered non-Constant term"
+        (Some (ValueOf uni1 val1), argStr1) <- genArg tr1
+        (Some (ValueOf uni2 val2), argStr2) <- genArg tr2
+        pure
+            ( someValueOf
+                (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
+                (val1, val2)
+            , show (argStr1, argStr2)
+            )
     | Just [SomeTypeRep trElem] <- matchTyCon @[] tr = do
-        (arg, _) <- genArg trElem
-        case arg of
-            Constant _ (Some (ValueOf uniElem (_ :: b))) -> do
-                (args, argStrings) <- unzip <$> (Gen.list (Range.linear 0 10) $ genArg trElem)
-                let valElems :: [b]
-                    valElems =
-                        args <&> \case
-                            Constant _ (Some (ValueOf _ valElem')) -> unsafeCoerce valElem'
-                            _                                      -> error "genArg: encountered non-Constant term"
-                pure
-                    ( Constant () (someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems)
-                    , show argStrings
-                    )
-            _ -> error "genArg: encountered non-Constant term"
+        (Some (ValueOf uniElem (_ :: b)), _) <- genArg trElem
+        (args, argStrings) <- unzip <$> (Gen.list (Range.linear 0 10) $ genArg trElem)
+        let valElems :: [b]
+            valElems = (\(Some (ValueOf _ valElem')) -> unsafeCoerce valElem') <$> args
+        pure
+            ( someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems
+            , show argStrings
+            )
     -- Descend upon `Opaque`
     | Just [_, SomeTypeRep tr'] <- matchTyCon @Opaque tr = genArg tr'
     -- Descend upon `SomeConstant`
     | Just [_, SomeTypeRep tr'] <- matchTyCon @SomeConstant tr = genArg tr'
     -- In the current implementation, all type variables are instantiated
     -- to `Integer` (TODO: change this).
-    | Just _ <- matchTyCon' "PlutusCore.Builtin.Polymorphism" "TyVarRep" tr =
-        pure . mkArg =<< genInteger
+    | Just _ <- matchTyCon @(TyVarRep @GHC.Type) tr =
+        mkArg <$> genInteger
     | otherwise =
         error $
             "genArg: I don't know how to generate builtin arguments of this type: " <> show tr
 
-mkArg :: (Contains DefaultUni a, Show a) => a -> (Term, String)
-mkArg a = (Constant () (someValue a), show a)
+mkArg :: (Contains DefaultUni a, Show a) => a -> (Some (ValueOf DefaultUni), String)
+mkArg a = (someValue a, show a)
 
 -- | If the given `TypeRep`'s `TyCon` is @con@, return its type arguments.
 matchTyCon :: forall con a. (Typeable con) => TypeRep a -> Maybe [SomeTypeRep]
