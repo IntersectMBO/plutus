@@ -139,6 +139,51 @@ nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Evaluatio
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
 
+{- Note [Constants vs built-in functions]
+A constant is any value of a built-in type. For example, 'Integer' is a built-in type, so anything
+of type 'Integer' is a constant.
+
+On the contrary a built-in function can't be of a built-in type, because the type of a built-in
+function is always of either the @all a. b@ form or the @a -> b@ one, none of which is a built-in
+type. This is checked by the machinery, so if the user tries to add a built-in function that is not
+of one of these forms, they'll get a nice custom type error.
+
+A built-in function is associated with its Haskell implementation: there can be many built-in
+functions of the same type, all doing different things, and there can be infinitely more _definable_
+built-in functions of the same type that are not built-in functions nonetheless, because we didn't
+register them as such by providing a Haskell implementation for each of them. This is the difference
+between constants and built-in functions: the set of constants (infinite in our case) depends solely
+on the set of available built-in types (also infinite in our case, because we have @Integer@,
+@[Integer]@, @[[Integer]]@ etc), while the set of built-in functions is defined by explicitly
+assigning each member a specific name and an associated with it Haskell implementation. It is
+theoretically possible to have an infinite set of built-in functions, but we neither do that nor
+need it, hence our set of built-in functions is finite.
+
+The rule of thumb is: constants are raw data and built-in functions are, well, functions.
+
+@(:)@ works as follows: it takes two constants wrapped as values, extracts an integer from the first
+constant and a list of integers from the second one, prepends the former to the latter and wraps the
+resulting list back into a constant, which gets wrapped into a value.
+
+Why does @(:)@ have to be a built-in function? Because its type is
+
+    all a. a -> list a -> list a
+
+and if we tried to make @(:)@ a constant we'd have to somehow make this type a built-in type and
+promise that every value (i.e. every definable function) of this type can be used as a Plutus term,
+which doesn't make any sense. Only the particular Haskell implementation that prepends an element to
+a list is what we're interested in.
+
+Why may @[]@ not be a built-in function? If its type is hardcoded to @[Integer]@, then that's a
+built-in type and we know that anything of a built-in type can be embedded into a term as a
+constant. I.e. @[] :: [Integer]@ is perfectly fine as a constant and does not need to be a built-in
+function.
+
+Why may @[]@ be a built-in function? If it's polymorphic over the type of the elements, then its
+Plutus Core type is @all a. list a@ and that is not a built-in type, hence we have to make that a
+built-in function.
+-}
+
 {- Note [How to add a built-in function: simple cases]
 This Notes explains how to add a built-in function and how to read definitions of existing built-in
 functions. It does not attempt to explain why things the way they are, that is explained in comments
@@ -371,10 +416,11 @@ evaluators define their type of values differently, for example 'CkValue' if the
 the CK machine). The idea is simple: in order to apply the denotation of a builtin expecting, say,
 an 'Integer' constant we need to actually extract that 'Integer' from the AST of the given value,
 but if the denotation is polymorphic over the type of its argument, then we don't need to extract
-anything, we can just pass the AST of the value directly to the denotation. I.e. in order for a
-polymorphic function to become a monomorphic denotation (denotations are always monomorpic) all type
-variables in the type of that function need to be instantiated at the type of value that a given
-evaluator uses.
+anything, we can just pass the AST of the value directly to the denotation (which means the value
+doesn't have to be a 'Constant', it can be completely arbitrary). I.e. in order for a polymorphic
+function to become a monomorphic denotation (denotations are always monomorpic) all type variables
+in the type of that function need to be instantiated at the type of value that a given evaluator
+uses.
 
 If we used just @val@ rather than @Opaque val rep@, we'd specialize
 
@@ -995,12 +1041,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
     toBuiltinMeaning MkNilData =
-        -- Nullary builtins don't work, so we need a unit argument
+        -- Nullary builtins don't work, so we need a unit argument.
+        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
     toBuiltinMeaning MkNilPairData =
-        -- Nullary builtins don't work, so we need a unit argument
+        -- Nullary builtins don't work, so we need a unit argument.
+        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
