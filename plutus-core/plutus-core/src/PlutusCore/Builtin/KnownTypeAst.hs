@@ -36,6 +36,7 @@ import Data.Kind qualified as GHC (Constraint, Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.Text qualified as Text
+import Data.Type.Bool
 import GHC.TypeLits
 import Universe
 
@@ -167,6 +168,10 @@ type KnownBuiltinTypeAst uni a = KnownTypeAst uni (ElaborateBuiltin a)
 
 type KnownTypeAst :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 class KnownTypeAst uni x where
+    -- | Whether @x@ is a built-in type.
+    type IsBuiltin x :: Bool
+    type IsBuiltin x = IsBuiltin (ElaborateBuiltin x)
+
     -- | Return every part of the type that can be a to-be-instantiated type variable.
     -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
     -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
@@ -185,24 +190,28 @@ class KnownTypeAst uni x where
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
+    type IsBuiltin (EvaluationResult a) = 'False
     type ToHoles (EvaluationResult a) = '[TypeHole a]
     type ToBinds (EvaluationResult a) = ToBinds a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
+    type IsBuiltin (Emitter a) = 'False
     type ToHoles (Emitter a) = '[TypeHole a]
     type ToBinds (Emitter a) = ToBinds a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
+    type IsBuiltin (SomeConstant uni rep) = 'False
     type ToHoles (SomeConstant _ rep) = '[RepHole rep]
     type ToBinds (SomeConstant _ rep) = ToBinds rep
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque val rep) where
+    type IsBuiltin (Opaque val rep) = 'False
     type ToHoles (Opaque _ rep) = '[RepHole rep]
     type ToBinds (Opaque _ rep) = ToBinds rep
     toTypeAst _ = toTypeAst $ Proxy @rep
@@ -218,12 +227,14 @@ toTyNameAst _ =
 {-# INLINE toTyNameAst #-}
 
 instance uni `Contains` f => KnownTypeAst uni (BuiltinHead f) where
+    type IsBuiltin (BuiltinHead f) = 'True
     type ToHoles (BuiltinHead f) = '[]
     type ToBinds (BuiltinHead f) = '[]
     toTypeAst _ = mkTyBuiltin @_ @f ()
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) where
+    type IsBuiltin (a -> b) = 'False
     type ToHoles (a -> b) = '[TypeHole a, TypeHole b]
     type ToBinds (a -> b) = Merge (ToBinds a) (ToBinds b)
     toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
@@ -231,12 +242,14 @@ instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) w
 
 instance (name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst uni (TyVarRep name) where
+    type IsBuiltin (TyVarRep name) = 'False
     type ToHoles (TyVarRep name) = '[]
     type ToBinds (TyVarRep name) = '[ 'GADT.Some name ]
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
+    type IsBuiltin (TyAppRep fun arg) = IsBuiltin fun && IsBuiltin arg
     type ToHoles (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
     type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
@@ -246,6 +259,7 @@ instance
         ( name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
         , KnownKind kind, KnownTypeAst uni a
         ) => KnownTypeAst uni (TyForallRep name a) where
+    type IsBuiltin (TyForallRep name a) = 'False
     type ToHoles (TyForallRep name a) = '[RepHole a]
     type ToBinds (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds a)
     toTypeAst _ =

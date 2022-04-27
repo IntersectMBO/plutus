@@ -197,8 +197,8 @@ instance
         -- 'Either' is only handled upon full saturation and any evaluation failure is only
         -- registered when the whole builtin application is evaluated, a Haskell exception will
         -- occur the same way as with immediate unlifting. It shouldn't matter though, because a
-        -- builtin is not supposed to throw an exception at any stage, that would be a bug regardless
-        -- of how unlifting is aligned.
+        -- builtin is not supposed to throw an exception at any stage, that would be a bug
+        -- regardless of how unlifting is aligned.
         --
         -- 'pure' signifies that no failure can occur at this point.
         pure . toDeferredF @val @args @res $! getF <*> readKnown arg
@@ -225,6 +225,23 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
     knownPolyruntime = RuntimeSchemeAll $ knownPolyruntime @binds @val @args @res
 
+-- | Ensure a built-in function is not nullary and throw a nice error otherwise.
+type ThrowOnBothEmpty :: [Some TyNameRep] -> [GHC.Type] -> Bool -> GHC.Type -> GHC.Constraint
+type family ThrowOnBothEmpty binds args isBuiltin a where
+    ThrowOnBothEmpty '[] '[] 'True a =
+        TypeError (
+            'Text "A built-in function must take at least one type or term argument" ':$$:
+            'Text "‘" ':<>: 'ShowType a ':<>: 'Text "’ is a built-in type" ':<>:
+            'Text " so you can embed any of its values as a constant" ':$$:
+            'Text "If you still want a built-in function, introduce a dummy ‘()’ argument"
+            )
+    ThrowOnBothEmpty '[] '[] 'False a =
+        TypeError (
+            'Text "A built-in function must take at least one type or term argument" ':$$:
+            'Text "To fix this error introduce a dummy ‘()’ argument"
+            )
+    ThrowOnBothEmpty _ _ _ _ = ()
+
 -- See Note [Automatic derivation of type schemes]
 -- | Construct the meaning for a built-in function by automatically deriving its
 -- 'TypeScheme', given
@@ -234,6 +251,7 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
 makeBuiltinMeaning
     :: forall a val cost binds args res j.
        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
+       , ThrowOnBothEmpty binds args (IsBuiltin a) a
        , ElaborateFromTo 0 j val a, KnownPolytype binds val args res a
        )
     => a -> (cost -> ToCostingType (Length args)) -> BuiltinMeaning val cost

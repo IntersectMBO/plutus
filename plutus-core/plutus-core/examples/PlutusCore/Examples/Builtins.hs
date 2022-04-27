@@ -142,6 +142,7 @@ defBuiltinsRuntimeExt = toBuiltinsRuntime defaultUnliftingMode (defaultBuiltinCo
 
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
+    type IsBuiltin (PlcListRep a) = 'False
     type ToHoles (PlcListRep a) = '[RepHole a]
     type ToBinds (PlcListRep a) = ToBinds a
 
