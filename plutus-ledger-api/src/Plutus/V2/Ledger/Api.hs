@@ -112,8 +112,9 @@ module Plutus.V2.Ledger.Api (
     , EvaluationError (..)
 ) where
 
-import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..))
+import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..), costModelParamNames)
 import Plutus.V1.Ledger.Scripts (ScriptHash (..))
 import Plutus.V2.Ledger.Contexts
+import Plutus.V2.Ledger.EvaluationContext
 import Plutus.V2.Ledger.Tx (OutputDatum (..))
 import PlutusTx.AssocMap (Map, fromList)
