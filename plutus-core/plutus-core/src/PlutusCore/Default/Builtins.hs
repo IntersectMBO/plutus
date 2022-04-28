@@ -698,7 +698,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
     -- Integers
     toBuiltinMeaning
-        :: forall val. HasConstantIn uni val
+        :: forall val. HasMeaningIn uni val
         => DefaultFun -> BuiltinMeaning val BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning

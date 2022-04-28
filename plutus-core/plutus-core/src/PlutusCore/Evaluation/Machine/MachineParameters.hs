@@ -50,7 +50,7 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 mkMachineParameters ::
     ( -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
       CostingPart uni fun ~ builtincosts
-    , HasConstantIn uni (val uni fun)
+    , HasMeaningIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
     => UnliftingMode
