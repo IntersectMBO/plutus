@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -14,7 +15,6 @@ module Evaluation.Spec where
 import Control.Exception
 import Control.Monad.Except
 import Control.Monad.Extra
-import Data.Bifunctor
 import Data.ByteString qualified as BS
 import Data.Functor (($>))
 import Data.Int (Int64)
@@ -32,7 +32,9 @@ import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
-import PlutusCore.Generators
+import PlutusCore.Generators (forAllNoShow)
+import PlutusCore.Generators.AST
+import PlutusCore.Pretty
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Type.Reflection
@@ -44,23 +46,23 @@ test_builtinsDon'tThrow :: TestTree
 test_builtinsDon'tThrow =
     testGroup
         "Builtins don't throw"
-        $ fmap (\fun -> testProperty (show fun) $ prop_builtinsDon'tThrow fun) List.enumerate
+        $ fmap (\fun -> testProperty (display fun) $ prop_builtinsDon'tThrow fun) List.enumerate
 
 prop_builtinsDon'tThrow :: DefaultFun -> Property
 prop_builtinsDon'tThrow bn = property $ do
-    (args, argStrings) <- first (fmap (Constant ())) . unzip <$> forAllNoShow (genArgs bn)
+    args <- forAllNoShow . Gen.choice $ [genArgsWellTyped bn, genArgsArbitrary bn]
     mbErr <-
         liftIO $
             catch
-                (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args argStrings)
+                (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args)
                 (pure . pure)
     whenJust mbErr $ \(e :: SomeException) -> do
         let msg =
                 "Builtin function evaluation failed"
                     <> "Function: "
-                    <> show bn
+                    <> display bn
                     <> "Arguments: "
-                    <> show argStrings
+                    <> display args
                     <> "Error: "
                     <> show e
         failWith Nothing msg
@@ -68,8 +70,8 @@ prop_builtinsDon'tThrow bn = property $ do
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning bn
 
-    eval :: [Term] -> [String] -> MakeKnownM Term
-    eval args0 argStrings = case meaning of
+    eval :: [Term] -> MakeKnownM Term
+    eval args0 = case meaning of
         BuiltinMeaning _ _ runtime -> go (_broRuntimeScheme runtime) (_broImmediateF runtime) args0
       where
         go ::
@@ -84,14 +86,24 @@ prop_builtinsDon'tThrow bn = property $ do
                 go sch' res as
             (RuntimeSchemeResult, []) -> f
             (RuntimeSchemeAll sch', _) -> go sch' f args
-            _ -> error $ "Wrong number of args for builtin " <> show bn <> ": " <> show argStrings
+            _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
 
--- | Generate arguments to a builtin function based on its `TypeScheme`.
-genArgs :: DefaultFun -> Gen [(Some (ValueOf DefaultUni), String)]
-genArgs bn = sequenceA $ case meaning of
+{- | Generate well-typed Term arguments to a builtin function.
+ TODO: currently it only generates constant terms.
+-}
+genArgsWellTyped :: DefaultFun -> Gen [Term]
+genArgsWellTyped = genArgs (fmap (Constant ()) . genValArg)
+
+-- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
+genArgsArbitrary :: DefaultFun -> Gen [Term]
+genArgsArbitrary = genArgs (const (runAstGen genTerm))
+
+-- | Generate value arguments to a builtin function based on its `TypeScheme`.
+genArgs :: (forall k (a :: k). TypeRep a -> Gen Term) -> DefaultFun -> Gen [Term]
+genArgs genArg bn = sequenceA $ case meaning of
     BuiltinMeaning tySch _ _ -> go tySch
       where
-        go :: forall args res. TypeScheme Term args res -> [Gen (Some (ValueOf DefaultUni), String)]
+        go :: forall args res. TypeScheme Term args res -> [Gen Term]
         go = \case
             TypeSchemeResult    -> []
             TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
@@ -100,48 +112,41 @@ genArgs bn = sequenceA $ case meaning of
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning bn
 
--- | Generate one argument to a builtin function based on its `TypeRep`.
-genArg :: forall k (a :: k). TypeRep a -> Gen (Some (ValueOf DefaultUni), String)
-genArg tr
-    | Just HRefl <- eqTypeRep tr (typeRep @()) = pure $ mkArg ()
-    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = mkArg <$> genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Int) = mkArg <$> genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = mkArg <$> Gen.bool
-    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = mkArg <$> genByteString
-    | Just HRefl <- eqTypeRep tr (typeRep @Text) = mkArg <$> genText
-    | Just HRefl <- eqTypeRep tr (typeRep @Data) = mkArg <$> genData 5
+-- | Generate one value argument to a builtin function based on its `TypeRep`.
+genValArg :: forall k (a :: k). TypeRep a -> Gen (Some (ValueOf DefaultUni))
+genValArg tr
+    | Just HRefl <- eqTypeRep tr (typeRep @()) = pure $ someValue ()
+    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = someValue <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Int) = someValue <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = someValue <$> Gen.bool
+    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = someValue <$> genByteString
+    | Just HRefl <- eqTypeRep tr (typeRep @Text) = someValue <$> genText
+    | Just HRefl <- eqTypeRep tr (typeRep @Data) = someValue <$> genData 5
     | Just [SomeTypeRep tr1, SomeTypeRep tr2] <- matchTyCon @(,) tr = do
-        (Some (ValueOf uni1 val1), argStr1) <- genArg tr1
-        (Some (ValueOf uni2 val2), argStr2) <- genArg tr2
+        Some (ValueOf uni1 val1) <- genValArg tr1
+        Some (ValueOf uni2 val2) <- genValArg tr2
         pure
             ( someValueOf
                 (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
                 (val1, val2)
-            , show (argStr1, argStr2)
             )
     | Just [SomeTypeRep trElem] <- matchTyCon @[] tr = do
-        (Some (ValueOf uniElem (_ :: b)), _) <- genArg trElem
-        (args, argStrings) <- unzip <$> (Gen.list (Range.linear 0 10) $ genArg trElem)
+        Some (ValueOf uniElem (_ :: b)) <- genValArg trElem
+        args <- Gen.list (Range.linear 0 10) $ genValArg trElem
         let valElems :: [b]
             valElems = (\(Some (ValueOf _ valElem')) -> unsafeCoerce valElem') <$> args
-        pure
-            ( someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems
-            , show argStrings
-            )
+        pure (someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems)
     -- Descend upon `Opaque`
-    | Just [_, SomeTypeRep tr'] <- matchTyCon @Opaque tr = genArg tr'
+    | Just [_, SomeTypeRep tr'] <- matchTyCon @Opaque tr = genValArg tr'
     -- Descend upon `SomeConstant`
-    | Just [_, SomeTypeRep tr'] <- matchTyCon @SomeConstant tr = genArg tr'
+    | Just [_, SomeTypeRep tr'] <- matchTyCon @SomeConstant tr = genValArg tr'
     -- In the current implementation, all type variables are instantiated
     -- to `Integer` (TODO: change this).
     | Just _ <- matchTyCon @(TyVarRep @GHC.Type) tr =
-        mkArg <$> genInteger
+        someValue <$> genInteger
     | otherwise =
         error $
-            "genArg: I don't know how to generate builtin arguments of this type: " <> show tr
-
-mkArg :: (Contains DefaultUni a, Show a) => a -> (Some (ValueOf DefaultUni), String)
-mkArg a = (someValue a, show a)
+            "genValArg: I don't know how to generate builtin arguments of this type: " <> show tr
 
 -- | If the given `TypeRep`'s `TyCon` is @con@, return its type arguments.
 matchTyCon :: forall con a. (Typeable con) => TypeRep a -> Maybe [SomeTypeRep]
