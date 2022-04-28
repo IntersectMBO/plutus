@@ -328,6 +328,7 @@ library plutus-core-testlib
 
         Test.Tasty.Extras
     other-modules:
+        PlutusCore.Generators.Internal.Builtin
         PlutusCore.Generators.Internal.Denotation
         PlutusCore.Generators.Internal.Entity
         PlutusCore.Generators.Internal.TypeEvalCheck
