@@ -17,6 +17,10 @@ module PlutusCore.Generators.Internal.Builtin (
     matchTyCon,
 ) where
 
+import PlutusCore hiding (Term)
+import PlutusCore.Builtin
+import PlutusCore.Data (Data (..))
+
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
 import Data.Kind qualified as GHC
@@ -26,9 +30,6 @@ import Data.Typeable (splitTyConApp)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore hiding (Term)
-import PlutusCore.Builtin
-import PlutusCore.Data (Data (..))
 import Type.Reflection
 import Unsafe.Coerce
 

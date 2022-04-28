@@ -11,6 +11,13 @@
 
 module Evaluation.Spec (test_evaluation) where
 
+import PlutusCore hiding (Term)
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin
+import PlutusCore.Generators (forAllNoShow, genValArg)
+import PlutusCore.Generators.AST
+import PlutusCore.Pretty
+
 import Control.Exception
 import Control.Monad.Except
 import Control.Monad.Extra
@@ -20,12 +27,6 @@ import Evaluation.Machines (test_machines)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Internal.Property (failWith)
-import PlutusCore hiding (Term)
-import PlutusCore qualified as PLC
-import PlutusCore.Builtin
-import PlutusCore.Generators (forAllNoShow, genValArg)
-import PlutusCore.Generators.AST
-import PlutusCore.Pretty
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Type.Reflection
