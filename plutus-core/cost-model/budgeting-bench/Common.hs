@@ -6,7 +6,7 @@
 {-# LANGUAGE ViewPatterns     #-}
 
 module Common
-where XXXXXXXX
+where
 
 import PlutusCore
 import PlutusCore.Data
