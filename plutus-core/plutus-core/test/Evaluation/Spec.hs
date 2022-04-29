@@ -39,6 +39,15 @@ test_builtinsDon'tThrow =
         "Builtins don't throw"
         $ fmap (\fun -> testProperty (display fun) $ prop_builtinsDon'tThrow fun) List.enumerate
 
+-- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
+-- to fail with a `KnownTypeError`, of course).
+--
+-- The test covers both succeeding and failing evaluations and verifies that in either case
+-- no exception is thrown. The failing cases use arbitrary `Term` arguments (which doesn't
+-- guarantee failure, but most likely), and the succeeding cases generate `Term` arguments
+-- based on a builtin function's `TypeScheme`. For `Opaque` arguments it generates arbitrary
+-- `Term`s (which technically doesn't guarantee evaluation success, although it is the case
+-- with all current builtin functions).
 prop_builtinsDon'tThrow :: DefaultFun -> Property
 prop_builtinsDon'tThrow bn = property $ do
     args <- forAllNoShow . Gen.choice $ [genArgsWellTyped bn, genArgsArbitrary bn]
