@@ -69,11 +69,9 @@ let
           # of the components with we are going to run.
           # We should try to find a way to automate this will in haskell.nix.
           symlinkDlls = ''
-            ln -s ${libsodium-vrf}/bin/libsodium-23.dll $out/bin/libsodium-23.dll
             ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libgcc_s_seh-1.dll $out/bin/libgcc_s_seh-1.dll
             ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libstdc++-6.dll $out/bin/libstdc++-6.dll
             ln -s ${pkgs.windows.mcfgthreads}/bin/mcfgthread-12.dll $out/bin/mcfgthread-12.dll
-            ln -s ${pkgs.secp256k1}/bin/libsecp256k1-0.dll $out/bin/libsecp256k1-0.dll
           '';
         in
         lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
