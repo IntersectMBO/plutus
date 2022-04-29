@@ -18,7 +18,7 @@ The tests currently covers or will cover:
 <!-- ## Testing alternative implementation
 
 We provide a function  -->
-
+<!-- 
 ## Untyped Plutus Core Evaluation
 
 The `uplc-eval-test` test suite ensures that the input untyped plutus core programs evaluate to the expected output. The expected output is obtained by evaluating the programs using the CEK machine.
@@ -37,7 +37,7 @@ The CEK machine returns an `EvaluationResult` which is either a successfully com
 data EvaluationResult a
     = EvaluationSuccess a
     | EvaluationFailure
-```
+``` -->
 
 <!-- 
 ### Type checker
