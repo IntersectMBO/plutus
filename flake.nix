@@ -30,7 +30,7 @@
     };
     haskell-language-server = {
       # Pinned to a release
-      url = "github:haskell/haskell-language-server?ref=1.6.1.1";
+      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
       flake = false;
     };
     iohk-nix = {
