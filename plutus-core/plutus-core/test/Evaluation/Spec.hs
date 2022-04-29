@@ -27,7 +27,6 @@ import Data.List.Extra qualified as List
 import Evaluation.Machines (test_machines)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
-import Hedgehog.Internal.Property (failWith)
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Type.Reflection
@@ -49,15 +48,11 @@ prop_builtinsDon'tThrow bn = property $ do
                 (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args)
                 (pure . pure)
     whenJust mbErr $ \(e :: SomeException) -> do
-        let msg =
-                "Builtin function evaluation failed"
-                    <> "Function: "
-                    <> display bn
-                    <> "Arguments: "
-                    <> display args
-                    <> "Error: "
-                    <> show e
-        failWith Nothing msg
+        annotate "Builtin function evaluation failed"
+        annotate $ "Function: " <> display bn
+        annotate $ "Arguments: " <> display args
+        annotate $ "Error " <> show e
+        failure
   where
     meaning :: BuiltinMeaning Term (CostingPart DefaultUni DefaultFun)
     meaning = toBuiltinMeaning bn
