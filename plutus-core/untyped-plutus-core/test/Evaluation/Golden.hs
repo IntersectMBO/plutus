@@ -218,6 +218,16 @@ iteAtString = iteAt string
 iteAtStringWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringWithCond = Apply () iteAtString lteExpr
 
+-- [ { (builtin ifThenElse) (con string) } (11<=22) 33 "abc" ] : IllTypedRuns
+-- This is ill-typed because the first branch is of type @integer@ and the second branch is of type
+-- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
+-- at types at runtime.
+iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
+iteAtStringWithCondWithIntegerWithString = mkIterApp () (iteAtStringWithCond)
+    [ mkConstant @Integer () 33
+    , mkConstant @Text () "abc"
+    ]
+
 -- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
@@ -367,6 +377,7 @@ namesAndTests =
    , ("diFullyApplied", diFullyApplied)
    , ("iteAtString", iteAtString)
    , ("iteAtStringWithCond", iteAtStringWithCond)
+   , ("iteAtStringWithCondWithIntegerWithString", iteAtStringWithCondWithIntegerWithString)
    , ("iteAtStringFullyApplied", iteAtStringFullyApplied)
    , ("iteAtIntegerArrowInteger", iteAtIntegerArrowInteger)
    , ("iteAtIntegerArrowIntegerWithCond", iteAtIntegerArrowIntegerWithCond)
