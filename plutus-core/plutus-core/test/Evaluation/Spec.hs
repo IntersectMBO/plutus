@@ -14,14 +14,15 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
-import PlutusCore.Generators (forAllNoShow, genValArg)
-import PlutusCore.Generators.AST
+import PlutusCore.Generators (forAllNoShow, genConstant)
+import PlutusCore.Generators.AST hiding (genConstant)
 import PlutusCore.Pretty
 
 import Control.Exception
 import Control.Monad.Except
 import Control.Monad.Extra
 import Data.Functor (($>))
+import Data.Kind qualified as GHC
 import Data.List.Extra qualified as List
 import Evaluation.Machines (test_machines)
 import Hedgehog hiding (Opaque, Var, eval)
@@ -85,14 +86,22 @@ prop_builtinsDon'tThrow bn = property $ do
  TODO: currently it only generates constant terms.
 -}
 genArgsWellTyped :: DefaultFun -> Gen [Term]
-genArgsWellTyped = genArgs (fmap (Constant ()) . genValArg)
+genArgsWellTyped = genArgs (fmap mkTerm . genConstant)
+  where
+    mkTerm :: forall (a :: GHC.Type). MakeKnown Term a => a -> Term
+    mkTerm a = case runEmitter . runExceptT $ makeKnown a of
+        (Right term, _) -> term
+        _               -> error "genArgsWellTyped: got error from makeKnown"
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
 genArgsArbitrary :: DefaultFun -> Gen [Term]
 genArgsArbitrary = genArgs (const (runAstGen genTerm))
 
 -- | Generate value arguments to a builtin function based on its `TypeScheme`.
-genArgs :: (forall k (a :: k). TypeRep a -> Gen Term) -> DefaultFun -> Gen [Term]
+genArgs ::
+    (forall (a :: GHC.Type). MakeKnown Term a => TypeRep a -> Gen Term) ->
+    DefaultFun ->
+    Gen [Term]
 genArgs genArg bn = sequenceA $ case meaning of
     BuiltinMeaning tySch _ _ -> go tySch
       where
