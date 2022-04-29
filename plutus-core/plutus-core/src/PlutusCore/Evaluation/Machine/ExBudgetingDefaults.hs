@@ -86,7 +86,7 @@ unitCekParameters =
     mkMachineParameters defaultUnliftingMode $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
-defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
 
 

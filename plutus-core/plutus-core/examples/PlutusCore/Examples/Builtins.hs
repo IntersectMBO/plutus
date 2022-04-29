@@ -136,7 +136,7 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
             BuiltinMeaning tySch toF (BuiltinRuntimeOptions runSch immF defF (toExF . snd))
 
 defBuiltinsRuntimeExt
-    :: HasConstantIn DefaultUni term
+    :: HasMeaningIn DefaultUni term
     => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
 defBuiltinsRuntimeExt = toBuiltinsRuntime defaultUnliftingMode (defaultBuiltinCostModel, ())
 
@@ -174,7 +174,7 @@ data BuiltinErrorCall = BuiltinErrorCall
 --    to be handled correctly by design
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
-    toBuiltinMeaning :: forall val. HasConstantIn uni val => ExtensionFun -> BuiltinMeaning val ()
+    toBuiltinMeaning :: forall val. HasMeaningIn uni val => ExtensionFun -> BuiltinMeaning val ()
 
     toBuiltinMeaning Factorial =
         makeBuiltinMeaning
