@@ -45,4 +45,5 @@ typeErrors = testNested "type-errors"
     $ map (goldenTypeFromPirCatch topSourcePos pTerm)
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
+    , "typeLet"
     ]
