@@ -13,7 +13,6 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
-import Type.Reflection
 import Universe
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
@@ -28,7 +27,7 @@ class HasConstant term where
 
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
 -- and connects @term@ and its @uni@.
-type HasConstantIn uni term = (UniOf term ~ uni, Typeable term, HasConstant term)
+type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 instance HasConstant (Term TyName Name uni fun ()) where
     asConstant (Constant _ val) = pure val

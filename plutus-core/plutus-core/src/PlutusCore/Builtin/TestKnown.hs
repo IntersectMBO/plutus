@@ -19,20 +19,20 @@ import PlutusCore.Builtin.KnownTypeAst
 
 import Universe
 
--- | For providing a 'KnownTypeAst' instance for a built-in type it's enough for that type to satisfy
--- 'KnownBuiltinTypeAst'.
+-- | For providing a 'KnownTypeAst' instance for a built-in type it's enough for that type to
+-- satisfy 'KnownBuiltinTypeAst'.
 class    (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
 instance (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
 
--- | For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to satisfy
--- 'KnownBuiltinTypeIn'.
+-- | For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to
+-- satisfy 'KnownBuiltinTypeIn'.
 class    (forall val. KnownBuiltinTypeIn uni val a => ReadKnownIn uni val a) =>
     ImplementedReadKnownIn uni a
 instance (forall val. KnownBuiltinTypeIn uni val a => ReadKnownIn uni val a) =>
     ImplementedReadKnownIn uni a
 
--- | For providing a 'MakeKnownIn' instance for a built-in type it's enough for that type to satisfy
--- 'KnownBuiltinTypeIn'.
+-- | For providing a 'MakeKnownIn' instance for a built-in type it's enough for that type to
+-- satisfy 'KnownBuiltinTypeIn'.
 class    (forall val. KnownBuiltinTypeIn uni val a => MakeKnownIn uni val a) =>
     ImplementedMakeKnownIn uni a
 instance (forall val. KnownBuiltinTypeIn uni val a => MakeKnownIn uni val a) =>

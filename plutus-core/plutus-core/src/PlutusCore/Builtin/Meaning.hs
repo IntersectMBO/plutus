@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 {-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
@@ -65,13 +66,16 @@ data BuiltinMeaning val cost =
         (FoldArgs args res)
         (BuiltinRuntimeOptions (Length args) val cost)
 
+-- | Constraints available when defining a built-in function.
+type HasMeaningIn uni val = (Typeable val, HasConstantIn uni val)
+
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
     -- | Get the 'BuiltinMeaning' of a built-in function.
-    toBuiltinMeaning :: HasConstantIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
+    toBuiltinMeaning :: HasMeaningIn uni val => fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
 typeOfBuiltinFunction :: forall uni fun. ToBuiltinMeaning uni fun => fun -> Type TyName uni ()
@@ -275,7 +279,7 @@ toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
 -- | Calculate runtime info for all built-in functions given denotations of builtins
 -- and a cost model.
 toBuiltinsRuntime
-    :: (cost ~ CostingPart uni fun, HasConstantIn uni val, ToBuiltinMeaning uni fun)
+    :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
     BuiltinsRuntime . tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning

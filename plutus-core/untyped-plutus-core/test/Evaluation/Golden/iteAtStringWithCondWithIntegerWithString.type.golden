@@ -1,0 +1,6 @@
+(Left Type mismatch at () in term
+  '(con integer 33)'.
+Expected type
+  '(con integer)',
+found type
+  '(con string)')
