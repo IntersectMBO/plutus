@@ -14,7 +14,7 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
-import PlutusCore.Generators (forAllNoShow, genConstant)
+import PlutusCore.Generators (forAllNoShow, genTypeable)
 import PlutusCore.Generators.AST hiding (genConstant)
 import PlutusCore.Pretty
 
@@ -90,7 +90,7 @@ prop_builtinsDon'tThrow bn = property $ do
  TODO: currently it only generates constant terms.
 -}
 genArgsWellTyped :: DefaultFun -> Gen [Term]
-genArgsWellTyped = genArgs (fmap mkTerm . genConstant)
+genArgsWellTyped = genArgs (fmap mkTerm . genTypeable)
   where
     mkTerm :: forall (a :: GHC.Type). MakeKnown Term a => a -> Term
     mkTerm a = case runEmitter . runExceptT $ makeKnown a of

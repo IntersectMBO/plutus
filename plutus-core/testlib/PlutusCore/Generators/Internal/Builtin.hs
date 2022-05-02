@@ -2,25 +2,27 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module PlutusCore.Generators.Internal.Builtin (
+    genTypeable,
     genConstant,
     genInteger,
     genByteString,
     genText,
     genData,
-    genI,
-    genB,
-    genList,
-    genMap,
-    genConstr,
+    genDataI,
+    genDataB,
+    genDataList,
+    genDataMap,
+    genDataConstr,
     matchTyCon,
 ) where
 
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
-import PlutusCore.Generators.AST (genTerm, runAstGen)
+import PlutusCore.Generators.AST qualified as AST
 
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
@@ -32,35 +34,65 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
 
-genConstant :: forall a. TypeRep a -> Gen a
-genConstant tr
+genTypeable :: forall a. TypeRep a -> Gen a
+genTypeable tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = pure ()
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = fromIntegral <$> genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = Gen.bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = genText
-    | Just HRefl <- eqTypeRep tr (typeRep @Data) = genData 5
+    | Just HRefl <- eqTypeRep tr (typeRep @Data) = genData
     | Just HRefl <- eqTypeRep tr (typeRep @(Term TyName Name DefaultUni DefaultFun ())) =
-        runAstGen genTerm
+        AST.runAstGen AST.genTerm
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
-        (,) <$> genConstant tr1 <*> genConstant tr2
+        (,) <$> genTypeable tr1 <*> genTypeable tr2
     | trList `App` trElem <- tr
     , Just HRefl <- eqTypeRep trList (typeRep @[]) =
-        Gen.list (Range.linear 0 10) $ genConstant trElem
+        Gen.list (Range.linear 0 10) $ genTypeable trElem
     | trOpaque `App` trVal `App` _ <- tr
     , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        Opaque <$> genConstant trVal
+        Opaque <$> genTypeable trVal
     | trSomeConstant `App` trUni `App` _ <- tr
     , Just HRefl <- eqTypeRep trUni (typeRep @DefaultUni)
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
-        -- In the current implementation, all type variables are instantiated
-        -- to `Integer` (TODO: change this).
-        SomeConstant . someValue <$> genInteger
+        SomeConstant <$> genConstant
     | otherwise =
         error $
-            "genConstant: I don't know how to generate constant of this type: " <> show tr
+            "genTypeable: I don't know how to generate values of this type: " <> show tr
+
+genConstant :: Gen (Some (ValueOf DefaultUni))
+genConstant = AST.simpleRecursive nonRecursive recursive
+  where
+    nonRecursive =
+        [ pure $ someValue ()
+        , someValue <$> genInteger
+        , someValue <$> Gen.bool
+        , someValue <$> genByteString
+        , someValue <$> genText
+        ]
+    recursive = [pairGen, listGen]
+    pairGen = do
+        Some (ValueOf uni1 val1) <- genConstant
+        Some (ValueOf uni2 val2) <- genConstant
+        pure $
+            someValueOf
+                (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
+                (val1, val2)
+    listGen =
+        let genList ::
+                DefaultUni `Contains` a =>
+                Gen a ->
+                Gen (Some (ValueOf DefaultUni))
+            genList = fmap someValue . Gen.list (Range.linear 0 10)
+         in Gen.choice
+                [ genList genInteger
+                , genList Gen.bool
+                , genList genByteString
+                , genList genText
+                , genList genData
+                ]
 
 -- | If the given `TypeRep`'s `TyCon` is @con@, return its type arguments.
 matchTyCon :: forall con a. (Typeable con) => TypeRep a -> Maybe [SomeTypeRep]
@@ -81,36 +113,23 @@ genByteString = Gen.utf8 (Range.linear 0 100) Gen.enumBounded
 genText :: Gen Text
 genText = Gen.text (Range.linear 0 100) Gen.enumBounded
 
-genData :: Int -> Gen Data
-genData depth =
-    Gen.choice $
-        [genI, genB]
-            <> [ genRec | depth > 1, genRec <-
-                                        [ genList (depth - 1)
-                                        , genMap (depth - 1)
-                                        , genConstr (depth - 1)
-                                        ]
-               ]
+genData :: Gen Data
+genData = AST.simpleRecursive nonRecursive recursive
+    where
+        nonRecursive = [genDataI, genDataB]
+        recursive = [genDataList, genDataMap, genDataConstr]
 
-genI :: Gen Data
-genI = I <$> genInteger
+genDataI :: Gen Data
+genDataI = I <$> genInteger
 
-genB :: Gen Data
-genB = B <$> genByteString
+genDataB :: Gen Data
+genDataB = B <$> genByteString
 
-genList :: Int -> Gen Data
-genList depth = List <$> Gen.list (Range.linear 0 5) (genData (depth - 1))
+genDataList :: Gen Data
+genDataList = List <$> Gen.list (Range.linear 0 5) genData
 
-genMap :: Int -> Gen Data
-genMap depth =
-    Map
-        <$> Gen.list
-            (Range.linear 0 5)
-            ((,) <$> genData (depth - 1) <*> genData (depth - 1))
+genDataMap :: Gen Data
+genDataMap = Map <$> Gen.list (Range.linear 0 5) ((,) <$> genData <*> genData)
 
-genConstr :: Int -> Gen Data
-genConstr depth =
-    Constr <$> genInteger
-        <*> Gen.list
-            (Range.linear 0 5)
-            (genData (depth - 1))
+genDataConstr :: Gen Data
+genDataConstr = Constr <$> genInteger <*> Gen.list (Range.linear 0 5) genData
