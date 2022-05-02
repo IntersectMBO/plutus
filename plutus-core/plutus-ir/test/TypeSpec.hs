@@ -46,4 +46,5 @@ typeErrors = testNested "type-errors"
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
     , "typeLet"
+    , "typeLet2"
     ]
