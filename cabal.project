@@ -3,6 +3,7 @@ index-state: 2022-02-09T00:00:00Z
 
 packages: doc
           plutus-benchmark
+          plutus-conformance
           plutus-core
           plutus-errors
           plutus-ledger-api
