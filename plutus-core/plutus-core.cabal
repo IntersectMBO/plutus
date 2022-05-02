@@ -114,6 +114,7 @@ library
         PlutusIR.Core.Instance
         PlutusIR.Core.Instance.Flat
         PlutusIR.Core.Instance.Pretty
+        PlutusIR.Core.Instance.Pretty.Readable
         PlutusIR.Core.Instance.Scoping
         PlutusIR.Core.Plated
         PlutusIR.Core.Type

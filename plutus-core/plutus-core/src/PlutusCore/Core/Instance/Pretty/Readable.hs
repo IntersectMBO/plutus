@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Core.Instance.Pretty.Readable () where
+module PlutusCore.Core.Instance.Pretty.Readable (typeBinderDocM) where
 
 import PlutusPrelude
 
