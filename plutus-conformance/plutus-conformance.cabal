@@ -1,0 +1,72 @@
+cabal-version: 3.0
+name: plutus-conformance
+version: 1.0.0.0
+license: Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+maintainer: marty.stumpf@iohk.io
+author: Plutus Core Team
+synopsis: Conformance Test Suite for Plutus Core
+description:
+    Comprehensive Conformance Test Suite for Plutus Core.
+category: Language, Plutus, Conformance
+build-type: Simple
+extra-doc-files: README.md
+extra-source-files:
+    
+source-repository head
+    type: git
+    location: https://github.com/input-output-hk/plutus
+
+common lang
+    default-language: Haskell2010
+    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
+                        DeriveGeneric StandaloneDeriving DeriveLift
+                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
+                        DeriveTraversable DerivingStrategies DerivingVia
+                        ImportQualifiedPost
+    ghc-options: -Wall -Wnoncanonical-monad-instances
+                 -Wincomplete-uni-patterns -Wincomplete-record-updates
+                 -Wredundant-constraints -Widentities -Wunused-packages
+                 -Wmissing-deriving-strategies
+
+library
+    import: lang
+    visibility: public
+    hs-source-dirs: src/
+    exposed-modules:
+
+test-suite uplc-eval-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: uplc/evaluation
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        tasty-golden -any,
+        text -any,
+        plutus-conformance
+
+test-suite tplc-eval-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: tplc/evaluation
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        tasty-golden -any,
+        text -any
+
+test-suite tplc-typecheck-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: tplc/typecheck
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        tasty-golden -any,
+        text -any
