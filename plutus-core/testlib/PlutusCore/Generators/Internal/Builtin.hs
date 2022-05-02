@@ -14,60 +14,61 @@ module PlutusCore.Generators.Internal.Builtin (
     genList,
     genMap,
     genConstr,
-    matchTyCon,
 ) where
 
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
-import PlutusCore.Generators.AST (genTerm, runAstGen)
 
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
+import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
-import Data.Typeable (splitTyConApp)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
+import Unsafe.Coerce
 
-genConstant :: forall a. TypeRep a -> Gen a
+genConstant :: forall k (a :: k). TypeRep a -> Gen (Some (ValueOf DefaultUni))
 genConstant tr
-    | Just HRefl <- eqTypeRep tr (typeRep @()) = pure ()
-    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Int) = fromIntegral <$> genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = Gen.bool
-    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genByteString
-    | Just HRefl <- eqTypeRep tr (typeRep @Text) = genText
-    | Just HRefl <- eqTypeRep tr (typeRep @Data) = genData 5
-    | Just HRefl <- eqTypeRep tr (typeRep @(Term TyName Name DefaultUni DefaultFun ())) =
-        runAstGen genTerm
+    | Just HRefl <- eqTypeRep tr (typeRep @()) = pure $ someValue ()
+    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = someValue <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Int) = someValue <$> genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = someValue <$> Gen.bool
+    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = someValue <$> genByteString
+    | Just HRefl <- eqTypeRep tr (typeRep @Text) = someValue <$> genText
+    | Just HRefl <- eqTypeRep tr (typeRep @Data) = someValue <$> genData 5
     | trPair `App` tr1 `App` tr2 <- tr
-    , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
-        (,) <$> genConstant tr1 <*> genConstant tr2
+    , Just HRefl <- eqTypeRep trPair (typeRep @(,)) = do
+        Some (ValueOf uni1 val1) <- genConstant tr1
+        Some (ValueOf uni2 val2) <- genConstant tr2
+        pure $
+            someValueOf
+                (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
+                (val1, val2)
     | trList `App` trElem <- tr
-    , Just HRefl <- eqTypeRep trList (typeRep @[]) =
-        Gen.list (Range.linear 0 10) $ genConstant trElem
-    | trOpaque `App` trVal `App` _ <- tr
+    , Just HRefl <- eqTypeRep trList (typeRep @[]) = do
+        Some (ValueOf uniElem (_ :: b)) <- genConstant trElem
+        args <- Gen.list (Range.linear 0 10) $ genConstant trElem
+        let valElems :: [b]
+            valElems = (\(Some (ValueOf _ valElem')) -> unsafeCoerce valElem') <$> args
+        pure $ someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems
+    | trOpaque `App` _ `App` trRep <- tr
     , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        Opaque <$> genConstant trVal
-    | trSomeConstant `App` trUni `App` _ <- tr
-    , Just HRefl <- eqTypeRep trUni (typeRep @DefaultUni)
+        genConstant trRep
+    | trSomeConstant `App` _ `App` trRep <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
+        genConstant trRep
+    | trTyVarRep `App` _ <- tr
+    , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =
         -- In the current implementation, all type variables are instantiated
         -- to `Integer` (TODO: change this).
-        SomeConstant . someValue <$> genInteger
+        someValue <$> genInteger
     | otherwise =
         error $
-            "genConstant: I don't know how to generate constant of this type: " <> show tr
-
--- | If the given `TypeRep`'s `TyCon` is @con@, return its type arguments.
-matchTyCon :: forall con a. (Typeable con) => TypeRep a -> Maybe [SomeTypeRep]
-matchTyCon tr = if con == con' then Just args else Nothing
-  where
-    (con, args) = splitTyConApp (SomeTypeRep tr)
-    con' = typeRepTyCon (typeRep @con)
+            "genConstant: I don't know how to generate builtin arguments of this type: " <> show tr
 
 ----------------------------------------------------------
 -- Generators

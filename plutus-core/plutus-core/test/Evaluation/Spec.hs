@@ -90,12 +90,7 @@ prop_builtinsDon'tThrow bn = property $ do
  TODO: currently it only generates constant terms.
 -}
 genArgsWellTyped :: DefaultFun -> Gen [Term]
-genArgsWellTyped = genArgs (fmap mkTerm . genConstant)
-  where
-    mkTerm :: forall (a :: GHC.Type). MakeKnown Term a => a -> Term
-    mkTerm a = case runEmitter . runExceptT $ makeKnown a of
-        (Right term, _) -> term
-        _               -> error "genArgsWellTyped: got error from makeKnown"
+genArgsWellTyped = genArgs (fmap (Constant ()) . genConstant)
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
 genArgsArbitrary :: DefaultFun -> Gen [Term]
@@ -103,7 +98,7 @@ genArgsArbitrary = genArgs (const (runAstGen genTerm))
 
 -- | Generate value arguments to a builtin function based on its `TypeScheme`.
 genArgs ::
-    (forall (a :: GHC.Type). MakeKnown Term a => TypeRep a -> Gen Term) ->
+    (forall (a :: GHC.Type). TypeRep a -> Gen Term) ->
     DefaultFun ->
     Gen [Term]
 genArgs genArg bn = sequenceA $ case meaning of
