@@ -10,17 +10,12 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable where
 
-import Data.Text.IO qualified as Text
 import PlutusCore.Core.Instance.Pretty.Readable
-import PlutusCore.Default.Builtins
 import PlutusCore.Default.Universe
-import PlutusCore.Error
 import PlutusCore.Pretty.ConfigName
 import PlutusCore.Pretty.PrettyConst
 import PlutusCore.Pretty.Readable
-import PlutusCore.Quote
 import PlutusIR.Core.Type
-import PlutusIR.Parser
 import PlutusPrelude
 import Prettyprinter
 
