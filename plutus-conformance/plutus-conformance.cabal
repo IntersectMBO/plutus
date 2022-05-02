@@ -37,6 +37,21 @@ library
     hs-source-dirs: src/
     exposed-modules:
 
+test-suite golden-test
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: golden/
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        bytestring -any,
+        directory -any,
+        tasty -any,
+        tasty-golden -any,
+        text -any,
+        plutus-conformance
+
 test-suite uplc-eval-test
     import: lang
     type: exitcode-stdio-1.0
