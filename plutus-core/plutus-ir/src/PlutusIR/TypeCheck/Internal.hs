@@ -24,7 +24,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Foldable
 import Data.Ix
-import PlutusCore (ToKind, typeAnn)
+import PlutusCore (ToKind, tyVarDeclName, typeAnn)
 import PlutusCore.Error as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename as PLC
@@ -34,6 +34,7 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.Substitute
 import PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
@@ -219,21 +220,28 @@ ty ~> vTy
 -}
 inferTypeM (Let ann r@NonRec bs inTerm) = do
     -- Check each binding individually, then if ok, introduce its new type/vars to the (linearly) next let or inTerm
-    ty <- foldr checkBindingThenScope (inferTypeM inTerm) bs
+    ty <- foldr checkBindingThenScope (inferTypeM (substTyBinds inTerm)) bs
     -- check the in-term's inferred type has kind * (except at toplevel)
     checkStarInferred ann ty
     pure ty
- where
-   checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun e res -> PirTCEnv uni fun e res
-   checkBindingThenScope b acc = do
-       -- check that the kinds of the declared types are correct
-       checkKindFromBinding b
-       -- check that the types of declared terms are correct
-       checkTypeFromBinding r b
-       -- add new *normalized* termvariables to env
-       -- Note that the order of adding typesVSkinds here does not matter
-       withTyVarsOfBinding b $
-           withVarsOfBinding r b acc
+  where
+    checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun e res -> PirTCEnv uni fun e res
+    checkBindingThenScope b acc = do
+        -- check that the kinds of the declared types are correct
+        checkKindFromBinding b
+        -- check that the types of declared terms are correct
+        checkTypeFromBinding r b
+        -- add new *normalized* termvariables to env
+        -- Note that the order of adding typesVSkinds here does not matter
+        withTyVarsOfBinding b $
+            withVarsOfBinding r b acc
+
+    substTyBinds = termSubstTyNames $ foldl' f (const Nothing) bs
+      where
+        f acc = \case
+            TypeBind _ tvar rhs -> \n ->
+                if n == tvar ^. tyVarDeclName then Just rhs else acc n
+            _ -> acc
 
 {-
 G'=G,withTyVarsOfBindings(bs)

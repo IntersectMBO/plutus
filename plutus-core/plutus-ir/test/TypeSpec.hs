@@ -38,6 +38,8 @@ types = testNested "types"
   ,"strictNonValueDeep"
   ,"even3Eval"
   ,"sameNameDifferentEnv"
+  , "typeLet"
+  , "typeLet2"
   ]
 
 typeErrors :: TestNested
@@ -45,6 +47,4 @@ typeErrors = testNested "type-errors"
     $ map (goldenTypeFromPirCatch topSourcePos pTerm)
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
-    , "typeLet"
-    , "typeLet2"
     ]
