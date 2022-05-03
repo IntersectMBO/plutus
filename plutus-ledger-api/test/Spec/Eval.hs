@@ -149,9 +149,9 @@ testWith str evalFn = testCase str $ do
     evalFn illOverApp @?= False
 
 testUnlifting :: TestTree
-testUnlifting = testCase "check unlifting behaviour changes in V6" $ do
-    evalAPI (ProtocolVersion 5 0) illTypedPartialBuiltin @?= False
-    evalAPI (ProtocolVersion 6 0) illTypedPartialBuiltin @?= True
+testUnlifting = testCase "check unlifting behaviour changes in V7" $ do
+    evalAPI (ProtocolVersion 6 0) illTypedPartialBuiltin @?= False
+    evalAPI (ProtocolVersion 7 0) illTypedPartialBuiltin @?= True
 
 tests :: TestTree
 tests = testGroup "eval"
