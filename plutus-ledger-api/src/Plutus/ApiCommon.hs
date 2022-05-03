@@ -63,6 +63,17 @@ Note that this doesn't currently handle removals of builtins, although it fairly
 could do, just by tracking when they were removed.
 -}
 
+{- Note [Size checking of constants in PLC programs]
+We impose a 64-byte *on-the-wire* limit on the constants inside PLC programs. This prevents people from inserting
+Mickey Mouse entire.
+
+This is somewhat inconvenient for users, but they can always send multiple bytestrings and
+concatenate them at runtime.
+
+Unfortunately this check was broken in V1, and so for backwards compatibility we only perform
+it in V1 and above.
+-}
+
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
 that allows GHC to look under lambdas and completely optimize multiple abstractions away.
@@ -156,8 +167,10 @@ scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s Sc
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
+        -- See Note [Size checking of constants in PLC programs]
+        sizeLimit = if lv < PlutusV2 then UPLC.NoLimit else UPLC.Limit 64
         -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-        flatDecoder = UPLC.decodeProgram UPLC.NoLimit (\f -> f `Set.member` availableBuiltins)
+        flatDecoder = UPLC.decodeProgram sizeLimit (\f -> f `Set.member` availableBuiltins)
     in do
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder
