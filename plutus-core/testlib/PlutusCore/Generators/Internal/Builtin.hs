@@ -2,8 +2,10 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module PlutusCore.Generators.Internal.Builtin (
+    SomeGen (..),
     genConstant,
     genInteger,
     genByteString,
@@ -29,46 +31,40 @@ import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
-import Unsafe.Coerce
 
-genConstant :: forall k (a :: k). TypeRep a -> Gen (Some (ValueOf DefaultUni))
+data SomeGen = forall a. DefaultUni `Contains` a => SomeGen (Gen a)
+
+genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen
 genConstant tr
-    | Just HRefl <- eqTypeRep tr (typeRep @()) = pure $ someValue ()
-    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = someValue <$> genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Int) = someValue <$> genInteger
-    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = someValue <$> Gen.bool
-    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = someValue <$> genByteString
-    | Just HRefl <- eqTypeRep tr (typeRep @Text) = someValue <$> genText
-    | Just HRefl <- eqTypeRep tr (typeRep @Data) = someValue <$> genData 5
+    | Just HRefl <- eqTypeRep tr (typeRep @()) = SomeGen $ pure ()
+    | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeGen Gen.bool
+    | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
+    | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText
+    | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeGen $ genData 5
     | trPair `App` tr1 `App` tr2 <- tr
-    , Just HRefl <- eqTypeRep trPair (typeRep @(,)) = do
-        Some (ValueOf uni1 val1) <- genConstant tr1
-        Some (ValueOf uni2 val2) <- genConstant tr2
-        pure $
-            someValueOf
-                (DefaultUniApply (DefaultUniApply DefaultUniProtoPair uni1) uni2)
-                (val1, val2)
+    , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
+        case (genConstant tr1, genConstant tr2) of
+            (SomeGen g1, SomeGen g2) -> SomeGen $ (,) <$> g1 <*> g2
     | trList `App` trElem <- tr
-    , Just HRefl <- eqTypeRep trList (typeRep @[]) = do
-        Some (ValueOf uniElem (_ :: b)) <- genConstant trElem
-        args <- Gen.list (Range.linear 0 10) $ genConstant trElem
-        let valElems :: [b]
-            valElems = (\(Some (ValueOf _ valElem')) -> unsafeCoerce valElem') <$> args
-        pure $ someValueOf (DefaultUniApply DefaultUniProtoList uniElem) valElems
-    | trOpaque `App` _ `App` trRep <- tr
-    , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
-        genConstant trRep
-    | trSomeConstant `App` _ `App` trRep <- tr
+    , Just HRefl <- eqTypeRep trList (typeRep @[]) =
+        case genConstant trElem of
+            SomeGen genElem -> SomeGen $ Gen.list (Range.linear 0 10) genElem
+    | trSomeConstant `App` _ `App` trEl <- tr
     , Just HRefl <- eqTypeRep trSomeConstant (typeRep @SomeConstant) =
-        genConstant trRep
+        genConstant trEl
+    | trOpaque `App` _ `App` trEl <- tr
+    , Just HRefl <- eqTypeRep trOpaque (typeRep @Opaque) =
+        genConstant trEl
     | trTyVarRep `App` _ <- tr
     , Just HRefl <- eqTypeRep trTyVarRep (typeRep @(TyVarRep @GHC.Type)) =
         -- In the current implementation, all type variables are instantiated
-        -- to `Integer` (TODO: change this).
-        someValue <$> genInteger
+        -- to `Integer` (TODO: change this?).
+        genConstant $ typeRep @Integer
     | otherwise =
         error $
-            "genConstant: I don't know how to generate builtin arguments of this type: " <> show tr
+            "genConstant: I don't know how to generate constants of this type: " <> show tr
 
 ----------------------------------------------------------
 -- Generators

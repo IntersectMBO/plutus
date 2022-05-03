@@ -14,7 +14,7 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
-import PlutusCore.Generators (forAllNoShow, genConstant)
+import PlutusCore.Generators (SomeGen (..), forAllNoShow, genConstant)
 import PlutusCore.Generators.AST hiding (genConstant)
 import PlutusCore.Pretty
 
@@ -39,15 +39,16 @@ test_builtinsDon'tThrow =
         "Builtins don't throw"
         $ fmap (\fun -> testProperty (display fun) $ prop_builtinsDon'tThrow fun) List.enumerate
 
--- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
--- to fail with a `KnownTypeError`, of course).
---
--- The test covers both succeeding and failing evaluations and verifies that in either case
--- no exception is thrown. The failing cases use arbitrary `Term` arguments (which doesn't
--- guarantee failure, but most likely), and the succeeding cases generate `Term` arguments
--- based on a builtin function's `TypeScheme`. For `Opaque` arguments it generates arbitrary
--- `Term`s (which technically doesn't guarantee evaluation success, although it is the case
--- with all current builtin functions).
+{- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
+ to fail with a `KnownTypeError`, of course).
+
+ The test covers both succeeding and failing evaluations and verifies that in either case
+ no exception is thrown. The failing cases use arbitrary `Term` arguments (which doesn't
+ guarantee failure, but most likely), and the succeeding cases generate `Term` arguments
+ based on a builtin function's `TypeScheme`. For `Opaque` arguments it generates arbitrary
+ `Term`s (which technically doesn't guarantee evaluation success, although it is the case
+ with all current builtin functions).
+-}
 prop_builtinsDon'tThrow :: DefaultFun -> Property
 prop_builtinsDon'tThrow bn = property $ do
     args <- forAllNoShow . Gen.choice $ [genArgsWellTyped bn, genArgsArbitrary bn]
@@ -90,7 +91,8 @@ prop_builtinsDon'tThrow bn = property $ do
  TODO: currently it only generates constant terms.
 -}
 genArgsWellTyped :: DefaultFun -> Gen [Term]
-genArgsWellTyped = genArgs (fmap (Constant ()) . genConstant)
+genArgsWellTyped = genArgs $ \tr -> case genConstant tr of
+    SomeGen gen -> Constant () . someValue <$> gen
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
 genArgsArbitrary :: DefaultFun -> Gen [Term]
