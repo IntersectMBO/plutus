@@ -26,13 +26,6 @@ prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName ShowKindsYes
 prettyReadable :: PrettyBy (PrettyConfigReadable PrettyConfigName) a => a -> Doc ann
 prettyReadable = prettyBy prettyConfigReadable
 
-viewApp :: Term tyname name uni fun ann
-        -> Maybe (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
-viewApp t = go t []
-  where
-    go (Apply _ t s)  args = go t (Right s : args)
-    go (TyInst _ t a) args = go t (Left a : args)
-    go t args              = if null args then Nothing else Just (t, args)
 
 vcatHard :: [Doc ann] -> Doc ann
 vcatHard = concatWith (\x y -> x <> hardline <> y)
@@ -41,6 +34,29 @@ vcatHard = concatWith (\x y -> x <> hardline <> y)
 p <?> q = align . nest 2 $ sep [p, q]
 
 infixr 6 <?>
+
+
+
+viewApp :: Term tyname name uni fun ann
+        -> Maybe (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
+viewApp t = go t []
+  where
+    go (Apply _ t s)  args = go t (Right s : args)
+    go (TyInst _ t a) args = go t (Left a : args)
+    go t args              = if null args then Nothing else Just (t, args)
+
+
+viewTyAbs :: Term tyname name uni fun ann -> Maybe ([(tyname, Kind ann)], Term tyname name uni fun ann)
+viewTyAbs t@TyAbs{} = Just (go t)
+  where go (TyAbs _ n k b) = first ((n, k):) $ go b
+        go t               = ([], t)
+viewTyAbs _         = Nothing
+
+viewLam :: Term tyname name uni fun ann -> Maybe ([(name, Type tyname uni ann)], Term tyname name uni fun ann)
+viewLam t@LamAbs{} = Just (go t)
+  where go (LamAbs _ n t b) = first ((n, t):) $ go b
+        go t                = ([], t)
+viewLam _          = Nothing
 
 type PrettyConstraints configName tyname name uni fun =
   ( PrettyReadableBy configName tyname
@@ -61,20 +77,16 @@ instance PrettyConstraints configName tyname name uni fun
         Apply{}    -> error "The impossible happened. This should be covered by the `viewApp` case above."
         TyInst{}   -> error "The impossible happened. This should be covered by the `viewApp` case above."
         Var _ name -> prettyM name
-        t@TyAbs{}  ->
+        (viewTyAbs -> Just (args, body)) ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 ("/\\" <> align (fillSep (map (uncurry prettyBinding) args)) <+> "->") <?> prettyBody body
-            where (args, body)         = view t
-                  view (TyAbs _ n k b) = first ((n, k):) $ view b
-                  view t               = ([], t)
-        t@LamAbs{}  ->
+        TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
+        (viewLam -> Just (args, body)) ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
                 in ("\\" <> align (fillSep [ parens (prettyBot name <+> ":" <+> prettyBot ty)
                                            | (name, ty) <- args ]) <+> "->") <?> prettyBot body
-            where (args, body)          = view t
-                  view (LamAbs _ n t b) = first ((n, t):) $ view b
-                  view t                = ([], t)
+        LamAbs{}   -> error "The impossible happened. This should be covered by the `viewLam` case above."
         Unwrap _ term          ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "unwrap" <+> prettyEl term
