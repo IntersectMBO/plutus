@@ -412,5 +412,7 @@ substTypeBinds ::
 substTypeBinds = flip . foldrM $ \b ty -> case b of
     TypeBind _ tvar rhs -> do
         rhs' <- normalizeTypeM (void rhs)
+        -- See Note [Normalizing substitution] for why `substNormalizeTypeM`
+        -- doesn't take a normalized type.
         substNormalizeTypeM rhs' (tvar ^. tyVarDeclName) (unNormalized ty)
     _ -> pure ty
