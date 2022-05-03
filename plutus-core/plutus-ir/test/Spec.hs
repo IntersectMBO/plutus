@@ -53,7 +53,7 @@ prettyprinting = testNested "prettyprinting"
 
 prettyprintingReadable :: TestNested
 prettyprintingReadable = testNested "prettyprintingReadable"
-    $ map (goldenPirDoc prettyReadable pTerm)
+    $ map (goldenPirDoc prettyPirReadable pTerm)
     [ "basic"
     , "maybe"
     , "letInLet"
