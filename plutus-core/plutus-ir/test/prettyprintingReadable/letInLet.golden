@@ -1,4 +1,6 @@
 let !unitval2 : all (a :: *). a -> a
       = let !unitval : all (a :: *). a -> a = /\(a :: *) -> \(x : a) -> x
-        in unitval
-in unitval2
+        in
+        unitval
+in
+unitval2

@@ -1,2 +1,3 @@
 letrec unit = all (a :: *). unit -> unit
-in let !lazyVal : unit -> integer = \(x : unit) -> 3 in lazyVal
+in
+let !lazyVal : unit -> integer = \(x : unit) -> 3 in lazyVal

@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
@@ -19,7 +20,6 @@ import PlutusIR.Core.Type
 import PlutusPrelude
 import Prettyprinter
 
-
 prettyConfigReadable :: PrettyConfigReadable PrettyConfigName
 prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName ShowKindsYes
 
@@ -27,12 +27,12 @@ prettyReadable :: PrettyBy (PrettyConfigReadable PrettyConfigName) a => a -> Doc
 prettyReadable = prettyBy prettyConfigReadable
 
 viewApp :: Term tyname name uni fun ann
-        -> (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
+        -> Maybe (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
 viewApp t = go t []
   where
     go (Apply _ t s)  args = go t (Right s : args)
     go (TyInst _ t a) args = go t (Left a : args)
-    go t args              = (t, args)
+    go t args              = if null args then Nothing else Just (t, args)
 
 vcatHard :: [Doc ann] -> Doc ann
 vcatHard = concatWith (\x y -> x <> hardline <> y)
@@ -51,26 +51,17 @@ type PrettyConstraints configName tyname name uni fun =
 instance PrettyConstraints configName tyname name uni fun
           => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
-        Constant _ con         -> unitDocM $ pretty con
-        Builtin _ bi           -> unitDocM $ pretty bi
-        t | appLike t          ->
+        Constant _ con -> unitDocM $ pretty con
+        Builtin _ bi   -> unitDocM $ pretty bi
+        (viewApp -> Just (fun, args)) ->
           compoundDocM juxtFixity $ \ prettyIn ->
             let ppArg (Left a)  = braces $ prettyIn ToTheRight botFixity a
                 ppArg (Right t) = prettyIn ToTheRight juxtFixity t
             in prettyIn ToTheLeft juxtFixity fun <?> fillSep (map ppArg args)
-          where
-            appLike Apply{}  = True
-            appLike TyInst{} = True
-            appLike _        = False
-
-            (fun, args)                  = view t []
-            view (Apply _ fun arg)  args = view fun (Right arg:args)
-            view (TyInst _ fun arg) args = view fun (Left arg:args)
-            view fun                args = (fun, args)
-        Apply{} -> error "The impossible happened. Get a lottery ticket."
-        TyInst{} -> error "The impossible happened. Get a lottery ticket."
-        Var _ name             -> prettyM name
-        t@TyAbs{} ->
+        Apply{}    -> error "The impossible happened. This should be covered by the `viewApp` case above."
+        TyInst{}   -> error "The impossible happened. This should be covered by the `viewApp` case above."
+        Var _ name -> prettyM name
+        t@TyAbs{}  ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 ("/\\" <> align (fillSep (map (uncurry prettyBinding) args)) <+> "->") <?> prettyBody body
             where (args, body)         = view t
@@ -80,7 +71,7 @@ instance PrettyConstraints configName tyname name uni fun
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
                 in ("\\" <> align (fillSep [ parens (prettyBot name <+> ":" <+> prettyBot ty)
-                                          | (name, ty) <- args ]) <+> "->") <?> prettyBot body
+                                           | (name, ty) <- args ]) <+> "->") <?> prettyBot body
             where (args, body)          = view t
                   view (LamAbs _ n t b) = first ((n, t):) $ view b
                   view t                = ([], t)
@@ -99,7 +90,8 @@ instance PrettyConstraints configName tyname name uni fun
                     prec | rec == NonRec = ""
                          | otherwise     = "rec"
                 in align $ sep [ "let" <> prec <+> align (vcatHard (prettyBot <$> toList binds))
-                               , "in" <+> prettyBot t
+                               , "in"
+                               , prettyBot t
                                ]
 
 instance PrettyConstraints configName tyname name uni fun

@@ -1,4 +1,5 @@
 let data (Maybe :: * -> *) a | match_Maybe where
       Nothing : Maybe a
       Just : a -> Maybe a
-in Just {all (a :: *). a -> a} (/\(a :: *) -> \(x : a) -> x)
+in
+Just {all (a :: *). a -> a} (/\(a :: *) -> \(x : a) -> x)
