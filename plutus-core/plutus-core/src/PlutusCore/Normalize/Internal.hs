@@ -193,7 +193,7 @@ normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
     pure . Normalized $ ann <$ normalizeUni uni
 
 {- Note [Normalizing substitution]
-@substituteNormalize[M]@ is only ever used as normalizing substitution that receives two already
+@substituteNormalizeM@ is only ever used as normalizing substitution that receives two already
 normalized types. However we do not enforce this in the type signature, because
 1) it's perfectly correct for the last argument to be non-normalized
 2) it would be annoying to wrap 'Type's into 'NormalizedType's

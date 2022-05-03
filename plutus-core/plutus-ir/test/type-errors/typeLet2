@@ -1,5 +1,0 @@
-(let
-  (nonrec)
-  (typebind (tyvardecl a (type)) (con integer))
-  [ (lam x a x) (con integer 1) ]
-)

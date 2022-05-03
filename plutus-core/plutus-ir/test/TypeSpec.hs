@@ -38,6 +38,8 @@ types = testNested "types"
   ,"strictNonValueDeep"
   ,"even3Eval"
   ,"sameNameDifferentEnv"
+  , "typeLet"
+  , "typeLetRec"
   ]
 
 typeErrors :: TestNested
@@ -46,5 +48,4 @@ typeErrors = testNested "type-errors"
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
     , "typeLet"
-    , "typeLet2"
     ]

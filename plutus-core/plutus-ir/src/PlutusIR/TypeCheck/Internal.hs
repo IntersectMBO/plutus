@@ -24,7 +24,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Foldable
 import Data.Ix
-import PlutusCore (ToKind, typeAnn)
+import PlutusCore (ToKind, tyVarDeclName, typeAnn)
 import PlutusCore.Error as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename as PLC
@@ -219,21 +219,21 @@ ty ~> vTy
 -}
 inferTypeM (Let ann r@NonRec bs inTerm) = do
     -- Check each binding individually, then if ok, introduce its new type/vars to the (linearly) next let or inTerm
-    ty <- foldr checkBindingThenScope (inferTypeM inTerm) bs
+    ty <- substTypeBinds bs =<< foldr checkBindingThenScope (inferTypeM inTerm) bs
     -- check the in-term's inferred type has kind * (except at toplevel)
     checkStarInferred ann ty
     pure ty
- where
-   checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun e res -> PirTCEnv uni fun e res
-   checkBindingThenScope b acc = do
-       -- check that the kinds of the declared types are correct
-       checkKindFromBinding b
-       -- check that the types of declared terms are correct
-       checkTypeFromBinding r b
-       -- add new *normalized* termvariables to env
-       -- Note that the order of adding typesVSkinds here does not matter
-       withTyVarsOfBinding b $
-           withVarsOfBinding r b acc
+  where
+    checkBindingThenScope :: Binding TyName Name uni fun ann -> PirTCEnv uni fun e res -> PirTCEnv uni fun e res
+    checkBindingThenScope b acc = do
+        -- check that the kinds of the declared types are correct
+        checkKindFromBinding b
+        -- check that the types of declared terms are correct
+        checkTypeFromBinding r b
+        -- add new *normalized* termvariables to env
+        -- Note that the order of adding typesVSkinds here does not matter
+        withTyVarsOfBinding b $
+            withVarsOfBinding r b acc
 
 {-
 G'=G,withTyVarsOfBindings(bs)
@@ -246,14 +246,15 @@ forall b in bs. checkTypeFromBinding(G'', b)
 -}
 inferTypeM (Let ann r@Rec bs inTerm) = do
     ty <- withTyVarsOfBindings bs $ do
-       -- check that the kinds of the declared types *over all bindings* are correct
+        -- check that the kinds of the declared types *over all bindings* are correct
        -- Note that, compared to NonRec, we need the newtyvars in scope to do kindchecking
-       for_ bs checkKindFromBinding
-       withVarsOfBindings r bs $ do
-              -- check that the types of declared terms are correct
+        for_ bs checkKindFromBinding
+        ty <- withVarsOfBindings r bs $ do
+               -- check that the types of declared terms are correct
               -- Note that, compared to NonRec, we need the newtyvars+newvars in scope to do typechecking
               for_ bs $ checkTypeFromBinding r
               inferTypeM inTerm
+        substTypeBinds bs ty
     -- check the in-term's inferred type has kind * (except at toplevel)
     checkStarInferred ann ty
     pure ty
@@ -400,3 +401,18 @@ withTyVarsOfBindings = flip $ foldr withTyVarsOfBinding
 -- | Helper to add type variables into a computation's environment.
 withTyVarDecls :: [TyVarDecl TyName ann] -> TypeCheckM uni fun c e a -> TypeCheckM uni fun c e a
 withTyVarDecls = flip . foldr $ \(TyVarDecl _ n k) -> withTyVar n $ void k
+
+-- | Substitute `TypeBind`s from the given list of `Binding`s in the given `Type`.
+-- This is so that @let a = (con integer) in \(x : a) -> x@ typechecks.
+substTypeBinds ::
+    HasUniApply uni =>
+    NonEmpty (Binding TyName Name uni fun ann) ->
+    Normalized (Type TyName uni ()) ->
+    PirTCEnv uni fun e (Normalized (Type TyName uni ()))
+substTypeBinds = flip . foldrM $ \b ty -> case b of
+    TypeBind _ tvar rhs -> do
+        rhs' <- normalizeTypeM (void rhs)
+        -- See Note [Normalizing substitution] for why `substNormalizeTypeM`
+        -- doesn't take a normalized type.
+        substNormalizeTypeM rhs' (tvar ^. tyVarDeclName) (unNormalized ty)
+    _ -> pure ty
