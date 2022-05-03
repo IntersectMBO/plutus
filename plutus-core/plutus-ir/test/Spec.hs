@@ -14,6 +14,7 @@ import TransformSpec
 import TypeSpec
 
 import PlutusIR
+import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
 
@@ -30,6 +31,7 @@ main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence
     [ prettyprinting
+    , prettyprintingReadable
     , parsing
     , lets
     , datatypes
@@ -47,6 +49,27 @@ prettyprinting = testNested "prettyprinting"
     $ map (goldenPir id pTerm)
     [ "basic"
     , "maybe"
+    ]
+
+prettyprintingReadable :: TestNested
+prettyprintingReadable = testNested "prettyprintingReadable"
+    $ map (goldenPirDoc prettyReadable pTerm)
+    [ "basic"
+    , "maybe"
+    , "letInLet"
+    , "letDep"
+    , "listMatch"
+    , "idleAll"
+    , "some"
+    , "listMatchEval"
+    , "even3"
+    , "even3Eval"
+    , "stupidZero"
+    , "mutuallyRecursiveValues"
+    , "errorBinding"
+    , "some"
+    , "stupidZero"
+    , "recursiveTypeBind"
     ]
 
 lets :: TestNested

@@ -19,6 +19,7 @@ import PlutusIR.Core.Type
 import PlutusPrelude
 import Prettyprinter
 
+
 prettyConfigReadable :: PrettyConfigReadable PrettyConfigName
 prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName ShowKindsYes
 
@@ -32,6 +33,9 @@ viewApp t = go t []
     go (Apply _ t s)  args = go t (Right s : args)
     go (TyInst _ t a) args = go t (Left a : args)
     go t args              = (t, args)
+
+vcatHard :: [Doc ann] -> Doc ann
+vcatHard = concatWith (\x y -> x <> hardline <> y)
 
 (<?>) :: Doc ann -> Doc ann -> Doc ann
 p <?> q = align . nest 2 $ sep [p, q]
@@ -94,7 +98,7 @@ instance PrettyConstraints configName tyname name uni fun
                 let prettyBot x = prettyIn ToTheRight botFixity x
                     prec | rec == NonRec = ""
                          | otherwise     = "rec"
-                in align $ sep [ "let" <> prec <+> align (vsep (prettyBot <$> toList binds))
+                in align $ sep [ "let" <> prec <+> align (vcatHard (prettyBot <$> toList binds))
                                , "in" <+> prettyBot t
                                ]
 
@@ -119,7 +123,7 @@ instance PrettyConstraints configName tyname name uni fun
       header <- sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                   "data" <+> prettyEl tydec <+> fillSep (map prettyEl pars) <+> "|" <+> prettyEl name <+> "where"
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
-        return $ vcat [header, indent 2 (align . vsep . map prettyBot $ cs)]
+        return $ vcatHard [header, indent 2 (align . vcatHard . map prettyBot $ cs)]
 
 instance PrettyReadableBy configName tyname
           => PrettyBy (PrettyConfigReadable configName) (TyVarDecl tyname ann) where
