@@ -36,9 +36,9 @@ tests =
     , testCase "builtins aren't available before p5" $ assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 (p 4)) -- l1 valid, p4 invalid
     , testCase "serializeData is only available in l2,p6 and after" $ do
          assertBool "in l1,p5" $ not $ V1.isScriptWellFormed (p 5) serialiseDataExScript
-         assertBool "in l1,p6" $ not $ V1.isScriptWellFormed (p 6) serialiseDataExScript
+         assertBool "in l1,p6" $ not $ V1.isScriptWellFormed (p 7) serialiseDataExScript
          assertBool "in l2,p5" $ not $ V2.isScriptWellFormed (p 5) serialiseDataExScript
-         assertBool "not in l2,p6" $ V2.isScriptWellFormed (p 6) serialiseDataExScript
+         assertBool "not in l2,p6" $ V2.isScriptWellFormed (p 7) serialiseDataExScript
     , testCase "cost model parameters " $
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v2 params" $ V1.costModelParamNames `Set.isProperSubsetOf` V2.costModelParamNames
