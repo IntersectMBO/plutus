@@ -34,7 +34,6 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Rename ()
-import PlutusIR.Transform.Substitute
 import PlutusPrelude
 
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
@@ -220,7 +219,7 @@ ty ~> vTy
 -}
 inferTypeM (Let ann r@NonRec bs inTerm) = do
     -- Check each binding individually, then if ok, introduce its new type/vars to the (linearly) next let or inTerm
-    ty <- foldr checkBindingThenScope (inferTypeM (substTyBinds inTerm)) bs
+    ty <- substTypeBinds bs =<< foldr checkBindingThenScope (inferTypeM inTerm) bs
     -- check the in-term's inferred type has kind * (except at toplevel)
     checkStarInferred ann ty
     pure ty
@@ -236,13 +235,6 @@ inferTypeM (Let ann r@NonRec bs inTerm) = do
         withTyVarsOfBinding b $
             withVarsOfBinding r b acc
 
-    substTyBinds = termSubstTyNames $ foldl' f (const Nothing) bs
-      where
-        f acc = \case
-            TypeBind _ tvar rhs -> \n ->
-                if n == tvar ^. tyVarDeclName then Just rhs else acc n
-            _ -> acc
-
 {-
 G'=G,withTyVarsOfBindings(bs)
 forall b in bs. checkKindFromBinding(G', b)
@@ -254,14 +246,15 @@ forall b in bs. checkTypeFromBinding(G'', b)
 -}
 inferTypeM (Let ann r@Rec bs inTerm) = do
     ty <- withTyVarsOfBindings bs $ do
-       -- check that the kinds of the declared types *over all bindings* are correct
+        -- check that the kinds of the declared types *over all bindings* are correct
        -- Note that, compared to NonRec, we need the newtyvars in scope to do kindchecking
-       for_ bs checkKindFromBinding
-       withVarsOfBindings r bs $ do
-              -- check that the types of declared terms are correct
+        for_ bs checkKindFromBinding
+        ty <- withVarsOfBindings r bs $ do
+               -- check that the types of declared terms are correct
               -- Note that, compared to NonRec, we need the newtyvars+newvars in scope to do typechecking
               for_ bs $ checkTypeFromBinding r
               inferTypeM inTerm
+        substTypeBinds bs ty
     -- check the in-term's inferred type has kind * (except at toplevel)
     checkStarInferred ann ty
     pure ty
@@ -408,3 +401,16 @@ withTyVarsOfBindings = flip $ foldr withTyVarsOfBinding
 -- | Helper to add type variables into a computation's environment.
 withTyVarDecls :: [TyVarDecl TyName ann] -> TypeCheckM uni fun c e a -> TypeCheckM uni fun c e a
 withTyVarDecls = flip . foldr $ \(TyVarDecl _ n k) -> withTyVar n $ void k
+
+-- | Substitute `TypeBind`s from the given list of `Binding`s in the given `Type`.
+-- This is so that @let a = (con integer) in \(x : a) -> x@ typechecks.
+substTypeBinds ::
+    HasUniApply uni =>
+    NonEmpty (Binding TyName Name uni fun ann) ->
+    Normalized (Type TyName uni ()) ->
+    PirTCEnv uni fun e (Normalized (Type TyName uni ()))
+substTypeBinds = flip . foldrM $ \b ty -> case b of
+    TypeBind _ tvar rhs -> do
+        rhs' <- normalizeTypeM (void rhs)
+        substNormalizeTypeM rhs' (tvar ^. tyVarDeclName) (unNormalized ty)
+    _ -> pure ty
