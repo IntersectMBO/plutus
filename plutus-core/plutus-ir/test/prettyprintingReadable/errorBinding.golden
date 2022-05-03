@@ -1,4 +1,3 @@
 letrec !x : integer = error {integer}
        ~y : integer = x
-in
-1
+in 1

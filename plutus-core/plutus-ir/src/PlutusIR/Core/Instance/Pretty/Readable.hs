@@ -35,8 +35,6 @@ p <?> q = align . nest 2 $ sep [p, q]
 
 infixr 6 <?>
 
-
-
 viewApp :: Term tyname name uni fun ann
         -> Maybe (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
 viewApp t = go t []
@@ -102,8 +100,7 @@ instance PrettyConstraints configName tyname name uni fun
                     prec | rec == NonRec = ""
                          | otherwise     = "rec"
                 in align $ sep [ "let" <> prec <+> align (vcatHard (prettyBot <$> toList binds))
-                               , "in"
-                               , prettyBot t
+                               , "in" <+> prettyBot t
                                ]
 
 instance PrettyConstraints configName tyname name uni fun

@@ -1,9 +1,8 @@
 letrec data (List :: * -> *) a | match_List where
          Nil : List a
          Cons : a -> List a -> List a
-in
-match_List
-  {all (a :: *). a -> a} (Nil {all (a :: *). a -> a}) {all (a :: *). a -> a}
-  (/\(a :: *) -> \(x : a) -> x) (\(head : all (a :: *). a -> a)
-                                  (tail : List (all (a :: *). a -> a)) ->
-                                   head)
+in match_List
+     {all (a :: *). a -> a} (Nil {all (a :: *). a -> a}) {all (a :: *). a -> a}
+     (/\(a :: *) -> \(x : a) -> x) (\(head : all (a :: *). a -> a)
+                                     (tail : List (all (a :: *). a -> a)) ->
+                                      head)

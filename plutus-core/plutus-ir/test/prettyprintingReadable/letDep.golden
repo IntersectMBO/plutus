@@ -1,4 +1,3 @@
 let !i : integer = 3
     !j : integer = i
-in
-j
+in j
