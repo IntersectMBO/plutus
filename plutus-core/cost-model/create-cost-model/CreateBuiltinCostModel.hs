@@ -682,7 +682,7 @@ equalsData cpuModelR = do
 serialiseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 serialiseData cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 0
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 2
   pure $ CostingFun cpuModel memModel
 
 ---------------- Misc constructors ----------------
