@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusConformance.Common where
+module Common where
 
-import Data.Text hiding (map)
-import Data.Text.IO
+import Control.Monad.Error.Class
+import Data.Text qualified as T
+import GHC.IO (unsafePerformIO)
 import PlutusCore as PLC
-import PlutusCore.Pretty
+import PlutusCore.Error (AsParserErrorBundle)
 import Prelude hiding (readFile)
 import Test.Tasty
-import Test.Tasty.Golden
 import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
@@ -23,7 +23,7 @@ data TestContent =
 
 mkTestContents :: [FilePath] -> [EvaluationResult UplcProg] -> [UplcProg] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
-    if length lFilepaths == length lRes == length lProgs then
+    if length lFilepaths == length lRes && length  lRes == length lProgs then
         [MkTestContent file res prog | file <- lFilepaths, res <- lRes, prog <- lProgs]
     else
         error $ "Cannot run the tests because the number of input and output programs are not the same. " <>
@@ -43,17 +43,12 @@ evalUplcProg p = pure $
         (unsafeEvaluateCekNoEmit PLC.defaultCekParameters (UPLC._progTerm p))
 
 mkTestCases :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> [TestTree]
-mkTestCases (hdTests:tlTests) runner =
-    testCase (testName hdTests) ((expected hdTests) @=? (runner (inputProg hdTests))) : mkTestCases tlTests runner
-mkTestCases [] runner = []
+mkTestCases tests runner
+  = [ unsafePerformIO $ do
+      result <- runner (inputProg test)
+      pure $ testCase (testName test) (expected test @=? result)
+       | test <- tests]
 
 testUplcEvaluation :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> TestTree
 testUplcEvaluation lTest runner =
     testGroup "UPLC evaluation tests" $ mkTestCases lTest runner
-
-testUplcEvaluationTextual :: (Text -> IO Text) -> TestTree
-testUplcEvaluationTextual runner = testUplcEvaluation (evalUplcProg . UPLC.parseProgram <$> runner . pack . show)
-
--- runAgdaImpl = callProcess “agdaImpl …”
-
--- testUplcEvaluation runAgdaImpl

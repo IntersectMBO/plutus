@@ -36,6 +36,15 @@ library
     visibility: public
     hs-source-dirs: src/
     exposed-modules:
+        Common
+    build-depends:
+        base -any,
+        plutus-core -any,
+        tasty -any,
+        tasty-golden -any,
+        tasty-hunit -any,
+        text -any,
+        mtl -any
 
 test-suite golden-test
     import: lang
@@ -50,7 +59,9 @@ test-suite golden-test
         tasty -any,
         tasty-golden -any,
         text -any,
-        plutus-conformance
+        plutus-conformance -any,
+        plutus-core,
+        Stream -any
 
 test-suite uplc-eval-test
     import: lang

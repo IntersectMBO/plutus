@@ -9,10 +9,12 @@ module Main
     ) where
 
 import Data.ByteString.Lazy qualified as BS
+import PlutusConformance.Common
 import System.Directory
 import System.Environment
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (findByExtension, goldenVsString)
+import UntypedPlutusCore.Parser as UPLC
 
 main :: IO ()
 main = defaultMain =<< goldenTests
@@ -34,7 +36,7 @@ goldenTests = do
             [ goldenVsString
                 inputFile -- test name
                 (inputFile <> ".expected") -- golden file path
-                (chooseAction action)
+                (chooseAction action inputFile) -- action whose result is tested
             | inputFile <- concat inputFiles
             ]
       _ -> error $
@@ -43,13 +45,15 @@ goldenTests = do
             "(2) directory to be searched " <>
             "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
 
-chooseAction :: String -> IO BS.ByteString
-chooseAction action
-  | action == "eval" = -- action whose result is tested
-                    evalAction
+chooseAction :: String -> FilePath -> IO BS.ByteString
+chooseAction action input
+  | action == "eval" = do
+        inputStr <- readFile input
+        pure $ evalUplcProg . UPLC.parseProgram
   | action == "typecheck" =
-    error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported"
+    error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
   | otherwise =
-    error "Unsupported tests. Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
+    error $ "Unsupported test " <> show action <>
+        ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
 
 
