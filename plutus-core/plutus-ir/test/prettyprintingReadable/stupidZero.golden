@@ -1,4 +1,4 @@
-letrec data Nat  | match_Nat where
+letrec data Nat | match_Nat where
          Zero : Nat
          Suc : Nat -> Nat
 in let !three : Nat = Suc (Suc (Suc Zero))

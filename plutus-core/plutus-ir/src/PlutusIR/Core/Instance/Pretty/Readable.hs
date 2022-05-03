@@ -121,7 +121,7 @@ instance PrettyConstraints configName tyname name uni fun
   prettyBy = inContextM $ \case
     Datatype _ tydec pars name cs -> do
       header <- sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                  "data" <+> prettyEl tydec <+> fillSep (map prettyEl pars) <+> "|" <+> prettyEl name <+> "where"
+                  "data" <+> fillSep (prettyEl tydec : map prettyEl pars) <+> "|" <+> prettyEl name <+> "where"
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         return $ vcatHard [header, indent 2 (align . vcatHard . map prettyBot $ cs)]
 
