@@ -31,7 +31,7 @@ test_appAppLamLam = do
 
 test_normalizeTypesInIdempotent :: Property
 test_normalizeTypesInIdempotent = property . hoist (pure . runQuote) $ do
-    termNormTypes <- forAllT $ runAstGen genTerm >>= normalizeTypesIn
+    termNormTypes <- forAllT $ runAstGen (genTerm @DefaultFun) >>= normalizeTypesIn
     termNormTypes' <- normalizeTypesIn termNormTypes
     termNormTypes === termNormTypes'
 
