@@ -18,19 +18,17 @@ module PlutusCore.Builtin.KnownType
     , throwKnownTypeErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
-    , MakeKnownM
+    , MakeKnownM (..)
     , ReadKnownM
+    , liftReadKnownM
     , readKnownConstant
     , MakeKnownIn (..)
     , MakeKnown
     , ReadKnownIn (..)
     , ReadKnown
-    , makeKnownRun
     , makeKnownOrFail
     , readKnownSelf
     ) where
-
-import PlutusPrelude (reoption)
 
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
@@ -195,11 +193,67 @@ a ton of instances (and add new ones whenever we need them), wrap and unwrap all
 
 -- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'makeKnown' runs in.
-type MakeKnownM = ExceptT KnownTypeError Emitter
+data MakeKnownM a
+    = MakeKnownFailure !(DList Text) !KnownTypeError
+    | MakeKnownSuccess !a
+    | MakeKnownSuccessWithLogs !(DList Text) !a
+
+fmapWithLogs :: DList Text -> (a -> b) -> MakeKnownM a -> MakeKnownM b
+fmapWithLogs logs1 f = \case
+    MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
+    MakeKnownSuccess x               -> MakeKnownSuccessWithLogs logs1 (f x)
+    MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) (f x)
+{-# INLINE fmapWithLogs #-}
+
+withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
+withLogs logs1 = \case
+    MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
+    MakeKnownSuccess x               -> MakeKnownSuccessWithLogs logs1 x
+    MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) x
+{-# INLINE withLogs #-}
+
+instance Functor MakeKnownM where
+    fmap _ (MakeKnownFailure logs err)       = MakeKnownFailure logs err
+    fmap f (MakeKnownSuccess x)              = MakeKnownSuccess (f x)
+    fmap f (MakeKnownSuccessWithLogs logs x) = MakeKnownSuccessWithLogs logs (f x)
+    {-# INLINE fmap #-}
+
+    _ <$ MakeKnownFailure logs err       = MakeKnownFailure logs err
+    x <$ MakeKnownSuccess _              = MakeKnownSuccess x
+    x <$ MakeKnownSuccessWithLogs logs _ = MakeKnownSuccessWithLogs logs x
+    {-# INLINE (<$) #-}
+
+instance Applicative MakeKnownM where
+    pure = MakeKnownSuccess
+    {-# INLINE pure #-}
+
+    MakeKnownFailure logs err       <*> _ = MakeKnownFailure logs err
+    MakeKnownSuccess f              <*> a = fmap f a
+    MakeKnownSuccessWithLogs logs f <*> a = fmapWithLogs logs f a
+    {-# INLINE (<*>) #-}
+
+    MakeKnownFailure logs err       *> _ = MakeKnownFailure logs err
+    MakeKnownSuccess _              *> a = a
+    MakeKnownSuccessWithLogs logs _ *> a = withLogs logs a
+    {-# INLINE (*>) #-}
+
+instance Monad MakeKnownM where
+    MakeKnownFailure logs err       >>= _ = MakeKnownFailure logs err
+    MakeKnownSuccess x              >>= f = f x
+    MakeKnownSuccessWithLogs logs x >>= f = withLogs logs $ f x
+    {-# INLINE (>>=) #-}
+
+    (>>) = (*>)
+    {-# INLINE (>>) #-}
 
 -- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either KnownTypeError
+
+liftReadKnownM :: ReadKnownM a -> MakeKnownM a
+liftReadKnownM (Left err) = MakeKnownFailure mempty err
+liftReadKnownM (Right x)  = MakeKnownSuccess x
+{-# INLINE liftReadKnownM #-}
 
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
@@ -253,15 +307,12 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
-makeKnownRun
-    :: MakeKnownIn uni val a
-    => a -> (ReadKnownM val, DList Text)
-makeKnownRun = runEmitter . runExceptT . makeKnown
-{-# INLINE makeKnownRun #-}
-
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
-makeKnownOrFail = reoption . fst . makeKnownRun
+makeKnownOrFail x = case makeKnown x of
+    MakeKnownFailure _ _           -> EvaluationFailure
+    MakeKnownSuccess val           -> EvaluationSuccess val
+    MakeKnownSuccessWithLogs _ val -> EvaluationSuccess val
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
@@ -274,7 +325,7 @@ readKnownSelf val = either (throwKnownTypeErrorWithCause val) pure $ readKnown v
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = throwing_ _EvaluationFailure
+    makeKnown EvaluationFailure     = MakeKnownFailure mempty KnownTypeEvaluationFailure
     makeKnown (EvaluationSuccess x) = makeKnown x
     {-# INLINE makeKnown #-}
 
@@ -291,7 +342,8 @@ instance
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown = lift >=> makeKnown
+    makeKnown a = case runEmitter a of
+        (x, logs) -> withLogs logs $ makeKnown x
     {-# INLINE makeKnown #-}
 
 instance

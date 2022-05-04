@@ -104,8 +104,8 @@ data UnliftingMode
 -- instantiating '_broToExF' with a cost model to get the costing function for the builtin.
 data BuiltinRuntimeOptions n val cost = BuiltinRuntimeOptions
     { _broRuntimeScheme :: RuntimeScheme n
-    , _broImmediateF    :: ToRuntimeDenotationType val n
-    , _broDeferredF     :: ToRuntimeDenotationType val n
+    , _broImmediateF    :: ~(ToRuntimeDenotationType val n)
+    , _broDeferredF     :: ~(ToRuntimeDenotationType val n)
     , _broToExF         :: cost -> ToCostingType n
     }
 

@@ -55,7 +55,7 @@ prop_builtinsDon'tThrow bn = property $ do
     mbErr <-
         liftIO $
             catch
-                (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args)
+                (($> Nothing) . evaluate $ eval args)
                 (pure . pure)
     whenJust mbErr $ \(e :: SomeException) -> do
         annotate "Builtin function evaluation failed"
@@ -79,7 +79,7 @@ prop_builtinsDon'tThrow bn = property $ do
             MakeKnownM Term
         go sch f args = case (sch, args) of
             (RuntimeSchemeArrow sch', a : as) -> do
-                res <- liftEither (f a)
+                res <- liftReadKnownM (f a)
                 go sch' res as
             (RuntimeSchemeResult, []) -> f
             (RuntimeSchemeAll sch', _) -> go sch' f args
