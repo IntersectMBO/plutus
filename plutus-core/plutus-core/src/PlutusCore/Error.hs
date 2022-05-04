@@ -86,10 +86,10 @@ data TypeError term uni fun ann
     = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
     | TypeMismatch ann
         term
-        -- | Expected type
         (Type TyName uni ())
-        -- | Actual type
+        -- ^ Expected type
         (Normalized (Type TyName uni ()))
+        -- ^ Actual type
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
     | UnknownBuiltinFunctionE ann fun
