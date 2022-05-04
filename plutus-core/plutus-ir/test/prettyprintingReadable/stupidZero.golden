@@ -1,8 +1,9 @@
 letrec data Nat | match_Nat where
          Zero : Nat
          Suc : Nat -> Nat
-in let !three : Nat = Suc (Suc (Suc Zero))
-   in letrec !stupidZero : Nat -> Nat
-               = \(n : Nat) ->
-                   match_Nat n {Nat} Zero (\(pred : Nat) -> stupidZero pred)
-      in stupidZero three
+in
+let !three : Nat = Suc (Suc (Suc Zero)) in
+letrec !stupidZero : Nat -> Nat
+         = \(n : Nat) ->
+             match_Nat n {Nat} Zero (\(pred : Nat) -> stupidZero pred)
+in stupidZero three

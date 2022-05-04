@@ -54,6 +54,13 @@ viewLam t@LamAbs{} = Just (go t)
         go t                = ([], t)
 viewLam _          = Nothing
 
+-- | Split a let into a sequence of lets and its remaining body
+viewLet :: Term tyname name uni fun ann -> Maybe ([(Recursivity, [Binding tyname name uni fun ann])], Term tyname name uni fun ann)
+viewLet t@Let{} = Just (go t)
+  where go (Let _ r bs b) = first ((r, toList bs):) $ go b
+        go t              = ([], t)
+viewLet _       = Nothing
+
 type PrettyConstraints configName tyname name uni fun =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
@@ -115,15 +122,20 @@ instance PrettyConstraints configName tyname name uni fun
         Error _ ty             ->
             compoundDocM juxtFixity $ \prettyIn ->
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
-        Let _ rec binds t         ->
+        (viewLet -> Just (lets, body)) ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
-                    prec | rec == NonRec = ""
-                         | otherwise     = "rec"
-                -- Lay out let-bindings in a standard layout-sensitive way
-                in align $ sep [ "let" <> prec <+> align (vcatHard (prettyBot <$> toList binds))
-                               , "in" <+> prettyBot t
-                               ]
+                    prec NonRec = ""
+                    prec _      = "rec"
+                -- Lay out let-bindings in a layout-sensitive way
+                --
+                -- let !x : t = a
+                -- in
+                -- let !y : t = b
+                -- in foo x y
+                in align (sep [ sep ["let" <> prec r <+> align (vcatHard (prettyBot <$> binds)), "in"]
+                              | (r, binds) <- lets ]) <+> prettyBot body
+        Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
 
 instance PrettyConstraints configName tyname name uni fun
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where
