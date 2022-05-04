@@ -86,7 +86,9 @@ data TypeError term uni fun ann
     = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
     | TypeMismatch ann
         term
+        -- | Expected type
         (Type TyName uni ())
+        -- | Actual type
         (Normalized (Type TyName uni ()))
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
@@ -234,4 +236,3 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
-
