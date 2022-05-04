@@ -41,7 +41,9 @@ msToPs = ceiling . (1e6 *)
 
 -- TODO some generics magic
 -- Mentioned in CostModel.md. Change here, change there.
--- The names of the models in R
+-- The names of the models in R.
+-- If you get one of these wrong you'll probably get a message saying
+-- 'parse error (not enough input) at ""'.
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger               = "addIntegerModel"
@@ -444,19 +446,19 @@ blake2b cpuModelR = do
 -- get it to work with a three-argument costing function.
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 verifySignature cpuModelR = do
-  cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInX cpuModelR
+  cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInY cpuModelR
   let memModel =  ModelThreeArgumentsConstantCost 10
   pure $ CostingFun cpuModel memModel
   {- The CPU model is wrong here, but not in the way that it may appear to be.
-     We're reading a model for X but treating it as a function of Z.  This is
-     partially correct because the benchmark results only record data for the
-     message size, and so R has to treat it as an X value.  However, we should
-     really be modelling it as a function of Y, since that's the 'msg' parameter
-     of the verifySignature function.  So above it should say
+     We're reading a model for Y but treating it as a function of Z. This is
+     because the model was accidentally based on the size of the third argument,
+     which is a 64-byte signature.  However, we should really be modelling it as
+     a function of Y, since that's the 'message' parameter of the
+     verifySignature function.  So above it should say
 
-        ModelThreeArgumentsLinearInY <$> readModelLinearInX cpuModelR.
+        ModelThreeArgumentsLinearInY <$> readModelLinearInY cpuModelR.
 
-     To recapitulate, R is supplying us with a reasonabe model for execution
+     To recapitulate, R is supplying us with a reasonable model for execution
      time in terms of message size, but we're feeding that model constant inputs
      (the size of the signature, 64 bytes/8 words) instead of the size of the
      signature that we're verifying.  Luckily we can get away with this.  The
@@ -465,7 +467,9 @@ verifySignature cpuModelR = do
      code is very fast.  The Z-based cost function returns a constant cost since
      the size of the third argument is constant; we should be using a Y-based
      function instead, but that would give similar results and we're not
-     undercharging siginficantly.
+     undercharging siginficantly.  To fix this we need to change the shape of
+     the model from "linear_in_z" to "linear_in_y", but that's something we need
+     to be careful about: see SCP-3038.
    -}
 
 
