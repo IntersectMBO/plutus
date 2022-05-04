@@ -75,6 +75,14 @@ makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8*n)))
 makeSizedByteStrings :: H.Seed -> [Int] -> [ByteString]
 makeSizedByteStrings seed l = map (makeSizedByteString seed) l
 
+-- Create a list containing m bytestrings of length n (also terrible)
+listOfSizedByteStrings :: Int -> Int -> [ByteString]
+listOfSizedByteStrings m n = unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.singleton n))
+
+-- Create a list containing m bytestrings of random lengths
+listOfByteStrings :: Int -> [ByteString]
+listOfByteStrings m = unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.linear 0 10000))
+
 
 ---------------- Strings (Hedgehog) ----------------
 

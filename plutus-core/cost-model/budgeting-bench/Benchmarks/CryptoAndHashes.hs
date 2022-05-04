@@ -34,25 +34,19 @@ benchByteStringOneArgOp name =
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
----------------- Verify signature ----------------
+---------------- Signature verification ----------------
 
 -- For VerifySignature, for speed purposes it shouldn't matter if the signature
 -- and public key are correct as long as they're the correct sizes (256 bits/32
 -- bytes for keys, 512 bytes/64 bits for signatures).
-pubKey :: BS.ByteString
-pubKey = genSample seedB (G.bytes (R.singleton 32))
 
-sig :: BS.ByteString
-sig = genSample seedB (G.bytes (R.singleton 64))
-
--- The sizes of the key and the signature are fixed (32 and 64 bytes) so we don't include
--- them in the benchmark name.  However, in models.R we still have to remove the overhead
--- for a three-argument function.
 benchVerifySignature :: Benchmark
 benchVerifySignature =
-    bgroup (show name) $ fmap mkBM (bigByteStrings seedA)
+    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
            where name = VerifySignature
-                 mkBM b = benchDefault (showMemoryUsage b) $ mkApp3 name [] pubKey b sig
+                 pubkeys    = listOfSizedByteStrings 50 32
+                 messages   = listOfByteStrings      50     -- or perhaps a list of bytestrings of increasing length?
+                 signatures = listOfSizedByteStrings 50 64
 -- TODO: this seems suspicious.  The benchmark results seem to be pretty much
 -- constant (a few microseconds) irrespective of the size of the input, but I'm
 -- pretty certain that you need to look at every byte of the input to verify the
