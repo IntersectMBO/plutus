@@ -22,6 +22,8 @@ import PlutusPrelude
 import Prettyprinter
 import Prettyprinter.Custom
 
+import Data.Default.Class
+
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
 -- | Pretty-print something with the Pir prettyprinter settings.
@@ -29,7 +31,7 @@ prettyPirReadable :: PrettyPir a => a -> Doc ann
 prettyPirReadable = prettyBy prettyConfigReadable
   -- Note, for now this is just a simple default setting. We may want to add more complicated
   -- settings in the future.
-  where prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName ShowKindsYes
+  where prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
 
 -- | Split an application into its (possible) head and arguments (either types or term)
 viewApp :: Term tyname name uni fun ann
@@ -95,7 +97,7 @@ instance PrettyConstraints configName tyname name uni fun
         (viewTyAbs -> Just (args, body)) ->
             withPrettyAt ToTheRight botFixity $ \ prettyBot -> do
                 let pBody = prettyBot body
-                pBinds <- sequence [ prettyM (TyVarDecl () a (() <$ k)) | (a, k) <- args]
+                pBinds <- sequence [ prettyM (TyVarDecl () a (void k)) | (a, k) <- args]
                 -- See comment below about laying out lambdas
                 encloseM binderFixity $ ("/\\" <> align (fillSep pBinds) <+> "->") <?> pBody
         TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
@@ -179,11 +181,12 @@ instance PrettyReadableBy configName tyname
     TyVarDecl _ x k -> do
       showKinds <- view $ prettyConfig . pcrShowKinds
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
-        case k of
-          Type _ -> return $ prettyBot x
-          _ | ShowKindsYes <- showKinds ->
-                  encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
-            | otherwise -> return $ prettyBot x
+        case showKinds of
+          ShowKindsYes -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
+          ShowKindsNonType -> case k of
+            Type{} -> return $ prettyBot x
+            _      -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
+          ShowKindsNo -> return $ prettyBot x
 
 instance PrettyConstraints configName tyname name uni fun
           => PrettyBy (PrettyConfigReadable configName) (VarDecl tyname name uni fun ann) where
