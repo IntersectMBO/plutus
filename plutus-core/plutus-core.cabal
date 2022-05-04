@@ -114,6 +114,7 @@ library
         PlutusIR.Core.Instance
         PlutusIR.Core.Instance.Flat
         PlutusIR.Core.Instance.Pretty
+        PlutusIR.Core.Instance.Pretty.Readable
         PlutusIR.Core.Instance.Scoping
         PlutusIR.Core.Plated
         PlutusIR.Core.Type
@@ -418,6 +419,7 @@ test-suite plutus-core-test
         template-haskell -any,
         th-lift-instances -any,
         th-utilities -any,
+        data-default-class -any,
 
 test-suite plutus-ir-test
     import: lang

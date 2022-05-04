@@ -36,6 +36,8 @@ import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.ConfigName
 import PlutusCore.Pretty.Readable
 
+import Data.Default.Class
+
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors
     = CondensedErrorsYes
@@ -105,14 +107,14 @@ debugPrettyConfigPlcClassic opts =
 defPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 defPrettyConfigPlcReadable opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable defPrettyConfigName ShowKindsYes
+        topPrettyConfigReadable defPrettyConfigName def
 
 -- | The 'PrettyConfigPlc' used for debugging and readability:
 -- use the refined view and print 'Unique's, but not name attachments.
 debugPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 debugPrettyConfigPlcReadable opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable debugPrettyConfigName ShowKindsYes
+        topPrettyConfigReadable debugPrettyConfigName def
 
 -- | Pretty-print a PLC value in the default mode using the classic view.
 prettyPlcClassicDef :: PrettyPlc a => a -> Doc ann

@@ -35,6 +35,8 @@ import Data.Text.IO qualified as T
 
 import PlutusCore.Error (ParserErrorBundle)
 
+import Prettyprinter
+import Prettyprinter.Render.Text
 
 instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
@@ -87,6 +89,9 @@ withGoldenFileM name op = do
 goldenPir :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
+goldenPirDoc :: (a -> Doc ann) -> Parser a -> String -> TestNested
+goldenPirDoc op = goldenPirDocM (return . op)
+
 goldenPirM :: forall a b . Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
     where
@@ -98,6 +103,16 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
             either (return . T.pack . show) (fmap display . op)
                          . parseTxt
 
+goldenPirDocM :: forall a ann. (a -> IO (Doc ann)) -> Parser a -> String -> TestNested
+goldenPirDocM op parser name = withGoldenFileM name parseOrError
+    where
+        parseOrError :: T.Text -> IO T.Text
+        parseOrError =
+            let parseTxt :: T.Text -> Either ParserErrorBundle a
+                parseTxt txt = runQuoteT $ parse parser name txt
+            in
+            either (return . T.pack . show) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
+                         . parseTxt
 
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
