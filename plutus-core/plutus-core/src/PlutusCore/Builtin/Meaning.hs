@@ -172,12 +172,12 @@ instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val 
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = makeKnown
+    toImmediateF = Lazy . makeKnown
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftEither'.
-    toDeferredF getRes = liftEither getRes >>= makeKnown
+    toDeferredF getRes = Lazy $ liftEither getRes >>= makeKnown
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.

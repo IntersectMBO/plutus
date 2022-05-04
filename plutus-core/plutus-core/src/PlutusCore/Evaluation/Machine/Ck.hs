@@ -68,7 +68,7 @@ evalBuiltinApp
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
     RuntimeSchemeResult -> do
-        let (errOrRes, logs) = runEmitter $ runExceptT getX
+        let (errOrRes, logs) = runEmitter $ runExceptT $ unLazy getX
         emitCkM logs
         case errOrRes of
             Left err  -> throwKnownTypeErrorWithCause term err

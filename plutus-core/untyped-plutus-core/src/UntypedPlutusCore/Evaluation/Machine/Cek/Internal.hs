@@ -565,7 +565,7 @@ evalBuiltinApp
 evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = runEmitter $ runExceptT getX
+        let !(errOrRes, logs) = runEmitter $ runExceptT $ unLazy getX
         ?cekEmitter logs
         case errOrRes of
             Left err  -> throwKnownTypeErrorWithCause term err
