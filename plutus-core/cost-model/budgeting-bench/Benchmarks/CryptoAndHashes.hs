@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Benchmarks.CryptoAndHashes (makeBenchmarks) where
 
 import Common
@@ -12,26 +10,18 @@ import Data.ByteString qualified as BS
 import System.Random (StdGen)
 
 import Hedgehog qualified as H
-import Hedgehog.Internal.Gen qualified as G
-import Hedgehog.Internal.Range qualified as R
 
 byteStringSizes :: [Int]
-byteStringSizes = fmap (100*) [0..100]
+byteStringSizes = fmap (100*) [0,2..98]
 
 mediumByteStrings :: H.Seed -> [BS.ByteString]
 mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 
 bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
--- Up to  800,000 bytes.
+-- Up to  784,000 bytes.
 
 --VerifySignature : check the results, maybe try with bigger inputs.
-
-
-benchByteStringOneArgOp :: DefaultFun -> Benchmark
-benchByteStringOneArgOp name =
-    bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
-           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
 ---------------- Verify signature ----------------
@@ -48,7 +38,7 @@ benchVerifySignature =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
            where name = VerifySignature
                  pubkeys    = listOfSizedByteStrings 50 32
-                 messages   = listOfByteStrings      50 -- or maybe a list of increasingly large bytestrings?
+                 messages   = bigByteStrings seedA
                  signatures = listOfSizedByteStrings 50 64
 -- TODO: this seems suspicious.  The benchmark results seem to be pretty much
 -- constant (a few microseconds) irrespective of the size of the input, but I'm
@@ -71,9 +61,14 @@ benchVerifySchnorrSecp256k1Signature =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
         where name = VerifySchnorrSecp256k1Signature
               pubkeys    = listOfSizedByteStrings 50 64
-              messages   = listOfByteStrings      50 -- or maybe a list of increasingly large bytestrings?
+              messages   = bigByteStrings seedA
               signatures = listOfSizedByteStrings 50 64
 
+
+benchByteStringOneArgOp :: DefaultFun -> Benchmark
+benchByteStringOneArgOp name =
+    bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
+           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen =  [benchVerifySignature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]
