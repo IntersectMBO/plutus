@@ -97,7 +97,7 @@ instance PrettyConstraints configName tyname name uni fun
         (viewTyAbs -> Just (args, body)) ->
             withPrettyAt ToTheRight botFixity $ \ prettyBot -> do
                 let pBody = prettyBot body
-                pBinds <- sequence [ prettyM (TyVarDecl () a (void k)) | (a, k) <- args]
+                pBinds <- for args $ \(a, k) -> prettyM $ TyVarDecl () a (void k)
                 -- See comment below about laying out lambdas
                 encloseM binderFixity $ ("/\\" <> align (fillSep pBinds) <+> "->") <?> pBody
         TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
