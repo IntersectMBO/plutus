@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Core.Instance.Pretty.Readable () where
+module PlutusCore.Core.Instance.Pretty.Readable (typeBinderDocM) where
 
 import PlutusPrelude
 
@@ -34,6 +34,9 @@ typeBinderDocM k = do
     withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         let prettyBind name kind = case showKinds of
                 ShowKindsYes -> parens $ prettyBot name <+> "::" <+> prettyBot kind
+                ShowKindsNonType -> case kind of
+                  Type{} -> prettyBot name
+                  _      -> parens $ prettyBot name <+> "::" <+> prettyBot kind
                 ShowKindsNo  -> prettyBot name
         encloseM binderFixity $ k prettyBind prettyBot
 

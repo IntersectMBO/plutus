@@ -21,10 +21,8 @@ bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
 
---VerifySignature : check the results, maybe try with bigger inputs.
 
-
----------------- Verify signature ----------------
+---------------- Signature verification ----------------
 
 -- Signature verification functions.  Wrong input sizes cause error, time should
 -- be otherwise independent of correctness/incorrectness of signature.
@@ -65,10 +63,15 @@ benchVerifySchnorrSecp256k1Signature =
               signatures = listOfSizedByteStrings 50 64
 
 
+---------------- Hashing functions ----------------
+
 benchByteStringOneArgOp :: DefaultFun -> Benchmark
 benchByteStringOneArgOp name =
     bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
+
+
+---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen =  [benchVerifySignature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]

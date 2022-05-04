@@ -19,10 +19,16 @@ import Control.Lens
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 
+import Data.Default.Class
+
 data ShowKinds
     = ShowKindsYes
+    | ShowKindsNonType
     | ShowKindsNo
     deriving stock (Show, Eq)
+
+instance Default ShowKinds where
+  def = ShowKindsNonType
 
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable

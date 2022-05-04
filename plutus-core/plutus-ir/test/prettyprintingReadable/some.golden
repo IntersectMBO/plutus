@@ -1,0 +1,3 @@
+let data (Some :: (* -> *) -> *) (f :: * -> *) | match_Some where
+      MkSome : all a. f a -> Some f
+in /\a -> \(x : a) -> x
