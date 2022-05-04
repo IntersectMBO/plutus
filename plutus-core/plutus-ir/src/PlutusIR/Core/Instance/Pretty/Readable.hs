@@ -43,16 +43,16 @@ viewApp t = go t []
     go t args              = if null args then Nothing else Just (t, args)
 
 -- | Split a type abstraction into it's possible components.
-viewTyAbs :: Term tyname name uni fun ann -> Maybe ([(tyname, Kind ann)], Term tyname name uni fun ann)
+viewTyAbs :: Term tyname name uni fun ann -> Maybe ([TyVarDecl tyname ()], Term tyname name uni fun ann)
 viewTyAbs t@TyAbs{} = Just (go t)
-  where go (TyAbs _ n k b) = first ((n, k):) $ go b
+  where go (TyAbs _ n k b) = first ((TyVarDecl () n (void k)):) $ go b
         go t               = ([], t)
 viewTyAbs _         = Nothing
 
 -- | Split a term abstraction into it's possible components.
-viewLam :: Term tyname name uni fun ann -> Maybe ([(name, Type tyname uni ann)], Term tyname name uni fun ann)
+viewLam :: Term tyname name uni fun ann -> Maybe ([VarDecl tyname name uni fun ()], Term tyname name uni fun ann)
 viewLam t@LamAbs{} = Just (go t)
-  where go (LamAbs _ n t b) = first ((n, t):) $ go b
+  where go (LamAbs _ n t b) = first ((VarDecl () n (void t)):) $ go b
         go t                = ([], t)
 viewLam _          = Nothing
 
@@ -97,7 +97,7 @@ instance PrettyConstraints configName tyname name uni fun
         (viewTyAbs -> Just (args, body)) ->
             withPrettyAt ToTheRight botFixity $ \ prettyBot -> do
                 let pBody = prettyBot body
-                pBinds <- for args $ \(a, k) -> prettyM $ TyVarDecl () a (void k)
+                pBinds <- mapM prettyM args
                 -- See comment below about laying out lambdas
                 encloseM binderFixity $ ("/\\" <> align (fillSep pBinds) <+> "->") <?> pBody
         TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
@@ -111,8 +111,7 @@ instance PrettyConstraints configName tyname name uni fun
             --    bigStartOfBody
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
-                    prettyBinds = align $ fillSep [ parens (prettyBot name <+> ":" <+> prettyBot ty)
-                                                  | (name, ty) <- args ]
+                    prettyBinds = align . fillSep . map (prettyIn ToTheLeft binderFixity) $ args
                 in ("\\" <> prettyBinds <+> "->") <?> prettyBot body
         LamAbs{}   -> error "The impossible happened. This should be covered by the `viewLam` case above."
         Unwrap _ term          ->
