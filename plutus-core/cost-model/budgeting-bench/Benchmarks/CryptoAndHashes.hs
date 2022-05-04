@@ -12,11 +12,9 @@ import Data.ByteString qualified as BS
 import System.Random (StdGen)
 
 import Hedgehog qualified as H
-import Hedgehog.Internal.Gen qualified as G
-import Hedgehog.Internal.Range qualified as R
 
 byteStringSizes :: [Int]
-byteStringSizes = fmap (100*) [0..100]
+byteStringSizes = fmap (100*) [0,2..100]
 
 mediumByteStrings :: H.Seed -> [BS.ByteString]
 mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
@@ -44,9 +42,9 @@ benchVerifySignature :: Benchmark
 benchVerifySignature =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
            where name = VerifySignature
-                 pubkeys    = listOfSizedByteStrings 50 32
-                 messages   = listOfByteStrings      50     -- or perhaps a list of bytestrings of increasing length?
-                 signatures = listOfSizedByteStrings 50 64
+                 pubkeys    = listOfSizedByteStrings 51 32
+                 messages   = bigByteStrings seedA
+                 signatures = listOfSizedByteStrings 51 64
 -- TODO: this seems suspicious.  The benchmark results seem to be pretty much
 -- constant (a few microseconds) irrespective of the size of the input, but I'm
 -- pretty certain that you need to look at every byte of the input to verify the
