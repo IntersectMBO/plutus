@@ -668,5 +668,28 @@
             "arguments": 10,
             "type": "constant_cost"
         }
+    },
+    "verifyEcdsaSecp256k1Signature": {
+        "cpu": {
+            "arguments": 87654321,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 10,
+            "type": "constant_cost"
+        }
+    },
+    "verifySchnorrSecp256k1Signature": {
+        "cpu": {
+            "arguments": {
+                "intercept": 839114,
+                "slope": 1
+            },
+            "type": "linear_in_y"
+        },
+        "memory": {
+            "arguments": 10,
+            "type": "constant_cost"
+        }
     }
 }
