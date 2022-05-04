@@ -565,9 +565,11 @@ evalBuiltinApp
     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
     => fun
     -> Term NamedDeBruijn uni fun ()
-    -> BuiltinRuntime (CekValue uni fun)
+    -> RuntimeScheme n
+    -> ToRuntimeDenotationType (CekValue uni fun) n
+    -> ToCostingType n
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
+evalBuiltinApp fun term sch getX cost = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         case getX of
@@ -576,7 +578,7 @@ evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
                 throwKnownTypeErrorWithCause term err
             MakeKnownSuccess x              -> pure x
             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    _ -> pure $ VBuiltin fun term runtime
+    _ -> pure . VBuiltin fun term $ BuiltinRuntime sch getX cost
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
@@ -683,11 +685,10 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
             RuntimeSchemeAll schK -> do
-                let runtime' = BuiltinRuntime schK f exF
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' runtime'
+                res <- evalBuiltinApp fun term' schK f exF
                 returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -725,8 +726,7 @@ enterComputeCek = computeCek (toWordArray 0) where
                     -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
-                    let runtime' = BuiltinRuntime schB y . exF $ toExMemory arg
-                    res <- evalBuiltinApp fun term' runtime'
+                    res <- evalBuiltinApp fun term' schB y . exF $ toExMemory arg
                     returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
