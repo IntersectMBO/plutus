@@ -188,8 +188,8 @@ instance Show (BuiltinRuntime (CekValue uni fun)) where
 data CekValue uni fun =
     -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
-  | VLamAbs NamedDeBruijn (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
+  | VDelay !(Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
+  | VLamAbs !NamedDeBruijn !(Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
   | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
       !fun                   -- So that we know, for what builtin we're calculating the cost.
                              -- TODO: any chance we could sneak this into 'BuiltinRuntime'
@@ -505,7 +505,7 @@ we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun)                         -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun) (Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
+    | FrameApplyArg !(CekValEnv uni fun) !(Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
