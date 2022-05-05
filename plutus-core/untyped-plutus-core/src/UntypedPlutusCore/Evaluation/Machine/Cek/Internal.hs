@@ -578,7 +578,7 @@ evalBuiltinApp fun term sch getX cost = case sch of
                 throwKnownTypeErrorWithCause term err
             MakeKnownSuccess x              -> pure x
             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    _ -> pure . VBuiltin fun term $ BuiltinRuntime sch getX cost
+    _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
