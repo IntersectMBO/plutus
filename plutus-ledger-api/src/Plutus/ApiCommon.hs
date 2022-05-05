@@ -127,7 +127,7 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
-  ((PlutusV2, ProtocolVersion 6 0), Set.fromList [
+  ((PlutusV2, ProtocolVersion 7 0), Set.fromList [
           SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
@@ -217,8 +217,8 @@ mkTermToEvaluate lv pv bs args = do
 -- so as to correctly construct the machine's parameters
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
-    -- This just changes once in version 6.0
-    if pv >= ProtocolVersion 6 0 then UnliftingDeferred else UnliftingImmediate
+    -- This just changes once in version 7.0
+    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingImmediate
 
 type DefaultMachineParameters = MachineParameters CekMachineCosts UPLC.CekValue DefaultUni DefaultFun
 
