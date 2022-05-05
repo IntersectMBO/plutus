@@ -43,11 +43,11 @@ benchVerifySignature =
 -- pretty certain that you need to look at every byte of the input to verify the
 -- signature.  If you change the size of the public key then it takes three
 -- times as long, but the 'verify' implementation checks the size and fails
--- immediately if the key or signature has the wrong size. (This is possibly due
+-- immediately if the key or signature has the wrong size. [This is possibly due
 -- to the fact that the underlying C implementation is *extremely* fast, but
 -- there's quite a bit of error handling when an argument is the wrong size.
 -- However in the latter case the program will terminate anyway, so we don't
--- care about costing it accurately.
+-- care about costing it accurately.]
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
