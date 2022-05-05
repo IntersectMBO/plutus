@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE KindSignatures  #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fforce-recomp #-}
 
 module Main (main) where
 
