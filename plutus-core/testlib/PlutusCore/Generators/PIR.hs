@@ -8,6 +8,7 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE ImportQualifiedPost   #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NumericUnderscores    #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -28,6 +29,11 @@
 module PlutusCore.Generators.PIR where
 
 import Prettyprinter
+import Prettyprinter.Custom
+
+import Text.PrettyBy
+
+import PlutusIR.Core.Instance.Pretty.Readable
 
 import Control.Applicative ((<|>))
 import Control.Arrow hiding ((<+>))
@@ -719,6 +725,13 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
 data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
   deriving stock Show
 
+instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst where
+  prettyBy ctx (InstApp ty) = prettyBy ctx ty
+  prettyBy ctx (InstArg ty) = brackets (prettyBy ctx ty)
+
+instance PrettyBy config i => PrettyBy config (NonNegative i) where
+  prettyBy ctx (NonNegative i) = prettyBy ctx i
+
 -- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
 --   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
 --   the given type for `InstArg`) at the `TyInsts`s has type `target`
@@ -749,18 +762,18 @@ typeInstTerm ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
-ceDoc :: Testable t => Doc -> t -> Property
+ceDoc :: Testable t => Doc ann -> t -> Property
 ceDoc d = counterexample (show d)
 
-letCE :: (Pretty a, Testable p) => String -> a -> (a -> p) -> Property
-letCE name x k = ceDoc (text name <+> "=" <+> pretty x) (k x)
+letCE :: (PrettyPir a, Testable p) => String -> a -> (a -> p) -> Property
+letCE name x k = ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
-forAllDoc :: (Pretty a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
-forAllDoc name g shr k = forAllShrinkBlind g shr $ \ x -> ceDoc (text name <+> "=" <+> pretty x) (k x)
+forAllDoc :: (PrettyPir a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
+forAllDoc name g shr k = forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
-notSoBad :: Pretty [a] => [a] -> Property
+notSoBad :: PrettyPir [a] => [a] -> Property
 notSoBad []  = property True
-notSoBad bad = ceDoc (pretty bad) False
+notSoBad bad = ceDoc (prettyPirReadable bad) False
 
 prop_shrinkTypeSmaller :: Property
 prop_shrinkTypeSmaller =
@@ -1509,7 +1522,7 @@ doTypeInstTermCheck ctx ty target =
        , not $ checkInst ctx x ty insts target
        ] of
     []  -> property True
-    bad -> ceDoc (pretty bad) False
+    bad -> ceDoc (prettyPirReadable bad) False
   where
     x = Name "x" (toEnum 0)
     arity (TyForall _ _ _ a) = arity a
@@ -1554,7 +1567,7 @@ prop_genWellTypedFullyApplied =
 prop_varsStats :: Property
 prop_varsStats =
   forAllDoc "_,tm"      genTypeAndTerm_ shrinkClosedTypedTerm     $ \ (_, tm) ->
-  tabulate "vars" (map (filter isAlpha . show . pretty) $ vars tm) $ property True
+  tabulate "vars" (map (filter isAlpha . show . prettyPirReadable) $ vars tm) $ property True
   where
     vars (Var _ x)        = [x]
     vars (TyInst _ a _)   = vars a
@@ -1621,7 +1634,7 @@ prop_numShrink = forAllDoc "ty,tm"   genTypeAndTerm_ (const []) $ \ (ty, tm) ->
 within' :: NFData a => Int -> a -> Bool
 within' t a = isJust $ unsafePerformIO $ timeout t (a `deepseq` pure a)
 
-letCE' :: (Pretty a, NFData a, Testable p) => Int -> String -> a -> (a -> p) -> Property
+letCE' :: (PrettyPir a, NFData a, Testable p) => Int -> String -> a -> (a -> p) -> Property
 letCE' timeout name tm cont =
   within' timeout tm ==>
     letCE name tm cont

@@ -11,6 +11,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable
   ( prettyPirReadable
+  , PrettyPir
   ) where
 
 import PlutusCore.Default.Universe
