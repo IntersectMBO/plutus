@@ -299,8 +299,8 @@ type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
-    _cekEmitterInfoEmit       :: CekEmitter uni fun  s
-    , _cekEmitterInfoGetFinal :: ST s [Text]
+    _cekEmitterInfoEmit       :: !(CekEmitter uni fun s)
+    , _cekEmitterInfoGetFinal :: !(ST s [Text])
     }
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
@@ -346,6 +346,7 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
+    -- @plutus-errors@ prevents this from being strict. Not that it matters anyway.
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
