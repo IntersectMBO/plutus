@@ -572,7 +572,7 @@ evalBuiltinApp fun term env sch getX cost = case sch of
         case errOrRes of
             Left err  -> throwKnownTypeErrorWithCause term err
             Right res -> pure res
-    _ -> pure . VBuiltin fun term env $ BuiltinRuntime sch getX cost
+    _ -> pure $! VBuiltin fun term env (BuiltinRuntime sch getX cost)
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
