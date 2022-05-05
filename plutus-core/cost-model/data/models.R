@@ -74,7 +74,7 @@ arity <- function(name) {
         "Sha2_256" = 1,
         "Sha3_256" = 1,
         "Blake2b_256" = 1,
-        "VerifySignature" = 3,
+        "VerifyEd25519Signature" = 3,
         "AppendString" = 2,
         "EqualsString" = 2,
         "EncodeUtf8" = 1,
@@ -488,13 +488,13 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    ## VerifySignature in fact takes three arguments, but the first and third
-    ## are of fixed size, so we only gather benchmarking data for different
-    ## sizes of the second argument (the "message" being signed).  This can be
-    ## very large, but the time appears to be kind of random, even up to size
-    ## 120000.
-    verifySignatureModel <- {
-        fname <- "VerifySignature"
+    ## VerifyEd25519Signature in fact takes three arguments, but the first and
+    ## third are of fixed size, so we only gather benchmarking data for
+    ## different sizes of the second argument (the "message" being signed).
+    ## This can be very large, but the time appears to be kind of random, even
+    ## up to size 120000.
+    verifyEd25519SignatureModel <- {
+        fname <- "VerifyEd25519Signature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
@@ -656,7 +656,7 @@ modelFun <- function(path) {
         sha2_256Model                 = sha2_256Model,
         sha3_256Model                 = sha3_256Model,
         blake2bModel                  = blake2bModel,
-        verifySignatureModel          = verifySignatureModel,
+        verifyEd25519SignatureModel   = verifyEd25519SignatureModel,
         appendStringModel             = appendStringModel,
         equalsStringModel             = equalsStringModel,
         encodeUtf8Model               = encodeUtf8Model,

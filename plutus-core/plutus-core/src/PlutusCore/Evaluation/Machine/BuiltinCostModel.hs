@@ -113,7 +113,7 @@ data BuiltinCostModelBase f =
        -- ^ This should really be paramBlake2b_256, but changing it might be
        -- problematic because then the names of the cost model parameters used
        -- by the ledger would change as well.
-    , paramVerifySignature          :: f ModelThreeArguments
+    , paramVerifyEd25519Signature   :: f ModelThreeArguments
     -- Strings
     , paramAppendString             :: f ModelTwoArguments
     , paramEqualsString             :: f ModelTwoArguments

@@ -303,7 +303,7 @@ main =
                     , $(genTest 1 "sha2_256")
                     , $(genTest 1 "sha3_256")
                     , $(genTest 1 "blake2b")
-                --  , $(genTest 3 "verifySignature")
+                --  , $(genTest 3 "verifyEd25519Signature")
                       -- We need to save the sizes of all three arguments for this in benching.csv: see SCP-3025.
                       -- See also the comments in CreateBuiltinCostModel.hs and SCP-3038.
 

@@ -656,7 +656,7 @@
             "type": "constant_cost"
         }
     },
-    "verifySignature": {
+    "verifyEd25519Signature": {
         "cpu": {
             "arguments": {
                 "intercept": 839114,

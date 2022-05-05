@@ -126,7 +126,7 @@ SIG sha3-256 =
   con bytestring ∷ []
   ,,
   con bytestring
-SIG verifySignature =
+SIG verifyEd25519Signature =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ con bytestring ∷ []

@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Crypto (
-  verifySignature,
+  verifyEd25519Signature,
   verifyEcdsaSecp256k1Signature,
   verifySchnorrSecp256k1Signature,
   ) where
@@ -23,13 +23,13 @@ import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.
-verifySignature
+verifyEd25519Signature
     :: Alternative f
     => BS.ByteString  -- ^ Public Key (32 bytes)
     -> BS.ByteString  -- ^ Message    (arbitrary length)
     -> BS.ByteString  -- ^ Signature  (64 bytes)
     -> f Bool
-verifySignature pubKey msg sig =
+verifyEd25519Signature pubKey msg sig =
     maybe empty pure . maybeCryptoError $
         verify
             <$> publicKey pubKey

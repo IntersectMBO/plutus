@@ -23,7 +23,7 @@ bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  800,000 bytes.
 
---VerifySignature : check the results, maybe try with bigger inputs.
+--VerifyEd25519Signature : check the results, maybe try with bigger inputs.
 
 
 benchByteStringOneArgOp :: DefaultFun -> Benchmark
@@ -34,14 +34,14 @@ benchByteStringOneArgOp name =
 
 ---------------- Signature verification ----------------
 
--- For VerifySignature, for speed purposes it shouldn't matter if the signature
+-- For VerifyEd25519Signature, for speed purposes it shouldn't matter if the signature
 -- and public key are correct as long as they're the correct sizes (256 bits/32
 -- bytes for keys, 512 bytes/64 bits for signatures).
 
-benchVerifySignature :: Benchmark
-benchVerifySignature =
+benchVerifyEd25519Signature :: Benchmark
+benchVerifyEd25519Signature =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
-           where name = VerifySignature
+           where name = VerifyEd25519Signature
                  pubkeys    = listOfSizedByteStrings 51 32
                  messages   = bigByteStrings seedA
                  signatures = listOfSizedByteStrings 51 64
@@ -54,7 +54,7 @@ benchVerifySignature =
 
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =  [benchVerifySignature]
+makeBenchmarks _gen =  [benchVerifyEd25519Signature]
                     <> (benchByteStringOneArgOp <$> [ Sha2_256, Sha3_256, Blake2b_256 ])
 
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
