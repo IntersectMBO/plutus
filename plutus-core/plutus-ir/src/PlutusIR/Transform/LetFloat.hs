@@ -437,7 +437,8 @@ An extreme alternative implementation is to treat *all strict* bindings as unflo
 -}
 hasNoEffects :: PLC.ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Bool
 hasNoEffects = \case
-    TypeBind{}               -> True
+    -- See Note [Floating type-lets]
+    TypeBind{}               -> False
     DatatypeBind{}           -> True
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
@@ -477,4 +478,18 @@ The end result is that no nested, floatable let will appear anymore inside anoth
 (e.g. invalid output:  let x=1+(let y=3 in y) in ...)
 *EXCEPT* if the nested let is intercepted by a lam/Lam anchor (depends on a lam/Lam that is located inside the parent-let's rhs)
 e.g. valid output: let x= \z -> (let y = 3+z in y) in ...
+-}
+
+{- Note [Floating type-lets]
+
+In general, type-lets cannot be floated because of opaqueness. For example, it is unsound to turn
+
+(let a = x in \(b : a) t) (y : x)
+
+into
+
+let a = x in (\(b : a) t) (y : x)
+
+Because type-lets are opaque, this doesn't type check - the formal parameter has type `a` while
+`y` has type `x`.
 -}
