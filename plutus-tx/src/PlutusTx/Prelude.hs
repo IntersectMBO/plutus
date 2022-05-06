@@ -67,6 +67,8 @@ module PlutusTx.Prelude (
     sha2_256,
     sha3_256,
     verifySignature,
+    verifyEcdsaSecp256k1Signature,
+    verifySchnorrSecp256k1Signature,
     -- * Rational numbers
     Rational,
     unsafeRatio,
