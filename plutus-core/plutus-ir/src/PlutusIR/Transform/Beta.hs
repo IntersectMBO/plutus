@@ -10,6 +10,7 @@ module PlutusIR.Transform.Beta (
 import PlutusIR
 import PlutusIR.Core.Type
 
+import Control.Lens (each, transformOnOf)
 import Control.Lens.Setter ((%~))
 import Data.Function ((&))
 import Data.List.NonEmpty qualified as NE
@@ -124,9 +125,14 @@ beta
 beta = \case
     -- See Note [Multi-beta]
     -- This maybe isn't the best annotation for this term, but it will do.
-    (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs (beta t)
+    (extractBindings -> Just (bs, t)) ->
+        Let
+            (termAnn t)
+            NonRec
+            (transformOnOf (each . bindingSubterms) termSubterms beta bs)
+            (beta t)
     -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
     TyInst _ (TyAbs a n k body) tyArg ->
-      let b = TypeBind a (TyVarDecl a n k) tyArg
-       in Let (termAnn body) NonRec (pure b) (beta body)
-    t                                 -> t & termSubterms %~ beta
+        let b = TypeBind a (TyVarDecl a n k) tyArg
+         in Let (termAnn body) NonRec (pure b) (beta body)
+    t -> t & termSubterms %~ beta
