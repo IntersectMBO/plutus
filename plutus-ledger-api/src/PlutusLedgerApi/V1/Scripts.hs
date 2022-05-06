@@ -226,7 +226,11 @@ instance Haskell.Show StakeValidator where
 -- | Script runtime representation of a 28 byte hash.
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
@@ -234,7 +238,11 @@ newtype ScriptHash =
 -- | Script runtime representation of a 28 byte hash.
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
@@ -242,7 +250,11 @@ newtype ValidatorHash =
 -- | Script runtime representation of a 32 byte hash.
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
@@ -250,7 +262,11 @@ newtype DatumHash =
 -- | Script runtime representation of a 32 byte hash.
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
@@ -258,7 +274,11 @@ newtype RedeemerHash =
 -- | Script runtime representation of a 28 byte hash.
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
@@ -266,7 +286,11 @@ newtype MintingPolicyHash =
 -- | Script runtime representation of a 28 byte hash.
 newtype StakeValidatorHash =
     StakeValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)

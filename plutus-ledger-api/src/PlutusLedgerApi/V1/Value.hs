@@ -73,7 +73,11 @@ import Prettyprinter.Extras
 -- ByteString representing the currency.
 -- Will be empty for Ada, 28 byte for PolicyId.
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
@@ -101,6 +105,7 @@ newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving anyclass (NFData)
     deriving Pretty via (PrettyShow TokenName)
 
+-- | UTF-8 encoding. Doesn't verify length.
 instance IsString TokenName where
     fromString = fromText . Text.pack
 
