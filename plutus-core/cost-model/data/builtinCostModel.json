@@ -668,7 +668,7 @@
             "arguments": 10,
             "type": "constant_cost"
         }
-    }
+    },
     "verifyEcdsaSecp256k1Signature": {
         "cpu": {
             "arguments": 28196107,
@@ -691,7 +691,5 @@
             "arguments": 10,
             "type": "constant_cost"
         }
-    },
-    "verifySignature": {
->>>>>>> master
+    }
 }

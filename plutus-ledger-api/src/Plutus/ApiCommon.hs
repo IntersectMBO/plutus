@@ -128,8 +128,7 @@ builtinsIntroducedIn = Map.fromList [
           MkPairData, MkNilData, MkNilPairData
           ]),
   ((PlutusV2, ProtocolVersion 7 0), Set.fromList [
-          SerialiseData, VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature
-          -- WHAT DO WE DO HERE regarding verifySignature -> verifyEd25519Signature?
+          SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
 

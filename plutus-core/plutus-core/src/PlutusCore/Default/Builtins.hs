@@ -67,7 +67,7 @@ data DefaultFun
     | Sha2_256
     | Sha3_256
     | Blake2b_256
-    | VerifyEd25519Signature
+    | VerifyEd25519Signature  -- formerly verifySignature
     | VerifyEcdsaSecp256k1Signature
     | VerifySchnorrSecp256k1Signature
     -- Strings
