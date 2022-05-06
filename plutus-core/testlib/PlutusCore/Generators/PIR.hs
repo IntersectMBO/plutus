@@ -69,9 +69,6 @@ import System.Timeout
 import Test.QuickCheck
 import Text.Printf
 
-debug :: Bool
-debug = False
-
 data GenEnv = GenEnv
   { geSize               :: Int
   , geHelp               :: Maybe (Term TyName Name DefaultUni DefaultFun ())   -- help : ∀ a. a
@@ -630,6 +627,7 @@ normalizeTy ty = case runQuoteT $ normalizeType ty of
   Left _                 -> error "normalizeTy"
   Right (Normalized ty') -> ty'
 
+-- TODO: this probably exists somewhere?
 unifyType :: Map TyName (Kind ())
           -> Set TyName
           -> Map TyName (Type TyName DefaultUni ())
@@ -950,9 +948,10 @@ genTermOfType ty = snd <$> genTerm (Just ty)
 
 genTerm :: Maybe (Type TyName DefaultUni ())
         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
-genTerm mty = checkInvariant =<< do
+genTerm mty = do
   vars <- asks geTerms
   esc <- asks geEscaping
+  -- Prefer to generate things that bind variables until we have "enough" (20...)
   let (letF, lamF, varAppF) = if Map.size vars < 20
                               then (30, 50, 10)
                               else (10, 30, 40)
@@ -970,30 +969,11 @@ genTerm mty = checkInvariant =<< do
                   [ (1, genTerm . Just =<< genType Star) | isNothing mty ] ++
                   [ (10, genDatLet mty) | YesEscape <- [esc] ] ++
                   [ (10, genIfTrace) | isNothing mty ] ++
-                  [ (10, genTraceLoc mty) ] ++
-                  []
+                  [ (10, genTraceLoc mty) ]
   where
     -- TODO: make this actualy work, these strings don't parse as locations
     mkLoc :: String -> Int -> Int -> Int -> Int -> String
     mkLoc file sl sc el ec = file ++ " " ++ show sl ++ " " ++ show sc ++ " " ++ show el ++ " " ++ show ec
-
-    checkInvariant p | not debug = pure p
-    checkInvariant (ty, trm) = do
-      tyctx <- asks geTypes
-      trmctx <- asks geTerms
-      -- Check that `mty` is well-scoped
-      let unsMty = Set.mapMonotonic (nameUnique . unTyName) $ foldMap fvType mty
-      uns <- getUniques
-      when (not $ unsMty `Set.isSubsetOf` uns) $
-        error "genTerm - scope"
-      -- Check that trm :: ty
-      help <- asks geHelp
-      let trmctx' = case help of
-            Just (Var _ helpVar) -> Map.insert helpVar helpType trmctx
-            _                    -> trmctx
-      if typeCheckTermInContext tyctx trmctx' trm ty
-      then return (ty, trm)
-      else error "genTerm - type"
 
     genTraceLoc mty = do
       (ty, tm) <- noEscape $ genTerm mty
@@ -1011,9 +991,8 @@ genTerm mty = checkInvariant =<< do
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
     funTypeView _                                   = Nothing
-    -- TODO: generate letrec
-    -- TODO: generate datatype, term lets
 
+    -- Generate builtin ifthenelse and trace calls
     genIfTrace = do
       a <- genFreshTyName "a"
       let a' = TyVar () a
@@ -1046,6 +1025,7 @@ genTerm mty = checkInvariant =<< do
         return $ (ty, Let () (if rec then Rec else NonRec) (DatatypeBind () dat :| []) tm)
 
     genLet mty = do
+      -- How many terms to bind
       n   <- liftGen $ choose (1, 3)
       let vec :: GenTm a -> GenTm [a]
           vec = sequence . replicate n
