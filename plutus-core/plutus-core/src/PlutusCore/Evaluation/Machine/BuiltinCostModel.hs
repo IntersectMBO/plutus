@@ -91,71 +91,74 @@ data BuiltinCostModelBase f =
     BuiltinCostModelBase
     {
       -- Integers
-      paramAddInteger               :: f ModelTwoArguments
-    , paramSubtractInteger          :: f ModelTwoArguments
-    , paramMultiplyInteger          :: f ModelTwoArguments
-    , paramDivideInteger            :: f ModelTwoArguments
-    , paramQuotientInteger          :: f ModelTwoArguments
-    , paramRemainderInteger         :: f ModelTwoArguments
-    , paramModInteger               :: f ModelTwoArguments
-    , paramEqualsInteger            :: f ModelTwoArguments
-    , paramLessThanInteger          :: f ModelTwoArguments
-    , paramLessThanEqualsInteger    :: f ModelTwoArguments
+      paramAddInteger                      :: f ModelTwoArguments
+    , paramSubtractInteger                 :: f ModelTwoArguments
+    , paramMultiplyInteger                 :: f ModelTwoArguments
+    , paramDivideInteger                   :: f ModelTwoArguments
+    , paramQuotientInteger                 :: f ModelTwoArguments
+    , paramRemainderInteger                :: f ModelTwoArguments
+    , paramModInteger                      :: f ModelTwoArguments
+    , paramEqualsInteger                   :: f ModelTwoArguments
+    , paramLessThanInteger                 :: f ModelTwoArguments
+    , paramLessThanEqualsInteger           :: f ModelTwoArguments
     -- Bytestrings
-    , paramAppendByteString         :: f ModelTwoArguments
-    , paramConsByteString           :: f ModelTwoArguments
-    , paramSliceByteString          :: f ModelThreeArguments
-    , paramLengthOfByteString       :: f ModelOneArgument
-    , paramIndexByteString          :: f ModelTwoArguments
-    , paramEqualsByteString         :: f ModelTwoArguments
-    , paramLessThanByteString       :: f ModelTwoArguments
-    , paramLessThanEqualsByteString :: f ModelTwoArguments
+    , paramAppendByteString                :: f ModelTwoArguments
+    , paramConsByteString                  :: f ModelTwoArguments
+    , paramSliceByteString                 :: f ModelThreeArguments
+    , paramLengthOfByteString              :: f ModelOneArgument
+    , paramIndexByteString                 :: f ModelTwoArguments
+    , paramEqualsByteString                :: f ModelTwoArguments
+    , paramLessThanByteString              :: f ModelTwoArguments
+    , paramLessThanEqualsByteString        :: f ModelTwoArguments
     -- Cryptography and hashes
-    , paramSha2_256                 :: f ModelOneArgument
-    , paramSha3_256                 :: f ModelOneArgument
-    , paramBlake2b                  :: f ModelOneArgument
+    , paramSha2_256                        :: f ModelOneArgument
+    , paramSha3_256                        :: f ModelOneArgument
+    , paramBlake2b                         :: f ModelOneArgument
        -- ^ This should really be paramBlake2b_256, but changing it might be
        -- problematic because then the names of the cost model parameters used
        -- by the ledger would change as well.
-    , paramVerifySignature          :: f ModelThreeArguments
+    , paramVerifySignature                 :: f ModelThreeArguments
+    , paramVerifyEcdsaSecp256k1Signature   :: f ModelThreeArguments
+    , paramVerifySchnorrSecp256k1Signature :: f ModelThreeArguments
+
     -- Strings
-    , paramAppendString             :: f ModelTwoArguments
-    , paramEqualsString             :: f ModelTwoArguments
-    , paramEncodeUtf8               :: f ModelOneArgument
-    , paramDecodeUtf8               :: f ModelOneArgument
+    , paramAppendString                    :: f ModelTwoArguments
+    , paramEqualsString                    :: f ModelTwoArguments
+    , paramEncodeUtf8                      :: f ModelOneArgument
+    , paramDecodeUtf8                      :: f ModelOneArgument
     -- Bool
-    , paramIfThenElse               :: f ModelThreeArguments
+    , paramIfThenElse                      :: f ModelThreeArguments
     -- Unit
-    , paramChooseUnit               :: f ModelTwoArguments
+    , paramChooseUnit                      :: f ModelTwoArguments
     -- Tracing
-    , paramTrace                    :: f ModelTwoArguments
+    , paramTrace                           :: f ModelTwoArguments
     -- Pairs
-    , paramFstPair                  :: f ModelOneArgument
-    , paramSndPair                  :: f ModelOneArgument
+    , paramFstPair                         :: f ModelOneArgument
+    , paramSndPair                         :: f ModelOneArgument
     -- Lists
-    , paramChooseList               :: f ModelThreeArguments
-    , paramMkCons                   :: f ModelTwoArguments
-    , paramHeadList                 :: f ModelOneArgument
-    , paramTailList                 :: f ModelOneArgument
-    , paramNullList                 :: f ModelOneArgument
+    , paramChooseList                      :: f ModelThreeArguments
+    , paramMkCons                          :: f ModelTwoArguments
+    , paramHeadList                        :: f ModelOneArgument
+    , paramTailList                        :: f ModelOneArgument
+    , paramNullList                        :: f ModelOneArgument
     -- Data
-    , paramChooseData               :: f ModelSixArguments
-    , paramConstrData               :: f ModelTwoArguments
-    , paramMapData                  :: f ModelOneArgument
-    , paramListData                 :: f ModelOneArgument
-    , paramIData                    :: f ModelOneArgument
-    , paramBData                    :: f ModelOneArgument
-    , paramUnConstrData             :: f ModelOneArgument
-    , paramUnMapData                :: f ModelOneArgument
-    , paramUnListData               :: f ModelOneArgument
-    , paramUnIData                  :: f ModelOneArgument
-    , paramUnBData                  :: f ModelOneArgument
-    , paramEqualsData               :: f ModelTwoArguments
+    , paramChooseData                      :: f ModelSixArguments
+    , paramConstrData                      :: f ModelTwoArguments
+    , paramMapData                         :: f ModelOneArgument
+    , paramListData                        :: f ModelOneArgument
+    , paramIData                           :: f ModelOneArgument
+    , paramBData                           :: f ModelOneArgument
+    , paramUnConstrData                    :: f ModelOneArgument
+    , paramUnMapData                       :: f ModelOneArgument
+    , paramUnListData                      :: f ModelOneArgument
+    , paramUnIData                         :: f ModelOneArgument
+    , paramUnBData                         :: f ModelOneArgument
+    , paramEqualsData                      :: f ModelTwoArguments
     -- Misc constructors
-    , paramMkPairData               :: f ModelTwoArguments
-    , paramMkNilData                :: f ModelOneArgument
-    , paramMkNilPairData            :: f ModelOneArgument
-    , paramSerialiseData            :: f ModelOneArgument
+    , paramMkPairData                      :: f ModelTwoArguments
+    , paramMkNilData                       :: f ModelOneArgument
+    , paramMkNilPairData                   :: f ModelOneArgument
+    , paramSerialiseData                   :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
