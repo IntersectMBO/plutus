@@ -428,7 +428,11 @@ ifRec r f a = case r of
     NonRec -> a
 
 floatable :: PLC.ToBuiltinMeaning uni fun => BindingGrp tyname name uni fun a -> Bool
-floatable (BindingGrp _ _ bs) = all hasNoEffects bs
+floatable (BindingGrp _ _ bs) =
+    all hasNoEffects bs
+        &&
+        -- See Note [Floating type-lets]
+        none isTypeBind bs
 
 {-| Returns if a binding has absolutely no effects  (see Value.hs)
 See Note [Purity, strictness, and variables]
@@ -437,13 +441,15 @@ An extreme alternative implementation is to treat *all strict* bindings as unflo
 -}
 hasNoEffects :: PLC.ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Bool
 hasNoEffects = \case
-    -- See Note [Floating type-lets]
-    TypeBind{}               -> False
+    TypeBind{}               -> True
     DatatypeBind{}           -> True
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
     -- TODO: We could maybe do better here, but not worth it at the moment
     TermBind _ Strict _ t    -> isPure (const NonStrict) t
+
+isTypeBind :: Binding tyname name uni fun a -> Bool
+isTypeBind = \case TypeBind{} -> True; _ -> False
 
 -- | Breaks down linear let nonrecs by
 -- the rule: {let nonrec (b:bs) in t} === {let nonrec b in let nonrec bs in t}

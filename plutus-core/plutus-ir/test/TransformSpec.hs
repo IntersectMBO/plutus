@@ -146,6 +146,7 @@ beta =
     testNested "beta"
     $ map (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
     [ "lamapp"
+    , "lamapp2"
     , "absapp"
     , "multiapp"
     , "multilet"
