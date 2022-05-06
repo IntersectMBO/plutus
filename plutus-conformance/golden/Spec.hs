@@ -1,5 +1,5 @@
--- | This suite is for easy addition of tests. When run with the `accept` test option (- -test-options=--accept),
--- output files will be added to all tests without output files.
+-- | This suite is for easy addition of tests. When run,
+-- output files will be added to all tests that had no output files.
 -- You are advised to manually check that the output is correct.
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -8,19 +8,17 @@ module Main
     ( main
     ) where
 
-import Data.ByteString.Lazy qualified as BS
-import PlutusConformance.Common
+import Common
+import Data.Text qualified as T
+import PlutusCore.Error
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import System.Directory
 import System.Environment
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Golden (findByExtension, goldenVsString)
-import UntypedPlutusCore.Parser as UPLC
+import Test.Tasty.Golden (findByExtension)
+import Text.Megaparsec
 
 main :: IO ()
-main = defaultMain =<< goldenTests
-
-goldenTests :: IO TestTree
-goldenTests = do
+main = do
     args <- getArgs
     case args of
       [ext,dir,action] -> do
@@ -32,28 +30,33 @@ goldenTests = do
                     case noOutput of
                         Just _  -> pure []
                         Nothing -> pure [testIn] | testIn <- allInputFiles]
-          return $ testGroup "Golden tests for generating output files"
-            [ goldenVsString
-                inputFile -- test name
-                (inputFile <> ".expected") -- golden file path
-                (chooseAction action inputFile) -- action whose result is tested
-            | inputFile <- concat inputFiles
-            ]
+          case action of
+            "eval" -> do
+              mapM_
+                (\inputFile -> do
+                  inputStr <- readFile inputFile
+                  let parsed = parseWOPos inputFile $ T.pack inputStr
+                      outFilePath = inputFile <> "expected"
+                  case parsed of
+                    Left (ParseErrorB peb) -> do
+                      -- warn the user that the file failed to parse
+                      putStr $ inputFile <> " failed to parse. Error written to " <> outFilePath
+                      writeFile outFilePath (errorBundlePretty peb)
+                    Right pro -> do
+                      res <- evalUplcProg pro
+                      output <- case res of
+                        EvaluationSuccess prog -> pure prog
+                        EvaluationFailure      -> error "TODO"
+                      writeFile (inputFile <> ".expected") (show output))
+                (concat inputFiles)
+            "typecheck" ->
+              error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
+            _ -> error $
+              "Unsupported test " <> show action <>
+              ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
       _ -> error $
             "Please input the 3 arguments for running the golden tests: " <>
             "(1) file extension to be searched " <>
             "(2) directory to be searched " <>
             "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
-
-chooseAction :: String -> FilePath -> IO BS.ByteString
-chooseAction action input
-  | action == "eval" = do
-        inputStr <- readFile input
-        pure $ evalUplcProg . UPLC.parseProgram
-  | action == "typecheck" =
-    error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
-  | otherwise =
-    error $ "Unsupported test " <> show action <>
-        ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
-
 

@@ -2,11 +2,10 @@
 
 module Common where
 
-import Control.Monad.Error.Class
 import Data.Text qualified as T
 import GHC.IO (unsafePerformIO)
 import PlutusCore as PLC
-import PlutusCore.Error (AsParserErrorBundle)
+import PlutusCore.Error (ParserErrorBundle)
 import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -41,6 +40,24 @@ evalUplcProg p = pure $
     fmap
         termToProg
         (unsafeEvaluateCekNoEmit PLC.defaultCekParameters (UPLC._progTerm p))
+
+stripePosProg :: UPLC.Program Name DefaultUni DefaultFun SourcePos -> UplcProg
+stripePosProg (UPLC.Program _ann (Version _ num1 num2 num3) tm) = UPLC.Program () (Version () num1 num2 num3) (stripePosTm tm)
+
+stripePosTm :: UPLC.Term Name DefaultUni DefaultFun SourcePos -> UPLC.Term Name DefaultUni DefaultFun ()
+stripePosTm (UPLC.Var _ name)       = UPLC.Var () name
+stripePosTm (UPLC.LamAbs _ name tm) = UPLC.LamAbs () name (stripePosTm tm)
+stripePosTm (UPLC.Apply _ tm1 tm2)  = UPLC.Apply () (stripePosTm tm1) (stripePosTm tm2)
+stripePosTm (UPLC.Force _ tm)       = UPLC.Force () (stripePosTm tm)
+stripePosTm (UPLC.Delay _ tm)       = UPLC.Delay () (stripePosTm tm)
+stripePosTm (UPLC.Constant _ val)   = UPLC.Constant () val
+stripePosTm (UPLC.Builtin _ f)      = UPLC.Builtin () f
+stripePosTm (UPLC.Error _)          = UPLC.Error ()
+
+parseWOPos :: String -> T.Text -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun ())
+parseWOPos file txt = do
+    prog <- runQuoteT $ parse UPLC.program file txt
+    pure $ stripePosProg prog
 
 mkTestCases :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> [TestTree]
 mkTestCases tests runner

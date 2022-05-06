@@ -61,7 +61,8 @@ test-suite golden-test
         text -any,
         plutus-conformance -any,
         plutus-core,
-        Stream -any
+        Stream -any,
+        megaparsec -any
 
 test-suite uplc-eval-test
     import: lang
