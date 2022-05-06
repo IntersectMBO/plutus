@@ -127,14 +127,39 @@ blake2b_256 = BI.blake2b_256
 
 {-# INLINABLE verifySignature #-}
 -- | Ed25519 signature verification. Verify that the signature is a signature of
--- the message by the public key. This will fail if key or the signature are not
--- of the expected length.
+-- the message by the private key corresponding to the given public key. This
+-- will fail if the key or the signature are not of the expected length.
 verifySignature
     :: BuiltinByteString  -- ^ Public Key (32 bytes)
     -> BuiltinByteString  -- ^ Message    (arbirtary length)
     -> BuiltinByteString  -- ^ Signature  (64 bytes)
     -> Bool
 verifySignature pubKey message signature = fromBuiltin (BI.verifySignature pubKey message signature)
+
+{-# INLINABLE verifyEcdsaSecp256k1Signature #-}
+-- | Verification of ECDSA signatures made using the SECP256k1 curve. Verify
+-- that the signature is a signature of the message by the private key
+-- corresponding to the given public key. This will fail if the key, the message
+-- or the signature are not of the expected length.  Note that the message here
+-- is a fixed 32 btyes in length (it's probably a hash of the real message).
+verifyEcdsaSecp256k1Signature
+  :: BS.ByteString -- ^ Public key   (64 bytes)
+  -> BS.ByteString -- ^ Message hash (32 bytes)
+  -> BS.ByteString -- ^ Signature    (64 bytes)
+  -> Emitter (EvaluationResult Bool)
+verifyEcdsaSecp256k1Signature pubKey message signature = fromBuiltin (BI.verifyEcdsaSecp256k1Signature pubKey message signature)
+
+{-# INLINABLE verifySchnorrSecp256k1Signature #-}
+-- | Verification of Schnorr signatures made using the SECP256k1 curve.  Verify
+-- that the signature is a signature of the message by the private key
+-- corresponding to the given public key. This will fail if the key or the
+-- signature are not of the expected length.
+verifySchnorrSecp256k1Signature
+  :: BS.ByteString -- ^ Public key (64 bytes)
+  -> BS.ByteString -- ^ Message    (arbirtary length)
+  -> BS.ByteString -- ^ Signature  (64 bytes)
+  -> Emitter (EvaluationResult Bool)
+verifySchnorrSecp256k1Signature pubKey message signature = fromBuiltin (BI.verifySchnorrSecp256k1Signature pubKey message signature)
 
 {-# INLINABLE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.
