@@ -20,8 +20,7 @@ import PlutusCore.Pretty
 
 import Control.Exception
 import Control.Monad.Except
-import Control.Monad.Extra
-import Data.Functor (($>))
+import Data.Ix
 import Data.Kind qualified as GHC
 import Data.List.Extra qualified as List
 import Evaluation.Machines (test_machines)
@@ -33,14 +32,6 @@ import Type.Reflection
 
 type Term fun = PLC.Term TyName Name DefaultUni fun ()
 
-test_builtinsDon'tThrow :: TestTree
-test_builtinsDon'tThrow =
-    testGroup
-        "Builtins don't throw"
-        $ fmap
-            (\fun -> testProperty (display fun) $ prop_builtinsDon'tThrow @DefaultFun fun)
-            List.enumerate
-
 {- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
  to fail with a `KnownTypeError`, of course).
 
@@ -51,24 +42,71 @@ test_builtinsDon'tThrow =
  `Term`s (which technically doesn't guarantee evaluation success, although it is the case
  with all current builtin functions).
 -}
-prop_builtinsDon'tThrow ::
+test_builtinsDon'tThrow :: TestTree
+test_builtinsDon'tThrow =
+    testGroup
+        "Builtins don't throw"
+        $ fmap
+            (\fun -> testProperty (display fun) $ prop_builtinEvaluation @DefaultFun fun gen f)
+            List.enumerate
+  where
+    gen bn = Gen.choice [genArgsWellTyped bn, genArgsArbitrary bn]
+    f bn args = \case
+        Left e -> do
+            annotate "Builtin function evaluation failed"
+            annotate $ "Function: " <> display bn
+            annotate $ "Arguments: " <> display args
+            annotate $ "Error " <> show e
+            failure
+        Right _ -> success
+
+data AlwaysThrows
+    = -- | A builtin function whose denotation always throws an exception.
+      AlwaysThrows
+    deriving stock (Eq, Ord, Show, Bounded, Enum, Ix)
+
+instance Pretty AlwaysThrows where
+    pretty = pretty . show
+
+instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
+    type CostingPart uni AlwaysThrows = ()
+    toBuiltinMeaning AlwaysThrows = makeBuiltinMeaning f mempty
+      where
+        f :: Integer -> Integer
+        f _ = error "This builtin function always throws an exception."
+
+{- | This test verifies that if evaluating a builtin function actually throws an exception,
+ we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
+-}
+test_alwaysThrows :: TestTree
+test_alwaysThrows =
+    testGroup
+        "Builtins throwing exceptions should cause tests to fail"
+        [ testProperty (display AlwaysThrows) $
+            prop_builtinEvaluation @AlwaysThrows AlwaysThrows genArgsWellTyped f
+        ]
+  where
+    f bn args = \case
+        Left _ -> success
+        Right _ -> do
+            annotate "Expect builtin function evaluation to throw exceptions, but it didn't"
+            annotate $ "Function: " <> display bn
+            annotate $ "Arguments: " <> display args
+            failure
+
+prop_builtinEvaluation ::
     forall fun.
     (ToBuiltinMeaning DefaultUni fun, Pretty fun) =>
     fun ->
+    -- | A function making a generator for @fun@'s arguments.
+    (fun -> Gen [Term fun]) ->
+    -- | A function that takes a builtin function, a list of arguments, and the evaluation
+    -- outcome, and decides whether to pass or fail the property.
+    (fun -> [Term fun] -> Either SomeException (MakeKnownM (Term fun)) -> PropertyT IO ()) ->
     Property
-prop_builtinsDon'tThrow bn = property $ do
-    args <- forAllNoShow . Gen.choice $ [genArgsWellTyped bn, genArgsArbitrary bn]
-    mbErr <-
-        liftIO $
-            catch
-                (($> Nothing) . evaluate . runEmitter . runExceptT $ eval args)
-                (pure . pure)
-    whenJust mbErr $ \(e :: SomeException) -> do
-        annotate "Builtin function evaluation failed"
-        annotate $ "Function: " <> display bn
-        annotate $ "Arguments: " <> display args
-        annotate $ "Error " <> show e
-        failure
+prop_builtinEvaluation bn mkGen f = property $ do
+    args <- forAllNoShow (mkGen bn)
+    f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
   where
     meaning :: BuiltinMeaning (Term fun) (CostingPart DefaultUni fun)
     meaning = toBuiltinMeaning bn
@@ -83,12 +121,12 @@ prop_builtinsDon'tThrow bn = property $ do
             ToRuntimeDenotationType (Term fun) n ->
             [Term fun] ->
             MakeKnownM (Term fun)
-        go sch f args = case (sch, args) of
+        go sch fn args = case (sch, args) of
             (RuntimeSchemeArrow sch', a : as) -> do
-                res <- liftEither (f a)
+                res <- liftEither (fn a)
                 go sch' res as
-            (RuntimeSchemeResult, []) -> f
-            (RuntimeSchemeAll sch', _) -> go sch' f args
+            (RuntimeSchemeResult, []) -> fn
+            (RuntimeSchemeAll sch', _) -> go sch' fn args
             -- TODO: can we make this function run in GenT MakeKnownM and generate arguments
             -- on the fly to avoid this error case?
             _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
@@ -132,4 +170,5 @@ test_evaluation =
         "evaluation"
         [ test_machines
         , test_builtinsDon'tThrow
+        , test_alwaysThrows
         ]

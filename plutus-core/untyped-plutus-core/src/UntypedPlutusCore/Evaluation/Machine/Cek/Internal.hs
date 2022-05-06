@@ -190,21 +190,25 @@ data CekValue uni fun =
     VCon !(Some (ValueOf uni))
   | VDelay (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
   | VLamAbs NamedDeBruijn (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
-  | VBuiltin            -- A partial builtin application, accumulating arguments for eventual full application.
-      !fun                   -- So that we know, for what builtin we're calculating the cost.
-                             -- TODO: any chance we could sneak this into 'BuiltinRuntime'
-                             -- where we have a partially instantiated costing function anyway?
-      (Term NamedDeBruijn uni fun ()) -- This must be lazy. It represents the partial application of the
-                             -- builtin function that we're going to run when it's fully saturated.
-                             -- We need the 'Term' to be able to return it in case full saturation
-                             -- is never achieved and a partial application needs to be returned
-                             -- in the result. The laziness is important, because the arguments are
-                             -- discharged values and discharging is expensive, so we don't want to
-                             -- do it unless we really have to. Making this field strict resulted
-                             -- in a 3-4.5% slowdown at the time of writing.
-      (CekValEnv uni fun)    -- For discharging.
-      !(BuiltinRuntime (CekValue uni fun))  -- The partial application and its costing function.
-                                            -- Check the docs of 'BuiltinRuntime' for details.
+    -- | A partial builtin application, accumulating arguments for eventual full application.
+    -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
+    -- values always store their corresponding 'Term's fully discharged, see the comments at
+    -- the call sites (search for 'VBuiltin').
+  | VBuiltin
+      !fun
+      -- ^ So that we know, for what builtin we're calculating the cost.  TODO: any chance we could
+      -- sneak this into 'BuiltinRuntime' where we have a partially instantiated costing function
+      -- anyway?
+      (Term NamedDeBruijn uni fun ())
+      -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
+      -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
+      -- to return it in case full saturation is never achieved and a partial application needs to
+      -- be returned in the result. The laziness is important, because the arguments are discharged
+      -- values and discharging is expensive, so we don't want to do it unless we really have
+      -- to. Making this field strict resulted in a 3-4.5% slowdown at the time of writing.
+      !(BuiltinRuntime (CekValue uni fun))
+      -- ^ The partial application and its costing function.
+      -- Check the docs of 'BuiltinRuntime' for details.
     deriving stock (Show)
 
 type CekValEnv uni fun = Env.RAList (CekValue uni fun)
@@ -481,9 +485,10 @@ dischargeCekValue = \case
     VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
         dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) body
-    -- We only discharge a value when (a) it's being returned by the machine,
+    -- We only return a discharged builtin application when (a) it's being returned by the machine,
     -- or (b) it's needed for an error message.
-    VBuiltin _ term env _                -> dischargeCekValEnv env term
+    -- @term@ is fully discharged, so we can return it directly without any further discharging.
+    VBuiltin _ term _                    -> term
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
@@ -559,10 +564,9 @@ evalBuiltinApp
     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
     => fun
     -> Term NamedDeBruijn uni fun ()
-    -> CekValEnv uni fun
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
+evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
         let !(errOrRes, logs) = runEmitter $ runExceptT getX
@@ -570,7 +574,7 @@ evalBuiltinApp fun term env runtime@(BuiltinRuntime sch getX cost) = case sch of
         case errOrRes of
             Left err  -> throwKnownTypeErrorWithCause term err
             Right res -> pure res
-    _ -> pure $ VBuiltin fun term env runtime
+    _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
@@ -620,10 +624,11 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-    computeCek !unbudgetedSteps !ctx !env term@(Builtin _ bn) = do
+    computeCek !unbudgetedSteps !ctx !_ term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
         meaning <- lookupBuiltin bn ?cekRuntime
-        returnCek unbudgetedSteps' ctx (VBuiltin bn term env meaning)
+        -- The @term@ is a 'Builtin', so it's fully discharged.
+        returnCek unbudgetedSteps' ctx (VBuiltin bn term meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
         throwing_ _EvaluationFailure
@@ -669,7 +674,8 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
-    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) = do
+    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) = do
+        -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
@@ -679,7 +685,7 @@ enterComputeCek = computeCek (toWordArray 0) where
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' env runtime'
+                res <- evalBuiltinApp fun term' runtime'
                 returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -703,8 +709,10 @@ enterComputeCek = computeCek (toWordArray 0) where
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term env (BuiltinRuntime sch f exF)) arg = do
+    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) arg = do
         let argTerm = dischargeCekValue arg
+            -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
+            -- in a 'VBuiltin'.
             term' = Apply () term argTerm
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
@@ -716,7 +724,7 @@ enterComputeCek = computeCek (toWordArray 0) where
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
                     let runtime' = BuiltinRuntime schB y . exF $ toExMemory arg
-                    res <- evalBuiltinApp fun term' env runtime'
+                    res <- evalBuiltinApp fun term' runtime'
                     returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')

@@ -44,58 +44,60 @@ microToPico = ceiling . (1e6 *)
 -- 'parse error (not enough input) at ""'.
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
-  { paramAddInteger               = "addIntegerModel"
-  , paramSubtractInteger          = "subtractIntegerModel"
-  , paramMultiplyInteger          = "multiplyIntegerModel"
-  , paramDivideInteger            = "divideIntegerModel"
-  , paramQuotientInteger          = "quotientIntegerModel"
-  , paramRemainderInteger         = "remainderIntegerModel"
-  , paramModInteger               = "modIntegerModel"
-  , paramEqualsInteger            = "equalsIntegerModel"
-  , paramLessThanInteger          = "lessThanIntegerModel"
-  , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
-  , paramAppendByteString         = "appendByteStringModel"
-  , paramConsByteString           = "consByteStringModel"
-  , paramSliceByteString          = "sliceByteStringModel"
-  , paramLengthOfByteString       = "lengthOfByteStringModel"
-  , paramIndexByteString          = "indexByteStringModel"
-  , paramEqualsByteString         = "equalsByteStringModel"
-  , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
-  , paramSha2_256                 = "sha2_256Model"
-  , paramSha3_256                 = "sha3_256Model"
-  , paramBlake2b                  = "blake2bModel"
-  , paramVerifyEd25519Signature   = "verifyEd25519SignatureModel"
-  , paramAppendString             = "appendStringModel"
-  , paramEqualsString             = "equalsStringModel"
-  , paramEncodeUtf8               = "encodeUtf8Model"
-  , paramDecodeUtf8               = "decodeUtf8Model"
-  , paramIfThenElse               = "ifThenElseModel"
-  , paramChooseUnit               = "chooseUnitModel"
-  , paramTrace                    = "traceModel"
-  , paramFstPair                  = "fstPairModel"
-  , paramSndPair                  = "sndPairModel"
-  , paramChooseList               = "chooseListModel"
-  , paramMkCons                   = "mkConsModel"
-  , paramHeadList                 = "headListModel"
-  , paramTailList                 = "tailListModel"
-  , paramNullList                 = "nullListModel"
-  , paramChooseData               = "chooseDataModel"
-  , paramConstrData               = "constrDataModel"
-  , paramMapData                  = "mapDataModel"
-  , paramListData                 = "listDataModel"
-  , paramIData                    = "iDataModel"
-  , paramBData                    = "bDataModel"
-  , paramUnConstrData             = "unConstrDataModel"
-  , paramUnMapData                = "unMapDataModel"
-  , paramUnListData               = "unListDataModel"
-  , paramUnIData                  = "unIDataModel"
-  , paramUnBData                  = "unBDataModel"
-  , paramEqualsData               = "equalsDataModel"
-  , paramMkPairData               = "mkPairDataModel"
-  , paramMkNilData                = "mkNilDataModel"
-  , paramMkNilPairData            = "mkNilPairDataModel"
-  , paramSerialiseData            = "serialiseDataModel"
+  { paramAddInteger                      = "addIntegerModel"
+  , paramSubtractInteger                 = "subtractIntegerModel"
+  , paramMultiplyInteger                 = "multiplyIntegerModel"
+  , paramDivideInteger                   = "divideIntegerModel"
+  , paramQuotientInteger                 = "quotientIntegerModel"
+  , paramRemainderInteger                = "remainderIntegerModel"
+  , paramModInteger                      = "modIntegerModel"
+  , paramEqualsInteger                   = "equalsIntegerModel"
+  , paramLessThanInteger                 = "lessThanIntegerModel"
+  , paramLessThanEqualsInteger           = "lessThanEqualsIntegerModel"
+  , paramAppendByteString                = "appendByteStringModel"
+  , paramConsByteString                  = "consByteStringModel"
+  , paramSliceByteString                 = "sliceByteStringModel"
+  , paramLengthOfByteString              = "lengthOfByteStringModel"
+  , paramIndexByteString                 = "indexByteStringModel"
+  , paramEqualsByteString                = "equalsByteStringModel"
+  , paramLessThanByteString              = "lessThanByteStringModel"
+  , paramLessThanEqualsByteString        = "lessThanEqualsByteStringModel"
+  , paramSha2_256                        = "sha2_256Model"
+  , paramSha3_256                        = "sha3_256Model"
+  , paramBlake2b                         = "blake2bModel"
+  , paramVerifyEd25519Signature          = "verifyEd25519SignatureModel"
+  , paramVerifyEcdsaSecp256k1Signature   = "verifyEcdsaSecp256k1SignatureModel"
+  , paramVerifySchnorrSecp256k1Signature = "verifySchnorrSecp256k1SignatureModel"
+  , paramAppendString                    = "appendStringModel"
+  , paramEqualsString                    = "equalsStringModel"
+  , paramEncodeUtf8                      = "encodeUtf8Model"
+  , paramDecodeUtf8                      = "decodeUtf8Model"
+  , paramIfThenElse                      = "ifThenElseModel"
+  , paramChooseUnit                      = "chooseUnitModel"
+  , paramTrace                           = "traceModel"
+  , paramFstPair                         = "fstPairModel"
+  , paramSndPair                         = "sndPairModel"
+  , paramChooseList                      = "chooseListModel"
+  , paramMkCons                          = "mkConsModel"
+  , paramHeadList                        = "headListModel"
+  , paramTailList                        = "tailListModel"
+  , paramNullList                        = "nullListModel"
+  , paramChooseData                      = "chooseDataModel"
+  , paramConstrData                      = "constrDataModel"
+  , paramMapData                         = "mapDataModel"
+  , paramListData                        = "listDataModel"
+  , paramIData                           = "iDataModel"
+  , paramBData                           = "bDataModel"
+  , paramUnConstrData                    = "unConstrDataModel"
+  , paramUnMapData                       = "unMapDataModel"
+  , paramUnListData                      = "unListDataModel"
+  , paramUnIData                         = "unIDataModel"
+  , paramUnBData                         = "unBDataModel"
+  , paramEqualsData                      = "equalsDataModel"
+  , paramMkPairData                      = "mkPairDataModel"
+  , paramMkNilData                       = "mkNilDataModel"
+  , paramMkNilPairData                   = "mkNilPairDataModel"
+  , paramSerialiseData                   = "serialiseDataModel"
   }
 
 
@@ -121,69 +123,70 @@ createBuiltinCostModel bmfile rfile = do
     let getParams x y = x (getConst $ y models)
 
     -- Integers
-    paramAddInteger               <- getParams addInteger                paramAddInteger
-    paramSubtractInteger          <- getParams subtractInteger           paramSubtractInteger
-    paramMultiplyInteger          <- getParams multiplyInteger           paramMultiplyInteger
-    paramDivideInteger            <- getParams divideInteger             paramDivideInteger
-    paramQuotientInteger          <- getParams quotientInteger           paramQuotientInteger
-    paramRemainderInteger         <- getParams remainderInteger          paramRemainderInteger
-    paramModInteger               <- getParams modInteger                paramModInteger
-    paramEqualsInteger            <- getParams equalsInteger             paramEqualsInteger
-    paramLessThanInteger          <- getParams lessThanInteger           paramLessThanInteger
-    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
+    paramAddInteger                      <- getParams addInteger                paramAddInteger
+    paramSubtractInteger                 <- getParams subtractInteger           paramSubtractInteger
+    paramMultiplyInteger                 <- getParams multiplyInteger           paramMultiplyInteger
+    paramDivideInteger                   <- getParams divideInteger             paramDivideInteger
+    paramQuotientInteger                 <- getParams quotientInteger           paramQuotientInteger
+    paramRemainderInteger                <- getParams remainderInteger          paramRemainderInteger
+    paramModInteger                      <- getParams modInteger                paramModInteger
+    paramEqualsInteger                   <- getParams equalsInteger             paramEqualsInteger
+    paramLessThanInteger                 <- getParams lessThanInteger           paramLessThanInteger
+    paramLessThanEqualsInteger           <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
     -- Bytestrings
-    paramAppendByteString         <- getParams appendByteString          paramAppendByteString
-    paramConsByteString           <- getParams consByteString            paramConsByteString
-    paramSliceByteString          <- getParams sliceByteString           paramSliceByteString
-    paramLengthOfByteString       <- getParams lengthOfByteString        paramLengthOfByteString
-    paramIndexByteString          <- getParams indexByteString           paramIndexByteString
-    paramEqualsByteString         <- getParams equalsByteString          paramEqualsByteString
-    paramLessThanByteString       <- getParams lessThanByteString        paramLessThanByteString
-    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
+    paramAppendByteString                <- getParams appendByteString          paramAppendByteString
+    paramConsByteString                  <- getParams consByteString            paramConsByteString
+    paramSliceByteString                 <- getParams sliceByteString           paramSliceByteString
+    paramLengthOfByteString              <- getParams lengthOfByteString        paramLengthOfByteString
+    paramIndexByteString                 <- getParams indexByteString           paramIndexByteString
+    paramEqualsByteString                <- getParams equalsByteString          paramEqualsByteString
+    paramLessThanByteString              <- getParams lessThanByteString        paramLessThanByteString
+    paramLessThanEqualsByteString        <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                 <- getParams sha2_256                  paramSha2_256
-    paramSha3_256                 <- getParams sha3_256                  paramSha3_256
-    paramBlake2b                  <- getParams blake2b                   paramBlake2b
-    paramVerifyEd25519Signature   <- getParams verifyEd25519Signature    paramVerifyEd25519Signature
+    paramSha2_256                        <- getParams sha2_256                        paramSha2_256
+    paramSha3_256                        <- getParams sha3_256                        paramSha3_256
+    paramBlake2b                         <- getParams blake2b                         paramBlake2b
+    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature          paramVerifyEd25519Signature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
     -- Strings
-    paramAppendString             <- getParams appendString  paramAppendString
-    paramEqualsString             <- getParams equalsString  paramEqualsString
-    paramEncodeUtf8               <- getParams encodeUtf8    paramEncodeUtf8
-    paramDecodeUtf8               <- getParams decodeUtf8    paramDecodeUtf8
-
+    paramAppendString                    <- getParams appendString  paramAppendString
+    paramEqualsString                    <- getParams equalsString  paramEqualsString
+    paramEncodeUtf8                      <- getParams encodeUtf8    paramEncodeUtf8
+    paramDecodeUtf8                      <- getParams decodeUtf8    paramDecodeUtf8
     -- Bool
-    paramIfThenElse               <- getParams ifThenElse  paramIfThenElse
+    paramIfThenElse                      <- getParams ifThenElse  paramIfThenElse
     -- Unit
-    paramChooseUnit               <- getParams chooseUnit  paramChooseUnit
+    paramChooseUnit                      <- getParams chooseUnit  paramChooseUnit
     -- Tracing
-    paramTrace                    <- getParams trace       paramTrace
+    paramTrace                           <- getParams trace       paramTrace
     -- Pairs
-    paramFstPair                  <- getParams fstPair     paramFstPair
-    paramSndPair                  <- getParams sndPair     paramSndPair
+    paramFstPair                         <- getParams fstPair     paramFstPair
+    paramSndPair                         <- getParams sndPair     paramSndPair
     -- Lists
-    paramChooseList               <- getParams chooseList  paramChooseList
-    paramMkCons                   <- getParams mkCons      paramMkCons
-    paramHeadList                 <- getParams headList    paramHeadList
-    paramTailList                 <- getParams tailList    paramTailList
-    paramNullList                 <- getParams nullList    paramNullList
+    paramChooseList                      <- getParams chooseList  paramChooseList
+    paramMkCons                          <- getParams mkCons      paramMkCons
+    paramHeadList                        <- getParams headList    paramHeadList
+    paramTailList                        <- getParams tailList    paramTailList
+    paramNullList                        <- getParams nullList    paramNullList
     -- Data
-    paramChooseData               <- getParams chooseData     paramChooseData
-    paramConstrData               <- getParams constrData     paramConstrData
-    paramMapData                  <- getParams mapData        paramMapData
-    paramListData                 <- getParams listData       paramListData
-    paramIData                    <- getParams iData          paramIData
-    paramBData                    <- getParams bData          paramBData
-    paramUnConstrData             <- getParams unConstrData   paramUnConstrData
-    paramUnMapData                <- getParams unMapData      paramUnMapData
-    paramUnListData               <- getParams unListData     paramUnListData
-    paramUnIData                  <- getParams unIData        paramUnIData
-    paramUnBData                  <- getParams unBData        paramUnBData
-    paramEqualsData               <- getParams equalsData     paramEqualsData
-    paramSerialiseData            <- getParams serialiseData  paramSerialiseData
+    paramChooseData                      <- getParams chooseData     paramChooseData
+    paramConstrData                      <- getParams constrData     paramConstrData
+    paramMapData                         <- getParams mapData        paramMapData
+    paramListData                        <- getParams listData       paramListData
+    paramIData                           <- getParams iData          paramIData
+    paramBData                           <- getParams bData          paramBData
+    paramUnConstrData                    <- getParams unConstrData   paramUnConstrData
+    paramUnMapData                       <- getParams unMapData      paramUnMapData
+    paramUnListData                      <- getParams unListData     paramUnListData
+    paramUnIData                         <- getParams unIData        paramUnIData
+    paramUnBData                         <- getParams unBData        paramUnBData
+    paramEqualsData                      <- getParams equalsData     paramEqualsData
+    paramSerialiseData                   <- getParams serialiseData  paramSerialiseData
     -- Misc constructors
-    paramMkPairData               <- getParams mkPairData     paramMkPairData
-    paramMkNilData                <- getParams mkNilData      paramMkNilData
-    paramMkNilPairData            <- getParams mkNilPairData  paramMkNilPairData
+    paramMkPairData                      <- getParams mkPairData     paramMkPairData
+    paramMkNilData                       <- getParams mkNilData      paramMkNilData
+    paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
 
     pure $ BuiltinCostModelBase {..}
 
@@ -473,6 +476,17 @@ verifyEd25519Signature cpuModelR = do
      to be careful about: see SCP-3038.
    -}
 
+verifyEcdsaSecp256k1Signature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifyEcdsaSecp256k1Signature cpuModelR = do
+  cpuModel <- ModelThreeArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel =  ModelThreeArgumentsConstantCost 10
+  pure $ CostingFun cpuModel memModel
+
+verifySchnorrSecp256k1Signature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifySchnorrSecp256k1Signature cpuModelR = do
+  cpuModel <- ModelThreeArgumentsLinearInY <$> readModelLinearInY cpuModelR
+  let memModel =  ModelThreeArgumentsConstantCost 10
+  pure $ CostingFun cpuModel memModel
 
 ---------------- Strings ----------------
 

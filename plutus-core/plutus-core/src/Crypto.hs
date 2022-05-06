@@ -43,9 +43,9 @@ verifyEd25519Signature pubKey msg sig =
 -- This takes a message /hash/, rather than a general blob of bytes; thus, it is
 -- limited in length.
 verifyEcdsaSecp256k1Signature
-  :: BS.ByteString -- ^ Public key (64 bytes)
+  :: BS.ByteString -- ^ Public key   (64 bytes)
   -> BS.ByteString -- ^ Message hash (32 bytes)
-  -> BS.ByteString -- ^ Signature (64 bytes)
+  -> BS.ByteString -- ^ Signature    (64 bytes)
   -> Emitter (EvaluationResult Bool)
 verifyEcdsaSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
@@ -69,8 +69,8 @@ verifyEcdsaSecp256k1Signature pk msg sig =
 -- form and length.
 verifySchnorrSecp256k1Signature
   :: BS.ByteString -- ^ Public key (64 bytes)
-  -> BS.ByteString -- ^ Message
-  -> BS.ByteString -- ^ Signature (64 bytes)
+  -> BS.ByteString -- ^ Message    (arbitrary length)
+  -> BS.ByteString -- ^ Signature  (64 bytes)
   -> Emitter (EvaluationResult Bool)
 verifySchnorrSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of
