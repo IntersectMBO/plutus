@@ -191,6 +191,9 @@ data CekValue uni fun =
   | VDelay (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
   | VLamAbs NamedDeBruijn (Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
     -- | A partial builtin application, accumulating arguments for eventual full application.
+    -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
+    -- values always store their corresponding 'Term's fully discharged, see the comments at
+    -- the call sites (search for 'VBuiltin').
   | VBuiltin
       !fun
       -- ^ So that we know, for what builtin we're calculating the cost.  TODO: any chance we could
@@ -482,8 +485,9 @@ dischargeCekValue = \case
     VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
         dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) body
-    -- We only discharge a value when (a) it's being returned by the machine,
+    -- We only return a discharged builtin application when (a) it's being returned by the machine,
     -- or (b) it's needed for an error message.
+    -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
 
 instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
@@ -623,6 +627,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     computeCek !unbudgetedSteps !ctx !_ term@(Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
         meaning <- lookupBuiltin bn ?cekRuntime
+        -- The @term@ is a 'Builtin', so it's fully discharged.
         returnCek unbudgetedSteps' ctx (VBuiltin bn term meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
@@ -670,6 +675,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
     forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) = do
+        -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
@@ -705,6 +711,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) arg = do
         let argTerm = dischargeCekValue arg
+            -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
+            -- in a 'VBuiltin'.
             term' = Apply () term argTerm
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
