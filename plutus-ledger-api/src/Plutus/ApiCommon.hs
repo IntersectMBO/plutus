@@ -117,7 +117,7 @@ builtinsIntroducedIn = Map.fromList [
   ((PlutusV1, ProtocolVersion 5 0), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
           AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
-          Sha2_256, Sha3_256, Blake2b_256, VerifySignature,
+          Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature,
           AppendString, EqualsString, EncodeUtf8, DecodeUtf8,
           IfThenElse,
           ChooseUnit,
