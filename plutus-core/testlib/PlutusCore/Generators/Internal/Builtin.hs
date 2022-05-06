@@ -5,7 +5,8 @@
 {-# LANGUAGE TypeOperators       #-}
 
 module PlutusCore.Generators.Internal.Builtin (
-    SomeGen (..),
+    GenTypedTerm (..),
+    GenArbitraryTerm (..),
     genConstant,
     genInteger,
     genByteString,
@@ -21,6 +22,7 @@ module PlutusCore.Generators.Internal.Builtin (
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
+import PlutusCore.Generators.AST hiding (genConstant)
 
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
@@ -31,6 +33,27 @@ import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
+
+class GenTypedTerm uni where
+    -- | Generate a `Term` in @uni@ with the given type.
+    genTypedTerm ::
+        forall (a :: GHC.Type) tyname name fun.
+        TypeRep a ->
+        Gen (Term tyname name uni fun ())
+
+instance GenTypedTerm DefaultUni where
+    genTypedTerm tr = case genConstant tr of
+        SomeGen gen -> Constant () . someValue <$> gen
+
+class GenArbitraryTerm uni where
+    -- | Generate an arbitrary `Term` in @uni@.
+    genArbitraryTerm ::
+        forall fun.
+        (Bounded fun, Enum fun) =>
+        Gen (Term TyName Name uni fun ())
+
+instance GenArbitraryTerm DefaultUni where
+    genArbitraryTerm = runAstGen genTerm
 
 data SomeGen = forall a. DefaultUni `Contains` a => SomeGen (Gen a)
 
