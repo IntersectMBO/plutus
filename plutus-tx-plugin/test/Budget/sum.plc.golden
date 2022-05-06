@@ -213,36 +213,34 @@
             )
             [
               [
-                {
-                  (abs
-                    a
-                    (type)
+                (let
+                  (nonrec)
+                  (typebind (tyvardecl a (type)) [ List (con integer) ])
+                  (lam
+                    c
+                    (fun (con integer) (fun a a))
                     (lam
-                      c
-                      (fun (con integer) (fun a a))
-                      (lam
-                        n
-                        a
+                      n
+                      a
+                      [
+                        [ c (con integer 1) ]
                         [
-                          [ c (con integer 1) ]
+                          [ c (con integer 2) ]
                           [
-                            [ c (con integer 2) ]
+                            [ c (con integer 3) ]
                             [
-                              [ c (con integer 3) ]
+                              [ c (con integer 4) ]
                               [
-                                [ c (con integer 4) ]
+                                [ c (con integer 5) ]
                                 [
-                                  [ c (con integer 5) ]
+                                  [ c (con integer 6) ]
                                   [
-                                    [ c (con integer 6) ]
+                                    [ c (con integer 7) ]
                                     [
-                                      [ c (con integer 7) ]
+                                      [ c (con integer 8) ]
                                       [
-                                        [ c (con integer 8) ]
-                                        [
-                                          [ c (con integer 9) ]
-                                          [ [ c (con integer 10) ] n ]
-                                        ]
+                                        [ c (con integer 9) ]
+                                        [ [ c (con integer 10) ] n ]
                                       ]
                                     ]
                                   ]
@@ -251,11 +249,10 @@
                             ]
                           ]
                         ]
-                      )
+                      ]
                     )
                   )
-                  [ List (con integer) ]
-                }
+                )
                 { Cons (con integer) }
               ]
               { Nil (con integer) }

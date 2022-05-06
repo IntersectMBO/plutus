@@ -666,7 +666,10 @@ executable generate-cost-model
 -- the predictions of the Haskell version are (approximately) identical to the R
 -- ones.  This test is problematic in CI: pretending that it's a benchmark will
 -- prevent it from being run automatically but will still allow us to run it
--- manually.
+-- manually; `cabal bench` also sets the working directory to the root of the
+-- relevant package, which makes it easier to find the cost model data files
+-- (unlike `cabal run` for exectuables, which sets the working directory to the
+-- current shell directory).
 benchmark cost-model-test
     import: lang
     type: exitcode-stdio-1.0
