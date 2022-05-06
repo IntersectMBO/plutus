@@ -150,6 +150,11 @@ unListData,unListData-cpu-arguments,Constant CPU cost
 unListData,unListData-memory-arguments,Constant memory cost
 unMapData,unMapData-cpu-arguments,Constant CPU cost
 unMapData,unMapData-memory-arguments,Constant memory cost
+verifyEcdsaSecp256k1Signature,verifyEcdsaSecp256k1Signature-cpu-arguments,Constant CPU cost
+verifyEcdsaSecp256k1Signature,verifyEcdsaSecp256k1Signature-memory-arguments,Constant memory cost
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-memory-arguments,Constant memory cost
 verifySignature,verifySignature-cpu-arguments-intercept,Linear model intercept for the CPU calculation
 verifySignature,verifySignature-cpu-arguments-slope,Linear model coefficient for the CPU calculation
 verifySignature,verifySignature-memory-arguments,Constant memory cost

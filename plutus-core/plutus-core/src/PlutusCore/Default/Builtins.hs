@@ -840,11 +840,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature
-            mempty
+            (runCostingFunThreeArguments . paramVerifyEcdsaSecp256k1Signature)
     toBuiltinMeaning VerifySchnorrSecp256k1Signature =
         makeBuiltinMeaning
             verifySchnorrSecp256k1Signature
-            mempty
+            (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
