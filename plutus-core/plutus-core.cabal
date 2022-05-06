@@ -361,7 +361,6 @@ library plutus-core-testlib
         tasty-golden -any,
         tasty-hedgehog -any,
         tasty-hunit -any,
-        tasty-quickcheck -any,
         QuickCheck -any,
         serialise -any,
         deepseq -any,
