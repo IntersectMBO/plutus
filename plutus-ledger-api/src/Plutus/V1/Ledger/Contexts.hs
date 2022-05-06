@@ -246,7 +246,7 @@ ownHash p = fst (ownHashes p)
 {-# INLINABLE fromSymbol #-}
 -- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
 fromSymbol :: CurrencySymbol -> ValidatorHash
-fromSymbol (CurrencySymbol s) = ValidatorHash s
+fromSymbol (CurrencySymbol s) = UnsafeValidatorHash s
 
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'TxOut' outputs of the pending transaction at

@@ -90,21 +90,26 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
 {-# INLINABLE mpsSymbol #-}
 -- | The currency symbol of a monetary policy hash
 mpsSymbol :: MintingPolicyHash -> CurrencySymbol
-mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
+mpsSymbol (UnsafeMintingPolicyHash h) = CurrencySymbol h
 
 {-# INLINABLE currencyMPSHash #-}
 -- | The minting policy hash of a currency symbol
 currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
-currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
+currencyMPSHash (CurrencySymbol h) = UnsafeMintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
--- | Creates `CurrencySymbol` from raw `ByteString`.
-currencySymbol :: BS.ByteString -> CurrencySymbol
-currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
+-- | Creates `CurrencySymbol` from raw `ByteString`. Checks if bytestring empty or 28 byte.
+currencySymbol :: BS.ByteString -> Maybe CurrencySymbol
+currencySymbol bs =
+    let len = BS.length bs in
+        if len Haskell.== 0 || len Haskell.== 28 then
+            Just . CurrencySymbol . PlutusTx.toBuiltin $ bs
+        else
+            Nothing
 
 -- | ByteString of a name of a token, shown as UTF-8 string when possible.
 -- Should be no longer than 32 bytes, empty for Ada.
-newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
+newtype TokenName = UnsafeTokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
@@ -114,16 +119,19 @@ newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
 instance IsString TokenName where
     fromString = fromText . Text.pack
 
-{-# INLINABLE tokenName #-}
--- | Creates `TokenName` from raw `ByteString`.
-tokenName :: BS.ByteString -> TokenName
-tokenName = TokenName . PlutusTx.toBuiltin
+-- | Creates `TokenName` from raw `ByteString`. Checks if no longer than 32 bytes.
+tokenName :: BS.ByteString -> Maybe TokenName
+tokenName bs =
+    if BS.length bs Haskell.> 32 then
+        Nothing
+    else
+        Just $ UnsafeTokenName $ PlutusTx.toBuiltin bs
 
 fromText :: Text -> TokenName
-fromText = tokenName . E.encodeUtf8
+fromText = UnsafeTokenName . PlutusTx.toBuiltin . E.encodeUtf8
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
-fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
+fromTokenName handleBytestring handleText (UnsafeTokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
 
 asBase16 :: BS.ByteString -> Text
 asBase16 bs = Text.concat ["0x", encodeByteString bs]
@@ -145,7 +153,7 @@ adaSymbol = CurrencySymbol emptyByteString
 {-# INLINABLE adaToken #-}
 -- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
-adaToken = TokenName emptyByteString
+adaToken = UnsafeTokenName emptyByteString
 
 -- | An asset class, identified by currency symbol and token name.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }

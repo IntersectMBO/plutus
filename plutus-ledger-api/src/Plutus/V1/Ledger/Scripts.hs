@@ -54,6 +54,12 @@ module Plutus.V1.Ledger.Scripts(
     ValidatorHash(..),
     MintingPolicyHash (..),
     StakeValidatorHash (..),
+    scriptHash,
+    validatorHash,
+    datumHash,
+    redeemerHash,
+    mintingPolicyHash,
+    stakeValidatorHash
     ) where
 
 import Prelude qualified as Haskell
@@ -63,6 +69,7 @@ import Codec.Serialise (Serialise, serialise)
 import Control.DeepSeq (NFData)
 import Control.Lens hiding (Context)
 import Control.Monad.Except (MonadError, throwError)
+import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.String
 import Data.Text (Text)
@@ -258,9 +265,18 @@ newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
 instance Haskell.Show StakeValidator where
     show = const "StakeValidator { <script> }"
 
+{-# INLINE checkLength #-}
+-- | Check if ByteString has length equal to len and apply constructor f.
+checkLength :: Haskell.Int -> (BuiltinByteString -> a) -> BS.ByteString -> Maybe a
+checkLength len f bs =
+    if BS.length bs Haskell./= len then
+        Nothing
+    else
+        Just $ f $ toBuiltin bs
+
 -- | Script runtime representation of a 28 byte hash.
 newtype ScriptHash =
-    ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
+    UnsafeScriptHash { getScriptHash :: Builtins.BuiltinByteString }
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -269,10 +285,14 @@ newtype ScriptHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
+
+-- | Make ScriptHash, checks if 28 byte.
+scriptHash :: BS.ByteString -> Maybe ScriptHash
+scriptHash = checkLength 28 UnsafeScriptHash
 
 -- | Script runtime representation of a 28 byte hash.
 newtype ValidatorHash =
-    ValidatorHash Builtins.BuiltinByteString
+    UnsafeValidatorHash Builtins.BuiltinByteString
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -281,10 +301,15 @@ newtype ValidatorHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
+
+-- | Make ValidatorHash, checks if 28 byte.
+validatorHash :: BS.ByteString -> Maybe ValidatorHash
+validatorHash = checkLength 28 UnsafeValidatorHash
+
 
 -- | Script runtime representation of a 32 byte hash.
 newtype DatumHash =
-    DatumHash Builtins.BuiltinByteString
+    UnsafeDatumHash Builtins.BuiltinByteString
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -293,10 +318,14 @@ newtype DatumHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
+
+-- | Make DatumHash, checks if 32 byte.
+datumHash :: BS.ByteString -> Maybe DatumHash
+datumHash = checkLength 32 UnsafeDatumHash
 
 -- | Script runtime representation of a 32 byte hash.
 newtype RedeemerHash =
-    RedeemerHash Builtins.BuiltinByteString
+    UnsafeRedeemerHash Builtins.BuiltinByteString
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -305,10 +334,14 @@ newtype RedeemerHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
+
+-- | Make RedeemerHash, checks if 32 byte.
+redeemerHash :: BS.ByteString -> Maybe RedeemerHash
+redeemerHash = checkLength 32 UnsafeRedeemerHash
 
 -- | Script runtime representation of a 28 byte hash.
 newtype MintingPolicyHash =
-    MintingPolicyHash Builtins.BuiltinByteString
+    UnsafeMintingPolicyHash Builtins.BuiltinByteString
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -318,9 +351,13 @@ newtype MintingPolicyHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
+-- | Make MintingPolicyHash, checks if 28 byte.
+mintingPolicyHash :: BS.ByteString -> Maybe MintingPolicyHash
+mintingPolicyHash = checkLength 28 UnsafeMintingPolicyHash
+
 -- | Script runtime representation of a 28 byte hash.
 newtype StakeValidatorHash =
-    StakeValidatorHash Builtins.BuiltinByteString
+    UnsafeStakeValidatorHash Builtins.BuiltinByteString
     deriving
         (IsString        -- ^ from hex encoding
         , Haskell.Show   -- ^ using hex encoding
@@ -329,6 +366,10 @@ newtype StakeValidatorHash =
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
+
+-- | Make StakeValidatorHash, checks if 28 byte.
+stakeValidatorHash :: BS.ByteString -> Maybe StakeValidatorHash
+stakeValidatorHash = checkLength 28 UnsafeStakeValidatorHash
 
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.

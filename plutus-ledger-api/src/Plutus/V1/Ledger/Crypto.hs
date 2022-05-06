@@ -9,10 +9,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module Plutus.V1.Ledger.Crypto(
-    PubKeyHash(..)
+    PubKeyHash(..),
+    pubKeyHash
     ) where
 
 import Control.DeepSeq (NFData)
+import Data.ByteString qualified as BS
 import Data.String
 import GHC.Generics (Generic)
 import Plutus.V1.Ledger.Bytes (LedgerBytes (..))
@@ -23,7 +25,7 @@ import Prettyprinter
 
 -- | The hash of a public key. This is frequently used to identify the public key, rather than the key itself.
 -- Should be 28 bytes.
-newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
+newtype PubKeyHash = UnsafePubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
@@ -33,3 +35,10 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
         , Pretty         -- ^ using hex encoding
         ) via LedgerBytes
 makeLift ''PubKeyHash
+
+pubKeyHash :: BS.ByteString -> Maybe PubKeyHash
+pubKeyHash bs =
+    if BS.length bs /= 28 then
+        Nothing
+    else
+        Just $ UnsafePubKeyHash $ PlutusTx.toBuiltin bs
