@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveFunctor         #-}
 {-# LANGUAGE DerivingVia           #-}
@@ -29,7 +30,6 @@
 module PlutusCore.Generators.PIR where
 
 import Prettyprinter
-import Prettyprinter.Custom
 
 import Text.PrettyBy
 
@@ -55,8 +55,6 @@ import Data.String
 import Data.Text qualified as Text
 import GHC.Stack
 import PlutusCore (typeSize)
-import PlutusCore.Core (TyDecl (..))
-import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -731,6 +729,11 @@ instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst w
 
 instance PrettyBy config i => PrettyBy config (NonNegative i) where
   prettyBy ctx (NonNegative i) = prettyBy ctx i
+
+instance ( HasPrettyDefaults config ~ 'True
+         , PrettyBy config k
+         , PrettyBy config v) => PrettyBy config (Map k v) where
+  prettyBy ctx = prettyBy ctx . Map.toList
 
 -- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
 --   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
