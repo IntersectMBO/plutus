@@ -66,7 +66,11 @@ newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
-    deriving (Show, Pretty, IsString) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Show           -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
 data ScriptTag = Spend | Mint | Cert | Reward

@@ -27,6 +27,9 @@ newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving IsString via LedgerBytes
-    deriving (Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Show           -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
 makeLift ''PubKeyHash
