@@ -1,0 +1,9 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl x (con integer))
+    [ (lam y (con integer) y) (con integer 1) ]
+  )
+  x
+)
