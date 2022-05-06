@@ -70,7 +70,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    toBuiltinMeaning AlwaysThrows = makeBuiltinMeaning f (\_ _ -> mempty)
+    toBuiltinMeaning AlwaysThrows = makeBuiltinMeaning f mempty
       where
         f :: Integer -> Integer
         f _ = error "This builtin function always throws an exception."
@@ -89,7 +89,7 @@ test_alwaysThrows =
     f bn args = \case
         Left _ -> success
         Right _ -> do
-            annotate "Except builtin function evaluation to throw exceptions, but it didn't"
+            annotate "Expect builtin function evaluation to throw exceptions, but it didn't"
             annotate $ "Function: " <> display bn
             annotate $ "Arguments: " <> display args
             failure
@@ -105,13 +105,8 @@ prop_builtinEvaluation ::
     (fun -> [Term fun] -> Either SomeException (MakeKnownM (Term fun)) -> PropertyT IO ()) ->
     Property
 prop_builtinEvaluation bn mkGen f = property $ do
-    args <- forAllNoShow (mkGen bn) -- Gen.choice $ [genArgsWellTyped bn, genArgsArbitrary bn]
-    f bn args
-        =<< liftIO
-            ( catch @SomeException
-                (fmap Right . evaluate $ eval args)
-                (pure . Left)
-            )
+    args <- forAllNoShow (mkGen bn)
+    f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
   where
     meaning :: BuiltinMeaning (Term fun) (CostingPart DefaultUni fun)
     meaning = toBuiltinMeaning bn
