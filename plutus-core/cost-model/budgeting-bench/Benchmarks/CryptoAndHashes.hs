@@ -21,14 +21,6 @@ bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
 
---VerifyEd25519Signature : check the results, maybe try with bigger inputs.
-
-
-benchByteStringOneArgOp :: DefaultFun -> Benchmark
-benchByteStringOneArgOp name =
-    bgroup (show name) $ fmap mkBM (mediumByteStrings seedA)
-           where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
-
 
 ---------------- Signature verification ----------------
 
@@ -55,7 +47,8 @@ benchVerifyEd25519Signature =
 -- to the fact that the underlying C implementation is *extremely* fast, but
 -- there's quite a bit of error handling when an argument is the wrong size.
 -- However in the latter case the program will terminate anyway, so we don't
--- care about costing it accurately.]
+-- care about costing it accurately.] Just to be sure, check the results, maybe
+-- try with bigger inputs.
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
