@@ -57,7 +57,7 @@
             "type": "constant_cost"
         }
     },
-    "blake2b": {
+    "blake2b_256": {
         "cpu": {
             "arguments": {
                 "intercept": 104848,

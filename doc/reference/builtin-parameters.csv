@@ -13,9 +13,9 @@ appendString,appendString-memory-arguments-intercept,Linear model intercept for 
 appendString,appendString-memory-arguments-slope,Linear model coefficient for the memory calculation
 bData,bData-cpu-arguments,Constant CPU cost
 bData,bData-memory-arguments,Constant CPU cost
-blake2b_256,blake2b-cpu-arguments-intercept,Linear model intercept for the CPU calculation
-blake2b_256,blake2b-cpu-arguments-slope,Linear model coefficient for the CPU calculation
-blake2b_256,blake2b-memory-arguments,Constant memory cost
+blake2b_256,blake2b_256-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+blake2b_256,blake2b_256-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+blake2b_256,blake2b_256-memory-arguments,Constant memory cost
 chooseData,chooseData-cpu-arguments,Constant CPU cost
 chooseData,chooseData-memory-arguments,Constant memory cost
 chooseList,chooseList-cpu-arguments,Constant CPU cost
