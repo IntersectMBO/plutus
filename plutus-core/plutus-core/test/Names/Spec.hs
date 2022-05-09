@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 
 module Names.Spec where
@@ -174,8 +175,8 @@ test_names =
         , test_equalityRename
         , test_equalityBrokenRename
         , test_equalityNoMarkRename
-        , test_scopingGood genProgram rename
-        , test_scopingBad genProgram markNonFreshProgram renameProgramM
+        , test_scopingGood (genProgram @DefaultFun) rename
+        , test_scopingBad (genProgram @DefaultFun) markNonFreshProgram renameProgramM
         , test_alphaEquality
         , test_rebindShadowedVariable
         , test_rebindCapturedVariable

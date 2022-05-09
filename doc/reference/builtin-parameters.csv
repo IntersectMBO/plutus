@@ -13,9 +13,9 @@ appendString,appendString-memory-arguments-intercept,Linear model intercept for 
 appendString,appendString-memory-arguments-slope,Linear model coefficient for the memory calculation
 bData,bData-cpu-arguments,Constant CPU cost
 bData,bData-memory-arguments,Constant CPU cost
-blake2b_256,blake2b-cpu-arguments-intercept,Linear model intercept for the CPU calculation
-blake2b_256,blake2b-cpu-arguments-slope,Linear model coefficient for the CPU calculation
-blake2b_256,blake2b-memory-arguments,Constant memory cost
+blake2b_256,blake2b_256-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+blake2b_256,blake2b_256-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+blake2b_256,blake2b_256-memory-arguments,Constant memory cost
 chooseData,chooseData-cpu-arguments,Constant CPU cost
 chooseData,chooseData-memory-arguments,Constant memory cost
 chooseList,chooseList-cpu-arguments,Constant CPU cost
@@ -150,6 +150,11 @@ unListData,unListData-cpu-arguments,Constant CPU cost
 unListData,unListData-memory-arguments,Constant memory cost
 unMapData,unMapData-cpu-arguments,Constant CPU cost
 unMapData,unMapData-memory-arguments,Constant memory cost
+verifyEcdsaSecp256k1Signature,verifyEcdsaSecp256k1Signature-cpu-arguments,Constant CPU cost
+verifyEcdsaSecp256k1Signature,verifyEcdsaSecp256k1Signature-memory-arguments,Constant memory cost
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-cpu-arguments-intercept,Linear model intercept for the CPU calculation
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-cpu-arguments-slope,Linear model coefficient for the CPU calculation
+verifySchnorrSecp256k1Signature,verifySchnorrSecp256k1Signature-memory-arguments,Constant memory cost
 verifySignature,verifySignature-cpu-arguments-intercept,Linear model intercept for the CPU calculation
 verifySignature,verifySignature-cpu-arguments-slope,Linear model coefficient for the CPU calculation
 verifySignature,verifySignature-memory-arguments,Constant memory cost

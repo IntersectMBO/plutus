@@ -431,4 +431,4 @@ checkTypeM
 -- [check| G !- term : vTy]
 checkTypeM ann term vTy = do
     vTermTy <- inferTypeM term
-    when (vTermTy /= vTy) $ throwing _TypeError (TypeMismatch ann (void term) (unNormalized vTermTy) vTy)
+    when (vTermTy /= vTy) $ throwing _TypeError (TypeMismatch ann (void term) (unNormalized vTy) vTermTy)

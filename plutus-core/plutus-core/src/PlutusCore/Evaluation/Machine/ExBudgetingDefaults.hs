@@ -108,66 +108,68 @@ unitCostBuiltinCostModel :: BuiltinCostModel
 unitCostBuiltinCostModel = BuiltinCostModelBase
     {
      -- Integers
-      paramAddInteger               = unitCostTwoArguments
-    , paramSubtractInteger          = unitCostTwoArguments
-    , paramMultiplyInteger          = unitCostTwoArguments
-    , paramDivideInteger            = unitCostTwoArguments
-    , paramQuotientInteger          = unitCostTwoArguments
-    , paramRemainderInteger         = unitCostTwoArguments
-    , paramModInteger               = unitCostTwoArguments
-    , paramEqualsInteger            = unitCostTwoArguments
-    , paramLessThanInteger          = unitCostTwoArguments
-    , paramLessThanEqualsInteger    = unitCostTwoArguments
+      paramAddInteger                      = unitCostTwoArguments
+    , paramSubtractInteger                 = unitCostTwoArguments
+    , paramMultiplyInteger                 = unitCostTwoArguments
+    , paramDivideInteger                   = unitCostTwoArguments
+    , paramQuotientInteger                 = unitCostTwoArguments
+    , paramRemainderInteger                = unitCostTwoArguments
+    , paramModInteger                      = unitCostTwoArguments
+    , paramEqualsInteger                   = unitCostTwoArguments
+    , paramLessThanInteger                 = unitCostTwoArguments
+    , paramLessThanEqualsInteger           = unitCostTwoArguments
     -- Bytestrings
-    , paramAppendByteString         = unitCostTwoArguments
-    , paramConsByteString           = unitCostTwoArguments
-    , paramSliceByteString          = unitCostThreeArguments
-    , paramLengthOfByteString       = unitCostOneArgument
-    , paramIndexByteString          = unitCostTwoArguments
-    , paramEqualsByteString         = unitCostTwoArguments
-    , paramLessThanByteString       = unitCostTwoArguments
-    , paramLessThanEqualsByteString = unitCostTwoArguments
+    , paramAppendByteString                = unitCostTwoArguments
+    , paramConsByteString                  = unitCostTwoArguments
+    , paramSliceByteString                 = unitCostThreeArguments
+    , paramLengthOfByteString              = unitCostOneArgument
+    , paramIndexByteString                 = unitCostTwoArguments
+    , paramEqualsByteString                = unitCostTwoArguments
+    , paramLessThanByteString              = unitCostTwoArguments
+    , paramLessThanEqualsByteString        = unitCostTwoArguments
     -- Cryptography and hashes
-    , paramSha2_256                 = unitCostOneArgument
-    , paramSha3_256                 = unitCostOneArgument
-    , paramBlake2b                  = unitCostOneArgument
-    , paramVerifySignature          = unitCostThreeArguments
+    , paramSha2_256                        = unitCostOneArgument
+    , paramSha3_256                        = unitCostOneArgument
+    , paramBlake2b_256                     = unitCostOneArgument
+    , paramVerifySignature                 = unitCostThreeArguments
+    , paramVerifyEcdsaSecp256k1Signature   = unitCostThreeArguments
+    , paramVerifySchnorrSecp256k1Signature = unitCostThreeArguments
     -- Strings
-    , paramAppendString             = unitCostTwoArguments
-    , paramEqualsString             = unitCostTwoArguments
-    , paramEncodeUtf8               = unitCostOneArgument
-    , paramDecodeUtf8               = unitCostOneArgument
+    , paramAppendString                    = unitCostTwoArguments
+    , paramEqualsString                    = unitCostTwoArguments
+    , paramEncodeUtf8                      = unitCostOneArgument
+    , paramDecodeUtf8                      = unitCostOneArgument
     -- Bool
-    , paramIfThenElse               = unitCostThreeArguments
+    , paramIfThenElse                      = unitCostThreeArguments
     -- Unit
-    , paramChooseUnit               = unitCostTwoArguments
+    , paramChooseUnit                      = unitCostTwoArguments
     -- Tracing
-    , paramTrace                    = unitCostTwoArguments
+    , paramTrace                           = unitCostTwoArguments
     -- Pairs
-    , paramFstPair                  = unitCostOneArgument
-    , paramSndPair                  = unitCostOneArgument
+    , paramFstPair                         = unitCostOneArgument
+    , paramSndPair                         = unitCostOneArgument
     -- Lists
-    , paramChooseList               = unitCostThreeArguments
-    , paramMkCons                   = unitCostTwoArguments
-    , paramHeadList                 = unitCostOneArgument
-    , paramTailList                 = unitCostOneArgument
-    , paramNullList                 = unitCostOneArgument
+    , paramChooseList                      = unitCostThreeArguments
+    , paramMkCons                          = unitCostTwoArguments
+    , paramHeadList                        = unitCostOneArgument
+    , paramTailList                        = unitCostOneArgument
+    , paramNullList                        = unitCostOneArgument
     -- Data
-    , paramChooseData               = unitCostSixArguments
-    , paramConstrData               = unitCostTwoArguments
-    , paramMapData                  = unitCostOneArgument
-    , paramListData                 = unitCostOneArgument
-    , paramIData                    = unitCostOneArgument
-    , paramBData                    = unitCostOneArgument
-    , paramUnConstrData             = unitCostOneArgument
-    , paramUnMapData                = unitCostOneArgument
-    , paramUnListData               = unitCostOneArgument
-    , paramUnIData                  = unitCostOneArgument
-    , paramUnBData                  = unitCostOneArgument
-    , paramEqualsData               = unitCostTwoArguments
+    , paramChooseData                      = unitCostSixArguments
+    , paramConstrData                      = unitCostTwoArguments
+    , paramMapData                         = unitCostOneArgument
+    , paramListData                        = unitCostOneArgument
+    , paramIData                           = unitCostOneArgument
+    , paramBData                           = unitCostOneArgument
+    , paramUnConstrData                    = unitCostOneArgument
+    , paramUnMapData                       = unitCostOneArgument
+    , paramUnListData                      = unitCostOneArgument
+    , paramUnIData                         = unitCostOneArgument
+    , paramUnBData                         = unitCostOneArgument
+    , paramEqualsData                      = unitCostTwoArguments
     -- Misc constructors
-    , paramMkPairData               = unitCostTwoArguments
-    , paramMkNilData                = unitCostOneArgument
-    , paramMkNilPairData            = unitCostOneArgument
-    , paramSerialiseData            = unitCostOneArgument
+    , paramMkPairData                      = unitCostTwoArguments
+    , paramMkNilData                       = unitCostOneArgument
+    , paramMkNilPairData                   = unitCostOneArgument
+    , paramSerialiseData                   = unitCostOneArgument
     }

@@ -107,7 +107,7 @@ genType = simpleRecursive nonRecursive recursive where
     recursive = [funGen, applyGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
-genTerm :: AstGen (Term TyName Name DefaultUni DefaultFun ())
+genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())
 genTerm = simpleRecursive nonRecursive recursive where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
@@ -120,7 +120,7 @@ genTerm = simpleRecursive nonRecursive recursive where
     recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
-genProgram :: AstGen (Program TyName Name DefaultUni DefaultFun ())
+genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program TyName Name DefaultUni fun ())
 genProgram = Program () <$> genVersion <*> genTerm
 
 {- Note [Name mangling]
