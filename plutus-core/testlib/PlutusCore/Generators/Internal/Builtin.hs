@@ -37,6 +37,9 @@ import Type.Reflection
 -- | This class exists so we can provide an ad-hoc typed term generator
 -- for various universes. We usually rely-on a universe-specific generator
 -- for well-typed constants within that universe.
+--
+-- TODO: Move this to "PlutusIR.Generators.AST", and merge `genConstant` with
+-- `PlutusIR.Generators.AST.genConstant`.
 class GenTypedTerm uni where
     -- | Generate a `Term` in @uni@ with the given type.
     genTypedTerm ::
