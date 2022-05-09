@@ -133,6 +133,10 @@ listTm g = do
   n  <- liftGen $ choose (0, div sz 3)
   onSize (`div` n) $ replicateM n g
 
+-- | Generate exactly `n` items of a given generator
+vecTm :: Int -> GenTm a -> GenTm [a]
+vecTm n = sequence . replicate n
+
 -- * Dealing with size
 
 -- | Map a function over the generator size
@@ -757,7 +761,7 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
 
 parSubstType :: Map TyName (Type TyName DefaultUni ())
              -> Type TyName DefaultUni ()
-             -> (Type TyName DefaultUni ())
+             -> Type TyName DefaultUni ()
 parSubstType = substType' False
 
 -- | Generate a context of free type variables with kinds
@@ -1073,17 +1077,16 @@ genTerm mty = do
       atomic | Just ty <- mty = (ty,) <$> genAtomicTerm ty
              | otherwise      = do ty <- genType Star; (ty,) <$> genAtomicTerm ty
   ifSizeZero atomic $
-    frequencyTm $ [ (10, atomic) ] ++
-                  [ (letF, genLet mty) ] ++
+    frequencyTm $ [ (10, atomic) ]                                             ++
+                  [ (letF, genLet mty) ]                                       ++
                   [ (30, genForall x k a) | Just (TyForall _ x k a) <- [mty] ] ++
-                  [ (lamF, genLam a b) | Just (a, b) <- [funTypeView mty] ] ++
-                  [ (varAppF, genVarApp mty) ] ++
-                  [ (10, genApp mty) ] ++
-                  [ (1, genError mty) ] ++
-                  [ (10, genConst mty) | canConst mty ] ++
-                  [ (1, genTerm . Just =<< genType Star) | isNothing mty ] ++
-                  [ (10, genDatLet mty) | YesEscape <- [esc] ] ++
-                  [ (10, genIfTrace) | isNothing mty ]
+                  [ (lamF, genLam a b)    | Just (a, b) <- [funTypeView mty] ] ++
+                  [ (varAppF, genVarApp mty) ]                                 ++
+                  [ (10, genApp mty) ]                                         ++
+                  [ (1, genError mty) ]                                        ++
+                  [ (10, genConst mty)    | canConst mty ]                     ++
+                  [ (10, genDatLet mty)   | YesEscape <- [esc] ]               ++
+                  [ (10, genIfTrace)      | isNothing mty ]
   where
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
@@ -1124,14 +1127,21 @@ genTerm mty = do
     genLet mty = do
       -- How many terms to bind
       n   <- liftGen $ choose (1, 3)
-      let vec :: GenTm a -> GenTm [a]
-          vec = sequence . replicate n
+      -- Names of the bound terms
       xs  <- genFreshNames $ replicate n "f"
-      as  <- onSize (`div` 8) $ vec $ genType Star  -- TODO: generate something that matches the target type
-      ss  <- vec $ liftGen $ elements [Strict, NonStrict]
+      -- Types of the bound terms
+      -- TODO: generate something that matches the target type
+      as  <- onSize (`div` 8) $ vecTm n $ genType Star
+      -- Strictness
+      ss  <- vecTm n $ liftGen $ elements [Strict, NonStrict]
+      -- Recursive?
       r   <- liftGen $ frequency [(5, pure True), (30, pure False)]
+      -- Generate the binding
+      -- TODO: maybe also generate mutually recursive bindings?
       let genBin (x, a) | r         = noEscape . bindTmName x a . genTermOfType $ a
                         | otherwise = noEscape . genTermOfType $ a
+      -- Generate both bound terms and body with a size split of 1:7 (note, we are generating up to three bound
+      -- terms, so the size split is really something like n:7).
       sizeSplit_ 1 7 (mapM genBin (zip xs as)) (bindTmNames (zip xs as) $ genTerm mty) $ \ tms (ty, body) ->
         let mkBind (x, a, s) tm = TermBind () s
                                     (VarDecl () x a) tm
@@ -1212,16 +1222,18 @@ genDatatypeLet rec cont = do
                 then bindTyName d k
                 else registerTyName d
     conArgss <- bty d $ bindTyNames (zip xs ks) $ onSize (`div` n) $ replicateM n $ listTm (genType Star)
-    let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks]
-                       m
+    let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
                        | (c, _conArgs) <- zip cs conArgss
                        , let conArgs = filter (Set.notMember d . negativeVars) _conArgs]
     bindDat dat $ cont dat
 
-genDatatypeLets :: ([(Datatype TyName Name DefaultUni DefaultFun ())] -> GenTm a) -> GenTm a
+-- | Generate up to 5 datatypes and bind them in a generator.
+-- NOTE: despite its name this function does in fact not generate the `Let` binding
+-- for the datatypes.
+genDatatypeLets :: ([Datatype TyName Name DefaultUni DefaultFun ()] -> GenTm a) -> GenTm a
 genDatatypeLets cont = do
-  n <- liftGen $ choose (0, 5 :: Int)
+  n <- liftGen $ choose (1, 5 :: Int)
   let go 0 k = k []
       go n k = genDatatypeLet False $ \ dat -> go (n - 1) (k . (dat :))
   go n cont
@@ -1516,6 +1528,7 @@ shrinkBind _ tyctx ctx bind =
                                         | (ty', tm') <- shrinkTypedTerm tyctx ctx (ty, tm)
                                         ] ++
                                         [ TermBind () Strict (VarDecl () x ty) tm | s == NonStrict ]
+    -- These cases are basically just structural
     TypeBind _ (TyVarDecl _ a k) ty  -> [ TypeBind () (TyVarDecl () a k') ty'
                                         | (k', ty') <- shrinkKindAndType tyctx (k, ty) ]
     DatatypeBind _ dat               -> [ DatatypeBind () dat' | dat' <- shrinkDat tyctx dat ]
@@ -1540,12 +1553,16 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
 
 genTypeAndTerm_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTypeAndTerm_ = runGenTm $ do
-    (ty, body) <- genTerm Nothing
-    return (ty, body)
+  (ty, body) <- genTerm Nothing
+  return (ty, body)
 
 -- | Take a term of a specified type and generate
 -- a fully applied term. Useful for generating terms that you want
--- to stick directly in an interpreter.
+-- to stick directly in an interpreter. Prefers to generate small arguments.
+-- NOTE: The logic of this generating small arguments is that the inner term
+-- should already have plenty of complicated arguments to functions to begin
+-- with and now we just want to fill out the arguments so that we get
+-- something that hopefully evaluates for a non-trivial number of steps.
 genFullyApplied :: Type TyName DefaultUni ()
                 -> Term TyName Name DefaultUni DefaultFun ()
                 -> Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
