@@ -64,7 +64,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramLessThanEqualsByteString        = "lessThanEqualsByteStringModel"
   , paramSha2_256                        = "sha2_256Model"
   , paramSha3_256                        = "sha3_256Model"
-  , paramBlake2b                         = "blake2bModel"
+  , paramBlake2b_256                     = "blake2b_256Model"
   , paramVerifyEd25519Signature          = "verifyEd25519SignatureModel"
   , paramVerifyEcdsaSecp256k1Signature   = "verifyEcdsaSecp256k1SignatureModel"
   , paramVerifySchnorrSecp256k1Signature = "verifySchnorrSecp256k1SignatureModel"
@@ -145,7 +145,7 @@ createBuiltinCostModel bmfile rfile = do
     -- Cryptography and hashes
     paramSha2_256                        <- getParams sha2_256                        paramSha2_256
     paramSha3_256                        <- getParams sha3_256                        paramSha3_256
-    paramBlake2b                         <- getParams blake2b                         paramBlake2b
+    paramBlake2b_256                     <- getParams blake2b_256                     paramBlake2b_256
     paramVerifyEd25519Signature          <- getParams verifyEd25519Signature          paramVerifyEd25519Signature
     paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
     paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
@@ -430,19 +430,19 @@ lessThanEqualsByteString = lessThanByteString
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2_256 "")
   pure $ CostingFun cpuModel memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3_256 "")
   pure $ CostingFun cpuModel memModel
 
-blake2b :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-blake2b cpuModelR = do
+blake2b_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+blake2b_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b_256 "")
   pure $ CostingFun cpuModel memModel
 
 -- NB: the R model is based purely on the size of the second argument (since the
