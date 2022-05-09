@@ -35,6 +35,7 @@ import Control.Lens ((<&>))
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
+
 import Data.Char
 import Data.Foldable
 import Data.List hiding (insert)
@@ -46,6 +47,11 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
 import GHC.Stack
+import Prettyprinter
+import Test.QuickCheck
+import Text.PrettyBy
+import Text.Printf
+
 import PlutusCore (typeSize)
 import PlutusCore.Default
 import PlutusCore.Name
@@ -57,10 +63,6 @@ import PlutusIR.Compiler
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Error
 import PlutusIR.TypeCheck
-import Prettyprinter
-import Test.QuickCheck
-import Text.PrettyBy
-import Text.Printf
 
 -- | Term generators carry around a context to know
 -- e.g. what types and terms are in scope.
@@ -160,6 +162,27 @@ sizeSplit a b ga gb f = do
 
 -- * Dealing with fresh names
 
+-- | Get the free variables of a term
+fvTerm :: Term TyName Name DefaultUni DefaultFun ()
+       -> Set Name
+fvTerm tm = case tm of
+  Let _ Rec binds body -> Set.unions
+    (fvTerm body : [ fvTerm body | TermBind _ _ _ body <- toList binds ])
+    `Set.difference` Map.keysSet (foldr addTmBind mempty binds)
+  Let _ _ binds body -> foldr go (fvTerm body) binds
+    where go (TermBind _ _ (VarDecl _ x _) body) free = fvTerm body <> Set.delete x free
+          go _ free                                   = free
+  Var _ nm       -> Set.singleton nm
+  TyAbs _ _ _ t  -> fvTerm t
+  LamAbs _ x _ t -> Set.delete x (fvTerm t)
+  Apply _ t t'   -> fvTerm t <> fvTerm t'
+  TyInst _ t _   -> fvTerm t
+  Constant{}     -> mempty
+  Builtin{}      -> mempty
+  Error{}        -> mempty
+  IWrap{}        -> error "fvTerm: IWrap"
+  Unwrap{}       -> error "fvTerm: Unwrap"
+
 -- | Get the free type variables in a type along with how many
 -- times they occur. The elements of the map are guaranteed to be
 -- non-zero.
@@ -187,6 +210,7 @@ getUniques = do
   where
     names (Datatype _ _ _ m cs) = Set.fromList $ nameUnique m : [ nameUnique c | VarDecl _ c _ <- cs ]
 
+-- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName
 freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
   where i  = succ $ Set.findMax is
@@ -332,7 +356,6 @@ bindBinds = flip (foldr bindBind)
 
 -- * Generators
 
--- |
 builtinTys :: Kind () -> [SomeTypeIn DefaultUni]
 builtinTys Star =
   [ SomeTypeIn DefaultUniInteger
@@ -502,7 +525,8 @@ minimalType ty =
     list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
     pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
-inferKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> Maybe (Kind ())
+-- CODE REVIEW: does this exist anywhere?
+inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Maybe (Kind ())
 inferKind ctx ty = case ty of
   TyVar _ x        -> Map.lookup x ctx
   TyFun _ _ _      -> pure $ Star
@@ -512,12 +536,15 @@ inferKind ctx ty = case ty of
   TyBuiltin _ b    -> pure $ builtinKind b
   TyIFix{}         -> error "inferKind: TyIFix"
 
-inferKind_ :: HasCallStack => Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ())
+-- | Partial inferKind_, useful for context where invariants are set up to guarantee
+-- that types are well-kinded.
+inferKind_ :: HasCallStack => Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind ()
 inferKind_ ctx ty =
   case inferKind ctx ty of
     Nothing -> error "inferKind"
     Just k  -> k
 
+-- | Shrink a type in a context assuming that it is of kind *.
 shrinkType :: HasCallStack
            => Map TyName (Kind ())
            -> Type TyName DefaultUni ()
@@ -530,18 +557,6 @@ shrinkTypeAtKind :: HasCallStack
                  -> Type TyName DefaultUni ()
                  -> [Type TyName DefaultUni ()]
 shrinkTypeAtKind ctx k ty = [ ty' | (k', ty') <- shrinkKindAndType ctx (k, ty), k == k' ]
-
-substTypeCapturePar :: Map TyName (Type TyName DefaultUni ())
-                    -> Type TyName DefaultUni ()
-                    -> Type TyName DefaultUni ()
-substTypeCapturePar sub ty = case ty of
-    TyVar _ x        -> maybe ty id (Map.lookup x sub)
-    TyFun _ a b      -> TyFun () (substTypeCapturePar sub a) (substTypeCapturePar sub b)
-    TyApp _ a b      -> TyApp () (substTypeCapturePar sub a) (substTypeCapturePar sub b)
-    TyLam _ x k b    -> TyLam () x k $ substTypeCapturePar sub b
-    TyForall _ x k b -> TyForall () x k $ substTypeCapturePar sub b
-    TyBuiltin{}      -> ty
-    TyIFix{}         -> ty
 
 data Polarity = Pos
               | Neg
@@ -580,7 +595,7 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
       TyBuiltin{}      -> ty
       TyIFix{}         -> error "substType: TyIFix"
 
-renameType :: TyName -> TyName -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+renameType :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
 renameType x y | x == y    = id
                | otherwise = substType (Map.singleton x (TyVar () y))
 
@@ -604,7 +619,7 @@ substEscape pol fv sub ty = case ty of
   TyBuiltin{}    -> ty
   TyIFix{}       -> ty
 
-checkKind :: Map TyName (Kind ()) -> (Type TyName DefaultUni ()) -> (Kind ()) -> Bool
+checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Bool
 checkKind ctx ty k = case ty of
   TyVar _ x        -> Just k == Map.lookup x ctx
   TyFun _ a b      -> k == Star && checkKind ctx a k && checkKind ctx b k
@@ -624,25 +639,7 @@ addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
 addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
 addTmBind _                                = id
 
-fvTerm :: Term TyName Name DefaultUni DefaultFun ()
-       -> Set Name
-fvTerm tm = case tm of
-  Let _ Rec binds body -> Set.unions
-    (fvTerm body : [ fvTerm body | TermBind _ _ _ body <- toList binds ])
-    `Set.difference` Map.keysSet (foldr addTmBind mempty binds)
-  Let _ _ binds body   -> foldr go (fvTerm body) binds
-    where go (TermBind _ _ (VarDecl _ x _) body) free = fvTerm body <> Set.delete x free
-          go _ free                                   = free
-  Var _ nm -> Set.singleton nm
-  TyAbs _ _ _ t -> fvTerm t
-  LamAbs _ x _ t -> Set.delete x (fvTerm t)
-  Apply _ t t' -> fvTerm t <> fvTerm t'
-  TyInst _ t _ -> fvTerm t
-  Constant{} -> mempty
-  Builtin{} -> mempty
-  Error{} -> mempty
-  IWrap{} -> error "fvTerm: IWrap"
-  Unwrap{} -> error "fvTerm: Unwrap"
+
 
 negativeVars :: Type TyName DefaultUni () -> Set TyName
 negativeVars ty = case ty of
