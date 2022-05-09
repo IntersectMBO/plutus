@@ -40,60 +40,64 @@ microToPico = ceiling . (1e6 *)
 -- TODO some generics magic.
 -- Mentioned in CostModel.md. Change here, change there.
 -- The names of the models in R.
+-- If you get one of these wrong you'll probably get a message saying
+-- 'parse error (not enough input) at ""'.
 builtinCostModelNames :: BuiltinCostModelBase (Const Text)
 builtinCostModelNames = BuiltinCostModelBase
-  { paramAddInteger               = "addIntegerModel"
-  , paramSubtractInteger          = "subtractIntegerModel"
-  , paramMultiplyInteger          = "multiplyIntegerModel"
-  , paramDivideInteger            = "divideIntegerModel"
-  , paramQuotientInteger          = "quotientIntegerModel"
-  , paramRemainderInteger         = "remainderIntegerModel"
-  , paramModInteger               = "modIntegerModel"
-  , paramEqualsInteger            = "equalsIntegerModel"
-  , paramLessThanInteger          = "lessThanIntegerModel"
-  , paramLessThanEqualsInteger    = "lessThanEqualsIntegerModel"
-  , paramAppendByteString         = "appendByteStringModel"
-  , paramConsByteString           = "consByteStringModel"
-  , paramSliceByteString          = "sliceByteStringModel"
-  , paramLengthOfByteString       = "lengthOfByteStringModel"
-  , paramIndexByteString          = "indexByteStringModel"
-  , paramEqualsByteString         = "equalsByteStringModel"
-  , paramLessThanByteString       = "lessThanByteStringModel"
-  , paramLessThanEqualsByteString = "lessThanEqualsByteStringModel"
-  , paramSha2_256                 = "sha2_256Model"
-  , paramSha3_256                 = "sha3_256Model"
-  , paramBlake2b                  = "blake2bModel"
-  , paramVerifySignature          = "verifySignatureModel"
-  , paramAppendString             = "appendStringModel"
-  , paramEqualsString             = "equalsStringModel"
-  , paramEncodeUtf8               = "encodeUtf8Model"
-  , paramDecodeUtf8               = "decodeUtf8Model"
-  , paramIfThenElse               = "ifThenElseModel"
-  , paramChooseUnit               = "chooseUnitModel"
-  , paramTrace                    = "traceModel"
-  , paramFstPair                  = "fstPairModel"
-  , paramSndPair                  = "sndPairModel"
-  , paramChooseList               = "chooseListModel"
-  , paramMkCons                   = "mkConsModel"
-  , paramHeadList                 = "headListModel"
-  , paramTailList                 = "tailListModel"
-  , paramNullList                 = "nullListModel"
-  , paramChooseData               = "chooseDataModel"
-  , paramConstrData               = "constrDataModel"
-  , paramMapData                  = "mapDataModel"
-  , paramListData                 = "listDataModel"
-  , paramIData                    = "iDataModel"
-  , paramBData                    = "bDataModel"
-  , paramUnConstrData             = "unConstrDataModel"
-  , paramUnMapData                = "unMapDataModel"
-  , paramUnListData               = "unListDataModel"
-  , paramUnIData                  = "unIDataModel"
-  , paramUnBData                  = "unBDataModel"
-  , paramEqualsData               = "equalsDataModel"
-  , paramMkPairData               = "mkPairDataModel"
-  , paramMkNilData                = "mkNilDataModel"
-  , paramMkNilPairData            = "mkNilPairDataModel"
-  , paramSerialiseData            = "serialiseDataModel"
+  { paramAddInteger                      = "addIntegerModel"
+  , paramSubtractInteger                 = "subtractIntegerModel"
+  , paramMultiplyInteger                 = "multiplyIntegerModel"
+  , paramDivideInteger                   = "divideIntegerModel"
+  , paramQuotientInteger                 = "quotientIntegerModel"
+  , paramRemainderInteger                = "remainderIntegerModel"
+  , paramModInteger                      = "modIntegerModel"
+  , paramEqualsInteger                   = "equalsIntegerModel"
+  , paramLessThanInteger                 = "lessThanIntegerModel"
+  , paramLessThanEqualsInteger           = "lessThanEqualsIntegerModel"
+  , paramAppendByteString                = "appendByteStringModel"
+  , paramConsByteString                  = "consByteStringModel"
+  , paramSliceByteString                 = "sliceByteStringModel"
+  , paramLengthOfByteString              = "lengthOfByteStringModel"
+  , paramIndexByteString                 = "indexByteStringModel"
+  , paramEqualsByteString                = "equalsByteStringModel"
+  , paramLessThanByteString              = "lessThanByteStringModel"
+  , paramLessThanEqualsByteString        = "lessThanEqualsByteStringModel"
+  , paramSha2_256                        = "sha2_256Model"
+  , paramSha3_256                        = "sha3_256Model"
+  , paramBlake2b_256                     = "blake2b_256Model"
+  , paramVerifySignature                 = "verifySignatureModel"
+  , paramVerifyEcdsaSecp256k1Signature   = "verifyEcdsaSecp256k1SignatureModel"
+  , paramVerifySchnorrSecp256k1Signature = "verifySchnorrSecp256k1SignatureModel"
+  , paramAppendString                    = "appendStringModel"
+  , paramEqualsString                    = "equalsStringModel"
+  , paramEncodeUtf8                      = "encodeUtf8Model"
+  , paramDecodeUtf8                      = "decodeUtf8Model"
+  , paramIfThenElse                      = "ifThenElseModel"
+  , paramChooseUnit                      = "chooseUnitModel"
+  , paramTrace                           = "traceModel"
+  , paramFstPair                         = "fstPairModel"
+  , paramSndPair                         = "sndPairModel"
+  , paramChooseList                      = "chooseListModel"
+  , paramMkCons                          = "mkConsModel"
+  , paramHeadList                        = "headListModel"
+  , paramTailList                        = "tailListModel"
+  , paramNullList                        = "nullListModel"
+  , paramChooseData                      = "chooseDataModel"
+  , paramConstrData                      = "constrDataModel"
+  , paramMapData                         = "mapDataModel"
+  , paramListData                        = "listDataModel"
+  , paramIData                           = "iDataModel"
+  , paramBData                           = "bDataModel"
+  , paramUnConstrData                    = "unConstrDataModel"
+  , paramUnMapData                       = "unMapDataModel"
+  , paramUnListData                      = "unListDataModel"
+  , paramUnIData                         = "unIDataModel"
+  , paramUnBData                         = "unBDataModel"
+  , paramEqualsData                      = "equalsDataModel"
+  , paramMkPairData                      = "mkPairDataModel"
+  , paramMkNilData                       = "mkNilDataModel"
+  , paramMkNilPairData                   = "mkNilPairDataModel"
+  , paramSerialiseData                   = "serialiseDataModel"
   }
 
 
@@ -119,69 +123,70 @@ createBuiltinCostModel bmfile rfile = do
     let getParams x y = x (getConst $ y models)
 
     -- Integers
-    paramAddInteger               <- getParams addInteger                paramAddInteger
-    paramSubtractInteger          <- getParams subtractInteger           paramSubtractInteger
-    paramMultiplyInteger          <- getParams multiplyInteger           paramMultiplyInteger
-    paramDivideInteger            <- getParams divideInteger             paramDivideInteger
-    paramQuotientInteger          <- getParams quotientInteger           paramQuotientInteger
-    paramRemainderInteger         <- getParams remainderInteger          paramRemainderInteger
-    paramModInteger               <- getParams modInteger                paramModInteger
-    paramEqualsInteger            <- getParams equalsInteger             paramEqualsInteger
-    paramLessThanInteger          <- getParams lessThanInteger           paramLessThanInteger
-    paramLessThanEqualsInteger    <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
+    paramAddInteger                      <- getParams addInteger                paramAddInteger
+    paramSubtractInteger                 <- getParams subtractInteger           paramSubtractInteger
+    paramMultiplyInteger                 <- getParams multiplyInteger           paramMultiplyInteger
+    paramDivideInteger                   <- getParams divideInteger             paramDivideInteger
+    paramQuotientInteger                 <- getParams quotientInteger           paramQuotientInteger
+    paramRemainderInteger                <- getParams remainderInteger          paramRemainderInteger
+    paramModInteger                      <- getParams modInteger                paramModInteger
+    paramEqualsInteger                   <- getParams equalsInteger             paramEqualsInteger
+    paramLessThanInteger                 <- getParams lessThanInteger           paramLessThanInteger
+    paramLessThanEqualsInteger           <- getParams lessThanEqualsInteger     paramLessThanEqualsInteger
     -- Bytestrings
-    paramAppendByteString         <- getParams appendByteString          paramAppendByteString
-    paramConsByteString           <- getParams consByteString            paramConsByteString
-    paramSliceByteString          <- getParams sliceByteString           paramSliceByteString
-    paramLengthOfByteString       <- getParams lengthOfByteString        paramLengthOfByteString
-    paramIndexByteString          <- getParams indexByteString           paramIndexByteString
-    paramEqualsByteString         <- getParams equalsByteString          paramEqualsByteString
-    paramLessThanByteString       <- getParams lessThanByteString        paramLessThanByteString
-    paramLessThanEqualsByteString <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
+    paramAppendByteString                <- getParams appendByteString          paramAppendByteString
+    paramConsByteString                  <- getParams consByteString            paramConsByteString
+    paramSliceByteString                 <- getParams sliceByteString           paramSliceByteString
+    paramLengthOfByteString              <- getParams lengthOfByteString        paramLengthOfByteString
+    paramIndexByteString                 <- getParams indexByteString           paramIndexByteString
+    paramEqualsByteString                <- getParams equalsByteString          paramEqualsByteString
+    paramLessThanByteString              <- getParams lessThanByteString        paramLessThanByteString
+    paramLessThanEqualsByteString        <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                 <- getParams sha2_256         paramSha2_256
-    paramSha3_256                 <- getParams sha3_256         paramSha3_256
-    paramBlake2b                  <- getParams blake2b          paramBlake2b
-    paramVerifySignature          <- getParams verifySignature  paramVerifySignature
+    paramSha2_256                        <- getParams sha2_256                        paramSha2_256
+    paramSha3_256                        <- getParams sha3_256                        paramSha3_256
+    paramBlake2b_256                     <- getParams blake2b_256                     paramBlake2b_256
+    paramVerifySignature                 <- getParams verifySignature                 paramVerifySignature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
     -- Strings
-    paramAppendString             <- getParams appendString  paramAppendString
-    paramEqualsString             <- getParams equalsString  paramEqualsString
-    paramEncodeUtf8               <- getParams encodeUtf8    paramEncodeUtf8
-    paramDecodeUtf8               <- getParams decodeUtf8    paramDecodeUtf8
-
+    paramAppendString                    <- getParams appendString  paramAppendString
+    paramEqualsString                    <- getParams equalsString  paramEqualsString
+    paramEncodeUtf8                      <- getParams encodeUtf8    paramEncodeUtf8
+    paramDecodeUtf8                      <- getParams decodeUtf8    paramDecodeUtf8
     -- Bool
-    paramIfThenElse               <- getParams ifThenElse  paramIfThenElse
+    paramIfThenElse                      <- getParams ifThenElse  paramIfThenElse
     -- Unit
-    paramChooseUnit               <- getParams chooseUnit  paramChooseUnit
+    paramChooseUnit                      <- getParams chooseUnit  paramChooseUnit
     -- Tracing
-    paramTrace                    <- getParams trace       paramTrace
+    paramTrace                           <- getParams trace       paramTrace
     -- Pairs
-    paramFstPair                  <- getParams fstPair     paramFstPair
-    paramSndPair                  <- getParams sndPair     paramSndPair
+    paramFstPair                         <- getParams fstPair     paramFstPair
+    paramSndPair                         <- getParams sndPair     paramSndPair
     -- Lists
-    paramChooseList               <- getParams chooseList  paramChooseList
-    paramMkCons                   <- getParams mkCons      paramMkCons
-    paramHeadList                 <- getParams headList    paramHeadList
-    paramTailList                 <- getParams tailList    paramTailList
-    paramNullList                 <- getParams nullList    paramNullList
+    paramChooseList                      <- getParams chooseList  paramChooseList
+    paramMkCons                          <- getParams mkCons      paramMkCons
+    paramHeadList                        <- getParams headList    paramHeadList
+    paramTailList                        <- getParams tailList    paramTailList
+    paramNullList                        <- getParams nullList    paramNullList
     -- Data
-    paramChooseData               <- getParams chooseData     paramChooseData
-    paramConstrData               <- getParams constrData     paramConstrData
-    paramMapData                  <- getParams mapData        paramMapData
-    paramListData                 <- getParams listData       paramListData
-    paramIData                    <- getParams iData          paramIData
-    paramBData                    <- getParams bData          paramBData
-    paramUnConstrData             <- getParams unConstrData   paramUnConstrData
-    paramUnMapData                <- getParams unMapData      paramUnMapData
-    paramUnListData               <- getParams unListData     paramUnListData
-    paramUnIData                  <- getParams unIData        paramUnIData
-    paramUnBData                  <- getParams unBData        paramUnBData
-    paramEqualsData               <- getParams equalsData     paramEqualsData
-    paramSerialiseData            <- getParams serialiseData  paramSerialiseData
+    paramChooseData                      <- getParams chooseData     paramChooseData
+    paramConstrData                      <- getParams constrData     paramConstrData
+    paramMapData                         <- getParams mapData        paramMapData
+    paramListData                        <- getParams listData       paramListData
+    paramIData                           <- getParams iData          paramIData
+    paramBData                           <- getParams bData          paramBData
+    paramUnConstrData                    <- getParams unConstrData   paramUnConstrData
+    paramUnMapData                       <- getParams unMapData      paramUnMapData
+    paramUnListData                      <- getParams unListData     paramUnListData
+    paramUnIData                         <- getParams unIData        paramUnIData
+    paramUnBData                         <- getParams unBData        paramUnBData
+    paramEqualsData                      <- getParams equalsData     paramEqualsData
+    paramSerialiseData                   <- getParams serialiseData  paramSerialiseData
     -- Misc constructors
-    paramMkPairData               <- getParams mkPairData     paramMkPairData
-    paramMkNilData                <- getParams mkNilData      paramMkNilData
-    paramMkNilPairData            <- getParams mkNilPairData  paramMkNilPairData
+    paramMkPairData                      <- getParams mkPairData     paramMkPairData
+    paramMkNilData                       <- getParams mkNilData      paramMkNilData
+    paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
 
     pure $ BuiltinCostModelBase {..}
 
@@ -425,19 +430,19 @@ lessThanEqualsByteString = lessThanByteString
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2_256 "")
   pure $ CostingFun cpuModel memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3_256 "")
   pure $ CostingFun cpuModel memModel
 
-blake2b :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-blake2b cpuModelR = do
+blake2b_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+blake2b_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b_256 "")
   pure $ CostingFun cpuModel memModel
 
 -- NB: the R model is based purely on the size of the second argument (since the
@@ -445,19 +450,19 @@ blake2b cpuModelR = do
 -- get it to work with a three-argument costing function.
 verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 verifySignature cpuModelR = do
-  cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInX cpuModelR
+  cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInY cpuModelR
   let memModel =  ModelThreeArgumentsConstantCost 10
   pure $ CostingFun cpuModel memModel
   {- The CPU model is wrong here, but not in the way that it may appear to be.
-     We're reading a model for X but treating it as a function of Z.  This is
-     partially correct because the benchmark results only record data for the
-     message size, and so R has to treat it as an X value.  However, we should
-     really be modelling it as a function of Y, since that's the 'msg' parameter
-     of the verifySignature function.  So above it should say
+     We're reading a model for Y but treating it as a function of Z. This is
+     because the model was accidentally based on the size of the third argument,
+     which is a 64-byte signature.  However, we should really be modelling it as
+     a function of Y, since that's the 'message' parameter of the
+     verifySignature function.  So above it should say
 
-        ModelThreeArgumentsLinearInY <$> readModelLinearInX cpuModelR.
+        ModelThreeArgumentsLinearInY <$> readModelLinearInY cpuModelR.
 
-     To recapitulate, R is supplying us with a reasonabe model for execution
+     To recapitulate, R is supplying us with a reasonable model for execution
      time in terms of message size, but we're feeding that model constant inputs
      (the size of the signature, 64 bytes/8 words) instead of the size of the
      signature that we're verifying.  Luckily we can get away with this.  The
@@ -466,9 +471,22 @@ verifySignature cpuModelR = do
      code is very fast.  The Z-based cost function returns a constant cost since
      the size of the third argument is constant; we should be using a Y-based
      function instead, but that would give similar results and we're not
-     undercharging siginficantly.
+     undercharging siginficantly.  To fix this we need to change the shape of
+     the model from "linear_in_z" to "linear_in_y", but that's something we need
+     to be careful about: see SCP-3038.
    -}
 
+verifyEcdsaSecp256k1Signature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifyEcdsaSecp256k1Signature cpuModelR = do
+  cpuModel <- ModelThreeArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel =  ModelThreeArgumentsConstantCost 10
+  pure $ CostingFun cpuModel memModel
+
+verifySchnorrSecp256k1Signature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifySchnorrSecp256k1Signature cpuModelR = do
+  cpuModel <- ModelThreeArgumentsLinearInY <$> readModelLinearInY cpuModelR
+  let memModel =  ModelThreeArgumentsConstantCost 10
+  pure $ CostingFun cpuModel memModel
 
 ---------------- Strings ----------------
 

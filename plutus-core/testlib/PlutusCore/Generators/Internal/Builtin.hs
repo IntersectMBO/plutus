@@ -5,7 +5,8 @@
 {-# LANGUAGE TypeOperators       #-}
 
 module PlutusCore.Generators.Internal.Builtin (
-    SomeGen (..),
+    GenTypedTerm (..),
+    GenArbitraryTerm (..),
     genConstant,
     genInteger,
     genByteString,
@@ -21,6 +22,7 @@ module PlutusCore.Generators.Internal.Builtin (
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
+import PlutusCore.Generators.AST hiding (genConstant)
 
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
@@ -32,9 +34,39 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
 
-data SomeGen = forall a. DefaultUni `Contains` a => SomeGen (Gen a)
+-- | This class exists so we can provide an ad-hoc typed term generator
+-- for various universes. We usually rely-on a universe-specific generator
+-- for well-typed constants within that universe.
+--
+-- TODO: Move this to "PlutusIR.Generators.AST", and merge `genConstant` with
+-- `PlutusIR.Generators.AST.genConstant`.
+class GenTypedTerm uni where
+    -- | Generate a `Term` in @uni@ with the given type.
+    genTypedTerm ::
+        forall (a :: GHC.Type) tyname name fun.
+        TypeRep a ->
+        Gen (Term tyname name uni fun ())
 
-genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen
+instance GenTypedTerm DefaultUni where
+    -- TODO: currently it only generates constant terms.
+    genTypedTerm tr = case genConstant tr of
+        SomeGen gen -> Constant () . someValue <$> gen
+
+-- | This class exists so we can provide an ad-hoc arbitrary term generator
+-- for various universes.
+class GenArbitraryTerm uni where
+    -- | Generate an arbitrary `Term` in @uni@.
+    genArbitraryTerm ::
+        forall fun.
+        (Bounded fun, Enum fun) =>
+        Gen (Term TyName Name uni fun ())
+
+instance GenArbitraryTerm DefaultUni where
+    genArbitraryTerm = runAstGen genTerm
+
+data SomeGen uni = forall a. uni `Contains` a => SomeGen (Gen a)
+
+genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen DefaultUni
 genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = SomeGen $ pure ()
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeGen genInteger

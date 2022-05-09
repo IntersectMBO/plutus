@@ -67,6 +67,8 @@ module PlutusTx.Prelude (
     sha2_256,
     sha3_256,
     verifySignature,
+    verifyEcdsaSecp256k1Signature,
+    verifySchnorrSecp256k1Signature,
     -- * Rational numbers
     Rational,
     unsafeRatio,
@@ -87,7 +89,8 @@ import PlutusTx.Bool as Bool
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
                           consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
                           equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
-                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace, verifySignature)
+                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature, verifySignature)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum

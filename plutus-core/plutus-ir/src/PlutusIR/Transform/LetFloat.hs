@@ -428,7 +428,11 @@ ifRec r f a = case r of
     NonRec -> a
 
 floatable :: PLC.ToBuiltinMeaning uni fun => BindingGrp tyname name uni fun a -> Bool
-floatable (BindingGrp _ _ bs) = all hasNoEffects bs
+floatable (BindingGrp _ _ bs) =
+    all hasNoEffects bs
+        &&
+        -- See Note [Floating type-lets]
+        none isTypeBind bs
 
 {-| Returns if a binding has absolutely no effects  (see Value.hs)
 See Note [Purity, strictness, and variables]
@@ -443,6 +447,9 @@ hasNoEffects = \case
     -- have to check for purity
     -- TODO: We could maybe do better here, but not worth it at the moment
     TermBind _ Strict _ t    -> isPure (const NonStrict) t
+
+isTypeBind :: Binding tyname name uni fun a -> Bool
+isTypeBind = \case TypeBind{} -> True; _ -> False
 
 -- | Breaks down linear let nonrecs by
 -- the rule: {let nonrec (b:bs) in t} === {let nonrec b in let nonrec bs in t}
@@ -477,4 +484,18 @@ The end result is that no nested, floatable let will appear anymore inside anoth
 (e.g. invalid output:  let x=1+(let y=3 in y) in ...)
 *EXCEPT* if the nested let is intercepted by a lam/Lam anchor (depends on a lam/Lam that is located inside the parent-let's rhs)
 e.g. valid output: let x= \z -> (let y = 3+z in y) in ...
+-}
+
+{- Note [Floating type-lets]
+
+In general, type-lets cannot be floated because of opaqueness. For example, it is unsound to turn
+
+(let a = x in \(b : a) t) (y : x)
+
+into
+
+let a = x in (\(b : a) t) (y : x)
+
+Because type-lets are opaque, this doesn't type check - the formal parameter has type `a` while
+`y` has type `x`.
 -}

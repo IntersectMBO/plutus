@@ -75,6 +75,8 @@ arity <- function(name) {
         "Sha3_256" = 1,
         "Blake2b_256" = 1,
         "VerifySignature" = 3,
+        "VerifyEcdsaSecp256k1Signature" = 3,
+        "VerifySchnorrSecp256k1Signature" = 3,
         "AppendString" = 2,
         "EqualsString" = 2,
         "EncodeUtf8" = 1,
@@ -149,8 +151,8 @@ get.bench.data <- function(path) {
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
+    ## cat (sprintf ("Reading data for %s\n", fname))
     filtered <- filter (frame, name == fname)
-##    cat (sprintf ("Reading data for %s\n", name))
     if (nrow(filtered) == 0) {
         stop ("No data found for ", fname)
     } else filtered
@@ -479,7 +481,7 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    blake2bModel <- {
+    blake2b_256Model <- {
         fname <- "Blake2b_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
@@ -492,20 +494,27 @@ modelFun <- function(path) {
     ## are of fixed size, so we only gather benchmarking data for different
     ## sizes of the second argument (the "message" being signed).  This can be
     ## very large, but the time appears to be kind of random, even up to size
-    ## 120000.  This is somewhat confusing because the CSV file only contains
-    ## results for the x parameter but in fact it refers to the second parameter
-    ## of verifySignature.  To clarify things here we should probably record data
-    ## for all three parameter sizes even though the first and third are constant.
+    ## 120000.
     verifySignatureModel <- {
         fname <- "VerifySignature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
+        m <- lm(t ~ y_mem, filtered)
         adjustModel(m,fname)
     }
 
+    verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
 
+    verifySchnorrSecp256k1SignatureModel <- {
+        fname <- "VerifySchnorrSecp256k1Signature"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem, filtered)
+        adjustModel(m,fname)
+    }
+    
 
     ##### Strings #####
 
@@ -638,57 +647,59 @@ modelFun <- function(path) {
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
     list(
-        addIntegerModel               = addIntegerModel,
-        subtractIntegerModel          = subtractIntegerModel,
-        multiplyIntegerModel          = multiplyIntegerModel,
-        divideIntegerModel            = divideIntegerModel,
-        quotientIntegerModel          = quotientIntegerModel,
-        remainderIntegerModel         = remainderIntegerModel,
-        modIntegerModel               = modIntegerModel,
-        equalsIntegerModel            = equalsIntegerModel,
-        lessThanIntegerModel          = lessThanIntegerModel,
-        lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
-        appendByteStringModel         = appendByteStringModel,
-        consByteStringModel           = consByteStringModel,
-        sliceByteStringModel          = sliceByteStringModel,
-        lengthOfByteStringModel       = lengthOfByteStringModel,
-        indexByteStringModel          = indexByteStringModel,
-        equalsByteStringModel         = equalsByteStringModel,
-        lessThanByteStringModel       = lessThanByteStringModel,
-        lessThanEqualsByteStringModel = lessThanEqualsByteStringModel,
-        sha2_256Model                 = sha2_256Model,
-        sha3_256Model                 = sha3_256Model,
-        blake2bModel                  = blake2bModel,
-        verifySignatureModel          = verifySignatureModel,
-        appendStringModel             = appendStringModel,
-        equalsStringModel             = equalsStringModel,
-        encodeUtf8Model               = encodeUtf8Model,
-        decodeUtf8Model               = decodeUtf8Model,
-        ifThenElseModel               = ifThenElseModel,
-        chooseUnitModel               = chooseUnitModel,
-        traceModel                    = traceModel,
-        fstPairModel                  = fstPairModel,
-        sndPairModel                  = sndPairModel,
-        chooseListModel               = chooseListModel,
-        mkConsModel                   = mkConsModel,
-        headListModel                 = headListModel,
-        tailListModel                 = tailListModel,
-        nullListModel                 = nullListModel,
-        chooseDataModel               = chooseDataModel,
-        constrDataModel               = constrDataModel,
-        mapDataModel                  = mapDataModel,
-        listDataModel                 = listDataModel,
-        iDataModel                    = iDataModel,
-        bDataModel                    = bDataModel,
-        unConstrDataModel             = unConstrDataModel,
-        unMapDataModel                = unMapDataModel,
-        unListDataModel               = unListDataModel,
-        unIDataModel                  = unIDataModel,
-        unBDataModel                  = unBDataModel,
-        equalsDataModel               = equalsDataModel,
-        mkPairDataModel               = mkPairDataModel,
-        mkNilDataModel                = mkNilDataModel,
-        mkNilPairDataModel            = mkNilPairDataModel,
-        serialiseDataModel            = serialiseDataModel
+        addIntegerModel                      = addIntegerModel,
+        subtractIntegerModel                 = subtractIntegerModel,
+        multiplyIntegerModel                 = multiplyIntegerModel,
+        divideIntegerModel                   = divideIntegerModel,
+        quotientIntegerModel                 = quotientIntegerModel,
+        remainderIntegerModel                = remainderIntegerModel,
+        modIntegerModel                      = modIntegerModel,
+        equalsIntegerModel                   = equalsIntegerModel,
+        lessThanIntegerModel                 = lessThanIntegerModel,
+        lessThanEqualsIntegerModel           = lessThanEqualsIntegerModel,
+        appendByteStringModel                = appendByteStringModel,
+        consByteStringModel                  = consByteStringModel,
+        sliceByteStringModel                 = sliceByteStringModel,
+        lengthOfByteStringModel              = lengthOfByteStringModel,
+        indexByteStringModel                 = indexByteStringModel,
+        equalsByteStringModel                = equalsByteStringModel,
+        lessThanByteStringModel              = lessThanByteStringModel,
+        lessThanEqualsByteStringModel        = lessThanEqualsByteStringModel,
+        sha2_256Model                        = sha2_256Model,
+        sha3_256Model                        = sha3_256Model,
+        blake2b_256Model                     = blake2b_256Model,
+        verifySignatureModel                 = verifySignatureModel,
+        verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
+        verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,
+        appendStringModel                    = appendStringModel,
+        equalsStringModel                    = equalsStringModel,
+        encodeUtf8Model                      = encodeUtf8Model,
+        decodeUtf8Model                      = decodeUtf8Model,
+        ifThenElseModel                      = ifThenElseModel,
+        chooseUnitModel                      = chooseUnitModel,
+        traceModel                           = traceModel,
+        fstPairModel                         = fstPairModel,
+        sndPairModel                         = sndPairModel,
+        chooseListModel                      = chooseListModel,
+        mkConsModel                          = mkConsModel,
+        headListModel                        = headListModel,
+        tailListModel                        = tailListModel,
+        nullListModel                        = nullListModel,
+        chooseDataModel                      = chooseDataModel,
+        constrDataModel                      = constrDataModel,
+        mapDataModel                         = mapDataModel,
+        listDataModel                        = listDataModel,
+        iDataModel                           = iDataModel,
+        bDataModel                           = bDataModel,
+        unConstrDataModel                    = unConstrDataModel,
+        unMapDataModel                       = unMapDataModel,
+        unListDataModel                      = unListDataModel,
+        unIDataModel                         = unIDataModel,
+        unBDataModel                         = unBDataModel,
+        equalsDataModel                      = equalsDataModel,
+        mkPairDataModel                      = mkPairDataModel,
+        mkNilDataModel                       = mkNilDataModel,
+        mkNilPairDataModel                   = mkNilPairDataModel,
+        serialiseDataModel                   = serialiseDataModel
     )
 }
