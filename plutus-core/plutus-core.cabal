@@ -362,7 +362,6 @@ library plutus-core-testlib
         tasty-hedgehog -any,
         tasty-hunit -any,
         QuickCheck -any,
-        serialise -any,
         deepseq -any,
         text -any,
         transformers -any,
