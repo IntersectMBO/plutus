@@ -183,6 +183,28 @@ fvTerm tm = case tm of
   IWrap{}        -> error "fvTerm: IWrap"
   Unwrap{}       -> error "fvTerm: Unwrap"
 
+-- | Get the free variables in a type that appear in negative position
+negativeVars :: Type TyName DefaultUni () -> Set TyName
+negativeVars ty = case ty of
+  TyFun _ a b      -> positiveVars a <> negativeVars b
+  TyApp _ a b      -> negativeVars a <> negativeVars b
+  TyLam _ x _ b    -> Set.delete x $ negativeVars b
+  TyForall _ x _ b -> Set.delete x $ negativeVars b
+  TyVar _ _        -> mempty
+  TyBuiltin{}      -> mempty
+  TyIFix{}         -> error "negativeVars: TyIFix"
+
+-- | Get the free variables in a type that appear in positive position
+positiveVars :: Type TyName DefaultUni () -> Set TyName
+positiveVars ty = case ty of
+  TyFun _ a b      -> negativeVars a <> positiveVars b
+  TyApp _ a b      -> positiveVars a <> positiveVars b
+  TyLam _ x _ b    -> Set.delete x $ positiveVars b
+  TyForall _ x _ b -> Set.delete x $ positiveVars b
+  TyVar _ x        -> Set.singleton x
+  TyBuiltin{}      -> mempty
+  TyIFix{}         -> error "positiveVars: TyIFix"
+
 -- | Get the free type variables in a type along with how many
 -- times they occur. The elements of the map are guaranteed to be
 -- non-zero.
@@ -363,7 +385,7 @@ builtinTys Star =
   , SomeTypeIn DefaultUniBool ]
 builtinTys _ = []
 
-genAtomicType :: (Kind ()) -> GenTm (Type TyName DefaultUni ())
+genAtomicType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genAtomicType k = do
   tys <- asks geTypes
   dts <- asks geDatas
@@ -508,7 +530,7 @@ shrinkKindAndType ctx (k, ty) =
     TyBuiltin{}       -> []
     TyIFix{}          -> error "shrinkKindAndType: TyIFix"
 
-minimalType :: (Kind ()) -> (Type TyName DefaultUni ())
+minimalType :: Kind () -> Type TyName DefaultUni ()
 minimalType ty =
   case ty of
     Type{} -> unit
@@ -595,6 +617,7 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
       TyBuiltin{}      -> ty
       TyIFix{}         -> error "substType: TyIFix"
 
+-- CODE REVIEW: does this exist anywhere?
 renameType :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
 renameType x y | x == y    = id
                | otherwise = substType (Map.singleton x (TyVar () y))
@@ -619,6 +642,7 @@ substEscape pol fv sub ty = case ty of
   TyBuiltin{}    -> ty
   TyIFix{}       -> ty
 
+-- | Check well-kindedness of a type in a context
 checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Bool
 checkKind ctx ty k = case ty of
   TyVar _ x        -> Just k == Map.lookup x ctx
@@ -639,40 +663,19 @@ addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
 addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
 addTmBind _                                = id
 
-
-
-negativeVars :: Type TyName DefaultUni () -> Set TyName
-negativeVars ty = case ty of
-  TyFun _ a b      -> positiveVars a <> negativeVars b
-  TyApp _ a b      -> negativeVars a <> negativeVars b
-  TyLam _ x _ b    -> Set.delete x $ negativeVars b
-  TyForall _ x _ b -> Set.delete x $ negativeVars b
-  TyVar _ _        -> mempty
-  TyBuiltin{}      -> mempty
-  TyIFix{}         -> error "negativeVars: TyIFix"
-
-positiveVars :: (Type TyName DefaultUni ()) -> Set TyName
-positiveVars ty = case ty of
-  TyFun _ a b      -> negativeVars a <> positiveVars b
-  TyApp _ a b      -> positiveVars a <> positiveVars b
-  TyLam _ x _ b    -> Set.delete x $ positiveVars b
-  TyForall _ x _ b -> Set.delete x $ positiveVars b
-  TyVar _ x        -> Set.singleton x
-  TyBuiltin{}      -> mempty
-  TyIFix{}         -> error "positiveVars: TyIFix"
-
 genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndType = do
   k <- arbitrary
   t <- genClosedType_ k
   return (k, t)
 
+-- | Normalize a type, throw an error if normalization fails due to e.g. wellkindedness issues.
 normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy ty = case runQuoteT $ normalizeType ty of
   Left _                 -> error "normalizeTy"
   Right (Normalized ty') -> ty'
 
--- TODO: this probably exists somewhere?
+-- CODE REVIEW: this probably exists somewhere?
 unifyType :: Map TyName (Kind ())
           -> Set TyName
           -> Map TyName (Type TyName DefaultUni ())
@@ -729,6 +732,7 @@ parSubstType :: Map TyName (Type TyName DefaultUni ())
              -> (Type TyName DefaultUni ())
 parSubstType = substType' False
 
+-- | Generate a context of free type variables with kinds
 genCtx :: Gen (Map TyName (Kind ()))
 genCtx = do
   let m = 20
@@ -739,6 +743,7 @@ genCtx = do
   ks <- vectorOf n arbitrary
   return $ Map.fromList $ zip xs ks
 
+-- | Generate a type substitution that is valid in a given context.
 genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
 genSubst ctx = do
   xks <- sublistOf <=< shuffle $ Map.toList ctx
@@ -770,9 +775,11 @@ instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst w
   prettyBy ctx (InstApp ty) = prettyBy ctx ty
   prettyBy ctx (InstArg ty) = brackets (prettyBy ctx ty)
 
+-- CODE REVIEW: this should probably go elsewhere?
 instance PrettyBy config i => PrettyBy config (NonNegative i) where
   prettyBy ctx (NonNegative i) = prettyBy ctx i
 
+-- CODE REVIEW: this should probably go elsewhere?
 instance ( HasPrettyDefaults config ~ 'True
          , PrettyBy config k
          , PrettyBy config v) => PrettyBy config (Map k v) where
@@ -815,7 +822,8 @@ letCE :: (PrettyPir a, Testable p) => String -> a -> (a -> p) -> Property
 letCE name x k = ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
 forAllDoc :: (PrettyPir a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
-forAllDoc name g shr k = forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
+forAllDoc name g shr k =
+  forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
 checkNoCounterexamples :: PrettyPir [a] => [a] -> Property
 checkNoCounterexamples []  = property True
@@ -830,7 +838,8 @@ prop_shrinkTypeSound :: Property
 prop_shrinkTypeSound =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
   checkKind Map.empty ty k ==>
-  checkNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty), not $ checkKind Map.empty ty k ]
+  checkNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty)
+                                   , not $ checkKind Map.empty ty k ]
 
 prop_genKindCorrect :: Property
 prop_genKindCorrect =
