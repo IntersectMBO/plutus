@@ -95,6 +95,12 @@ runGenTm g = sized $ \ n ->
                         , geEscaping           = YesEscape
                         }
 
+-- * Utility functions
+
+-- | Don't allow types to escape from a generator.
+noEscape :: GenTm a -> GenTm a
+noEscape = local $ \env -> env { geEscaping = NoEscape }
+
 -- * Functions for lifting `Gen` stuff to `GenTm`
 
 -- | Lift `Gen` generator to `GenTm` generator. Respects `geSize`.
@@ -386,6 +392,7 @@ bindBinds = flip (foldr bindBind)
 
 -- * Generators
 
+-- | Get the types of builtins at a given kind
 builtinTys :: Kind () -> [SomeTypeIn DefaultUni]
 builtinTys Star =
   [ SomeTypeIn DefaultUniInteger
@@ -393,6 +400,8 @@ builtinTys Star =
   , SomeTypeIn DefaultUniBool ]
 builtinTys _ = []
 
+-- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
+-- and abstractions /\ t0 ... tn. T
 genAtomicType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genAtomicType k = do
   tys <- asks geTypes
@@ -405,15 +414,24 @@ genAtomicType k = do
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
   oneofTm $ map pure (atoms ++ builtins) ++ [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
 
-genType :: (Kind ()) -> GenTm (Type TyName DefaultUni ())
+-- | Generate a type at a given kind
+genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = onSize (min 10) $
   ifSizeZero (genAtomicType k) $
     frequencyTm $ [ (1, genAtomicType k) ] ++
-                  [ (2, sizeSplit_ 1 7 (genType k) (genType k) (TyFun ())) | k == Star ] ++
+                  [ (2, genFun) | k == Star ] ++
                   [ (1, genForall) | k == Star ] ++
                   [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
                   [ (1, genApp) ]
   where
+    -- this size split keeps us from generating riddiculous types that
+    -- grow huge to the left of an arrow or abstraction (See also the
+    -- genApp case below). This ratio of 1:7 was not scientifically
+    -- established, if you are unhappy about the compleixty of the
+    -- type of arguments that are generated tweaking this might
+    -- be a good idea.
+    genFun = sizeSplit_ 1 7 (genType k) (genType k) (TyFun ())
+
     genForall = do
       x <- genMaybeFreshTyName "a"
       k <- liftGen arbitrary
@@ -427,13 +445,15 @@ genType k = onSize (min 10) $
       k' <- liftGen arbitrary
       sizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k') $ TyApp ()
 
-genClosedType_ :: (Kind ()) -> Gen (Type TyName DefaultUni ())
-genClosedType_ = runGenTm . genType
+-- | Generate a closed type at a given kind
+genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())
+genClosedType_ = genTypeWithCtx mempty
 
-genTypeWithCtx :: Map TyName (Kind ()) -> (Kind ()) -> Gen (Type TyName DefaultUni ())
+-- | Generate a well-kinded term in a given context
+genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
-leKind :: (Kind ()) -> (Kind ()) -> Bool
+leKind :: Kind () -> Kind () -> Bool
 leKind k1 k2 = go (reverse $ args k1) (reverse $ args k2)
   where
     args Type{}            = []
@@ -823,16 +843,21 @@ typeInstTerm ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
+-- CODE REVIEW: does this exist already?
 ceDoc :: Testable t => Doc ann -> t -> Property
 ceDoc d = counterexample (show d)
 
+-- CODE REVIEW: does this exist already?
 letCE :: (PrettyPir a, Testable p) => String -> a -> (a -> p) -> Property
 letCE name x k = ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
+-- CODE REVIEW: does this exist already?
 forAllDoc :: (PrettyPir a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
 forAllDoc name g shr k =
   forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
+-- | Check that a list of potential counterexamples is empty and display the
+-- list as a QuickCheck counterexample if its not.
 checkNoCounterexamples :: PrettyPir [a] => [a] -> Property
 checkNoCounterexamples []  = property True
 checkNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
@@ -869,20 +894,28 @@ prop_shrinkKind =
 prop_fixKind :: Property
 prop_fixKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkNoCounterexamples [ (ty', k') | k' <- shrink k, let ty' = fixKind Map.empty ty k', not $ checkKind Map.empty ty' k' ]
+  checkNoCounterexamples [ (ty', k') | k' <- shrink k
+                                     , let ty' = fixKind Map.empty ty k'
+                                     , not $ checkKind Map.empty ty' k' ]
 
 -- Terms --
 prop_unify :: Property
 prop_unify =
-  forAllDoc "n"   arbitrary shrink $ \ (NonNegative n) ->
-  forAllDoc "m"   (choose (0, n)) shrink $ \ m ->
-  letCE "xs" (take n allTheVarsCalledX) $ \ xs ->
-  forAllDoc "ks" (vectorOf n arbitrary) (filter ((== n) . length) . shrink) $ \ ks ->
-  letCE "ctx" (Map.fromList $ zip xs ks) $ \ ctx ->
-  forAllDoc "ty1" (genTypeWithCtx ctx $ Star) (shrinkType ctx)  $ \ ty1 ->
-  forAllDoc "ty2" (genTypeWithCtx ctx $ Star) (shrinkType ctx)  $ \ ty2 ->
-  letCE "nty1" (normalizeTy ty1) $ \ _ ->
-  letCE "nty2" (normalizeTy ty2) $ \ _ ->
+  forAllDoc "n"   arbitrary shrink         $ \ (NonNegative n) ->
+  forAllDoc "m"   (choose (0, n)) shrink   $ \ m ->
+  letCE "xs" (take n allTheVarsCalledX)    $ \ xs ->
+  forAllDoc "ks"
+    (vectorOf n arbitrary)
+    (filter ((== n) . length) . shrink)    $ \ ks ->
+  letCE "ctx" (Map.fromList                $ zip xs ks) $ \ ctx ->
+  forAllDoc "ty1"
+    (genTypeWithCtx ctx $ Star)
+    (shrinkType ctx)                       $ \ ty1 ->
+  forAllDoc "ty2"
+    (genTypeWithCtx ctx $ Star)
+    (shrinkType ctx)                       $ \ ty2 ->
+  letCE "nty1" (normalizeTy ty1)           $ \ _ ->
+  letCE "nty2" (normalizeTy ty2)           $ \ _ ->
   letCE "res" (unifyType ctx (Set.fromList $ take m xs) Map.empty ty1 ty2) $ \ res ->
   isJust res ==>
   let sub = fromJust res
@@ -926,14 +959,21 @@ genConstant b = case b of
   SomeTypeIn DefaultUniString  -> Const DefaultUniString . fromString . getPrintableString <$> liftGen arbitrary
   _                            -> error "genConstant"
 
-inhabitType :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
+-- | Try to inhabit a given type in as simple a way as possible,
+-- prefers to not default to `error`
+inhabitType :: Type TyName DefaultUni () -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
   fromJust <$> runMaybeT (findTm ty <|> pure (Error () ty))
   where
     -- Do the obvious thing as long as target type is not type var
     -- When type var: magic (if higher-kinded type var: black magic)
     -- Ex: get `a` from D ts ==> get `a` from which ts, get which params from D
-    findTm :: (Type TyName DefaultUni ()) -> MaybeT GenTm (Term TyName Name DefaultUni DefaultFun ())
+    -- This function does not fail to error.
+    --
+    -- NOTE: because we make recursive calls to findTm in this function instead of
+    -- inhabitType we don't risk generating terms that are "mostly ok but something is error",
+    -- this function will avoid error if possible.
+    findTm :: Type TyName DefaultUni () -> MaybeT GenTm (Term TyName Name DefaultUni DefaultFun ())
     findTm (normalizeTy -> ty) = case ty of
       TyFun _ a b -> do
         x <- lift $ genFreshName "x"
@@ -941,21 +981,30 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
       TyForall _ x k b -> do
         TyAbs () x k <$> mapMaybeT (bindTyName x k) (findTm b)
       TyBuiltin _ b -> lift $ genConstant b
+      -- If we have a type-function application
       (viewApp [] -> (f, _)) ->
         case f of
           TyVar () x  -> do
             _ <- asks geDatas
             asks (Map.lookup x . geDatas) >>= \ case
+              -- If the head is a datatype try to inhabit one of its constructors
               Just dat -> foldr mplus mzero $ map (tryCon x ty) (constrTypes dat)
+              -- If its not a datatype we try to use whatever bound variables
+              -- we have to inhabit the type
               Nothing  -> do
                 vars <- asks geTerms
                 ctx  <- asks geTypes
                 let cands = Map.toList vars
+                    -- If we are instantiating something simply instantiate every
+                    -- type application with type required by typeInstTerm
                     doInst _ tm (InstApp instTy) = pure $ TyInst () tm instTy
+                    -- If we instantiate an application, only succeed if we find
+                    -- a non-error argument.
                     doInst _ tm (InstArg argTy)  = Apply () tm <$> findTm argTy
+                -- Go over every type and try to inhabit the type at the arguments
                 case [ local (\e -> e { geTerms = Map.delete x' (geTerms e) })
                        $ foldM (doInst n) (Var () x') insts
-                     | (x', a)     <- cands,
+                     | (x', a)    <- cands,
                        n          <- [0..typeArity a],
                        Just insts <- [typeInstTerm ctx n ty a],
                        x `Set.notMember` fvArgs a
@@ -983,23 +1032,30 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
     fvArgs _                  = mempty
 
+-- CODE REVIEW: does this exist anywhere?
 typeArity :: Num a => Type tyname uni ann -> a
 typeArity (TyForall _ _ _ a) = typeArity a
 typeArity (TyFun _ _ b)      = 1 + typeArity b
 typeArity _                  = 0
 
-genAtomicTerm :: (Type TyName DefaultUni ()) -> GenTm (Term TyName Name DefaultUni DefaultFun ())
+-- | Generate as small a term as possible to match a given type.
+genAtomicTerm :: Type TyName DefaultUni () -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genAtomicTerm ty = do
   ctx  <- asks geTypes
   vars <- asks geTerms
+  -- First try cheap unification
   let unifyVar (x, xty) = typeInstTerm ctx 0 ty xty
                        <&> \ tys -> foldl (TyInst ()) (Var () x) [t | InstApp t <- tys]
   case catMaybes $ map unifyVar $ Map.toList vars of
+    -- If unification didn't work try the heavy-handed `inhabitType`.
+    -- NOTE: We could probably just replace this whole function with
+    -- `inhabitType` and the generators would run fine, but this method
+    -- is probably faster a lot of the time and doesn't rely on the
+    -- order that thins are chosen `inhabitType`. It is also going to generate
+    -- a more even distribution than `inhabitType` (which for performance reasons
+    -- always returns the first thing it finds).
     [] -> inhabitType ty
     gs -> liftGen $ elements gs
-
-noEscape :: GenTm a -> GenTm a
-noEscape = local $ \env -> env { geEscaping = NoEscape }
 
 genTermOfType :: Type TyName DefaultUni ()
               -> GenTm (Term TyName Name DefaultUni DefaultFun ())
