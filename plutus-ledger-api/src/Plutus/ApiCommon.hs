@@ -70,8 +70,8 @@ Mickey Mouse entire.
 This is somewhat inconvenient for users, but they can always send multiple bytestrings and
 concatenate them at runtime.
 
-Unfortunately this check was broken in V1, and so for backwards compatibility we only perform
-it in V1 and above.
+Unfortunately this check was broken in the ledger Plutus language version V1, and so for backwards compatibility
+we only perform it in V2 and above.
 -}
 
 {- Note [Inlining meanings of builtins]
