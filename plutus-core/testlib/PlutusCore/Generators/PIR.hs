@@ -644,6 +644,7 @@ shrinkType :: HasCallStack
            -> [Type TyName DefaultUni ()]
 shrinkType ctx ty = map snd $ shrinkKindAndType ctx (Star, ty)
 
+-- | Shrink a type of a given kind in a given context in a way that keeps its kind
 shrinkTypeAtKind :: HasCallStack
                  => Map TyName (Kind ())
                  -> Kind ()
@@ -839,22 +840,16 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
     pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
       where fvs = fvType ty
 
+-- | This type keeps track of what kind of argument, term argument (`InstArg`) or
+-- type argument (`InstArg`) is required for a function. This type is used primarily
+-- with `typeInstTerm` below.when we
+-- do unification to figure out if we can get a variable
 data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
   deriving stock Show
 
 instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst where
   prettyBy ctx (InstApp ty) = prettyBy ctx ty
   prettyBy ctx (InstArg ty) = brackets (prettyBy ctx ty)
-
--- CODE REVIEW: this should probably go elsewhere?
-instance PrettyBy config i => PrettyBy config (NonNegative i) where
-  prettyBy ctx (NonNegative i) = prettyBy ctx i
-
--- CODE REVIEW: this should probably go elsewhere?
-instance ( HasPrettyDefaults config ~ 'True
-         , PrettyBy config k
-         , PrettyBy config v) => PrettyBy config (Map k v) where
-  prettyBy ctx = prettyBy ctx . Map.toList
 
 -- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
 --   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
@@ -904,95 +899,6 @@ forAllDoc name g shr k =
 checkNoCounterexamples :: PrettyPir [a] => [a] -> Property
 checkNoCounterexamples []  = property True
 checkNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
-
-prop_shrinkTypeSmaller :: Property
-prop_shrinkTypeSmaller =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkNoCounterexamples [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
-
-prop_shrinkTypeSound :: Property
-prop_shrinkTypeSound =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkKind Map.empty ty k ==>
-  checkNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty)
-                                   , not $ checkKind Map.empty ty k ]
-
-prop_genKindCorrect :: Property
-prop_genKindCorrect =
-  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
-  checkKind ctx ty k
-
-prop_genSmallSize :: Property
-prop_genSmallSize =
-  forAllDoc "_,ty" genKindAndType (const []) $ \ (_, ty) ->
-  letCE "size" (show $ typeSize ty) $ \ sz ->
-    read (init $ drop (length @[] @Char "Size {unSize = ") sz) < (60 :: Int)
-
-prop_shrinkKind :: Property
-prop_shrinkKind =
-  forAllDoc "k" arbitrary shrink $ \ k ->
-  checkNoCounterexamples [ k' | k' <- shrink k, not $ ltKind k' k ]
-
-prop_fixKind :: Property
-prop_fixKind =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkNoCounterexamples [ (ty', k') | k' <- shrink k
-                                     , let ty' = fixKind Map.empty ty k'
-                                     , not $ checkKind Map.empty ty' k' ]
-
--- Terms --
-prop_unify :: Property
-prop_unify =
-  forAllDoc "n"   arbitrary shrink         $ \ (NonNegative n) ->
-  forAllDoc "m"   (choose (0, n)) shrink   $ \ m ->
-  letCE "xs" (take n allTheVarsCalledX)    $ \ xs ->
-  forAllDoc "ks"
-    (vectorOf n arbitrary)
-    (filter ((== n) . length) . shrink)    $ \ ks ->
-  letCE "ctx" (Map.fromList                $ zip xs ks) $ \ ctx ->
-  forAllDoc "ty1"
-    (genTypeWithCtx ctx $ Star)
-    (shrinkType ctx)                       $ \ ty1 ->
-  forAllDoc "ty2"
-    (genTypeWithCtx ctx $ Star)
-    (shrinkType ctx)                       $ \ ty2 ->
-  letCE "nty1" (normalizeTy ty1)           $ \ _ ->
-  letCE "nty2" (normalizeTy ty2)           $ \ _ ->
-  letCE "res" (unifyType ctx (Set.fromList $ take m xs) Map.empty ty1 ty2) $ \ res ->
-  isJust res ==>
-  let sub = fromJust res
-      checkSub (x, ty) = letCE "x,ty" (x, ty)    $ \ _ ->
-                         letCE "k" (ctx Map.! x) $ \ k -> checkKind ctx ty k
-  in
-  letCE "sty1" (substType sub ty1) $ \ sty1 ->
-  letCE "sty2" (substType sub ty2) $ \ sty2 ->
-  letCE "nsty1" (normalizeTy sty1) $ \ nsty1 ->
-  letCE "nsty2" (normalizeTy sty2) $ \ nsty2 ->
-  tabulate "sizes" [show $ min (Set.size $ fvType ty1) (Set.size $ fvType ty2)] $
-  foldr (.&&.) (property $ nsty1 == nsty2) (map checkSub (Map.toList sub))
-  where
-    allTheVarsCalledX = [ TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..] ]
-
-prop_unifyRename :: Property
-prop_unifyRename =
-  forAllDoc "_, ty" genKindAndType (shrinkKindAndType mempty) $ \ (_, ty) ->
-  letCE "rename ty" (either undefined id . runQuoteT $ rename ty) $ \ rnty ->
-  isJust $ unifyType mempty mempty mempty ty rnty
-
-prop_substType :: Property
-prop_substType =
-  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
-  forAllDoc "ty" (genTypeWithCtx ctx Star) (shrinkType ctx) $ \ ty ->
-  forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
-  letCE "res" (substType sub ty) $ \ res ->
-  fvTypeR sub ty == fvType res && checkKind ctx res Star
-  where
-    fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
-      where
-          fvs = fvType a
-          ss  = Set.intersection (Map.keysSet sub) fvs
-          ns  = Set.difference fvs ss
 
 genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genConstant b = case b of
@@ -1100,10 +1006,13 @@ genAtomicTerm ty = do
     [] -> inhabitType ty
     gs -> liftGen $ elements gs
 
+-- | Generate a term of a given type
 genTermOfType :: Type TyName DefaultUni ()
               -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genTermOfType ty = snd <$> genTerm (Just ty)
 
+-- | Generate a term, if the first argument is Nothing then we get something of any type
+-- and if the first argument is `Just ty` we get something of type `ty`.
 genTerm :: Maybe (Type TyName DefaultUni ())
         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTerm mty = do
@@ -1206,11 +1115,12 @@ genTerm mty = do
 
     genVarApp :: HasCallStack => _
     genVarApp Nothing = noEscape $ do
+      -- CODE REVIEW: this function exists somewhere maybe? (Maybe even in this module...)
       let arity (TyForall _ _ _ b) = 1 + arity b
           arity (TyFun _ _ b)      = 1 + arity b
           arity _                  = 0
 
-          appl :: HasCallStack => Int -> (Term TyName Name DefaultUni DefaultFun ()) -> _
+          appl :: HasCallStack => Int -> Term TyName Name DefaultUni DefaultFun () -> _
           appl 0 tm b = return (b, tm)
           appl n tm (TyForall _ x k b) = do
             ty <- genType k
@@ -1627,135 +1537,6 @@ genTermInContext_ tyctx ctx ty =
   runGenTm $ local (\ e -> e { geTypes = tyctx, geTerms = ctx, geEscaping = NoEscape }) $
     snd <$> genTerm (Just ty)
 
--- | Test that `typeInstTerm` results in a well-typed instantiation.
-prop_typeInstTerm :: Property
-prop_typeInstTerm =
-  forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
-  forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
-  forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
-  doTypeInstTermCheck ctx ty target
-  where
-    doTypeInstTermCheck :: Map TyName (Kind ())
-                        -> Type TyName DefaultUni ()
-                        -> Type TyName DefaultUni ()
-                        -> Property
-    doTypeInstTermCheck ctx ty target =
-      case [ (n, insts)
-           | n <- [0..arity ty+3]
-           , Just insts <- [typeInstTerm ctx n target ty]
-           , not $ checkInst ctx x ty insts target
-           ] of
-        []  -> property True
-        bad -> ceDoc (prettyPirReadable bad) False
-      where
-        x = Name "x" (toEnum 0)
-        arity (TyForall _ _ _ a) = arity a
-        arity (TyFun _ _ b)      = 1 + arity b
-        arity _                  = 0
-
-        checkInst ctx x ty insts target = typeCheckTermInContext ctx tmCtx tm target
-          where
-            (tmCtx, tm) = go (toEnum 1) (Map.singleton x ty) (Var () x) insts
-            go _ tmCtx tm [] = (tmCtx, tm)
-            go i tmCtx tm (InstApp ty : insts) = go i tmCtx (TyInst () tm ty) insts
-            go i tmCtx tm (InstArg ty : insts) = go (succ i) (Map.insert y ty tmCtx)
-                                                             (Apply () tm (Var () y)) insts
-              where y = Name "y" i
-
--- | Test that our generators only result in well-typed terms.
-prop_genTypeCorrect :: Property
-prop_genTypeCorrect =
-  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
-
--- | Test that when we generate a fully applied term we end up
--- with a well-typed term.
-prop_genWellTypedFullyApplied :: Property
-prop_genWellTypedFullyApplied =
-  forAllDoc "ty, tm" genTypeAndTerm_ (shrinkTypedTerm mempty mempty) $ \ (ty, tm) ->
-  forAllDoc "ty', tm'" (genFullyApplied ty tm) (const []) $ \ (ty', tm') -> typeCheckTerm tm' ty'
-
--- | Test that shrinking a well-typed term results in a well-typed term
-prop_shrinkTermSound :: Property
-prop_shrinkTermSound =
-  forAllShrinkBlind (pure False) (\ sh -> [ True | not sh ]) $ \ _ ->
-  forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
-  let shrinks = shrinkClosedTypedTerm (ty, tm) in
-  -- While we generate well-typed terms we still need this check here for
-  -- shrinking counterexamples to *this* property. If we find a term whose
-  -- shrinks aren't well-typed we want to find smaller *well-typed* terms
-  -- whose shrinks aren't well typed.
-  typeCheckTerm tm ty ==>
-  not (null shrinks) ==>
-  checkNoCounterexamples [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
-                         | (ty, tm) <- shrinks, not $ typeCheckTerm tm ty ]
-
-prop_stats_leaves :: Property
-prop_stats_leaves =
-  forAllDoc "_,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (_, tm) ->
-  tabulate "vars" (map (filter isAlpha . show . prettyPirReadable) $ vars tm) $ property True
-  where
-    vars (Var _ x)        = [x]
-    vars (TyInst _ a _)   = vars a
-    vars (Let _ _ _ b)    = vars b
-    vars (LamAbs _ _ _ b) = vars b
-    vars (Apply _ a b)    = vars a ++ vars b
-    vars Error{}          = [Name "error" $ toEnum 0]
-    vars _                = []
-
-prop_stats_numShrink :: Property
-prop_stats_numShrink = forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
-  let shrinks = shrinkClosedTypedTerm (ty, tm)
-      n = fromIntegral (length shrinks)
-      u = fromIntegral (length $ nub shrinks)
-      r | n > 0     = (n - u) / n :: Double
-        | otherwise = 0
-  in
-  tabulate "r" [printf "%0.1f" r] True
-
-prop_inhabited :: Property
-prop_inhabited =
-  forAllDoc "ty,tm" (genInhab mempty) (shrinkTypedTerm mempty mempty) $ \ (ty, tm) -> typeCheckTerm tm ty
-  where
-    genInhab ctx = runGenTm $ local (\ e -> e { geTypes = ctx }) $
-      genDatatypeLets $ \ dats -> do
-        ty <- genType Star
-        tm <- inhabitType ty
-        return (ty, foldr (\ dat -> Let () NonRec (DatatypeBind () dat :| [])) tm dats)
-
--- TODO: we want this property somewhere!
--- compile :: Term TyName Name DefaultUni DefaultFun ()
---         -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
--- compile _tm = either Left Right $ runQuoteT $ do
---   -- Make sure that names are unique (that's not guaranteed by QuickCheck)
---   tm <- rename _tm
---   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
---   let hints = UPLC.InlineHints $ \a _ -> case a of
---                 PIR.DatatypeComponent PIR.Destructor _ -> True
---                 _                                      -> False
---       pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
---              & set (PIR.ccOpts . PIR.coOptimize) True
---              & set (PIR.ccOpts . PIR.coPedantic) False
---              & set (PIR.ccOpts . PIR.coVerbose) False
---              & set (PIR.ccOpts . PIR.coDebug) False
---              & set (PIR.ccOpts . PIR.coMaxSimplifierIterations)
---                       (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
---              & set PIR.ccTypeCheckConfig Nothing
---       uplcSimplOpts = UPLC.defaultSimplifyOpts
---             & set UPLC.soMaxSimplifierIterations (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
---             & set UPLC.soInlineHints hints
---
---   plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc $ fmap Original tm
---   plcTcError <- runExceptT @(PLC.Error _ _ _)
---              $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
---   case plcTcError of
---     Left _   -> error "wrong"
---     Right cc -> return $ DeserializedCode (UPLC.Program () (PLC.defaultVersion ()) $ void cc) Nothing mempty
---
--- prop_compile :: Property
--- prop_compile =
---   forAllDoc "_,tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (_, tm) ->
---   isRight $ compile tm
-
 typeCheckTerm :: Term TyName Name DefaultUni DefaultFun ()
               -> Type TyName DefaultUni ()
               -> Bool
@@ -1848,3 +1629,13 @@ instance Arbitrary (Kind ()) where
   shrink Star      = []
   shrink (a :-> b) = [b] ++ [a' :-> b' | (a', b') <- shrink (a, b)]
     -- Note: `a` can have bigger arity than `a -> b` so don't shrink to it!
+
+-- CODE REVIEW: this should probably go elsewhere?
+instance PrettyBy config i => PrettyBy config (NonNegative i) where
+  prettyBy ctx (NonNegative i) = prettyBy ctx i
+
+-- CODE REVIEW: this should probably go elsewhere?
+instance ( HasPrettyDefaults config ~ 'True
+         , PrettyBy config k
+         , PrettyBy config v) => PrettyBy config (Map k v) where
+  prettyBy ctx = prettyBy ctx . Map.toList

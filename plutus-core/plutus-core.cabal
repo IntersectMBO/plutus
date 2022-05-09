@@ -434,6 +434,7 @@ test-suite plutus-ir-test
         ParserSpec
         TransformSpec
         TypeSpec
+        GeneratorSpec
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,
@@ -443,7 +444,11 @@ test-suite plutus-ir-test
         megaparsec -any,
         tasty -any,
         tasty-hedgehog -any,
-        text -any
+        tasty-quickcheck -any,
+        text -any,
+        containers -any,
+        QuickCheck -any,
+        mtl -any
 
 test-suite untyped-plutus-core-test
     import: lang

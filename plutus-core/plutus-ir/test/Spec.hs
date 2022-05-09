@@ -8,6 +8,7 @@ module Main (main) where
 
 import PlutusPrelude
 
+import GeneratorSpec
 import NamesSpec
 import ParserSpec
 import TransformSpec
@@ -42,6 +43,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , transform
     , types
     , typeErrors
+    , generators
     ]
 
 prettyprinting :: TestNested
