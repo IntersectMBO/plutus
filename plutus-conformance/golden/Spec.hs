@@ -12,10 +12,13 @@ import Common
 import Data.Text qualified as T
 import PlutusCore.Error
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.Pretty
+import PlutusCore.Quote (runQuoteT)
 import System.Directory
 import System.Environment
 import Test.Tasty.Golden (findByExtension)
 import Text.Megaparsec
+import UntypedPlutusCore.Parser as UPLC
 
 main :: IO ()
 main = do
@@ -26,8 +29,8 @@ main = do
           -- only choose the ones without an output file, so as to not edit the ones already with outputs
           inputFiles <- sequenceA $
                 [do
-                    noOutput <- findFile [dir] (testIn <> ".expected")
-                    case noOutput of
+                    hasOut <- findFile [dir] (testIn <> ".expected")
+                    case hasOut of
                         Just _  -> pure []
                         Nothing -> pure [testIn] | testIn <- allInputFiles]
           case action of
@@ -35,7 +38,7 @@ main = do
               mapM_
                 (\inputFile -> do
                   inputStr <- readFile inputFile
-                  let parsed = parseWOPos inputFile $ T.pack inputStr
+                  let parsed = runQuoteT $ UPLC.parse UPLC.program inputFile $ T.pack inputStr
                       outFilePath = inputFile <> "expected"
                   case parsed of
                     Left (ParseErrorB peb) -> do
@@ -43,11 +46,14 @@ main = do
                       putStr $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       writeFile outFilePath (errorBundlePretty peb)
                     Right pro -> do
-                      res <- evalUplcProg pro
-                      output <- case res of
-                        EvaluationSuccess prog -> pure prog
-                        EvaluationFailure      -> error "TODO"
-                      writeFile (inputFile <> ".expected") (show output))
+                      res <- evalUplcProg (stripePosProg pro)
+                      case res of
+                        EvaluationSuccess prog -> writeFile outFilePath (render $ pretty prog)
+                        EvaluationFailure      -> do
+                          -- warn the user that the file failed to evaluate
+                          putStr $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+                          writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
+                )
                 (concat inputFiles)
             "typecheck" ->
               error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."

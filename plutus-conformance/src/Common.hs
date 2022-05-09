@@ -2,16 +2,13 @@
 
 module Common where
 
-import Data.Text qualified as T
 import GHC.IO (unsafePerformIO)
 import PlutusCore as PLC
-import PlutusCore.Error (ParserErrorBundle)
 import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
-import UntypedPlutusCore.Parser as UPLC
 
 data TestContent =
     MkTestContent {
@@ -53,11 +50,6 @@ stripePosTm (UPLC.Delay _ tm)       = UPLC.Delay () (stripePosTm tm)
 stripePosTm (UPLC.Constant _ val)   = UPLC.Constant () val
 stripePosTm (UPLC.Builtin _ f)      = UPLC.Builtin () f
 stripePosTm (UPLC.Error _)          = UPLC.Error ()
-
-parseWOPos :: String -> T.Text -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun ())
-parseWOPos file txt = do
-    prog <- runQuoteT $ parse UPLC.program file txt
-    pure $ stripePosProg prog
 
 mkTestCases :: [TestContent] -> (UplcProg -> IO (EvaluationResult UplcProg)) -> [TestTree]
 mkTestCases tests runner
