@@ -228,15 +228,15 @@ emptyByteString = BuiltinByteString BS.empty
 
 {-# NOINLINE sha2_256 #-}
 sha2_256 :: BuiltinByteString -> BuiltinByteString
-sha2_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha2 b
+sha2_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha2_256 b
 
 {-# NOINLINE sha3_256 #-}
 sha3_256 :: BuiltinByteString -> BuiltinByteString
-sha3_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3 b
+sha3_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3_256 b
 
 {-# NOINLINE blake2b_256 #-}
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
-blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b b
+blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 
 {-# NOINLINE verifySignature #-}
 verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool

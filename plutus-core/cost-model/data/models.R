@@ -391,7 +391,7 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    blake2bModel <- {
+    blake2b_256Model <- {
         fname <- "Blake2b_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
@@ -591,7 +591,7 @@ modelFun <- function(path) {
         lessThanEqualsByteStringModel        = lessThanEqualsByteStringModel,
         sha2_256Model                        = sha2_256Model,
         sha3_256Model                        = sha3_256Model,
-        blake2bModel                         = blake2bModel,
+        blake2b_256Model                     = blake2b_256Model,
         verifySignatureModel                 = verifySignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,

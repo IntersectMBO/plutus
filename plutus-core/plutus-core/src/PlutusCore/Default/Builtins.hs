@@ -777,16 +777,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
-            Hash.sha2
+            Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
     toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
-            Hash.sha3
+            Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
     toBuiltinMeaning Blake2b_256 =
         makeBuiltinMeaning
-            Hash.blake2b
-            (runCostingFunOneArgument . paramBlake2b)
+            Hash.blake2b_256
+            (runCostingFunOneArgument . paramBlake2b_256)
     toBuiltinMeaning VerifySignature =
         makeBuiltinMeaning
             (verifySignature @EvaluationResult)
