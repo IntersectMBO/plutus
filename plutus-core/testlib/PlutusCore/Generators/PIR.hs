@@ -222,6 +222,14 @@ fvTypeBag ty = case ty of
 fvType :: Type TyName DefaultUni () -> Set TyName
 fvType = Map.keysSet . fvTypeBag
 
+-- | Recursively find all free type variables ina a substitution
+fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
+fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
+      where
+          fvs = fvType a
+          ss  = Set.intersection (Map.keysSet sub) fvs
+          ns  = Set.difference fvs ss
+
 -- | Get all uniques we have generated and are used in the current context.
 getUniques :: GenTm (Set Unique)
 getUniques = do
@@ -1445,6 +1453,9 @@ shrinkBind _ tyctx ctx bind =
   case bind of
     -- Note: this is a bit tricky for recursive binds, if we change a recursive bind we need to fixup all
     -- the other binds in the block. Currently we do this with a fixupTerm_ in the structural part of shrinking.
+    --
+    -- In the future this can be made better if we find properties where lets don't shrink well enough to be
+    -- understandable.
     TermBind _ s (VarDecl _ x ty) tm -> [ TermBind () s (VarDecl () x ty') tm'
                                         | (ty', tm') <- shrinkTypedTerm tyctx ctx (ty, tm)
                                         ] ++
@@ -1495,6 +1506,7 @@ genFullyApplied typ trm = runGenTm $ go trm
       genArgsApps b (Apply () trm arg)
     genArgsApps ty trm = return (ty, trm)
 
+-- | Generate a term of a specific type given a type and term context
 genTermInContext_ :: Map TyName (Kind ())
                   -> Map Name (Type TyName DefaultUni ())
                   -> Type TyName DefaultUni ()
@@ -1646,6 +1658,7 @@ typeCheckTermInContext tyctx ctx tm ty = isJust $ do
     ty' <- inferTypeInContext tyctx ctx tm
     unifyType tyctx mempty mempty ty' ty
 
+-- CODE REVIEW: Do these functions exist in a convenient package anywhere?
 var :: String -> Int -> Name
 var s i = Name (fromString s) (toEnum i)
 
@@ -1661,14 +1674,8 @@ integer = TyBuiltin () (SomeTypeIn DefaultUniInteger)
 bool :: Type tyname DefaultUni ()
 bool = TyBuiltin () (SomeTypeIn DefaultUniBool)
 
-fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
-fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
-      where
-          fvs = fvType a
-          ss  = Set.intersection (Map.keysSet sub) fvs
-          ns  = Set.difference fvs ss
-
--- Containers (zipper-ish)
+-- Containers (zipper-ish, very useful for shrinking.)
+-- CODE REVIEW: should these go elsewhere? Do these already exist somewhere?
 
 class Container f where
   data OneHoleContext f :: * -> *
@@ -1689,8 +1696,8 @@ instance Container NonEmpty where
   plugHole (NonEmptyContext []       ys) z = z :| ys
   plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
 
--- TODO: where to put the stuff below? Can we refactor to the point where we don't need them?
-
+-- CODE REVIEW: where to put the stuff below? Can we refactor to the point where we don't need them?
+-- Currently we need these for shrinking, getting rid of them would be nice.
 deriving stock instance Eq (Term TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
