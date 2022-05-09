@@ -735,6 +735,7 @@ addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
 addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
 addTmBind _                                = id
 
+-- | Generate an arbitrary kind and closed type of that kind.
 genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndType = do
   k <- arbitrary
@@ -962,6 +963,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
                   gs -> head gs
           _ -> mzero
 
+    -- Try to inhabit a constructor `con` of type `conTy` in datatype `d` at type `ty`
     tryCon d ty (con, conTy)
       | Set.member d (fvArgs conTy) = mzero   -- <- This is ok, since no mutual recursion
       | otherwise = do
@@ -974,9 +976,11 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
                 go (Apply () tm arg) insts
           go (Var () con) insts
 
+    -- CODE REVIEW: wouldn't it be neat if this existed somewhere?
     viewApp args (TyApp _ f x) = viewApp (x : args) f
     viewApp args ty            = (ty, args)
 
+    -- Get the free variables that appear in arguments of a mixed arrow-forall type
     fvArgs (TyForall _ x _ b) = Set.delete x (fvArgs b)
     fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
     fvArgs _                  = mempty
