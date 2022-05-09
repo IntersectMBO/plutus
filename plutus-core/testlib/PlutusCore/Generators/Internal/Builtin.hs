@@ -61,9 +61,9 @@ class GenArbitraryTerm uni where
 instance GenArbitraryTerm DefaultUni where
     genArbitraryTerm = runAstGen genTerm
 
-data SomeGen = forall a. DefaultUni `Contains` a => SomeGen (Gen a)
+data SomeGen uni = forall a. uni `Contains` a => SomeGen (Gen a)
 
-genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen
+genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen DefaultUni
 genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = SomeGen $ pure ()
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeGen genInteger
