@@ -9,6 +9,7 @@ import Data.ByteString.Short qualified as BSS
 import Data.Either
 import Plutus.V1.Ledger.Api as Api
 import Plutus.V1.Ledger.EvaluationContext (evalCtxForTesting)
+import Plutus.V1.Ledger.ProtocolVersions
 import Plutus.V1.Ledger.Scripts as Scripts
 import PlutusCore qualified as PLC
 import PlutusCore.Default
@@ -126,7 +127,7 @@ testScripts = "v1-scripts" `testWith` evalScripts
 Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
 -}
 testAPI :: TestTree
-testAPI = "v1-api" `testWith` evalAPI (ProtocolVersion 5 0)
+testAPI = "v1-api" `testWith` evalAPI vasilPV
 
 evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
 evalAPI pv t =
@@ -149,9 +150,9 @@ testWith str evalFn = testCase str $ do
     evalFn illOverApp @?= False
 
 testUnlifting :: TestTree
-testUnlifting = testCase "check unlifting behaviour changes in V7" $ do
-    evalAPI (ProtocolVersion 6 0) illTypedPartialBuiltin @?= False
-    evalAPI (ProtocolVersion 7 0) illTypedPartialBuiltin @?= True
+testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
+    evalAPI alonzoPV illTypedPartialBuiltin @?= False
+    evalAPI vasilPV illTypedPartialBuiltin @?= True
 
 tests :: TestTree
 tests = testGroup "eval"
