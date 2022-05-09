@@ -182,22 +182,22 @@ typeMismatchError uniExp uniAct = fromString $ concat
 -- failure message and evaluation is about to be shut anyway.
 {-# NOINLINE typeMismatchError #-}
 
-{- Note [MakeKnownM and ReadKnownM being type synonyms]
-Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
-is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
-make 'MakeKnownM' and 'ReadKnownM' type synonyms for convenience: that way we don't need to derive
-a ton of instances (and add new ones whenever we need them), wrap and unwrap all the time
-(including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
-'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
--}
-
--- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'makeKnown' runs in.
+-- Equivalent to @ExceptT KnownTypeError Emitter@, except optimized in two ways:
+--
+-- 1. everything is strict
+-- 2. has the 'MakeKnownSuccess' constructor that is used for returning a value with no logs
+--    attached, which is the most common case for us, so it helps a lot not to construct and
+--    deconstruct a redundant tuple
+--
+-- Moving from @ExceptT KnownTypeError Emitter@ to this data type gave us a speedup of 8% of total
+-- evaluation time.
 data MakeKnownM a
     = MakeKnownFailure !(DList Text) !KnownTypeError
     | MakeKnownSuccess !a
     | MakeKnownSuccessWithLogs !(DList Text) !a
 
+-- | Prepend logs to a 'MakeKnownM' computation and 'fmap' it.
 fmapWithLogs :: DList Text -> (a -> b) -> MakeKnownM a -> MakeKnownM b
 fmapWithLogs logs1 f = \case
     MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
@@ -205,6 +205,7 @@ fmapWithLogs logs1 f = \case
     MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) (f x)
 {-# INLINE fmapWithLogs #-}
 
+-- | Prepend logs to a 'MakeKnownM' computation.
 withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
 withLogs logs1 = \case
     MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
@@ -213,11 +214,14 @@ withLogs logs1 = \case
 {-# INLINE withLogs #-}
 
 instance Functor MakeKnownM where
+    -- Written out explicitly, because for some inexplicable reason GHC fails to inline
+    -- @fmapWithLogs mempty@ despite the pragma.
     fmap _ (MakeKnownFailure logs err)       = MakeKnownFailure logs err
     fmap f (MakeKnownSuccess x)              = MakeKnownSuccess (f x)
     fmap f (MakeKnownSuccessWithLogs logs x) = MakeKnownSuccessWithLogs logs (f x)
     {-# INLINE fmap #-}
 
+    -- Written out explicitly just in case (see @fmap@ above for what the case might be).
     _ <$ MakeKnownFailure logs err       = MakeKnownFailure logs err
     x <$ MakeKnownSuccess _              = MakeKnownSuccess x
     x <$ MakeKnownSuccessWithLogs logs _ = MakeKnownSuccessWithLogs logs x
@@ -246,10 +250,16 @@ instance Monad MakeKnownM where
     (>>) = (*>)
     {-# INLINE (>>) #-}
 
--- See Note [MakeKnownM and ReadKnownM being type synonyms].
+-- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
+-- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
+-- make 'ReadKnownM' type synonyms for convenience: that way we don't need to derive all the
+-- instances (and add new ones whenever we need them), wrap and unwrap all the time
+-- (including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
+-- 'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either KnownTypeError
 
+-- | Lift a 'ReadKnownM' computation into 'MakeKnownM'.
 liftReadKnownM :: ReadKnownM a -> MakeKnownM a
 liftReadKnownM (Left err) = MakeKnownFailure mempty err
 liftReadKnownM (Right x)  = MakeKnownSuccess x
