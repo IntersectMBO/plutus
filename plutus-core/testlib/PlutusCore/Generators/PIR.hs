@@ -45,7 +45,6 @@ import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
-import Data.Text qualified as Text
 import GHC.Stack
 import PlutusCore (typeSize)
 import PlutusCore.Default
@@ -82,6 +81,21 @@ data GenEnv = GenEnv
   -- ^ Are we in a place where we are allowed to generate a datatype binding?
   }
 
+-- | Run a genTm generator in a top-level empty context where we are allowed to generate
+-- datatypes.
+runGenTm :: GenTm a -> Gen a
+runGenTm g = sized $ \ n ->
+  runReaderT g $ GenEnv { geSize               = n
+                        , geDatas              = Map.empty
+                        , geTypes              = Map.empty
+                        , geTerms              = Map.empty
+                        , geUnboundUsedTyNames = Set.empty
+                        , geEscaping           = YesEscape
+                        }
+
+-- * Functions for lifting `Gen` stuff to `GenTm`
+
+-- | Lift `Gen` generator to `GenTm` generator. Respects `geSize`.
 liftGen :: Gen a -> GenTm a
 liftGen gen = do
   sz <- asks geSize
@@ -110,6 +124,8 @@ listTm g = do
   sz <- asks geSize
   n  <- liftGen $ choose (0, div sz 3)
   onSize (`div` n) $ replicateM n g
+
+-- * Dealing with size
 
 -- | Map a function over the generator size
 onSize :: (Int -> Int) -> GenTm a -> GenTm a
@@ -142,28 +158,24 @@ sizeSplit a b ga gb f = do
   x <- withSize na ga
   f x <$> withSize nb (gb x)
 
--- | Run a genTm generator in a top-level empty context where we are allowed to generate
--- datatypes.
-runGenTm :: GenTm a -> Gen a
-runGenTm g = sized $ \ n ->
-  runReaderT g $ GenEnv { geSize               = n
-                        , geDatas              = Map.empty
-                        , geTypes              = Map.empty
-                        , geTerms              = Map.empty
-                        , geUnboundUsedTyNames = Set.empty
-                        , geEscaping           = YesEscape
-                        }
+-- * Dealing with fresh names
 
+-- | Get the free type variables in a type along with how many
+-- times they occur. The elements of the map are guaranteed to be
+-- non-zero.
+fvTypeBag :: Type TyName DefaultUni () -> Map TyName Int
+fvTypeBag ty = case ty of
+  TyVar _ x        -> Map.singleton x 1
+  TyFun _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
+  TyApp _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
+  TyLam _ x _ b    -> Map.delete x (fvTypeBag b)
+  TyForall _ x _ b -> Map.delete x (fvTypeBag b)
+  TyBuiltin{}      -> Map.empty
+  TyIFix{}         -> error "fvTypeBag: TyIFix"
 
-instance Arbitrary (Kind ()) where
-  arbitrary = sized $ arb . (`div` 3)
-    where
-      arb 0 = pure $ Star
-      arb n = frequency [(4, pure $ Star),
-                         (1, (:->) <$> arb (div n 6) <*> arb (div (5 * n) 6))]
-  shrink Star      = []
-  shrink (a :-> b) = [b] ++ [a' :-> b' | (a', b') <- shrink (a, b)]
-    -- Note: `a` can have bigger arity than `a -> b` so don't shrink to it!
+-- | Get the free type variables in a term.
+fvType :: Type TyName DefaultUni () -> Set TyName
+fvType = Map.keysSet . fvTypeBag
 
 -- | Get all uniques we have generated and are used in the current context.
 getUniques :: GenTm (Set Unique)
@@ -174,6 +186,11 @@ getUniques = do
            Set.unions [ names d | d <- Map.elems dts ]
   where
     names (Datatype _ _ _ m cs) = Set.fromList $ nameUnique m : [ nameUnique c | VarDecl _ c _ <- cs ]
+
+freshenTyName :: Set TyName -> TyName -> TyName
+freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
+  where i  = succ $ Set.findMax is
+        is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (nameUnique . unTyName) fvs
 
 {- Note [Warning about generating fresh names]: because `GenTm` is a *reader* monad
    names are not immediately put into any state when generated. There is *no guarantee*
@@ -212,12 +229,16 @@ genFreshNames ss = do
   is' <- liftGen $ shuffle is
   return [Name (fromString $ s ++ show j) (toEnum j) | (s, j) <- zip ss is']
 
+-- | See `genFreshName`
 genFreshTyName :: String -> GenTm TyName
 genFreshTyName s = TyName <$> genFreshName s
 
+-- | See `genFreshNames`
 genFreshTyNames :: [String] -> GenTm [TyName]
 genFreshTyNames ss = map TyName <$> genFreshNames ss
 
+-- | Generate a name that overlaps with existing names on purpose. If there
+-- are no existing names, generate a fresh name.
 genNotFreshName :: String -> GenTm Name
 genNotFreshName s = do
   used <- Set.toList <$> getUniques
@@ -225,59 +246,54 @@ genNotFreshName s = do
     [] -> genFreshName s
     _  -> liftGen $ elements [ Name (fromString $ s ++ show (unUnique i)) i | i <- used ]
 
+-- | Generate a fresh name most (a bit more than 75%) of the time and otherwise
+-- generate an already bound name. When there are no bound names generate a fresh name.
 genMaybeFreshName :: String -> GenTm Name
 genMaybeFreshName s = frequencyTm [(3, genFreshName s), (1, genNotFreshName s)]
 
+-- | See `genMaybeFreshName`
 genMaybeFreshTyName :: String -> GenTm TyName
 genMaybeFreshTyName s = TyName <$> genMaybeFreshName s
 
-fvTypeBag :: (Type TyName DefaultUni ()) -> Map TyName Int
-fvTypeBag ty = case ty of
-  TyVar _ x        -> Map.singleton x 1
-  TyFun _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
-  TyApp _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
-  TyLam _ x _ b    -> Map.delete x (fvTypeBag b)
-  TyForall _ x _ b -> Map.delete x (fvTypeBag b)
-  TyBuiltin{}      -> Map.empty
-  TyIFix{}         -> error "fvTypeBag: TyIFix"
-
-fvType :: (Type TyName DefaultUni ()) -> Set TyName
-fvType = Map.keysSet . fvTypeBag
-
-bindTyName :: TyName -> (Kind ()) -> GenTm a -> GenTm a
+-- | Bind a type name to a kind and avoid capturing free type variables.
+bindTyName :: TyName -> Kind () -> GenTm a -> GenTm a
 bindTyName x k = local $ \ e -> e { geTypes = Map.insert x k (geTypes e)
                                   , geTerms = Map.filter (\ty -> not $ x `Set.member` fvType ty) (geTerms e)
                                   , geDatas = Map.delete x (geDatas e)
                                   }
 
-bindTyNames :: [(TyName, (Kind ()))] -> GenTm a -> GenTm a
+-- | Bind type names
+bindTyNames :: [(TyName, Kind ())] -> GenTm a -> GenTm a
 bindTyNames = flip $ foldr (uncurry bindTyName)
 
+-- | Remember that we have generated a type name locally but don't bind it.
+-- Useful for non-recursive definitions where we want to control name overlap.
 registerTyName :: TyName -> GenTm a -> GenTm a
 registerTyName n = local $ \ e -> e { geUnboundUsedTyNames = Set.insert n (geUnboundUsedTyNames e) }
 
-bindTmName :: Name -> (Type TyName DefaultUni ()) -> GenTm a -> GenTm a
+-- | Bind a term to a type in a generator.
+bindTmName :: Name -> Type TyName DefaultUni () -> GenTm a -> GenTm a
 bindTmName x ty = local $ \ e -> e { geTerms = Map.insert x ty (geTerms e) }
 
-bindTmNames :: [(Name, (Type TyName DefaultUni ()))] -> GenTm a -> GenTm a
+-- | Bind term names
+bindTmNames :: [(Name, Type TyName DefaultUni ())] -> GenTm a -> GenTm a
 bindTmNames = flip $ foldr (uncurry bindTmName)
 
-bindFreshTmName :: String -> (Type TyName DefaultUni ()) -> (Name -> GenTm a) -> GenTm a
+-- | Create a fresh term name, bind it to a type, and use it in a generator.
+bindFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> GenTm a
 bindFreshTmName name ty k = do
   x <- genFreshName name
   bindTmName x ty (k x)
 
-constrTypes :: (Datatype TyName Name DefaultUni DefaultFun ()) -> [(Name, (Type TyName DefaultUni ()))]
+-- | Get the names and types of the constructors of a datatype.
+constrTypes :: Datatype TyName Name DefaultUni DefaultFun () -> [(Name, Type TyName DefaultUni ())]
 constrTypes (Datatype _ _ xs _ cs) = [ (c, abstr ty) | VarDecl _ c ty <- cs ]
   where
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
-freshenTyName :: Set TyName -> TyName -> TyName
-freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
-  where i  = succ $ Set.findMax is
-        is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (nameUnique . unTyName) fvs
 
-matchType :: (Datatype TyName Name DefaultUni DefaultFun ()) -> (Name, (Type TyName DefaultUni ()))
+-- | Get the name and type of the match function for a given datatype.
+matchType :: Datatype TyName Name DefaultUni DefaultFun () -> (Name, (Type TyName DefaultUni ()))
 matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
@@ -291,6 +307,7 @@ matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
             setTarget _             = TyVar () r
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
+-- | Bind a datatype declaration in a generator.
 bindDat :: Datatype TyName Name DefaultUni DefaultFun ()
         -> GenTm a
         -> GenTm a
@@ -299,17 +316,24 @@ bindDat dat@(Datatype _ (TyVarDecl _ a k) _ _ _) cont =
   local (\ e -> e { geDatas = Map.insert a dat (geDatas e) }) $
   foldr (uncurry bindTmName) cont (matchType dat : constrTypes dat)
 
+-- | Bind a binding.
 bindBind :: Binding TyName Name DefaultUni DefaultFun ()
          -> GenTm a
          -> GenTm a
 bindBind (DatatypeBind _ dat)              = bindDat dat
 bindBind (TermBind _ _ (VarDecl _ x ty) _) = bindTmName x ty
+-- CODE REVIEW: Should we try to generate type bindings and all the recursive types without datatypes stuff?
+-- I don't think both datatypes and this stuff should actually show up in the same code, no?
 bindBind _                                 = error "unreachable"
 
+-- | Bind multiple bindings
 bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
 bindBinds = flip (foldr bindBind)
 
-builtinTys :: (Kind ()) -> [SomeTypeIn DefaultUni]
+-- * Generators
+
+-- |
+builtinTys :: Kind () -> [SomeTypeIn DefaultUni]
 builtinTys Star =
   [ SomeTypeIn DefaultUniInteger
   , SomeTypeIn DefaultUniUnit
@@ -368,10 +392,11 @@ leKind k1 k2 = go (reverse $ args k1) (reverse $ args k2)
       | leKind k k' = go ks ks'
       | otherwise   = go (k : ks) ks'
 
-ltKind :: (Kind ()) -> (Kind ()) -> Bool
+ltKind :: Kind () -> Kind () -> Bool
 ltKind k k' = k /= k' && leKind k k'
 
-substClosedType :: TyName -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
+-- CODE REVIEW: does this exist anywhere??
+substClosedType :: TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
 substClosedType x sub ty =
   case ty of
     TyVar _ y
@@ -388,6 +413,7 @@ substClosedType x sub ty =
     TyBuiltin{}   -> ty
     TyIFix{}      -> ty
 
+-- CODE REVIEW: does this exist anywhere?
 builtinKind :: SomeTypeIn DefaultUni -> Kind ()
 builtinKind (SomeTypeIn t) = case t of
   DefaultUniProtoList -> Star :-> Star
@@ -943,7 +969,6 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
     fvArgs _                  = mempty
 
-
 typeArity :: Num a => Type tyname uni ann -> a
 typeArity (TyForall _ _ _ a) = typeArity a
 typeArity (TyFun _ _ b)      = 1 + typeArity b
@@ -988,26 +1013,8 @@ genTerm mty = do
                   [ (10, genConst mty) | canConst mty ] ++
                   [ (1, genTerm . Just =<< genType Star) | isNothing mty ] ++
                   [ (10, genDatLet mty) | YesEscape <- [esc] ] ++
-                  [ (10, genIfTrace) | isNothing mty ] ++
-                  [ (10, genTraceLoc mty) ]
+                  [ (10, genIfTrace) | isNothing mty ]
   where
-    -- TODO: make this actualy work, these strings don't parse as locations
-    mkLoc :: String -> Int -> Int -> Int -> Int -> String
-    mkLoc file sl sc el ec = file ++ " " ++ show sl ++ " " ++ show sc ++ " " ++ show el ++ " " ++ show ec
-
-    genTraceLoc mty = do
-      (ty, tm) <- noEscape $ genTerm mty
-      (_, loc) <- genLoc
-      pure $ (ty, Apply () (Apply () (TyInst () BIF_Trace ty) loc) tm)
-
-    genLoc = lift $ do
-      sr <- choose (1,100)
-      er <- choose (sr, 150)
-      sc <- choose (1, 80)
-      ec <- choose (sc, 120)
-      pure ( TyBuiltin () (SomeTypeIn DefaultUniString)
-           , Const DefaultUniString . Text.pack $ mkLoc "file" sr er sc ec)
-
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
     funTypeView _                                   = Nothing
@@ -1186,12 +1193,9 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
     addTyBindSubst (TypeBind _ (TyVarDecl _ a _) ty) = Map.insert a ty
     addTyBindSubst _                                 = id
 
-    isLoc (LIT_Loc _) = True
-    isLoc _           = False
-
     go :: HasCallStack => _
     go tyctx ctx (ty, tm) =
-      filter (\ (ty, tm) -> not (isLoc tm) && scopeCheckTyVars tyctx (ty, tm)) $
+      filter (\ (ty, tm) -> scopeCheckTyVars tyctx (ty, tm)) $
       nonstructural tyctx ctx (ty, tm) ++
       structural    tyctx ctx (ty, tm)
 
@@ -1679,7 +1683,8 @@ instance Container NonEmpty where
   plugHole (NonEmptyContext []       ys) z = z :| ys
   plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
 
--- TODO: where to put these? Can we refactor to the point where we don't need them?
+-- TODO: where to put the stuff below? Can we refactor to the point where we don't need them?
+
 deriving stock instance Eq (Term TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
@@ -1707,3 +1712,14 @@ pattern Const b a = Constant () (Some (ValueOf b a))
 infixr 3 ->>
 (->>) :: (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
 (->>) = TyFun ()
+
+-- CODE REVIEW: this should probably go somewhere else (??), where? Does it already exist?!
+instance Arbitrary (Kind ()) where
+  arbitrary = sized $ arb . (`div` 3)
+    where
+      arb 0 = pure $ Star
+      arb n = frequency [(4, pure $ Star),
+                         (1, (:->) <$> arb (div n 6) <*> arb (div (5 * n) 6))]
+  shrink Star      = []
+  shrink (a :-> b) = [b] ++ [a' :-> b' | (a', b') <- shrink (a, b)]
+    -- Note: `a` can have bigger arity than `a -> b` so don't shrink to it!
