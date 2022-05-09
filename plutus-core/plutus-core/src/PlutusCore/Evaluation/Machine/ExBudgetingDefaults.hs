@@ -132,7 +132,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramSha3_256                        = unitCostOneArgument
     , paramBlake2b_256                     = unitCostOneArgument
     , paramVerifyEd25519Signature          = unitCostThreeArguments
-    , paramVerifySignature                 = unitCostThreeArguments
     , paramVerifyEcdsaSecp256k1Signature   = unitCostThreeArguments
     , paramVerifySchnorrSecp256k1Signature = unitCostThreeArguments
     -- Strings
