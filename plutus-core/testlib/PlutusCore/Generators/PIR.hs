@@ -394,7 +394,30 @@ bindBind _                                 = error "unreachable"
 bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
 bindBinds = flip (foldr bindBind)
 
--- * Generators
+-- * Generators for well-kinded types
+
+-- | Give a unique "least" (intentionally vaguely specified by "shrinking order")
+-- type of that kind. Note: this function requires care and attention to not get
+-- a shrinking loop. If you think you need to mess with this function:
+-- 1. You're probably wrong, think again and
+-- 2. If you're sure you're not wrong you need to be very careful and
+--    test the shrinking to make sure you don't get in a loop.
+minimalType :: Kind () -> Type TyName DefaultUni ()
+minimalType ty =
+  case ty of
+    Type{} -> unit
+    KindArrow _ k1 k2 ->
+      case k1 : view k2 of
+        [Type{}]         -> list
+        [Type{}, Type{}] -> pair
+        _                -> TyLam () (TyName $ Name "_" (toEnum 0)) k1 $ minimalType k2
+  where
+    view (KindArrow _ k1 k2) = k1 : view k2
+    view _                   = []
+
+    unit = TyBuiltin () (SomeTypeIn DefaultUniUnit)
+    list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
+    pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
 -- | Get the types of builtins at a given kind
 builtinTys :: Kind () -> [SomeTypeIn DefaultUni]
@@ -457,21 +480,6 @@ genClosedType_ = genTypeWithCtx mempty
 genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
-leKind :: Kind () -> Kind () -> Bool
-leKind k1 k2 = go (reverse $ args k1) (reverse $ args k2)
-  where
-    args Type{}            = []
-    args (KindArrow _ a b) = a : args b
-
-    go [] _                = True
-    go _ []                = False
-    go (k : ks) (k' : ks')
-      | leKind k k' = go ks ks'
-      | otherwise   = go (k : ks) ks'
-
-ltKind :: Kind () -> Kind () -> Bool
-ltKind k k' = k /= k' && leKind k k'
-
 -- CODE REVIEW: does this exist anywhere??
 substClosedType :: TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
 substClosedType x sub ty =
@@ -498,7 +506,27 @@ builtinKind (SomeTypeIn t) = case t of
   DefaultUniApply f _ -> let _ :-> k = builtinKind (SomeTypeIn f) in k
   _                   -> Star
 
--- | Precondition: new kind is smaller or equal to old kind.
+-- * Shrinking types and kinds
+
+-- | Shriking-order on kinds
+leKind :: Kind () -> Kind () -> Bool
+leKind k1 k2 = go (reverse $ args k1) (reverse $ args k2)
+  where
+    args Type{}            = []
+    args (KindArrow _ a b) = a : args b
+
+    go [] _                = True
+    go _ []                = False
+    go (k : ks) (k' : ks')
+      | leKind k k' = go ks ks'
+      | otherwise   = go (k : ks) ks'
+
+-- | Strict shrinking order on kinds
+ltKind :: Kind () -> Kind () -> Bool
+ltKind k k' = k /= k' && leKind k k'
+
+-- | Take a type in a context and a new target kind
+--   Precondition: new kind is smaller or equal to old kind of the type.
 --   TODO (later): also allow changing which context it's valid in
 fixKind :: HasCallStack
         => Map TyName (Kind ())
@@ -527,6 +555,8 @@ fixKind ctx ty k
     TyBuiltin{}       -> minimalType k
     _                 -> error "fixKind"
 
+-- | Shrink a well-kinded type in a context to new types, possibly with new kinds.
+-- The new kinds are guaranteed to be smaller than or equal to the old kind.
 -- TODO: also shrink to new context
 --       need old context and new context
 shrinkKindAndType :: HasCallStack
@@ -534,50 +564,59 @@ shrinkKindAndType :: HasCallStack
                   -> (Kind (), Type TyName DefaultUni ())
                   -> [(Kind (), Type TyName DefaultUni ())]
 shrinkKindAndType ctx (k, ty) =
+  -- If we are not already minimal, add the minial type as a possible shrink.
   [(k, m) | k <- k : shrink k, m <- [minimalType k], m /= ty] ++
+  -- TODO: it might be worth-while to refactor this to the structural + nonstructural
+  -- style we use below. Unsure if that's more readable. CODE REVIEW: what do you think?
   case ty of
-    TyVar _ x         -> [(ky, TyVar () y) | (y, ky) <- Map.toList ctx, ltKind ky k || ky == k && y < x]
+    -- Variables shrink to arbitrary "smaller" variables
+    -- Note: the order on variable names here doesn't matter,
+    -- it's just because we need *some* order or otherwise
+    -- shrinking doesn't terminate.
+    TyVar _ x         -> [ (ky, TyVar () y)
+                         | (y, ky) <- Map.toList ctx
+                         , ltKind ky k || ky == k && y < x]
+    -- Functions shrink to either side of the arrow and both sides
+    -- of the arrow shrink independently.
     TyFun _ a b       -> [(k, a), (k, b)] ++
                          [(k, TyFun () a b) | (_, a) <- shrinkKindAndType ctx (k, a)] ++
                          [(k, TyFun () a b) | (_, b) <- shrinkKindAndType ctx (k, b)]
+    -- This case needs to be handled with a bit of care. First we shrink applications by
+    -- doing simple stuff like shrinking the function and body separately when we can.
+    -- The slightly tricky case is the concat trace. See comment below.
     TyApp _ f a       -> [(ka, a) | ka `leKind` k] ++
                          [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (fvType b)] ++
                          [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (fvType a)] ++
+                         -- Here we try to shrink the function f, if we get something whose kind
+                         -- is small enough we can return the new function f', otherwise we
+                         -- apply f' to `fixKind ctx a ka'` - which takes `a` and tries to rewrite it
+                         -- to something of kind `ka'`.
                          concat [case kf' of
                                    Type{}              -> [(kf', f')]
                                    KindArrow _ ka' kb' -> [ (kb', TyApp () f' (fixKind ctx a ka'))
                                                           | leKind kb' k, leKind ka' ka]
                                  | (kf', f') <- shrinkKindAndType ctx (KindArrow () ka k, f)] ++
+                         -- Here we shrink the argument and fixup the function to have the right kind.
                          [(k, TyApp () (fixKind ctx f (KindArrow () ka' k)) a)
                          | (ka', a) <- shrinkKindAndType ctx (ka, a)]
       where ka = inferKind_ ctx a
-    TyLam _ x ka b    -> [(KindArrow () ka' kb,  TyLam () x ka' $ substClosedType x (minimalType ka) b)
+    -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
+    TyLam _ x ka b    -> [ (KindArrow () ka' kb, TyLam () x ka' $ substClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
-                         [(KindArrow () ka  kb', TyLam () x ka b)
+                         [ (KindArrow () ka kb', TyLam () x ka b)
                          | (kb', b) <- shrinkKindAndType (Map.insert x ka ctx) (kb, b)]
       where KindArrow _ _ kb = k
-    TyForall _ x ka b -> [(k, b) | not $ Set.member x (fvType b)] ++
-                         [(k, TyForall () x ka' $ substClosedType x (minimalType ka) b) | ka' <- shrink ka] ++
-                         [(k, TyForall () x ka b) | (_, b) <- shrinkKindAndType (Map.insert x ka ctx) (Star, b)]
+    TyForall _ x ka b -> [ (k, b) | not $ Set.member x (fvType b) ] ++
+                         -- (above) If the bound variable doesn't matter we get rid of the binding
+                         [ (k, TyForall () x ka' $ substClosedType x (minimalType ka) b)
+                         | ka' <- shrink ka] ++
+                         -- (above) we can always just shrink the bound variable to a smaller kind
+                         -- and ignore it
+                         [ (k, TyForall () x ka b)
+                         | (_, b) <- shrinkKindAndType (Map.insert x ka ctx) (Star, b)]
+                         -- (above) or we shrink the body
     TyBuiltin{}       -> []
     TyIFix{}          -> error "shrinkKindAndType: TyIFix"
-
-minimalType :: Kind () -> Type TyName DefaultUni ()
-minimalType ty =
-  case ty of
-    Type{} -> unit
-    KindArrow _ k1 k2 ->
-      case k1 : view k2 of
-        [Type{}]         -> list
-        [Type{}, Type{}] -> pair
-        _                -> TyLam () (TyName $ Name "_" (toEnum 0)) k1 $ minimalType k2
-  where
-    view (KindArrow _ k1 k2) = k1 : view k2
-    view _                   = []
-
-    unit = TyBuiltin () (SomeTypeIn DefaultUniUnit)
-    list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
-    pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
 -- CODE REVIEW: does this exist anywhere?
 inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Maybe (Kind ())
