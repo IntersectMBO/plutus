@@ -1,4 +1,4 @@
--- | This suite is for easy addition of tests. When run,
+-- | This executable is for easy addition of tests. When run,
 -- output files will be added to all tests that had no output files.
 -- You are advised to manually check that the output is correct.
 
@@ -43,7 +43,7 @@ main = do
                   case parsed of
                     Left (ParseErrorB peb) -> do
                       -- warn the user that the file failed to parse
-                      putStr $ inputFile <> " failed to parse. Error written to " <> outFilePath
+                      putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       writeFile outFilePath (errorBundlePretty peb)
                     Right pro -> do
                       res <- evalUplcProg (stripePosProg pro)
@@ -51,18 +51,18 @@ main = do
                         EvaluationSuccess prog -> writeFile outFilePath (render $ pretty prog)
                         EvaluationFailure      -> do
                           -- warn the user that the file failed to evaluate
-                          putStr $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
                           writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
                 )
                 (concat inputFiles)
             "typecheck" ->
-              error "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
+              putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
             _ -> error $
               "Unsupported test " <> show action <>
               ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
-      _ -> error $
-            "Please input the 3 arguments for running the golden tests: " <>
-            "(1) file extension to be searched " <>
-            "(2) directory to be searched " <>
-            "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
+      _ -> do
+        putStrLn "Please input the 3 arguments for running the golden tests: "
+        putStrLn "(1) file extension to be searched "
+        putStrLn "(2) directory to be searched "
+        putStrLn "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
 

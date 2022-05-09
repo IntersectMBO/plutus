@@ -46,22 +46,19 @@ library
         text -any,
         mtl -any
 
-test-suite golden-test
+executable add-test-output
     import: lang
     type: exitcode-stdio-1.0
     main-is: Spec.hs
-    hs-source-dirs: golden/
+    hs-source-dirs: add-test-output/
     other-modules:
     build-depends:
         base >=4.9 && <5,
-        bytestring -any,
         directory -any,
-        tasty -any,
         tasty-golden -any,
         text -any,
         plutus-conformance -any,
         plutus-core,
-        Stream -any,
         megaparsec -any
 
 test-suite uplc-eval-test
