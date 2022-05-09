@@ -34,6 +34,9 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Type.Reflection
 
+-- | This class exists so we can provide an ad-hoc typed term generator
+-- for various universes. We usually rely-on a universe-specific generator
+-- for well-typed constants within that universe.
 class GenTypedTerm uni where
     -- | Generate a `Term` in @uni@ with the given type.
     genTypedTerm ::
@@ -42,9 +45,12 @@ class GenTypedTerm uni where
         Gen (Term tyname name uni fun ())
 
 instance GenTypedTerm DefaultUni where
+    -- TODO: currently it only generates constant terms.
     genTypedTerm tr = case genConstant tr of
         SomeGen gen -> Constant () . someValue <$> gen
 
+-- | This class exists so we can provide an ad-hoc arbitrary term generator
+-- for various universes.
 class GenArbitraryTerm uni where
     -- | Generate an arbitrary `Term` in @uni@.
     genArbitraryTerm ::

@@ -133,9 +133,6 @@ prop_builtinEvaluation bn mkGen f = property $ do
             -- on the fly to avoid this error case?
             _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
 
-{- | Generate well-typed Term arguments to a builtin function.
- TODO: currently it only generates constant terms.
--}
 genArgsWellTyped ::
     forall uni fun.
     (GenTypedTerm uni, ToBuiltinMeaning uni fun) =>
