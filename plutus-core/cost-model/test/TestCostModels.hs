@@ -302,7 +302,7 @@ main =
                     , $(genTest 1 "sha2_256")
                     , $(genTest 1 "sha3_256")
                     , $(genTest 1 "blake2b_256")
-                    , $(genTest 3 "verifySignature")
+                    , $(genTest 3 "verifyEd25519Signature")
                     , $(genTest 3 "verifyEcdsaSecp256k1Signature")
                     , $(genTest 3 "verifySchnorrSecp256k1Signature")
 

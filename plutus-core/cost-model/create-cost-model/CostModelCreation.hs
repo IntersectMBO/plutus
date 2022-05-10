@@ -67,7 +67,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramSha2_256                        = "sha2_256Model"
   , paramSha3_256                        = "sha3_256Model"
   , paramBlake2b_256                     = "blake2b_256Model"
-  , paramVerifySignature                 = "verifySignatureModel"
+  , paramVerifyEd25519Signature          = "verifyEd25519SignatureModel"
   , paramVerifyEcdsaSecp256k1Signature   = "verifyEcdsaSecp256k1SignatureModel"
   , paramVerifySchnorrSecp256k1Signature = "verifySchnorrSecp256k1SignatureModel"
   , paramAppendString                    = "appendStringModel"
@@ -145,7 +145,7 @@ createBuiltinCostModel =
     paramSha2_256                        <- getParams sha2_256                        paramSha2_256
     paramSha3_256                        <- getParams sha3_256                        paramSha3_256
     paramBlake2b_256                     <- getParams blake2b_256                     paramBlake2b_256
-    paramVerifySignature                 <- getParams verifySignature                 paramVerifySignature
+    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature          paramVerifyEd25519Signature
     paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
     paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
     -- Strings
@@ -447,8 +447,8 @@ blake2b_256 cpuModelR = do
 -- NB: the R model is based purely on the size of the second argument (since the
 -- first and third are constant size), so we have to rearrange things a bit to
 -- get it to work with a three-argument costing function.
-verifySignature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
-verifySignature cpuModelR = do
+verifyEd25519Signature :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+verifyEd25519Signature cpuModelR = do
   cpuModel <- ModelThreeArgumentsLinearInZ <$> readModelLinearInY cpuModelR
   let memModel =  ModelThreeArgumentsConstantCost 10
   pure $ CostingFun cpuModel memModel
@@ -457,7 +457,7 @@ verifySignature cpuModelR = do
      because the model was accidentally based on the size of the third argument,
      which is a 64-byte signature.  However, we should really be modelling it as
      a function of Y, since that's the 'message' parameter of the
-     verifySignature function.  So above it should say
+     verifyEd25519Signature function.  So above it should say
 
         ModelThreeArgumentsLinearInY <$> readModelLinearInY cpuModelR.
 
@@ -465,7 +465,7 @@ verifySignature cpuModelR = do
      time in terms of message size, but we're feeding that model constant inputs
      (the size of the signature, 64 bytes/8 words) instead of the size of the
      signature that we're verifying.  Luckily we can get away with this.  The
-     time taken to run verifySignature in fact appears to be effectively
+     time taken to run verifyEd25519Signature in fact appears to be effectively
      constant, even for very large messages, possibly because the underlying C
      code is very fast.  The Z-based cost function returns a constant cost since
      the size of the third argument is constant; we should be using a Y-based
