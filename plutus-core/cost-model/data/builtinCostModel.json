@@ -671,7 +671,7 @@
     },
     "verifyEcdsaSecp256k1Signature": {
         "cpu": {
-            "arguments": 28196107,
+            "arguments": 35237138,
             "type": "constant_cost"
         },
         "memory": {
