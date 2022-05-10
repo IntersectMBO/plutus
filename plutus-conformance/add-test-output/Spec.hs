@@ -29,10 +29,8 @@ main = do
           -- only choose the ones without an output file, so as to not edit the ones already with outputs
           inputFiles <- sequenceA $
                 [do
-                    hasOut <- findFile [dir] (testIn <> ".expected")
-                    case hasOut of
-                        Just _  -> pure []
-                        Nothing -> pure [testIn] | testIn <- allInputFiles]
+                    hasOut <- doesFileExist (testIn <> ".expected")
+                    if hasOut then pure [] else pure [testIn] | testIn <- allInputFiles]
           case action of
             "eval" -> do
               mapM_
