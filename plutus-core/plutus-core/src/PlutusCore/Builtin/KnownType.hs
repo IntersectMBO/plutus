@@ -298,7 +298,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- avoid space leaks. Note that the value is only forced to WHNF, so care must be taken to
     -- ensure that every value of a type from the universe gets forced to NF whenever it's forced to
     -- WHNF.
-    makeKnown = pure . fromConstant . someValue
+    makeKnown x = pure . fromConstant . someValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
