@@ -38,8 +38,9 @@ import Text.Show.Pretty (ppShow)
 
 -- We can make the tests generic over Ed25519DSIGN and SchnorrSecp256k1DSIGN
 -- with the constraints below, which hold for both.  However EcdsaSecp256k1DSIGN
--- requires a 32-byte message wrapped in SECP.Msg, so we can't use this code for
--- that (and we also need some extra tests for the message size).
+-- requires a 32-byte message wrapped in SECP.Msg (the other two take
+-- arbitrary-length messages), so we can't use this code for that.  We also
+-- need some extra tests for the message size in the case of EcdsaSecp256k1DSIGN
 
 type Common a = (DSIGNAlgorithm a, Signable a ByteString, ContextDSIGN a ~ ())
 
@@ -355,14 +356,13 @@ mkWrongKeyBits sk vk msg = do
 genBadVerKey :: forall (a :: Type) .
   (DSIGNAlgorithm a) => Gen ByteString
 genBadVerKey = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @a)
-                          genArbitraryMsg
+               (Gen.bytes $ Range.linear 0 64)
 
 genArbitraryMsg :: Gen ByteString
-genArbitraryMsg = Gen.bytes $ Range.linear 0 64
+genArbitraryMsg = Gen.bytes $ Range.linear 0 100
 
 genEcdsaMsg :: Gen SECP.Msg
 genEcdsaMsg = Gen.mapMaybe SECP.msg (Gen.bytes . Range.singleton $ 32)
-
 
 genCommonSig :: Common a => Gen (SigDSIGN a)
 genCommonSig = do
