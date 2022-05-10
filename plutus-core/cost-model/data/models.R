@@ -12,8 +12,8 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## require changes here to get sensible results.
 
 
-## At present, times in the becnhmarking data are typically of the order of
-## 10^(-6) seconds. We scale these up to milliseconds because the resulting
+## At present, times in the benchmarking data are typically of the order of
+## 10^(-6) seconds. WE SCALE THESE UP TO MICROSECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
 ## picoseconds) because then everything fits into integral values with little
@@ -414,8 +414,25 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
-
+    ## The verifyEcdsaSecp256k1Signature function returns quickly for 50% of
+    ## randomly-generated signatures because the Bitcoin implementation that
+    ## underlies it enforces a requirement that the lower of the two possible
+    ## values of the s component of the signature is used, returning immediately
+    ## if that's not the case: see Note [ECDSA secp256k1 signature verification]
+    ## in Builtins.hs.  This gives us bencharking results where the times fall
+    ## into two distinct bands.  To get a good upper bound for realistic cases
+    ## we eliminate the lower band by discarding results less than the mean and
+    ## then fit a constant model to the remaining data.
+    verifyEcdsaSecp256k1SignatureModel <- {
+        fname <-"VerifyEcdsaSecp256k1Signature"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            filter(t > mean(t)) %>%
+            discard.overhead ()
+        m <- lm(t ~ 1, filtered)
+        adjustModel (m,fname)
+    }
+    
     verifySchnorrSecp256k1SignatureModel <- {
         fname <- "VerifySchnorrSecp256k1Signature"
         filtered <- data %>%
