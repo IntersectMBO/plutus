@@ -24,7 +24,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature, verifySignature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -67,7 +67,7 @@ data DefaultFun
     | Sha2_256
     | Sha3_256
     | Blake2b_256
-    | VerifySignature
+    | VerifyEd25519Signature  -- formerly verifySignature
     | VerifyEcdsaSecp256k1Signature
     | VerifySchnorrSecp256k1Signature
     -- Strings
@@ -823,20 +823,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
-            Hash.sha2
+            Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
     toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
-            Hash.sha3
+            Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
     toBuiltinMeaning Blake2b_256 =
         makeBuiltinMeaning
-            Hash.blake2b
-            (runCostingFunOneArgument . paramBlake2b)
-    toBuiltinMeaning VerifySignature =
+            Hash.blake2b_256
+            (runCostingFunOneArgument . paramBlake2b_256)
+    toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            (verifySignature @EvaluationResult)
-            (runCostingFunThreeArguments . paramVerifySignature)
+            (verifyEd25519Signature @EvaluationResult)
+            (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature
@@ -1096,7 +1096,7 @@ instance Flat DefaultFun where
               Sha2_256                        -> 18
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
-              VerifySignature                 -> 21
+              VerifyEd25519Signature          -> 21
               VerifyEcdsaSecp256k1Signature   -> 52
               VerifySchnorrSecp256k1Signature -> 53
 
@@ -1159,7 +1159,7 @@ instance Flat DefaultFun where
               go 18 = pure Sha2_256
               go 19 = pure Sha3_256
               go 20 = pure Blake2b_256
-              go 21 = pure VerifySignature
+              go 21 = pure VerifyEd25519Signature
               go 22 = pure AppendString
               go 23 = pure EqualsString
               go 24 = pure EncodeUtf8

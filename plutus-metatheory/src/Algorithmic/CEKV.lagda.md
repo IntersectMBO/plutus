@@ -166,7 +166,7 @@ BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (SHA3-256 b)))
 BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (BLAKE2B-256 b)))
-BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
+BUILTIN verifyEd25519Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ (con bool)
 BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
@@ -329,15 +329,15 @@ bappTermLem sha2-256 {az = az} {as} p q with <>>-cancel-both az ([] :< Term) as 
 bappTermLem sha2-256 {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem sha3-256 {az = az} {as} p q with <>>-cancel-both az ([] :< Term) as p
 bappTermLem sha3-256 {az = .[]} {.[]} .(start (Term ∷ [])) base | refl ,, refl = _ ,, _ ,, refl
-bappTermLem verifySignature .(start (Term ∷ Term ∷ Term ∷ [])) base = _ ,, _ ,, refl
-bappTermLem verifySignature .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (app .(start (Term ∷ Term ∷ Term ∷ [])) base x) = _ ,, _ ,, refl
-bappTermLem verifySignature {as = as} .(bubble (bubble p)) (app .(bubble p) (app {az = az} p q x₁) x) with <>>-cancel-both az ((([] :< Term) :< Term) :< Term) as p
-bappTermLem verifySignature {as = .[]} (bubble (bubble .(start (Term ∷ Term ∷ Term ∷ [])))) (app .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (app {az = _} .(start (Term ∷ Term ∷ Term ∷ [])) base x₁) x) | refl ,, refl = _ ,, _ ,, refl
-bappTermLem verifySignature {as = as} .(bubble (bubble p)) (app .(bubble p) (app⋆ {az = az} p q q₁₁) x) with <>>-cancel-both' az ((([] :< Type) :< Term) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
+bappTermLem verifyEd25519Signature .(start (Term ∷ Term ∷ Term ∷ [])) base = _ ,, _ ,, refl
+bappTermLem verifyEd25519Signature .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (app .(start (Term ∷ Term ∷ Term ∷ [])) base x) = _ ,, _ ,, refl
+bappTermLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app .(bubble p) (app {az = az} p q x₁) x) with <>>-cancel-both az ((([] :< Term) :< Term) :< Term) as p
+bappTermLem verifyEd25519Signature {as = .[]} (bubble (bubble .(start (Term ∷ Term ∷ Term ∷ [])))) (app .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (app {az = _} .(start (Term ∷ Term ∷ Term ∷ [])) base x₁) x) | refl ,, refl = _ ,, _ ,, refl
+bappTermLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app .(bubble p) (app⋆ {az = az} p q q₁₁) x) with <>>-cancel-both' az ((([] :< Type) :< Term) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem verifySignature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app {az = az} p q x₁) q₁)  with <>>-cancel-both' az ((([] :< Term) :< Type) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
+bappTermLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app {az = az} p q x₁) q₁)  with <>>-cancel-both' az ((([] :< Term) :< Type) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTermLem verifySignature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₂) q₁) with <>>-cancel-both' az ((([] :< Type) :< Type) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
+bappTermLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₂) q₁) with <>>-cancel-both' az ((([] :< Type) :< Type) :< Term) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
 bappTermLem equalsByteString _ base = _ ,, _ ,, refl
 bappTermLem equalsByteString {as = as} .(bubble p) (app {az = az} p q x)
@@ -632,15 +632,15 @@ bappTypeLem sha2-256 {az = az} {as} p q
 bappTypeLem sha3-256 {az = az} {as} p q
   with <>>-cancel-both' az ([] :< Type) ([] :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem verifySignature {as = as} .(bubble (bubble p)) (app .(bubble p) (app {az = az} p q x) x')
+bappTypeLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app .(bubble p) (app {az = az} p q x) x')
   with <>>-cancel-both' az ((([] :< Term) :< Term) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem verifySignature {as = as} .(bubble (bubble p)) (app .(bubble p) (app⋆ {az = az} p q q₁₁) x)
+bappTypeLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app .(bubble p) (app⋆ {az = az} p q q₁₁) x)
   with <>>-cancel-both' az ((([] :< Type) :< Term) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem verifySignature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app {az = az} p q x₁) q₁) with <>>-cancel-both' az ((([] :< Term) :< Type) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
+bappTypeLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app {az = az} p q x₁) q₁) with <>>-cancel-both' az ((([] :< Term) :< Type) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem verifySignature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₂) q₁) with <>>-cancel-both' az ((([] :< Type) :< Type) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
+bappTypeLem verifyEd25519Signature {as = as} .(bubble (bubble p)) (app⋆ .(bubble p) (app⋆ {az = az} p q q₂) q₁) with <>>-cancel-both' az ((([] :< Type) :< Type) :< Type) ((([] :< Term) :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
 bappTypeLem equalsByteString {as = as} .(bubble p) (app {az = az} p q x)
   with <>>-cancel-both' az (([] :< Term) :< Type) (([] :< Term) :< Term) as p refl
@@ -838,7 +838,7 @@ ival lessThanByteString = V-I⇒ lessThanByteString _ base
 ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString _ base
 ival sha2-256 = V-I⇒ sha2-256 _ base
 ival sha3-256 = V-I⇒ sha3-256 _ base
-ival verifySignature = V-I⇒ verifySignature _ base
+ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature _ base
 ival equalsByteString = V-I⇒ equalsByteString _ base
 ival ifThenElse = V-IΠ ifThenElse _ base
 ival appendString = V-I⇒ appendString _ base

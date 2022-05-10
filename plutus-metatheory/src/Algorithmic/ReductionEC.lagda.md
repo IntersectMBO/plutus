@@ -150,8 +150,8 @@ BUILTIN sha3-256 (step _ (base refl) (V-con (bytestring b))) =
   con (bytestring (SHA3-256 b))
 BUILTIN blake2b-256 (step _ (base refl) (V-con (bytestring b))) =
   con (bytestring (BLAKE2B-256 b))
-BUILTIN verifySignature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
-  with verifySig k d c
+BUILTIN verifyEd25519Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+  with verifyEd25519Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
 BUILTIN equalsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
@@ -463,12 +463,12 @@ bappTermLem sha2-256 _ (start _) (base refl) | refl ,, refl = _ ,, _ ,, refl
 bappTermLem sha3-256 {az = az} {as} M p q
   with <>>-cancel-both az ([] :< Term) as p
 bappTermLem sha3-256 _ (start _) (base refl) | refl ,, refl = _ ,, _ ,, refl
-bappTermLem verifySignature _ (start _) (base refl) = _ ,, _ ,, refl
-bappTermLem verifySignature _ (bubble (start _)) (step (start _) (base refl) _) =
+bappTermLem verifyEd25519Signature _ (start _) (base refl) = _ ,, _ ,, refl
+bappTermLem verifyEd25519Signature _ (bubble (start _)) (step (start _) (base refl) _) =
   _ ,, _ ,, refl
-bappTermLem verifySignature {as = as} _ (bubble (bubble {as = az} p)) q
+bappTermLem verifyEd25519Signature {as = as} _ (bubble (bubble {as = az} p)) q
   with <>>-cancel-both' az _ ((([] :< Term) :< Term) :< Term) as p refl
-bappTermLem verifySignature
+bappTermLem verifyEd25519Signature
             _
             (bubble (bubble (start _)))
             (step _ (step _ (base refl) _) _)
@@ -731,8 +731,8 @@ bappTypeLem sha2-256 {az = az} _ p _
 bappTypeLem sha3-256 {az = az} _ p _
   with <>>-cancel-both' az _ ([] :< Term) _ p refl
 ... | refl ,, refl ,, ()
-bappTypeLem verifySignature _ (bubble (bubble {as = az} p)) _
-  with <>>-cancel-both' az _ ([] <>< arity verifySignature) _ p refl
+bappTypeLem verifyEd25519Signature _ (bubble (bubble {as = az} p)) _
+  with <>>-cancel-both' az _ ([] <>< arity verifyEd25519Signature) _ p refl
 ... | refl ,, refl ,, ()
 bappTypeLem equalsByteString _ (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
@@ -896,7 +896,7 @@ ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger (start _) (base refl)
 ival lessThanByteString = V-I⇒ lessThanByteString (start _) (base refl) 
 ival sha2-256 = V-I⇒ sha2-256 (start _) (base refl) 
 ival sha3-256 = V-I⇒ sha3-256 (start _) (base refl) 
-ival verifySignature = V-I⇒ verifySignature (start _) (base refl) 
+ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature (start _) (base refl) 
 ival equalsByteString = V-I⇒ equalsByteString (start _) (base refl) 
 ival ifThenElse = V-IΠ ifThenElse (start _) (base refl) 
 ival trace = V-IΠ trace (start _) (base refl) 
