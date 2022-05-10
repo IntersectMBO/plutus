@@ -835,7 +835,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b)
     toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            (verifyEd25519Signature @EvaluationResult)
+            verifyEd25519Signature
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
