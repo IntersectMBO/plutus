@@ -10,8 +10,7 @@ module PlutusIR.Transform.Beta (
 import PlutusIR
 import PlutusIR.Core.Type
 
-import Control.Lens.Setter ((%~))
-import Data.Function ((&))
+import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
 
 {- Note [Beta for types]
@@ -121,12 +120,14 @@ and types
 beta
     :: Term tyname name uni fun a
     -> Term tyname name uni fun a
-beta = \case
-    -- See Note [Multi-beta]
-    -- This maybe isn't the best annotation for this term, but it will do.
-    (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs (beta t)
-    -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
-    TyInst _ (TyAbs a n k body) tyArg ->
-      let b = TypeBind a (TyVarDecl a n k) tyArg
-       in Let (termAnn body) NonRec (pure b) (beta body)
-    t                                 -> t & termSubterms %~ beta
+beta = over termSubterms beta . localTransform
+  where
+    localTransform = \case
+      -- See Note [Multi-beta]
+      -- This maybe isn't the best annotation for this term, but it will do.
+      (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs t
+      -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
+      TyInst _ (TyAbs a n k body) tyArg ->
+          let b = TypeBind a (TyVarDecl a n k) tyArg
+          in Let (termAnn body) NonRec (pure b) body
+      t -> t
