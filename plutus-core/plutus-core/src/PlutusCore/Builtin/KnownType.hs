@@ -197,14 +197,6 @@ data MakeKnownM a
     | MakeKnownSuccess !a
     | MakeKnownSuccessWithLogs !(DList Text) !a
 
--- | Prepend logs to a 'MakeKnownM' computation and 'fmap' it.
-fmapWithLogs :: DList Text -> (a -> b) -> MakeKnownM a -> MakeKnownM b
-fmapWithLogs logs1 f = \case
-    MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
-    MakeKnownSuccess x               -> MakeKnownSuccessWithLogs logs1 (f x)
-    MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) (f x)
-{-# INLINE fmapWithLogs #-}
-
 -- | Prepend logs to a 'MakeKnownM' computation.
 withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
 withLogs logs1 = \case
@@ -233,7 +225,7 @@ instance Applicative MakeKnownM where
 
     MakeKnownFailure logs err       <*> _ = MakeKnownFailure logs err
     MakeKnownSuccess f              <*> a = fmap f a
-    MakeKnownSuccessWithLogs logs f <*> a = fmapWithLogs logs f a
+    MakeKnownSuccessWithLogs logs f <*> a = withLogs logs $ fmap f a
     {-# INLINE (<*>) #-}
 
     MakeKnownFailure logs err       *> _ = MakeKnownFailure logs err
