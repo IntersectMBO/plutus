@@ -39,7 +39,7 @@ main = do
                 (\inputFile -> do
                   inputStr <- readFile inputFile
                   let parsed = runQuoteT $ UPLC.parse UPLC.program inputFile $ T.pack inputStr
-                      outFilePath = inputFile <> "expected"
+                      outFilePath = inputFile <> ".expected"
                   case parsed of
                     Left (ParseErrorB peb) -> do
                       -- warn the user that the file failed to parse
@@ -48,7 +48,9 @@ main = do
                     Right pro -> do
                       res <- evalUplcProg (stripePosProg pro)
                       case res of
-                        EvaluationSuccess prog -> writeFile outFilePath (render $ pretty prog)
+                        EvaluationSuccess prog -> do
+                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
+                          writeFile outFilePath (render $ pretty prog)
                         EvaluationFailure      -> do
                           -- warn the user that the file failed to evaluate
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
@@ -61,8 +63,15 @@ main = do
               "Unsupported test " <> show action <>
               ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
       _ -> do
-        putStrLn "Please input the 3 arguments for running the golden tests: "
-        putStrLn "(1) file extension to be searched "
-        putStrLn "(2) directory to be searched "
-        putStrLn "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
+        mapM_
+          putStrLn
+          ["Please input the 3 arguments for running the golden tests: "
+          , "(1) file extension to be searched "
+          , "(2) directory to be searched "
+          , "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
+          , "E.g. run "
+          , "`cabal run add-test-output \".uplc\" \"plutus-conformance/uplc/\" eval` "
+          , "to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. "
+          , " It will evaluate and create output files for them."
+          ]
 
