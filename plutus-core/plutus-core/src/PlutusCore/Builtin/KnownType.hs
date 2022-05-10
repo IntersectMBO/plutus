@@ -212,8 +212,6 @@ withLogs logs1 = \case
 {-# INLINE withLogs #-}
 
 instance Functor MakeKnownM where
-    -- Written out explicitly, because for some inexplicable reason GHC fails to inline
-    -- @fmapWithLogs mempty@ despite the pragma.
     fmap _ (MakeKnownFailure logs err)       = MakeKnownFailure logs err
     fmap f (MakeKnownSuccess x)              = MakeKnownSuccess (f x)
     fmap f (MakeKnownSuccessWithLogs logs x) = MakeKnownSuccessWithLogs logs (f x)
@@ -300,7 +298,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- avoid space leaks. Note that the value is only forced to WHNF, so care must be taken to
     -- ensure that every value of a type from the universe gets forced to NF whenever it's forced to
     -- WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    makeKnown = pure . fromConstant . someValue
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
