@@ -531,24 +531,34 @@ fixKind :: HasCallStack
         -> Kind ()
         -> Type TyName DefaultUni ()
 fixKind ctx ty k
+  -- Nothing to do if we already have the right kind
   | inferKind_ ctx ty == k = ty
   | not $ k `leKind` inferKind_ ctx ty =
       error "fixKind not smaller"
   | otherwise = case ty of
-    TyVar _ _ | y : _ <- [ y | (y, k') <- Map.toList ctx, k == k' ] -> TyVar () y
+    -- Switch a variable out for a different variable of the right kind
+    TyVar _ _ | y : _ <- [ y | (y, k') <- Map.toList ctx
+                             , k == k' ] -> TyVar () y
               | otherwise -> minimalType k
+    -- Try to fix application by fixing the function
     TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (inferKind_ ctx b) k) b
     TyLam _ x kx b    ->
       case k of
+        -- Fix lambdas to * by getting substituting a minimal type for the argument
+        -- and fixing the body.
         Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
+        -- Fix functions by either keeping the argument around (if we can) or getting
+        -- rid of the argument (by turning its use-sites into minimal types) and introducing
+        -- a new argument.
         KindArrow _ ka kb
-          | ka == kx  -> TyLam () x kx $ fixKind (Map.insert x kx ctx) b kb
-          | not $ kb `leKind` kb' -> error "notgood"
-          | otherwise -> TyLam () x ka $ fixKind ctx' b' kb
+          | ka == kx              -> TyLam () x kx $ fixKind (Map.insert x kx ctx) b kb
+          | not $ kb `leKind` kb' -> error "fixKind"
+          | otherwise             -> TyLam () x ka $ fixKind ctx' b' kb
             where
               ctx' = Map.insert x ka ctx
               b'   = substClosedType x (minimalType kx) b
               kb'  = inferKind_ ctx' b'
+    -- Ill-kinded builtins just go to minimal types
     TyBuiltin{}       -> minimalType k
     _                 -> error "fixKind"
 
@@ -659,8 +669,10 @@ substType :: HasCallStack
           -> Type TyName DefaultUni ()
 substType = substType' True
 
+-- | Generalized substitution algorithm
 substType' :: HasCallStack
            => Bool
+           -- ^ Nested (True) or parallel (False)
            -> Map TyName (Type TyName DefaultUni ())
            -> Type TyName DefaultUni ()
            -> Type TyName DefaultUni ()
@@ -671,6 +683,8 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
     go :: HasCallStack => _
     go fvs seen sub ty = case ty of
       TyVar _ x | Set.member x seen -> error "substType' loop"
+      -- In the case where we do nested substitution we just continue, in parallel substitution
+      -- we never go below a substitution.
       TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
                 | otherwise -> maybe ty id $ Map.lookup x sub
       TyFun _ a b      -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
@@ -691,6 +705,13 @@ renameType :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName Defau
 renameType x y | x == y    = id
                | otherwise = substType (Map.singleton x (TyVar () y))
 
+-- CODE REVIEW: this function is a bit strange and I don't like it. Ideas welcome for how to
+-- do this better. It basically deals with the fact that we want to be careful when substituting
+-- the datatypes that escape from a term into the type. It's yucky but it works.
+--
+-- This might not be a welcome opinion, but working with this stuff exposes some of
+-- the shortcomings of the current PIR design. It would be cleaner if a PIR program was a list
+-- of declarations and datatype declarations weren't in terms.
 substEscape :: Polarity
             -> Set TyName
             -> Map TyName (Type TyName DefaultUni ())
@@ -747,11 +768,17 @@ normalizeTy ty = case runQuoteT $ normalizeType ty of
 
 -- CODE REVIEW: this probably exists somewhere?
 unifyType :: Map TyName (Kind ())
+          -- ^ Type context
           -> Set TyName
+          -- ^ Flexible variables (can be unified)
           -> Map TyName (Type TyName DefaultUni ())
+          -- ^ Existing substitution (usually empty)
           -> Type TyName DefaultUni ()
+          -- ^ `t1`
           -> Type TyName DefaultUni ()
+          -- ^ `t2`
           -> Maybe (Map TyName (Type TyName DefaultUni ()))
+          -- ^ maybe a substitution with domain `flex` that unifies `t1` and `t2`
 unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
   where
     go sub locals a b =
@@ -797,6 +824,7 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
 
+-- | Parallel substitution
 parSubstType :: Map TyName (Type TyName DefaultUni ())
              -> Type TyName DefaultUni ()
              -> Type TyName DefaultUni ()
@@ -1206,6 +1234,9 @@ mkHelp _ (TyBuiltin _ b)          = minimalBuiltin b
 mkHelp (findHelp -> Just help) ty = TyInst () (Var () help) ty
 mkHelp _ ty                       = Error () ty
 
+-- | Shrink a typed term in a type and term context.
+-- NOTE: if you want to understand what's going on in this function it's a good
+-- idea to look at how we do this for types above (it's a lot simpler).
 shrinkTypedTerm :: HasCallStack
                 => Map TyName (Kind ())
                 -> Map Name (Type TyName DefaultUni ())
@@ -1231,6 +1262,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
       nonstructural tyctx ctx (ty, tm) ++
       structural    tyctx ctx (ty, tm)
 
+    -- These are the special cases and "tricks" for shrinking
     nonstructural :: HasCallStack => _
     nonstructural tyctx ctx (ty, tm) =
       [ (ty', tm') | not $ isHelp tm
@@ -1266,7 +1298,9 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           , x `Set.notMember` fvTerm body ]
 
         Apply _ fun arg | Just argTy <- inferTypeInContext tyctx ctx arg ->
+          -- Drop substerms
           [(argTy, arg), (TyFun () argTy ty, fun)] ++
+          -- Shrink subterms (TODO: this is really two-step shrinking and might not be necessary)
           go tyctx ctx (TyFun () argTy ty, fun) ++
           go tyctx ctx (argTy, arg)
 
@@ -1276,20 +1310,22 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           , let tyInner' = substClosedType y (minimalType k) tyInner
           ]
 
+        -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
         Const DefaultUniBool _ ->
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-
         Const DefaultUniInteger _ ->
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-
         Const DefaultUniString _ ->
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-
         Const b _ -> [ (TyBuiltin () (SomeTypeIn b), bin) | bin <- [ minimalBuiltin (SomeTypeIn b) ]
                                                           , bin /= tm ]
 
         _ -> []
 
+    -- These are the structural (basically homomorphic) cases in shrinking.
+    -- They all just try to shrink a single subterm at a time. We also
+    -- use fixupTerm to adjust types here in a trick similar to how we shrunk
+    -- types above.
     structural :: HasCallStack => _
     structural tyctx ctx (ty, tm) =
       case tm of
@@ -1359,15 +1395,27 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 
         _ -> []
 
+-- | Try to infer the type of an expression in a given type and term context.
+-- NOTE: one can't just use out-of-the-box type inference here because the
+-- `inferType` algorithm happy renames things.
 inferTypeInContext :: Map TyName (Kind ())
                    -> Map Name (Type TyName DefaultUni ())
                    -> Term TyName Name DefaultUni DefaultFun ()
                    -> Maybe (Type TyName DefaultUni ())
 inferTypeInContext tyctx ctx tm = either (const Nothing) Just
                                 $ runQuoteT @(Either (Error DefaultUni DefaultFun ())) $ do
+  -- CODE REVIEW: this algorithm is fragile, it relies on knowing that `inferType`
+  -- does renaming to compute the `esc` substitution for datatypes. However, there is also
+  -- not any other way to do this in a way that makes type inference actually useful - you
+  -- want to do type inference in non-top-level contexts. Ideally I think type inference
+  -- probably shouldn't do renaming of datatypes... Or alternatively we need to ensure that
+  -- the renaming behaviour of type inference is documented and maintained.
   cfg <- getDefTypeCheckConfig ()
+  -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
   Normalized _ty' <- runQuoteT $ inferType cfg tm'
+  -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.
   let ty' = substEscape Pos (Map.keysSet esc <> foldr (<>) (fvType _ty') (fvType <$> esc)) esc _ty' -- yuck
+  -- Get rid of the stuff we had to add for the context.
   return $ stripFuns tms $ stripForalls mempty tys ty'
   where
     tm' = addTyLams tys $ addLams tms tm
@@ -1375,10 +1423,13 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
       Left _     -> error "impossible"
       Right tm'' -> tm''
 
+    -- Compute the substitution that takes datatypes that escape
+    -- the scope in the inferred type (given by computing them from the
+    -- renamed term) and turns them into datatypes in the old type.
     esc = Map.fromList (zip dats' $ map (TyVar ()) dats)
 
-    dats = map fst $ datatypes tm'
     dats' = map fst $ datatypes rntm
+    dats = map fst $ datatypes tm'
 
     tys = Map.toList tyctx
     tms = Map.toList ctx
@@ -1397,6 +1448,7 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
     stripFuns (_ : xs) (TyFun _ _ b) = stripFuns xs b
     stripFuns _ _                    = error "stripFuns"
 
+-- | Compute the datatype declarations that escape from a term.
 datatypes :: Term TyName Name DefaultUni DefaultFun ()
           -> [(TyName, (Kind ()))]
 datatypes tm = case tm of
