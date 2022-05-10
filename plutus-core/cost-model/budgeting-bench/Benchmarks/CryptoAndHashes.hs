@@ -56,6 +56,10 @@ benchVerifyEcdsaSecp256k1Signature =
               pubkeys    = listOfSizedByteStrings 50 64
               messages   = listOfSizedByteStrings 50 32
               signatures = listOfSizedByteStrings 50 64
+-- NB: verifyEcdsaSecp256k1Signature returns immediately for 50% of
+-- randomly-chosen signatures: see Note [ECDSA secp256k1 signature verification]
+-- in Builtins.hs.  This doesn't apply to VerifySchnorrSecp256k1Signature.
+
 
 benchVerifySchnorrSecp256k1Signature :: Benchmark
 benchVerifySchnorrSecp256k1Signature =
