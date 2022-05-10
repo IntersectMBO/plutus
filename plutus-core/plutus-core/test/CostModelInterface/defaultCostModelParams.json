@@ -166,12 +166,12 @@
   "unListData-memory-arguments": 32,
   "unMapData-cpu-arguments": 80394,
   "unMapData-memory-arguments": 32,
+  "verifyEd25519Signature-cpu-arguments-intercept": 839114,
+  "verifyEd25519Signature-cpu-arguments-slope": 1,
+  "verifyEd25519Signature-memory-arguments": 10,
   "verifyEcdsaSecp256k1Signature-cpu-arguments": 35237138,
   "verifyEcdsaSecp256k1Signature-memory-arguments": 10,
   "verifySchnorrSecp256k1Signature-cpu-arguments-intercept": 37304175,
   "verifySchnorrSecp256k1Signature-cpu-arguments-slope": 32273,
-  "verifySchnorrSecp256k1Signature-memory-arguments": 10,
-  "verifySignature-cpu-arguments-intercept": 839114,
-  "verifySignature-cpu-arguments-slope": 1,
-  "verifySignature-memory-arguments": 10
+  "verifySchnorrSecp256k1Signature-memory-arguments": 10
 }

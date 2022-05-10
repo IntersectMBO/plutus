@@ -147,7 +147,7 @@ bsDecode :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinString)
 bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.BuiltinByteString) -> Builtins.decodeUtf8 x)
 
 verify :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Bool)
-verify = plc (Proxy @"verify") (\(x::Builtins.BuiltinByteString) (y::Builtins.BuiltinByteString) (z::Builtins.BuiltinByteString) -> Builtins.verifySignature x y z)
+verify = plc (Proxy @"verify") (\(x::Builtins.BuiltinByteString) (y::Builtins.BuiltinByteString) (z::Builtins.BuiltinByteString) -> Builtins.verifyEd25519Signature x y z)
 
 trace :: CompiledCode (Builtins.BuiltinString -> ())
 trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())

@@ -137,7 +137,7 @@ BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (SHA3-256 b)))
 BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (BLAKE2B-256 b)))
-BUILTIN verifySignature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySig k d c)
+BUILTIN verifyEd25519Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ userError
 BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
@@ -202,7 +202,7 @@ ival lessThanByteString = V-I⇒ lessThanByteString _ base
 ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString _ base
 ival sha2-256 = V-I⇒ sha2-256 _ base
 ival sha3-256 = V-I⇒ sha3-256 _ base
-ival verifySignature = V-I⇒ verifySignature _ base
+ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature _ base
 ival equalsByteString = V-I⇒ equalsByteString _ base
 ival ifThenElse = V-IΠ ifThenElse _ base
 ival appendString = V-I⇒ appendString _ base

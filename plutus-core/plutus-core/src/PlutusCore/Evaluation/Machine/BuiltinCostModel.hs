@@ -110,10 +110,9 @@ data BuiltinCostModelBase f =
     , paramSha2_256                        :: f ModelOneArgument
     , paramSha3_256                        :: f ModelOneArgument
     , paramBlake2b_256                     :: f ModelOneArgument
-    , paramVerifySignature                 :: f ModelThreeArguments
+    , paramVerifyEd25519Signature          :: f ModelThreeArguments
     , paramVerifyEcdsaSecp256k1Signature   :: f ModelThreeArguments
     , paramVerifySchnorrSecp256k1Signature :: f ModelThreeArguments
-
     -- Strings
     , paramAppendString                    :: f ModelTwoArguments
     , paramEqualsString                    :: f ModelTwoArguments

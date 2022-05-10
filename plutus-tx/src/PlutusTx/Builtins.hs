@@ -19,7 +19,7 @@ module PlutusTx.Builtins (
                                 , sha2_256
                                 , sha3_256
                                 , blake2b_256
-                                , verifySignature
+                                , verifyEd25519Signature
                                 , verifyEcdsaSecp256k1Signature
                                 , verifySchnorrSecp256k1Signature
                                 , decodeUtf8
@@ -125,16 +125,16 @@ sha3_256 = BI.sha3_256
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 = BI.blake2b_256
 
-{-# INLINABLE verifySignature #-}
+{-# INLINABLE verifyEd25519Signature #-}
 -- | Ed25519 signature verification. Verify that the signature is a signature of
 -- the message by the public key. This will fail if key or the signature are not
 -- of the expected length.
-verifySignature
+verifyEd25519Signature
     :: BuiltinByteString  -- ^ Public Key (32 bytes)
     -> BuiltinByteString  -- ^ Message    (arbirtary length)
     -> BuiltinByteString  -- ^ Signature  (64 bytes)
     -> Bool
-verifySignature pubKey message signature = fromBuiltin (BI.verifySignature pubKey message signature)
+verifyEd25519Signature pubKey message signature = fromBuiltin (BI.verifyEd25519Signature pubKey message signature)
 
 {-# INLINABLE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.

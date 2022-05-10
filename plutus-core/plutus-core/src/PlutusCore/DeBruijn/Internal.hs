@@ -69,8 +69,9 @@ newtype Index = Index Word64
 deBruijnInitIndex :: Index
 deBruijnInitIndex = 0
 
+-- The bangs gave us a speedup of 6%.
 -- | A term name as a de Bruijn index.
-data NamedDeBruijn = NamedDeBruijn { ndbnString :: T.Text, ndbnIndex :: Index }
+data NamedDeBruijn = NamedDeBruijn { ndbnString :: !T.Text, ndbnIndex :: !Index }
     deriving stock (Show, Generic)
     deriving anyclass NFData
 
