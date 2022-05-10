@@ -12,7 +12,7 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## require changes here to get sensible results.
 
 
-## At present, times in the becnhmarking data are typically of the order of
+## At present, times in the benchmarking data are typically of the order of
 ## 10^(-6) seconds. WE SCALE THESE UP TO MICROSECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
