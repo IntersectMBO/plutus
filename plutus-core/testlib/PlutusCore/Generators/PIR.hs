@@ -77,18 +77,34 @@ data GenEnv = GenEnv
   -- ^ Names that we have generated and don't want to shadow but haven't bound yet.
   , geEscaping           :: AllowEscape
   -- ^ Are we in a place where we are allowed to generate a datatype binding?
+  , geCustomGen          :: Maybe (Type TyName DefaultUni ())
+                         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
+  -- ^ How often do we do this
+  , geCustomFreq         :: Int
+  -- ^ How often do we do this
   }
 
--- | Run a genTm generator in a top-level empty context where we are allowed to generate
+-- | Run a `GenTm  generator in a top-level empty context where we are allowed to generate
 -- datatypes.
 runGenTm :: GenTm a -> Gen a
-runGenTm g = sized $ \ n ->
+runGenTm = runGenTmCustom 0 (error "No custom generator - this code is unreachable.")
+
+-- | Run a `GenTm` generator with a plug-in custom generator for terms that is included with
+-- the other generators.
+runGenTmCustom :: Int
+               -> (Maybe (Type TyName DefaultUni ())
+                  -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ()))
+               -> GenTm a
+               -> Gen a
+runGenTmCustom f cg g = sized $ \ n ->
   runReaderT g $ GenEnv { geSize               = n
                         , geDatas              = Map.empty
                         , geTypes              = Map.empty
                         , geTerms              = Map.empty
                         , geUnboundUsedTyNames = Set.empty
                         , geEscaping           = YesEscape
+                        , geCustomGen          = cg
+                        , geCustomFreq         = f
                         }
 
 -- * Utility functions
@@ -1045,6 +1061,8 @@ genTermOfType ty = snd <$> genTerm (Just ty)
 genTerm :: Maybe (Type TyName DefaultUni ())
         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTerm mty = do
+  customF <- asks geCustomFreq
+  customG <- asks geCustomGen
   vars <- asks geTerms
   esc <- asks geEscaping
   -- Prefer to generate things that bind variables until we have "enough" (20...)
@@ -1063,7 +1081,8 @@ genTerm mty = do
                   [ (1, genError mty) ]                                        ++
                   [ (10, genConst mty)    | canConst mty ]                     ++
                   [ (10, genDatLet mty)   | YesEscape <- [esc] ]               ++
-                  [ (10, genIfTrace)      | isNothing mty ]
+                  [ (10, genIfTrace)      | isNothing mty ]                    ++
+                  [ (customF, customG mty) ]
   where
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
@@ -1392,9 +1411,6 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 
         Const DefaultUniInteger i ->
           [ (ty, Const DefaultUniInteger i') | i' <- shrink i ]
-
-        Const DefaultUniString s ->
-          [ (ty, Const DefaultUniString s') | s' <- shrink s ]
 
         _ -> []
 
