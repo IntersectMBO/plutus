@@ -36,9 +36,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Trans.Maybe
 
-import Data.Char
 import Data.Foldable
-import Data.List hiding (insert)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Map qualified as Map
@@ -50,9 +48,7 @@ import GHC.Stack
 import Prettyprinter
 import Test.QuickCheck
 import Text.PrettyBy
-import Text.Printf
 
-import PlutusCore (typeSize)
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -481,6 +477,7 @@ genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
 -- CODE REVIEW: does this exist anywhere??
+-- | `substClosedType x sub ty` substitutes the closed type `sub` for `x` in `ty`
 substClosedType :: TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
 substClosedType x sub ty =
   case ty of
