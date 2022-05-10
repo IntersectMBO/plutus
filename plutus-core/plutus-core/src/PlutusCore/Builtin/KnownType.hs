@@ -294,11 +294,15 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- The inverse of 'readKnown'.
     makeKnown :: a -> MakeKnownM val
     default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
-    -- Everything on evaluation path has to be strict, hence we don't do any extra forcing here to
-    -- avoid space leaks. Note that the value is only forced to WHNF, so care must be taken to
-    -- ensure that every value of a type from the universe gets forced to NF whenever it's forced to
-    -- WHNF.
-    makeKnown = pure . fromConstant . someValue
+    -- Everything on evaluation path has to be strict in production, so in theory we don't need to
+    -- force anything here. In practice however all kinds of weird things happen in tests and @val@
+    -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
+    -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
+    -- which doesn't affect the overall cost and benchmarking results suggest the same.
+    --
+    -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
+    -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
+    makeKnown x = pure . fromConstant . someValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
