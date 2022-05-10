@@ -192,6 +192,10 @@ typeMismatchError uniExp uniAct = fromString $ concat
 --
 -- Moving from @ExceptT KnownTypeError Emitter@ to this data type gave us a speedup of 8% of total
 -- evaluation time.
+--
+-- Logs are represented as a 'DList', because we don't particularly care about the efficiency of
+-- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
+-- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
 data MakeKnownM a
     = MakeKnownFailure (DList Text) KnownTypeError
     | MakeKnownSuccess a
@@ -228,6 +232,8 @@ instance Applicative MakeKnownM where
     MakeKnownSuccessWithLogs logs f <*> a = withLogs logs $ fmap f a
     {-# INLINE (<*>) #-}
 
+    -- Better than the default implementation, because the value in the 'MakeKnownSuccess' case
+    -- doesn't need to be retained.
     MakeKnownFailure logs err       *> _ = MakeKnownFailure logs err
     MakeKnownSuccess _              *> a = a
     MakeKnownSuccessWithLogs logs _ *> a = withLogs logs a
