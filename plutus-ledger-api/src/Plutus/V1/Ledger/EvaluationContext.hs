@@ -40,9 +40,10 @@ costModelParamNames = Map.keysSet $ fromJust $ extractCostModelParams $
             -- transform all costing-functions to (Just costingFun)
             (bmap (MCostingFun . Just) bcm)
             {
-              -- 'SerialiseData' builtin not available in V1
+              -- 'SerialiseData','EcdsaSecp256k1',SchnorrSecp256k1 builtins not available in V1
               paramSerialiseData = mempty
-              -- TODO: do the same for schnorr and ellipticcurve costingfuns
+            , paramVerifyEcdsaSecp256k1Signature = mempty
+            , paramVerifySchnorrSecp256k1Signature = mempty
             }
 
 -- | The raw cost model params, only to be used for testing purposes.
