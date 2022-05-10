@@ -1393,6 +1393,9 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
         Const DefaultUniInteger i ->
           [ (ty, Const DefaultUniInteger i') | i' <- shrink i ]
 
+        Const DefaultUniString s ->
+          [ (ty, Const DefaultUniString s') | s' <- shrink s ]
+
         _ -> []
 
 -- | Try to infer the type of an expression in a given type and term context.
@@ -1475,6 +1478,8 @@ findHelp ctx =
     isHelpType (TyForall _ x Star (TyVar _ x')) = x == x'
     isHelpType _                                = False
 
+-- | Try to take a term from an old context to a new context and a new type.
+-- If we can't do the new type we might return a different type.
 fixupTerm_ :: Map TyName (Kind ())
            -> Map Name (Type TyName DefaultUni ())
            -> Map TyName (Kind ())
@@ -1495,6 +1500,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
     Just ty -> (ty, tm)
 
+-- | Try to take a term from an old context to a new context and a new type - default to `mkHelp`.
 fixupTerm :: Map TyName (Kind ())
           -> Map Name (Type TyName DefaultUni ())
           -> Map TyName (Kind ())
