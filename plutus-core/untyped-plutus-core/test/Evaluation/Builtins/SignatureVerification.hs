@@ -45,14 +45,14 @@ import Text.Show.Pretty (ppShow)
 type Common a = (DSIGNAlgorithm a, Signable a ByteString, ContextDSIGN a ~ ())
 
 commonVerificationProp :: forall (a::Type) . Common a => DefaultFun -> PropertyT IO ()
-commonVerificationProp b = do
+commonVerificationProp f = do
   testCase <- forAllWith ppShow (genCommonCase @a)
   cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
   cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
   cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith testCase id b
+  runTestDataWith testCase id f
 
 ed25519Prop :: PropertyT IO ()
 ed25519Prop = commonVerificationProp @Ed25519DSIGN VerifyEd25519Signature
