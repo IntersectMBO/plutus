@@ -238,10 +238,10 @@ sha3_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3_256 b
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 
-{-# NOINLINE verifySignature #-}
-verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
-verifySignature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
-  BuiltinBool (fromMaybe False (Crypto.verifySignature pubKey message signature))
+{-# NOINLINE verifyEd25519Signature #-}
+verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
+verifyEd25519Signature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
+  BuiltinBool (fromMaybe False (Crypto.verifyEd25519Signature pubKey message signature))
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::

@@ -17,18 +17,18 @@
     (termbind
       (strict)
       (vardecl
-        verifySignature
+        verifyEd25519Signature
         (fun
           (con bytestring)
           (fun (con bytestring) (fun (con bytestring) (con bool)))
         )
       )
-      (builtin verifySignature)
+      (builtin verifyEd25519Signature)
     )
     (termbind
       (strict)
       (vardecl
-        verifySignature
+        verifyEd25519Signature
         (fun
           (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool))
         )
@@ -46,7 +46,7 @@
               [
                 [
                   { ifThenElse Bool }
-                  [ [ [ verifySignature pubKey ] message ] signature ]
+                  [ [ [ verifyEd25519Signature pubKey ] message ] signature ]
                 ]
                 True
               ]
@@ -56,6 +56,6 @@
         )
       )
     )
-    verifySignature
+    verifyEd25519Signature
   )
 )
