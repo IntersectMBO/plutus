@@ -69,7 +69,7 @@ The "NORM a" notation reads as "normalize 'a'".
 The "a ~> b" notations reads as "normalize 'a' to 'b'".
 
 Functions that can fail start with either @infer@ or @check@ prefixes,
-functions that cannot fail looks like this:
+functions that cannot fail look like this:
 
     kindOfBuiltinType
     typeOfBuiltinFunction

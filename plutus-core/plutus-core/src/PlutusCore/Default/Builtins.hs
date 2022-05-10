@@ -364,7 +364,7 @@ polymorphism is fine. For example:
 
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emitM text)
+            (\text a -> a <$ emit text)
             <costingFunction>
 
 The inferred type of the denotation is
@@ -523,7 +523,7 @@ As a final simple example, consider
 
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emitM text)
+            (\text a -> a <$ emit text)
             <costingFunction>
 
 from [How to add a built-in function: simple cases]. The inferred type of the denotation is
@@ -603,7 +603,7 @@ argument as a 'Bool', we could do that:
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
-            case asConstant @_ @UnliftingError Nothing val of
+            case asConstant val of
                 Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
                 _                                       -> EvaluationFailure
 
@@ -612,17 +612,14 @@ Here in the denotation we unlift the given value as a constant, check that its t
 'EvaluationFailure'.
 
 This achieves almost the same as 'IdBool', which keeps all the bookkeeping behind the scenes, but
-there are a couple of differences:
+there is a minor difference: in case of error its message is ignored. It would be easy to allow for
+returning an unlifting error from a builtin explicitly, but we don't need that for anything, hence
+it's not implemented.
 
-- 'asConstant' is given 'Nothing' as the cause of a potential failure
-- in case of error its message is ignored
-
-We could fix the latter, but changing the former is non-trivial: in general, the cause of a failure
-can be an arbitrary term, not just a value, and the meaning of a built-in function doesn't know
-anything about general terms, it only deals with values. The cause of a potential failure is
-provided to the builtins machinery from the outside (from within the internals of the CEK machine
-for example) and refactoring the builtins machinery into being aware of failure causes would force
-us to attach a term representation to each argument, which would make for a horrible interface.
+We call this style of manually calling 'asConstant' and matching on the type tag "manual unlifting".
+As opposed to "automatic unlifting" that we were using before where 'Bool' in the type of the
+denotation of a builtin causes the builtins machinery to convert the given argument to a 'Bool'
+constant automatically behind the scenes.
 
 3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift
 automatically to a constant and then unlift manually to 'Bool' using the 'SomeConstant' wrapper:
@@ -738,6 +735,100 @@ Our final example is this:
 Here we prepend an element to a list [3] after checking that the second argument is indeed a
 list [1] and that the type tag of the element being prepended equals the type tag for elements of
 the list [2] (extracted from the type tag for the whole list constant [1]).
+-}
+
+{- Note [Builtins and Plutus type checking]
+There's a direct correspondence between the Haskell type of the denotation of a builtin and the
+Plutus type of the builtin:
+
+1. elaboration turns a Haskell type variable into a concrete Haskell type representing a Plutus type
+   variable, which later becomes demoted (in the regular @singletons@ sense via 'KnownSymbol' etc)
+   to a regular Haskell value representing a Plutus type variable (as a part of the AST)
+2. a builtin head (i.e. a completely uninstantiated built-in type such as @Bool@ and @[]@) is
+   considered abstract by the Plutus type checker. All the type checker cares about is being able to
+   get the (Plutus) kind of a builtin head and check two builtin heads for equality
+3. Plutus type normalization tears partially or fully instantiated built-in types (such as
+   @[Integer]@) apart and creates a Plutus type application for each Haskell type application
+4. 'Emitter' and 'EvaluationResult' do not appear on the Plutus side, since the logging and failure
+   effects are implicit in Plutus as was discussed above
+5. 'Opaque' and 'SomeConstant' both carry a Haskell @rep@ type argument representing some Plutus
+   type to be used for Plutus type checking
+
+This last part means that one can attach any (legal) @rep@ to an 'Opaque' or 'SomeConstant' and
+it'll be used by the Plutus type checker completely regardless of what the built-in function
+actually does. Let's look at some examples.
+
+1. The following built-in function unlifts a 'Bool' and returns it back:
+
+    toBuiltinMeaning IdIntegerAsBool =
+        makeBuiltinMeaning
+            idIntegerAsBool
+            <costingFunction>
+      where
+        idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
+        idIntegerAsBool = \case
+            con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
+            _                                                    -> EvaluationFailure
+
+but on the Plutus side its type is
+
+    integer -> integer
+
+because the @rep@ that 'SomeConstant' carries is 'Integer' in both the cases (in the type of the
+argument, as well as in the type of the result).
+
+This means that for this built-in function the Plutus type checker will accept a program that fails
+at runtime due to a type mismatch and will reject a program that runs successfully. Other built-in
+functions also can fail, e.g. the type of @ifThenElse@ says that the builtin expects a @Bool@ and
+feeding it something else will result in evaluation failure, but 'idIntegerAsBool' is different:
+it's respecting its type signature is what causes a failure, not disrespecting it.
+
+2. Another example of an unsafe built-in function is this one that checks whether an argument is a
+constant or not:
+
+    toBuiltinMeaning IsConstant =
+        makeBuiltinMeaning
+            isConstantPlc
+            <costingFunction>
+      where
+        -- The type signature is just for clarity, it's not required.
+        isConstantPlc :: Opaque val a -> Bool
+        isConstantPlc = isRight . asConstant
+
+Its type on the Plutus side is
+
+    all a. a -> bool
+
+By parametricity any inhabitant of this type has to be either bottom or a function ignoring its
+argument, but @IsConstant@ actually uses the argument and so we break parametricity with this
+built-in function.
+
+3. Finally, we can have a Plutus version of @unsafeCoerce@:
+
+    toBuiltinMeaning UnsafeCoerce =
+        makeBuiltinMeaning
+            unsafeCoercePlc
+            <costingFunction>
+      where
+        -- The type signature is just for clarity, it's not required.
+        unsafeCoercePlc :: Opaque val a -> Opaque val b
+        unsafeCoercePlc = Opaque . unOpaque
+
+Its type on the Plutus side is
+
+    all a b. a -> b
+
+and thus this built-in function allows for viewing any Plutus expression as having an arbitrary
+type. Which is of course not nearly as bad as @unsafeCoerce@ in Haskell, because in Plutus a
+blob of memory representing an @Integer@ is not going to be viewed as a @[Bool]@ and an attempt to
+actually extract that @[Bool]@ will result in evaluation failure, but this built-in function is
+still not a good citizen of the Plutus type system.
+
+One could of course simply wrap Haskell's @unsafeCoerce@ as a built-in function in Plutus, but it
+goes without saying that this is not supposed to be done.
+
+So overall one needs to be very careful when defining built-in functions that have explicit
+'Opaque' and 'SomeConstant' arguments. Expressiveness doesn't come for free.
 -}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
