@@ -30,7 +30,7 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519Prop, schnorrSecp256k1Prop)
 
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
@@ -578,10 +578,15 @@ fails b args =
 testSECP256k1 :: TestTree
 testSECP256k1 =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
-  testGroup "Signatures on the SECP256k1 curve" $ [
-    testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
-    testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
-    ]
+  testGroup "Signature verification" $ [
+                 testGroup "Ed25519 signatures" $ [
+                                testProperty "Ed25519 verification behaves correctly on all inputs" . property $ ed25519Prop
+                               ],
+                 testGroup "Signatures on the SECP256k1 curve" $ [
+                                testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
+                                testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
+                               ]
+                ]
 
 test_definition :: TestTree
 test_definition =

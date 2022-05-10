@@ -454,7 +454,7 @@ test-suite untyped-plutus-core-test
         Evaluation.Builtins.Common
         Evaluation.Builtins.Definition
         Evaluation.Builtins.MakeRead
-        Evaluation.Builtins.SECP256k1
+        Evaluation.Builtins.SignatureVerification
         Evaluation.FreeVars
         Evaluation.Golden
         Evaluation.Machines
