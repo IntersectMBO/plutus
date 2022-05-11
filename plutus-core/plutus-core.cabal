@@ -257,7 +257,6 @@ library
         base >=4.9 && <5,
         bimap -any,
         bytestring -any,
-        cardano-crypto,
         cassava -any,
         cborg -any,
         composition-prelude >=1.1.0.1,
