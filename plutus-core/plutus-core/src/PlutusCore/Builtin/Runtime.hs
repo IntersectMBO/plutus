@@ -6,7 +6,10 @@
 
 {-# LANGUAGE StrictData               #-}
 
-module PlutusCore.Builtin.Runtime where
+module PlutusCore.Builtin.Runtime
+    ( module PlutusCore.Builtin.Runtime
+    , Lazy (..)
+    ) where
 
 import PlutusPrelude
 
@@ -51,7 +54,12 @@ instance NFData (RuntimeScheme n) where
 -- argument of the denotation and calling 'makeKnown' over its result.
 type ToRuntimeDenotationType :: GHC.Type -> Peano -> GHC.Type
 type family ToRuntimeDenotationType val n where
-    ToRuntimeDenotationType val 'Z     = MakeKnownM val
+    -- We use 'Lazy' here, because we don't want to compute the denotation when it's fully saturated
+    -- before figuring out what it's going to cost. An alternative is to be really careful and never
+    -- force the 'MakeKnownM' computation before doing costing, but it's trickier and somehow we
+    -- couldn't get it to be as fast as using 'Lazy' explicitly.
+    -- See https://github.com/input-output-hk/plutus/pull/4584
+    ToRuntimeDenotationType val 'Z     = Lazy (MakeKnownM val)
     -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
@@ -84,9 +92,7 @@ type family ToCostingType n where
 data BuiltinRuntime val =
     forall n. BuiltinRuntime
         (RuntimeScheme n)
-        ~(ToRuntimeDenotationType val n)  -- Must be lazy, because we don't want to compute the
-                                          -- denotation when it's fully saturated before figuring
-                                          -- out what it's going to cost.
+        (ToRuntimeDenotationType val n)
         (ToCostingType n)
 
 -- | Determines how to unlift arguments. The difference is that with 'UnliftingImmediate' unlifting

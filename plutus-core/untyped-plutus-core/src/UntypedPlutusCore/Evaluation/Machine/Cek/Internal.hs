@@ -570,7 +570,7 @@ evalBuiltinApp
 evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        case getX of
+        case unLazy getX of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs
                 throwKnownTypeErrorWithCause term err
