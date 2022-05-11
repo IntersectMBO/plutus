@@ -823,20 +823,36 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
-            Hash.sha2
+            Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
     toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
-            Hash.sha3
+            Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
     toBuiltinMeaning Blake2b_256 =
         makeBuiltinMeaning
-            Hash.blake2b
-            (runCostingFunOneArgument . paramBlake2b)
+            Hash.blake2b_256
+            (runCostingFunOneArgument . paramBlake2b_256)
     toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            verifyEd25519Signature
+            (verifyEd25519Signature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+    {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
+       consists of a pair of values (r,s), and for each value of r there are in
+       fact two valid values of s, one effectively the negative of the other.
+       The Bitcoin implementation that underlies `verifyEcdsaSecp256k1Signature`
+       expects that the lower of the two possible values of the s component of
+       the signature is used, returning `false` immediately if that's not the
+       case.  It appears that this restriction is peculiar to Bitcoin, and ECDSA
+       schemes in general don't require it.  Thus this function may be more
+       restrictive than expected.  See
+
+          https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki#LOW_S
+
+       and the implementation of secp256k1_ecdsa_verify in
+
+          https://github.com/bitcoin-core/secp256k1.
+     -}
     toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature

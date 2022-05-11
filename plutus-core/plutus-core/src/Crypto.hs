@@ -42,6 +42,20 @@ verifyEd25519Signature pk msg sig =
     loc :: Text
     loc = "Ed25519 signature verification"
 
+{- verifyEd25519Signature
+    :: Alternative f
+    => BS.ByteString  -- ^ Public Key (32 bytes)
+    -> BS.ByteString  -- ^ Message    (arbitrary length)
+    -> BS.ByteString  -- ^ Signature  (64 bytes)
+    -> f Bool
+verifyEd25519Signature pubKey msg sig =
+    maybe empty pure . maybeCryptoError $
+        verify
+            <$> publicKey pubKey
+            <*> pure msg
+            <*> signature sig
+-}
+
 -- | Verify an ECDSA signature made using the SECP256k1 curve.
 --
 -- = Note

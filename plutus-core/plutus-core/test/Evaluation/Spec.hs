@@ -14,8 +14,7 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin
-import PlutusCore.Generators (SomeGen (..), forAllNoShow, genConstant)
-import PlutusCore.Generators.AST hiding (genConstant)
+import PlutusCore.Generators (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 
 import Control.Exception
@@ -30,7 +29,7 @@ import Test.Tasty
 import Test.Tasty.Hedgehog
 import Type.Reflection
 
-type Term fun = PLC.Term TyName Name DefaultUni fun ()
+type Term uni fun = PLC.Term TyName Name uni fun ()
 
 {- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
  to fail with a `KnownTypeError`, of course).
@@ -47,7 +46,10 @@ test_builtinsDon'tThrow =
     testGroup
         "Builtins don't throw"
         $ fmap
-            (\fun -> testProperty (display fun) $ prop_builtinEvaluation @DefaultFun fun gen f)
+            ( \fun ->
+                testProperty (display fun) $
+                    prop_builtinEvaluation @_ @DefaultFun fun gen f
+            )
             List.enumerate
   where
     gen bn = Gen.choice [genArgsWellTyped bn, genArgsArbitrary bn]
@@ -83,7 +85,7 @@ test_alwaysThrows =
     testGroup
         "Builtins throwing exceptions should cause tests to fail"
         [ testProperty (display AlwaysThrows) $
-            prop_builtinEvaluation @AlwaysThrows AlwaysThrows genArgsWellTyped f
+            prop_builtinEvaluation @_ @AlwaysThrows AlwaysThrows genArgsWellTyped f
         ]
   where
     f bn args = \case
@@ -95,32 +97,32 @@ test_alwaysThrows =
             failure
 
 prop_builtinEvaluation ::
-    forall fun.
-    (ToBuiltinMeaning DefaultUni fun, Pretty fun) =>
+    forall uni fun.
+    (ToBuiltinMeaning uni fun, Pretty fun, Closed uni, GShow uni, uni `Everywhere` PrettyConst) =>
     fun ->
     -- | A function making a generator for @fun@'s arguments.
-    (fun -> Gen [Term fun]) ->
+    (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
     -- outcome, and decides whether to pass or fail the property.
-    (fun -> [Term fun] -> Either SomeException (MakeKnownM (Term fun)) -> PropertyT IO ()) ->
+    (fun -> [Term uni fun] -> Either SomeException (MakeKnownM (Term uni fun)) -> PropertyT IO ()) ->
     Property
 prop_builtinEvaluation bn mkGen f = property $ do
     args <- forAllNoShow (mkGen bn)
     f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
   where
-    meaning :: BuiltinMeaning (Term fun) (CostingPart DefaultUni fun)
+    meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
     meaning = toBuiltinMeaning bn
 
-    eval :: [Term fun] -> MakeKnownM (Term fun)
+    eval :: [Term uni fun] -> MakeKnownM (Term uni fun)
     eval args0 = case meaning of
         BuiltinMeaning _ _ runtime -> go (_broRuntimeScheme runtime) (_broImmediateF runtime) args0
       where
         go ::
             forall n.
             RuntimeScheme n ->
-            ToRuntimeDenotationType (Term fun) n ->
-            [Term fun] ->
-            MakeKnownM (Term fun)
+            ToRuntimeDenotationType (Term uni fun) n ->
+            [Term uni fun] ->
+            MakeKnownM (Term uni fun)
         go sch fn args = case (sch, args) of
             (RuntimeSchemeArrow sch', a : as) -> do
                 res <- liftEither (fn a)
@@ -131,34 +133,38 @@ prop_builtinEvaluation bn mkGen f = property $ do
             -- on the fly to avoid this error case?
             _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
 
-{- | Generate well-typed Term arguments to a builtin function.
- TODO: currently it only generates constant terms.
--}
-genArgsWellTyped :: forall fun. ToBuiltinMeaning DefaultUni fun => fun -> Gen [Term fun]
-genArgsWellTyped = genArgs $ \tr -> case genConstant tr of
-    SomeGen gen -> Constant () . someValue <$> gen
+genArgsWellTyped ::
+    forall uni fun.
+    (GenTypedTerm uni, ToBuiltinMeaning uni fun) =>
+    fun ->
+    Gen [Term uni fun]
+genArgsWellTyped = genArgs genTypedTerm
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
-genArgsArbitrary :: forall fun. ToBuiltinMeaning DefaultUni fun => fun -> Gen [Term fun]
-genArgsArbitrary = genArgs (const (runAstGen genTerm))
+genArgsArbitrary ::
+    forall uni fun.
+    (GenArbitraryTerm uni, ToBuiltinMeaning uni fun) =>
+    fun ->
+    Gen [Term uni fun]
+genArgsArbitrary = genArgs (\_ -> genArbitraryTerm @uni)
 
 -- | Generate value arguments to a builtin function based on its `TypeScheme`.
 genArgs ::
-    forall fun.
-    ToBuiltinMeaning DefaultUni fun =>
-    (forall (a :: GHC.Type). TypeRep a -> Gen (Term fun)) ->
+    forall uni fun.
+    ToBuiltinMeaning uni fun =>
+    (forall (a :: GHC.Type). TypeRep a -> Gen (Term uni fun)) ->
     fun ->
-    Gen [Term fun]
+    Gen [Term uni fun]
 genArgs genArg bn = sequenceA $ case meaning of
     BuiltinMeaning tySch _ _ -> go tySch
       where
-        go :: forall args res. TypeScheme (Term fun) args res -> [Gen (Term fun)]
+        go :: forall args res. TypeScheme (Term uni fun) args res -> [Gen (Term uni fun)]
         go = \case
             TypeSchemeResult    -> []
             TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
             TypeSchemeAll _ sch -> go sch
   where
-    meaning :: BuiltinMeaning (Term fun) (CostingPart DefaultUni fun)
+    meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
     meaning = toBuiltinMeaning bn
 
 type family Head a where

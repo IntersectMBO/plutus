@@ -57,6 +57,10 @@ benchVerifyEcdsaSecp256k1Signature =
               pubkeys    = listOfSizedByteStrings 50 64
               messages   = listOfSizedByteStrings 50 32
               signatures = listOfSizedByteStrings 50 64
+-- NB: verifyEcdsaSecp256k1Signature returns immediately for 50% of
+-- randomly-chosen signatures: see Note [ECDSA secp256k1 signature verification]
+-- in Builtins.hs.  This doesn't apply to VerifySchnorrSecp256k1Signature.
+
 
 benchVerifySchnorrSecp256k1Signature :: Benchmark
 benchVerifySchnorrSecp256k1Signature =
@@ -82,5 +86,5 @@ makeBenchmarks _gen =  [benchVerifyEd25519Signature, benchVerifyEcdsaSecp256k1Si
                        <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
 
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
--- 2.82 times longer than Blake2b.  All are (very) linear in the size of the
+-- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the
 -- input.

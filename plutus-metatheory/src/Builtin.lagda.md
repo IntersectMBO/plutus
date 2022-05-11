@@ -192,9 +192,9 @@ postulate
 
 {-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
-{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}
-{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b #-}
+{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2_256 #-}
+{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3_256 #-}
+{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b_256 #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B> = (>) #-}
