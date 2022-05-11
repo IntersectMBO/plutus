@@ -13,8 +13,6 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-{-# LANGUAGE StrictData            #-}
-
 module PlutusCore.Builtin.KnownType
     ( KnownTypeError
     , throwKnownTypeErrorWithCause
