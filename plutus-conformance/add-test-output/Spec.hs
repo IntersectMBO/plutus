@@ -9,6 +9,7 @@ module Main
     ) where
 
 import Common
+import Control.Exception
 import Data.Text qualified as T
 import PlutusCore.Error
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
@@ -17,7 +18,7 @@ import PlutusCore.Quote (runQuoteT)
 import System.Directory
 import System.Environment
 import Test.Tasty.Golden (findByExtension)
-import Text.Megaparsec
+import Text.Megaparsec hiding (try)
 import UntypedPlutusCore.Parser as UPLC
 
 main :: IO ()
@@ -44,15 +45,18 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       writeFile outFilePath (errorBundlePretty peb)
                     Right pro -> do
-                      res <- evalUplcProg (stripePosProg pro)
+                      res <- try (evalUplcProg (stripePosProg pro) >>= evaluate):: IO (Either SomeException (EvaluationResult UplcProg))
                       case res of
-                        EvaluationSuccess prog -> do
+                        Right (EvaluationSuccess prog) -> do
                           putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
                           writeFile outFilePath (render $ pretty prog)
-                        EvaluationFailure      -> do
+                        Right EvaluationFailure      -> do
                           -- warn the user that the file failed to evaluate
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
                           writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
+                        Left evalException -> do
+                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>". Exception written to " <> outFilePath
+                          writeFile outFilePath (show evalException)
                 )
                 (concat inputFiles)
             "typecheck" ->
