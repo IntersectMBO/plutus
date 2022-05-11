@@ -173,7 +173,7 @@ builtinNames = [
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature
 
-    , 'Builtins.verifySignature
+    , 'Builtins.verifyEd25519Signature
 
     , ''Integer
     , 'Builtins.addInteger
@@ -288,7 +288,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
 
     -- Crypto
-    defineBuiltinTerm 'Builtins.verifySignature $ mkBuiltin PLC.VerifySignature
+    defineBuiltinTerm 'Builtins.verifyEd25519Signature $ mkBuiltin PLC.VerifyEd25519Signature
 
     -- Integer builtins
     defineBuiltinTerm 'Builtins.addInteger $ mkBuiltin PLC.AddInteger

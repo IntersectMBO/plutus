@@ -57,7 +57,7 @@
             "type": "constant_cost"
         }
     },
-    "blake2b": {
+    "blake2b_256": {
         "cpu": {
             "arguments": {
                 "intercept": 104848,
@@ -656,13 +656,36 @@
             "type": "constant_cost"
         }
     },
-    "verifySignature": {
+    "verifyEd25519Signature": {
         "cpu": {
             "arguments": {
                 "intercept": 839114,
                 "slope": 1
             },
             "type": "linear_in_z"
+        },
+        "memory": {
+            "arguments": 10,
+            "type": "constant_cost"
+        }
+    },
+    "verifyEcdsaSecp256k1Signature": {
+        "cpu": {
+            "arguments": 35237138,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 10,
+            "type": "constant_cost"
+        }
+    },
+    "verifySchnorrSecp256k1Signature": {
+        "cpu": {
+            "arguments": {
+                "intercept": 37304175,
+                "slope": 32273
+            },
+            "type": "linear_in_y"
         },
         "memory": {
             "arguments": 10,

@@ -25,37 +25,34 @@
       [
         [
           [
-            {
-              (abs
-                b
-                (type)
-                (lam
-                  dFunctor
-                  [
-                    (lam
-                      f
-                      (fun (type) (type))
-                      (all
-                        a
-                        (type)
-                        (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
-                      )
-                    )
-                    Maybe
-                  ]
+            (let
+              (nonrec)
+              (typebind (tyvardecl b (type)) (fun (con integer) (con integer)))
+              (lam
+                dFunctor
+                [
                   (lam
                     f
-                    (fun (con integer) b)
-                    (lam
-                      fa
-                      [ Maybe (con integer) ]
-                      [ [ { { dFunctor (con integer) } b } f ] fa ]
+                    (fun (type) (type))
+                    (all
+                      a
+                      (type)
+                      (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
                     )
+                  )
+                  Maybe
+                ]
+                (lam
+                  f
+                  (fun (con integer) b)
+                  (lam
+                    fa
+                    [ Maybe (con integer) ]
+                    [ [ { { dFunctor (con integer) } b } f ] fa ]
                   )
                 )
               )
-              (fun (con integer) (con integer))
-            }
+            )
             (abs
               a
               (type)

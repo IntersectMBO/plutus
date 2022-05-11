@@ -24,7 +24,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature, verifySignature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -67,7 +67,7 @@ data DefaultFun
     | Sha2_256
     | Sha3_256
     | Blake2b_256
-    | VerifySignature
+    | VerifyEd25519Signature  -- formerly verifySignature
     | VerifyEcdsaSecp256k1Signature
     | VerifySchnorrSecp256k1Signature
     -- Strings
@@ -823,28 +823,44 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
         makeBuiltinMeaning
-            Hash.sha2
+            Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
     toBuiltinMeaning Sha3_256 =
         makeBuiltinMeaning
-            Hash.sha3
+            Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
     toBuiltinMeaning Blake2b_256 =
         makeBuiltinMeaning
-            Hash.blake2b
-            (runCostingFunOneArgument . paramBlake2b)
-    toBuiltinMeaning VerifySignature =
+            Hash.blake2b_256
+            (runCostingFunOneArgument . paramBlake2b_256)
+    toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            (verifySignature @EvaluationResult)
-            (runCostingFunThreeArguments . paramVerifySignature)
+            (verifyEd25519Signature @EvaluationResult)
+            (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+    {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
+       consists of a pair of values (r,s), and for each value of r there are in
+       fact two valid values of s, one effectively the negative of the other.
+       The Bitcoin implementation that underlies `verifyEcdsaSecp256k1Signature`
+       expects that the lower of the two possible values of the s component of
+       the signature is used, returning `false` immediately if that's not the
+       case.  It appears that this restriction is peculiar to Bitcoin, and ECDSA
+       schemes in general don't require it.  Thus this function may be more
+       restrictive than expected.  See
+
+          https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki#LOW_S
+
+       and the implementation of secp256k1_ecdsa_verify in
+
+          https://github.com/bitcoin-core/secp256k1.
+     -}
     toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature
-            mempty
+            (runCostingFunThreeArguments . paramVerifyEcdsaSecp256k1Signature)
     toBuiltinMeaning VerifySchnorrSecp256k1Signature =
         makeBuiltinMeaning
             verifySchnorrSecp256k1Signature
-            mempty
+            (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
@@ -1096,7 +1112,7 @@ instance Flat DefaultFun where
               Sha2_256                        -> 18
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
-              VerifySignature                 -> 21
+              VerifyEd25519Signature          -> 21
               VerifyEcdsaSecp256k1Signature   -> 52
               VerifySchnorrSecp256k1Signature -> 53
 
@@ -1159,7 +1175,7 @@ instance Flat DefaultFun where
               go 18 = pure Sha2_256
               go 19 = pure Sha3_256
               go 20 = pure Blake2b_256
-              go 21 = pure VerifySignature
+              go 21 = pure VerifyEd25519Signature
               go 22 = pure AppendString
               go 23 = pure EqualsString
               go 24 = pure EncodeUtf8

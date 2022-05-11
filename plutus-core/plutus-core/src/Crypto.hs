@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 module Crypto (
-  verifySignature,
+  verifyEd25519Signature,
   verifyEcdsaSecp256k1Signature,
   verifySchnorrSecp256k1Signature,
   ) where
@@ -23,13 +23,13 @@ import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.
-verifySignature
+verifyEd25519Signature
     :: Alternative f
     => BS.ByteString  -- ^ Public Key (32 bytes)
     -> BS.ByteString  -- ^ Message    (arbitrary length)
     -> BS.ByteString  -- ^ Signature  (64 bytes)
     -> f Bool
-verifySignature pubKey msg sig =
+verifyEd25519Signature pubKey msg sig =
     maybe empty pure . maybeCryptoError $
         verify
             <$> publicKey pubKey
@@ -43,9 +43,9 @@ verifySignature pubKey msg sig =
 -- This takes a message /hash/, rather than a general blob of bytes; thus, it is
 -- limited in length.
 verifyEcdsaSecp256k1Signature
-  :: BS.ByteString -- ^ Public key (64 bytes)
+  :: BS.ByteString -- ^ Public key   (64 bytes)
   -> BS.ByteString -- ^ Message hash (32 bytes)
-  -> BS.ByteString -- ^ Signature (64 bytes)
+  -> BS.ByteString -- ^ Signature    (64 bytes)
   -> Emitter (EvaluationResult Bool)
 verifyEcdsaSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @EcdsaSecp256k1DSIGN pk of
@@ -69,8 +69,8 @@ verifyEcdsaSecp256k1Signature pk msg sig =
 -- form and length.
 verifySchnorrSecp256k1Signature
   :: BS.ByteString -- ^ Public key (64 bytes)
-  -> BS.ByteString -- ^ Message
-  -> BS.ByteString -- ^ Signature (64 bytes)
+  -> BS.ByteString -- ^ Message    (arbitrary length)
+  -> BS.ByteString -- ^ Signature  (64 bytes)
   -> Emitter (EvaluationResult Bool)
 verifySchnorrSecp256k1Signature pk msg sig =
   case DSIGN.rawDeserialiseVerKeyDSIGN @SchnorrSecp256k1DSIGN pk of

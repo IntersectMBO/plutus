@@ -31,7 +31,6 @@ import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Name
 
-import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -177,7 +176,7 @@ instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val 
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftEither'.
-    toDeferredF getRes = Lazy $ liftEither getRes >>= makeKnown
+    toDeferredF getRes = Lazy $ liftReadKnownM getRes >>= makeKnown
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.

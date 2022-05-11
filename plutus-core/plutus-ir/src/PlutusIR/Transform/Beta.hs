@@ -10,8 +10,7 @@ module PlutusIR.Transform.Beta (
 import PlutusIR
 import PlutusIR.Core.Type
 
-import Control.Lens.Setter ((%~))
-import Data.Function ((&))
+import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
 
 {- Note [Beta for types]
@@ -75,6 +74,17 @@ Some examples will help:
 [[(\x . t) a] b] -> Nothing
 
 When we decide that we want to do beta for types, we will need to extend this to handle type instantiations too.
+
+Note that multi-beta cannot be used on TypeBinds. For instance, it is unsound to turn
+
+(/\a \(b : a). t) {x} (y : x)
+
+into
+
+let a = x in let b = y in t
+
+because in order to check that `b` and `y` have the same type, we need to know that `a = x`,
+but we don't - type-lets are opaque inside their bodies.
 -}
 extractBindings :: Term tyname name uni fun a -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
 extractBindings = collectArgs []
@@ -110,8 +120,14 @@ and types
 beta
     :: Term tyname name uni fun a
     -> Term tyname name uni fun a
-beta = \case
-    -- See Note [Multi-beta]
-    -- This maybe isn't the best annotation for this term, but it will do.
-    (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs (beta t)
-    t                                 -> t & termSubterms %~ beta
+beta = over termSubterms beta . localTransform
+  where
+    localTransform = \case
+      -- See Note [Multi-beta]
+      -- This maybe isn't the best annotation for this term, but it will do.
+      (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs t
+      -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
+      TyInst _ (TyAbs a n k body) tyArg ->
+          let b = TypeBind a (TyVarDecl a n k) tyArg
+          in Let (termAnn body) NonRec (pure b) body
+      t -> t

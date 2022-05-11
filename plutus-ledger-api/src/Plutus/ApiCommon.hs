@@ -63,6 +63,17 @@ Note that this doesn't currently handle removals of builtins, although it fairly
 could do, just by tracking when they were removed.
 -}
 
+{- Note [Size checking of constants in PLC programs]
+We impose a 64-byte *on-the-wire* limit on the constants inside PLC programs. This prevents people from inserting
+Mickey Mouse entire.
+
+This is somewhat inconvenient for users, but they can always send multiple bytestrings and
+concatenate them at runtime.
+
+Unfortunately this check was broken in the ledger Plutus language version V1, and so for backwards compatibility
+we only perform it in V2 and above.
+-}
+
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
 that allows GHC to look under lambdas and completely optimize multiple abstractions away.
@@ -117,7 +128,7 @@ builtinsIntroducedIn = Map.fromList [
   ((PlutusV1, ProtocolVersion 5 0), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
           AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
-          Sha2_256, Sha3_256, Blake2b_256, VerifySignature,
+          Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature,
           AppendString, EqualsString, EncodeUtf8, DecodeUtf8,
           IfThenElse,
           ChooseUnit,
@@ -127,7 +138,7 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
-  ((PlutusV2, ProtocolVersion 6 0), Set.fromList [
+  ((PlutusV2, ProtocolVersion 7 0), Set.fromList [
           SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
@@ -156,8 +167,10 @@ scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s Sc
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
+        -- See Note [Size checking of constants in PLC programs]
+        sizeLimit = if lv < PlutusV2 then UPLC.NoLimit else UPLC.Limit 64
         -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-        flatDecoder = UPLC.decodeProgram UPLC.NoLimit (\f -> f `Set.member` availableBuiltins)
+        flatDecoder = UPLC.decodeProgram sizeLimit (\f -> f `Set.member` availableBuiltins)
     in do
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder
@@ -217,8 +230,8 @@ mkTermToEvaluate lv pv bs args = do
 -- so as to correctly construct the machine's parameters
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
-    -- This just changes once in version 6.0
-    if pv >= ProtocolVersion 6 0 then UnliftingDeferred else UnliftingImmediate
+    -- This just changes once in version 7.0
+    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingImmediate
 
 type DefaultMachineParameters = MachineParameters CekMachineCosts UPLC.CekValue DefaultUni DefaultFun
 

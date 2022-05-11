@@ -39,7 +39,7 @@ data Builtin : Set where
   sha2-256                 : Builtin
   sha3-256                 : Builtin
   blake2b-256              : Builtin
-  verifySignature          : Builtin
+  verifyEd25519Signature   : Builtin
   -- String
   appendString             : Builtin
   equalsString             : Builtin
@@ -101,7 +101,7 @@ data Builtin : Set where
                                           | Sha2_256
                                           | Sha3_256
                                           | Blake2b_256
-                                          | VerifySignature
+                                          | VerifyEd25519Signature
                                           | AppendString
                                           | EqualsString
                                           | EncodeUtf8
@@ -156,7 +156,7 @@ postulate
   SHA2-256  : ByteString → ByteString
   SHA3-256  : ByteString → ByteString
   BLAKE2B-256  : ByteString → ByteString
-  verifySig : ByteString → ByteString → ByteString → Maybe Bool
+  verifyEd25519Sig : ByteString → ByteString → ByteString → Maybe Bool
   equals    : ByteString → ByteString → Bool
   ENCODEUTF8 : String → ByteString
   DECODEUTF8 : ByteString → Maybe String
@@ -192,9 +192,9 @@ postulate
 
 {-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2 #-}
-{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3 #-}
-{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b #-}
+{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2_256 #-}
+{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3_256 #-}
+{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b_256 #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B> = (>) #-}
@@ -202,7 +202,7 @@ postulate
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}
-{-# COMPILE GHC verifySig = verifySignature #-}
+{-# COMPILE GHC verifyEd25519Sig = verifyEd25519Signature #-}
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
 

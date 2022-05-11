@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Prettyprinter.Custom ( brackets'
-                                        , braces'
-                                        , parens'
-                                        , sexp
-                                        ) where
+                            , braces'
+                            , parens'
+                            , sexp
+                            , (<?>)
+                            , vcatHard
+                            ) where
 
 import Prettyprinter
 
@@ -44,3 +46,15 @@ sexp a es =
     -- we also have to have a space after that rather than no space. So we start with "(keyword"
     -- and a line-or-space, but end with a line-or-nothing and ")".
     section' ("(" <> a <> line) (line' <> ")") (sep es)
+
+-- | Lay out a sequence of documents vertically with forced lines between documents. Useful
+-- for prettyprinting layout-sensitive things like let-bindings.
+vcatHard :: [Doc ann] -> Doc ann
+vcatHard = concatWith (\x y -> x <> hardline <> y)
+
+-- | Separate two documents `p` and `q` and increase indentation if `q` has to be put on a new
+-- line. Useful to e.g. pretty-print function application like `fun <?> sep arguments`.
+(<?>) :: Doc ann -> Doc ann -> Doc ann
+p <?> q = align . nest 2 $ sep [p, q]
+
+infixr 6 <?>

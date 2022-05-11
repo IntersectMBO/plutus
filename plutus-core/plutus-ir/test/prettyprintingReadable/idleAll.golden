@@ -1,0 +1,5 @@
+let data (D1 :: * -> *) a | match_D1 where
+      C1 : D1 a
+    data (D2 :: * -> *) a | match_D2 where
+      C2 : all a. D2 a
+in /\a -> \(x : a) -> x

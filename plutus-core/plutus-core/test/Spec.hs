@@ -101,7 +101,7 @@ instance Eq a => Eq (TextualProgram a) where
 
 propFlat :: Property
 propFlat = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
+    prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
 -- | Asserts that an index serialized as a 'Natural' will deserialize as 'Word64'
