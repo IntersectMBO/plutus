@@ -259,7 +259,6 @@ genCommonErrorCase =
                                   genArbitraryMsg <*>
                                   genBadSig @a
 
-
 genCommonNoErrorCase :: forall (a::Type) . Common a => Gen (NoErrorCase a ByteString)
 genCommonNoErrorCase = do
   sk <- genSignKey
@@ -281,7 +280,6 @@ genCommonNoErrorCase = do
     mkWrongSignatureBits sk vk msg = do
       msgBad <- Gen.filter (/= msg) genArbitraryMsg
       pure (vk, msg, signDSIGN () msgBad sk)
-
 
 genEcdsaErrorCase :: Gen (ErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
 genEcdsaErrorCase =
@@ -329,7 +327,6 @@ genEcdsaNoErrorCase = do
     mkWrongSignatureBits sk vk msg = do
       msgBad <- Gen.filter (/= msg) genEcdsaMsg
       pure (vk, msg, signDSIGN () msgBad sk)
-
 
 genCommonCase :: Common a => Gen (Case a ByteString)
 genCommonCase = Gen.prune . Gen.frequency $ [
