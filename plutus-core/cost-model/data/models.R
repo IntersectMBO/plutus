@@ -12,8 +12,8 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## require changes here to get sensible results.
 
 
-## At present, times in the becnhmarking data are typically of the order of
-## 10^(-6) seconds. We scale these up to milliseconds because the resulting
+## At present, times in the benchmarking data are typically of the order of
+## 10^(-6) seconds. WE SCALE THESE UP TO MICROSECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
 ## picoseconds) because then everything fits into integral values with little
@@ -73,7 +73,9 @@ arity <- function(name) {
         "Sha2_256" = 1,
         "Sha3_256" = 1,
         "Blake2b_256" = 1,
-        "VerifySignature" = 3,
+        "VerifyEd25519Signature" = 3,
+        "VerifyEcdsaSecp256k1Signature" = 3,
+        "VerifySchnorrSecp256k1Signature" = 3,
         "AppendString" = 2,
         "EqualsString" = 2,
         "EncodeUtf8" = 1,
@@ -146,9 +148,9 @@ get.bench.data <- function(path) {
         mutate(across(c("Mean", "MeanLB", "MeanUB", "Stddev", "StddevLB", "StddevUB"), seconds.to.milliseconds))
 }
 
-filter.and.check.nonempty <- function (frame, name) {
-    filtered <- filter (frame, BuiltinName == name)
-##    cat (sprintf ("Reading data for %s\n", name))
+filter.and.check.nonempty <- function (frame, fname) {
+    ## cat (sprintf ("Reading data for %s\n", fname))
+    filtered <- filter (frame, name == fname)
     if (nrow(filtered) == 0) {
         stop ("No data found for ", name)
     } else filtered
@@ -389,7 +391,7 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    blake2bModel <- {
+    blake2b_256Model <- {
         fname <- "Blake2b_256"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
@@ -398,24 +400,48 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    ## verifySignature in fact takes three arguments, but the first and third
-    ## are of fixed size, so we only gather benchmarking data for different
-    ## sizes of the second argument (the "message" being signed).  This can be
-    ## very large, but the time appears to be kind of random, even up to size
-    ## 120000.  This is somewhat confusing because the CSV file only contains
-    ## results for the x parameter but in fact it refers to the second parameter
-    ## of verifySignature.  To clarify things here we should probably record data
-    ## for all three parameter sizes even though the first and third are constant.
-    verifySignatureModel <- {
-        fname <- "VerifySignature"
+    ## VerifyEd25519Signature in fact takes three arguments, but the first and
+    ## third are of fixed size, so we only gather benchmarking data for
+    ## different sizes of the second argument (the "message" being signed).
+    ## This can be very large, but the time appears to be kind of random, even
+    ## up to size 120000.
+    verifyEd25519SignatureModel <- {
+        fname <- "VerifyEd25519Signature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead (fname)
-        m <- lm(Mean ~ x_mem, data=filtered)
+            discard.overhead ()
+        m <- lm(t ~ y_mem, filtered)
         adjustModel(m,fname)
     }
 
-
+    ## The verifyEcdsaSecp256k1Signature function returns quickly for 50% of
+    ## randomly-generated signatures because the Bitcoin implementation that
+    ## underlies it enforces a requirement that the lower of the two possible
+    ## values of the s component of the signature is used, returning immediately
+    ## if that's not the case: see Note [ECDSA secp256k1 signature verification]
+    ## in Builtins.hs.  This gives us bencharking results where the times fall
+    ## into two distinct bands.  To get a good upper bound for realistic cases
+    ## we eliminate the lower band by discarding results less than the mean and
+    ## then fit a constant model to the remaining data.
+    verifyEcdsaSecp256k1SignatureModel <- {
+        fname <-"VerifyEcdsaSecp256k1Signature"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            filter(t > mean(t)) %>%
+            discard.overhead ()
+        m <- lm(t ~ 1, filtered)
+        adjustModel (m,fname)
+    }
+    
+    verifySchnorrSecp256k1SignatureModel <- {
+        fname <- "VerifySchnorrSecp256k1Signature"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem, filtered)
+        adjustModel(m,fname)
+    }
+    
     ##### Strings #####
 
     appendStringModel <- {
@@ -562,57 +588,59 @@ modelFun <- function(path) {
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
     list(
-        addIntegerModel               = addIntegerModel,
-        subtractIntegerModel          = subtractIntegerModel,
-        multiplyIntegerModel          = multiplyIntegerModel,
-        divideIntegerModel            = divideIntegerModel,
-        quotientIntegerModel          = quotientIntegerModel,
-        remainderIntegerModel         = remainderIntegerModel,
-        modIntegerModel               = modIntegerModel,
-        equalsIntegerModel            = equalsIntegerModel,
-        lessThanIntegerModel          = lessThanIntegerModel,
-        lessThanEqualsIntegerModel    = lessThanEqualsIntegerModel,
-        appendByteStringModel         = appendByteStringModel,
-        consByteStringModel           = consByteStringModel,
-        sliceByteStringModel          = sliceByteStringModel,
-        lengthOfByteStringModel       = lengthOfByteStringModel,
-        indexByteStringModel          = indexByteStringModel,
-        equalsByteStringModel         = equalsByteStringModel,
-        lessThanByteStringModel       = lessThanByteStringModel,
-        lessThanEqualsByteStringModel = lessThanEqualsByteStringModel,
-        sha2_256Model                 = sha2_256Model,
-        sha3_256Model                 = sha3_256Model,
-        blake2bModel                  = blake2bModel,
-        verifySignatureModel          = verifySignatureModel,
-        appendStringModel             = appendStringModel,
-        equalsStringModel             = equalsStringModel,
-        encodeUtf8Model               = encodeUtf8Model,
-        decodeUtf8Model               = decodeUtf8Model,
-        ifThenElseModel               = ifThenElseModel,
-        chooseUnitModel               = chooseUnitModel,
-        traceModel                    = traceModel,
-        fstPairModel                  = fstPairModel,
-        sndPairModel                  = sndPairModel,
-        chooseListModel               = chooseListModel,
-        mkConsModel                   = mkConsModel,
-        headListModel                 = headListModel,
-        tailListModel                 = tailListModel,
-        nullListModel                 = nullListModel,
-        chooseDataModel               = chooseDataModel,
-        constrDataModel               = constrDataModel,
-        mapDataModel                  = mapDataModel,
-        listDataModel                 = listDataModel,
-        iDataModel                    = iDataModel,
-        bDataModel                    = bDataModel,
-        unConstrDataModel             = unConstrDataModel,
-        unMapDataModel                = unMapDataModel,
-        unListDataModel               = unListDataModel,
-        unIDataModel                  = unIDataModel,
-        unBDataModel                  = unBDataModel,
-        equalsDataModel               = equalsDataModel,
-        mkPairDataModel               = mkPairDataModel,
-        mkNilDataModel                = mkNilDataModel,
-        mkNilPairDataModel            = mkNilPairDataModel,
-        serialiseDataModel            = serialiseDataModel
+        addIntegerModel                      = addIntegerModel,
+        subtractIntegerModel                 = subtractIntegerModel,
+        multiplyIntegerModel                 = multiplyIntegerModel,
+        divideIntegerModel                   = divideIntegerModel,
+        quotientIntegerModel                 = quotientIntegerModel,
+        remainderIntegerModel                = remainderIntegerModel,
+        modIntegerModel                      = modIntegerModel,
+        equalsIntegerModel                   = equalsIntegerModel,
+        lessThanIntegerModel                 = lessThanIntegerModel,
+        lessThanEqualsIntegerModel           = lessThanEqualsIntegerModel,
+        appendByteStringModel                = appendByteStringModel,
+        consByteStringModel                  = consByteStringModel,
+        sliceByteStringModel                 = sliceByteStringModel,
+        lengthOfByteStringModel              = lengthOfByteStringModel,
+        indexByteStringModel                 = indexByteStringModel,
+        equalsByteStringModel                = equalsByteStringModel,
+        lessThanByteStringModel              = lessThanByteStringModel,
+        lessThanEqualsByteStringModel        = lessThanEqualsByteStringModel,
+        sha2_256Model                        = sha2_256Model,
+        sha3_256Model                        = sha3_256Model,
+        blake2b_256Model                     = blake2b_256Model,
+        verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
+        verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
+        verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,
+        appendStringModel                    = appendStringModel,
+        equalsStringModel                    = equalsStringModel,
+        encodeUtf8Model                      = encodeUtf8Model,
+        decodeUtf8Model                      = decodeUtf8Model,
+        ifThenElseModel                      = ifThenElseModel,
+        chooseUnitModel                      = chooseUnitModel,
+        traceModel                           = traceModel,
+        fstPairModel                         = fstPairModel,
+        sndPairModel                         = sndPairModel,
+        chooseListModel                      = chooseListModel,
+        mkConsModel                          = mkConsModel,
+        headListModel                        = headListModel,
+        tailListModel                        = tailListModel,
+        nullListModel                        = nullListModel,
+        chooseDataModel                      = chooseDataModel,
+        constrDataModel                      = constrDataModel,
+        mapDataModel                         = mapDataModel,
+        listDataModel                        = listDataModel,
+        iDataModel                           = iDataModel,
+        bDataModel                           = bDataModel,
+        unConstrDataModel                    = unConstrDataModel,
+        unMapDataModel                       = unMapDataModel,
+        unListDataModel                      = unListDataModel,
+        unIDataModel                         = unIDataModel,
+        unBDataModel                         = unBDataModel,
+        equalsDataModel                      = equalsDataModel,
+        mkPairDataModel                      = mkPairDataModel,
+        mkNilDataModel                       = mkNilDataModel,
+        mkNilPairDataModel                   = mkNilPairDataModel,
+        serialiseDataModel                   = serialiseDataModel
     )
 }

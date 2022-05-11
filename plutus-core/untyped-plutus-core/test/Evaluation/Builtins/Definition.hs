@@ -512,7 +512,7 @@ test_Data = testCase "Data" $ do
 -- | Test all cryptography-related builtins
 test_Crypto :: TestTree
 test_Crypto = testCase "Crypto" $ do
-    evals True VerifySignature
+    evals True VerifyEd25519Signature
         [ -- pubkey
           cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
           -- message
@@ -521,7 +521,7 @@ test_Crypto = testCase "Crypto" $ do
         , cons @ByteString "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
         ]
 
-    evals False VerifySignature
+    evals False VerifyEd25519Signature
         [ -- pubkey
           cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
           -- message

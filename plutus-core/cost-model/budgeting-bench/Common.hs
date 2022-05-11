@@ -197,15 +197,15 @@ createTwoTermBuiltinBench name tys xs ys =
     bgroup (show name) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
         where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
 
-{- | Given a builtin function f of type a * b -> _ together with lists xs::a and
-   ys::a, create a collection of benchmarks which run f on all pairs in 'zip xs
-   ys'.  This can be used when the worst-case execution time of a two-argument
-   builtin is known to occur when it is given two identical arguments (for
-   example equality testing, where the function has to examine the whole of both
-   inputs in that case; with unequal arguments it will usually be able to return
-   more quickly).  The caller may wish to ensure that the elements of the two
-   lists are physically different to avoid early return if a builtin can spot
-   that its arguments both point to the same heap object.
+{- | Given a builtin function f of type a * b -> _ together with lists xs::[a] and
+   ys::[b], create a collection of benchmarks which run f on all pairs in 'zip
+   xs ys'.  This can be used when the worst-case execution time of a
+   two-argument builtin is known to occur when it is given two identical
+   arguments (for example equality testing, where the function has to examine
+   the whole of both inputs in that case; with unequal arguments it will usually
+   be able to return more quickly).  The caller may wish to ensure that the
+   elements of the two lists are physically different to avoid early return if a
+   builtin can spot that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
     :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b,
@@ -221,3 +221,21 @@ createTwoTermBuiltinBenchElementwise name tys xs ys =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
+{- | Given a builtin function f of type a * b * c -> _ together with lists
+   xs::[a], ys::[b], and zs::[c], create a collection of benchmarks which run f
+   on all pairs in 'zip3 xs ys zs'.
+-}
+createThreeTermBuiltinBenchElementwise
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, uni `Includes` c,
+            ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c, NFData a, NFData b, NFData c)
+    => fun
+    -> [Type tyname uni ()]
+    -> [a]
+    -> [b]
+    -> [c]
+    -> Benchmark
+createThreeTermBuiltinBenchElementwise name tys xs ys zs =
+    bgroup (show name) $ zipWith3 (\x y z -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]]) xs ys zs
+        where mkBM x y z = benchDefault (showMemoryUsage z) $ mkApp3 name tys x y z
+-- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
+-- done something wrong.

@@ -20,16 +20,16 @@
 | BStep BBuiltin causes ({ cpu: 59546
 | mem: 200
 })
-| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 146642
+| BBuiltinApp LessThanEqualsInteger causes ({ cpu: 332928
 | mem: 1
 })
-| BBuiltinApp IfThenElse causes ({ cpu: 1
+| BBuiltinApp IfThenElse causes ({ cpu: 160040
 | mem: 1
 })
 | BStartup causes ({ cpu: 100
 | mem: 100
 })})
-| budget: ({ cpu: 1962896
+| budget: ({ cpu: 2309221
 | mem: 6202
 })
 }) )
