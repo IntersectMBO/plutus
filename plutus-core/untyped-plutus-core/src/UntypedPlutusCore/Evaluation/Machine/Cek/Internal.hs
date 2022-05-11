@@ -578,7 +578,7 @@ evalBuiltinApp fun term sch getX cost = case sch of
                 throwKnownTypeErrorWithCause term err
             MakeKnownSuccess x              -> pure x
             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
+    _ -> pure . VBuiltin fun term $ BuiltinRuntime sch getX cost
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
@@ -723,7 +723,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             RuntimeSchemeArrow schB -> case f arg of
                 Left err -> throwKnownTypeErrorWithCause argTerm err
                 Right y  -> do
-                    -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
+                    -- TODO: should we compute that 'ExMemory' eagerly?
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
                     res <- evalBuiltinApp fun term' schB y . exF $ toExMemory arg
