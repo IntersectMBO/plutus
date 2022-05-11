@@ -36,11 +36,19 @@ import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signa
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import Text.Show.Pretty (ppShow)
 
--- We can make the tests generic over Ed25519DSIGN and SchnorrSecp256k1DSIGN
--- with the constraints below, which hold for both.  However EcdsaSecp256k1DSIGN
--- requires a 32-byte message wrapped in SECP.Msg (the other two take
--- arbitrary-length messages), so we can't use this code for that.  We also
--- need some extra tests for the message size in the case of EcdsaSecp256k1DSIGN
+{- | Tests for the built-in digital signature verification functions
+ VerifyEd25519Signature, VerifyEcdsaSecp256k1Signature, and
+ VerifySchnorrSecp256k1Signature.  These use the DSIGN infrastructure to test
+ that the functions behave correctly when given correct and incorrect
+ combinations of public keys, messages, and signatures.
+-}
+
+{- We can make the tests generic over Ed25519DSIGN and SchnorrSecp256k1DSIGN
+ with the constraints below, which hold for both.  However EcdsaSecp256k1DSIGN
+ requires a 32-byte message wrapped in SECP.Msg (the other two take
+ arbitrary-length messages), so we can't use this code for that.  We also
+ need some extra tests for the message size in the case of EcdsaSecp256k1DSIGN
+-}
 
 type Common a = (DSIGNAlgorithm a, Signable a ByteString, ContextDSIGN a ~ ())
 

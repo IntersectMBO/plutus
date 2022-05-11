@@ -4,14 +4,9 @@
 
 module Crypto (
   verifyEd25519Signature,
-  verifyEd25519Signature1,
   verifyEcdsaSecp256k1Signature,
   verifySchnorrSecp256k1Signature,
   ) where
-
-import Control.Applicative (Alternative, empty)
-import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
-import Crypto.Error (maybeCryptoError)
 
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
@@ -46,19 +41,6 @@ verifyEd25519Signature pk msg sig =
   where
     loc :: Text
     loc = "Ed25519 signature verification"
-
-verifyEd25519Signature1
-    :: Alternative f
-    => BS.ByteString  -- ^ Public Key (32 bytes)
-    -> BS.ByteString  -- ^ Message    (arbitrary length)
-    -> BS.ByteString  -- ^ Signature  (64 bytes)
-    -> f Bool
-verifyEd25519Signature1 pubKey msg sig =
-    maybe empty pure . maybeCryptoError $
-        verify
-            <$> publicKey pubKey
-            <*> pure msg
-            <*> signature sig
 
 -- | Verify an ECDSA signature made using the SECP256k1 curve.
 --
