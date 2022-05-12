@@ -566,10 +566,20 @@ The last three arguments constitute a 'BuiltinRuntime', however
    constructing it prematurely would be wasteful
 2. more importantly, a 'BuiltinRuntime' is strict in all of its arguments, so constructing one
    before this function is called would force the result of the builtin application before costing
-   is done for it, while would be very wrong: we don't want to let the user run something that they
+   is done for it, which would be very wrong: we don't want to let the user run something that they
    potentially don't have the budget for
 
 hence the arguments are passed separately instead of being assembled in a 'BuiltinRuntime'.
+
+An alternative would be to explicitly wrap the result of any built-in function into a lazy data
+type, so that it's clear where forcing happens.
+See this PR for how that approach looks like: https://github.com/input-output-hk/plutus/pull/4607
+Unfortunately, we couldn't get it not to be really slow.
+
+Implicitness of the current approach is not its only disadvantage. Another one is that a builtin
+can't get a type argument as the last one -- only a term argument. Because if a type argument
+appears last, then by the time we get to 'RuntimeSchemeResult', the runtime denotation (being stored
+in the strict 'BuiltinRuntime') is already forced before any costing is done.
 
 If you refactor 'evalBuiltinApp', ensure that costing is done before the result is forced. If you
 break this, you'll get a test failure.
