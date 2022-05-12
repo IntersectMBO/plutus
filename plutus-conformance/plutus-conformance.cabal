@@ -59,7 +59,8 @@ executable add-test-output
         text -any,
         plutus-conformance -any,
         plutus-core,
-        megaparsec -any
+        megaparsec -any,
+        optparse-applicative -any
 
 test-suite uplc-eval-test
     import: lang

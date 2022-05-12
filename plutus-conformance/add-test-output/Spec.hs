@@ -8,72 +8,103 @@ module Main
     ( main
     ) where
 
-import Common
-import Control.Exception
+import Common (UplcProg, evalUplcProg, stripePosProg)
+import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T
-import PlutusCore.Error
+import Options.Applicative
+import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
-import PlutusCore.Pretty
+import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import PlutusCore.Quote (runQuoteT)
-import System.Directory
-import System.Environment
+import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
-import Text.Megaparsec hiding (try)
-import UntypedPlutusCore.Parser as UPLC
+import Text.Megaparsec (errorBundlePretty)
+import UntypedPlutusCore.Parser as UPLC (parse, program)
+
+-- |  The arguments to the executable. (1) file extension to be searched,
+-- (2) directory to be searched,
+-- (3) the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests).
+data Args = MkArgs String FilePath Runner
+
+ext :: Parser String
+ext =
+  strArgument
+  (metavar "EXT" <>
+    help "The input file(s) with this extension will be included." )
+
+dir :: Parser FilePath
+dir =
+  strArgument
+    (metavar "DIR" <> help "The directory the input files are in." )
+
+data Runner =
+  Eval
+  | Typecheck
+  deriving stock (Show)
+
+runner :: Parser Runner
+runner = argument
+  (eitherReader runnerReader)
+  (metavar "RUNNER" <> help "The action to apply to the input files that generate the outputs. Either eval or typecheck." )
+
+runnerReader :: String -> Either String Runner
+runnerReader "eval" = Right Eval
+runnerReader "typecheck" = Right Typecheck
+runnerReader inp =
+  Left ("Unsupported test " <> show inp <>
+        ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests).")
+
+args :: ParserInfo Args
+args = info ((MkArgs <$> ext <*> dir <*> runner) <**> helper)
+  (fullDesc <> progDesc helpText)
+
+helpText :: String
+helpText = "This program adds test outputs to specified inputs." <>
+  "To run the program, input the following 3 arguments: " <>
+  "(1) file extension to be searched " <>
+  "(2) directory to be searched " <>
+  "(3) the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests). " <>
+  "E.g. run " <>
+  "`cabal run add-test-output .uplc plutus-conformance/uplc/ eval` " <>
+  "to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. " <>
+  " It will evaluate and create output files for them."
+
 
 main :: IO ()
 main = do
-    args <- getArgs
-    case args of
-      [ext,dir,action] -> do
-          allInputFiles <- findByExtension [ext] dir
-          -- only choose the ones without an output file, so as to not edit the ones already with outputs
-          inputFiles <- sequenceA $
-                [do
-                    hasOut <- doesFileExist (testIn <> ".expected")
-                    if hasOut then pure [] else pure [testIn] | testIn <- allInputFiles]
-          case action of
-            "eval" -> do
-              mapM_
-                (\inputFile -> do
-                  inputStr <- readFile inputFile
-                  let parsed = runQuoteT $ UPLC.parse UPLC.program inputFile $ T.pack inputStr
-                      outFilePath = inputFile <> ".expected"
-                  case parsed of
-                    Left (ParseErrorB peb) -> do
-                      -- warn the user that the file failed to parse
-                      putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
-                      writeFile outFilePath (errorBundlePretty peb)
-                    Right pro -> do
-                      res <- try (evalUplcProg (stripePosProg pro) >>= evaluate):: IO (Either SomeException (EvaluationResult UplcProg))
-                      case res of
-                        Right (EvaluationSuccess prog) -> do
-                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                          writeFile outFilePath (render $ pretty prog)
-                        Right EvaluationFailure      -> do
-                          -- warn the user that the file failed to evaluate
-                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                          writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
-                        Left evalException -> do
-                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>". Exception written to " <> outFilePath
-                          writeFile outFilePath (show evalException)
-                )
-                (concat inputFiles)
-            "typecheck" ->
-              putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
-            _ -> error $
-              "Unsupported test " <> show action <>
-              ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests)."
-      _ -> do
+    MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
+    allInputFiles <- findByExtension [extension] directory
+    -- only choose the ones without an output file, so as to not edit the ones already with outputs
+    inputFiles <- sequenceA $
+      [do
+              hasOut <- doesFileExist (testIn <> ".expected")
+              if hasOut then pure [] else pure [testIn] | testIn <- allInputFiles]
+    case run of
+      Eval -> do
         mapM_
-          putStrLn
-          ["Please input the 3 arguments for running the golden tests: "
-          , "(1) file extension to be searched "
-          , "(2) directory to be searched "
-          , "(3) eval (for evaluation tests) or typecheck (for typechecking tests). "
-          , "E.g. run "
-          , "`cabal run add-test-output \".uplc\" \"plutus-conformance/uplc/\" eval` "
-          , "to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. "
-          , " It will evaluate and create output files for them."
-          ]
-
+          (\inputFile -> do
+            inputStr <- readFile inputFile
+            let parsed = runQuoteT $ UPLC.parse UPLC.program inputFile $ T.pack inputStr
+                outFilePath = inputFile <> ".expected"
+            case parsed of
+              Left (ParseErrorB peb) -> do
+                -- warn the user that the file failed to parse
+                putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
+                writeFile outFilePath (errorBundlePretty peb)
+              Right pro -> do
+                res <- try (evalUplcProg (stripePosProg pro) >>= evaluate):: IO (Either SomeException (EvaluationResult UplcProg))
+                case res of
+                  Right (EvaluationSuccess prog) -> do
+                    putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
+                    writeFile outFilePath (render $ pretty prog)
+                  Right EvaluationFailure      -> do
+                    -- warn the user that the file failed to evaluate
+                    putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+                    writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
+                  Left evalException -> do
+                    putStrLn $ "Exception thrown during evaluation of " <> inputFile <>". Exception written to " <> outFilePath
+                    writeFile outFilePath (show evalException)
+          )
+          (concat inputFiles)
+      Typecheck ->
+        putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
