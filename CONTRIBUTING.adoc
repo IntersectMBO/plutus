@@ -102,6 +102,9 @@ To resolve it, simply add the following lines in your `cabal.project.local`:
 package plutus-core
   ghc-options: -fexternal-interpreter
 ```
+
+This issue is tracked upstream at https://gitlab.haskell.org/ghc/ghc/-/issues/18320
+
 ====
 
 There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
