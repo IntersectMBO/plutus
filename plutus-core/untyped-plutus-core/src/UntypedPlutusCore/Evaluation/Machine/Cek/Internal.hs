@@ -558,6 +558,24 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+{- Note [Laziness of evalBuiltinApp]
+The last three arguments constitute a 'BuiltinRuntime', however
+
+1. if the 'RuntimeScheme' is a 'RuntimeSchemeResult', then we got our result and don't need to
+   construct a 'VBuiltin' value and so don't need to construct a 'BuiltinRuntime' for it, hence
+   constructing it prematurely would be wasteful
+2. more importantly, a 'BuiltinRuntime' is strict in all of its arguments, so constructing one
+   before this function is called would force the result of the builtin application before costing
+   is done for it, while would be very wrong: we don't want to let the user run something that they
+   potentially don't have the budget for
+
+hence the arguments are passed separately instead of being assembled in a 'BuiltinRuntime'.
+
+If you refactor 'evalBuiltinApp', ensure that costing is done before the result is forced. If you
+break this, you'll get a test failure.
+-}
+
+-- See Note [Laziness of evalBuiltinApp].
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
@@ -571,6 +589,7 @@ evalBuiltinApp
     -> CekM uni fun s (CekValue uni fun)
 evalBuiltinApp fun term sch getX cost = case sch of
     RuntimeSchemeResult -> do
+        -- See Note [Laziness of evalBuiltinApp].
         spendBudgetCek (BBuiltinApp fun) cost
         case getX of
             MakeKnownFailure logs err       -> do
@@ -578,6 +597,8 @@ evalBuiltinApp fun term sch getX cost = case sch of
                 throwKnownTypeErrorWithCause term err
             MakeKnownSuccess x              -> pure x
             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+    -- We _are_ going to need this value, hence we construct it strictly. Otherwise its construction
+    -- is pointlessly delayed, which is clearly visible in Core.
     _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
 {-# INLINE evalBuiltinApp #-}
 
@@ -723,7 +744,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             RuntimeSchemeArrow schB -> case f arg of
                 Left err -> throwKnownTypeErrorWithCause argTerm err
                 Right y  -> do
-                    -- TODO: should we compute that 'ExMemory' eagerly? We may not need it.
+                    -- TODO: should we compute @toExMemory arg@ eagerly instead? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
                     res <- evalBuiltinApp fun term' schB y $! exF (toExMemory arg)
@@ -748,6 +769,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     stepAndMaybeSpend :: StepKind -> WordArray -> CekM uni fun s WordArray
     stepAndMaybeSpend !kind !unbudgetedSteps = do
         -- See Note [Structure of the step counter]
+        -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
+        -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromIntegral $ fromEnum kind
             !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
             !unbudgetedStepsTotal = readArray unbudgetedSteps' 7
