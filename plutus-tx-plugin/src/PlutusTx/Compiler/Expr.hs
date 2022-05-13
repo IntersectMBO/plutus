@@ -607,27 +607,6 @@ entryExitTracing lamName displayName e ty =
    guarantee that the annotation `a` is logged before we execute `body`.
 -}
 
-{- Note [Tick-unfloating]
-   GHC likes to float ticks on case scrutinees. This screws with boolean
-   coverage (because the result of the case expression is not necessarily
-   boolean typed) so we un-float these ticks. Specifically, GHC will convert an
-   expression like:
-   ```
-   if <tick with source location of condition> condition
-   then trueCase
-   else falseCase
-   ```
-   into something equivalent to:
-   ```
-   <tick with source location of condition>
-   if condition
-   then trueCase
-   else falseCase
-   ```
-   which means that we don't get boolean coverage for `condition` as there is no tick around it (so we
-   don't know where it is).
--}
-
 {- Note [Boolean coverage]
    During testing it is useful (sometimes even critical) to know which boolean
    expressions have evaluated to true and false respectively. To track this we
@@ -838,9 +817,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
-        -- See Note [Tick-unfloating]
-        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
-
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         -- See Note [What source locations to cover]
@@ -865,9 +841,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
    included as a coverage annotation. This has both advantages and disadvantages.
    On the one hand "trying as hard as we can" gives us as much coverage information as
    possible. On the other hand GHC can sometimes do tricky things like tick floating
-   (see Note [Tick-unfloating]) that will degrade the quality of the coverage information
-   we get. However, we have yet to find any evidence that GHC treats different ticks
-   differently with regards to tick floating.
+   that will degrade the quality of the coverage information we get. However, we have
+   yet to find any evidence that GHC treats different ticks differently with regards
+   to tick floating.
 -}
 
 {- Note [Partial type signature for getSourceSpan]
