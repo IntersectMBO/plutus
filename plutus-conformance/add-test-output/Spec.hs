@@ -102,6 +102,7 @@ main = do
                     putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
                     writeFile outFilePath ((show :: EvaluationResult UplcProg -> String) EvaluationFailure)
                   Left evalException -> do
+                    -- warn the user that exception is thrown
                     putStrLn $ "Exception thrown during evaluation of " <> inputFile <>". Exception written to " <> outFilePath
                     writeFile outFilePath (show evalException)
           )

@@ -10,7 +10,6 @@ generators.
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module PlutusCore.Generators.NEAT.Spec
   ( tests

@@ -3,11 +3,16 @@
 module Common where
 
 import GHC.IO (unsafePerformIO)
-import PlutusCore as PLC
-import Prelude hiding (readFile)
+import PlutusCore.Core (Version (Version), defaultVersion)
+import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Result (EvaluationResult)
+import PlutusCore.Name (Name)
+import Prelude
 import Test.Tasty
 import Test.Tasty.HUnit
-import UntypedPlutusCore qualified as UPLC
+import Text.Megaparsec (SourcePos)
+import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 
 data TestContent =
@@ -22,7 +27,7 @@ mkTestContents lFilepaths lRes lProgs =
     if length lFilepaths == length lRes && length  lRes == length lProgs then
         [MkTestContent file res prog | file <- lFilepaths, res <- lRes, prog <- lProgs]
     else
-        error $ "Cannot run the tests because the number of input and output programs are not the same. " <>
+        error $ "mkTestContents: Cannot run the tests because the number of input and output programs are not the same. " <>
             "Number of input files: " <> show (length lProgs) <>
             " Number of output files: " <> show (length lRes) <>
             " Make sure all your input programs have an accompanying .expected file."
@@ -30,13 +35,13 @@ mkTestContents lFilepaths lRes lProgs =
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
 termToProg :: UPLC.Term Name DefaultUni DefaultFun () -> UplcProg
-termToProg = UPLC.Program () (PLC.defaultVersion ())
+termToProg = UPLC.Program () (defaultVersion ())
 
 evalUplcProg :: UplcProg -> IO (EvaluationResult UplcProg)
 evalUplcProg p = pure $
     fmap
         termToProg
-        (unsafeEvaluateCekNoEmit PLC.defaultCekParameters (UPLC._progTerm p))
+        (unsafeEvaluateCekNoEmit defaultCekParameters (UPLC._progTerm p))
 
 stripePosProg :: UPLC.Program Name DefaultUni DefaultFun SourcePos -> UplcProg
 stripePosProg (UPLC.Program _ann (Version _ num1 num2 num3) tm) = UPLC.Program () (Version () num1 num2 num3) (stripePosTm tm)

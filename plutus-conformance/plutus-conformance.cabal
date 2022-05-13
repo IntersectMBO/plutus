@@ -44,6 +44,7 @@ library
         tasty-golden -any,
         tasty-hunit -any,
         text -any,
+        megaparsec -any,
         mtl -any
 
 executable add-test-output
