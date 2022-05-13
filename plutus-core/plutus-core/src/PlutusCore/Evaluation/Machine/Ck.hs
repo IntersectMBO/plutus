@@ -66,8 +66,8 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
-    RuntimeSchemeResult -> case getX of
+evalBuiltinApp term runtime@(BuiltinRuntime sch y _) = case sch of
+    RuntimeSchemeResult -> case unLazy y of
         MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
         MakeKnownSuccess x              -> pure x
         MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x

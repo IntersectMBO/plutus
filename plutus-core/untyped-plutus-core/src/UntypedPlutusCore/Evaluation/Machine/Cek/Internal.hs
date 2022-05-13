@@ -597,19 +597,19 @@ evalBuiltinApp
     -> ToRuntimeDenotationType (CekValue uni fun) n
     -> ToCostingType n
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term sch getX cost = case sch of
+evalBuiltinApp fun term sch y exY = case sch of
     RuntimeSchemeResult -> do
         -- See Note [Laziness of evalBuiltinApp].
-        spendBudgetCek (BBuiltinApp fun) cost
-        case getX of
-            MakeKnownFailure logs err       -> do
+        spendBudgetCek (BBuiltinApp fun) exY
+        case unLazy y of
+            MakeKnownFailure logs err -> do
                 ?cekEmitter logs
                 throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+            MakeKnownSuccess res -> pure res
+            MakeKnownSuccessWithLogs logs res -> ?cekEmitter logs $> res
     -- We _are_ going to need this value, hence we construct it strictly. Otherwise its construction
     -- is pointlessly delayed, which is clearly visible in Core.
-    _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
+    _ -> pure $! VBuiltin fun term (BuiltinRuntime sch y exY)
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
