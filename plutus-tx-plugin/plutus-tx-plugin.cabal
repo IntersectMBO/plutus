@@ -54,12 +54,15 @@ library
         PlutusTx.Compiler.Type
         PlutusTx.Compiler.Types
         PlutusTx.Compiler.Utils
+        PlutusTx.Options
         PlutusTx.PIRTypes
         PlutusTx.PLCTypes
     build-depends:
+        PyF -any,
         base >=4.9 && <5,
         bytestring -any,
         containers -any,
+        either -any,
         extra -any,
         flat -any,
         ghc-prim -any,

@@ -57,7 +57,7 @@ data CompileContext uni fun = CompileContext {
 data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
-    deriving stock (Eq)
+    deriving stock (Eq, Show)
 
 -- | Coverage options
 -- See Note [Coverage annotations]
