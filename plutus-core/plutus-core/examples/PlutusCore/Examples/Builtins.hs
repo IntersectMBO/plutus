@@ -282,8 +282,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning Undefined =
         makeBuiltinMeaning
-            undefined
-            (\_ -> ExBudget 1 0)
+            absurd
+            (\_ _ -> ExBudget 1 0)
+
+    -- toBuiltinMeaning Undefined =
+    --     makeBuiltinMeaning
+    --         undefined
+    --         (\_ -> ExBudget 1 0)
 
     toBuiltinMeaning Absurd =
         makeBuiltinMeaning
@@ -292,8 +297,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning ErrorPrime =
         makeBuiltinMeaning
-            EvaluationFailure
-            (\_ -> ExBudget 1 0)
+            absurd
+            (\_ _ -> ExBudget 1 0)
+
+    -- toBuiltinMeaning ErrorPrime =
+    --     makeBuiltinMeaning
+    --         EvaluationFailure
+    --         (\_ -> ExBudget 1 0)
 
     toBuiltinMeaning Comma = makeBuiltinMeaning commaPlc mempty where
         commaPlc

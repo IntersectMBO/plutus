@@ -106,7 +106,7 @@ prop_builtinEvaluation ::
     -- outcome, and decides whether to pass or fail the property.
     (fun -> [Term uni fun] -> Either SomeException (MakeKnownM (Term uni fun)) -> PropertyT IO ()) ->
     Property
-prop_builtinEvaluation bn mkGen f = property $ do
+prop_builtinEvaluation bn mkGen f = undefined {- property $ do
     args <- forAllNoShow (mkGen bn)
     f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
   where
@@ -131,7 +131,7 @@ prop_builtinEvaluation bn mkGen f = property $ do
             (RuntimeSchemeAll sch', _) -> go sch' fn args
             -- TODO: can we make this function run in GenT MakeKnownM and generate arguments
             -- on the fly to avoid this error case?
-            _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
+            _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0 -}
 
 genArgsWellTyped ::
     forall uni fun.

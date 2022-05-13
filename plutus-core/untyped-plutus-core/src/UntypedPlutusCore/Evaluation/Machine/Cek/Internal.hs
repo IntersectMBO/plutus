@@ -558,59 +558,60 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
-{- Note [Laziness of evalBuiltinApp]
-The last three arguments constitute a 'BuiltinRuntime', however
+-- {- Note [Laziness of evalBuiltinApp]
+-- The last three arguments constitute a 'BuiltinRuntime', however
 
-1. if the 'RuntimeScheme' is a 'RuntimeSchemeResult', then we got our result and don't need to
-   construct a 'VBuiltin' value and so don't need to construct a 'BuiltinRuntime' for it, hence
-   constructing it prematurely would be wasteful
-2. more importantly, a 'BuiltinRuntime' is strict in all of its arguments, so constructing one
-   before this function is called would force the result of the builtin application before costing
-   is done for it, which would be very wrong: we don't want to let the user run something that they
-   potentially don't have the budget for
+-- 1. if the 'RuntimeScheme' is a 'RuntimeSchemeResult', then we got our result and don't need to
+--    construct a 'VBuiltin' value and so don't need to construct a 'BuiltinRuntime' for it, hence
+--    constructing it prematurely would be wasteful
+-- 2. more importantly, a 'BuiltinRuntime' is strict in all of its arguments, so constructing one
+--    before this function is called would force the result of the builtin application before costing
+--    is done for it, which would be very wrong: we don't want to let the user run something that they
+--    potentially don't have the budget for
 
-hence the arguments are passed separately instead of being assembled in a 'BuiltinRuntime'.
+-- hence the arguments are passed separately instead of being assembled in a 'BuiltinRuntime'.
 
-An alternative would be to explicitly wrap the result of any built-in function into a lazy data
-type, so that it's clear where forcing happens.
-See this PR for how that approach looks like: https://github.com/input-output-hk/plutus/pull/4607
-Unfortunately, we couldn't get it not to be really slow.
+-- An alternative would be to explicitly wrap the result of any built-in function into a lazy data
+-- type, so that it's clear where forcing happens.
+-- See this PR for how that approach looks like: https://github.com/input-output-hk/plutus/pull/4607
+-- Unfortunately, we couldn't get it not to be really slow.
 
-Implicitness of the current approach is not its only disadvantage. Another one is that a builtin
-can't get a type argument as the last one -- only a term argument. Because if a type argument
-appears last, then by the time we get to 'RuntimeSchemeResult', the runtime denotation (being stored
-in the strict 'BuiltinRuntime') is already forced before any costing is done.
+-- Implicitness of the current approach is not its only disadvantage. Another one is that a builtin
+-- can't get a type argument as the last one -- only a term argument. Because if a type argument
+-- appears last, then by the time we get to 'RuntimeSchemeResult', the runtime denotation (being stored
+-- in the strict 'BuiltinRuntime') is already forced before any costing is done.
 
-If you refactor 'evalBuiltinApp', ensure that costing is done before the result is forced. If you
-break this, you'll get a test failure.
--}
+-- If you refactor 'evalBuiltinApp', ensure that costing is done before the result is forced. If you
+-- break this, you'll get a test failure.
+-- -}
 
--- See Note [Laziness of evalBuiltinApp].
--- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: (GivenCekReqs uni fun s, PrettyUni uni fun)
-    => fun
-    -> Term NamedDeBruijn uni fun ()
-    -> RuntimeScheme n
-    -> ToRuntimeDenotationType (CekValue uni fun) n
-    -> ToCostingType n
-    -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term sch getX cost = case sch of
-    RuntimeSchemeResult -> do
-        -- See Note [Laziness of evalBuiltinApp].
-        spendBudgetCek (BBuiltinApp fun) cost
-        case getX of
-            MakeKnownFailure logs err       -> do
-                ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    -- We _are_ going to need this value, hence we construct it strictly. Otherwise its construction
-    -- is pointlessly delayed, which is clearly visible in Core.
-    _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
-{-# INLINE evalBuiltinApp #-}
+-- -- See Note [Laziness of evalBuiltinApp].
+-- -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+-- -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- -- fully saturated or not.
+-- evalBuiltinApp
+--     :: (GivenCekReqs uni fun s, PrettyUni uni fun)
+--     => fun
+--     -> Term NamedDeBruijn uni fun ()
+--     -> RuntimeScheme n
+--     -> ToRuntimeDenotationType (CekValue uni fun) n
+--     -> ToCostingType n
+--     -> CekM uni fun s (CekValue uni fun)
+-- evalBuiltinApp fun term sch getX cost = undefined {- case sch of
+--     RuntimeSchemeResult -> do
+--         -- See Note [Laziness of evalBuiltinApp].
+--         spendBudgetCek (BBuiltinApp fun) cost
+--         case getX of
+--             MakeKnownFailure logs err       -> do
+--                 ?cekEmitter logs
+--                 throwKnownTypeErrorWithCause term err
+--             MakeKnownSuccess x              -> pure x
+--             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+--     -- We _are_ going to need this value, hence we construct it strictly. Otherwise its construction
+--     -- is pointlessly delayed, which is clearly visible in Core.
+--     _ -> pure $! VBuiltin fun term (BuiltinRuntime sch getX cost)
+-- {-# INLINE evalBuiltinApp #-}
+-- -}
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
@@ -715,12 +716,10 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            RuntimeSchemeAll schK -> do
-                -- We allow a type argument to appear last in the type of a built-in function,
-                -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
-                -- application.
-                res <- evalBuiltinApp fun term' schK f exF
-                returnCek unbudgetedSteps ctx res
+            RuntimeSchemeAll schK ->
+                -- We don't allow a type argument to appear last in the type of a built-in function,
+                -- hence we can't compute the builtin application at this point.
+                returnCek unbudgetedSteps ctx $! VBuiltin fun term' (BuiltinRuntime schK f exF)
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ !_ val =
@@ -751,14 +750,24 @@ enterComputeCek = computeCek (toWordArray 0) where
         case sch of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
+            RuntimeSchemeFinal -> do
+                spendBudgetCek (BBuiltinApp fun) $! exF (toExMemory arg)
+                case f arg of
+                    Left err -> throwKnownTypeErrorWithCause argTerm err
+                    Right y  -> case y of
+                        MakeKnownFailure logs err       -> do
+                            ?cekEmitter logs
+                            throwKnownTypeErrorWithCause term' err
+                        MakeKnownSuccess res              ->
+                            returnCek unbudgetedSteps ctx res
+                        MakeKnownSuccessWithLogs logs res -> do
+                            ?cekEmitter logs
+                            returnCek unbudgetedSteps ctx res
             RuntimeSchemeArrow schB -> case f arg of
                 Left err -> throwKnownTypeErrorWithCause argTerm err
-                Right y  -> do
-                    -- TODO: should we compute @toExMemory arg@ eagerly instead? We may not need it.
-                    -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
-                    -- Maybe we could fuse the two?
-                    res <- evalBuiltinApp fun term' schB y $! exF (toExMemory arg)
-                    returnCek unbudgetedSteps ctx res
+                Right y  ->
+                    returnCek unbudgetedSteps ctx $!
+                        VBuiltin fun term' . BuiltinRuntime schB y . exF $ toExMemory arg
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ !_ val _ =

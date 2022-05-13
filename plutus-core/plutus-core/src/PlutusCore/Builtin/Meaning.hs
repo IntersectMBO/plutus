@@ -139,6 +139,16 @@ type family GetArgs a where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
+class KnownRuntime val args res where
+    -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
+    toImmediateF :: FoldArgs args res -> ToRuntimeDenotationType val (Length args)
+
+    -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
+    -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
+    -- passing the action returning the builtin application around until full saturation, which is
+    -- when the action actually gets run.
+    toDeferredF :: ReadKnownM (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
+
 -- | A class that allows us to derive a monotype for a builtin.
 -- We could've easily computed a 'RuntimeScheme' from a 'TypeScheme' but not statically (due to
 -- unfolding not working for recursive functions and 'TypeScheme' is recursive, i.e. the conversion
@@ -152,25 +162,20 @@ type family GetArgs a where
 --
 -- Similarly, we could've computed 'toImmediateF' and 'toDeferredF' from a 'TypeScheme' but not
 -- statically again, and that would break inlining and basically all the optimization.
-class KnownMonotype val args res a | args res -> a, a -> res where
+class KnownRuntime val args res => KnownMonotype val args res where
     knownMonotype :: TypeScheme val args res
     knownMonoruntime :: RuntimeScheme (Length args)
 
-    -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
-    toImmediateF :: FoldArgs args res -> ToRuntimeDenotationType val (Length args)
-
-    -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
-    -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
-    -- passing the action returning the builtin application around until full saturation, which is
-    -- when the action actually gets run.
-    toDeferredF :: ReadKnownM (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
-
 -- | Once we've run out of term-level arguments, we return a 'TypeSchemeResult'.
-instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
-            KnownMonotype val '[] res res' where
-    knownMonotype = TypeSchemeResult
-    knownMonoruntime = RuntimeSchemeResult
+instance
+        ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        , Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res
+        ) => KnownMonotype val '[arg] res where
+    knownMonotype = TypeSchemeArrow TypeSchemeResult
+    knownMonoruntime = RuntimeSchemeFinal
 
+instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+        KnownRuntime val '[] res where
     toImmediateF = makeKnown
     {-# INLINE toImmediateF #-}
 
@@ -182,11 +187,16 @@ instance (res ~ res', Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val 
 -- | Every term-level argument becomes as 'TypeSchemeArrow'.
 instance
         ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
-        , KnownMonotype val args res a
-        ) => KnownMonotype val (arg ': args) res (arg -> a) where
+        , KnownMonotype val (arg' : args) res
+        ) => KnownMonotype val (arg ': arg' : args) res where
     knownMonotype = TypeSchemeArrow knownMonotype
-    knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
+    knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @(arg' : args) @res
 
+-- | Every term-level argument becomes as 'TypeSchemeArrow'.
+instance
+        ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        , KnownRuntime val args res
+        ) => KnownRuntime val (arg ': args) res where
     -- Unlift, then recurse.
     toImmediateF f = fmap (toImmediateF @val @args @res . f) . readKnown
     {-# INLINE toImmediateF #-}
@@ -208,13 +218,12 @@ instance
     {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
-class KnownMonotype val args res a =>
-        KnownPolytype (binds :: [Some TyNameRep]) val args res a | args res -> a, a -> res where
+class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) val args res where
     knownPolytype :: TypeScheme val args res
     knownPolyruntime :: RuntimeScheme (Length args)
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
-instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
+instance KnownMonotype val args res => KnownPolytype '[] val args res where
     knownPolytype = knownMonotype
     knownPolyruntime = knownMonoruntime @val @args @res
 
@@ -223,8 +232,8 @@ instance KnownMonotype val args res a => KnownPolytype '[] val args res a where
 -- @kind@ along with the @KnownKind kind@ constraint, otherwise when we unpack the existential,
 -- all information is lost and we can't do anything with @kind@.
 -- | Every type-level argument becomes a 'TypeSchemeAll'.
-instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res a) =>
-            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res a where
+instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds val args res) =>
+            KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
     knownPolyruntime = RuntimeSchemeAll $ knownPolyruntime @binds @val @args @res
 
@@ -255,7 +264,7 @@ makeBuiltinMeaning
     :: forall a val cost binds args res j.
        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
        , ThrowOnBothEmpty binds args (IsBuiltin a) a
-       , ElaborateFromTo 0 j val a, KnownPolytype binds val args res a
+       , ElaborateFromTo 0 j val a, KnownPolytype binds val args res
        )
     => a -> (cost -> ToCostingType (Length args)) -> BuiltinMeaning val cost
 makeBuiltinMeaning f toExF =

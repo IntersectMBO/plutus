@@ -29,9 +29,9 @@ data Peano
 -- | Same as 'TypeScheme' except this one doesn't contain any evaluation-irrelevant types stuff.
 -- @n@ represents the number of term-level arguments that a builtin takes.
 data RuntimeScheme n where
-    RuntimeSchemeResult :: RuntimeScheme 'Z
-    RuntimeSchemeArrow  :: RuntimeScheme n -> RuntimeScheme ('S n)
-    RuntimeSchemeAll    :: RuntimeScheme n -> RuntimeScheme n
+    RuntimeSchemeFinal :: RuntimeScheme ('S 'Z)
+    RuntimeSchemeArrow :: RuntimeScheme n -> RuntimeScheme ('S n)
+    RuntimeSchemeAll   :: RuntimeScheme n -> RuntimeScheme n
 
 deriving stock instance Eq   (RuntimeScheme n)
 deriving stock instance Show (RuntimeScheme n)
@@ -39,7 +39,7 @@ deriving stock instance Show (RuntimeScheme n)
 -- we use strictdata, so this is just for the purpose of completeness
 instance NFData (RuntimeScheme n) where
     rnf r = case r of
-        RuntimeSchemeResult    -> rwhnf r
+        RuntimeSchemeFinal     -> ()
         RuntimeSchemeArrow arg -> rnf arg
         RuntimeSchemeAll arg   -> rnf arg
 

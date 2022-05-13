@@ -59,19 +59,19 @@ data CkValue uni fun =
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving stock (Show)
 
--- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: Term TyName Name uni fun ()
-    -> BuiltinRuntime (CkValue uni fun)
-    -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
-    RuntimeSchemeResult -> case getX of
-        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess x              -> pure x
-        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
-    _ -> pure $ VBuiltin term runtime
+-- -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
+-- -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- -- fully saturated or not.
+-- evalBuiltinApp
+--     :: Term TyName Name uni fun ()
+--     -> BuiltinRuntime (CkValue uni fun)
+--     -> CkM uni fun s (CkValue uni fun)
+-- evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
+--     RuntimeSchemeResult -> case getX of
+--         MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
+--         MakeKnownSuccess x              -> pure x
+--         MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
+--     _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -278,11 +278,9 @@ instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        RuntimeSchemeAll schK -> do
-            let runtime' = BuiltinRuntime schK f exF
-            res <- evalBuiltinApp term' runtime'
-            stack <| res
-        _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
+        RuntimeSchemeAll schK -> stack <| VBuiltin term' (BuiltinRuntime schK f exF)
+        _                     ->
+            throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
 
@@ -304,14 +302,23 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     case sch of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
+        RuntimeSchemeFinal -> case f arg of
+            Left err -> throwKnownTypeErrorWithCause argTerm err
+            Right y  -> case y of
+                MakeKnownFailure logs err -> do
+                    emitCkM logs
+                    throwKnownTypeErrorWithCause term' err
+                MakeKnownSuccess res ->
+                    stack <| res
+                MakeKnownSuccessWithLogs logs res -> do
+                    emitCkM logs
+                    stack <| res
         RuntimeSchemeArrow schB -> case f arg of
             Left err -> throwKnownTypeErrorWithCause argTerm err
             Right y  -> do
                 -- The CK machine does not support costing, so we just apply the costing function
                 -- to 'mempty'.
-                let runtime' = BuiltinRuntime schB y (exF mempty)
-                res <- evalBuiltinApp term' runtime'
-                stack <| res
+                stack <| VBuiltin term' (BuiltinRuntime schB y $ exF mempty)
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =
