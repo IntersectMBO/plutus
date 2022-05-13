@@ -93,6 +93,15 @@ let
           };
         }
       )
+      (lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin) {
+        packages = {
+          # This fails on Darwin with strange errors and I don't know why
+          # > Error: C stack usage  17556409549320 is too close to the limit
+          # > Fatal error: unable to initialize the JI
+          plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
+        };
+      }
+      )
       ({ pkgs, config, ... }: {
         packages = {
           # Packages we just don't want docs for

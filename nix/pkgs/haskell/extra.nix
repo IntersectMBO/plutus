@@ -71,8 +71,6 @@ let
     src = sources.haskell-language-server;
     inherit compiler-nix-name;
     modules = [{
-      # for compatibility with the GHC patch for extensible interfaces, not needed on mainline GHC.
-      packages.ghcide.patches = [ ../../patches/ghcide_partial_iface.patch ];
       # See https://github.com/haskell/haskell-language-server/pull/1382#issuecomment-780472005
       packages.ghcide.flags.ghc-patched-unboxed-bytecode = true;
     }];
