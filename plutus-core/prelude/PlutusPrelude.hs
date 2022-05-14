@@ -66,6 +66,7 @@ module PlutusPrelude
     , enumerate
     , Lazy (..)
     , tabulateArray
+    , Lazy (..)
     , (?)
     , ensure
     , asksM
@@ -168,6 +169,10 @@ reoption = foldr (const . pure) empty
 -- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
+
+data Lazy a = Lazy
+    { unLazy :: a
+    }
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
