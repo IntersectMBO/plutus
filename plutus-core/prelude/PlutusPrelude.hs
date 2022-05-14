@@ -169,11 +169,6 @@ reoption = foldr (const . pure) empty
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
 
--- | A @data@ wrapper adding laziness on top of @a@.
-data Lazy a = Lazy
-    { unLazy :: a
-    }
-
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
     }
