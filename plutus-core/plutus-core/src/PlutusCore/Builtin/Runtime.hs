@@ -22,7 +22,7 @@ import Data.Kind qualified as GHC (Type)
 import PlutusCore.Builtin.KnownType
 
 data Lazy a = Lazy
-    { unLazy :: a
+    { unLazy :: ~a
     }
 
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
