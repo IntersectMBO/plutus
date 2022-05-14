@@ -65,7 +65,6 @@ module PlutusPrelude
     , foldMapM
     , reoption
     , enumeration
-    , Lazy (..)
     , tabulateArray
     , (?)
     , ensure
@@ -171,11 +170,6 @@ enumeration = [minBound .. maxBound]
 -- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
 tabulateArray f = listArray (minBound, maxBound) $ map f enumeration
-
--- | A @data@ wrapper adding laziness on top of @a@.
-data Lazy a = Lazy
-    { unLazy :: a
-    }
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)

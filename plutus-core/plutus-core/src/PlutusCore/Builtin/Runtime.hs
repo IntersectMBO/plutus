@@ -6,10 +6,7 @@
 
 {-# LANGUAGE StrictData               #-}
 
-module PlutusCore.Builtin.Runtime
-    ( module PlutusCore.Builtin.Runtime
-    , Lazy (..)
-    ) where
+module PlutusCore.Builtin.Runtime where
 
 import PlutusPrelude
 
@@ -23,6 +20,10 @@ import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC (Type)
 import PlutusCore.Builtin.KnownType
+
+data Lazy a = Lazy
+    { unLazy :: a
+    }
 
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
 data Peano
@@ -54,8 +55,6 @@ instance NFData (RuntimeScheme n) where
 -- argument of the denotation and calling 'makeKnown' over its result.
 type ToRuntimeDenotationType :: GHC.Type -> Peano -> GHC.Type
 type family ToRuntimeDenotationType val n where
-    -- We use 'Lazy' here, because we don't want to compute the denotation when it's fully saturated
-    -- before figuring out what it's going to cost.
     ToRuntimeDenotationType val 'Z     = Lazy (MakeKnownM val)
     -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
