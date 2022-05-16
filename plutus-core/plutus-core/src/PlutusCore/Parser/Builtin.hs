@@ -65,7 +65,7 @@ conText = do
 
 -- | Parser for unit.
 conUnit :: Parser (Some (ValueOf DefaultUni))
-conUnit = someValue () <$ symbol "()"
+conUnit = someValue () <$ (symbol "(" *> symbol ")")
 
 -- | Parser for bool.
 conBool :: Parser (Some (ValueOf DefaultUni))
@@ -87,4 +87,3 @@ constant = do
             SomeTypeIn DefaultUniBool       -> conBool
     whitespace
     pure con
-

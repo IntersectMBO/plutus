@@ -570,11 +570,12 @@ evalBuiltinApp
 evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = runEmitter $ runExceptT getX
-        ?cekEmitter logs
-        case errOrRes of
-            Left err  -> throwKnownTypeErrorWithCause term err
-            Right res -> pure res
+        case getX of
+            MakeKnownFailure logs err       -> do
+                ?cekEmitter logs
+                throwKnownTypeErrorWithCause term err
+            MakeKnownSuccess x              -> pure x
+            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
