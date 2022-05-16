@@ -132,7 +132,7 @@ We have pinned versions of some Haskell packages specified via the usual `source
 
 These can be managed normally, but ensure that:
 
-* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`.
+* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/pkgs/haskell/haskell.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
 [[update-nix-pins]]
