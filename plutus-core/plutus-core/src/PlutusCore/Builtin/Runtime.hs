@@ -24,6 +24,11 @@ import Data.Array
 import Data.Kind qualified as GHC (Type)
 import PlutusCore.Builtin.KnownType
 
+-- | A @data@ wrapper adding laziness on top of @a@.
+data Lazy a = Lazy
+    { unLazy :: ~a
+    }
+
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
 data Peano
     = Z
