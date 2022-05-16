@@ -34,7 +34,6 @@ import Data.Coerce
 import Data.Either
 import Data.Foldable (fold)
 import Data.Map qualified as Map
-import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text
 import Data.Tuple
@@ -241,7 +240,10 @@ toMachineParameters pv = case unliftingModeIn pv of
     UnliftingImmediate -> machineParametersImmediate
     UnliftingDeferred  -> machineParametersDeferred
 
-mkMachineParametersFor :: UnliftingMode -> Plutus.CostModelParams -> Maybe DefaultMachineParameters
+mkMachineParametersFor :: (MonadError CostModelApplyError m)
+                       => UnliftingMode
+                       -> Plutus.CostModelParams
+                       -> m DefaultMachineParameters
 mkMachineParametersFor unlMode newCMP =
     inline Plutus.mkMachineParameters unlMode <$>
         Plutus.applyCostModelParams Plutus.defaultCekCostModel newCMP
@@ -269,15 +271,15 @@ data EvaluationContext = EvaluationContext
 The input is a `Map` of strings to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
 -}
-mkEvaluationContext :: Plutus.CostModelParams -> Maybe EvaluationContext
+mkEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
 mkEvaluationContext newCMP =
     EvaluationContext
         <$> inline mkMachineParametersFor UnliftingImmediate newCMP
         <*> inline mkMachineParametersFor UnliftingDeferred newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
-isCostModelParamsWellFormed :: Plutus.CostModelParams -> Bool
-isCostModelParamsWellFormed = isJust . Plutus.applyCostModelParams Plutus.defaultCekCostModel
+assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
+assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
 {-|
 Evaluates a script, with a cost model and a budget that restricts how many
