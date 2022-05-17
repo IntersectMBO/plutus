@@ -6,6 +6,8 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 
+{-# LANGUAGE StrictData         #-}
+
 module PlutusCore.Data (Data (..)) where
 
 import Codec.CBOR.Decoding (Decoder)
