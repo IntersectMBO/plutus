@@ -155,9 +155,9 @@ stableModuleCmp m1 m2 =
     (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
 
 -- See Note [Scopes]
-type Compiling uni fun m =
+type Compiling uni fun m ann =
     ( Monad m
-    , MonadError (CompileError uni fun) m
+    , MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
     , MonadDefs LexName uni fun () m
@@ -170,10 +170,10 @@ type Compiling uni fun m =
 -- we don't need to write 'PLC.DefaultUni' everywhere (in 'PIRTerm', 'PIRType' etc) and instead
 -- can write the short @uni@ and know that it actually means 'PLC.DefaultUni'. Same regarding
 -- 'DefaultFun'.
-type CompilingDefault uni fun m =
+type CompilingDefault uni fun m ann =
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
-    , Compiling uni fun m
+    , Compiling uni fun m ann
     )
 
 blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
@@ -199,10 +199,10 @@ type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
 initialScopeStack :: ScopeStack uni fun
 initialScopeStack = pure $ Scope Map.empty Map.empty
 
-withCurDef :: Compiling uni fun m => LexName -> m a -> m a
+withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a
 withCurDef name = local (\cc -> cc {ccCurDef=Just name})
 
-modifyCurDeps :: Compiling uni fun m => (Set.Set LexName -> Set.Set LexName) -> m ()
+modifyCurDeps :: Compiling uni fun m ann => (Set.Set LexName -> Set.Set LexName) -> m ()
 modifyCurDeps f = do
     cur <- asks ccCurDef
     case cur of

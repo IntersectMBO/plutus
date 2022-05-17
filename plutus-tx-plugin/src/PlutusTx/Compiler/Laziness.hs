@@ -24,35 +24,35 @@ with the standard library because it makes the generated terms simpler without t
 a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
-delay :: Compiling uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+delay :: Compiling uni fun m ann => PIRTerm uni fun -> m (PIRTerm uni fun)
 delay body = PIR.TyAbs () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure body
 
-delayType :: Compiling uni fun m => PIRType uni -> m (PIRType uni)
+delayType :: Compiling uni fun m ann => PIRType uni -> m (PIRType uni)
 delayType orig = PIR.TyForall () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure orig
 
-delayVar :: Compiling uni fun m => PIRVar uni fun -> m (PIRVar uni fun)
+delayVar :: Compiling uni fun m ann => PIRVar uni fun -> m (PIRVar uni fun)
 delayVar (PIR.VarDecl () n ty) = do
     ty' <- delayType ty
     pure $ PIR.VarDecl () n ty'
 
 force
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => PIRTerm uni fun -> m (PIRTerm uni fun)
 force thunk = do
     a <- liftQuote (freshTyName "dead")
     let fakeTy = PIR.TyForall () a (PIR.Type ()) (PIR.TyVar () a)
     pure $ PIR.TyInst () thunk fakeTy
 
-maybeDelay :: Compiling uni fun m => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeDelay :: Compiling uni fun m ann => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t
 
-maybeDelayVar :: Compiling uni fun m => Bool -> PIRVar uni fun -> m (PIRVar uni fun)
+maybeDelayVar :: Compiling uni fun m ann => Bool -> PIRVar uni fun -> m (PIRVar uni fun)
 maybeDelayVar yes v = if yes then delayVar v else pure v
 
-maybeDelayType :: Compiling uni fun m => Bool -> PIRType uni -> m (PIRType uni)
+maybeDelayType :: Compiling uni fun m ann => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
 maybeForce
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeForce yes t = if yes then force t else pure t
