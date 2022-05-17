@@ -74,6 +74,11 @@ It's enough to put 'lazy' in only one of the clauses for all of them to be compi
 We consistently choose the @*ConstantCost@ clause, because it doesn't need to be optimized anyway
 and so a call to 'lazy' doesn't hurt there.
 
+Alternatively, we could use @-fpedantic-bottoms@, which prevents GHC from moving matching above
+a lambda (see https://github.com/input-output-hk/plutus/pull/4621), however it doesn't make anything
+faster, generates more Core and doesn't take much to break, hence we choose the hacky 'lazy'
+version.
+
 Since we want @run*Model@ functions to partially compute, we mark them as @NOINLINE@ to prevent GHC
 from inlining them and breaking the sharing friendliness. Without the @NOINLINE@ Core doesn't seem
 to be worse, however it was verified that no @NOINLINE@ causes a slowdown in both the @validation@
