@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 {-# LANGUAGE StrictData     #-}
+{-# OPTIONS_GHC -fpedantic-bottoms #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , ModelAddedSizes(..)
@@ -35,7 +36,6 @@ import Control.DeepSeq
 import Data.Default.Class
 import Data.Hashable
 import Deriving.Aeson
-import GHC.Exts
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
 data CostingFun model = CostingFun
@@ -105,10 +105,10 @@ runOneArgumentModel
     :: ModelOneArgument
     -> ExMemory
     -> CostingInteger
-runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
+runOneArgumentModel (ModelOneArgumentConstantCost c) = \_ -> c
 runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
     s * slope + intercept
-{-# NOINLINE runOneArgumentModel #-}
+{-# INLINE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
 
@@ -206,7 +206,7 @@ runTwoArgumentModel
     -> ExMemory
     -> CostingInteger
 runTwoArgumentModel
-    (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> c
+    (ModelTwoArgumentsConstantCost c) = \_ _ -> c
 runTwoArgumentModel
     (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
         (size1 + size2) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
@@ -247,7 +247,7 @@ runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagon
                 if xMem < yMem
                 then c
                 else run xMem yMem
-{-# NOINLINE runTwoArgumentModel #-}
+{-# INLINE runTwoArgumentModel #-}
 
 
 ---------------- Three-argument costing functions ----------------
@@ -270,7 +270,7 @@ runThreeArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> c
+runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = \_ _ _ -> c
 runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) (ExMemory size3) ->
     (size1 + size2 + size3) * slope + intercept
 runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) _ _ ->
@@ -279,7 +279,7 @@ runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept s
     size2 * slope + intercept
 runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = \_ _ (ExMemory size3) ->
     size3 * slope + intercept
-{-# NOINLINE runThreeArgumentModel #-}
+{-# INLINE runThreeArgumentModel #-}
 
 runCostingFunThreeArguments
     :: CostingFun ModelThreeArguments
@@ -312,8 +312,8 @@ runFourArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> c
-{-# NOINLINE runFourArgumentModel #-}
+runFourArgumentModel (ModelFourArgumentsConstantCost c) = \_ _ _ _ -> c
+{-# INLINE runFourArgumentModel #-}
 
 runCostingFunFourArguments
     :: CostingFun ModelFourArguments
@@ -348,8 +348,8 @@ runFiveArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> c
-{-# NOINLINE runFiveArgumentModel #-}
+runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = \_ _ _ _ _ -> c
+{-# INLINE runFiveArgumentModel #-}
 
 runCostingFunFiveArguments
     :: CostingFun ModelFiveArguments
@@ -385,8 +385,8 @@ runSixArgumentModel
     -> ExMemory
     -> ExMemory
     -> CostingInteger
-runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> c
-{-# NOINLINE runSixArgumentModel #-}
+runSixArgumentModel (ModelSixArgumentsConstantCost c) = \_ _ _ _ _ _ -> c
+{-# INLINE runSixArgumentModel #-}
 
 runCostingFunSixArguments
     :: CostingFun ModelSixArguments
