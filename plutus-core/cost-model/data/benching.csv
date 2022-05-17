@@ -1,4 +1,4 @@
-# Benchmark results for cost model update prior to Vasil HF (12th May 2022)
+# Benchmark results for cost model update prior to Vasil HF (12th May 2022).
 benchmark,t,t.mean.lb,t.mean.ub,t.sd,t.sd.lb,t.sd.ub
 IfThenElse/ExMemory 100/ExMemory 100,9.903368819621599e-7,9.67013522777269e-7,1.0172648298758596e-6,7.964815537277713e-8,6.98433698700813e-8,9.587075593393516e-8
 IfThenElse/ExMemory 100/ExMemory 500,1.0855692272700772e-6,1.0476374612918429e-6,1.1620386696812784e-6,1.5989478294521692e-7,8.85710711974263e-8,3.1376848013729205e-7
