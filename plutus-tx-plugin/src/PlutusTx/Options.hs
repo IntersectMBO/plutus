@@ -25,33 +25,34 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import GhcPlugins qualified as GHC
+import Prettyprinter
 import PyF (fmt)
 import Text.Read (readMaybe)
 import Type.Reflection
 
 data PluginOptions = PluginOptions
-    { _poDoTypecheck                    :: Bool
-    , _poDeferErrors                    :: Bool
-    , _poContextLevel                   :: Int
-    , _poDumpPir                        :: Bool
-    , _poDumpPlc                        :: Bool
-    , _poDumpUPlc                       :: Bool
-    , _poOptimize                       :: Bool
-    , _poPedantic                       :: Bool
-    , _poVerbose                        :: Bool
-    , _poDebug                          :: Bool
-    , _poMaxSimplifierIterations        :: Int
-    , _poDoSimplifierUnwrapCancel       :: Bool
-    , _poDoSimplifierBeta               :: Bool
-    , _poDoSimplifierInline             :: Bool
-    , _poDoSimplifierRemoveDeadBindings :: Bool
-    , _poProfile                        :: ProfileOpts
-    , _poCoverageAll                    :: Bool
-    , _poCoverageLocation               :: Bool
-    , _poCoverageBoolean                :: Bool
+    { _posDoTypecheck                    :: Bool
+    , _posDeferErrors                    :: Bool
+    , _posContextLevel                   :: Int
+    , _posDumpPir                        :: Bool
+    , _posDumpPlc                        :: Bool
+    , _posDumpUPlc                       :: Bool
+    , _posOptimize                       :: Bool
+    , _posPedantic                       :: Bool
+    , _posVerbose                        :: Bool
+    , _posDebug                          :: Bool
+    , _posMaxSimplifierIterations        :: Int
+    , _posDoSimplifierUnwrapCancel       :: Bool
+    , _posDoSimplifierBeta               :: Bool
+    , _posDoSimplifierInline             :: Bool
+    , _posDoSimplifierRemoveDeadBindings :: Bool
+    , _posProfile                        :: ProfileOpts
+    , _posCoverageAll                    :: Bool
+    , _posCoverageLocation               :: Bool
+    , _posCoverageBoolean                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
-      _poRemoveTrace                    :: Bool
+      _posRemoveTrace                    :: Bool
     }
 
 makeLenses ''PluginOptions
@@ -60,20 +61,19 @@ type OptionKey = Text
 type OptionValue = Text
 
 -- | A plugin option definition for a `PluginOptions` field of type @a@.
-data PluginOption
-    = forall a.
-        PluginOption
-        (TypeRep a)
-        -- ^ `TypeRep` used for pretty printing the option.
-        (Maybe OptionValue -> Validation ParseError (a -> a))
-        -- ^ Consumes an optional value, and either updates the field or reports an error.
-        (Lens' PluginOptions a)
-        -- ^ Lens focusing on the field. This is for modifying the field, as well as
-        -- getting the field value from `defaultPluginOptions` for pretty printing.
-        (a -> Text)
-        -- ^ Display the field value.
-        Text
-        -- ^ A description of the option.
+data PluginOption = forall a.
+      Pretty a =>
+    PluginOption
+    { poTypeRep     :: TypeRep a
+    -- ^ `TypeRep` used for pretty printing the option.
+    , poFun         :: Maybe OptionValue -> Validation ParseError (a -> a)
+    -- ^ Consumes an optional value, and either updates the field or reports an error.
+    , poLens        :: Lens' PluginOptions a
+    -- ^ Lens focusing on the field. This is for modifying the field, as well as
+    -- getting the field value from `defaultPluginOptions` for pretty printing.
+    , poDescription :: Text
+    -- ^ A description of the option.
+    }
 
 data ParseError
     = CannotParseValue OptionKey OptionValue SomeTypeRep
@@ -111,56 +111,54 @@ Did you mean one of:
 {- | Definition of plugin options.
 
  TODO: write a description for each option.
+ TODO: only define the possitive version and automaticalaly get tne "no-" version.
 -}
 pluginOptions :: Map OptionKey PluginOption
 pluginOptions =
     Map.fromList
         [ let k = "no-typecheck"
-           in (k, PluginOption typeRep (setFalse k) poDoTypecheck showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posDoTypecheck mempty)
         , let k = "defer-errors"
-           in (k, PluginOption typeRep (setTrue k) poDeferErrors showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posDeferErrors mempty)
         , let k = "no-context"
-           in (k, PluginOption typeRep (flag (const 0) k) poContextLevel showText mempty)
+           in (k, PluginOption typeRep (flag (const 0) k) posContextLevel mempty)
         , let k = "debug-context"
-           in (k, PluginOption typeRep (flag (const 3) k) poContextLevel showText mempty)
+           in (k, PluginOption typeRep (flag (const 3) k) posContextLevel mempty)
         , let k = "dump-pir"
-           in (k, PluginOption typeRep (setTrue k) poDumpPir showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posDumpPir mempty)
         , let k = "dump-plc"
-           in (k, PluginOption typeRep (setTrue k) poDumpPlc showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posDumpPlc mempty)
         , let k = "dump-uplc"
-           in (k, PluginOption typeRep (setTrue k) poDumpUPlc showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posDumpUPlc mempty)
         , let k = "no-optimize"
-           in (k, PluginOption typeRep (setFalse k) poOptimize showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posOptimize mempty)
         , let k = "pedantic"
-           in (k, PluginOption typeRep (setTrue k) poPedantic showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posPedantic mempty)
         , let k = "verbose"
-           in (k, PluginOption typeRep (setTrue k) poVerbose showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posVerbose mempty)
         , let k = "debug"
-           in (k, PluginOption typeRep (setTrue k) poDebug showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posDebug mempty)
         , let k = "max-simplifier-iterations"
-           in (k, PluginOption typeRep (intOption k) poMaxSimplifierIterations showText mempty)
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterations mempty)
         , let k = "no-simplifier-unwrap-cancel"
-           in (k, PluginOption typeRep (setFalse k) poDoSimplifierUnwrapCancel showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posDoSimplifierUnwrapCancel mempty)
         , let k = "no-simplifier-beta"
-           in (k, PluginOption typeRep (setFalse k) poDoSimplifierBeta showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posDoSimplifierBeta mempty)
         , let k = "no-simplifier-inline"
-           in (k, PluginOption typeRep (setFalse k) poDoSimplifierInline showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posDoSimplifierInline mempty)
         , let k = "no-simplifier-remove-dead-bindings"
-           in (k, PluginOption typeRep (setFalse k) poDoSimplifierRemoveDeadBindings showText mempty)
+           in (k, PluginOption typeRep (setFalse k) posDoSimplifierRemoveDeadBindings mempty)
         , let k = "profile-all"
-           in (k, PluginOption typeRep (flag (const All) k) poProfile showText mempty)
+           in (k, PluginOption typeRep (flag (const All) k) posProfile mempty)
         , let k = "coverage-all"
-           in (k, PluginOption typeRep (setTrue k) poCoverageAll showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posCoverageAll mempty)
         , let k = "coverage-location"
-           in (k, PluginOption typeRep (setTrue k) poCoverageLocation showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posCoverageLocation mempty)
         , let k = "coverage-boolean"
-           in (k, PluginOption typeRep (setTrue k) poCoverageBoolean showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posCoverageBoolean mempty)
         , let k = "remove-trace"
-           in (k, PluginOption typeRep (setTrue k) poRemoveTrace showText mempty)
+           in (k, PluginOption typeRep (setTrue k) posRemoveTrace mempty)
         ]
-  where
-    showText :: Show a => a -> Text
-    showText = Text.pack . show
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 flag f k = maybe (Success f) (Failure . UnexpectedValue k)
@@ -173,36 +171,34 @@ setFalse = flag (const False)
 
 intOption :: OptionKey -> Maybe OptionValue -> Validation ParseError (Int -> Int)
 intOption k = \case
-    Just v ->
-        maybe
-            (Failure (CannotParseValue k v (someTypeRep (Proxy @Int))))
-            (Success . const)
-            (readMaybe (Text.unpack v))
-    Nothing -> Failure (MissingValue k)
+    Just v
+        | Just i <- readMaybe (Text.unpack v) -> Success $ const i
+        | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
+    Nothing -> Failure $ MissingValue k
 
 defaultPluginOptions :: PluginOptions
 defaultPluginOptions =
     PluginOptions
-        { _poDoTypecheck = True
-        , _poDeferErrors = False
-        , _poContextLevel = 1
-        , _poDumpPir = False
-        , _poDumpPlc = False
-        , _poDumpUPlc = False
-        , _poOptimize = True
-        , _poPedantic = False
-        , _poVerbose = False
-        , _poDebug = False
-        , _poMaxSimplifierIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-        , _poDoSimplifierUnwrapCancel = True
-        , _poDoSimplifierBeta = True
-        , _poDoSimplifierInline = True
-        , _poDoSimplifierRemoveDeadBindings = True
-        , _poProfile = None
-        , _poCoverageAll = False
-        , _poCoverageLocation = False
-        , _poCoverageBoolean = False
-        , _poRemoveTrace = False
+        { _posDoTypecheck = True
+        , _posDeferErrors = False
+        , _posContextLevel = 1
+        , _posDumpPir = False
+        , _posDumpPlc = False
+        , _posDumpUPlc = False
+        , _posOptimize = True
+        , _posPedantic = False
+        , _posVerbose = False
+        , _posDebug = False
+        , _posMaxSimplifierIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
+        , _posDoSimplifierUnwrapCancel = True
+        , _posDoSimplifierBeta = True
+        , _posDoSimplifierInline = True
+        , _posDoSimplifierRemoveDeadBindings = True
+        , _posProfile = None
+        , _posCoverageAll = False
+        , _posCoverageLocation = False
+        , _posCoverageBoolean = False
+        , _posRemoveTrace = False
         }
 
 processOne ::
@@ -210,7 +206,7 @@ processOne ::
     Maybe OptionValue ->
     Validation ParseError (PluginOptions -> PluginOptions)
 processOne key val = case Map.lookup key pluginOptions of
-    Just (PluginOption _ f field _ _) -> over field <$> f val
+    Just (PluginOption _ f field _) -> over field <$> f val
     Nothing ->
         let suggs =
                 Text.pack
@@ -223,9 +219,11 @@ processAll ::
 processAll = traverse $ first (ParseErrors . pure) . uncurry processOne
 
 toKeyValue :: GHC.CommandLineOption -> (OptionKey, Maybe OptionValue)
-toKeyValue opt =
-    maybe (Text.pack opt, Nothing) (bimap Text.pack (Just . Text.pack)) $
-        fmap (drop 1) . flip splitAt opt <$> List.elemIndex '=' opt
+toKeyValue opt = case List.elemIndex '=' opt of
+    Nothing -> (Text.pack opt, Nothing)
+    Just idx ->
+        let (lhs, rhs) = splitAt idx opt
+         in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {- | Parses the arguments that were given to ghc at commandline as
  "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val"

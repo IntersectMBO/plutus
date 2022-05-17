@@ -242,7 +242,7 @@ compileMarkedExprOrDefer :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.De
 compileMarkedExprOrDefer locStr codeTy origE = do
     opts <- asks pcOpts
     let compileAct = compileMarkedExpr locStr codeTy origE
-    if _poDeferErrors opts
+    if _posDeferErrors opts
       -- TODO: we could perhaps move this catchError to the "runExceptT" module-level, but
       -- it leads to uglier code and difficulty of handling other pure errors
       then compileAct `catchError` emitRuntimeError codeTy
@@ -253,7 +253,7 @@ emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywher
                  => GHC.Type -> CompileError uni fun -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
-    let shown = show $ PP.pretty (pruneContext (_poContextLevel opts) e)
+    let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
     pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
@@ -272,11 +272,11 @@ compileMarkedExpr locStr codeTy origE = do
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
-                   [ l | _poCoverageAll opts, l <- [minBound .. maxBound]]
-                ++ [ LocationCoverage  | _poCoverageLocation opts  ]
-                ++ [ BooleanCoverage  | _poCoverageBoolean opts  ]
+                   [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
+                ++ [ LocationCoverage  | _posCoverageLocation opts  ]
+                ++ [ BooleanCoverage  | _posCoverageBoolean opts  ]
     let ctx = CompileContext {
-            ccOpts = CompileOptions {coProfile=_poProfile opts,coCoverage=coverage,coRemoveTrace=_poRemoveTrace opts},
+            ccOpts = CompileOptions {coProfile=_posProfile opts,coCoverage=coverage,coRemoveTrace=_posRemoveTrace opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,
@@ -329,47 +329,47 @@ runCompiler moduleName opts expr = do
             PIR.DatatypeComponent PIR.Destructor _ -> True
             _                                      -> False
     -- Compilation configuration
-    let pirTcConfig = if _poDoTypecheck opts
+    let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
                       then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
-                 & set (PIR.ccOpts . PIR.coOptimize) (_poOptimize opts)
-                 & set (PIR.ccOpts . PIR.coPedantic) (_poPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_poVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (_poDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_poMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
+                 & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
-                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_poDoSimplifierUnwrapCancel opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_poDoSimplifierBeta opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_poDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
         uplcSimplOpts = UPLC.defaultSimplifyOpts
-            & set UPLC.soMaxSimplifierIterations (_poMaxSimplifierIterations opts)
+            & set UPLC.soMaxSimplifierIterations (_posMaxSimplifierIterations opts)
             & set UPLC.soInlineHints hints
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT () $ compileExprWithDefs expr
-    when (_poDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+    when (_posDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
-    when (_poDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (_poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
+    when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
-    when (_poDoTypecheck opts) . void $
+    when (_posDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
 
     uplcT <- liftExcept $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT
-    when (_poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
