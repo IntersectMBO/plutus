@@ -234,7 +234,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
 
 -- | The monad where the plugin runs in for each module.
 -- It is a core->core compiler monad, called PluginM, augmented with pure errors.
-type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun) GHC.CoreM)
+type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun ()) GHC.CoreM)
 
 -- | Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.
 runPluginM :: (PLC.GShow uni, PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
@@ -323,7 +323,7 @@ compileMarkedExprOrDefer locStr codeTy origE = do
 
 -- | Given an expected Haskell type 'a', it generates Haskell code which throws a GHC runtime error "as" 'CompiledCode a'.
 emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
-                 => GHC.Type -> CompileError uni fun -> PluginM uni fun GHC.CoreExpr
+                 => GHC.Type -> CompileError uni fun () -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
     let shown = show $ PP.pretty (pruneContext (poContextLevel opts) e)
@@ -376,12 +376,20 @@ compileMarkedExpr locStr codeTy origE = do
 
 -- | The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
-runCompiler
-    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadWriter CoverageIndex m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
-    => String
-    -> PluginOptions
-    -> GHC.CoreExpr
-    -> m (PIRProgram uni fun, UPLCProgram uni fun)
+runCompiler ::
+    forall uni fun m.
+    ( uni ~ PLC.DefaultUni
+    , fun ~ PLC.DefaultFun
+    , MonadReader (CompileContext uni fun) m
+    , MonadWriter CoverageIndex m
+    , MonadQuote m
+    , MonadError (CompileError uni fun ()) m
+    , MonadIO m
+    ) =>
+    String ->
+    PluginOptions ->
+    GHC.CoreExpr ->
+    m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance

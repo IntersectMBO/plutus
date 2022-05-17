@@ -51,7 +51,7 @@ getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: CompilingDefault uni fun m => GHC.Var -> m (PLCVar uni fun)
+compileVarFresh :: CompilingDefault uni fun m ann => GHC.Var -> m (PLCVar uni fun)
 compileVarFresh v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v
@@ -63,13 +63,13 @@ lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
 compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
-compileTyVarFresh :: Compiling uni fun m => GHC.TyVar -> m PLCTyVar
+compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
     pure $ PLC.TyVarDecl () t' k'
 
-compileTcTyVarFresh :: Compiling uni fun m => GHC.TyCon -> m PLCTyVar
+compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc

@@ -98,7 +98,7 @@ rule.
 -}
 
 compileLiteral
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
@@ -140,7 +140,7 @@ strip = \case
     expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: CompilingDefault uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
+compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -168,7 +168,7 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
@@ -188,7 +188,7 @@ compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating al
         delayed <- delay compiledBody >>= wrapDefaultAlt
         return (nonDelayed, delayed)
     where
-        wrapDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        wrapDefaultAlt :: CompilingDefault uni fun m ann => PIRTerm uni fun -> m (PIRTerm uni fun)
         wrapDefaultAlt body' = do
             -- need to consume the args
             argTypes <- mapM compileTypeNorm instArgTys
@@ -441,7 +441,7 @@ ourselves before we start.
 -}
 
 hoistExpr
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
 hoistExpr var t = do
     let name = GHC.getName var
@@ -467,7 +467,7 @@ hoistExpr var t = do
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar () var'
 
-maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
     let ty = PLC._varDeclType var
@@ -495,7 +495,7 @@ mkTrace ty str v =
 
 -- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
 mkLazyTrace
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => PLC.Type PLC.TyName uni ()
     -> T.Text
     -> PIRTerm uni PLC.DefaultFun
@@ -623,7 +623,7 @@ entryExitTracing lamName displayName e ty =
 -}
 
 compileExpr
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
@@ -888,7 +888,7 @@ toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
 -- See Note [Tracking coverage and lazyness]
 -- See Note [Coverage order]
 -- | Annotate a term for coverage
-coverageCompile :: CompilingDefault uni fun m
+coverageCompile :: CompilingDefault uni fun m ann
                 => GHC.CoreExpr -- ^ The original expression
                 -> GHC.Type -- ^ The type of the expression
                 -> GHC.RealSrcSpan -- ^ The source location of this expression
@@ -944,7 +944,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       findHeadSymbol _              = Nothing
 
 compileExprWithDefs
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
     defineBuiltinTypes
