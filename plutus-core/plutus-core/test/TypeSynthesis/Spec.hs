@@ -25,7 +25,7 @@ import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 kindcheck
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
+    :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun () ()) m)
     => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
     _ <- runQuoteT $ do
@@ -34,7 +34,7 @@ kindcheck ty = do
     return ty
 
 typecheck
-    :: (uni ~ DefaultUni, MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun)
+    :: (uni ~ DefaultUni, MonadError (Error uni fun () ()) m, ToBuiltinMeaning uni fun)
     => Term TyName Name uni fun () -> m ()
 typecheck term = do
     _ <- runQuoteT $ do

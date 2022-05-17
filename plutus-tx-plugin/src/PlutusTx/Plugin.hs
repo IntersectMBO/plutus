@@ -443,11 +443,11 @@ runCompiler moduleName opts expr = do
 
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it using our 'CompileError'
-      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun ()) m b -> m b
+      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun () ()) m b -> m b
       liftExcept act = do
         plcTcError <- runExceptT act
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'
-        liftEither $ first (view (re PIR._PLCError) . fmap PIR.Original) plcTcError
+        liftEither $ first (view (re PIR._PLCError) . PLC.mapErrorAnn PIR.Original) plcTcError
 
       dumpFlat :: Flat t => t -> String -> String -> IO ()
       dumpFlat t desc fileName = do

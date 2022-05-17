@@ -60,7 +60,7 @@ safeLift
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
-       , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
+       , AsError e uni fun (Provenance ()) (), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
        , PrettyPrintable uni fun
        )
@@ -82,7 +82,7 @@ safeLiftProgram
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()),  PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
-       , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
+       , AsError e uni fun (Provenance ()) (), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
        , PrettyPrintable uni fun
        )
@@ -94,7 +94,7 @@ safeLiftCode
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ()), PLC.GEq uni
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
-       , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
+       , AsError e uni fun (Provenance ()) (), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
        , PrettyPrintable uni fun
        )
@@ -103,7 +103,7 @@ safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing <*> pur
 
 unsafely
     :: Throwable uni fun
-    => ExceptT (Error uni fun (Provenance ())) Quote a -> a
+    => ExceptT (Error uni fun (Provenance ()) ()) Quote a -> a
 unsafely ma = runQuote $ do
     run <- runExceptT ma
     case run of
@@ -152,7 +152,7 @@ typeCheckAgainst
        ( Lift.Typeable uni a
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
        , PIR.AsTypeErrorExt e uni (Provenance ())
-       , PIR.AsError e uni fun (Provenance ())
+       , PIR.AsError e uni fun (Provenance ()) ()
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
@@ -186,7 +186,7 @@ typeCode
        , PIR.AsTypeError e (PIR.Term TyName Name uni fun ()) uni fun (Provenance ())
        , PIR.AsTypeErrorExt e uni (Provenance ())
        , PLC.AsFreeVariableError e
-       , PIR.AsError e uni fun (Provenance ())
+       , PIR.AsError e uni fun (Provenance ()) ()
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun

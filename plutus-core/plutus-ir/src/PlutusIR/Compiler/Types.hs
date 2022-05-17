@@ -136,7 +136,7 @@ type Compiling m e uni fun a =
     , MonadReader (CompilationCtx uni fun a) m
     , AsTypeError e (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun (Provenance a)
     , AsTypeErrorExt e uni (Provenance a)
-    , AsError e uni fun (Provenance a)
+    , AsError e uni fun (Provenance a) ()
     , MonadError e m
     , MonadQuote m
     , Ord a

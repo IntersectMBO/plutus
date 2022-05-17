@@ -63,7 +63,7 @@ compileAndMaybeTypecheck
     :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a)
     => Bool
     -> Term TyName Name uni fun a
-    -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
+    -> Except (PIR.Error uni fun (PIR.Provenance a) ()) (PLC.Term TyName Name uni fun (PIR.Provenance a))
 compileAndMaybeTypecheck doTypecheck pir = do
     tcConfig <- PLC.getDefTypeCheckConfig noProvenance
     let pirCtx = toDefaultCompilationCtx tcConfig & if doTypecheck
@@ -147,7 +147,7 @@ goldenTypeFromPir ::
     TestNested
 goldenTypeFromPir x =
     goldenPirM $ \ast -> ppThrow $
-        withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
+        withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a () -> SomeException) $
             runQuoteT $ do
                 tcConfig <- getDefTypeCheckConfig x
                 inferType tcConfig ast
@@ -160,7 +160,7 @@ goldenTypeFromPirCatch ::
     TestNested
 goldenTypeFromPirCatch x =
     goldenPirM $ \ast -> ppCatch $
-        withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
+        withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a () -> SomeException) $
             runQuoteT $ do
                 tcConfig <- getDefTypeCheckConfig x
                 inferType tcConfig ast

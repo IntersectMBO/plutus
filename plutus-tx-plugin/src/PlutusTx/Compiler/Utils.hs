@@ -33,7 +33,11 @@ sdToTxt sd = do
   CompileContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDocForUser flags GHC.alwaysQualify sd
 
-throwSd :: (MonadError (CompileError uni fun) m, MonadReader (CompileContext uni fun) m) => (T.Text -> Error uni fun ()) -> GHC.SDoc -> m a
+throwSd ::
+    (MonadError (CompileError uni fun) m, MonadReader (CompileContext uni fun) m) =>
+    (T.Text -> Error uni fun () ()) ->
+    GHC.SDoc ->
+    m a
 throwSd constr = (throwPlain . constr) <=< sdToTxt
 
 tyConsOfExpr :: GHC.CoreExpr -> GHC.UniqSet GHC.TyCon

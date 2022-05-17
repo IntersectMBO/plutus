@@ -101,7 +101,7 @@ letFloat =
   ,"rhsSqueezeVsNest"
   ]
  where
-   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun () ()) $ do
        let pirFloated = RecSplit.recSplit . LetFloat.floatTerm . runQuote $ PLC.rename pir
        -- make sure the floated result typechecks
        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()

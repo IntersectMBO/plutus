@@ -93,6 +93,7 @@ module PlutusCore
     , typecheckPipeline
     -- * Errors
     , Error (..)
+    , mapErrorAnn
     , AsError (..)
     , NormCheckError (..)
     , AsNormCheckError (..)

@@ -44,7 +44,7 @@ the actual one. Thus "type-eval checking".
 
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError uni fun
-    = TypeEvalCheckErrorIllFormed (Error uni fun ())
+    = TypeEvalCheckErrorIllFormed (Error uni fun () ())
     | TypeEvalCheckErrorIllTyped
           (Normalized (Type TyName uni ()))
           (Normalized (Type TyName uni ()))
@@ -55,7 +55,7 @@ data TypeEvalCheckError uni fun
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 
-instance ann ~ () => AsError (TypeEvalCheckError uni fun) uni fun ann where
+instance ann ~ () => AsError (TypeEvalCheckError uni fun) uni fun ann ann where
     _Error = _TypeEvalCheckErrorIllFormed . _Error
 
 instance ann ~ () => AsTypeError (TypeEvalCheckError uni fun) (Term TyName Name uni fun ann) uni fun ann where
@@ -71,7 +71,7 @@ data TypeEvalCheckResult uni fun = TypeEvalCheckResult
 
 instance ( PrettyBy config (Type TyName uni ())
          , PrettyBy config (Term TyName Name uni fun ())
-         , PrettyBy config (Error uni fun ())
+         , PrettyBy config (Error uni fun () ())
          ) => PrettyBy config (TypeEvalCheckError uni fun) where
     prettyBy config (TypeEvalCheckErrorIllFormed err)             =
         "The term is ill-formed:" <+> prettyBy config err

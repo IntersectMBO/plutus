@@ -121,7 +121,7 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
   and programs.  We have unit tests for the unit and boolean types, and property
   tests for the full set of types in the default universe. -}
 
-type DefaultError = Error DefaultUni DefaultFun SourcePos
+type DefaultError = Error DefaultUni DefaultFun SourcePos ()
 
 {-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here

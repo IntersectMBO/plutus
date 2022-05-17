@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -24,6 +25,7 @@ module PlutusCore.Error
     , AsFreeVariableError (..)
     , Error (..)
     , AsError (..)
+    , mapErrorAnn
     , throwingEither
     , ShowErrorComponent (..)
     ) where
@@ -103,15 +105,25 @@ data ParserErrorBundle
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
-data Error uni fun ann
+data Error uni fun a b
     = ParseErrorE ParserErrorBundle
-    | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
-    | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
+    | UniqueCoherencyErrorE (UniqueError a)
+    | TypeErrorE (TypeError (Term TyName Name uni fun b) uni fun a)
+    | NormCheckErrorE (NormCheckError TyName Name uni fun a)
     | FreeVariableErrorE FreeVariableError
-    deriving stock (Eq, Generic, Functor)
+    deriving stock (Eq, Generic)
     deriving anyclass (NFData)
-deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
+deriving stock instance
+    (Show fun, Show a, Show b, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
+    Show (Error uni fun a b)
+
+mapErrorAnn :: (a -> a') -> Error uni fun a b -> Error uni fun a' b
+mapErrorAnn f = \case
+    ParseErrorE x           -> ParseErrorE x
+    UniqueCoherencyErrorE x -> UniqueCoherencyErrorE (f <$> x)
+    TypeErrorE x            -> TypeErrorE (f <$> x)
+    NormCheckErrorE x       -> NormCheckErrorE (f <$> x)
+    FreeVariableErrorE x    -> FreeVariableErrorE x
 
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
@@ -174,8 +186,8 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
     prettyBy _ (UnknownBuiltinFunctionE ann fun) =
         "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
-            PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty a, Pretty b) =>
+            PrettyBy PrettyConfigPlc (Error uni fun a b) where
     prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
     prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
     prettyBy config (TypeErrorE e)                = prettyBy config e
@@ -207,7 +219,7 @@ instance HasErrorCode (TypeError _a _b _c _d) where
     errorCode KindMismatch {}            = ErrorCode 15
     errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
 
-instance HasErrorCode (Error _a _b _c) where
+instance HasErrorCode (Error _a _b _c _d) where
     errorCode (ParseErrorE e)           = errorCode e
     errorCode (UniqueCoherencyErrorE e) = errorCode e
     errorCode (TypeErrorE e)            = errorCode e
@@ -221,18 +233,18 @@ makeClassyPrisms ''NormCheckError
 makeClassyPrisms ''TypeError
 makeClassyPrisms ''Error
 
-instance AsParserErrorBundle (Error uni fun ann) where
+instance AsParserErrorBundle (Error uni fun a b) where
     _ParserErrorBundle = _ParseErrorE
 
-instance AsUniqueError (Error uni fun ann) ann where
+instance AsUniqueError (Error uni fun a b) a where
     _UniqueError = _UniqueCoherencyErrorE
 
-instance AsTypeError (Error uni fun ann) (Term TyName Name uni fun ()) uni fun ann where
+instance AsTypeError (Error uni fun a b) (Term TyName Name uni fun b) uni fun a where
     _TypeError = _TypeErrorE
 
 instance (tyname ~ TyName, name ~ Name) =>
-            AsNormCheckError (Error uni fun ann) tyname name uni fun ann where
+            AsNormCheckError (Error uni fun a b) tyname name uni fun a where
     _NormCheckError = _NormCheckErrorE
 
-instance AsFreeVariableError (Error uni fun ann) where
+instance AsFreeVariableError (Error uni fun a b) where
     _FreeVariableError = _FreeVariableErrorE
