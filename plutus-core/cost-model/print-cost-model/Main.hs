@@ -49,11 +49,11 @@ data Model
     | LinearInY          LinearFunction
     | LinearInZ          LinearFunction
     | SubtractedSizes    LinearFunction Integer
-    -- ^ Linear model in x-y plus minimum value for case x-y < 0.
+    -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
     | ConstAboveDiagonal Integer Model
     | ConstBelowDiagonal Integer Model
     | LinearOnDiagonal   LinearFunction Integer
-      -- ^ Linear model for x=y together with a constant for case x!=y; we
+      -- ^ Linear model for x=y together with a constant for the case x!=y; we
       -- should probably allow a general model here.
       deriving stock Show
 
