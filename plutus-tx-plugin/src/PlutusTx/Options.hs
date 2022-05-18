@@ -117,47 +117,71 @@ pluginOptions :: Map OptionKey PluginOption
 pluginOptions =
     Map.fromList
         [ let k = "typecheck"
-           in (k, PluginOption typeRep (setTrue k) posDoTypecheck mempty)
+              desc = "Perform type checking during compilation."
+           in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc)
         , let k = "defer-errors"
-           in (k, PluginOption typeRep (setTrue k) posDeferErrors mempty)
+              desc =
+                "If a compilation error happens and this option is turned on, \
+                 \the compilation error is suppressed and the original Haskell \
+                 \expression is replaced with a runtime-error expression."
+           in (k, PluginOption typeRep (setTrue k) posDeferErrors desc)
         , let k = "no-context"
-           in (k, PluginOption typeRep (flag (const 0) k) posContextLevel mempty)
+              desc = "Set context level to 0, which means error messages contain minimum contexts."
+           in (k, PluginOption typeRep (flag (const 0) k) posContextLevel desc)
         , let k = "debug-context"
-           in (k, PluginOption typeRep (flag (const 3) k) posContextLevel mempty)
+              desc = "Set context level to 3, which means error messages contain full contexts."
+           in (k, PluginOption typeRep (flag (const 3) k) posContextLevel desc)
         , let k = "dump-pir"
-           in (k, PluginOption typeRep (setTrue k) posDumpPir mempty)
+              desc = "Dump Plutus IR"
+           in (k, PluginOption typeRep (setTrue k) posDumpPir desc)
         , let k = "dump-plc"
-           in (k, PluginOption typeRep (setTrue k) posDumpPlc mempty)
+              desc = "Dump Typed Plutus Core"
+           in (k, PluginOption typeRep (setTrue k) posDumpPlc desc)
         , let k = "dump-uplc"
-           in (k, PluginOption typeRep (setTrue k) posDumpUPlc mempty)
+              desc = "Dump Untyped Plutus Core"
+           in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc)
         , let k = "optimize"
-           in (k, PluginOption typeRep (setTrue k) posOptimize mempty)
+              desc = "Run optimization passes such as simplification and floating let-bindings."
+           in (k, PluginOption typeRep (setTrue k) posOptimize desc)
         , let k = "pedantic"
-           in (k, PluginOption typeRep (setTrue k) posPedantic mempty)
+              desc = "Run type checker after each compilation pass"
+           in (k, PluginOption typeRep (setTrue k) posPedantic desc)
         , let k = "verbose"
-           in (k, PluginOption typeRep (setTrue k) posVerbose mempty)
+              desc = "Set log level to verbose"
+           in (k, PluginOption typeRep (setTrue k) posVerbose desc)
         , let k = "debug"
-           in (k, PluginOption typeRep (setTrue k) posDebug mempty)
+              desc = "Set log level to debug"
+           in (k, PluginOption typeRep (setTrue k) posDebug desc)
         , let k = "max-simplifier-iterations"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterations mempty)
+              desc = "Set the max iterations for the simplifier"
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterations desc)
         , let k = "simplifier-unwrap-cancel"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel mempty)
+              desc = "Run a simplification pass that cancels unwrap/wrap pairs"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc)
         , let k = "simplifier-beta"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta mempty)
+              desc = "Run a simplification pass that performs beta transformations"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta desc)
         , let k = "simplifier-inline"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline mempty)
+              desc = "Run a simplification pass that performs inlining"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc)
         , let k = "simplifier-remove-dead-bindings"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings mempty)
+              desc = "Run a simplification pass that removes dead bindings"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc)
         , let k = "profile-all"
-           in (k, PluginOption typeRep (flag (const All) k) posProfile mempty)
+              desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
+           in (k, PluginOption typeRep (flag (const All) k) posProfile desc)
         , let k = "coverage-all"
-           in (k, PluginOption typeRep (setTrue k) posCoverageAll mempty)
+              desc = "Add all available coverage annotations in the trace output"
+           in (k, PluginOption typeRep (setTrue k) posCoverageAll desc)
         , let k = "coverage-location"
-           in (k, PluginOption typeRep (setTrue k) posCoverageLocation mempty)
+              desc = "Add location coverage annotations in the trace output"
+           in (k, PluginOption typeRep (setTrue k) posCoverageLocation desc)
         , let k = "coverage-boolean"
-           in (k, PluginOption typeRep (setTrue k) posCoverageBoolean mempty)
+              desc = "Add boolean coverage annotations in the trace output"
+           in (k, PluginOption typeRep (setTrue k) posCoverageBoolean desc)
         , let k = "remove-trace"
-           in (k, PluginOption typeRep (setTrue k) posRemoveTrace mempty)
+              desc = "Eliminate calls to ``trace`` from Plutus Core"
+           in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc)
         ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
