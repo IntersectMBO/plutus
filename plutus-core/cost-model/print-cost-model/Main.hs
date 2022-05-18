@@ -69,11 +69,6 @@ data Model
 -}
 
 {- Corece an Aeson Value to an Object (ie, a map) if possible. -}
-objOf :: Value -> Object
-objOf =
-    \case
-     Object o -> o
-     _        -> errorWithoutStackTrace "Failed to get Object"
 
 instance FromJSON Model where
     parseJSON =
@@ -102,6 +97,9 @@ instance FromJSON Model where
                "const_below_diagonal" -> ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
                "linear_on_diagonal"   -> LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
                _                      -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
+
+               where objOf (Object o) = o
+                     objOf _          = errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
