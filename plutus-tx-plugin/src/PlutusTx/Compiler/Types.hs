@@ -32,6 +32,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Language.Haskell.TH.Syntax qualified as TH
+import Prettyprinter
 
 type NameInfo = Map.Map TH.Name GHC.TyThing
 
@@ -57,7 +58,10 @@ data CompileContext uni fun = CompileContext {
 data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
-    deriving stock (Eq)
+    deriving stock (Eq, Show)
+
+instance Pretty ProfileOpts where
+    pretty = viaShow
 
 -- | Coverage options
 -- See Note [Coverage annotations]
