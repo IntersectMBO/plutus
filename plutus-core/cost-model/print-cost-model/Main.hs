@@ -101,7 +101,7 @@ instance FromJSON Model where
                "const_above_diagonal" -> ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
                "const_below_diagonal" -> ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
                "linear_on_diagonal"   -> LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
-               unknown                -> errorWithoutStackTrace $ "Unknown model type " ++ show unknown
+               _                      -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
