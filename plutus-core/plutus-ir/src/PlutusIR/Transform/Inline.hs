@@ -17,6 +17,7 @@ module PlutusIR.Transform.Inline (inline, InlineHints (..)) where
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Core
 import PlutusIR.MkPir
 import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
@@ -315,7 +316,7 @@ maybeAddSubst a s n rhs = do
 
     -- Check whether we've been told specifically to inline this
     hints <- asks _hints
-    let hinted = shouldInline hints a n
+    let hinted = shouldInline hints a n (termAnn rhs')
 
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
@@ -370,13 +371,6 @@ and are used more than once, we are at risk of doing more work or making things 
 
 There are a few things we could do to do this in a more principled way, such as call-site inlining
 based on whether a funciton is fully applied.
-
-For now, we have one special case that is a little questionable: inlining functions whose body is small
-(motivating example: const). This *could* lead to code duplication, but it's a limited enough case that
-we're just going to accept that risk for now. We'll need to be more careful if we inline more functions.
-
-NOTE(MPJ): turns out this *does* lead to moderate size increases. We should fix this with some arity analysis
-and context-sensitive inlining.
 -}
 
 {- Note [Inlining and purity]
@@ -429,22 +423,21 @@ costIsAcceptable = \case
 -- the given term acceptable?
 sizeIsAcceptable :: Term tyname name uni fun a -> Bool
 sizeIsAcceptable = \case
-  Builtin{}      -> True
-  Var{}          -> True
-  Error{}        -> True
-  -- See Note [Inlining criteria]
-  LamAbs _ _ _ t -> sizeIsAcceptable t
-  TyAbs _ _ _ t  -> sizeIsAcceptable t
+  Builtin{}  -> True
+  Var{}      -> True
+  Error{}    -> True
+  LamAbs{}   -> False
+  TyAbs{}    -> False
 
   -- Arguably we could allow these two, but they're uncommon anyway
-  IWrap{}        -> False
-  Unwrap{}       -> False
+  IWrap{}    -> False
+  Unwrap{}   -> False
   -- Constants can be big! We could check the size here and inline if they're
   -- small, but probably not worth it
-  Constant{}     -> False
-  Apply{}        -> False
-  TyInst{}       -> False
-  Let{}          -> False
+  Constant{} -> False
+  Apply{}    -> False
+  TyInst{}   -> False
+  Let{}      -> False
 
 -- | Is this a an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni a -> Bool

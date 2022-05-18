@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+
 -- | Simulating laziness.
 module PlutusTx.Compiler.Laziness where
 
@@ -25,23 +25,23 @@ a simplifier pass. Also, PLC isn't lazy, so combinators work less well.
 -}
 
 delay :: Compiling uni fun m ann => PIRTerm uni fun -> m (PIRTerm uni fun)
-delay body = PIR.TyAbs () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure body
+delay body = PIR.TyAbs AnnOther <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type AnnOther) <*> pure body
 
 delayType :: Compiling uni fun m ann => PIRType uni -> m (PIRType uni)
-delayType orig = PIR.TyForall () <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type ()) <*> pure orig
+delayType orig = PIR.TyForall AnnOther <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type AnnOther) <*> pure orig
 
 delayVar :: Compiling uni fun m ann => PIRVar uni fun -> m (PIRVar uni fun)
-delayVar (PIR.VarDecl () n ty) = do
+delayVar (PIR.VarDecl ann n ty) = do
     ty' <- delayType ty
-    pure $ PIR.VarDecl () n ty'
+    pure $ PIR.VarDecl ann n ty'
 
 force
     :: CompilingDefault uni fun m ann
     => PIRTerm uni fun -> m (PIRTerm uni fun)
 force thunk = do
     a <- liftQuote (freshTyName "dead")
-    let fakeTy = PIR.TyForall () a (PIR.Type ()) (PIR.TyVar () a)
-    pure $ PIR.TyInst () thunk fakeTy
+    let fakeTy = PIR.TyForall AnnOther a (PIR.Type AnnOther) (PIR.TyVar AnnOther a)
+    pure $ PIR.TyInst AnnOther thunk fakeTy
 
 maybeDelay :: Compiling uni fun m ann => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t

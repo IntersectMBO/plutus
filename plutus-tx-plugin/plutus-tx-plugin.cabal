@@ -45,6 +45,7 @@ library
         PlutusTx.Plugin
         PlutusTx.Compiler.Error
     other-modules:
+        PlutusTx.Annotation
         PlutusTx.Compiler.Binders
         PlutusTx.Compiler.Builtins
         PlutusTx.Compiler.Expr
