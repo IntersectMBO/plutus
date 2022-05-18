@@ -38,9 +38,11 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusTx.Options
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 
+import Control.Exception (throwIO)
 import Control.Lens
 import Control.Monad
 import Control.Monad.Except
@@ -50,44 +52,17 @@ import Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
+import Data.Either.Validation
 import Data.Foldable (fold)
 import Data.Functor
-import Data.List (isPrefixOf)
 import Data.Map qualified as Map
-import Data.Maybe (fromMaybe)
 import Data.Set qualified as Set
 import Data.Traversable (for)
 import ErrorCode (HasErrorCode (errorCode))
 import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
-import Text.Read (readMaybe)
-
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
-
-data PluginOptions = PluginOptions {
-    poDoTypecheck                      :: Bool
-    , poDeferErrors                    :: Bool
-    , poContextLevel                   :: Int
-    , poDumpPir                        :: Bool
-    , poDumpPlc                        :: Bool
-    , poDumpUPlc                       :: Bool
-    , poOptimize                       :: Bool
-    , poPedantic                       :: Bool
-    , poVerbose                        :: Bool
-    , poDebug                          :: Bool
-    , poMaxSimplifierIterations        :: Int
-    , poDoSimplifierUnwrapCancel       :: Bool
-    , poDoSimplifierBeta               :: Bool
-    , poDoSimplifierInline             :: Bool
-    , poDoSimplifierRemoveDeadBindings :: Bool
-    , poProfile                        :: ProfileOpts
-    , poCoverage                       :: CoverageOpts
-
-    -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
-    -- Which effectively ignores the trace text.
-    , poRemoveTrace                    :: Bool
-    }
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -124,7 +99,9 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
           -- create simplifier pass to be placed at the front
           simplPass <- mkSimplPass <$> GHC.getDynFlags
           -- instantiate our plugin pass
-          pluginPass <- mkPluginPass <$> parsePluginArgs args
+          pluginPass <- mkPluginPass <$> case parsePluginOptions args of
+              Success opts -> pure opts
+              Failure errs -> liftIO $ throwIO errs
           -- return the pipeline
           pure $
              simplPass
@@ -145,56 +122,6 @@ mkSimplPass flags =
             , GHC.sm_case_case = False
             , GHC.sm_eta_expand = False
             }
-
--- | Parses the arguments that were given to ghc at commandline as "-fplugin-opt PlutusTx.Plugin:arg1"
-parsePluginArgs :: [GHC.CommandLineOption] -> GHC.CoreM PluginOptions
-parsePluginArgs args = do
-    let opts = PluginOptions {
-            poDoTypecheck = notElem' "no-typecheck"
-            , poDeferErrors = elem' "defer-errors"
-            , poContextLevel = if elem' "no-context" then 0 else if elem "debug-context" args then 3 else 1
-            , poDumpPir = elem' "dump-pir"
-            , poDumpPlc = elem' "dump-plc"
-            , poDumpUPlc = elem' "dump-uplc"
-            , poOptimize = notElem' "no-optimize"
-            , poPedantic = elem' "pedantic"
-            , poVerbose = elem' "verbose"
-            , poDebug = elem' "debug"
-            , poMaxSimplifierIterations = maxIterations
-            -- Simplifier Passes
-            , poDoSimplifierUnwrapCancel = notElem' "no-simplifier-unwrap-cancel"
-            , poDoSimplifierBeta = notElem' "no-simplifier-beta"
-            , poDoSimplifierInline = notElem' "no-simplifier-inline"
-            , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
-            -- profiling: @profile-all@ turns on profiling for everything
-            , poProfile =
-                if elem' "profile-all"
-                then All
-                else None
-            , poCoverage = CoverageOpts . Set.fromList $
-                   [ l | l <- [minBound .. maxBound], elem' "coverage-all" ]
-                ++ [ LocationCoverage  | elem' "coverage-location"  ]
-                ++ [ BooleanCoverage  | elem' "coverage-boolean"  ]
-            , poRemoveTrace = elem' "remove-trace"
-            }
-    -- TODO: better parsing with failures
-    pure opts
-    where
-        elem' :: String -> Bool
-        elem' = flip elem args
-        notElem' :: String -> Bool
-        notElem' = flip notElem args
-        prefix :: String
-        prefix = "max-simplifier-iterations="
-        defaultIterations :: Int
-        defaultIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-        maxIterations :: Int
-        maxIterations = case filter (isPrefixOf prefix) args of
-            match : _ ->
-                let val = drop (length prefix) match in
-                    fromMaybe defaultIterations (readMaybe val)
-            _ -> defaultIterations
-
 
 {- Note [Marker resolution]
 We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
@@ -316,7 +243,7 @@ compileMarkedExprOrDefer :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.De
 compileMarkedExprOrDefer locStr codeTy origE = do
     opts <- asks pcOpts
     let compileAct = compileMarkedExpr locStr codeTy origE
-    if poDeferErrors opts
+    if _posDeferErrors opts
       -- TODO: we could perhaps move this catchError to the "runExceptT" module-level, but
       -- it leads to uglier code and difficulty of handling other pure errors
       then compileAct `catchError` emitRuntimeError codeTy
@@ -327,7 +254,7 @@ emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywher
                  => GHC.Type -> CompileError uni fun Ann -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
-    let shown = show $ PP.pretty (pruneContext (poContextLevel opts) e)
+    let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
     pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
@@ -345,8 +272,12 @@ compileMarkedExpr locStr codeTy origE = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
+    let coverage = CoverageOpts . Set.fromList $
+                   [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
+                ++ [ LocationCoverage  | _posCoverageLocation opts  ]
+                ++ [ BooleanCoverage  | _posCoverageBoolean opts  ]
     let ctx = CompileContext {
-            ccOpts = CompileOptions {coProfile=poProfile opts,coCoverage=poCoverage opts,coRemoveTrace=poRemoveTrace opts},
+            ccOpts = CompileOptions {coProfile=_posProfile opts,coCoverage=coverage,coRemoveTrace=_posRemoveTrace opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,
@@ -411,48 +342,48 @@ runCompiler moduleName opts expr = do
                 PIR.Original AnnInline -> True
                 _                      -> False
     -- Compilation configuration
-    let pirTcConfig = if poDoTypecheck opts
+    let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
                       then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
-                 & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-                 & set (PIR.ccOpts . PIR.coPedantic) (poPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (poVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (poDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (poMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
+                 & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
-                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
         uplcSimplOpts = UPLC.defaultSimplifyOpts
-            & set UPLC.soMaxSimplifierIterations (poMaxSimplifierIterations opts)
+            & set UPLC.soMaxSimplifierIterations (_posMaxSimplifierIterations opts)
             & set UPLC.soInlineHints hints
 
     -- GHC.Core -> Pir translation.
     pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
-    when (poDumpPir opts) . liftIO $
+    when (_posDumpPir opts) . liftIO $
         dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
-    when (poDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
+    when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
-    when (poDoTypecheck opts) . void $
+    when (_posDoTypecheck opts) . void $
         liftExcept $ PLC.typecheckPipeline plcTcConfig (plcP $> AnnOther)
 
     uplcT <- liftExcept $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT
-    when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
