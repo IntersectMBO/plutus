@@ -75,13 +75,6 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
    because we can't fit a sensible model to something like divideInteger, where
    costs really are zero above the diagonal but very complicated below it).
 -}
-data Support
-    = Everywhere
-    | OnDiagonal
-    | BelowOrOnDiagonal
-    | AboveOrOnDiagonal
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
 
 data BuiltinCostModelBase f =
     BuiltinCostModelBase

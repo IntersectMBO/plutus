@@ -701,18 +701,9 @@ executable print-cost-model
                  -Wincomplete-record-updates -Wredundant-constraints -Widentities
     build-depends:
         base >=4.9 && <5,
-        plutus-core -any,
         aeson -any,
-        aeson-pretty -any,
         bytestring -any,
-        cassava -any,
-        exceptions -any,
-        extra -any,
-        scientific -any,
-        text -any,
-        optparse-applicative -any,
-        vector -any,
-        directory -any
+        text -any
 
 library index-envs
     import: lang
