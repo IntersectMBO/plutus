@@ -88,19 +88,19 @@ instance FromJSON Model where
                 We could do that once here and rely on laziness to save us in the
                 cases when we don't have an Object, but that looks a bit misleading. -}
              case ty of
-               "constant_cost"        -> ConstantCost       <$> parseJSON args
-               "added_sizes"          -> AddedSizes         <$> parseJSON args
-               "min_size"             -> MinSize            <$> parseJSON args
-               "max_size"             -> MaxSize            <$> parseJSON args
-               "multiplied_sizes"     -> MultipliedSizes    <$> parseJSON args
-               "linear_cost"          -> LinearCost         <$> parseJSON args
-               "linear_in_x"          -> LinearInX          <$> parseJSON args
-               "linear_in_y"          -> LinearInY          <$> parseJSON args
-               "linear_in_z"          -> LinearInZ          <$> parseJSON args
-               "subtracted_sizes"     -> SubtractedSizes    <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal" -> ConstAboveDiagonal <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal" -> ConstBelowDiagonal <$> objOf args .: "constant" <*> objOf args .: "model"
-               "linear_on_diagonal"   -> LinearOnDiagonal   <$> parseJSON args <*> objOf args .: "constant"
+               "constant_cost"        -> ConstantCost          <$> parseJSON args
+               "added_sizes"          -> AddedSizes            <$> parseJSON args
+               "min_size"             -> MinSize               <$> parseJSON args
+               "max_size"             -> MaxSize               <$> parseJSON args
+               "multiplied_sizes"     -> MultipliedSizes       <$> parseJSON args
+               "linear_cost"          -> LinearCost            <$> parseJSON args
+               "linear_in_x"          -> LinearInX             <$> parseJSON args
+               "linear_in_y"          -> LinearInY             <$> parseJSON args
+               "linear_in_z"          -> LinearInZ             <$> parseJSON args
+               "subtracted_sizes"     -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
+               "const_above_diagonal" -> ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
+               "const_below_diagonal" -> ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
+               "linear_on_diagonal"   -> LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
                unknown                -> errorWithoutStackTrace $ "Unknown model type " ++ show unknown
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
