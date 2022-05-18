@@ -68,7 +68,7 @@ data Model
    nice to rationalise this a bit, but it may be too late to do that.
 -}
 
-{- Corece an Aeson Value to an Object (ie, a map) if possible..-}
+{- Corece an Aeson Value to an Object (ie, a map) if possible. -}
 getObject :: Value -> Object
 getObject = \case
             Object o -> o
