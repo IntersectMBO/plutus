@@ -24,6 +24,7 @@ import Data.Map qualified as Map
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
+import Data.Type.Equality
 import GhcPlugins qualified as GHC
 import Prettyprinter
 import PyF (fmt)
@@ -111,13 +112,12 @@ Did you mean one of:
 {- | Definition of plugin options.
 
  TODO: write a description for each option.
- TODO: only define the possitive version and automaticalaly get tne "no-" version.
 -}
 pluginOptions :: Map OptionKey PluginOption
 pluginOptions =
     Map.fromList
-        [ let k = "no-typecheck"
-           in (k, PluginOption typeRep (setFalse k) posDoTypecheck mempty)
+        [ let k = "typecheck"
+           in (k, PluginOption typeRep (setTrue k) posDoTypecheck mempty)
         , let k = "defer-errors"
            in (k, PluginOption typeRep (setTrue k) posDeferErrors mempty)
         , let k = "no-context"
@@ -130,8 +130,8 @@ pluginOptions =
            in (k, PluginOption typeRep (setTrue k) posDumpPlc mempty)
         , let k = "dump-uplc"
            in (k, PluginOption typeRep (setTrue k) posDumpUPlc mempty)
-        , let k = "no-optimize"
-           in (k, PluginOption typeRep (setFalse k) posOptimize mempty)
+        , let k = "optimize"
+           in (k, PluginOption typeRep (setTrue k) posOptimize mempty)
         , let k = "pedantic"
            in (k, PluginOption typeRep (setTrue k) posPedantic mempty)
         , let k = "verbose"
@@ -140,14 +140,14 @@ pluginOptions =
            in (k, PluginOption typeRep (setTrue k) posDebug mempty)
         , let k = "max-simplifier-iterations"
            in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterations mempty)
-        , let k = "no-simplifier-unwrap-cancel"
-           in (k, PluginOption typeRep (setFalse k) posDoSimplifierUnwrapCancel mempty)
-        , let k = "no-simplifier-beta"
-           in (k, PluginOption typeRep (setFalse k) posDoSimplifierBeta mempty)
-        , let k = "no-simplifier-inline"
-           in (k, PluginOption typeRep (setFalse k) posDoSimplifierInline mempty)
-        , let k = "no-simplifier-remove-dead-bindings"
-           in (k, PluginOption typeRep (setFalse k) posDoSimplifierRemoveDeadBindings mempty)
+        , let k = "simplifier-unwrap-cancel"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel mempty)
+        , let k = "simplifier-beta"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta mempty)
+        , let k = "simplifier-inline"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline mempty)
+        , let k = "simplifier-remove-dead-bindings"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings mempty)
         , let k = "profile-all"
            in (k, PluginOption typeRep (flag (const All) k) posProfile mempty)
         , let k = "coverage-all"
@@ -165,9 +165,6 @@ flag f k = maybe (Success f) (Failure . UnexpectedValue k)
 
 setTrue :: OptionKey -> Maybe OptionValue -> Validation ParseError (Bool -> Bool)
 setTrue = flag (const True)
-
-setFalse :: OptionKey -> Maybe OptionValue -> Validation ParseError (Bool -> Bool)
-setFalse = flag (const False)
 
 intOption :: OptionKey -> Maybe OptionValue -> Validation ParseError (Int -> Int)
 intOption k = \case
@@ -205,9 +202,14 @@ processOne ::
     OptionKey ->
     Maybe OptionValue ->
     Validation ParseError (PluginOptions -> PluginOptions)
-processOne key val = case Map.lookup key pluginOptions of
-    Just (PluginOption _ f field _) -> over field <$> f val
-    Nothing ->
+processOne key val
+    | Just (PluginOption _ f field _) <- Map.lookup key pluginOptions = over field <$> f val
+    -- For each boolean option there is a "no-" version for disabling it.
+    | Just key' <- Text.stripPrefix "no-" key
+    , Just (PluginOption tr f field _) <- Map.lookup key' pluginOptions
+    , Just Refl <- testEquality tr (typeRep @Bool) =
+        over field . (not .) <$> f val
+    | otherwise =
         let suggs =
                 Text.pack
                     <$> GHC.fuzzyMatch (Text.unpack key) (Text.unpack <$> Map.keys pluginOptions)
