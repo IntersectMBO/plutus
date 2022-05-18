@@ -444,7 +444,7 @@ toTypedTermExample term = TypedTermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
-        PLC.typecheckPipeline tcConfig program
+        PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> errorWithoutStackTrace $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy

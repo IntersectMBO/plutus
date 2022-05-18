@@ -10,6 +10,7 @@ module PlutusIR.Parser
     , parseProgram
     , Parser
     , SourcePos
+    , topSourcePos
     ) where
 
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
