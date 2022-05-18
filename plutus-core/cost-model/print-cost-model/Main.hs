@@ -191,7 +191,9 @@ usage :: IO a
 usage = do
   prog <- getProgName
   printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
+  printf "\n"
   printf "Print a JSON cost model file in readable form.\n"
+  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments.\n"
   printf "Input is read from stdin if no file is given and --default is not specified.\n"
   printf "\n"
   printf "Options (later options take precedence over earlier ones):\n"
