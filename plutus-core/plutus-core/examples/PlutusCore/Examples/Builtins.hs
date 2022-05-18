@@ -99,6 +99,7 @@ data ExtensionFun
     | IdAssumeBool
     | IdAssumeCheckBool
     | IdSomeConstantBool
+    | IdIntegerAsBool
     | IdFInteger
     | IdList
     | IdRank2
@@ -107,6 +108,7 @@ data ExtensionFun
     | ExpensiveSucc
     | FailingPlus
     | ExpensivePlus
+    | IsConstant
     | UnsafeCoerce
     | UnsafeCoerceEl
     | Undefined
@@ -222,6 +224,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
             _                                              -> EvaluationFailure
 
+    toBuiltinMeaning IdIntegerAsBool =
+        makeBuiltinMeaning
+            idIntegerAsBool
+            mempty  -- Whatever.
+      where
+        idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
+        idIntegerAsBool = \case
+            con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
+            _                                                    -> EvaluationFailure
+
     toBuiltinMeaning IdFInteger =
         makeBuiltinMeaning
             (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
@@ -263,10 +275,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> unExRestrictingBudget enormousBudget)
 
+    toBuiltinMeaning IsConstant =
+        makeBuiltinMeaning
+            isConstantPlc
+            mempty  -- Whatever.
+      where
+        -- The type signature is just for clarity, it's not required.
+        isConstantPlc :: Opaque val a -> Bool
+        isConstantPlc = isRight . asConstant
+
     toBuiltinMeaning UnsafeCoerce =
         makeBuiltinMeaning
-            (Opaque . unOpaque)
+            unsafeCoercePlc
             (\_ _ -> ExBudget 1 0)
+      where
+        -- The type signature is just for clarity, it's not required.
+        unsafeCoercePlc :: Opaque val a -> Opaque val b
+        unsafeCoercePlc = Opaque . unOpaque
 
     toBuiltinMeaning UnsafeCoerceEl =
         makeBuiltinMeaning
