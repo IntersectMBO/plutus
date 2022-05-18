@@ -69,10 +69,11 @@ data Model
 -}
 
 {- Corece an Aeson Value to an Object (ie, a map) if possible. -}
-getObject :: Value -> Object
-getObject = \case
-            Object o -> o
-            _        -> errorWithoutStackTrace "Failed to get Object"
+objOf :: Value -> Object
+objOf =
+    \case
+     Object o -> o
+     _        -> errorWithoutStackTrace "Failed to get Object"
 
 instance FromJSON Model where
     parseJSON =
@@ -83,9 +84,9 @@ instance FromJSON Model where
              {- We always have an "arguments" field which is a Value.  Usually it's
                 actually an Object (ie, a map) representing a linear function, but
                 sometimes it contains other data, and in those cases we need to
-                coerce it to an Object to extract the relevant date. We could do
-                that once here and rely on laziness to save us in the cases when
-                we don't have an Object, but that looks a bit misleading. -}
+                coerce it to an Object (with objOf) to extract the relevant date.
+                We could do that once here and rely on laziness to save us in the
+                cases when we don't have an Object, but that looks a bit misleading. -}
              case ty of
                "constant_cost"        -> ConstantCost       <$> parseJSON args
                "added_sizes"          -> AddedSizes         <$> parseJSON args
@@ -96,16 +97,11 @@ instance FromJSON Model where
                "linear_in_x"          -> LinearInX          <$> parseJSON args
                "linear_in_y"          -> LinearInY          <$> parseJSON args
                "linear_in_z"          -> LinearInZ          <$> parseJSON args
-               "subtracted_sizes"     -> SubtractedSizes    <$> parseJSON args <*> args' .: "minimum"
-                                             where args' :: Object = getObject args
-               "const_above_diagonal" -> ConstAboveDiagonal <$> args' .: "constant" <*> args' .: "model"
-                                             where args' :: Object = getObject args
-               "const_below_diagonal" -> ConstBelowDiagonal <$> args' .: "constant" <*> args' .: "model"
-                                             where args' :: Object = getObject args
-               "linear_on_diagonal"   -> LinearOnDiagonal   <$> parseJSON args <*> args' .: "constant"
-                                             where args' :: Object = getObject args
-               unknown                  -> errorWithoutStackTrace $ "Unknown model type " ++ show unknown
-
+               "subtracted_sizes"     -> SubtractedSizes    <$> parseJSON args <*> objOf args .: "minimum"
+               "const_above_diagonal" -> ConstAboveDiagonal <$> objOf args .: "constant" <*> objOf args .: "model"
+               "const_below_diagonal" -> ConstBelowDiagonal <$> objOf args .: "constant" <*> objOf args .: "model"
+               "linear_on_diagonal"   -> LinearOnDiagonal   <$> parseJSON args <*> objOf args .: "constant"
+               unknown                -> errorWithoutStackTrace $ "Unknown model type " ++ show unknown
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
@@ -126,11 +122,14 @@ renderLinearFunction (LinearFunction intercept slope) var =
     if intercept == 0 then stringOfMonomial slope var
     else printf "%d + %s" intercept (stringOfMonomial slope var)
         where stringOfMonomial s v =
-                  if s == 1 then v
+                  if s == 1 then unparen v  -- Just so we don't get things like 5 + (x+y).
                   else if s == -1 then "-" ++ v
                   else printf "%d*%s" s v
                   -- Print the slope even if it's zero, so we know the
-                  -- function's not constant
+                  -- function's not constant.
+              unparen v = if v /= "" && head v == '(' && last v == ')'
+                          then tail $ init v
+                          else v
 
 renderModel :: Model -> [String]
 renderModel =
@@ -194,14 +193,15 @@ usage :: IO a
 usage = do
   prog <- getProgName
   printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
-  printf "Print a JSON cost model file in readable form\n"
-  printf "Options:\n"
+  printf "Print a JSON cost model file in readable form.\n"
+  printf "Input is read from stdin if no file is given and --default is not specified.\n"
+  printf "\n"
+  printf "Options (later options take precedence over earlier ones):\n"
   printf "   -c, --cpu (default):  print the CPU costing functions for each built-in function\n"
   printf "   -m, --mem --memory:  print the memory costing functions for each built-in function\n"
   printf "   -d, --default: look for the default cost model in %s\n" defaultCostModelPath
   printf "    and print its contents if found\n"
   printf "   <filename>: read and print the cost model in the given file\n"
-  printf "Input is read from stdin if no file is given and --default is not specified\n"
   exitSuccess
 
 parseArgs :: [String] -> IO (ModelComponent, Maybe String)
