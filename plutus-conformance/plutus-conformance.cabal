@@ -36,6 +36,32 @@ library
     visibility: public
     hs-source-dirs: src/
     exposed-modules:
+        Common
+    build-depends:
+        base -any,
+        plutus-core -any,
+        tasty -any,
+        tasty-golden -any,
+        tasty-hunit -any,
+        text -any,
+        megaparsec -any,
+        mtl -any
+
+executable add-test-output
+    import: lang
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs: add-test-output/
+    other-modules:
+    build-depends:
+        base >=4.9 && <5,
+        directory -any,
+        tasty-golden -any,
+        text -any,
+        plutus-conformance -any,
+        plutus-core,
+        megaparsec -any,
+        optparse-applicative -any
 
 test-suite uplc-eval-test
     import: lang
