@@ -11,7 +11,6 @@ module Test.Tasty.Extras
     , nestedGoldenVsTextM
     , nestedGoldenVsDoc
     , nestedGoldenVsDocM
-    , topSourcePos
     ) where
 
 import PlutusPrelude
@@ -20,7 +19,6 @@ import Control.Monad.Reader
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import PlutusCore (topSourcePos)
 import System.FilePath ((</>))
 import Test.Tasty
 import Test.Tasty.Golden

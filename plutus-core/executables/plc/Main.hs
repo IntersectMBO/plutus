@@ -116,7 +116,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
   prog <- getProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
-    PLC.typecheckPipeline tcConfig (void prog)
+    PLC.inferTypeOfProgram tcConfig (void prog)
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlcDef e
