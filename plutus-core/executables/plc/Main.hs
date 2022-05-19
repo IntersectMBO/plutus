@@ -7,6 +7,7 @@ import Common
 import Parsers
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty qualified as PP
 
 import UntypedPlutusCore qualified as UPLC (eraseProgram)

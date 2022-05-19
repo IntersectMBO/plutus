@@ -4,7 +4,7 @@ module Plutus.V2.Ledger.EvaluationContext
     ) where
 
 import Plutus.V1.Ledger.EvaluationContext as V1.EvaluationContext hiding (costModelParamNames)
-import PlutusCore as Plutus (defaultCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus (defaultCostModelParams)
 
 import Data.Map qualified as Map
 import Data.Maybe

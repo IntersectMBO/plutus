@@ -1,6 +1,5 @@
 -- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE PatternSynonyms    #-}
 
 module PlutusCore
@@ -118,18 +117,6 @@ module PlutusCore
     , kindSize
     , programSize
     , serialisedSize
-    -- * Budgeting defaults
-    , defaultBuiltinCostModel
-    , defaultBuiltinsRuntime
-    , defaultCekCostModel
-    , defaultCekMachineCosts
-    , defaultCekParameters
-    , defaultCostModelParams
-    , defaultUnliftingMode
-    , unitCekParameters
-    -- * CEK machine costs
-    , cekMachineCostsPrefix
-    , CekMachineCosts (..)
     ) where
 
 
@@ -139,7 +126,6 @@ import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Flat ()
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -149,12 +135,13 @@ import PlutusCore.Rename
 import PlutusCore.Size
 import PlutusCore.TypeCheck as TypeCheck
 
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-
 -- | Take one PLC program and apply it to another.
 applyProgram
     :: Monoid a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
-applyProgram (Program a1 _ t1) (Program a2 _ t2) = Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)
+-- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
+-- what a mess. Needs to be fixed.
+applyProgram (Program a1 _ t1) (Program a2 _ t2) =
+    Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)

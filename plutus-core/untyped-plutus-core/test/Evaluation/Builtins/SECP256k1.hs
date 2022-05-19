@@ -29,7 +29,9 @@ import Hedgehog (Gen, PropertyT, annotateShow, cover, failure, forAllWith, (===)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature),
-                   EvaluationResult (EvaluationFailure, EvaluationSuccess), defaultCekParameters)
+                   EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import Text.Show.Pretty (ppShow)
 

@@ -26,6 +26,7 @@ import PlutusCore.Generators.Internal.Utils
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Normalize
 import PlutusCore.Pretty
