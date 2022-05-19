@@ -321,6 +321,8 @@ defineBuiltinTerms = do
             ta <- freshTyName "a"
             t <- freshName "t"
             a <- freshName "a"
+            -- We always want to inline `\_ a -> a` (especially because the first element is a
+            -- string), hence `AnnInline`.
             pure $ PIR.tyAbs AnnInline ta (PLC.Type AnnOther)
                  $ PIR.mkIterLamAbs
                     [ PIR.VarDecl AnnInline t (PIR.mkTyBuiltin @_ @Text AnnOther)
@@ -402,5 +404,6 @@ delayedErrorFunc = do
     n <- safeFreshTyName "a"
     t <- liftQuote (freshName "thunk")
     let ty = PLC.toTypeAst $ Proxy @()
+    -- We always want to inline `error :: forall a . () -> a`, hence `AnnInline`.
     pure $ PIR.TyAbs AnnInline n (PIR.Type AnnOther) $
         PIR.LamAbs AnnInline t (ty $> AnnOther) $ PIR.Error AnnOther (PIR.TyVar AnnOther n)

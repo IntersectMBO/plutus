@@ -551,7 +551,7 @@ entryExitTracingInside ::
     PIR.Name
     -> T.Text
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-    -> PLC.Type PIR.TyName PLC.DefaultUni Ann  -- (zliu41) ???
+    -> PLCType PLC.DefaultUni
     -> PIRTerm PLC.DefaultUni PLC.DefaultFun
 entryExitTracingInside lamName displayName = go mempty
     where
