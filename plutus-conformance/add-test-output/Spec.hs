@@ -78,6 +78,8 @@ helpText = unlines
   , " It will evaluate and create output files for them."
   ]
 
+shownEvaluationFailure :: String
+shownEvaluationFailure = "evaluation failure"
 
 main :: IO ()
 main = do
@@ -106,11 +108,11 @@ main = do
                   Right EvaluationFailure      -> do
                     -- warn the user that the file failed to evaluate
                     putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                    writeFile outFilePath (show (EvaluationFailure :: EvaluationResult UplcProg))
+                    writeFile outFilePath shownEvaluationFailure
                   Left _ -> do
                     -- warn the user that exception is thrown
                     putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
-                    writeFile outFilePath "Evaluation failure"
+                    writeFile outFilePath shownEvaluationFailure
           )
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."

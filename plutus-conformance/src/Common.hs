@@ -5,7 +5,6 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult)
 import PlutusCore.Name (Name)
-import Prelude
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 
