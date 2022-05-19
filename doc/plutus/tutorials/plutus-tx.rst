@@ -212,17 +212,8 @@ The output is the encoded version of ``False``.
    :start-after: BLOCK10
    :end-before: BLOCK11
 
-Plutus Tx Plugin Options
-------------------------
+Plutus Tx Compiler Options
+--------------------------
 
-These options can be passed to the plugin via the ``OPTIONS_GHC`` pragma, for instance
-
-.. code-block:: haskell
-
-   {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-uplc #-}
-   {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=3 #-}
-
-For each boolean option, you can add a ``no-`` prefix to switch it off, such as
-``no-typecheck``, ``no-simplifier-beta``.
-
-.. include:: ./plugin-options
+A number of options can be passed to the Plutus Tx compiler. See :ref:`plutus_tx_options`
+for details.

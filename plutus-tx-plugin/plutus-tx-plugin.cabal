@@ -90,11 +90,12 @@ executable gen-plugin-opts-doc
     build-depends:
         PyF -any,
         base >=4.7 && <5,
-        containers,
-        lens,
+        containers -any,
+        lens -any,
+        optparse-applicative -any,
         plutus-tx-plugin,
-        prettyprinter,
-        text
+        prettyprinter -any,
+        text -any
     default-language: Haskell2010
 
 test-suite plutus-tx-tests
