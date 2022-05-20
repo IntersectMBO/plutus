@@ -1,9 +1,10 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Main where
+
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and print it in readable form. -}
+module Main where
 
 import Paths_plutus_core
 
