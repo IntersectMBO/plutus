@@ -358,7 +358,7 @@ runCompiler moduleName opts expr = do
             & set UPLC.soInlineHints hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT (const ()) (const ()) (const ()) (const ()) $ compileExprWithDefs expr
+    pirT <- PIR.runDefT () $ compileExprWithDefs expr
     when (_posDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.

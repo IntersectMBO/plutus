@@ -66,7 +66,7 @@ safeLift
        )
     => a -> m (UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift x = do
-    lifted <- liftQuote $ runDefT (const ()) (const ()) (const ()) (const ()) $ Lift.lift x
+    lifted <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = set (ccOpts . coMaxSimplifierIterations) 0 (toDefaultCompilationCtx tcConfig)
@@ -166,7 +166,7 @@ typeCheckAgainst p plcTerm = do
     term <- PIR.embed <$> PLC.rename plcTerm
     -- We need to run Def *before* applying to the term, otherwise we may refer to abstract
     -- types and we won't match up with the term.
-    idFun <- liftQuote $ runDefT (const ()) (const ()) (const ()) (const ()) $ do
+    idFun <- liftQuote $ runDefT () $ do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term

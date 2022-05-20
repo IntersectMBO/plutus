@@ -30,7 +30,7 @@ module PlutusIR.Compiler.Definitions (DefT
                                               , lookupConstructors
                                               , lookupDestructor) where
 
-import PlutusIR
+import PlutusIR as PIR
 import PlutusIR.MkPir hiding (error)
 
 import PlutusCore.MkPlc qualified as PLC
@@ -80,23 +80,17 @@ instance MonadState s m => MonadState s (DefT key uni fun ann m) where
     put = lift . put
     state = lift . state
 
-runDefT ::
-    (Monad m, Ord key) =>
-    (TermDefWithStrictness uni fun ann -> ann) ->
-    (TypeDef TyName uni ann -> ann) ->
-    (DatatypeDef TyName Name uni fun ann -> ann) ->
-    (Term TyName Name uni fun ann -> ann) ->
-    DefT key uni fun ann m (Term TyName Name uni fun ann) ->
-    m (Term TyName Name uni fun ann)
-runDefT mkTermAnn mkTypeAnn mkDataAnn mkResAnn act = do
+-- TODO: provenances
+runDefT :: (Monad m, Ord key) => ann -> DefT key uni fun ann m (Term TyName Name uni fun ann) -> m (Term TyName Name uni fun ann)
+runDefT x act = do
     (term, s) <- runStateT (unDefT act) (DefState mempty mempty mempty mempty)
-    pure $ wrapWithDefs (mkResAnn term) (bindingDefs s) term
+    pure $ wrapWithDefs x (bindingDefs s) term
         where
             bindingDefs defs =
                 let
-                    terms = mapDefs (\d -> TermBind (mkTermAnn d) (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
-                    types = mapDefs (\d -> TypeBind (mkTypeAnn d) (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
-                    datatypes = mapDefs (\d -> DatatypeBind (mkDataAnn d) (PLC.defVal d)) (_datatypeDefs defs)
+                    terms = mapDefs (\d -> TermBind (_varDeclAnn (defVar d)) (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
+                    types = mapDefs (\d -> TypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
+                    datatypes = mapDefs (\d -> DatatypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVal d)) (_datatypeDefs defs)
                 in terms `Map.union` types `Map.union` datatypes
 
 -- | Given the definitions in the program, create a topologically ordered list of the

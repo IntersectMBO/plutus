@@ -56,7 +56,7 @@ data LetKind = RecTerms | NonRecTerms | Types | DataTypes
 compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
 compileLets kind t = getEnclosing >>= \p ->
     -- See Note [Extra definitions while compiling let-bindings]
-    runDefT (const p) (const p) (const p) (const p) $ transformMOf termSubterms (compileLet kind) t
+    runDefT p $ transformMOf termSubterms (compileLet kind) t
 
 compileLet :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileLet kind = \case
