@@ -167,6 +167,10 @@ You can update it xref:update-nix-pins[with the Nix flake commands].
 
 == Working conventions
 
+=== Style guide
+
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions.
+
 === Code is communication
 
 We are a relatively large team working on sometimes quite abstruse problems.
