@@ -5,6 +5,8 @@ module Main where
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and print it in readable form. -}
 
+import Paths_plutus_core
+
 import Data.Aeson
 import Data.Aeson.Key as Key (toString)
 import Data.Aeson.KeyMap qualified as KeyMap
@@ -16,9 +18,6 @@ import System.Exit
 import Text.Printf (printf)
 
 data ModelComponent = Cpu | Memory
-
-defaultCostModelPath :: String
-defaultCostModelPath = "./plutus-core/cost-model/data/builtinCostModel.json"
 
 
 ---------------- Types representing cost mode entries and functions for JSON parsing ----------------
@@ -185,8 +184,8 @@ printModel component width (name, CpuAndMemoryModel cpu mem) = do
 
 ---------------- Command line processing ----------------
 
-usage :: IO a
-usage = do
+usage :: FilePath -> IO a
+usage defaultCostModelPath = do
   prog <- getProgName
   printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
   printf "\n"
@@ -197,13 +196,14 @@ usage = do
   printf "Options (later options take precedence over earlier ones):\n"
   printf "   -c, --cpu (default):  print the CPU costing functions for each built-in function\n"
   printf "   -m, --mem --memory:  print the memory costing functions for each built-in function\n"
-  printf "   -d, --default: look for the default cost model in %s\n" defaultCostModelPath
-  printf "    and print its contents if found\n"
+  printf "   -d, --default: print the contents of the default cost model in\n"
+  printf "      %s\n" defaultCostModelPath
   printf "   <filename>: read and print the cost model in the given file\n"
   exitSuccess
 
-parseArgs :: [String] -> IO (ModelComponent, Maybe String)
-parseArgs args = parse args (Cpu, Nothing)
+parseArgs :: [String] -> FilePath -> IO (ModelComponent, Maybe String)
+parseArgs args defaultCostModelPath =
+  parse args (Cpu, Nothing)
     where parse [] result = pure result
           parse (arg:rest) (component, input) =
               case arg of
@@ -214,19 +214,20 @@ parseArgs args = parse args (Cpu, Nothing)
                       | elem arg ["-d", "--default"] = parse rest (component, Just defaultCostModelPath)
                       | elem arg ["-c", "--cpu"]     = parse rest (Cpu, input)
                       | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
-                      | elem arg ["-h", "--help"] = usage
-                      | otherwise = printf "Error: unknown option %s\n" arg >> usage
+                      | elem arg ["-h", "--help"] = usage defaultCostModelPath
+                      | otherwise = printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
 
 main :: IO ()
 main = do
   args <- getArgs
-  (component, input) <- parseArgs args
+  defaultCostModelPath <- getDataFileName "cost-model/data/builtinCostModel.json"
+  (component, input) <- parseArgs args defaultCostModelPath
   bytes <- case input of
              Nothing   -> BSL.getContents  -- Read from stdin
              Just file -> BSL.readFile file
   case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
-   Left err -> putStrLn err
-   Right m  ->
+    Left err -> putStrLn err
+    Right m  ->
        let  l = KeyMap.toList m
             width = 1 + (maximum $ fmap (length . toString . fst) l)
        -- ^ Width for indentation, leaving at least one space after the name of each builtin.
