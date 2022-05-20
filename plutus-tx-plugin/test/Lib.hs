@@ -22,6 +22,7 @@ import PlutusCore.Test
 import PlutusTx.Code
 
 import PlutusCore qualified as PLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 
 import UntypedPlutusCore qualified as UPLC
