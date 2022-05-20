@@ -53,7 +53,7 @@ import Flat (Flat, flat, unflat)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
-import Data.Foldable (fold)
+import Data.Foldable (fold, toList)
 import Data.Functor
 import Data.Map qualified as Map
 import Data.Set qualified as Set
@@ -328,7 +328,7 @@ runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
-    let hints = UPLC.InlineHints $ \annVar _ annRhs -> case annVar of
+    let hints = UPLC.InlineHints $ \ann _ -> case ann of
             -- See Note [The problem of inlining destructors]
             -- We want to inline destructors, but even in UPLC our inlining heuristics
             -- aren't quite smart enough to tell that they're good inlining candidates,
@@ -338,9 +338,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> case annRhs of
-                PIR.Original AnnInline -> True
-                _                      -> False
+            _                                      -> AnnInline `elem` toList ann
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig

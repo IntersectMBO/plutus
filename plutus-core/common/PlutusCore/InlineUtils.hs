@@ -1,18 +1,9 @@
-module PlutusCore.InlineUtils (InlineHints (..), ShouldInline) where
+module PlutusCore.InlineUtils (InlineHints(..)) where
 
 import Data.Semigroup (Any (..))
 
-type ShouldInline name a =
-    -- | Binder annotation
-    a ->
-    -- | Binder name
-    name ->
-    -- | RHS annotation
-    a ->
-    Bool
-
-newtype InlineHints name a = InlineHints {shouldInline :: ShouldInline name a}
-    deriving (Semigroup, Monoid) via (a -> name -> a -> Any)
+newtype InlineHints name a = InlineHints { shouldInline :: a -> name -> Bool }
+    deriving (Semigroup, Monoid) via (a -> name -> Any)
 
 instance Show (InlineHints name a) where
     show _ = "<inline hints>"

@@ -186,7 +186,7 @@ maybeAddSubst a n rhs = do
 
     -- Check whether we've been told specifically to inline this
     hints <- asks _hints
-    let hinted = shouldInline hints a n (termAnn rhs')
+    let hinted = shouldInline hints a n
 
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
