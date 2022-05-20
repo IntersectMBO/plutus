@@ -21,6 +21,9 @@ import PlutusCore.Error
 import PlutusCore.Name
 import PlutusCore.Quote
 
+topSourcePos :: SourcePos
+topSourcePos = initialPos "top"
+
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 

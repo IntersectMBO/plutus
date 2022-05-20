@@ -13,6 +13,7 @@ import PlutusBenchmark.Lists.Sort
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 

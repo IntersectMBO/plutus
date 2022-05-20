@@ -16,6 +16,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
@@ -444,7 +445,7 @@ toTypedTermExample term = TypedTermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
-        PLC.typecheckPipeline tcConfig program
+        PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> errorWithoutStackTrace $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy

@@ -14,6 +14,7 @@ import PlutusCore as ScriptPlutus (Version)
 import PlutusCore.Data as Plutus
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 import PlutusCore.MkPlc qualified as UPLC
 import UntypedPlutusCore qualified as UPLC

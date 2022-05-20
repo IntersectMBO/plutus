@@ -7,6 +7,7 @@ module PlutusCore.Parser
     , parseProgram
     , parseTerm
     , parseType
+    , SourcePos
     , ParserError(..)
     ) where
 

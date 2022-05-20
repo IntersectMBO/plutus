@@ -211,3 +211,9 @@ The output is the encoded version of ``False``.
 .. literalinclude:: BasicPlutusTx.hs
    :start-after: BLOCK10
    :end-before: BLOCK11
+
+Plutus Tx Compiler Options
+--------------------------
+
+A number of options can be passed to the Plutus Tx compiler. See :ref:`plutus_tx_options`
+for details.

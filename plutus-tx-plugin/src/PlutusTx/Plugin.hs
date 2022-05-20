@@ -379,7 +379,7 @@ runCompiler moduleName opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.typecheckPipeline plcTcConfig (plcP $> AnnOther)
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
 
     uplcT <- liftExcept $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT

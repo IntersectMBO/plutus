@@ -6,11 +6,13 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 module CostModelInterface.Spec (test_costModelInterface) where
 
-import PlutusCore
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
+
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Data.Aeson
 import Data.ByteString.Lazy qualified as BSL

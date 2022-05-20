@@ -1,6 +1,5 @@
 -- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE PatternSynonyms    #-}
 
 module PlutusCore
@@ -9,7 +8,7 @@ module PlutusCore
       parseProgram
     , parseTerm
     , parseType
-    , parseScoped
+    , SourcePos
     , topSourcePos
     -- * Builtins
     , Some (..)
@@ -75,22 +74,15 @@ module PlutusCore
     , NamedDeBruijn (..)
     , deBruijnTerm
     , unDeBruijnTerm
-    -- * Lexer
-    , SourcePos
-    -- * Formatting
-    , format
     -- * Processing
     , HasUniques
     , Rename (..)
     -- * Type checking
     , module TypeCheck
-    , printType
     , normalizeTypesIn
     , normalizeTypesInProgram
     , AsTypeError (..)
     , TypeError
-    -- for testing
-    , typecheckPipeline
     -- * Errors
     , Error (..)
     , AsError (..)
@@ -125,81 +117,23 @@ module PlutusCore
     , kindSize
     , programSize
     , serialisedSize
-    -- * Budgeting defaults
-    , defaultBuiltinCostModel
-    , defaultBuiltinsRuntime
-    , defaultCekCostModel
-    , defaultCekMachineCosts
-    , defaultCekParameters
-    , defaultCostModelParams
-    , defaultUnliftingMode
-    , unitCekParameters
-    -- * CEK machine costs
-    , cekMachineCostsPrefix
-    , CekMachineCosts (..)
     ) where
 
-import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.Core
 import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Flat ()
 import PlutusCore.Name
 import PlutusCore.Normalize
-import PlutusCore.Pretty
+import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Size
 import PlutusCore.TypeCheck as TypeCheck
-
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-
-import Control.Monad.Except
-import Data.Text qualified as T
-import PlutusCore.Parser (parseProgram, parseTerm, parseType)
-import Text.Megaparsec (SourcePos, initialPos)
-
-topSourcePos :: SourcePos
-topSourcePos = initialPos "top"
-
-printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
-        MonadError e m)
-    => T.Text
-    -> m T.Text
-printType txt = runQuoteT $ T.pack . show . pretty <$> do
-    scoped <- parseScoped txt
-    config <- getDefTypeCheckConfig topSourcePos
-    inferTypeOfProgram config scoped
-
--- | Parse and rewrite so that names are globally unique, not just unique within
--- their scope.
--- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
-        MonadError e m, MonadQuote m) =>
-    T.Text
-    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
--- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
-
--- | Typecheck a program.
-typecheckPipeline
-    :: (AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun a,
-        MonadError e m,
-        MonadQuote m)
-    => TypeCheckConfig DefaultUni DefaultFun
-    -> Program TyName Name DefaultUni DefaultFun a
-    -> m (Normalized (Type TyName DefaultUni ()))
-typecheckPipeline = inferTypeOfProgram
-format
-    :: (AsParserErrorBundle e, MonadError e m)
-    => PrettyConfigPlc -> T.Text -> m T.Text
-format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 -- | Take one PLC program and apply it to another.
 applyProgram
@@ -207,4 +141,7 @@ applyProgram
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
-applyProgram (Program a1 _ t1) (Program a2 _ t2) = Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)
+-- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
+-- what a mess. Needs to be fixed.
+applyProgram (Program a1 _ t1) (Program a2 _ t2) =
+    Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)

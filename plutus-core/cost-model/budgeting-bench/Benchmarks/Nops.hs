@@ -19,6 +19,7 @@ import Generators (randBool, randNwords)
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
 import PlutusCore.Pretty

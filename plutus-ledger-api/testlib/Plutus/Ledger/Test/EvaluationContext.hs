@@ -4,8 +4,8 @@ module Plutus.Ledger.Test.EvaluationContext
     ) where
 
 import Plutus.V1.Ledger.EvaluationContext
-import PlutusCore as Plutus
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 
 import Data.Maybe
 
