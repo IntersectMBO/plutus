@@ -47,6 +47,7 @@ import PlutusCore qualified as TPLC
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Generators
 import PlutusCore.Generators.AST
 import PlutusCore.Pretty

@@ -29,6 +29,7 @@ import PlutusBenchmark.NoFib.Queens qualified as Queens
 import PlutusCore qualified as PLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
 import PlutusTx (getPlc)

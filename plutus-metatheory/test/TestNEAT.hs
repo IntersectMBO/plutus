@@ -6,6 +6,7 @@ import Data.Either
 import Data.List
 import PlutusCore
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.NEAT.Spec
 import PlutusCore.Generators.NEAT.Term
 import PlutusCore.Normalize

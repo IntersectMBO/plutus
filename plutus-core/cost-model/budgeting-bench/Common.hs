@@ -10,6 +10,7 @@ where
 
 import PlutusCore
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.MkPlc

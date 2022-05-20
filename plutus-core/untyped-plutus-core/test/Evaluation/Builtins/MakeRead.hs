@@ -8,6 +8,7 @@ module Evaluation.Builtins.MakeRead
 import PlutusCore qualified as TPLC
 import PlutusCore.Builtin
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc hiding (error)

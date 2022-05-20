@@ -10,9 +10,9 @@ module Plutus.V1.Ledger.EvaluationContext
     ) where
 
 import Plutus.ApiCommon
-import PlutusCore as Plutus
 import PlutusCore.Evaluation.Machine.BuiltinCostModel as Plutus
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 
 import Barbies
