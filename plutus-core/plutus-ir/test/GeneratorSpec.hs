@@ -130,14 +130,18 @@ prop_genWellTypedFullyApplied =
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
 prop_shrinkTermSound =
-  forAllShrinkBlind (pure False) (\ sh -> [ True | not sh ]) $ \ _ ->
   forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
   -- While we generate well-typed terms we still need this check here for
   -- shrinking counterexamples to *this* property. If we find a term whose
   -- shrinks aren't well-typed we want to find smaller *well-typed* terms
   -- whose shrinks aren't well typed.
+  -- Importantly, this property is only interesting when
+  -- shrinking itself is broken, so we can only use the
+  -- parts of shrinking that happen to be OK.
   typeCheckTerm tm ty ==>
+  -- We don't want to let the shrinker get away with being empty, so we ignore empty shrinks. QuickCheck will give
+  -- up and print an error if the shrinker returns the empty list too often.
   not (null shrinks) ==>
   assertNoCounterexamples [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
                          | (ty, tm) <- shrinks, not $ typeCheckTerm tm ty ]
