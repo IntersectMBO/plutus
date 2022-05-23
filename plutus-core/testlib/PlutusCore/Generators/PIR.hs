@@ -60,6 +60,25 @@ import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Error
 import PlutusIR.TypeCheck
 
+{- Note [Debugging generators that don't generate well-typed/kinded terms/types]
+    This module implements generators for well-typed terms and well-kinded types.
+    If you came here after a property like `prop_genTypeCorrect` failed and you
+    didn't get a minimal counterexample (because shrinking requries well-typed terms)
+    you need to use a different trick. One trick that often works is to add the well-typedness
+    check in the generators - e.g. in `genTerm` you can do something like this:
+    ```
+    genTerm ... = myCheck $ do
+      ...
+      where
+        myCheck gen = do
+          (trm, type) <- gen
+          if notConformingToExpectedInvariant trm type then
+            error (show trm ++ " " ++ show type)
+          else
+            return (trm, type)
+    ```
+-}
+
 -- | Term generators carry around a context to know
 -- e.g. what types and terms are in scope.
 type GenTm = ReaderT GenEnv Gen
@@ -79,15 +98,18 @@ data GenEnv = GenEnv
   -- ^ Are we in a place where we are allowed to generate a datatype binding?
   , geCustomGen          :: Maybe (Type TyName DefaultUni ())
                          -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
-  -- ^ How often do we do this
+  -- ^ A custom user-controlled generator for terms - useful for situations where
+  -- we want to e.g. generate custom strings for coverage or test some specific
+  -- pattern that generates a special case for the compiler.
   , geCustomFreq         :: Int
-  -- ^ How often do we do this
+  -- ^ How often do we use the custom generator -
+  -- values in the range of 10-30 are usually reasonable.
   }
 
 -- | Run a `GenTm  generator in a top-level empty context where we are allowed to generate
 -- datatypes.
 runGenTm :: GenTm a -> Gen a
-runGenTm = runGenTmCustom 0 (error "No custom generator - this code is unreachable.")
+runGenTm = runGenTmCustom 0 (error "No custom generator.")
 
 -- | Run a `GenTm` generator with a plug-in custom generator for terms that is included with
 -- the other generators.

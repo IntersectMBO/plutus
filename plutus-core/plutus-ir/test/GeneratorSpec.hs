@@ -85,10 +85,13 @@ generators = return $ testGroup "generators"
 -- * Core properties for PIR generators
 
 -- | Check that the types we generate are kind-correct
+-- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
+-- when this property fails.
 prop_genKindCorrect :: Property
 prop_genKindCorrect =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
+  -- Note, no shrinking here because shrinking relies on well-kindedness.
+  forAllDoc "k,ty" genKindAndType (const []) $ \ (k, ty) ->
   checkKind ctx ty k
 
 -- | Check that shrinking types maintains kinds
@@ -101,8 +104,14 @@ prop_shrinkTypeSound =
                                    , not $ checkKind Map.empty ty k ]
 
 -- | Test that our generators only result in well-typed terms.
+-- Note, the counterexamples from this property are not shrunk (see why below).
+-- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
+-- when this property fails.
 prop_genTypeCorrect :: Property
 prop_genTypeCorrect =
+  -- Note, we don't shrink this term here because a precondition of shrinking is that
+  -- the term we are shrinking is well-typed. If it is not, the counterexample we get
+  -- from shrinking will be nonsene.
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
 
 -- | Test that when we generate a fully applied term we end up
@@ -135,34 +144,25 @@ prop_typeInstTerm =
   forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
   forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
-  doTypeInstTermCheck ctx ty target
+  checkNoCounterexamples [ (n, insts)
+                         | n <- [0..arity ty+3]
+                         , Just insts <- [typeInstTerm ctx n target ty]
+                         , not $ checkInst ctx x ty insts target
+                         ]
   where
-    doTypeInstTermCheck :: Map TyName (Kind ())
-                        -> Type TyName DefaultUni ()
-                        -> Type TyName DefaultUni ()
-                        -> Property
-    doTypeInstTermCheck ctx ty target =
-      case [ (n, insts)
-           | n <- [0..arity ty+3]
-           , Just insts <- [typeInstTerm ctx n target ty]
-           , not $ checkInst ctx x ty insts target
-           ] of
-        []  -> property True
-        bad -> ceDoc (prettyPirReadable bad) False
-      where
-        x = Name "x" (toEnum 0)
-        arity (TyForall _ _ _ a) = arity a
-        arity (TyFun _ _ b)      = 1 + arity b
-        arity _                  = 0
+    x = Name "x" (toEnum 0)
+    arity (TyForall _ _ _ a) = arity a
+    arity (TyFun _ _ b)      = 1 + arity b
+    arity _                  = 0
 
-        checkInst ctx x ty insts target = typeCheckTermInContext ctx tmCtx tm target
-          where
-            (tmCtx, tm) = go (toEnum 1) (Map.singleton x ty) (Var () x) insts
-            go _ tmCtx tm [] = (tmCtx, tm)
-            go i tmCtx tm (InstApp ty : insts) = go i tmCtx (TyInst () tm ty) insts
-            go i tmCtx tm (InstArg ty : insts) = go (succ i) (Map.insert y ty tmCtx)
-                                                             (Apply () tm (Var () y)) insts
-              where y = Name "y" i
+    checkInst ctx x ty insts target = typeCheckTermInContext ctx tmCtx tm target
+      where
+        (tmCtx, tm) = go (toEnum 1) (Map.singleton x ty) (Var () x) insts
+        go _ tmCtx tm [] = (tmCtx, tm)
+        go i tmCtx tm (InstApp ty : insts) = go i tmCtx (TyInst () tm ty) insts
+        go i tmCtx tm (InstArg ty : insts) = go (succ i) (Map.insert y ty tmCtx)
+                                                         (Apply () tm (Var () y)) insts
+          where y = Name "y" i
 
 -- | Check what's in the leaves of the generated data
 prop_stats_leaves :: Property
