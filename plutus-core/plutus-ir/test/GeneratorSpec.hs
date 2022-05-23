@@ -31,6 +31,12 @@ import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.QuickCheck
 
+-- | Check that a list of potential counterexamples is empty and display the
+-- list as a QuickCheck counterexample if its not.
+assertNoCounterexamples :: PrettyPir [a] => [a] -> Property
+assertNoCounterexamples []  = property True
+assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
+
 -- CODE REVIEW: The property below checks that when we run a generated PIR term through the compiler
 -- we actually get something out. As the generators are supposed to generate reasonable stuff this is
 -- a test of the compiler. I think we
@@ -100,7 +106,7 @@ prop_shrinkTypeSound =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
   -- See discussion about the same trick in `prop_shrinkTermSound`
   checkKind Map.empty ty k ==>
-  checkNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty)
+  assertNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty)
                                    , not $ checkKind Map.empty ty k ]
 
 -- | Test that our generators only result in well-typed terms.
@@ -133,7 +139,7 @@ prop_shrinkTermSound =
   -- whose shrinks aren't well typed.
   typeCheckTerm tm ty ==>
   not (null shrinks) ==>
-  checkNoCounterexamples [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
+  assertNoCounterexamples [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
                          | (ty, tm) <- shrinks, not $ typeCheckTerm tm ty ]
 
 -- * Utility tests for debugging generators that behave weirdly
@@ -144,7 +150,7 @@ prop_typeInstTerm =
   forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
   forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
-  checkNoCounterexamples [ (n, insts)
+  assertNoCounterexamples [ (n, insts)
                          | n <- [0..arity ty+3]
                          , Just insts <- [typeInstTerm ctx n target ty]
                          , not $ checkInst ctx x ty insts target
@@ -209,19 +215,20 @@ prop_inhabited =
 prop_shrinkTypeSmaller :: Property
 prop_shrinkTypeSmaller =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkNoCounterexamples [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
+  assertNoCounterexamples [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
 
 -- | Test that shrinking kinds generates smaller kinds
 prop_shrinkKindSmaller :: Property
 prop_shrinkKindSmaller =
   forAllDoc "k" arbitrary shrink $ \ k ->
-  checkNoCounterexamples [ k' | k' <- shrink k, not $ ltKind k' k ]
+  assertNoCounterexamples [ k' | k' <- shrink k, not $ ltKind k' k ]
 
 -- | Test that fixKind actually gives you something of the right kind
 prop_fixKind :: Property
 prop_fixKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  checkNoCounterexamples [ (ty', k') | k' <- shrink k
+  -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
+  assertNoCounterexamples [ (ty', k') | k' <- shrink k
                                      , let ty' = fixKind Map.empty ty k'
                                      , not $ checkKind Map.empty ty' k' ]
 

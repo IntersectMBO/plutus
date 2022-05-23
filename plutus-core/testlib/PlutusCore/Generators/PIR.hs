@@ -958,12 +958,6 @@ forAllDoc :: (PrettyPir a, Testable p) => String -> Gen a -> (a -> [a]) -> (a ->
 forAllDoc name g shr k =
   forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
--- | Check that a list of potential counterexamples is empty and display the
--- list as a QuickCheck counterexample if its not.
-checkNoCounterexamples :: PrettyPir [a] => [a] -> Property
-checkNoCounterexamples []  = property True
-checkNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
-
 genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genConstant b = case b of
   SomeTypeIn DefaultUniBool    -> Const DefaultUniBool <$> liftGen arbitrary
