@@ -7,7 +7,6 @@ import PlutusCore.Generators.PIR
 
 import Control.Monad.Reader
 
-import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 
@@ -16,9 +15,8 @@ import Data.List hiding (insert)
 import Data.List.NonEmpty (NonEmpty (..))
 import Text.Printf
 
-import PlutusCore.Default
 import PlutusCore.Name
-import PlutusCore.Quote (runQuote, runQuoteT)
+import PlutusCore.Quote (runQuote)
 import PlutusCore.Rename
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -33,7 +31,7 @@ import Test.Tasty.QuickCheck
 
 -- | Check that a list of potential counterexamples is empty and display the
 -- list as a QuickCheck counterexample if its not.
-assertNoCounterexamples :: PrettyPir [a] => [a] -> Property
+assertNoCounterexamples :: PrettyPir a => [a] -> Property
 assertNoCounterexamples []  = property True
 assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
 
