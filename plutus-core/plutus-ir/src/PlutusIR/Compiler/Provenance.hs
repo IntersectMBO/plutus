@@ -30,10 +30,11 @@ data Provenance a = Original a
                   deriving stock (Show, Eq, Ord, Foldable)
 
 instance Ord a => Semigroup (Provenance a) where
-  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
-  x <> MultipleSources ps2                   = MultipleSources (S.insert x ps2)
-  MultipleSources ps1 <> x                   = MultipleSources (S.insert x ps1)
-  x <> y                                     = MultipleSources (S.fromList [x,y])
+    x <> y = MultipleSources (toSet x `S.union` toSet y)
+      where
+        toSet = \case
+            MultipleSources ps -> ps
+            other              -> S.singleton other
 
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
