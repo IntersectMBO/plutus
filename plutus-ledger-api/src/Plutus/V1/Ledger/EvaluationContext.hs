@@ -2,11 +2,12 @@ module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
-    , isCostModelParamsWellFormed
+    , assertWellFormedCostModelParams
     , machineParametersImmediate
     , machineParametersDeferred
     , toMachineParameters
     , costModelParamNames
+    , CostModelApplyError (..)
     ) where
 
 import Plutus.ApiCommon

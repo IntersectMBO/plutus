@@ -7,6 +7,7 @@ import Plutus.V1.Ledger.EvaluationContext
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 
+import Control.Exception
 import Data.Maybe
 
 -- | The raw cost model params, only to be used for testing purposes.
@@ -15,4 +16,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = fromJust $ mkEvaluationContext mempty
+evalCtxForTesting = either throw id $ mkEvaluationContext mempty

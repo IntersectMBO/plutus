@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -6,6 +7,7 @@ module PlutusCore.Evaluation.Machine.CostModelInterface
     , CekMachineCosts
     , extractCostModelParams
     , applyCostModelParams
+    , CostModelApplyError (..)
     )
 where
 
@@ -13,13 +15,15 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel ()
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
 
+import Control.Exception
+import Control.Monad.Except
 import Data.Aeson
 import Data.Aeson.Flatten
 import Data.HashMap.Strict qualified as HM
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
 import Data.Text qualified as Text
-
+import Prettyprinter
 
 {- Note [Cost model parameters]
 We want to expose to the ledger some notion of the "cost model
@@ -88,9 +92,31 @@ extractParams cm = case toJSON cm of
     _ -> Nothing
 
 
+-- | The type of errors that 'applyParams' can throw.
+data CostModelApplyError =
+      CMUnknownParamError Text.Text
+      -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
+    | CMInternalReadError
+      -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
+    | CMInternalWriteError String
+      -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
+    deriving stock Show
+    deriving anyclass Exception
+
+instance Pretty CostModelApplyError where
+    pretty = (preamble <+>) . \case
+        CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
+        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
+        CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+      where
+          preamble = "applyParams error:"
+
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyParams :: (FromJSON a, ToJSON a) => a -> CostModelParams -> Maybe a
+applyParams :: (FromJSON a, ToJSON a, MonadError CostModelApplyError m)
+            => a
+            -> CostModelParams
+            -> m a
 applyParams cm params = case toJSON cm of
     Object o ->
         let
@@ -102,14 +128,14 @@ applyParams cm params = case toJSON cm of
             merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
             let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
             case fromJSON (Object unflattened) of
-                Success a -> Just a
-                Error _   -> Nothing
-    _ -> Nothing
+                Success a -> pure a
+                Error str -> throwError $ CMInternalWriteError str
+    _ -> throwError CMInternalReadError
   where
     toHash = HM.fromList . Map.toList
     fromHash = Map.fromList . HM.toList
     -- fail when field missing
-    failMissing = Map.traverseMissing $ \ _k _x -> Nothing
+    failMissing = Map.traverseMissing $ \ k _v -> throwError $ CMUnknownParamError k
     -- left-biased merging when key found in both maps
     leftBiased _k l _r = l
 
@@ -146,11 +172,11 @@ extractCostModelParams model = -- this is using the applicative instance of Mayb
    other languages) seem to vary in how unknown fields are handled), so let's be
    explicit. -}
 applySplitCostModelParams
-    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts)
+    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
     => Text.Text
     -> CostModel evaluatorcosts builtincosts
     -> CostModelParams
-    -> Maybe (CostModel evaluatorcosts builtincosts)
+    -> m (CostModel evaluatorcosts builtincosts)
 applySplitCostModelParams prefix model params =
     let SplitCostModelParams machineparams builtinparams = splitParams prefix params
     in CostModel <$> applyParams (_machineCostModel model) machineparams
@@ -158,8 +184,8 @@ applySplitCostModelParams prefix model params =
 
 -- | Update a CostModel for the CEK machine with a given set of parameters,
 applyCostModelParams
-    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts)
+    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
     => CostModel evaluatorcosts builtincosts
     -> CostModelParams
-    -> Maybe (CostModel evaluatorcosts builtincosts)
+    -> m (CostModel evaluatorcosts builtincosts)
 applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix
