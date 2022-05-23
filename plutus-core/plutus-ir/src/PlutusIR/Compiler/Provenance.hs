@@ -27,22 +27,13 @@ data Provenance a = Original a
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   -- | Added for accumulating difference provenances when floating lets
                   | MultipleSources (S.Set (Provenance a))
-                  deriving stock (Show, Eq, Ord)
+                  deriving stock (Show, Eq, Ord, Foldable)
 
 instance Ord a => Semigroup (Provenance a) where
   MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
   x <> MultipleSources ps2                   = MultipleSources (S.insert x ps2)
   MultipleSources ps1 <> x                   = MultipleSources (S.insert x ps1)
   x <> y                                     = MultipleSources (S.fromList [x,y])
-
-instance Foldable Provenance where
-    foldMap f = \case
-        Original a            -> f a
-        LetBinding _ p        -> foldMap f p
-        TermBinding _ p       -> foldMap f p
-        TypeBinding _ p       -> foldMap f p
-        DatatypeComponent _ p -> foldMap f p
-        MultipleSources ps    -> mconcat $ foldMap f <$> S.toList ps
 
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
