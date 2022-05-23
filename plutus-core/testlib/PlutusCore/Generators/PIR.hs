@@ -945,18 +945,32 @@ typeInstTerm ctx n target ty = do
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
--- CODE REVIEW: does this exist already?
+-- | Show a `Doc` when a property fails.
 ceDoc :: Testable t => Doc ann -> t -> Property
 ceDoc d = counterexample (show d)
 
--- CODE REVIEW: does this exist already?
-letCE :: (PrettyPir a, Testable p) => String -> a -> (a -> p) -> Property
+-- | Bind a value to a name in a property so that
+-- it is displayed as a `name = thing` binding if the
+-- property fails.
+letCE :: (PrettyPir a, Testable p)
+      => String
+      -> a
+      -> (a -> p)
+      -> Property
 letCE name x k = ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
 
--- CODE REVIEW: does this exist already?
-forAllDoc :: (PrettyPir a, Testable p) => String -> Gen a -> (a -> [a]) -> (a -> p) -> Property
+-- | Like `forAllShrink` but displays the bound value as
+-- a named pretty-printed binding like `letCE`
+forAllDoc :: (PrettyPir a, Testable p)
+          => String
+          -> Gen a
+          -> (a -> [a])
+          -> (a -> p)
+          -> Property
 forAllDoc name g shr k =
-  forAllShrinkBlind g shr $ \ x -> ceDoc (fromString name <+> "=" <+> prettyPirReadable x) (k x)
+  forAllShrinkBlind g shr $ \ x ->
+    ceDoc (fromString name <+> "=" <+> prettyPirReadable x)
+          (k x)
 
 genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genConstant b = case b of
