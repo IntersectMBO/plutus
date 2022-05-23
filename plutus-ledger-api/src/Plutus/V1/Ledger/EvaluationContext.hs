@@ -2,13 +2,14 @@ module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
-    , isCostModelParamsWellFormed
+    , assertWellFormedCostModelParams
     , machineParametersImmediate
     , machineParametersDeferred
     , toMachineParameters
     , costModelParamNames
     , costModelParamsForTesting
     , evalCtxForTesting
+    , CostModelApplyError (..)
     ) where
 
 import Plutus.ApiCommon
@@ -23,6 +24,7 @@ import Data.Map as Map
 import Data.Maybe
 import Data.Set as Set
 import Data.Text qualified as Text
+import Control.Exception
 
 -- | The set of valid names that a cost model parameter can take for this language version.
 -- It is used for the deserialization of `CostModelParams`.
@@ -52,4 +54,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = fromJust $ mkEvaluationContext mempty
+evalCtxForTesting = either throw id $ mkEvaluationContext mempty
