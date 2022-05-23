@@ -34,7 +34,7 @@ typeclasses = testNested "Typeclasses" [
     , goldenPir "sequenceTest" sequenceTest
     , goldenPir "compareTest" compareTest
     -- TODO: ignoring because of a bug in ci
-    -- , goldenPir "concatTest" concatTest
+    , goldenPir "concatTest" concatTest
     , goldenPir "sumTest" sumTest
     , goldenPir "fmapDefaultTest" fmapDefaultTest
   ]
