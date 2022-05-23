@@ -18,7 +18,7 @@ import Text.Printf
 
 import PlutusCore.Default
 import PlutusCore.Name
-import PlutusCore.Quote (runQuoteT)
+import PlutusCore.Quote (runQuote, runQuoteT)
 import PlutusCore.Rename
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -187,14 +187,14 @@ prop_stats_leaves =
   where
     -- Figure out what's at the leaves of the AST,
     -- including variable names, error, and builtins.
-    leavesish (Var _ x)        = [x]
-    leavesish (TyInst _ a _)   = leavesish a
-    leavesish (Let _ _ _ b)    = leavesish b
-    leavesish (LamAbs _ _ _ b) = leavesish b
-    leavesish (Apply _ a b)    = leavesish a ++ leavesish b
-    leavesish Error{}          = [Name "error" $ toEnum 0]
-    leavesish Builtin{}        = [Name "builtin" $ toEnum 0]
-    leavesish _                = []
+    leaves (Var _ x)        = [x]
+    leaves (TyInst _ a _)   = leaves a
+    leaves (Let _ _ _ b)    = leaves b
+    leaves (LamAbs _ _ _ b) = leaves b
+    leaves (Apply _ a b)    = leaves a ++ leaves b
+    leaves Error{}          = [Name "error" $ toEnum 0]
+    leaves Builtin{}        = [Name "builtin" $ toEnum 0]
+    leaves _                = []
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
