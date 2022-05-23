@@ -14,18 +14,13 @@ module PlutusCore.Builtin.Polymorphism
     , TyVarRep
     , TyAppRep
     , TyForallRep
+    , underTypeError
     ) where
 
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
 import PlutusCore.Pretty
 
-import Control.Applicative
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.Bifoldable
-import Data.Bifunctor
-import Data.Bitraversable
 import Data.Kind qualified as GHC (Type)
 import GHC.Ix
 import GHC.TypeLits
@@ -256,47 +251,3 @@ instance TypeError NoConstraintsErrMsg => Semigroup (Opaque val rep) where
 
 instance TypeError NoConstraintsErrMsg => Monoid (Opaque val rep) where
     mempty = underTypeError
-
-type NoRegularlyAppliedHkVarsMsg =
-    'Text "Built-in functions are not allowed to have higher-kinded type variables" ':<>:
-    'Text " applied via regular type application" ':$$:
-    'Text "To fix this error instantiate all higher-kinded type variables"
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Functor (Opaque val) where
-    fmap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Foldable (Opaque val) where
-    foldMap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Traversable (Opaque val) where
-    traverse = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Applicative (Opaque val) where
-    pure = underTypeError
-    (<*>) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Alternative (Opaque val) where
-    empty = underTypeError
-    (<|>) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Monad (Opaque val) where
-    (>>=) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadIO (Opaque val) where
-    liftIO = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadPlus (Opaque val) where
-    mzero = underTypeError
-    mplus = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadFail (Opaque val) where
-    fail = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bifunctor Opaque where
-    bimap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bifoldable Opaque where
-    bifoldMap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bitraversable Opaque where
-    bitraverse = underTypeError
