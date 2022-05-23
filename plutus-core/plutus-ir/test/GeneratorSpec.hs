@@ -169,15 +169,18 @@ prop_stats_leaves :: Property
 prop_stats_leaves =
   -- No shrinking here because we are only collecting stats
   forAllDoc "_,tm" genTypeAndTerm_ (const []) $ \ (_, tm) ->
-  tabulate "vars" (map (filter isAlpha . show . prettyPirReadable) $ vars tm) $ property True
+  tabulate "leaves" (map (filter isAlpha . show . prettyPirReadable) $ leaves tm) $ property True
   where
-    vars (Var _ x)        = [x]
-    vars (TyInst _ a _)   = vars a
-    vars (Let _ _ _ b)    = vars b
-    vars (LamAbs _ _ _ b) = vars b
-    vars (Apply _ a b)    = vars a ++ vars b
-    vars Error{}          = [Name "error" $ toEnum 0]
-    vars _                = []
+    -- Figure out what's at the leaves of the AST,
+    -- including variable names, error, and builtins.
+    leavesish (Var _ x)        = [x]
+    leavesish (TyInst _ a _)   = leavesish a
+    leavesish (Let _ _ _ b)    = leavesish b
+    leavesish (LamAbs _ _ _ b) = leavesish b
+    leavesish (Apply _ a b)    = leavesish a ++ leavesish b
+    leavesish Error{}          = [Name "error" $ toEnum 0]
+    leavesish Builtin{}        = [Name "builtin" $ toEnum 0]
+    leavesish _                = []
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
