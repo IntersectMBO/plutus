@@ -258,7 +258,7 @@ prop_unify =
 prop_unifyRename :: Property
 prop_unifyRename =
   forAllDoc "_, ty" genKindAndType (shrinkKindAndType mempty) $ \ (_, ty) ->
-  letCE "rename ty" (either undefined id . runQuoteT $ rename ty) $ \ rnty ->
+  letCE "rename ty" (runQuote $ rename ty) $ \ rnty ->
   isJust $ unifyType mempty mempty mempty ty rnty
 
 -- | Check that substitution gets rid of all the right variables
