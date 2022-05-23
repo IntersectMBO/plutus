@@ -167,7 +167,8 @@ prop_typeInstTerm =
 -- | Check what's in the leaves of the generated data
 prop_stats_leaves :: Property
 prop_stats_leaves =
-  forAllDoc "_,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (_, tm) ->
+  -- No shrinking here because we are only collecting stats
+  forAllDoc "_,tm" genTypeAndTerm_ (const []) $ \ (_, tm) ->
   tabulate "vars" (map (filter isAlpha . show . prettyPirReadable) $ vars tm) $ property True
   where
     vars (Var _ x)        = [x]
@@ -180,7 +181,9 @@ prop_stats_leaves =
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
-prop_stats_numShrink = forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
+prop_stats_numShrink =
+  -- No shrinking here because we are only collecting stats
+  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm)
       n = fromIntegral (length shrinks)
       u = fromIntegral (length $ nub shrinks)
