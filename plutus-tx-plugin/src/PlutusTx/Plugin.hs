@@ -53,11 +53,12 @@ import Flat (Flat, flat, unflat)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
-import Data.Foldable (fold)
+import Data.Foldable (fold, toList)
+import Data.Functor
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.Traversable (for)
-import ErrorCode
+import ErrorCode (HasErrorCode (errorCode))
 import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
@@ -161,7 +162,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
 
 -- | The monad where the plugin runs in for each module.
 -- It is a core->core compiler monad, called PluginM, augmented with pure errors.
-type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun ()) GHC.CoreM)
+type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun Ann) GHC.CoreM)
 
 -- | Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.
 runPluginM :: (PLC.GShow uni, PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
@@ -250,7 +251,7 @@ compileMarkedExprOrDefer locStr codeTy origE = do
 
 -- | Given an expected Haskell type 'a', it generates Haskell code which throws a GHC runtime error "as" 'CompiledCode a'.
 emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
-                 => GHC.Type -> CompileError uni fun () -> PluginM uni fun GHC.CoreExpr
+                 => GHC.Type -> CompileError uni fun Ann -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
     let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
@@ -288,7 +289,9 @@ compileMarkedExpr locStr codeTy origE = do
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE'
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
+        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+            runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
@@ -314,7 +317,7 @@ runCompiler ::
     , MonadReader (CompileContext uni fun) m
     , MonadWriter CoverageIndex m
     , MonadQuote m
-    , MonadError (CompileError uni fun ()) m
+    , MonadError (CompileError uni fun Ann) m
     , MonadIO m
     ) =>
     String ->
@@ -325,7 +328,7 @@ runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
-    let hints = UPLC.InlineHints $ \a _ -> case a of
+    let hints = UPLC.InlineHints $ \ann _ -> case ann of
             -- See Note [The problem of inlining destructors]
             -- We want to inline destructors, but even in UPLC our inlining heuristics
             -- aren't quite smart enough to tell that they're good inlining candidates,
@@ -335,7 +338,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> False
+            _                                      -> AnnInline `elem` toList ann
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
@@ -358,8 +361,9 @@ runCompiler moduleName opts expr = do
             & set UPLC.soInlineHints hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT () $ compileExprWithDefs expr
-    when (_posDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    when (_posDumpPir opts) . liftIO $
+        dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
@@ -373,7 +377,7 @@ runCompiler moduleName opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.inferTypeOfProgram plcTcConfig plcP
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
 
     uplcT <- liftExcept $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void uplcT
@@ -382,7 +386,7 @@ runCompiler moduleName opts expr = do
 
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it using our 'CompileError'
-      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun ()) m b -> m b
+      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun Ann) m b -> m b
       liftExcept act = do
         plcTcError <- runExceptT act
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'
