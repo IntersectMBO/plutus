@@ -77,7 +77,7 @@ assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
 --
 -- prop_compile :: Property
 -- prop_compile =
---   forAllDoc "_,tm" genTypeAndTermNoHelp_ (shrinkTypedTerm mempty mempty) $ \ (_, tm) ->
+--   forAllDoc "_,tm" genTypeAndTermNoHelp_ shrinkClosedTypedTerm $ \ (_, tm) ->
 --   isRight $ compile tm
 
 generators :: TestNested
@@ -95,6 +95,7 @@ generators = return $ testGroup "generators"
 -- when this property fails.
 prop_genKindCorrect :: Property
 prop_genKindCorrect =
+  -- Context minimality doesn't help readability, so no shrinking here
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   -- Note, no shrinking here because shrinking relies on well-kindedness.
   forAllDoc "k,ty" genKindAndType (const []) $ \ (k, ty) ->
@@ -124,8 +125,11 @@ prop_genTypeCorrect =
 -- with a well-typed term.
 prop_genWellTypedFullyApplied :: Property
 prop_genWellTypedFullyApplied =
-  forAllDoc "ty, tm" genTypeAndTerm_ (shrinkTypedTerm mempty mempty) $ \ (ty, tm) ->
-  forAllDoc "ty', tm'" (genFullyApplied ty tm) (const []) $ \ (ty', tm') -> typeCheckTerm tm' ty'
+  forAllDoc "ty, tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
+  -- No shrinking here because if `genFullyApplied` is wrong then the shrinking
+  -- will be wrong too. See `prop_genTypeCorrect`.
+  forAllDoc "ty', tm'" (genFullyApplied ty tm) (const []) $ \ (ty', tm') ->
+  typeCheckTerm tm' ty'
 
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
@@ -207,8 +211,14 @@ prop_stats_numShrink =
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
 prop_inhabited =
-  forAllDoc "ty,tm" (genInhab mempty) (shrinkTypedTerm mempty mempty) $ \ (ty, tm) -> typeCheckTerm tm ty
+  -- No shrinking here because if the generator generates nonsense
+  -- shrinking will be nonsense.
+  forAllDoc "ty,tm" (genInhab mempty) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
   where
+    -- Generate some datatypes and then immediately call
+    -- `inhabitType` to test `inhabitType` directly instead
+    -- of through the whole term generator. Quick-ish way
+    -- of debugging "clever hacks" in `inhabitType`.
     genInhab ctx = runGenTm $ local (\ e -> e { geTypes = ctx }) $
       genDatatypeLets $ \ dats -> do
         ty <- genType Star
@@ -216,16 +226,18 @@ prop_inhabited =
         return (ty, foldr (\ dat -> Let () NonRec (DatatypeBind () dat :| [])) tm dats)
 
 -- | Test that shrinking types results in smaller types. Useful for debugging shrinking.
-prop_shrinkTypeSmaller :: Property
-prop_shrinkTypeSmaller =
+prop_shrinkTypeSmallerKind :: Property
+prop_shrinkTypeSmallerKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  assertNoCounterexamples [ (k', ty') | (k', ty') <- shrinkKindAndType Map.empty (k, ty), not $ leKind k' k ]
+  assertNoCounterexamples [ (k', ty')
+                          | (k', ty') <- shrinkKindAndType Map.empty (k, ty)
+                          , not $ leKind k' k ]
 
 -- | Test that shrinking kinds generates smaller kinds
 prop_shrinkKindSmaller :: Property
 prop_shrinkKindSmaller =
   forAllDoc "k" arbitrary shrink $ \ k ->
-  assertNoCounterexamples [ k' | k' <- shrink k, not $ ltKind k' k ]
+  assertNoCounterexamples [ k' | k' <- shrink k, not $ leKind k' k ]
 
 -- | Test that fixKind actually gives you something of the right kind
 prop_fixKind :: Property
@@ -281,6 +293,8 @@ prop_unifyRename =
 -- | Check that substitution gets rid of all the right variables
 prop_substType :: Property
 prop_substType =
+  -- No shrinking because every nested shrink makes properties
+  -- harder to shrink and context minimality doesn't help readability very much.
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "ty" (genTypeWithCtx ctx Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
