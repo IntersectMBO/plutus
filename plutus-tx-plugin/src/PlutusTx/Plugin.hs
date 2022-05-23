@@ -113,7 +113,7 @@ See https://gitlab.haskell.org/ghc/ghc/issues/16615 for upstream discussion.
 -}
 
 plugin :: GHC.Plugin
-plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
+plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.impurePlugin
                            , GHC.installCoreToDos = install
                            }
     where
