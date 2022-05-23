@@ -2,13 +2,14 @@ module Plutus.V1.Ledger.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
-    , isCostModelParamsWellFormed
+    , assertWellFormedCostModelParams
     , machineParametersImmediate
     , machineParametersDeferred
     , toMachineParameters
     , costModelParamNames
     , costModelParamsForTesting
     , evalCtxForTesting
+    , CostModelApplyError (..)
     ) where
 
 import Plutus.ApiCommon
@@ -18,6 +19,7 @@ import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 
 import Barbies
+import Control.Exception
 import Control.Lens
 import Data.Map as Map
 import Data.Maybe
@@ -52,4 +54,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = fromJust $ mkEvaluationContext mempty
+evalCtxForTesting = either throw id $ mkEvaluationContext mempty
