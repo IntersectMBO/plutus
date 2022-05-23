@@ -211,8 +211,8 @@ prop_stats_numShrink =
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
 prop_inhabited =
-  -- No shrinking here because if the generator generates nonsense
-  -- shrinking will be nonsense.
+  -- No shrinking here because if the generator
+  -- generates nonsense shrinking will be nonsense.
   forAllDoc "ty,tm" (genInhab mempty) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
   where
     -- Generate some datatypes and then immediately call
