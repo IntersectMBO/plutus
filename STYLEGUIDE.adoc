@@ -1,14 +1,18 @@
 = Plutus Haskell style guide
+:toc:
 
 The purpose of this document is to codify various aspects of how we write Haskell code as we contribute to Plutus. 
 
 The goal is twofold:
-To provide guidance in cases where it is not obvious what to do, or the choice is arbitrary.
-To help resolve disagreements between team members. Ideally these can be settled by referring to a recommendation in this document, or if not, then perhaps the resolution of the disagreement will create a new recommendation.
+
+1. To provide guidance in cases where it is not obvious what to do, or the choice is arbitrary.
+2. To help resolve disagreements between team members. Ideally these can be settled by referring to a recommendation in this document, or if not, then perhaps the resolution of the disagreement will create a new recommendation.
 
 The contents of this document are “recommendations”, that is:
-They are more concrete than “principles” (like “write simple code”) because we want them to be clearly action-guiding.
-They are more vague than “rules” (like “never use function X”) because it’s usually impossible to be that precise, and so judgement is still required in applying them.
+
+- They are more concrete than “principles” (like “write simple code”) because we want them to be clearly action-guiding.
+
+- They are more vague than “rules” (like “never use function X”) because it’s usually impossible to be that precise, and so judgement is still required in applying them.
 
 == Haskell
 
@@ -36,19 +40,19 @@ Haskell is traditionally lauded for its excellent type inference. People used to
 
 However, not writing type signatures has a heavy _maintainability_ cost.
 
-.1. Non-local errors
+===== Non-local errors
 
 If types are inferred, then the way a binding is _used_ can affect the type which is inferred for it. That means that a mistake in using a binding can result in an error _inside_ the binding (or elsewhere) due to the inferred type not matching what goes on in the RHS of the binding. More generally, errors can end up appearing in unexpected and counter-intuitive places.
 
 Pinning down the type of a binding means that any errors relating to using that binding will occur at the use site, where they belong!
 
-.2. Documentation
+===== Documentation
 
 It's a Haskell truism that the type forms part of the documentation of a binding. But that requires you to be able to _see_ the type. Of course, in this day and age, we should all have an IDE that shows us the type on hover. But sometimes you're stuck using `vim`. Or you're reviewing the code on Github. Or the IDE is broken.
 
 So do your colleagues a favor and just write it down.
 
-.3. Silent changes
+===== Silent changes
 
 Changing the type of a binding often means that something relatively significant has changed. But if the type is inferred, this can happen without you noticing it. This is almost always bad!
 
@@ -58,14 +62,19 @@ Every type definition that has parameters which are not all of kind `Type` shoul
 
 ==== Examples
 Bad:
-```
+
+[source,Haskell]
+----
 data Term tyname name uni fun a
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 type Term :: Type -> Type -> (Type -> Type) -> Type -> Type -> Type
 data Term tyname name uni fun a
-```
+----
 
 ==== Reasoning
 
@@ -90,7 +99,9 @@ Prefer to use pattern matching where possible, unless it significantly complicat
 ===== Instead of an equality check
 
 Bad:
-```
+
+[source,Haskell]
+----
 data SortOrder = Ascending | Descending
     deriving Eq
 
@@ -98,30 +109,41 @@ sortWithOrder' :: Ord a => SortOrder -> [a] -> [a]
 sortWithOrder' order = f . sort
   where
     f = if order == Ascending then id else reverse
+----
 
-```
 Good:
-```
+
+[source,Haskell]
+----
 sortWithOrder :: Ord a => SortOrder -> [a] -> [a]
 sortWithOrder Ascending  = id . sort
 sortWithOrder Descending = reverse . sort
-```
+----
+
 ===== Instead of destructor functions
 
 Bad:
-```
+
+[source,Haskell]
+----
 either f g x
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 case x of
   Left e -> f e
   Right s -> g s
-```
+----
+
 But this might be okay:
-```
+
+[source,Haskell]
+----
 fmap (either f g) eithers
-```
+----
 
 ==== Reasoning
 
@@ -133,29 +155,40 @@ Avoid using the same names for things at the term and type level. Except for `ne
 
 ==== Examples
 Bad:
-```
+
+[source,Haskell]
+----
 data Foo = Foo Int
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 data Foo = MkFoo Int
-```
+----
 
 === Avoid ticks in function names
+
 Generally avoid using ticks to distinguish function names. All this conveys is that it is “another” version of the function. Try expressing the difference in the function name, even if it makes it longer.
 
 ==== Examples
 
 Bad:
-```
+
+[source,Haskell]
+----
 runCek
 runCek’
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 runCek
 runCekWithLogs
-```
+----
 
 ==== Reasoning
 
@@ -168,18 +201,22 @@ A parenthesized expression should not span multiple lines. Pull it out to a name
 ==== Examples
 
 Bad:
-```haskell
+[source,Haskell]
+----
 foldr (\a acc -> let
     x = ...
   in a + x + acc) x xs
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 foldr meaningfulName x xs
   where
     meaningfulName :: ...
     meaningfulName a acc = let x = ... in a + x + acc
-```
+----
 
 ==== Reasoning
 
@@ -192,6 +229,7 @@ This also explains why `$` is good: since it indicates there will be no closing 
 Always use deriving strategies.
 
 ==== Reasoning
+
 Not using deriving strategies requires the compiler to guess which strategy you want. This can have consequences, especially when `DeriveAnyClass` is enabled, since you can accidentally end up using anyclass deriving when you didn’t mean to. Better to be explicit.
 
 === Use Text
@@ -217,20 +255,22 @@ Try to keep a single line *mostly* reading left-to-right or right-to-left.
 ==== Examples
 
 Bad:
-```
+
+[source,Haskell]
+----
 traverse (\x -> <some long function body) things
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 for xs $ \x -> …
-```
+----
 
 ==== Reasoning
 
 Haskell can get quite condensed and hard to read, especially when the reading direction changes frequently. Often there are symmetrical versions of operators like `<=<` and `>=>` or `=<<` and `>>=` that you can switch between to make code easier to read.
-=== When to use hierarchical re-exporting modules
-
-TODO
 
 === Avoid orphan instances except where they’re safe
 
@@ -246,25 +286,25 @@ See the blog post.
 
 These are basically all fine and can be put in `default-extensions`.
 
-1. Anything in https://github.com/ghc-proposals/ghc-proposals/pull/380[`GHC2021`]. Once we have a GHC version that supports the GHC2021 language, we will likely switch to using it.
-2. `LambdaCase`: clear, helpful
-3. `DerivingStrategies`: always
-4. `GADTs`: well established, useful
-5. `OverloadedStrings`: essential when working with `Text`, which you should
-6. `NegativeLiterals`
-7. `DerivingVia`: great
-8. `RoleAnnotations`: if you need it, you need it
+- Anything in https://github.com/ghc-proposals/ghc-proposals/pull/380[`GHC2021`]. Once we have a GHC version that supports the GHC2021 language, we will likely switch to using it.
+- `LambdaCase`: clear, helpful
+- `DerivingStrategies`: always
+- `GADTs`: well established, useful
+- `OverloadedStrings`: essential when working with `Text`, which you should
+- `NegativeLiterals`
+- `DerivingVia`: great
+- `RoleAnnotations`: if you need it, you need it
 
 ==== The Situational
 
 The following extensions are generally fine if you find that they’ll make your life much easier, but you probably don’t want to use them *all* the time.
 
-1. `RecordWildCards`
-2. `TypeFamilies`: often very useful, but can make things tricky. Think before using.
-3. `DataKinds`
-4. `FunctionalDependencies`
-5. `ViewPatterns`: can be very nice, can be a huge mess
-6. `OverloadedLists`: sometimes a lifesaver, not as indispensable as `OverloadedStrings`
+- `RecordWildCards`
+- `TypeFamilies`: often very useful, but can make things tricky. Think before using.
+- `DataKinds`
+- `FunctionalDependencies`
+- `ViewPatterns`: can be very nice, can be a huge mess
+- `OverloadedLists`: sometimes a lifesaver, not as indispensable as `OverloadedStrings`
 
 ==== The Bad
 
@@ -283,25 +323,22 @@ Then either just import the module in its entirety, or qualify it. Usually if yo
 ==== Examples
 
 Bad:
-```
+
+[source,Haskell]
+----
 import Control.Lens (first, … , _Right) hiding (ix, lens)
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 import Control.Lens qualified as Lens
-```
+----
 
 ==== Reasoning
 
 Complex import statements are difficult to maintain and cause annoying diffs which are also hard to merge. Qualified function usages are quite easy to read, and not that much worse to write.
-
-// Group your imports by source
-// Organize your imports into blocks as follows:
-// Imports from the current package
-// Imports from the other packages in the project
-// Imports from other packages not in the project
-// ==== Reasoning
-// It looks tidy?
 
 === Prefer importing specific module to the whole umbrella
 
@@ -310,13 +347,19 @@ When working inside a package that exports an “umbrella module”, avoid impor
 ==== Examples
 
 Bad:
-```
+
+[source,Haskell]
+----
 import PlutusCore
-```
+----
+
 Good:
-```
+
+[source,Haskell]
+----
 import PlutusCore.Name
-```
+----
+
 ==== Reasoning
 
 Since the umbrella module likely imports everything else, it is easy to accidentally end up with cyclic imports if you import it. Outside the package where it is defined this is usually not a problem.
@@ -351,10 +394,6 @@ Additionally, just defining specific values is more flexible. If, say, you want 
 
 == Cabal
 
-// === Metadata
-
-// We don’t have any guidelines on what to put in cabal file metadata :( really this should be sorted out at a company level, perhaps.
-
 === default-language
 
 Use Haskel2010.
@@ -376,6 +415,8 @@ Haskell “languages” are basically a blessed set of extensions anyway, and pe
 
 Use the following set of warning flags:
 
+[source,Haskell]
+----
 -Wall 
 -Wnoncanonical-monad-instances
 -Wincomplete-uni-patterns 
@@ -384,6 +425,7 @@ Use the following set of warning flags:
 -Widentities 
 -Wunused-packages
 -Wmissing-deriving-strategies
+----
 
 ==== Reasoning
 
