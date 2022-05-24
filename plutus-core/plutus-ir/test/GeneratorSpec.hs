@@ -102,7 +102,7 @@ prop_genKindCorrect =
 -- | Check that shrinking types maintains kinds
 prop_shrinkTypeSound :: Property
 prop_shrinkTypeSound =
-  forAllDoc "ctx" arbitrary (const []) $ \ ctx ->
+  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "k,ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- See discussion about the same trick in `prop_shrinkTermSound`
   checkKind ctx ty k ==>
