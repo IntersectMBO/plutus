@@ -1301,10 +1301,10 @@ shrinkTypedTerm :: HasCallStack
                 -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
 shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
   where
-    isHelp ctx (Const _ _)            = True
+    isHelp _ (Const _ _)              = True
     isHelp ctx (TyInst _ (Var _ x) _) = Just x == findHelp ctx
-    isHelp ctx (Error _ _)            = True
-    isHelp ctx _                      = False
+    isHelp _ (Error _ _)              = True
+    isHelp _ _                        = False
 
     addTyBind (TypeBind _ (TyVarDecl _ a k) _)                      = Map.insert a k
     addTyBind (DatatypeBind _ (Datatype _ (TyVarDecl _ a k) _ _ _)) = Map.insert a k
