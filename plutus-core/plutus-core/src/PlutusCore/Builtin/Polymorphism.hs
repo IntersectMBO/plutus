@@ -18,7 +18,6 @@ module PlutusCore.Builtin.Polymorphism
 
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
-import PlutusCore.Pretty
 
 import Data.Kind qualified as GHC (Type)
 import GHC.Ix
@@ -54,7 +53,9 @@ We need to support polymorphism for built-in functions for these reasons:
 -- Haskell and back and instead can keep it intact.
 newtype Opaque val (rep :: GHC.Type) = Opaque
     { unOpaque :: val
-    } deriving newtype (Pretty, HasConstant)
+    } deriving newtype (HasConstant)
+-- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
+-- kind of type errors.
 
 type instance UniOf (Opaque val rep) = UniOf val
 
@@ -197,7 +198,7 @@ underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
 
 type NoStandalonePolymorphicDataErrMsg =
-    'Text "Plutus type variables can't directly appear inside built-in types" ':$$:
+    'Text "An unwrapped built-in type constructor can't be applied to a type variable" ':$$:
     'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
     'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':<>:
     'Text " in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':<>:

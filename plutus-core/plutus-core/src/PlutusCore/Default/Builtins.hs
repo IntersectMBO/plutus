@@ -1052,22 +1052,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
             tailPlc
-            undefined
+            (runCostingFunOneArgument . paramTailList)
         where
-          tailPlc :: m Int Bool -> ()
-          tailPlc = undefined
-
-        -- makeBuiltinMeaning
-        --     tailPlc
-        --     (runCostingFunOneArgument . paramTailList)
-        -- where
-        --   tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
-        --   tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
-        --       DefaultUniList _ <- pure uniListA
-        --       _ : xs' <- pure xs
-        --       pure . fromConstant $ someValueOf uniListA xs'
-        --   {-# INLINE tailPlc #-}
-
+          tailPlc :: SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
+          tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
+              DefaultUniList _ <- pure uniListA
+              _ : xs' <- pure xs
+              pure . fromConstant $ someValueOf uniListA xs'
+          {-# INLINE tailPlc #-}
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
             nullPlc
