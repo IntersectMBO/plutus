@@ -169,7 +169,7 @@ You can update it xref:update-nix-pins[with the Nix flake commands].
 
 === Style guide
 
-Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions.
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
 
 === Code is communication
 
