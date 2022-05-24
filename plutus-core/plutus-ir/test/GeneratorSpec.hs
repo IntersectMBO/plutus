@@ -298,3 +298,12 @@ prop_substType =
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
   letCE "res" (substType sub ty) $ \ res ->
   fvTypeR sub ty == fvType res && checkKind ctx res Star
+
+-- | Check that there are no one-step shrink loops
+prop_noTermShrinkLoops :: Property
+prop_noTermShrinkLoops =
+  -- Note that we need to remove x from the shrinks of x here because
+  -- a counterexample to this property is otherwise guaranteed to
+  -- go into a shrink loop.
+  forAllDoc "ty,tm" genTypeAndTerm_ (\x -> filter (/= x) $ shrinkClosedTypedTerm x) $ \ tytm ->
+  tytm `notElem` shrinkClosedTypedTerm tytm
