@@ -266,7 +266,7 @@ fvTypeBag ty = case ty of
 fvType :: Type TyName DefaultUni () -> Set TyName
 fvType = Map.keysSet . fvTypeBag
 
--- | Recursively find all free type variables ina a substitution
+-- | Recursively find all free type variables in a substitution
 fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
 fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
       where
