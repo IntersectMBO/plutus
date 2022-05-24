@@ -1752,11 +1752,3 @@ instance ( HasPrettyDefaults config ~ 'True
          , PrettyBy config k
          , PrettyBy config v) => PrettyBy config (Map k v) where
   prettyBy ctx = prettyBy ctx . Map.toList
-
-one = Unique 1
-zero = Unique 0
-helpType = TyForall () (TyName (Name "a" one)) Star (TyVar () (TyName (Name "a" one)))
-helpUnitType = TyForall () (TyName (Name "a" one)) Star unit
-fuck = Let () Rec (TermBind () Strict (VarDecl () (Name "x" zero) helpType) (TyInst () (Var () (Name "x" zero)) helpType) :| [])
-                            (TyInst () (Var () (Name "x" zero)) helpUnitType)
-
