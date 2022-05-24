@@ -1299,10 +1299,10 @@ shrinkTypedTerm :: HasCallStack
                 -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
 shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
   where
-    isHelp (Const _ _)            = True
-    isHelp (TyInst _ (Var _ x) _) = Just x == findHelp ctx
-    isHelp (Error _ _)            = True
-    isHelp _                      = False
+    isHelp ctx (Const _ _)            = True
+    isHelp ctx (TyInst _ (Var _ x) _) = Just x == findHelp ctx
+    isHelp ctx (Error _ _)            = True
+    isHelp ctx _                      = False
 
     addTyBind (TypeBind _ (TyVarDecl _ a k) _)                      = Map.insert a k
     addTyBind (DatatypeBind _ (Datatype _ (TyVarDecl _ a k) _ _ _)) = Map.insert a k
@@ -1320,7 +1320,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
     -- These are the special cases and "tricks" for shrinking
     nonstructural :: HasCallStack => _
     nonstructural tyctx ctx (ty, tm) =
-      [ (ty', tm') | not $ isHelp tm
+      [ (ty', tm') | not $ isHelp ctx tm
                    , ty' <- ty : shrinkType (tyctx <> Map.fromList (datatypes tm)) ty
                    , let tm' = mkHelp ctx ty' ] ++
       case tm of
