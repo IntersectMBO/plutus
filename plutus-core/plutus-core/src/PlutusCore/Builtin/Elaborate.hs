@@ -60,6 +60,7 @@ type family GetName k i where
     GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
     GetName _        i = Lookup i '["f", "g", "h", "m", "n"]  -- For higher-kinded types.
 
+-- | Apply the function stored in the provided 'Maybe' if there's one.
 type MaybeApply :: forall k. Maybe (k -> k) -> k -> k
 type family MaybeApply mayVal x where
     MaybeApply 'Nothing  a = a
@@ -68,48 +69,59 @@ type family MaybeApply mayVal x where
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
--- @f@ is for wrapping 'TyVarRep' (see 'HandleHole' for how this is used).
+-- @mw@ is for wrapping 'TyVarRep', if there's a wrapper inside (see 'HandleHole' for how it's used).
 type TrySpecializeAsVar :: forall k. Nat -> Nat -> Maybe (k -> k) -> k -> GHC.Constraint
-class TrySpecializeAsVar i j wrap a | i wrap a -> j
+class TrySpecializeAsVar i j mw a | i mw a -> j
 instance
-    ( var ~ MaybeApply wrap (TyVarRep @k ('TyNameRep (GetName k i) i))
+    ( var ~ MaybeApply mw (TyVarRep @k ('TyNameRep (GetName k i) i))
     -- Try to unify @a@ with a freshly created @var@.
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
     -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
     , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j wrap (a :: k)
+    ) => TrySpecializeAsVar i j mw (a :: k)
 
-type AppliedHkVar :: forall a b. (a -> b) -> a -> b
-data family AppliedHkVar
+type NoAppliedVarsHeader =
+    'Text "Built-in functions are not allowed to have applied type variables"
 
-type NoAppliedHkVarsHeader
-    =     'Text "Built-in functions are not allowed to have higher-kinded type variables"
-    ':$$: 'Text "  applied via regular type application"
-
-type CheckNotAppliedHkVar :: forall a b. (GHC.Type -> GHC.Type) -> (a -> b) -> GHC.Constraint
-type family CheckNotAppliedHkVar hole f where
-    CheckNotAppliedHkVar RepHole (AppliedHkVar _) = TypeError
-        ( NoAppliedHkVarsHeader
-        ':$$: 'Text "To fix this error apply type variables explicitly via ‘TyAppRep’"
+-- See Note [Elaboration of higher-kinded type variables].
+-- | Check that the higher-kinded type is not an (instantiated) type variable.
+type CheckNotAppliedVar :: forall a b. (GHC.Type -> GHC.Type) -> (a -> b) -> GHC.Constraint
+type family CheckNotAppliedVar hole a where
+    -- In the Rep context higher-kinded type variables are allowed, but need to be applied via
+    -- 'TyAppRep', hence the error message.
+    CheckNotAppliedVar RepHole (TyVarRep _) = TypeError
+        ( NoAppliedVarsHeader
+        ':$$: 'Text "To fix this error apply type variables via ‘TyAppRep’"
         )
-    CheckNotAppliedHkVar TypeHole (AppliedHkVar _) = TypeError
-        ( NoAppliedHkVarsHeader
+    -- In the Type context no higher-kinded type variables are allowed.
+    CheckNotAppliedVar TypeHole (TyVarRep _) = TypeError
+        ( NoAppliedVarsHeader
         ':$$: 'Text "To fix this error instantiate all higher-kinded type variables"
         )
-    CheckNotAppliedHkVar _ _ = ()
+    -- In case we add more contexts.
+    CheckNotAppliedVar _ (TyVarRep _)  = TypeError
+        ( NoAppliedVarsHeader
+        ':$$: 'Text "Internal error: the context is not recognized"
+        )
+    CheckNotAppliedVar _ _ = ()
 
+-- | Try to specialize @a@ as a type representing a PLC type variable.
+-- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
+-- specialization attempt is successful or not).
+-- @mw@ is for wrapping 'TyVarRep', if there's a wrapper inside (see 'HandleHole' for how it's used).
 type TrySpecializeAsUnappliedVar
     :: forall k. Nat -> Nat -> (GHC.Type -> GHC.Type) -> Maybe (k -> k) -> k -> GHC.Constraint
-class TrySpecializeAsUnappliedVar i j hole wrap a | i wrap a -> j
+class TrySpecializeAsUnappliedVar i j hole mw a | i mw a -> j
 instance
-    ( TrySpecializeAsUnappliedVar i j hole ('Just AppliedHkVar) f
-    , CheckNotAppliedHkVar hole f
-    , TrySpecializeAsVar j k wrap (f x)
-    ) => TrySpecializeAsUnappliedVar i k hole wrap (f x)
+    ( --
+      TrySpecializeAsUnappliedVar i j hole 'Nothing f
+    , CheckNotAppliedVar hole f
+    , TrySpecializeAsVar j k mw (f x)
+    ) => TrySpecializeAsUnappliedVar i k hole mw (f x)
 instance {-# INCOHERENT #-}
-    TrySpecializeAsVar i j wrap a => TrySpecializeAsUnappliedVar i j hole wrap a
+    TrySpecializeAsVar i j mw a => TrySpecializeAsUnappliedVar i j hole mw a
 
 -- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
 -- that using 'HandleHoles'.

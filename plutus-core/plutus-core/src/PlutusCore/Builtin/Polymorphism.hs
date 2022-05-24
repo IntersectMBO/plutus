@@ -14,7 +14,6 @@ module PlutusCore.Builtin.Polymorphism
     , TyVarRep
     , TyAppRep
     , TyForallRep
-    , underTypeError
     ) where
 
 import PlutusCore.Builtin.HasConstant
