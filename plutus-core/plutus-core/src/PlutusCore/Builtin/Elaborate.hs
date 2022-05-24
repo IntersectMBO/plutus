@@ -85,43 +85,61 @@ instance
 type NoAppliedVarsHeader =
     'Text "Built-in functions are not allowed to have applied type variables"
 
--- See Note [Elaboration of higher-kinded type variables].
--- | Check that the higher-kinded type is not an (instantiated) type variable.
-type CheckNotAppliedVar :: forall a b. (GHC.Type -> GHC.Type) -> (a -> b) -> GHC.Constraint
-type family CheckNotAppliedVar hole a where
+type ThrowNoAppliedVars :: (GHC.Type -> GHC.Type) -> GHC.Constraint
+type family ThrowNoAppliedVars hole where
     -- In the Rep context higher-kinded type variables are allowed, but need to be applied via
     -- 'TyAppRep', hence the error message.
-    CheckNotAppliedVar RepHole (TyVarRep _) = TypeError
+    ThrowNoAppliedVars RepHole = TypeError
         ( NoAppliedVarsHeader
         ':$$: 'Text "To fix this error apply type variables via ‘TyAppRep’"
         )
     -- In the Type context no higher-kinded type variables are allowed.
-    CheckNotAppliedVar TypeHole (TyVarRep _) = TypeError
+    ThrowNoAppliedVars TypeHole = TypeError
         ( NoAppliedVarsHeader
-        ':$$: 'Text "To fix this error instantiate all higher-kinded type variables"
+        ':$$: 'Text "To fix this error specialize all higher-kinded type variables"
         )
     -- In case we add more contexts.
-    CheckNotAppliedVar _ (TyVarRep _)  = TypeError
+    ThrowNoAppliedVars _ = TypeError
         ( NoAppliedVarsHeader
-        ':$$: 'Text "Internal error: the context is not recognized"
+        ':$$: 'Text "Internal error: the context is not recognized. Please report"
         )
-    CheckNotAppliedVar _ _ = ()
+
+-- See Note [Elaboration of higher-kinded type variables].
+-- | Check that the higher-kinded type does not represent a Plutus type variable.
+type CheckNotAppliedVar :: forall k. (GHC.Type -> GHC.Type) -> k -> GHC.Constraint
+type family CheckNotAppliedVar hole a where
+    -- In the Rep context higher-kinded type variables are allowed, but need to be applied via
+    -- 'TyAppRep', hence the error message.
+    CheckNotAppliedVar hole (TyVarRep _) = ThrowNoAppliedVars hole
+    CheckNotAppliedVar _    _            = ()
+
+type TrySpecializeHeadAsVar
+    :: forall a b. Nat -> Nat -> (GHC.Type -> GHC.Type) -> (a -> b) -> GHC.Constraint
+class TrySpecializeHeadAsVar i j hole f | i f -> j
+-- | Recurse to reach the head.
+instance {-# OVERLAPPABLE #-}
+    TrySpecializeHeadAsVar i j hole f => TrySpecializeHeadAsVar i j hole (f x)
+-- | Reached the head, it's a 'TyVarRep', throwing.
+instance {-# OVERLAPPING #-}
+    (ThrowNoAppliedVars hole, i ~ j) => TrySpecializeHeadAsVar i j hole (TyVarRep name)
+-- | Reached the head, try to specialize it as a variable and throw an error if that succeeds.
+instance {-# INCOHERENT #-}
+    ( TrySpecializeAsVar i j 'Nothing f
+    , CheckNotAppliedVar hole f
+    ) => TrySpecializeHeadAsVar i j hole f
 
 -- | Try to specialize @a@ as a type representing a PLC type variable.
--- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
--- specialization attempt is successful or not).
--- @mw@ is for wrapping 'TyVarRep', if there's a wrapper inside (see 'HandleHole' for how it's used).
+-- Same as 'TrySpecializeAsVar' (in particular, the arguments mean the same), except this one also
+-- checks if the given type is a type application, in which case it tries to specialize the head
+-- of the application to a type representing a Plutus type variable and fails if that succeeds.
 type TrySpecializeAsUnappliedVar
     :: forall k. Nat -> Nat -> (GHC.Type -> GHC.Type) -> Maybe (k -> k) -> k -> GHC.Constraint
 class TrySpecializeAsUnappliedVar i j hole mw a | i mw a -> j
 instance
-    ( --
-      TrySpecializeAsUnappliedVar i j hole 'Nothing f
-    , CheckNotAppliedVar hole f
+    ( TrySpecializeHeadAsVar i j hole f
     , TrySpecializeAsVar j k mw (f x)
     ) => TrySpecializeAsUnappliedVar i k hole mw (f x)
-instance {-# INCOHERENT #-}
-    TrySpecializeAsVar i j mw a => TrySpecializeAsUnappliedVar i j hole mw a
+instance {-# INCOHERENT #-} TrySpecializeAsVar i j mw a => TrySpecializeAsUnappliedVar i j hole mw a
 
 -- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
 -- that using 'HandleHoles'.
@@ -129,12 +147,12 @@ instance {-# INCOHERENT #-}
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
 class HandleHole i j val hole | i val hole -> j
--- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
+-- In the Rep context @x@ is attempted to be specialized as a 'TyVarRep'.
 instance
     ( TrySpecializeAsUnappliedVar i j RepHole 'Nothing x
     , HandleHoles j k val x
     ) => HandleHole i k val (RepHole x)
--- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque val@.
+-- In the Type context @a@ is attempted to be specialized as a 'TyVarRep' wrapped in @Opaque val@.
 instance
     ( TrySpecializeAsUnappliedVar i j TypeHole ('Just (Opaque val)) a
     , HandleHoles j k val a
@@ -146,9 +164,9 @@ type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
 class HandleHolesGo i j val holes | i val holes -> j
 instance i ~ j => HandleHolesGo i j val '[]
 instance
-      ( HandleHole i j val hole
-      , HandleHolesGo j k val holes
-      ) => HandleHolesGo i k val (hole ': holes)
+    ( HandleHole i j val hole
+    , HandleHolesGo j k val holes
+    ) => HandleHolesGo i k val (hole ': holes)
 
 -- | If the outermost constructor of the second argument is known and happens to be one of the
 -- constructors of the list data type, then the second argument is returned back. Otherwise the
