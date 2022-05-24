@@ -1327,19 +1327,20 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 
         -- TODO: shrink Rec to NonRec
         Let _ rec binds body ->
-          [ (letTy, letTm)
-          | (_, TermBind _ _ (VarDecl _ _ letTy) letTm) <- oneHoleContexts binds
+          [ case binds of
+              []   -> (letTy, letTm)
+              b:bs -> (letTy, Let () NonRec (b :| bs) letTm)
+          | (NonEmptyContext binds _, TermBind _ _ (VarDecl _ _ letTy) letTm) <- oneHoleContexts binds
           , rec == NonRec
           ] ++
-          [ case binds0 ++ binds1 of
-              []         -> fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
-              b : binds' -> second (Let () rec (b :| binds'))
-                          $ fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
+          [ second (Let () rec (b :| binds'))
+            $ fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
           | (NonEmptyContext binds0 binds1, _) <- oneHoleContexts binds,
             let tyctxInner  = foldr addTyBind tyctx binds
                 ctxInner    = foldr addTmBind ctx   binds
                 tyctxInner' = foldr addTyBind tyctx (binds0 ++ binds1)
                 ctxInner'   = foldr addTmBind ctx   (binds0 ++ binds1)
+          , b:binds' <- [binds0 ++ binds1]
           ] ++
           [ fixupTerm_ tyctxInner ctxInner tyctx ctx ty body
           | let tyctxInner  = foldr addTyBind tyctx binds
