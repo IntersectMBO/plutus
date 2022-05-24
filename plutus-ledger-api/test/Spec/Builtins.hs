@@ -51,7 +51,7 @@ tests =
          assertBool "not in l2,Vasil" $ V2.isScriptWellFormed vasilPV serialiseDataExScript
     , testCase "cost model parameters" $
          -- v1 is missing some cost model parameters because new builtins are added in v2
-         assertBool "v1 params is proper subset of v2 params" $ V1.costModelParamNames `Set.isProperSubsetOf` V2.costModelParamNames
+         assertBool "v1 params is proper subset of v2 params" $ Set.fromList V1.costModelParamNames `Set.isProperSubsetOf` Set.fromList V2.costModelParamNames
     , testCase "size check" $ do
          assertBool "not in l1" $ V1.isScriptWellFormed vasilPV bigConstant
          assertBool "in l2" $ not $ V2.isScriptWellFormed vasilPV bigConstant
