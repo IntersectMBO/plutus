@@ -430,12 +430,36 @@ bindBinds = flip (foldr bindBind)
 
 -- * Generators for well-kinded types
 
+{- Note [Avoiding Shrinking Loops]
+
+   Shrinking loops can be tricky to deal with and unfortunately there is no
+   golden rule for how to avoid them. However, one good strategy to avoid them
+   is to make sure shrinking isn't doing anything too clever. As a general set of
+   rules:
+   * Don't do "special case" shrinking that trades off size in one subterm for size
+     in a different subterm. For example, it's generally dangerous to shrink
+     `Node (Node Leaf (Node Leaf Leaf)) (Node Leaf Leaf)` to
+     `Node Leaf (Node Leaf (Node Leaf Leaf))` even though the number of leaves is
+     decreasing unless you've explicitly made "the number of leaves decreases" the
+     measure by which you're shrinking (in which case you need to have a property for
+     this!)
+   * Carefully guard base cases - the shrinker
+     `shrink tree = Leaf : someCleverShrinkingStrategy` will loop, while
+     `shrink tree = [ Leaf | tree /= Leaf ] ++ someCleverShrinkingStrategy` will not.
+     You will see this kind of thing used below wherever we use `minimalType` and `mkHelp`
+     in the shrinkers.
+   * Write properties to test your shrinkers and *run them when you change your shrinkers*.
+     See e.g. `prop_noTermShrinkLoops` in module `GeneratorSpec`.
+-}
+
 -- | Give a unique "least" (intentionally vaguely specified by "shrinking order")
 -- type of that kind. Note: this function requires care and attention to not get
 -- a shrinking loop. If you think you need to mess with this function:
+-- 0. First, you *must* read the note Note [Avoiding Shrinking Loops]
 -- 1. You're probably wrong, think again and
 -- 2. If you're sure you're not wrong you need to be very careful and
 --    test the shrinking to make sure you don't get in a loop.
+-- 3. Finally, you *must* read the note Note [Avoiding Shrinking Loops]
 minimalType :: Kind () -> Type TyName DefaultUni ()
 minimalType ty =
   case ty of
