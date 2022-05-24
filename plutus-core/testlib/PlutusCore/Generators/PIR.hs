@@ -29,8 +29,6 @@
 
 module PlutusCore.Generators.PIR where
 
-import Debug.Trace
-
 import Control.Applicative ((<|>))
 import Control.Arrow hiding ((<+>))
 import Control.Lens ((<&>))
