@@ -162,7 +162,9 @@ constraints are completely different in the two cases and we keep the two concep
 (there doesn't seem to be any cons to that).
 -}
 
--- | Throw a @ErrorWithCause KnownTypeError cause@.
+-- | Attach a @cause@ to a 'KnownTypeError' and throw that.
+-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+-- happy path, hence this function must not force its first argument.
 throwKnownTypeErrorWithCause
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
     => cause -> KnownTypeError -> m void
@@ -277,15 +279,6 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Just Refl -> pure x
             Nothing   -> Left . KnownTypeUnliftingError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
-
-{- Note [Cause of failure]
-'readKnown' and 'makeKnown' each take a @Maybe cause@ argument to report the cause of a potential
-failure. @cause@ is different to @val@ to support evaluators that distinguish between terms and
-values (@makeKnown@ normally constructs a value, but it's convenient to report the cause of a failure
-as a term). Note that an evaluator might require the cause to be computed lazily for best
-performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
-the cause stored in it is not forced due to @Maybe@ being a lazy data type.
--}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where

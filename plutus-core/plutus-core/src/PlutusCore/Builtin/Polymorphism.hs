@@ -55,6 +55,7 @@ We need to support polymorphism for built-in functions for these reasons:
 -- See Note [Pattern matching on built-in types].
 -- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
 -- an application of a type variable). I.e. the denotation of such a term is the term itself.
+-- TODO: FIXME
 -- This is because we have parametricity in Haskell, so we can't inspect a value whose
 -- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
 -- Haskell and back and instead can keep it intact.
@@ -74,6 +75,8 @@ newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     }
 
 {- Note [Implementation of polymorphic built-in functions]
+TODO: FIX THIS MESS
+
 Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
 It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 But we'd rather avoid such heavy techniques.
@@ -187,14 +190,6 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- Custom type errors to guide the programmer adding a new built-in function.
--- We cover a lot of cases here, but some are missing, for example we do not attempt to detect
--- higher-kinded type variables, which means that if your function returns an @m a@ we can neither
--- instantiate @m@ (which is impossible anyway: it could be 'EvaluationResult' or 'Emitter'
--- or else), nor report that higher-kinded type variables are not allowed and suggest
--- to instantiate such variables manually. In general, we do not attempt to look inside type
--- applications (as it's a rather hard thing to do) and so a type variable inside, say, a list
--- does not get instantiated, hence the custom type error does not get triggered (as it's only
--- triggered for instantiated type variables) and the user gets a standard unhelpful GHC error.
 
 -- We don't have @Unsatisfiable@ yet (https://github.com/ghc-proposals/ghc-proposals/pull/433).
 -- | To be used when there's a 'TypeError' in the context. The condition is not checked as there's
@@ -205,9 +200,9 @@ underTypeError = error "Panic: a 'TypeError' was bypassed"
 type NoStandalonePolymorphicDataErrMsg =
     'Text "Plutus type variables can't directly appear inside built-in types" ':$$:
     'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
-    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':<>:
-    'Text " in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':<>:
-    'Text " of an argument or the type of the result, respectively"
+    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':$$:
+    'Text "  in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':$$:
+    'Text "  of an argument or the type of the result, respectively"
 
 instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
     knownUni = underTypeError
@@ -258,8 +253,8 @@ instance TypeError NoConstraintsErrMsg => Monoid (Opaque val rep) where
     mempty = underTypeError
 
 type NoRegularlyAppliedHkVarsMsg =
-    'Text "Built-in functions are not allowed to have higher-kinded type variables" ':<>:
-    'Text " applied via regular type application" ':$$:
+    'Text "Built-in functions are not allowed to have higher-kinded type variables" ':$$:
+    'Text "  applied via regular type application" ':$$:
     'Text "To fix this error instantiate all higher-kinded type variables"
 
 instance TypeError NoRegularlyAppliedHkVarsMsg => Functor (Opaque val) where
