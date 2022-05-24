@@ -29,6 +29,8 @@
 
 module PlutusCore.Generators.PIR where
 
+import Debug.Trace
+
 import Control.Applicative ((<|>))
 import Control.Arrow hiding ((<+>))
 import Control.Lens ((<&>))
@@ -1399,8 +1401,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
               let binds'      = plugHole context bind'
                   tyctxInner' = foldr addTyBind tyctx binds'
                   ctxInner'   = foldr addTmBind ctx   binds'
-                  fix | Rec <- rec = uncurry (fixupTerm_ tyctxInner ctxInner tyctxInner ctxInner)
-                      | otherwise  = id
+                  fix = uncurry (fixupTerm_ tyctx ctx tyctx ctx)
           ] where subst = foldr addTyBindSubst mempty binds
                   tyctxInner = foldr addTyBind tyctx binds
                   ctxInner   = foldr addTmBind ctx binds
@@ -1751,3 +1752,11 @@ instance ( HasPrettyDefaults config ~ 'True
          , PrettyBy config k
          , PrettyBy config v) => PrettyBy config (Map k v) where
   prettyBy ctx = prettyBy ctx . Map.toList
+
+one = Unique 1
+zero = Unique 0
+helpType = TyForall () (TyName (Name "a" one)) Star (TyVar () (TyName (Name "a" one)))
+helpUnitType = TyForall () (TyName (Name "a" one)) Star unit
+fuck = Let () Rec (TermBind () Strict (VarDecl () (Name "x" zero) helpType) (TyInst () (Var () (Name "x" zero)) helpType) :| [])
+                            (TyInst () (Var () (Name "x" zero)) helpUnitType)
+
