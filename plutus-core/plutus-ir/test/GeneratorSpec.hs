@@ -102,11 +102,12 @@ prop_genKindCorrect =
 -- | Check that shrinking types maintains kinds
 prop_shrinkTypeSound :: Property
 prop_shrinkTypeSound =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
+  forAllDoc "ctx" arbitrary (const []) $ \ ctx ->
+  forAllDoc "k,ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- See discussion about the same trick in `prop_shrinkTermSound`
-  checkKind Map.empty ty k ==>
-  assertNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType Map.empty (k, ty)
-                                   , not $ checkKind Map.empty ty k ]
+  checkKind ctx ty k ==>
+  assertNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType ctx (k, ty)
+                                   , not $ checkKind ctx ty k ]
 
 -- | Test that our generators only result in well-typed terms.
 -- Note, the counterexamples from this property are not shrunk (see why below).
@@ -245,11 +246,12 @@ prop_shrinkKindSmaller =
 -- | Test that fixKind actually gives you something of the right kind
 prop_fixKind :: Property
 prop_fixKind =
-  forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
+  forAllDoc "ctx" genCtx (const []) $ \ ctx ->
+  forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
   assertNoCounterexamples [ (ty', k') | k' <- shrink k
-                                     , let ty' = fixKind Map.empty ty k'
-                                     , not $ checkKind Map.empty ty' k' ]
+                                     , let ty' = fixKind ctx ty k'
+                                     , not $ checkKind ctx ty' k' ]
 
 -- * Tests for unification and substitution
 

@@ -514,6 +514,12 @@ genClosedType_ = genTypeWithCtx mempty
 genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
+-- | Generate a well-kinded term in a given context
+genKindAndTypeWithCtx :: Map TyName (Kind ()) -> Gen (Type TyName DefaultUni ())
+genKindAndTypeWithCtx ctx = do
+  k <- arbitrary
+  runGenTm $ local (\ e -> e { geTypes = ctx }) ((k,) <$> genType k)
+
 -- CODE REVIEW: does this exist anywhere??
 -- | `substClosedType x sub ty` substitutes the closed type `sub` for `x` in `ty`
 substClosedType :: TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
