@@ -167,8 +167,13 @@ prop_typeInstTerm =
     arity (TyFun _ _ b)      = 1 + arity b
     arity _                  = 0
 
+    -- Check that building a "minimal" term that performs the instantiations in
+    -- `insts` produces a well-typed term.
     checkInst ctx x ty insts target = typeCheckTermInContext ctx tmCtx tm target
       where
+        -- Build a term and a context from `insts` that consists of
+        -- `tm @ty` for every `InstApp ty` in `insts` and `tm y` for
+        -- a fresh variable `y : ty` for every `InstArg ty` in `insts`.
         (tmCtx, tm) = go (toEnum 1) (Map.singleton x ty) (Var () x) insts
         go _ tmCtx tm [] = (tmCtx, tm)
         go i tmCtx tm (InstApp ty : insts) = go i tmCtx (TyInst () tm ty) insts
