@@ -2,7 +2,6 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
 
 {-# LANGUAGE StrictData               #-}
 
@@ -11,18 +10,20 @@ module PlutusCore.Builtin.Runtime
     , Lazy (..)
     ) where
 
-import PlutusPrelude
+import PlutusPrelude (Lazy (..))
 
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
+import PlutusCore.Evaluation.Machine.ExMemory (ExMemory)
+import PlutusCore.Evaluation.Machine.Exception (AsMachineError (_MachineError), ErrorWithCause,
+                                                MachineError (UnknownBuiltin), throwingWithCause)
 
-import Control.DeepSeq
+import Control.DeepSeq (NFData (..), rwhnf)
 import Control.Lens (ix, (^?))
-import Control.Monad.Except
-import Data.Array
+import Control.Monad.Except (MonadError)
+import Data.Array (Array, Ix)
 import Data.Kind qualified as GHC (Type)
-import PlutusCore.Builtin.KnownType
+import PlutusCore.Builtin.KnownType (MakeKnownM, ReadKnownM)
+
 
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
 data Peano
