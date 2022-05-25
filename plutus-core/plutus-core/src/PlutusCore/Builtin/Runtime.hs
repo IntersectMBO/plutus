@@ -5,12 +5,7 @@
 
 {-# LANGUAGE StrictData               #-}
 
-module PlutusCore.Builtin.Runtime
-    ( module PlutusCore.Builtin.Runtime
-    , Lazy (..)
-    ) where
-
-import PlutusPrelude (Lazy (..))
+module PlutusCore.Builtin.Runtime where
 
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemory)
@@ -24,6 +19,10 @@ import Data.Array (Array, Ix)
 import Data.Kind qualified as GHC (Type)
 import PlutusCore.Builtin.KnownType (MakeKnownM, ReadKnownM)
 
+
+data Lazy a = Lazy
+    { unLazy :: ~a
+    }
 
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
 data Peano
