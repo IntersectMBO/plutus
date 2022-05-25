@@ -415,8 +415,7 @@ Haskell “languages” are basically a blessed set of extensions anyway, and pe
 
 Use the following set of warning flags:
 
-[source,Haskell]
-----
+```
 -Wall 
 -Wnoncanonical-monad-instances
 -Wincomplete-uni-patterns 
@@ -425,7 +424,7 @@ Use the following set of warning flags:
 -Widentities 
 -Wunused-packages
 -Wmissing-deriving-strategies
-----
+```
 
 ==== Reasoning
 
