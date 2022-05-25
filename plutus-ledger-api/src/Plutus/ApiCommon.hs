@@ -1,6 +1,9 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DeriveAnyClass       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 
 -- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
 -- ticks for the simplifier not to run out of them.
@@ -29,13 +32,15 @@ import Control.Monad.Except
 import Control.Monad.Writer
 import Data.Bifunctor
 import Data.ByteString.Lazy (fromStrict)
-import Data.ByteString.Short
+import Data.ByteString.Short hiding (length)
+import Data.Char (toLower)
 import Data.Coerce
 import Data.Either
 import Data.Foldable (fold)
+import Data.List.Extra
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import Data.Text
+import Data.Text qualified as Text
 import Data.Tuple
 import GHC.Exts (inline)
 import GHC.Generics
@@ -202,7 +207,7 @@ instance Pretty EvaluationError where
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | The type of log output: just a list of 'Text'.
-type LogOutput = [Text]
+type LogOutput = [Text.Text]
 
 -- | A simple toggle indicating whether or not we should produce logs.
 data VerboseMode = Verbose | Quiet
@@ -268,11 +273,11 @@ data EvaluationContext = EvaluationContext
 
 {-|  Build the 'EvaluationContext'.
 
-The input is a `Map` of strings to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
+The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
 -}
-mkEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
-mkEvaluationContext newCMP =
+mkDynEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
+mkDynEvaluationContext newCMP =
     EvaluationContext
         <$> inline mkMachineParametersFor UnliftingImmediate newCMP
         <*> inline mkMachineParametersFor UnliftingDeferred newCMP
@@ -343,3 +348,63 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
     tell logs
     liftEither $ first CekError $ void res
     pure final
+
+
+{-| A valid parameter name has to be enumeration, bounded, ordered, and
+prettyprintable in a "lowerKebab" way.
+
+Each API version should expose such an enumeration as an ADT and create
+an instance of ParamName out of it.
+-}
+class IsParamName a where
+   showParamName :: a -> String
+
+-- | A Generic wrapper for use with deriving via
+newtype GenericParamName a = GenericParamName a
+
+instance (Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
+   showParamName (GenericParamName a) = gshowParamName $ from a
+
+-- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.
+class GIsParamName f where
+    gshowParamName :: f p -> String
+
+instance (GIsParamName a) => GIsParamName (M1 D i a) where
+    gshowParamName (M1 x) = gshowParamName x
+
+{- Note [Quotation marks in cost model parameter constructors]
+We use the quotation mark <'> inside each nullary constructor of
+a cost parameter name as a delimiter of sections when lowerKebab-prettyprinting.
+The character <_> cannot be used as a delimiter because it may be part of the builtin's name (sha2_256,etc).
+-}
+
+instance Constructor i => GIsParamName (M1 C i U1) where
+    gshowParamName = lowerKebab . conName
+      where
+        lowerKebab :: String -> String
+        lowerKebab (h:t) = toLower h : fmap maybeKebab t
+        lowerKebab _     = error "this should not happen because constructors cannot have empty names"
+
+        maybeKebab '\'' = '-'
+        maybeKebab c    = c
+
+
+instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
+    gshowParamName (L1 x) = gshowParamName x
+    gshowParamName (R1 x) = gshowParamName x
+
+-- Given an ordered list of parameter values, tag them with their parameter names.
+tagWithParamNames :: forall k m. (Enum k, Bounded k, MonadError CostModelApplyError m) => [Integer] -> m [(k, Integer)]
+tagWithParamNames ledgerParams =
+    let paramNames = enumerate @k
+        lenActual = length ledgerParams
+        lenExpected = length paramNames
+    in if lenActual /= lenExpected
+       then throwError $ CMWrongNumberOfParams lenExpected lenActual
+       else pure $ zip paramNames ledgerParams
+
+
+-- | Essentially untag the association of param names to values
+-- so that CostModelInterface can make use of it.
+toCostModelParams :: IsParamName k => [(k, Integer)] -> CostModelParams
+toCostModelParams = Map.fromList . fmap (first $ Text.pack . showParamName)

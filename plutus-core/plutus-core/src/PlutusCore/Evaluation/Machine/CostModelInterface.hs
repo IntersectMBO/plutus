@@ -100,6 +100,8 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
     | CMInternalWriteError String
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
+    | CMWrongNumberOfParams Int Int
+      -- ^ the ledger is supposed to pass the full list of params, no more, no less params.
     deriving stock Show
     deriving anyclass Exception
 
@@ -108,6 +110,7 @@ instance Pretty CostModelApplyError where
         CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
         CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
         CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+        CMWrongNumberOfParams expected actual     -> "Wrong number of cost model parameters passed, expected" <+> pretty expected <+> "but got" <+> pretty actual
       where
           preamble = "applyParams error:"
 
