@@ -10,11 +10,12 @@ module Main
     ( main
     ) where
 
-import Common (UplcProg, evalUplcProg)
+import Common (UplcProg, evalUplcProg, shownEvaluationFailure)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text qualified as T
+import Data.Text.IO qualified as T (writeFile)
 import Options.Applicative
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
@@ -78,9 +79,6 @@ helpText = unlines
   , " It will evaluate and create output files for them."
   ]
 
-shownEvaluationFailure :: String
-shownEvaluationFailure = "evaluation failure"
-
 main :: IO ()
 main = do
     MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
@@ -104,15 +102,15 @@ main = do
                 case res of
                   Right (EvaluationSuccess prog) -> do
                     putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                    writeFile outFilePath (render $ pretty prog)
+                    T.writeFile outFilePath (render $ pretty prog)
                   Right EvaluationFailure      -> do
                     -- warn the user that the file failed to evaluate
                     putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                    writeFile outFilePath shownEvaluationFailure
+                    T.writeFile outFilePath shownEvaluationFailure
                   Left _ -> do
                     -- warn the user that exception is thrown
                     putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
-                    writeFile outFilePath shownEvaluationFailure
+                    T.writeFile outFilePath shownEvaluationFailure
           )
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."

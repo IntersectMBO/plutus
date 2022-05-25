@@ -41,7 +41,6 @@ library
         base -any,
         plutus-core -any,
         tasty -any,
-        tasty-golden -any,
         tasty-hunit -any,
         text -any,
         megaparsec -any,
@@ -71,6 +70,7 @@ test-suite uplc-eval-test
     other-modules:
     build-depends:
         base >=4.9 && <5,
+        tasty -any,
         tasty-golden -any,
         text -any,
         plutus-conformance
