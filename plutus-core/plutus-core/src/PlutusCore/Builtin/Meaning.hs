@@ -35,7 +35,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline)
+import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
@@ -192,7 +192,7 @@ instance
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
-    toDeferredF getF = \arg ->
+    toDeferredF getF = oneShot $ \arg ->
         -- The bang is very important: without it GHC thinks that the argument may not be needed in
         -- the end and so creates a thunk for it, which is not only unnecessary allocation, but also
         -- prevents things from being unboxed. So ironically computing the unlifted value strictly
