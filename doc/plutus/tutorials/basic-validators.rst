@@ -88,7 +88,7 @@ Using the script context
 ------------------------
 
 Validators have access to the :term:`script context` as their third argument.
-This will always be a value of type :hsobj:`Plutus.V1.Ledger.Contexts.ScriptContext` encoded as ``Data``.
+This will always be a value of type :hsobj:`PlutusLedgerApi.V1.Contexts.ScriptContext` encoded as ``Data``.
 
 The script context gives validators a great deal of power, because it allows them to inspect other inputs and outputs of the current transaction.
 For example, here is a validator that will only accept the transaction if a particular payment is made as part of it.

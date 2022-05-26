@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | A type for intervals and associated functions.
-module Plutus.V1.Ledger.Interval(
+module PlutusLedgerApi.V1.Interval(
       Interval(..)
     , UpperBound(..)
     , LowerBound(..)

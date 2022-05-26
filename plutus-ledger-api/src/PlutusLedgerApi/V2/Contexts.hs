@@ -13,15 +13,15 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module Plutus.V1.Ledger.Contexts
+module PlutusLedgerApi.V2.Contexts
     (
     -- * Pending transactions and related types
       TxInfo(..)
     , ScriptContext(..)
     , ScriptPurpose(..)
-    , TxId (..)
     , TxOut(..)
     , TxOutRef(..)
     , TxInInfo(..)
@@ -49,29 +49,21 @@ module Plutus.V1.Ledger.Contexts
 
 import GHC.Generics (Generic)
 import PlutusTx
-import PlutusTx.Prelude
-import Prettyprinter (Pretty (..), nest, viaShow, vsep, (<+>))
+import PlutusTx.AssocMap hiding (filter, mapMaybe)
+import PlutusTx.Prelude hiding (toList)
+import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
-import Plutus.V1.Ledger.Address (Address (..), toPubKeyHash)
-import Plutus.V1.Ledger.Credential (Credential (..), StakingCredential)
-import Plutus.V1.Ledger.Crypto (PubKeyHash (..))
-import Plutus.V1.Ledger.DCert (DCert (..))
-import Plutus.V1.Ledger.Scripts
-import Plutus.V1.Ledger.Time (POSIXTimeRange)
-import Plutus.V1.Ledger.Tx (TxId (..), TxOut (..), TxOutRef (..))
-import Plutus.V1.Ledger.Value (CurrencySymbol (..), Value)
+import PlutusLedgerApi.V1.Address (Address (..))
+import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..), fromSymbol, pubKeyOutput)
+import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
+import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
+import PlutusLedgerApi.V1.DCert (DCert (..))
+import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V1.Time (POSIXTimeRange)
+import PlutusLedgerApi.V1.Value (CurrencySymbol, Value)
+import PlutusLedgerApi.V2.Tx (OutputDatum (..), TxId (..), TxOut (..), TxOutRef (..))
+
 import Prelude qualified as Haskell
-
-{- Note [Script types in pending transactions]
-To validate a transaction, we have to evaluate the validation script of each of
-the transaction's inputs. The validation script sees the data of the
-transaction output it validates, and the redeemer of the transaction input of
-the transaction that consumes it.
-In addition, the validation script also needs information on the transaction as
-a whole (not just the output-input pair it is concerned with). This information
-is provided by the `TxInfo` type. A `TxInfo` contains the hashes of
-redeemer and data scripts of all of its inputs and outputs.
--}
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo
@@ -86,50 +78,34 @@ instance Pretty TxInInfo where
     pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
         pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
--- | Purpose of the script that is currently running
-data ScriptPurpose
-    = Minting CurrencySymbol
-    | Spending TxOutRef
-    | Rewarding StakingCredential
-    | Certifying DCert
-    deriving stock (Generic, Haskell.Show, Haskell.Eq)
-
-instance Eq ScriptPurpose where
-    {-# INLINABLE (==) #-}
-    Minting cs == Minting cs'           = cs == cs'
-    Spending ref == Spending ref'       = ref == ref'
-    Rewarding sc == Rewarding sc'       = sc == sc'
-    Certifying cert == Certifying cert' = cert == cert'
-    _ == _                              = False
-
-instance Pretty ScriptPurpose where
-    pretty = viaShow
-
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
-    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
-    , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
-    , txInfoFee         :: Value -- ^ The fee paid by this transaction.
-    , txInfoMint        :: Value -- ^ The 'Value' minted by this transaction.
-    , txInfoDCert       :: [DCert] -- ^ Digests of certificates included in this transaction
-    , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
-    , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
-    , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
-    , txInfoData        :: [(DatumHash, Datum)]
-    , txInfoId          :: TxId
+    { txInfoInputs          :: [TxInInfo] -- ^ Transaction inputs
+    , txInfoReferenceInputs :: [TxInInfo] -- ^ Transaction reference inputs
+    , txInfoOutputs         :: [TxOut] -- ^ Transaction outputs
+    , txInfoFee             :: Value -- ^ The fee paid by this transaction.
+    , txInfoMint            :: Value -- ^ The 'Value' minted by this transaction.
+    , txInfoDCert           :: [DCert] -- ^ Digests of certificates included in this transaction
+    , txInfoWdrl            :: Map StakingCredential Integer -- ^ Withdrawals
+    , txInfoValidRange      :: POSIXTimeRange -- ^ The valid range for the transaction.
+    , txInfoSignatories     :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
+    , txInfoRedeemers       :: Map ScriptPurpose Redeemer
+    , txInfoData            :: Map DatumHash Datum
+    , txInfoId              :: TxId
     -- ^ Hash of the pending transaction (excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq TxInfo where
     {-# INLINABLE (==) #-}
-    TxInfo i o f m c w r s d tid == TxInfo i' o' f' m' c' w' r' s' d' tid' =
-        i == i' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && d == d' && tid == tid'
+    TxInfo i ri o f m c w r s rs d tid == TxInfo i' ri' o' f' m' c' w' r' s' rs' d' tid' =
+        i == i' && ri == ri' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && rs == rs' && d == d' && tid == tid'
 
 instance Pretty TxInfo where
-    pretty TxInfo{txInfoInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
+    pretty TxInfo{txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
         vsep
             [ "TxId:" <+> pretty txInfoId
             , "Inputs:" <+> pretty txInfoInputs
+            , "Reference inputs:" <+> pretty txInfoReferenceInputs
             , "Outputs:" <+> pretty txInfoOutputs
             , "Fee:" <+> pretty txInfoFee
             , "Value minted:" <+> pretty txInfoMint
@@ -137,6 +113,7 @@ instance Pretty TxInfo where
             , "Wdrl:" <+> pretty txInfoWdrl
             , "Valid range:" <+> pretty txInfoValidRange
             , "Signatories:" <+> pretty txInfoSignatories
+            , "Redeemers:" <+> pretty txInfoRedeemers
             , "Datums:" <+> pretty txInfoData
             ]
 
@@ -164,15 +141,13 @@ findOwnInput _ = Nothing
 {-# INLINABLE findDatum #-}
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
-findDatum dsh TxInfo{txInfoData} = snd <$> find f txInfoData
-    where
-        f (dsh', _) = dsh' == dsh
+findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
 
 {-# INLINABLE findDatumHash #-}
 -- | Find the hash of a datum, if it is part of the pending transaction's
 --   hashes
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
-findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
+findDatumHash ds TxInfo{txInfoData} = fst <$> find f (toList txInfoData)
     where
         f (_, ds') = ds' == ds
 
@@ -182,7 +157,7 @@ findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
 
 {-# INLINABLE findContinuingOutputs #-}
--- | Finds all the outputs that pay to the same script address that we are currently spending from, if any.
+-- | Find the indices of all the outputs that pay to the same script address we are currently spending from, if any.
 findContinuingOutputs :: ScriptContext -> [Integer]
 findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = findIndices (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
@@ -190,35 +165,12 @@ findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} 
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
+-- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
         f addr TxOut{txOutAddress=otherAddress} = addr == otherAddress
 getContinuingOutputs _ = traceError "Lf" -- "Can't get any continuing outputs"
-
-{- Note [Hashes in validator scripts]
-
-We need to deal with hashes of four different things in a validator script:
-
-1. Transactions
-2. Validator scripts
-3. Data scripts
-4. Redeemer scripts
-
-The mockchain code in 'Ledger.Tx' only deals with the hashes of(1)
-and (2), and uses the 'Ledger.Tx.TxId' and `Digest SHA256` types for
-them.
-
-In PLC validator scripts the situation is different: First, they need to work
-with hashes of (1-4). Second, the `Digest SHA256` type is not available in PLC
-- we have to represent all hashes as `ByteStrings`.
-
-To ensure that we only compare hashes of the correct type inside a validator
-script, we define a newtype for each of them, as well as functions for creating
-them from the correct types in Haskell, and for comparing them (in
-`Language.Plutus.Runtime.TH`).
-
--}
 
 {-# INLINABLE txSignedBy #-}
 -- | Check if a transaction was signed by the given public key.
@@ -227,15 +179,10 @@ txSignedBy TxInfo{txInfoSignatories} k = case find ((==) k) txInfoSignatories of
     Just _  -> True
     Nothing -> False
 
-{-# INLINABLE pubKeyOutput #-}
--- | Get the public key hash that locks the transaction output, if any.
-pubKeyOutput :: TxOut -> Maybe PubKeyHash
-pubKeyOutput TxOut{txOutAddress} = toPubKeyHash txOutAddress
-
 {-# INLINABLE ownHashes #-}
 -- | Get the validator and datum hashes of the output that is curently being validated
-ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
-ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
+ownHashes :: ScriptContext -> (ValidatorHash, OutputDatum)
+ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatum=d}}) = (s,d)
 ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"
 
 {-# INLINABLE ownHash #-}
@@ -243,17 +190,12 @@ ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"
 ownHash :: ScriptContext -> ValidatorHash
 ownHash p = fst (ownHashes p)
 
-{-# INLINABLE fromSymbol #-}
--- | Convert a 'CurrencySymbol' to a 'ValidatorHash'
-fromSymbol :: CurrencySymbol -> ValidatorHash
-fromSymbol (CurrencySymbol s) = ValidatorHash s
-
 {-# INLINABLE scriptOutputsAt #-}
 -- | Get the list of 'TxOut' outputs of the pending transaction at
 --   a given script address.
-scriptOutputsAt :: ValidatorHash -> TxInfo -> [(DatumHash, Value)]
+scriptOutputsAt :: ValidatorHash -> TxInfo -> [(OutputDatum, Value)]
 scriptOutputsAt h p =
-    let flt TxOut{txOutDatumHash=Just ds, txOutAddress=Address (ScriptCredential s) _, txOutValue} | s == h = Just (ds, txOutValue)
+    let flt TxOut{txOutDatum=d, txOutAddress=Address (ScriptCredential s) _, txOutValue} | s == h = Just (d, txOutValue)
         flt _ = Nothing
     in mapMaybe flt (txInfoOutputs p)
 
@@ -311,15 +253,6 @@ makeIsDataIndexed ''TxInInfo [('TxInInfo,0)]
 
 makeLift ''TxInfo
 makeIsDataIndexed ''TxInfo [('TxInfo,0)]
-
-
-makeLift ''ScriptPurpose
-makeIsDataIndexed ''ScriptPurpose
-    [ ('Minting,0)
-    , ('Spending,1)
-    , ('Rewarding,2)
-    , ('Certifying,3)
-    ]
 
 makeLift ''ScriptContext
 makeIsDataIndexed ''ScriptContext [('ScriptContext,0)]

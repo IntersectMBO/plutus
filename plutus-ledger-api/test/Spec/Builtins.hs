@@ -1,12 +1,13 @@
 {-# LANGUAGE TypeApplications #-}
 module Spec.Builtins where
 
-import Plutus.V1.Ledger.Api qualified as V1
-import Plutus.V1.Ledger.Scripts
-import Plutus.V2.Ledger.Api qualified as V2
 import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
+import PlutusLedgerApi.Common as Common
+import PlutusLedgerApi.V1 qualified as V1
+import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V2 qualified as V2
 import UntypedPlutusCore as UPLC
 
 import Codec.Serialise
@@ -15,9 +16,8 @@ import Data.ByteString.Short
 import Data.Foldable (fold, for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import Plutus.ApiCommon as Common
-import Plutus.Ledger.Test.ProtocolVersions
 import PlutusCore.MkPlc qualified as UPLC
+import PlutusLedgerApi.Test.ProtocolVersions
 import Test.Tasty
 import Test.Tasty.HUnit
 

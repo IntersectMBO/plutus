@@ -12,7 +12,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module Plutus.V1.Ledger.Tx(
+module PlutusLedgerApi.V1.Tx(
     -- * Transactions
     TxId (..),
     ScriptTag (..),
@@ -55,11 +55,11 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Ord qualified as PlutusTx
 
-import Plutus.V1.Ledger.Address
-import Plutus.V1.Ledger.Bytes
-import Plutus.V1.Ledger.Crypto
-import Plutus.V1.Ledger.Scripts
-import Plutus.V1.Ledger.Value
+import PlutusLedgerApi.V1.Address
+import PlutusLedgerApi.V1.Bytes
+import PlutusLedgerApi.V1.Crypto
+import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V1.Value
 
 -- | A transaction ID, using a SHA256 hash as the transaction id.
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }

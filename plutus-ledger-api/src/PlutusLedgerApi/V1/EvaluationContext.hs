@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingVia      #-}
 {-# LANGUAGE TypeApplications #-}
-module Plutus.V1.Ledger.EvaluationContext
+module PlutusLedgerApi.V1.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
     , CostModelParams
@@ -13,8 +13,8 @@ module Plutus.V1.Ledger.EvaluationContext
     , ParamName -- abstract
     ) where
 
-import Plutus.ApiCommon
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
+import PlutusLedgerApi.Common
 
 import Control.Monad
 import Control.Monad.Except

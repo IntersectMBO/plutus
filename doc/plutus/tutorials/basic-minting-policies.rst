@@ -23,7 +23,7 @@ Using the script context
 ------------------------
 
 Minting policies have access to the :term:`script context` as their second argument.
-This will always be a value of type :hsobj:``Plutus.V1.Ledger.Contexts.ScriptContext`` encoded as ``Data``.
+This will always be a value of type :hsobj:``PlutusLedgerApi.V1.Contexts.ScriptContext`` encoded as ``Data``.
 Minting policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
 
 It is also important for a minting policy to look at the tokens in the ``mint`` field that are part of its own asset group.
