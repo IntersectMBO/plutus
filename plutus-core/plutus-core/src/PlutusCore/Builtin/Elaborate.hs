@@ -60,40 +60,128 @@ type family GetName k i where
     GetName GHC.Type i = Lookup i '["a", "b", "c", "d", "e", "i", "j", "k", "l"]
     GetName _        i = Lookup i '["f", "g", "h", "m", "n"]  -- For higher-kinded types.
 
--- | Like 'id', but a type constructor.
-type Id :: forall a. a -> a
-data family Id x
+-- | Apply the function stored in the provided 'Maybe' if there's one.
+type MaybeApply :: forall k. Maybe (k -> k) -> k -> k
+type family MaybeApply mayVal x where
+    MaybeApply 'Nothing  a = a
+    MaybeApply ('Just f) a = f a
 
 -- | Try to specialize @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one (either @i + 1@ or @i@ depending on whether
 -- specialization attempt is successful or not).
--- @f@ is for wrapping 'TyVarRep' (see 'HandleHole' for how this is used).
-type TrySpecializeAsVar :: forall k. Nat -> Nat -> (k -> k) -> k -> GHC.Constraint
-class TrySpecializeAsVar i j f a | i f a -> j
+-- @mw@ is for wrapping 'TyVarRep', if there's a wrapper inside (see 'HandleHole' for how it's
+-- used).
+type TrySpecializeAsVar :: forall k. Nat -> Nat -> Maybe (k -> k) -> k -> GHC.Constraint
+class TrySpecializeAsVar i j mw a | i mw a -> j
 instance
-    ( var ~ f (TyVarRep @k ('TyNameRep (GetName k i) i))
+    ( var ~ MaybeApply mw (TyVarRep @k ('TyNameRep (GetName k i) i))
     -- Try to unify @a@ with a freshly created @var@.
     , a ~?~ var
     -- If @a@ is equal to @var@ then unification was successful and we just used the fresh id and
     -- so we need to bump it up. Otherwise @var@ was discarded and so the fresh id is still fresh.
     -- Replacing @(===)@ with @(==)@ causes errors at use site, for whatever reason.
     , j ~ If (a === var) (i + 1) i
-    ) => TrySpecializeAsVar i j f (a :: k)
+    ) => TrySpecializeAsVar i j mw (a :: k)
 
+type NoAppliedVarsHeader =
+    'Text "A built-in function is not allowed to have applied type variables in its type"
+
+-- See Note [Rep vs Type context].
+-- | Throw an error telling the user not to apply type variables to anything.
+type ThrowNoAppliedVars :: (GHC.Type -> GHC.Type) -> GHC.Constraint
+type family ThrowNoAppliedVars hole where
+    -- In the Rep context higher-kinded type variables are allowed, but need to be applied via
+    -- 'TyAppRep', hence the error message.
+    ThrowNoAppliedVars RepHole = TypeError
+        ( NoAppliedVarsHeader
+        ':$$: 'Text "To fix this error apply type variables via explicit ‘TyAppRep’"
+        )
+    -- In the Type context no higher-kinded type variables are allowed.
+    ThrowNoAppliedVars TypeHole = TypeError
+        ( NoAppliedVarsHeader
+        ':$$: 'Text "To fix this error specialize all higher-kinded type variables"
+        )
+    -- In case we add more contexts.
+    ThrowNoAppliedVars _ = TypeError
+        ( NoAppliedVarsHeader
+        ':$$: 'Text "Internal error: the context is not recognized. Please report"
+        )
+
+-- See Note [Elaboration of higher-kinded type variables].
+-- | Check that the higher-kinded type does not represent a PLC type variable and if it does.
+type CheckNotAppliedVar :: forall k. (GHC.Type -> GHC.Type) -> k -> GHC.Constraint
+type family CheckNotAppliedVar hole a where
+    CheckNotAppliedVar hole (TyVarRep _) = ThrowNoAppliedVars hole
+    CheckNotAppliedVar _    _            = ()
+
+-- | Try to specialize the head of a (possibly nullary) type application to a type representing a
+-- PLC variable and throw if that succeeds or if it already was one.
+type TrySpecializeHeadAsVar
+    :: forall a b. Nat -> Nat -> (GHC.Type -> GHC.Type) -> (a -> b) -> GHC.Constraint
+class TrySpecializeHeadAsVar i j hole f | i f -> j
+-- | Recurse to reach the head.
+instance {-# OVERLAPPABLE #-}
+    TrySpecializeHeadAsVar i j hole f => TrySpecializeHeadAsVar i j hole (f x)
+-- | Reached the head, it's a 'TyVarRep', throwing. Mostly to ensure that a 'TyVarRep' doesn't slip
+-- in via user input, but also out of pure paranoia (GHC seems to occasionally solve constraints
+-- for the same type multiple times by racing through different routes in the presence of
+-- @INCOHERENT@ pragmas, but this is not confirmed. It wouldn't be unreasonable, though).
+instance {-# OVERLAPPING #-}
+    (ThrowNoAppliedVars hole, i ~ j) => TrySpecializeHeadAsVar i j hole (TyVarRep name)
+-- | Reached the head, try to specialize it as a variable and throw if that succeeds.
+instance {-# INCOHERENT #-}
+    ( TrySpecializeAsVar i j 'Nothing f
+    , CheckNotAppliedVar hole f
+    ) => TrySpecializeHeadAsVar i j hole f
+
+{- | Try to specialize @a@ as a type representing a PLC type variable.
+Same as 'TrySpecializeAsVar' (in particular, the parameters are the same), except this one also
+checks if the given type is a type application, in which case it tries to specialize the head of the
+application to a type representing a PLC type variable and throws if that succeeds.
+
+We need this because blindly specializing an @f A@ (where @f@ is a type variable and @A@ is an
+arbitrary type) in the Type context would give us @Opaque val A@ (by @f ~ Opaque val@) instead of
+@Opaque val (f' A)@, which would be very confusing to the user: the only reasonable way to elaborate
+an application of a type variable in Haskell is to make an application of a type variable in PLC,
+not to randomly drop the type variable.
+
+There's no way we could elaborate an applied type variable without surprising the user, because no
+instantiation of @f@ could turn @f A@ into @Opaque val (f' A)@, hence we simply forbid applied type
+variables and throw upon encountering one. It would be a pain to handle an iterated application of a
+type representing a PLC type variable anyway.
+
+It's not possible to determine if @Opaque val A@ is a specialization of @f a@ or @a@ (for a type
+variable @a@), hence we have to make this whole check during elaboration and not any later.
+
+Regardless of whether the given argument is a type application or not, it's attempted to be
+specialized as a type representing a PLC type variable, because such a type is a type application
+itself. Unifying an already known type variable with a fresh one is useful when the name part
+of the former is unknown.
+-}
+type TrySpecializeAsUnappliedVar
+    :: forall k. Nat -> Nat -> (GHC.Type -> GHC.Type) -> Maybe (k -> k) -> k -> GHC.Constraint
+class TrySpecializeAsUnappliedVar i j hole mw a | i mw a -> j
+instance
+    ( TrySpecializeHeadAsVar i j hole f
+    , TrySpecializeAsVar j k mw (f x)
+    ) => TrySpecializeAsUnappliedVar i k hole mw (f x)
+instance {-# INCOHERENT #-} TrySpecializeAsVar i j mw a => TrySpecializeAsUnappliedVar i j hole mw a
+
+-- See Note [Rep vs Type context]
 -- | First try to specialize the hole using 'TrySpecializeAsVar' and then recurse on the result of
 -- that using 'HandleHoles'.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
 type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
 class HandleHole i j val hole | i val hole -> j
--- In the Rep context @x@ is attempted to be instantiated as a 'TyVarRep'.
+-- In the Rep context @x@ is attempted to be specialized as a 'TyVarRep'.
 instance
-    ( TrySpecializeAsVar i j Id (Id x)  -- The two 'Id's cancel each other.
+    ( TrySpecializeAsUnappliedVar i j RepHole 'Nothing x
     , HandleHoles j k val x
     ) => HandleHole i k val (RepHole x)
--- In the Type context @a@ is attempted to be instantiated as a 'TyVarRep' wrapped in @Opaque val@.
+-- In the Type context @a@ is attempted to be specialized as a 'TyVarRep' wrapped in @Opaque val@.
 instance
-    ( TrySpecializeAsVar i j (Opaque val) a
+    ( TrySpecializeAsUnappliedVar i j TypeHole ('Just (Opaque val)) a
     , HandleHoles j k val a
     ) => HandleHole i k val (TypeHole a)
 
@@ -103,9 +191,9 @@ type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
 class HandleHolesGo i j val holes | i val holes -> j
 instance i ~ j => HandleHolesGo i j val '[]
 instance
-      ( HandleHole i j val hole
-      , HandleHolesGo j k val holes
-      ) => HandleHolesGo i k val (hole ': holes)
+    ( HandleHole i j val hole
+    , HandleHolesGo j k val holes
+    ) => HandleHolesGo i k val (hole ': holes)
 
 -- | If the outermost constructor of the second argument is known and happens to be one of the
 -- constructors of the list data type, then the second argument is returned back. Otherwise the
