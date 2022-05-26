@@ -236,7 +236,7 @@ mkTermToEvaluate lv pv bs args = do
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
     -- This just changes once in version 7.0
-    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingImmediate
+    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingDeferred
 
 type DefaultMachineParameters = MachineParameters CekMachineCosts UPLC.CekValue DefaultUni DefaultFun
 
