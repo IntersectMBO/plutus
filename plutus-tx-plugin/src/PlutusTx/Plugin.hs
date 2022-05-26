@@ -112,6 +112,16 @@ unconditionally which we pretty much are.
 See https://gitlab.haskell.org/ghc/ghc/issues/16615 for upstream discussion.
 -}
 
+{- Note [newtype field accessors in `base`]
+For some unknown reason, newtype field accessors in `base`, such as `getFirst`, `appEndo` and
+`getDual`, cause Cabal build and Nix build to behave differently. In Cabal build, these
+field accessors' unfoldings are available to the GHC simplifier, and so the simplifier inlines
+them into `Coercion`s. But in Nix build, somehow their unfoldings aren't available.
+
+This started to happen after a seemingly innocent PR (#4552), and it eventually led to different
+PIRs, PLCs and UPLCs, causing test failures. Replacing them with `coerce` avoids the problem.
+-}
+
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
                            , GHC.installCoreToDos = install

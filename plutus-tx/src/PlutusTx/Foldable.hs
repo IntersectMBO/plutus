@@ -55,16 +55,6 @@ import PlutusTx.Semigroup ((<>))
 
 import Prelude qualified as Haskell (Monad, return, (>>), (>>=))
 
-{- Note [newtype field accessors in `base`]
-For some unknown reason, newtype field accessors in `base`, such as `getFirst`, `appEndo` and
-`getDual`, cause Cabal build and Nix build to behave differently. In Cabal build, these
-field accessors' unfoldings are available to the GHC simplifier, and so the simplifier inlines
-them into `Coercion`s. But in Nix build, somehow their unfoldings aren't available.
-
-This started to happen after a seemingly innocent PR (#4552), and it eventually led to different
-PIRs, PLCs and UPLCs, causing test failures. Replacing them with `coerce` avoids the problem.
--}
-
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
     -- | Plutus Tx version of 'Data.Foldable.foldMap'.
