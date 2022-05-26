@@ -205,9 +205,9 @@ underTypeError = error "Panic: a 'TypeError' was bypassed"
 type NoStandalonePolymorphicDataErrMsg =
     'Text "Plutus type variables can't directly appear inside built-in types" ':$$:
     'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
-    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':<>:
-    'Text " in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':<>:
-    'Text " of an argument or the type of the result, respectively"
+    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':$$:
+    'Text "  in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':$$:
+    'Text "  of an argument or the type of the result, respectively"
 
 instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
     knownUni = underTypeError
