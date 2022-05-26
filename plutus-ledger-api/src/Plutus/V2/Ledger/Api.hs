@@ -116,7 +116,7 @@ module Plutus.V2.Ledger.Api (
 import Plutus.ApiCommon as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
 import Plutus.ApiCommon qualified as Common (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
 import Plutus.V1.Ledger.Api hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..), costModelParamNames,
-                             evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
+                             evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed, mkEvaluationContext)
 import Plutus.V1.Ledger.Scripts (ScriptHash (..))
 import Plutus.V2.Ledger.Contexts
 import Plutus.V2.Ledger.EvaluationContext

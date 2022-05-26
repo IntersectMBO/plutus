@@ -12,6 +12,7 @@ import Plutus.Ledger.Test.Examples
 import Plutus.Ledger.Test.ProtocolVersions
 import Plutus.V1.Ledger.Api
 import Spec.Builtins qualified
+import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 
@@ -90,4 +91,5 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.Interval.tests
     , Spec.Eval.tests
     , Spec.Builtins.tests
+    , Spec.CostModelParams.tests
     ]
