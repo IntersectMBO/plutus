@@ -55,6 +55,16 @@ import PlutusTx.Semigroup ((<>))
 
 import Prelude qualified as Haskell (Monad, return, (>>), (>>=))
 
+{- Note [newtype field accessors in `base`]
+For some unknown reason, newtype field accessors in `base`, such as `getFirst`, `appEndo` and
+`getDual`, cause Cabal build and Nix build to behave differently. In Cabal build, these
+field accessors' unfoldings are available to the GHC simplifier, and so the simplifier inlines
+them into `Coercion`s. But in Nix build, somehow their unfoldings aren't available.
+
+This started to happen after a seemingly innocent PR (#4552), and it eventually led to different
+PIRs, PLCs and UPLCs, causing test failures. Replacing them with `coerce` avoids the problem.
+-}
+
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
     -- | Plutus Tx version of 'Data.Foldable.foldMap'.
@@ -98,12 +108,14 @@ fold = foldMap id
 -- | Plutus Tx version of 'Data.Foldable.foldr'.
 {-# INLINABLE foldr #-}
 foldr :: Foldable t => (a -> b -> b) -> b -> t a -> b
-foldr f z t = appEndo (foldMap (Endo #. f) t) z
+-- See Note [newtype field accessors in `base`]
+foldr f z t = coerce (foldMap (Endo #. f) t) z
 
 -- | Plutus Tx version of 'Data.Foldable.foldl'.
 {-# INLINABLE foldl #-}
 foldl :: Foldable t => (b -> a -> b) -> b -> t a -> b
-foldl f z t = appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
+-- See Note [newtype field accessors in `base`]
+foldl f z t = coerce (foldMap (Dual . Endo . flip f) t) z
 
 -- | Plutus Tx version of 'Data.Foldable.toList'.
 toList :: Foldable t => t a -> [a]
@@ -213,7 +225,8 @@ notElem x = not . elem x
 -- | Plutus Tx version of 'Data.Foldable.find'.
 {-# INLINABLE find #-}
 find :: Foldable t => (a -> Bool) -> t a -> Maybe a
-find p = getFirst . foldMap (\ x -> First (if p x then Just x else Nothing))
+-- See Note [newtype field accessors in `base`]
+find p = coerce . foldMap (\ x -> First (if p x then Just x else Nothing))
 
 (#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
 (#.) _f = coerce

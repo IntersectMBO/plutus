@@ -27,9 +27,8 @@ tests = testNested "Budget" [
   , goldenBudget "any" compiledAny
   , goldenPir "any" compiledAny
 
-  -- TODO: ignoring because of a bug in ci
-  --, goldenBudget "find" compiledFind
-  -- , goldenPir "find" compiledFind
+  , goldenBudget "find" compiledFind
+  , goldenPir "find" compiledFind
 
   , goldenBudget "filter" compiledFilter
   , goldenPir "filter" compiledFilter
