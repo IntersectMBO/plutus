@@ -2,22 +2,23 @@
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.MkPlc
+import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
+import PlutusLedgerApi.V1 as Api
+import PlutusLedgerApi.V1.Scripts as Scripts
+import UntypedPlutusCore as UPLC
+
 import Codec.Serialise qualified as CBOR
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
-import Plutus.Ledger.Test.ProtocolVersions
-import Plutus.V1.Ledger.Api as Api
-import Plutus.V1.Ledger.Scripts as Scripts
-import PlutusCore qualified as PLC
-import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.MkPlc
+import PlutusLedgerApi.Test.ProtocolVersions
 import Test.Tasty
 import Test.Tasty.HUnit
-import UntypedPlutusCore as UPLC
 
 {- NOTE [Direct UPLC code]
 For this test-suite we write the programs directly in the UPLC AST,

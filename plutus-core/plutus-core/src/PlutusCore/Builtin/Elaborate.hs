@@ -216,7 +216,7 @@ type family UnknownTypeError val x where
         ':$$: 'Text "  ‘" ':<>: 'ShowType x ':<>: 'Text "’"
         ':$$: 'Text "is neither a built-in type, nor one of the control types."
         ':$$: 'Text "If it can be represented in terms of one of the built-in types"
-        ':$$: 'Text "  then go add the instance (you may need a ‘KnownTypeIn’ one too)"
+        ':$$: 'Text "  then go add the instance (you may need a few others too)"
         ':$$: 'Text "  alongside the instance for the built-in type."
         ':$$: 'Text "Otherwise you may need to add a new built-in type"
         ':$$: 'Text "  (provided you're doing something that can be supported in principle)"

@@ -7,7 +7,8 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types where
+module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
+  Ann (..)) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -18,6 +19,7 @@ import PlutusIR.Compiler.Definitions
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
+import PlutusTx.Annotation
 
 import FamInstEnv qualified as GHC
 import GhcPlugins qualified as GHC
@@ -164,7 +166,7 @@ type Compiling uni fun m ann =
     , MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
-    , MonadDefs LexName uni fun () m
+    , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
     , PLC.GShow uni, PLC.GEq uni
     , PLC.ToBuiltinMeaning uni fun

@@ -1,14 +1,15 @@
 module Main where
 
+import PlutusLedgerApi.V1
+import PlutusLedgerApi.V1.Scripts
+import UntypedPlutusCore qualified as UPLC
+
 import Codec.Serialise qualified as Serialise (serialise)
 import Common
 import Criterion
 import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Scripts
-import UntypedPlutusCore qualified as UPLC
 
 {-|
 for each data/*.flat validation script, it benchmarks

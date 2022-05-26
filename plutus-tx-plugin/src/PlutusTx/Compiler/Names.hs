@@ -20,6 +20,7 @@ import PlutusCore.Quote
 import PlutusIR.Compiler.Names
 
 import Data.Char
+import Data.Functor
 import Data.List
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -55,7 +56,7 @@ compileVarFresh :: CompilingDefault uni fun m ann => GHC.Var -> m (PLCVar uni fu
 compileVarFresh v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v
-    pure $ PLC.VarDecl () n' t'
+    pure $ PLC.VarDecl AnnOther n' t'
 
 lookupTyName :: Scope uni fun -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
@@ -67,13 +68,13 @@ compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
-    pure $ PLC.TyVarDecl () t' k'
+    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
 
 compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
-    pure $ PLC.TyVarDecl () t' k'
+    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
 
 pushName :: GHC.Name -> PLCVar uni fun-> ScopeStack uni fun -> ScopeStack uni fun
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack

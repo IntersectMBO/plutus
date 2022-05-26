@@ -8,7 +8,7 @@ import Hedgehog (Property, forAll, property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Plutus.V1.Ledger.Interval qualified as Interval
+import PlutusLedgerApi.V1.Interval qualified as Interval
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog (testProperty)

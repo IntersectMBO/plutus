@@ -12,10 +12,10 @@ import PlutusTx
 import PlutusTx.Lift
 import PlutusTx.Prelude
 
-import Plutus.V1.Ledger.Contexts
-import Plutus.V1.Ledger.Crypto
-import Plutus.V1.Ledger.Scripts
-import Plutus.V1.Ledger.Value
+import PlutusLedgerApi.V1.Contexts
+import PlutusLedgerApi.V1.Crypto
+import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.V1.Value
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL

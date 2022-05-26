@@ -1,24 +1,27 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 module CostModelInterface.Spec (test_costModelInterface) where
 
-import PlutusCore
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
+
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 
 import Data.Aeson
 import Data.ByteString.Lazy qualified as BSL
+import Data.Either
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Syntax qualified as TH
+import Prettyprinter
 import System.FilePath
 import TH.RelativePaths
 import Test.Tasty
@@ -73,11 +76,7 @@ extractParams model = do
 
 -- | Extract some params from a cost model and return the updated version, failing if it doesn't work
 applyParams :: CekCostModel -> CostModelParams -> IO CekCostModel
-applyParams model params = do
-  case applyCostModelParams model params of
-    Nothing     -> assertFailure "applyCostModelParams failed"
-    Just model' -> pure model'
-
+applyParams model params = either (assertFailure . show . pretty) pure $ applyCostModelParams model params
 -- | Just check that extraction works.
 testExtraction :: CekCostModel -> IO ()
 testExtraction model = do
@@ -111,7 +110,7 @@ testSelfUpdateWithExtraEntry model =
       params <- extractParams model
       let params' = Map.insert "XYZ" 123 params
           mModel = applyCostModelParams model params'
-      assertBool "Superfluous costparam was not caught." $ isNothing mModel
+      assertBool "Superfluous costparam was not caught." $ isLeft mModel
 
 -- Update a model with its own params with an entry deleted: this should
 -- be OK because the original member of the model will still be there.
@@ -155,10 +154,10 @@ testDeserialise = assertBool "Failed to decode default ledger cost params" $
 
 -- | Test that we can apply the ledger params to our cost model
 testApply :: IO ()
-testApply = assertBool "Failed to load the ledger cost params into the our cost model" $
-    isJust $ do
-        decodedParams <- decode @CostModelParams ledgerParamsBS
-        applyCostModelParams defaultCekCostModel decodedParams
+testApply = do
+    let decodedParams = fromJust $ decode @CostModelParams ledgerParamsBS
+    assertBool "Failed to load the ledger cost params into the our cost model" $
+        isRight $ applyCostModelParams defaultCekCostModel decodedParams
 
 -- | Test to catch a mispelled/missing param.
 -- A parameter with that name exists in the ledger params but is missing from the cost model, and that is an error.
@@ -168,7 +167,7 @@ testMispelled = do
         (cekVarCostValueM, paramsReducted) = deleteLookup cekVarCostCpuKey params
         paramsMispelled = Map.insert cekVarCostCpuKeyMispelled (fromJust cekVarCostValueM) paramsReducted
     assertBool "Failed to catch mispelled cost param" $
-        isNothing $ applyCostModelParams defaultCekCostModel paramsMispelled
+        isLeft $ applyCostModelParams defaultCekCostModel paramsMispelled
   where
       cekVarCostCpuKeyMispelled = "cekVarCost--exBudgetCPU"
       deleteLookup = Map.updateLookupWithKey (const $ const Nothing)
