@@ -1,19 +1,18 @@
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusLedgerApi.V1.Address (
-    Address (..),
-    pubKeyHashAddress,
-    scriptHashAddress,
-    toPubKeyHash,
-    toValidatorHash,
-    stakingCredential
+module PlutusLedgerApi.V1.Address
+    ( Address (..)
+    , pubKeyHashAddress
+    , scriptHashAddress
+    , toPubKeyHash
+    , toValidatorHash
+    , stakingCredential
     ) where
 
 import Control.DeepSeq (NFData)

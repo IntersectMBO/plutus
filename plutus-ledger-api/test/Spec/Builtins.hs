@@ -4,7 +4,7 @@ module Spec.Builtins where
 import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
-import PlutusLedgerApi.Common as Common
+import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V2 qualified as V2
@@ -21,14 +21,14 @@ import PlutusLedgerApi.Test.ProtocolVersions
 import Test.Tasty
 import Test.Tasty.HUnit
 
-serialiseDataExScript :: SerializedScript
+serialiseDataExScript :: SerialisedScript
 serialiseDataExScript = toShort . toStrict $ serialise serialiseDataEx
     where
       serialiseDataEx :: Script
       serialiseDataEx = Script $ UPLC.Program () (PLC.defaultVersion ()) $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
 
-bigConstant :: SerializedScript
+bigConstant :: SerialisedScript
 bigConstant = toShort . toStrict $ serialise bigConstantS
     where
       -- A big constant, with a bit of term in the way just to make sure we're actually checking the whole tree
@@ -49,9 +49,6 @@ tests =
          assertBool "in l1,Vasil" $ not $ V1.isScriptWellFormed vasilPV serialiseDataExScript
          assertBool "in l2,Alonzo" $ not $ V2.isScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "not in l2,Vasil" $ V2.isScriptWellFormed vasilPV serialiseDataExScript
-    , testCase "cost model parameters" $
-         -- v1 is missing some cost model parameters because new builtins are added in v2
-         assertBool "v1 params is proper subset of v2 params" $ Set.fromList V1.costModelParamNames `Set.isProperSubsetOf` Set.fromList V2.costModelParamNames
     , testCase "size check" $ do
          assertBool "not in l1" $ V1.isScriptWellFormed vasilPV bigConstant
          assertBool "in l2" $ not $ V2.isScriptWellFormed vasilPV bigConstant

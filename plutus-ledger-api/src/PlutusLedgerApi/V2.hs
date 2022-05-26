@@ -1,10 +1,7 @@
-{-# LANGUAGE DerivingStrategies #-}
-{- |
-The interface to Plutus V2 for the ledger.
--}
+-- | The interface to Plutus V2 for the ledger.
 module PlutusLedgerApi.V2 (
     -- * Scripts
-    SerializedScript
+      SerialisedScript
     , Script
     , fromCompiledCode
     -- * Validating scripts
@@ -25,10 +22,10 @@ module PlutusLedgerApi.V2 (
     -- ** Cost model
     , EvaluationContext
     , mkEvaluationContext
+    , ParamName (..)
     , CostModelApplyError (..)
     , CostModelParams
     , assertWellFormedCostModelParams
-    , costModelParamNames
     -- * Context types
     , ScriptContext(..)
     , ScriptPurpose(..)
@@ -111,16 +108,17 @@ module PlutusLedgerApi.V2 (
     , builtinDataToData
     -- * Errors
     , EvaluationError (..)
-) where
+    ) where
 
 import PlutusLedgerApi.Common as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
 import PlutusLedgerApi.Common qualified as Common (evaluateScriptCounting, evaluateScriptRestricting,
                                                    isScriptWellFormed)
-import PlutusLedgerApi.V1 hiding (ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..), costModelParamNames,
+import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
                            evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed, mkEvaluationContext)
 import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.EvaluationContext
+import PlutusLedgerApi.V2.ParamName
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
 
@@ -129,7 +127,7 @@ import PlutusTx.AssocMap (Map, fromList)
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-isScriptWellFormed :: ProtocolVersion -> SerializedScript -> Bool
+isScriptWellFormed :: ProtocolVersion -> SerialisedScript -> Bool
 isScriptWellFormed = Common.isScriptWellFormed PlutusV2
 
 -- | Evaluates a script, returning the minimum budget that the script would need
@@ -140,7 +138,7 @@ evaluateScriptCounting
     :: ProtocolVersion
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
-    -> SerializedScript          -- ^ The script to evaluate
+    -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting = Common.evaluateScriptCounting PlutusV2
@@ -156,7 +154,7 @@ evaluateScriptRestricting
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
-    -> SerializedScript          -- ^ The script to evaluate
+    -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting PlutusV2

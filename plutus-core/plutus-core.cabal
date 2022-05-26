@@ -158,6 +158,7 @@ library
         ErrorCode
         PlutusPrelude
         Universe
+        Data.Either.Extras
     hs-source-dirs:
         plutus-core/src
         plutus-core/stdlib

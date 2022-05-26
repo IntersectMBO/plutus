@@ -108,7 +108,7 @@ test_typecheckFun name = goldenVsDoc testName path doc where
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
     => String -> TestTree
-test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumeration @fun
+test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumerate @fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =

@@ -3,11 +3,9 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -42,6 +40,7 @@ import PlutusCore.Evaluation.Result
 import Control.Monad.Except
 import Data.Coerce
 import Data.DList (DList)
+import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
@@ -334,7 +333,7 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either (throwKnownTypeErrorWithCause val) pure $ readKnown val
+readKnownSelf val = fromRightM (throwKnownTypeErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where

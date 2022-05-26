@@ -2,7 +2,6 @@
 module DeBruijn.Scope (test_scope) where
 
 import UntypedPlutusCore as UPLC
-import UntypedPlutusCore.Check.Scope as UPLC
 
 import Control.Monad.Except
 import Data.Bifunctor

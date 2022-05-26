@@ -1,45 +1,43 @@
 {-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusLedgerApi.V2.Tx(
+module PlutusLedgerApi.V2.Tx
+    (
     -- * Transactions
-    TxId (..),
-    ScriptTag (..),
-    RedeemerPtr (..),
-    Redeemers,
+      TxId (..)
+    , ScriptTag (..)
+    , RedeemerPtr (..)
+    , Redeemers
     -- * Transaction outputs
-    TxOut(..),
-    TxOutRef(..),
-    OutputDatum (..),
-    isPubKeyOut,
-    isPayToScriptOut,
-    outAddress,
-    outValue,
-    txOutPubKey,
-    outDatum,
-    outReferenceScript,
-    pubKeyHashTxOut,
+    , TxOut(..)
+    , TxOutRef(..)
+    , OutputDatum (..)
+    , isPubKeyOut
+    , isPayToScriptOut
+    , outAddress
+    , outValue
+    , txOutPubKey
+    , outDatum
+    , outReferenceScript
+    , pubKeyHashTxOut
     -- * Transaction inputs
-    TxInType(..),
-    TxIn(..),
-    inRef,
-    inType,
-    inScripts,
-    pubKeyTxIn,
-    scriptTxIn,
-    pubKeyTxIns,
-    scriptTxIns,
+    , TxInType(..)
+    , TxIn(..)
+    , inRef
+    , inType
+    , inScripts
+    , pubKeyTxIn
+    , scriptTxIn
+    , pubKeyTxIns
+    , scriptTxIns
     ) where
 
 import Control.DeepSeq (NFData)
