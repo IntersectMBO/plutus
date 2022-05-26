@@ -2,23 +2,22 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
 
 {-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.Runtime where
 
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
-import PlutusCore.Evaluation.Machine.ExMemory (ExMemory)
-import PlutusCore.Evaluation.Machine.Exception (AsMachineError (_MachineError), ErrorWithCause,
-                                                MachineError (UnknownBuiltin), throwingWithCause)
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
 
-import Control.DeepSeq (NFData (..), rwhnf)
+import Control.DeepSeq
 import Control.Lens (ix, (^?))
-import Control.Monad.Except (MonadError)
-import Data.Array (Array, Ix)
+import Control.Monad.Except
+import Data.Array
 import Data.Kind qualified as GHC (Type)
-import PlutusCore.Builtin.KnownType (MakeKnownM, ReadKnownM)
-
+import PlutusCore.Builtin.KnownType
 
 data Lazy a = Lazy
     { unLazy :: ~a

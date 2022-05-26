@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -89,9 +90,9 @@ import Control.Arrow ((&&&))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
-import Control.Lens (Lens', lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
-import Control.Monad.Reader (MonadReader (ask), guard, join, void, (<=<), (>=>))
-import Data.Array (Array, Ix, listArray)
+import Control.Lens
+import Control.Monad.Reader
+import Data.Array
 import Data.Bifunctor (first, second)
 import Data.Bool (bool)
 import Data.Coerce (Coercible, coerce)
@@ -99,7 +100,7 @@ import Data.Either (fromRight, isRight)
 import Data.Foldable (fold, toList)
 import Data.Function (on)
 import Data.Functor (($>))
-import Data.Functor.Compose (Compose (Compose, getCompose))
+import Data.Functor.Compose
 import Data.List (foldl')
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
@@ -108,13 +109,12 @@ import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
-import Debug.Trace (trace, traceShowId)
-import GHC.Generics (Generic)
+import Debug.Trace
+import GHC.Generics
 import GHC.Natural (Natural)
-import Prettyprinter (Doc, Pretty (..), parens, (<+>))
-import Text.PrettyBy.Default (Render (..), display)
-import Text.PrettyBy.Internal (DefaultPrettyBy, HasPrettyDefaults, PrettyAny (..), PrettyBy (..),
-                               PrettyCommon (PrettyCommon), PrettyDefaultBy)
+import Prettyprinter
+import Text.PrettyBy.Default
+import Text.PrettyBy.Internal
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
