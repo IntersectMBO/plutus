@@ -1,18 +1,15 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-{-
-
-Digests of certificates that are included in transactions.
-
--}
-module PlutusLedgerApi.V1.DCert(DCert(..)) where
+-- | Digests of certificates that are included in transactions.
+module PlutusLedgerApi.V1.DCert
+    ( DCert(..)
+    ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
@@ -20,7 +17,7 @@ import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusTx qualified as PlutusTx
 import PlutusTx.Prelude qualified as P
-import Prettyprinter (Pretty (..), viaShow)
+import Prettyprinter.Extras
 
 -- | A representation of the ledger DCert. Some information is digested, and
 --   not included
@@ -46,6 +43,7 @@ data DCert
     DCertMir
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
+    deriving Pretty via (PrettyShow DCert)
 
 instance P.Eq DCert where
     {-# INLINABLE (==) #-}
@@ -57,9 +55,6 @@ instance P.Eq DCert where
     DCertGenesis == DCertGenesis                               = True
     DCertMir == DCertMir                                       = True
     _ == _                                                     = False
-
-instance Pretty DCert where
-  pretty = viaShow
 
 PlutusTx.makeIsDataIndexed
     ''DCert

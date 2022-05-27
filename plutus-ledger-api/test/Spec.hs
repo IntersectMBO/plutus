@@ -1,5 +1,4 @@
-module Main(main) where
-
+module Main where
 
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples

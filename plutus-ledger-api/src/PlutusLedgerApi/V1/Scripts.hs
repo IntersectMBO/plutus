@@ -1,59 +1,49 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingVia         #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE PatternSynonyms     #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
-module PlutusLedgerApi.V1.Scripts(
+module PlutusLedgerApi.V1.Scripts
+    (
     -- * Scripts
-    Script (..),
-    scriptSize,
-    fromCompiledCode,
-    ScriptError (..),
-    evaluateScript,
-    runScript,
-    runMintingPolicyScript,
-    runStakeValidatorScript,
-    applyValidator,
-    applyMintingPolicyScript,
-    applyStakeValidatorScript,
-    applyArguments,
+      Script (..)
+    , scriptSize
+    , fromCompiledCode
+    , ScriptError (..)
+    , evaluateScript
+    , runScript
+    , runMintingPolicyScript
+    , runStakeValidatorScript
+    , applyValidator
+    , applyMintingPolicyScript
+    , applyStakeValidatorScript
+    , applyArguments
     -- * Script wrappers
-    mkValidatorScript,
-    Validator (..),
-    unValidatorScript,
-    Redeemer(..),
-    Datum(..),
-    mkMintingPolicyScript,
-    MintingPolicy (..),
-    unMintingPolicyScript,
-    mkStakeValidatorScript,
-    StakeValidator (..),
-    unStakeValidatorScript,
-    Context(..),
+    , mkValidatorScript
+    , Validator (..)
+    , unValidatorScript
+    , Redeemer(..)
+    , Datum(..)
+    , mkMintingPolicyScript
+    , MintingPolicy (..)
+    , unMintingPolicyScript
+    , mkStakeValidatorScript
+    , StakeValidator (..)
+    , unStakeValidatorScript
+    , Context(..)
     -- * Hashes
-    DatumHash(..),
-    RedeemerHash(..),
-    ScriptHash(..),
-    ValidatorHash(..),
-    MintingPolicyHash (..),
-    StakeValidatorHash (..),
+    , DatumHash(..)
+    , RedeemerHash(..)
+    , ScriptHash(..)
+    , ValidatorHash(..)
+    , MintingPolicyHash (..)
+    , StakeValidatorHash (..)
     ) where
 
 import Prelude qualified as Haskell
@@ -81,7 +71,6 @@ import PlutusTx.Prelude
 import Prettyprinter
 import Prettyprinter.Extras
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Check.Scope qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.

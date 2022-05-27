@@ -1,20 +1,14 @@
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveFunctor        #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NamedFieldPuns       #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
+
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module PlutusLedgerApi.V1.Contexts
     (
     -- * Pending transactions and related types
@@ -50,7 +44,8 @@ module PlutusLedgerApi.V1.Contexts
 import GHC.Generics (Generic)
 import PlutusTx
 import PlutusTx.Prelude
-import Prettyprinter (Pretty (..), nest, viaShow, vsep, (<+>))
+import Prettyprinter
+import Prettyprinter.Extras
 
 import PlutusLedgerApi.V1.Address (Address (..), toPubKeyHash)
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
@@ -93,6 +88,7 @@ data ScriptPurpose
     | Rewarding StakingCredential
     | Certifying DCert
     deriving stock (Generic, Haskell.Show, Haskell.Eq)
+    deriving Pretty via (PrettyShow ScriptPurpose)
 
 instance Eq ScriptPurpose where
     {-# INLINABLE (==) #-}
@@ -101,9 +97,6 @@ instance Eq ScriptPurpose where
     Rewarding sc == Rewarding sc'       = sc == sc'
     Certifying cert == Certifying cert' = cert == cert'
     _ == _                              = False
-
-instance Pretty ScriptPurpose where
-    pretty = viaShow
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo

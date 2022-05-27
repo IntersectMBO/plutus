@@ -40,8 +40,8 @@ main = benchWith mkFullBM
             (term, args) = peelDataArguments body
 
             bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v term)
-            -- strictify and "short" the result cbor to create a real `SerializedScript`
-            benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
+            -- strictify and "short" the result cbor to create a real `SerialisedScript`
+            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
 
         in  whnf (\ script ->
                       (isRight $ snd $ evaluateScriptRestricting

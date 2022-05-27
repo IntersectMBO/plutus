@@ -1,7 +1,6 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
@@ -37,6 +36,7 @@ import PlutusCore.Data qualified as PLC
 
 import Data.Proxy
 import Data.Ratio qualified as GHCRatio
+import PlutusPrelude
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -56,13 +56,9 @@ tests =
     , goldenPir "errorTrace" errorTrace
     ]
 
-eitherToMaybe :: Either e a -> Maybe a
-eitherToMaybe (Left _)  = Nothing
-eitherToMaybe (Right x) = Just x
-
 -- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just representing it as 'Nothing'.
 tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
-tryHard a = eitherToMaybe <$> (liftIO $ try @SomeException $ evaluate $ force a)
+tryHard a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
 testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.property $ do

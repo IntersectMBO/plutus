@@ -1,8 +1,7 @@
-{-# LANGUAGE DerivingVia      #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Prettyprinter.Extras(
-    PrettyShow(..)
+module Prettyprinter.Extras
+    ( PrettyShow(..)
     , Pretty(..)
     , PrettyFoldable(..)
     , Tagged(Tagged)

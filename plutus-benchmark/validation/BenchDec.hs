@@ -35,9 +35,9 @@ main = benchWith mkDecBM
 
             -- we then have to re-encode it
             bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v unsaturated)
-            -- strictify and "short" the result cbor to create a real `SerializedScript`
+            -- strictify and "short" the result cbor to create a real `SerialisedScript`
 
-            benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
+            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         in whnf (\ s ->

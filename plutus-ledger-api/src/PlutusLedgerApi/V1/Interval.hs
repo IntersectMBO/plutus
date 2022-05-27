@@ -1,19 +1,16 @@
 {-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE DerivingStrategies   #-}
-{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE MonoLocalBinds       #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
+
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | A type for intervals and associated functions.
-module PlutusLedgerApi.V1.Interval(
-      Interval(..)
+module PlutusLedgerApi.V1.Interval
+    ( Interval(..)
     , UpperBound(..)
     , LowerBound(..)
     , Extended(..)

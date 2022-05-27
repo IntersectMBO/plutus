@@ -1,7 +1,8 @@
 module PlutusLedgerApi.Test.Scripts
-    (-- * Example scripts
-    unitRedeemer,
-    unitDatum
+    (
+    -- * Example scripts
+      unitRedeemer
+    , unitDatum
     ) where
 
 import PlutusLedgerApi.V1.Scripts

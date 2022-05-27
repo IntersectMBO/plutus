@@ -49,17 +49,22 @@ library
         PlutusLedgerApi.V1.Time
         PlutusLedgerApi.V1.Value
         PlutusLedgerApi.V1.EvaluationContext
+        PlutusLedgerApi.V1.ParamName
 
         PlutusLedgerApi.V2
         PlutusLedgerApi.V2.Contexts
         PlutusLedgerApi.V2.Tx
         PlutusLedgerApi.V2.EvaluationContext
+        PlutusLedgerApi.V2.ParamName
 
         PlutusLedgerApi.Common
     other-modules:
         Codec.CBOR.Extras
-        Data.Either.Extras
         Prettyprinter.Extras
+        PlutusLedgerApi.Common.ParamName
+        PlutusLedgerApi.Common.Versions
+        PlutusLedgerApi.Common.SerialisedScript
+        PlutusLedgerApi.Common.Eval
     build-depends:
         base >=4.9 && <5,
         bytestring -any,

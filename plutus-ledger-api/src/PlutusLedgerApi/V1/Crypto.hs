@@ -1,15 +1,11 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DerivingVia     #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusLedgerApi.V1.Crypto(
-    PubKeyHash(..)
+module PlutusLedgerApi.V1.Crypto
+    ( PubKeyHash(..)
     ) where
 
 import Control.DeepSeq (NFData)

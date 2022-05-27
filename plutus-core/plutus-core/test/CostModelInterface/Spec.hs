@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -16,6 +14,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import Data.Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either
+import Data.Either.Extras
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Text qualified as Text
@@ -76,7 +75,7 @@ extractParams model = do
 
 -- | Extract some params from a cost model and return the updated version, failing if it doesn't work
 applyParams :: CekCostModel -> CostModelParams -> IO CekCostModel
-applyParams model params = either (assertFailure . show . pretty) pure $ applyCostModelParams model params
+applyParams model params = fromRightM (assertFailure . show . pretty) $ applyCostModelParams model params
 -- | Just check that extraction works.
 testExtraction :: CekCostModel -> IO ()
 testExtraction model = do

@@ -1,4 +1,3 @@
-{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
@@ -30,6 +29,7 @@ import Control.Exception
 import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader qualified as Reader
+import Data.Either.Extras
 import Data.Kind (Type)
 import Data.Tagged (Tagged (Tagged))
 import Data.Text (Text)
@@ -153,7 +153,7 @@ runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeExcept
 runPlcCek values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
-     either (throwError . SomeException) pure $
+     fromRightM (throwError . SomeException) $
          UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p^.UPLC.progTerm)
 
 runPlcCekTrace ::
@@ -164,6 +164,6 @@ runPlcCekTrace values = do
      ps <- traverse toUPlc values
      let p = foldl1 UPLC.applyProgram ps
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
-     res <- either (throwError . SomeException) pure result
+     res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)
 

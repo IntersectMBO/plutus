@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude
@@ -64,7 +63,7 @@ module PlutusPrelude
     , mtraverse
     , foldMapM
     , reoption
-    , enumeration
+    , enumerate
     , tabulateArray
     , (?)
     , ensure
@@ -102,6 +101,7 @@ import Data.Function (on)
 import Data.Functor (($>))
 import Data.Functor.Compose
 import Data.List (foldl')
+import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text qualified as T
@@ -162,14 +162,11 @@ foldMapM f xs = foldr step return xs mempty where
 reoption :: (Foldable f, Alternative g) => f a -> g a
 reoption = foldr (const . pure) empty
 
-enumeration :: (Bounded a, Enum a) => [a]
-enumeration = [minBound .. maxBound]
-
 -- | Basically a @Data.Functor.Representable@ instance for 'Array'.
 -- We can't provide an actual instance because of the @Distributive@ superclass: @Array i@ is not
 -- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
-tabulateArray f = listArray (minBound, maxBound) $ map f enumeration
+tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
