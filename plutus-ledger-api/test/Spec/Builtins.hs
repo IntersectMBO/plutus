@@ -5,9 +5,11 @@ import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V2 qualified as V2
+import PlutusLedgerApi.V3 qualified as V3
 import UntypedPlutusCore as UPLC
 
 import Codec.Serialise
@@ -17,7 +19,6 @@ import Data.Foldable (fold, for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import PlutusCore.MkPlc qualified as UPLC
-import PlutusLedgerApi.Test.ProtocolVersions
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -48,8 +49,11 @@ tests =
          assertBool "in l1,Alonzo" $ not $ V1.isScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "in l1,Vasil" $ not $ V1.isScriptWellFormed vasilPV serialiseDataExScript
          assertBool "in l2,Alonzo" $ not $ V2.isScriptWellFormed alonzoPV serialiseDataExScript
+         assertBool "in l3,Alonzo" $ not $ V3.isScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "not in l2,Vasil" $ V2.isScriptWellFormed vasilPV serialiseDataExScript
+         assertBool "not in l3,Chang" $ V3.isScriptWellFormed changPV serialiseDataExScript
     , testCase "size check" $ do
          assertBool "not in l1" $ V1.isScriptWellFormed vasilPV bigConstant
          assertBool "in l2" $ not $ V2.isScriptWellFormed vasilPV bigConstant
+         assertBool "in l3" $ not $ V3.isScriptWellFormed changPV bigConstant
     ]
