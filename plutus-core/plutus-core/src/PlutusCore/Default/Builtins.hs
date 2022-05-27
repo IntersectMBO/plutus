@@ -282,6 +282,10 @@ of them that are important to know to be able to use 'makeBuiltinMeaning' in cas
 complicated than a simple monomorphic or polymorphic function. But for now let's talk about a few
 more simple cases.
 
+Note that this only applies when each unconstrained type variable is only used as the entire
+type of one or more arguments, as is the case with @\b x y -> if b then x else y@. Otherwise,
+for instasnce @\(a, b) -> a@, cannot be handled this way. See Note [How to add a built-in function: complicated cases].
+
 4. Certain types are not built-in, but can be represented via built-in ones. For example, we don't
 have 'Int' as a built-in, but we have 'Integer' and we can represent the former in terms of the
 latter. The conversions between the two types are handled by 'makeBuiltinMeaning', so that the user
@@ -655,7 +659,7 @@ However it's not always possible to use automatic unlifting, see next.
             (null :: [a] -> Bool)
             <costingFunction>
 
-we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
+we'll get an error, saying that an unwrapped built-in type constructor can't be applied to a type variable.
 It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
 general case, plus it has to be very inefficient.
 

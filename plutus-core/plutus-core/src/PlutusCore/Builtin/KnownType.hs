@@ -100,12 +100,14 @@ the term is a constant, extract the type tag and check it for equality with the 
 Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
 any different from just 'Integer' unlifting-wise.
 
-However there's no sensible way of unlifting a value of, say, @[a]@ where @a@ in not a built-in
-type. So let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions
-that don't deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd
-need to write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which
-is really easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be
-cheap and that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making
+When it comes to polymorphic types, unlifting a @val@ into an @Opaque val a@ is trivial - it's just
+@makeKnown@. However, there's no sensible way of unlifting a @val@ into, say, @[Opaque val a]@
+(which would be needed if we use the same approach in defining @NullList@, @MkCons@ etc. as we do
+defining @IfThenElse@ and @ChooseUnit@), because we'd need to first unlift the @val@ into a
+constant, then check that it is indeed a list, and finally @map makeKnown@ over the list. But the problem is,
+unlifting is supposed to be cheap, while mapping over a list is O(n). This isn't a problem for
+@NullList@ because it only needs to examine whether the list is empty, but it is a problem for @MkCons@
+because it produces a list. This means 'MkCons' would become an O(n) operation making
 perfectly linear algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for
 how that would look like.
 
@@ -113,19 +115,19 @@ So the problem is that we can't convert in O(1) time a @[a]@ coming from a const
 statically-unknown type (that @a@ is existential) to @[a']@ where @a'@ is known statically.
 Thus it's impossible to instantiate @a@ in Haskell's
 
-    nullList :: [a] -> Bool
+    (:) :: a -> [a] -> [a]
 
-so that there's a 'TypeScheme' for this function.
+so that there's a 'TypeScheme' for this function that makes evaluation efficient.
 
 One non-solution would be to instantiate @a@, then recurse on the type, construct a new function
-that defers to the original @nullList@ but wraps its argument in a specific way (more on that below)
+that defers to the original @(:)@ but wraps its argument in a specific way (more on that below)
 making it possible to assign a 'TypeScheme' to the resulting function. Astonishingly enough, that
 could actually work and if we ever write a paper on builtins, we should mention that example, but:
 
 1. such a trick requires a generic machinery that knows how to check that the head of the builtin
    application is a particular built-in type. We used to have that, but it was just way too slow
 2. that would only work for functions that don't care about @a@ at all. But for example when
-   elaborating @cons :: a -> [a] -> [a]@ as a Plutus builtin we need to unlift both the arguments
+   elaborating @(:) :: a -> [a] -> [a]@ as a Plutus builtin we need to unlift both the arguments
    and check that their @a@s are equal
    (See Note [Representable built-in functions over polymorphic built-in types])
    and it's either way too complex or even impossible to do that automatically within some generic
@@ -133,9 +135,11 @@ could actually work and if we ever write a paper on builtins, we should mention 
 
 So what we do is we simply require the user to write
 
-    nullList :: SomeConstant uni [a] -> Bool
+    consPlc :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
 
-and unlift a @[a]@ manually within the definition of the builtin. This works, because the
+and unlift a @[a]@ manually within the definition of the builtin. Note that the second argument
+is @SomeConstant uni [a]@ and not @[SomeConstant uni a]@, and it returns @(Opaque val [a])@, not
+@[Opaque val a]@. This avoids mapping over a list performing lifting and unlifting. This works also because the
 existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
 and use it immediately without ever exposing the existential parts to the outside and it's not fine
 to try to return a value having an existential inside of it, which is what unlifting of @[a]@ would
