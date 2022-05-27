@@ -4,6 +4,7 @@ module Spec.CostModelParams where
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1 as V1
 import PlutusLedgerApi.V2 as V2
+import PlutusLedgerApi.V3 as V3
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel as Plutus
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -30,6 +31,8 @@ tests =
             166 @=? length v1CostModelParamNames
             175 @=? length (enumerate @V2.ParamName)
             175 @=? length v2CostModelParamNames
+            175 @=? length (enumerate @V3.ParamName)
+            175 @=? length v3CostModelParamNames
     , testCase "text" $ do
             -- this depends on the fact that V1/V2 are alphabetically-ordered; does not have to hold for future versions
             altV1CostModelParamNames @=? v1CostModelParamNames
@@ -37,13 +40,17 @@ tests =
             Map.keys (fromJust Plutus.defaultCostModelParams) @=? v2CostModelParamNames
     , testCase "context length" $ do
             let defaultCostValues = Map.elems $ fromJust defaultCostModelParams
-            -- the defaultcostmodelparams reflects only the latest version V2, so this should succeed because the lengths match
+            -- the defaultcostmodelparams reflects only the latest version V3, so this should succeed because the lengths match
+            assertBool "wrong number of arguments in V2.mkContext" $ isRight $ V3.mkEvaluationContext defaultCostValues
+            -- currently v2 args ==v3 args
             assertBool "wrong number of arguments in V2.mkContext" $ isRight $ V2.mkEvaluationContext defaultCostValues
             -- this one should not succeed because V1 evaluation-context expects less number of arguments.
             assertBool "wrong number of arguments in V1.mkContext" $ isLeft $ V1.mkEvaluationContext defaultCostValues
-    , testCase "cost model parameters" $
+    , testCase "cost model parameters" $ do
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v2 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v2CostModelParamNames
+         -- v1 is missing some cost model parameters because new builtins are added in v2
+         assertBool "v1 params is proper subset of v3 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v3CostModelParamNames
     ]
 
 v1CostModelParamNames :: [Text.Text]
@@ -72,4 +79,7 @@ altV1CostModelParamNames = Map.keys $ fromJust $ extractCostModelParams $
 
 v2CostModelParamNames :: [Text.Text]
 v2CostModelParamNames = Text.pack . showParamName <$> enumerate @V2.ParamName
+
+v3CostModelParamNames :: [Text.Text]
+v3CostModelParamNames = Text.pack . showParamName <$> enumerate @V3.ParamName
 

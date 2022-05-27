@@ -1,12 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
-module PlutusLedgerApi.Common.Versions where
+module PlutusLedgerApi.Common.Versions
+    ( module PlutusLedgerApi.Common.ProtocolVersions
+    , LedgerPlutusVersion (..)
+    , builtinsIntroducedIn
+    , builtinsAvailableIn
+    ) where
 
 import PlutusCore
+import PlutusLedgerApi.Common.ProtocolVersions
 
 import Data.Foldable
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import Prettyprinter
 
 {- Note [New builtins and protocol versions]
 When we add a new builtin to the language, that is a *backwards-compatible* change.
@@ -33,19 +38,8 @@ could do, just by tracking when they were removed.
 data LedgerPlutusVersion =
       PlutusV1
     | PlutusV2
+    | PlutusV3
    deriving stock (Eq, Ord)
-
--- | This represents the Cardano protocol version, with its major and minor components.
--- This relies on careful understanding between us and the ledger as to what this means.
-data ProtocolVersion = ProtocolVersion { pvMajor :: Int, pvMinor :: Int }
-  deriving stock (Show, Eq)
-
-instance Ord ProtocolVersion where
-    -- same as deriving Ord, just for having it explicitly
-    compare (ProtocolVersion major minor) (ProtocolVersion major' minor') = compare major major' <> compare minor minor'
-
-instance Pretty ProtocolVersion where
-    pretty (ProtocolVersion major minor) = pretty major <> "." <> pretty minor
 
 {-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
 
@@ -54,8 +48,8 @@ See Note [New builtins and protocol versions]
 -}
 builtinsIntroducedIn :: Map.Map (LedgerPlutusVersion, ProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn = Map.fromList [
-  -- 5.0 is Alonzo
-  ((PlutusV1, ProtocolVersion 5 0), Set.fromList [
+  -- Alonzo is protocolversion=5.0
+  ((PlutusV1, alonzoPV), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
           AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
           Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature,
@@ -68,7 +62,8 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
-  ((PlutusV2, ProtocolVersion 7 0), Set.fromList [
+  -- Vasil is protocolversion=7.0
+  ((PlutusV2, vasilPV), Set.fromList [
           SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]

@@ -1,5 +1,6 @@
 module Main where
 
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
 import PlutusLedgerApi.V1
@@ -14,7 +15,6 @@ import Test.Tasty.QuickCheck
 import Control.Monad (void)
 import Data.Either
 import Data.Word (Word8)
-import PlutusLedgerApi.Test.ProtocolVersions
 import Spec.CostModelParams qualified
 
 main :: IO ()

@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
--- |Address and staking address credentials for outputs.
+-- | Address and staking address credentials for outputs.
 module PlutusLedgerApi.V1.Credential
     ( StakingCredential(..)
     , Credential(..)

@@ -57,14 +57,21 @@ library
         PlutusLedgerApi.V2.EvaluationContext
         PlutusLedgerApi.V2.ParamName
 
+        PlutusLedgerApi.V3
+        PlutusLedgerApi.V3.Contexts
+        PlutusLedgerApi.V3.Tx
+        PlutusLedgerApi.V3.EvaluationContext
+        PlutusLedgerApi.V3.ParamName
+
         PlutusLedgerApi.Common
+        PlutusLedgerApi.Common.Versions
     other-modules:
         Codec.CBOR.Extras
         Prettyprinter.Extras
         PlutusLedgerApi.Common.ParamName
-        PlutusLedgerApi.Common.Versions
         PlutusLedgerApi.Common.SerialisedScript
         PlutusLedgerApi.Common.Eval
+        PlutusLedgerApi.Common.ProtocolVersions
     build-depends:
         base >=4.9 && <5,
         bytestring -any,
@@ -92,7 +99,6 @@ library plutus-ledger-api-testlib
     exposed-modules:
         PlutusLedgerApi.Test.Examples
         PlutusLedgerApi.Test.EvaluationContext
-        PlutusLedgerApi.Test.ProtocolVersions
         PlutusLedgerApi.Test.Scripts
     build-depends:
         base >=4.9 && <5,

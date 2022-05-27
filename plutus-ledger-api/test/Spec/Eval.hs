@@ -6,6 +6,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.V1 as Api
 import PlutusLedgerApi.V1.Scripts as Scripts
@@ -16,7 +17,6 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import PlutusLedgerApi.Test.ProtocolVersions
 import Test.Tasty
 import Test.Tasty.HUnit
 
