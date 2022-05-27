@@ -40,6 +40,9 @@ PR_BRANCH_REF=$(git rev-parse --short HEAD)
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
 cabal update
 
+echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
+cabal clean
+
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
 nix-shell --run "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
 
@@ -49,6 +52,10 @@ git fetch origin
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
+
+
+echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
+cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
 nix-shell --run "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
