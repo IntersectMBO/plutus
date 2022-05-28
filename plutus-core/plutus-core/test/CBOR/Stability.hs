@@ -36,7 +36,7 @@ tests = testGroup "CBOR"
 
 -- | Convert the Text objects in the testData entries to bytestrings and then
 -- deserialise them and check that both give the same Data object and that both
--- match the expected object.  Without the bangs error messages can appear in
+-- match the expected object.  Without the bangs, error messages can appear in
 -- the wrong place.
 maketest :: (String, Text, Text, Data) -> TestTree
 maketest (name, s1, s2, expected) =
