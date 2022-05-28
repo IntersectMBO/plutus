@@ -56,9 +56,10 @@ maketest (name, s1, s2, expected) =
       object1 @?= expected
       step "Checking that object2 decoded correctly"
       object2 @?= expected
-          where numBytes s = if s == 1
-                             then "1 byte"
-                             else printf "%d bytes" s :: String
+          where numBytes s =
+                    if s == 1
+                    then "1 byte"
+                    else printf "%d bytes" s :: String
 
 
 -- A list of tuples containing (Script/data-item name, encoded version 1,
