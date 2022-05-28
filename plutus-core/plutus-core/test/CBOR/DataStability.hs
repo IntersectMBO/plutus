@@ -33,7 +33,7 @@ import Test.Tasty.HUnit
 tests :: TestTree
 tests = testGroup "CBOR"
         [
-         testGroup "stability" (fmap maketest testData)
+         testGroup "data-cbor-stability" (fmap maketest testData)
         ]
 
 -- | Convert the Text objects in the testData entries to bytestrings and then
@@ -69,7 +69,7 @@ maketest (name, s1, s2, expected) =
 testData :: [(String, Text, Text, Data)]
 testData =
     [
-     ( "auction_1-1 (a)"
+     ( "auction_1-1"
      , "d87982581cbd99a373075d42fe4ac9109515e46303d0940cb9620bf058b87986a9d87980"
      , "d8799f581cbd99a373075d42fe4ac9109515e46303d0940cb9620bf058b87986a9d87980ff"
      , Constr 0 [B "\189\153\163s\a]B\254J\201\DLE\149\NAK\228c\ETX\208\148\f\185b\v\240X\184y\134\169", Constr 0 []]
