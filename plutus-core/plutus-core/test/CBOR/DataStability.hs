@@ -5,14 +5,16 @@
 {- | The `flat` files containing validation scripts in `plutus-benchmarks` were
 generated in August 2021.  In May 2022 it was observed that deserialising them
 to memory and then reserialising them usually caused the size of the `flat`
-files to increase, apparently because the CBOR encoding of `Data` objects had
-changed.  The serialised versions show significant differences (see `testData`
-below) but deserialise to identical objects.  These tests contain pairs of
-different encodings of Data objects from a selection of the scripts and check
-that they continue to deserialise to the same thing, and that both deserialise
-to the expected object. -}
+files to increase.  This was because the CBOR encoding of `Data` objects had
+changed: it formerly used a definite-length encoding for lists but changed to
+using an indefinite-length encoding, which requires an extra 0xff tag to mark
+the end of the list (see Section 3.2 of RFC 8949). The serialised versions show
+significant differences (see `testData` below) but deserialise to identical
+objects.  These tests contain pairs of different encodings of Data objects from
+a selection of the scripts and check that they continue to deserialise to the
+same thing, and that both deserialise to the expected object. -}
 
-module CBOR.Stability
+module CBOR.DataStability
 
 where
 
@@ -43,19 +45,19 @@ maketest (name, s1, s2, expected) =
     testCaseSteps name $ \step -> do
       let !bs1 = BSL.fromStrict . fromJust . decodeHex $ s1
           size1 = BSL.length bs1
-      step $ printf "Deserialising Data object 1 for %s from CBOR bytestring (%s)" name (numBytes size1)
+      step $ printf "Deserialising Data object 1 from CBOR bytestring (%s)" (numBytes size1)
       let !object1 = deserialise @Data bs1
       let !bs2 = BSL.fromStrict . fromJust . decodeHex $ s2
           size2 = BSL.length bs2
-      step $ printf "Deserialising Data object 2 for %s from CBOR bytestring (%s)" name (numBytes size2)
+      step $ printf "Deserialising Data object 2 from CBOR bytestring (%s)" (numBytes size2)
       let !object2 = deserialise @Data bs2
       step $ printf "CBOR size difference: %s" (numBytes (size2 - size1))
-      step "Checking object1 and object2 for equality"
-      assertEqual "Deserialisation produced different objects" object1 object2
       step "Checking that object1 decoded correctly"
       object1 @?= expected
       step "Checking that object2 decoded correctly"
       object2 @?= expected
+      step "Checking object1 and object2 for equality"
+      assertEqual "Deserialisation produced different objects" object1 object2
           where numBytes s =
                     if s == 1
                     then "1 byte"

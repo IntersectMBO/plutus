@@ -11,7 +11,7 @@ module Main
 
 import PlutusPrelude
 
-import CBOR.Stability qualified
+import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import Evaluation.Spec (test_evaluation)
@@ -273,7 +273,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
-    , CBOR.Stability.tests
+    , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests NEAT.defaultGenOptions
     ]
