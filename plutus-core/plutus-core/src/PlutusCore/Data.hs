@@ -26,8 +26,6 @@ import GHC.Generics
 import Prelude
 import Prettyprinter
 
--- Attempting to make this strict made code slower by 2%,
--- see https://github.com/input-output-hk/plutus/pull/4622
 -- | A generic "data" type.
 --
 -- The main constructor 'Constr' represents a datatype value in sum-of-products
