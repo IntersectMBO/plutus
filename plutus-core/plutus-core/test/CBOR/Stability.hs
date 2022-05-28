@@ -41,13 +41,13 @@ maketest (name, s1, s2) =
     testCaseSteps name $ \step -> do
       let !bs1 = BSL.fromStrict . fromJust . decodeHex $ s1
           size1 = BSL.length bs1
-      step $ printf "Deserialising Data object 1 for %s from bytestring (%s)" name (numBytes size1)
+      step $ printf "Deserialising Data object 1 for %s from CBOR bytestring (%s)" name (numBytes size1)
       let !data1 = deserialise @Data bs1
       let !bs2 = BSL.fromStrict . fromJust . decodeHex $ s2
           size2 = BSL.length bs2
-      step $ printf "Deserialising Data object 2 for %s from bytestring (%s)" name (numBytes size2)
+      step $ printf "Deserialising Data object 2 for %s from CBOR bytestring (%s)" name (numBytes size2)
       let !data2 = deserialise @Data bs2
-      step $ printf "Size difference: %s" (numBytes (size2 - size1))
+      step $ printf "CBOR size difference: %s" (numBytes (size2 - size1))
       step "Checking Data for equality"
       assertEqual "Deserialisation produced different objects" data1 data2
           where numBytes s = if s == 1
