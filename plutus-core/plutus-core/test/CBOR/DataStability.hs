@@ -14,8 +14,7 @@ objects.  These tests contain pairs of different encodings of Data objects from
 a selection of the scripts and check that they continue to deserialise to the
 same thing, and that both deserialise to the expected object. -}
 
-module CBOR.DataStability
-
+module CBOR.DataStability (tests)
 where
 
 import PlutusCore.Data
