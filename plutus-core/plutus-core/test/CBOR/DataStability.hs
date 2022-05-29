@@ -63,7 +63,6 @@ maketest (name, s1, s2, expected) =
                     then "1 byte"
                     else printf "%d bytes" s :: String
 
-
 -- A list of tuples containing (Script/data-item name, encoded version 1,
 -- encoded version 2, expected object)
 testData :: [(String, Text, Text, Data)]
