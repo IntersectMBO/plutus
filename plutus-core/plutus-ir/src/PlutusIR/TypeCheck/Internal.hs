@@ -27,7 +27,6 @@ import Data.Ix
 import PlutusCore (ToKind, tyVarDeclName, typeAnn)
 import PlutusCore.Error as PLC
 import PlutusCore.Quote
-import PlutusCore.Rename as PLC
 import PlutusIR
 import PlutusIR.Compiler.Datatype
 import PlutusIR.Compiler.Provenance
@@ -373,13 +372,13 @@ withVarsOfBinding r (DatatypeBind _ dt) k = do
     (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs r (original dt)
     -- ignore the generated rhs terms of constructors/destructor
     let structorDecls = PIR.defVar <$> destrDef:constrDefs
-    -- normalize, then rename, then only introduce the vardecl to scope
     foldr normRenameScope k structorDecls
     where
+      -- normalize, then introduce the vardecl to scope
       normRenameScope :: VarDecl TyName Name uni fun (Provenance a)
                       -> TypeCheckM uni fun c e res -> TypeCheckM uni fun c e res
       normRenameScope v acc = do
-          normRenamedTy <- rename =<< (normalizeTypeM $ _varDeclType v)
+          normRenamedTy <- normalizeTypeM $ _varDeclType v
           withVar (_varDeclName v) (void <$> normRenamedTy) acc
 
 
