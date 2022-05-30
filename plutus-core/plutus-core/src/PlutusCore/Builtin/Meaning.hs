@@ -181,7 +181,7 @@ instance
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
 
     -- Unlift, then recurse.
-    toImmediateF !f = fmap (toImmediateF @val @args @res . f) . readKnown
+    toImmediateF !f = oneShot $ fmap (toImmediateF @val @args @res . f) . readKnown
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
