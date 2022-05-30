@@ -64,7 +64,6 @@ module PlutusPrelude
     , foldMapM
     , reoption
     , enumerate
-    , Lazy (..)
     , tabulateArray
     , (?)
     , ensure
