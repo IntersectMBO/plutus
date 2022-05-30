@@ -486,7 +486,7 @@ builtinTys Star =
 builtinTys _ = []
 
 -- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
--- and abstractions /\ t0 ... tn. T
+-- and lambda abstractions \ t0 ... tn. T
 genAtomicType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genAtomicType k = do
   tys <- asks geTypes
