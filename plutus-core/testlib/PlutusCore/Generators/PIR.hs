@@ -538,7 +538,7 @@ genClosedType_ = genTypeWithCtx mempty
 genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
--- | Generate a well-kinded term in a given context
+-- | Generate a well-kinded type and its kind in a given context
 genKindAndTypeWithCtx :: Map TyName (Kind ()) -> Gen (Kind(), Type TyName DefaultUni ())
 genKindAndTypeWithCtx ctx = do
   k <- arbitrary
