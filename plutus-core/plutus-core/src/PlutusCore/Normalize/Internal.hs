@@ -5,7 +5,7 @@
 
 module PlutusCore.Normalize.Internal
     ( NormalizeTypeT
-    , runNormalizeTypeM
+    , runNormalizeTypeT
     , withExtendedTypeVarEnv
     , normalizeTypeM
     , substNormalizeTypeM
@@ -48,11 +48,11 @@ Type normalization requires 'Quote' (because we need to be able to generate fres
 do not put 'Quote' into 'NormalizeTypeT'. The reason for this is that it makes type signatures of
 various runners much nicer and also more generic. For example, we have
 
-    runNormalizeTypeM :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
+    runNormalizeTypeT :: MonadQuote m => NormalizeTypeT m tyname uni ann a -> m a
 
 If 'NormalizeTypeT' contained 'Quote', it would be
 
-    runNormalizeTypeM :: NormalizeTypeT m tyname uni ann a -> QuoteT m a
+    runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -> QuoteT m a
 
 which hardcodes 'QuoteT' to be the outermost transformer.
 
@@ -88,11 +88,11 @@ newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
         , MonadQuote
         )
 
--- | Run a 'NormalizeTypeM' computation.
-runNormalizeTypeM :: NormalizeTypeT m tyname uni ann a -> m a
-runNormalizeTypeM = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT
+-- | Run a 'NormalizeTypeT' computation.
+runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -> m a
+runNormalizeTypeT = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT
 
--- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeM' computation.
+-- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeT' computation.
 withExtendedTypeVarEnv
     :: (HasUnique tyname TypeUnique, Monad m)
     => tyname
@@ -100,7 +100,7 @@ withExtendedTypeVarEnv
     -> NormalizeTypeT m tyname uni ann a
     -> NormalizeTypeT m tyname uni ann a
 withExtendedTypeVarEnv name =
-    local . over normalizeTypeEnvTypeVarEnv . insertByName name . pure
+    local . over normalizeTypeEnvTypeVarEnv . insertByName name . dupable
 
 -- | Look up a @tyname@ in a 'TypeVarEnv'.
 lookupTyNameM
@@ -165,7 +165,7 @@ normalizeUni uni =
         (\uniF uniA -> TyApp () (normalizeUni uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
--- | Normalize a 'Type' in the 'NormalizeTypeM' monad.
+-- | Normalize a 'Type' in the 'NormalizeTypeT' monad.
 normalizeTypeM
     :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
@@ -200,7 +200,7 @@ normalized types. However we do not enforce this in the type signature, because
 -}
 
 -- See Note [Normalizing substitution].
--- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeM' monad.
+-- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeT' monad.
 substNormalizeTypeM
     :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Normalized (Type tyname uni ann)                                    -- ^ @ty@

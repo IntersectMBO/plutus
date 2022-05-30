@@ -6,8 +6,11 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module PlutusCore.Rename
-    ( Rename (..)
+    ( Renamed (unRenamed)
+    , Rename (..)
+    , getRenamed
     , Dupable
+    , dupable
     , liftDupable
     ) where
 
@@ -18,8 +21,6 @@ import PlutusCore.Mark
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename.Internal
-
-import Data.Functor.Identity
 
 {- Note [Marking]
 We use functions from the @markNonFresh*@ family in order to ensure that bound variables never get
@@ -37,6 +38,11 @@ class Rename a where
     -- Must always assign new names to bound variables,
     -- so that @rename@ can be used for alpha-renaming as well.
     rename :: MonadQuote m => a -> m a
+
+-- | 'rename' a value and wrap the result in 'Renamed', so that it can be passed around and it's
+-- visible in the types that the thing inside satisfies global uniqueness.
+getRenamed :: (Rename a, MonadQuote m) => a -> m (Renamed a)
+getRenamed = fmap Renamed . rename
 
 instance HasUniques (Type tyname uni ann) => Rename (Type tyname uni ann) where
     -- See Note [Marking].
@@ -60,11 +66,17 @@ instance Rename a => Rename (Normalized a) where
 -- 2. some value may be used multiple times
 --
 -- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
--- global conditions is preserved.
+-- global uniqueness is preserved.
+--
+-- 'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
+-- access the underlying value.
 newtype Dupable a = Dupable
     { unDupable :: a
-    } deriving stock (Show, Eq, Functor, Foldable, Traversable)
-      deriving (Applicative, Monad) via Identity
+    } deriving stock (Show, Eq)
+
+-- | Wrap a value in 'Dupable'.
+dupable :: a -> Dupable a
+dupable = Dupable
 
 -- | Extract the value stored in a @Dupable a@ and rename it.
 liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a

@@ -146,7 +146,7 @@ lookupBuiltinM ann fun = do
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
 withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
-withVar name = local . over tceVarTypes . insertByName name . pure
+withVar name = local . over tceVarTypes . insertByName name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
@@ -193,7 +193,7 @@ normalizeTypeM
     :: HasUniApply uni
     => Type TyName uni ann
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ann))
-normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
+normalizeTypeM ty = Norm.runNormalizeTypeT $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
@@ -202,7 +202,7 @@ substNormalizeTypeM
     -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
     -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
-substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
+substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeTypeM ty name body
 
 -- ###################
 -- ## Kind checking ##

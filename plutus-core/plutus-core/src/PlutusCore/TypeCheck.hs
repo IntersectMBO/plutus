@@ -47,7 +47,7 @@ builtinMeaningsToTypes ann =
     runQuoteT . fmap (BuiltinTypes . Just) . sequence . tabulateArray $ \fun -> do
         let ty = typeOfBuiltinFunction fun
         _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
-        pure <$> normalizeType ty
+        dupable <$> normalizeType ty
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig

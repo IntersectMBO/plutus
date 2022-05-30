@@ -3,6 +3,7 @@
 
 module PlutusCore.Rename.Internal
     ( module Export
+    , Renamed (..)
     , withFreshenedTyVarDecl
     , withFreshenedVarDecl
     , renameTypeM
@@ -16,6 +17,17 @@ import PlutusCore.Quote
 import PlutusCore.Rename.Monad as Export
 
 import Control.Monad.Reader
+
+-- | A wrapper for signifying that the value inside of it satisfies global uniqueness.
+--
+-- It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only
+-- supposed to be exported from this internal module.
+--
+-- Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
+-- like with 'Functor').
+newtype Renamed a = Renamed
+    { unRenamed :: a
+    }
 
 -- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
 -- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.

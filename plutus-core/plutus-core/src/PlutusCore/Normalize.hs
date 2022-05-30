@@ -20,13 +20,13 @@ import Universe
 normalizeType
     :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
     => Type tyname uni ann -> m (Normalized (Type tyname uni ann))
-normalizeType = rename >=> runNormalizeTypeM . normalizeTypeM
+normalizeType = rename >=> runNormalizeTypeT . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesIn
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni)
     => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
-normalizeTypesIn = rename >=> runNormalizeTypeM . normalizeTypesInM
+normalizeTypesIn = rename >=> runNormalizeTypeT . normalizeTypesInM
 
 -- | Normalize every 'Type' in a 'Program'.
 normalizeTypesInProgram
