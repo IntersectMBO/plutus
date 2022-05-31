@@ -16,6 +16,7 @@ This includes a variety of useful tools:
 * Agda with the right libraries set up to build our Agda code
 * `stylish-haskell`
 * `haskell-language-server`
+* `editorconfig-checker`
 * ... and more
 
 Have a look in `shell.nix` to see what's there.
