@@ -29,7 +29,10 @@ let
   cabal-fmt = exeFromExtras "cabal-fmt";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
-  haskell-language-server-wrapper = pkgs.writeShellScriptBin "haskell-language-server-wrapper" ''${haskell-language-server}/bin/haskell-language-server "$@"'';
+  haskell-language-server-wrapper =
+    pkgs.writeShellScriptBin
+      "haskell-language-server-wrapper"
+      ''${haskell-language-server}/bin/haskell-language-server "$@"'';
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
 
@@ -57,7 +60,12 @@ let
           haskellNixAgda.components.exes.agda-mode
         ];
       }) // { version = haskellNixAgda.identifier.version; };
-      frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
+      frankenPkgs =
+        pkgs //
+        {
+          haskellPackages = pkgs.haskellPackages //
+          { ghcWithPackages = haskell.project.ghcWithPackages; };
+        };
     in
     pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
 
@@ -71,10 +79,11 @@ let
         rev = "v${version}";
         sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
       };
-      # This is preConfigure is copied from more recent nixpkgs that also uses version 1.7 of standard-library
-      # Old nixpkgs (that used 1.4) had a preConfigure step that worked with 1.7
-      # Less old nixpkgs (that used 1.6) had a preConfigure step that attempts to `rm` files that are now in the
-      # .gitignore list for 1.7
+      # This is preConfigure is copied from more recent nixpkgs that also
+      # uses version 1.7 of standard-library. Old nixpkgs (that used 1.4)
+      # had a preConfigure step that worked with 1.7. Less old nixpkgs
+      # (that used 1.6) had a preConfigure step that attempts to `rm`
+      # files that are now in the .gitignore list for 1.
       preConfigure = ''
         runhaskell GenerateEverything.hs
         # We will only build/consider Everything.agda, in particular we don't want Everything*.agda
@@ -107,7 +116,8 @@ let
   });
 
   # sphinx haddock support
-  sphinxcontrib-haddock = pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
+  sphinxcontrib-haddock =
+    pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
@@ -125,7 +135,8 @@ let
   # Collect everything to be exported under `plutus.lib`: builders/functions/utils
   lib = rec {
     inherit gitignore-nix;
-    haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
+    haddock-combine =
+      pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
   };
 
@@ -133,7 +144,9 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios cabal-fmt;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool;
+  inherit stylish-haskell hlint cabal-fmt;
+  inherit haskell-language-server haskell-language-server-wrapper hie-bios;
   inherit fixStylishHaskell fixPngOptimization fixCabalFmt;
   inherit plutus-haddock-combined;
   inherit agdaWithStdlib;

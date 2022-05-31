@@ -5,7 +5,8 @@
 let
   inherit (packages) pkgs plutus docs;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt glibcLocales;
-  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks cabal-fmt;
+  inherit (plutus) haskell agdaPackages stylish-haskell cabal-fmt;
+  inherit (plutus) sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
 
   # For Sphinx, and ad-hoc usage
@@ -36,7 +37,12 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*/spago-packages.nix$" ".*/packages.nix$" ];
+        excludes =
+          [
+            ".*nix/pkgs/haskell/materialized.*/.*"
+            ".*/spago-packages.nix$"
+            ".*/packages.nix$"
+          ];
       };
       cabal-fmt.enable = true;
       shellcheck.enable = true;
@@ -63,6 +69,7 @@ let
     bzip2
     cacert
     editorconfig-core-c
+    editorconfig-checker
     ghcid
     jq
     # See https://github.com/cachix/pre-commit-hooks.nix/issues/148 for why we need this
@@ -103,5 +110,7 @@ haskell.project.shellFor {
 
   # This is no longer set automatically as of more recent `haskell.nix` revisions,
   # but is useful for users with LANG settings.
-  LOCALE_ARCHIVE = lib.optionalString (stdenv.hostPlatform.libc == "glibc") "${glibcLocales}/lib/locale/locale-archive";
+  LOCALE_ARCHIVE = lib.optionalString
+    (stdenv.hostPlatform.libc == "glibc")
+    "${glibcLocales}/lib/locale/locale-archive";
 }
