@@ -1,5 +1,5 @@
 {-# LANGUAGE DerivingVia #-}
-module PlutusLedgerApi.V2.ParamName
+module PlutusLedgerApi.V3.ParamName
     ( ParamName (..)
     , tagWithParamNames
     ) where
