@@ -2,17 +2,17 @@
 {-# LANGUAGE ParallelListComp  #-}
 module Common where
 
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
+import PlutusCore.Error (ParserError, ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
-import Text.Megaparsec (SourcePos, errorBundlePretty)
+import Text.Megaparsec (ParseErrorBundle, SourcePos)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 import UntypedPlutusCore.Parser (parseProgram)
@@ -31,11 +31,14 @@ evalUplcProg p =
 data TestContent =
    MkTestContent {
        testName    :: FilePath
-       , expected  :: EvaluationResult UplcProg
-       , inputProg :: UplcProg
+       , expected  :: Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
+       , inputProg :: Text
    }
 
-mkTestContents :: [FilePath] -> [EvaluationResult UplcProg] -> [UplcProg] -> [TestContent]
+mkTestContents ::
+    [FilePath] ->
+        [Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)] ->
+            [Text] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     if length lFilepaths == length lRes && length  lRes == length lProgs then
         zipWith3 (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs
@@ -52,7 +55,16 @@ mkTestContents lFilepaths lRes lProgs =
 mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO [TestTree]
 mkTestCases tests runner =
     do
-        let results = fmap (runner . inputProg) tests
+        let parseProg :: Text -> Either ParserErrorBundle (UPLC.Program
+                      Name DefaultUni DefaultFun SourcePos)
+            parseProg txt = runQuoteT $ parseProgram txt
+            lParsed = fmap (parseProg . inputProg) tests
+            mkExpected ::
+                Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
+                    Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
+            mkExpected (Left (ParseErrorB err)) = Left err
+            mkExpected (Right prog)             = Right $ runner $ () <$ prog
+            results = fmap mkExpected lParsed
         pure $
             [testCase (testName test) (expected test @=? result) | test <- tests | result <- results]
 
@@ -65,34 +77,13 @@ testUplcEvaluation lTest runner = do
 shownEvaluationFailure :: Text
 shownEvaluationFailure = "evaluation failure"
 
-textToEvalRes :: Text -> EvaluationResult UplcProg
+textToEvalRes :: Text -> Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
 textToEvalRes txt =
     if txt == shownEvaluationFailure then
-        EvaluationFailure
+        Right EvaluationFailure
     else do
         let parsed = runQuoteT $ parseProgram txt :: Either ParserErrorBundle (UPLC.Program
                       Name DefaultUni DefaultFun SourcePos)
         case parsed of
-            Left (ParseErrorB err) -> error $
-                unlines
-                    ["textToEvalRes: this should not happen. Parsing of result"
-                    , unpack txt
-                    , "failed with error:"
-                    , errorBundlePretty err
-                    ]
-            Right prog -> EvaluationSuccess $ () <$ prog
-
-parseText :: Text -> UplcProg
-parseText txt =
-    let parsed = runQuoteT $ parseProgram txt :: Either ParserErrorBundle (UPLC.Program
-                      Name DefaultUni DefaultFun SourcePos)
-    in
-    case parsed of
-        Left (ParseErrorB err) -> error $
-            unlines
-                ["parseText: this should not happen. Parsing of program"
-                , unpack txt
-                , "failed with error:"
-                , errorBundlePretty err
-                ]
-        Right prog -> () <$ prog
+            Left (ParseErrorB err) -> Left err
+            Right prog             -> Right $ EvaluationSuccess $ () <$ prog
