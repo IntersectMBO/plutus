@@ -21,7 +21,7 @@ PlutusV2
 The main changes in ``PlutusV2`` were to the interface to scripts.
 The ``ScriptContext`` was extended to include the following information:
 
-- Redeemers for inputs other than the one currently being validated
+- The full "redeemers" structure, which contains all the redeemers used in the transaction
 - Reference inputs in the transaction (proposed in `CIP-31 <https://cips.cardano.org/cips/cip31/>`_)
 - Inline datums in the transaction (proposed in `CIP-32 <https://cips.cardano.org/cips/cip32/>`_)
 - Reference scripts in the transaction (proposed in `CIP-33 <https://cips.cardano.org/cips/cip33/>`_)
@@ -29,7 +29,9 @@ The ``ScriptContext`` was extended to include the following information:
 Built-in functions and types
 ----------------------------
 
-Built-in functions and types can be introduced with just a hard fork, so this section indicates in which hard fork particular built-ins were introduced.
+Built-in functions and types can be introduced with just a hard fork.
+In some cases they are also available only in particular language versions.
+This section indicates in which hard fork particular built-ins were introduced, and any language version constraints.
 
 Alonzo
 ~~~~~~
@@ -42,7 +44,7 @@ Vasil
 
 All of the built-in types and functions from ``PlutusV1`` were added to ``PlutusV2``.
 
-The following built-in functions were added to ``PlutusV2`` only (not ``PlutusV1``).
+The following built-in functions were added to ``PlutusV2`` only (i.e. they are not available in ``PlutusV1``).
 
 - ``serializeData`` (proposed in CIP-42)
 - ``verifyEcdsaSecp256k1Signature`` (proposed in CIP-49)
