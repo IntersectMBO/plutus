@@ -11,8 +11,20 @@ using an indefinite-length encoding, which requires an extra 0xff tag to mark
 the end of the list (see Section 3.2 of RFC 8949). The serialised versions show
 significant differences (see `testData` below) but deserialise to identical
 objects.  These tests contain pairs of different encodings of Data objects from
-a selection of the scripts and check that they continue to deserialise to the
-same thing, and that both deserialise to the expected object. -}
+a selection of the scripts and check that they continue to deserialise to
+thesame thing, and that both deserialise to the expected object. -}
+
+{- Note also that Data has special treatment for ByteStrings and Integers: see
+(see Note [Evading the 64-byte limit] in PlutusCore.Data). Indefinite length
+encodings of large objects are allowed as long as none of the individual chunks
+are greater than 64 bytes long, but definite length encodings are only allowed
+if the length of the decoded object is less than 64 bytes: this is to avoid the
+problem with allowing large bytestrings on the chain which can contain arbitrary
+content and is the reason we switched from definite to indefinite lengths in the
+first place: see PR 3730.  This is quite delicate and there's a possibility that
+someone might change it accidentally.  The examples here don't contain any B or
+I entries longer than 64 bytes and so don't trigger the decoding error. -}
+
 
 module CBOR.DataStability (tests)
 where
