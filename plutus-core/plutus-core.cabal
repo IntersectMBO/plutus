@@ -385,6 +385,7 @@ test-suite plutus-core-test
     hs-source-dirs: plutus-core/test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
+        CBOR.DataStability
         Check.Spec
         CostModelInterface.Spec
         Evaluation.Machines
@@ -416,6 +417,8 @@ test-suite plutus-core-test
         text -any,
         transformers -any,
         aeson -any,
+        hex-text -any,
+        serialise -any,
         template-haskell -any,
         th-lift-instances -any,
         th-utilities -any,
