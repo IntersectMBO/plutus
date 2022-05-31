@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- |  Generators for various types of data for benchmarking built-in functions -}
 
 module Generators where

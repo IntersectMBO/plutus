@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module assigns types to built-ins.
 -- See the @plutus/plutus-core/docs/Constant application.md@
 -- article for how this emerged.

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusTx.Integer (Integer) where
 
 {-

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Kind/type inference/checking.
 
 {-# LANGUAGE ConstraintKinds #-}

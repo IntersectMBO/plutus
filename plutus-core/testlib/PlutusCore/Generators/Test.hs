@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines functions useful for testing.
 
 {-# LANGUAGE TypeFamilies #-}

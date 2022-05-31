@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE RankNTypes    #-}

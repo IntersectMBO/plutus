@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 

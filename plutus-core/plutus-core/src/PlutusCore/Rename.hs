@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The user-facing API of the renamer.
 
 {-# LANGUAGE DerivingVia          #-}

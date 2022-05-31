@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | This executable is for easy addition of tests. When run with the option `-- --missing`,
