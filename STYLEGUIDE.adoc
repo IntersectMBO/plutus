@@ -18,7 +18,7 @@ The contents of this document are “recommendations”, that is:
 
 === Basic formatting
 
-Use 4 spaces for indentation. Avoid lines over 120 characters. This is codified in `.editorconfig`.
+Use 4 spaces for indentation. Avoid lines over 100 characters. This is codified in `.editorconfig`.
 
 Format Haskell source with `stylish-haskell` (config in `.stylish-haskell.yaml`).
 
