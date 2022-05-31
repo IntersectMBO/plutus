@@ -14,6 +14,7 @@ Pre-submit checklist:
     - [ ] Formatting, PNG optimization, etc. are updated
 - PR
     - [ ] (For external contributions) Corresponding issue exists and is linked in the description
+    - [ ] Targeting master unless this is a cherry-pick backport
     - [ ] Self-reviewed the diff
     - [ ] Useful pull request description
     - [ ] Reviewer requested

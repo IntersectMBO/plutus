@@ -264,6 +264,12 @@ Code review is great (see below), but it can slow you down if you don't take the
 
 The amount of time it's worth spending doing this is probably much more than you think.
 
+==== What branch to target
+
+Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
+PRs should target `master` unless there is a very good reason not to.
+The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
+
 ==== What changes to include
 
 Having a sensible and comprehensible set of changes makes your reviewer's life much easier.
