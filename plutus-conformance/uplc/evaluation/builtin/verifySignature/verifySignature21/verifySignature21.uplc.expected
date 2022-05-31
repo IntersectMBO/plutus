@@ -1,1 +1,58 @@
-(con bool True)
+plutus-conformance/uplc//evaluation/builtin/verifySignature/verifySignature21/verifySignature21.uplc:1:43:
+  |
+1 | (program 0.0.0 [[[(builtin verifySignature)
+  |                                           ^
+Unknown built-in function 'verifySignature' at plutus-conformance/uplc//evaluation/builtin/verifySignature/verifySignature21/verifySignature21.uplc:1:43 . Parsable functions are  [ addInteger
+                                                                                                                                                                                   , appendByteString
+                                                                                                                                                                                   , appendString
+                                                                                                                                                                                   , bData
+                                                                                                                                                                                   , blake2b_256
+                                                                                                                                                                                   , chooseData
+                                                                                                                                                                                   , chooseList
+                                                                                                                                                                                   , chooseUnit
+                                                                                                                                                                                   , consByteString
+                                                                                                                                                                                   , constrData
+                                                                                                                                                                                   , decodeUtf8
+                                                                                                                                                                                   , divideInteger
+                                                                                                                                                                                   , encodeUtf8
+                                                                                                                                                                                   , equalsByteString
+                                                                                                                                                                                   , equalsData
+                                                                                                                                                                                   , equalsInteger
+                                                                                                                                                                                   , equalsString
+                                                                                                                                                                                   , fstPair
+                                                                                                                                                                                   , headList
+                                                                                                                                                                                   , iData
+                                                                                                                                                                                   , ifThenElse
+                                                                                                                                                                                   , indexByteString
+                                                                                                                                                                                   , lengthOfByteString
+                                                                                                                                                                                   , lessThanByteString
+                                                                                                                                                                                   , lessThanEqualsByteString
+                                                                                                                                                                                   , lessThanEqualsInteger
+                                                                                                                                                                                   , lessThanInteger
+                                                                                                                                                                                   , listData
+                                                                                                                                                                                   , mapData
+                                                                                                                                                                                   , mkCons
+                                                                                                                                                                                   , mkNilData
+                                                                                                                                                                                   , mkNilPairData
+                                                                                                                                                                                   , mkPairData
+                                                                                                                                                                                   , modInteger
+                                                                                                                                                                                   , multiplyInteger
+                                                                                                                                                                                   , nullList
+                                                                                                                                                                                   , quotientInteger
+                                                                                                                                                                                   , remainderInteger
+                                                                                                                                                                                   , serialiseData
+                                                                                                                                                                                   , sha2_256
+                                                                                                                                                                                   , sha3_256
+                                                                                                                                                                                   , sliceByteString
+                                                                                                                                                                                   , sndPair
+                                                                                                                                                                                   , subtractInteger
+                                                                                                                                                                                   , tailList
+                                                                                                                                                                                   , trace
+                                                                                                                                                                                   , unBData
+                                                                                                                                                                                   , unConstrData
+                                                                                                                                                                                   , unIData
+                                                                                                                                                                                   , unListData
+                                                                                                                                                                                   , unMapData
+                                                                                                                                                                                   , verifyEcdsaSecp256k1Signature
+                                                                                                                                                                                   , verifyEd25519Signature
+                                                                                                                                                                                   , verifySchnorrSecp256k1Signature ]
