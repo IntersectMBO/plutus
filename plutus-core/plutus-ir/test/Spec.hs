@@ -83,6 +83,7 @@ datatypes = testNested "datatypes"
     , goldenPlcFromPirCatch pTerm "idleAll"
     , goldenPlcFromPirCatch pTerm "some"
     , goldenEvalPir pTerm "listMatchEval"
+    , goldenTypeFromPir PLC.topSourcePos pTerm "dataEscape"
     ]
 
 recursion :: TestNested
