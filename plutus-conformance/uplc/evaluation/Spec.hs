@@ -13,7 +13,18 @@ main = do
     outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
     lProgTxt <- traverse readFile inputFiles
     lEvaluatedRes <- traverse readFile outputFiles
-    let lRes = fmap textToEvalRes lEvaluatedRes
-        testContents = mkTestContents inputFiles lRes lProgTxt
-    testTree <- testUplcEvaluation testContents evalUplcProg
-    defaultMain testTree
+    if length inputFiles == length lProgTxt && length  lEvaluatedRes == length lProgTxt then
+        do
+        let lRes = fmap textToEvalRes lEvaluatedRes
+            testContents = mkTestContents inputFiles lRes lProgTxt
+        testTree <- testUplcEvaluation testContents evalUplcProg
+        defaultMain testTree
+    else
+        error $ unlines
+            ["mkTestContents: Cannot run the tests because the number of input and output programs are not the same. "
+            , "Number of input files: "
+            , show (length lProgTxt)
+            , " Number of output files: "
+            , show (length lEvaluatedRes)
+            , " Make sure all your input programs have an accompanying .expected file."
+            ]
