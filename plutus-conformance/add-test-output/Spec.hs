@@ -82,9 +82,9 @@ helpText = unlines
 main :: IO ()
 main = do
     MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
-    allInputFiles <- findByExtension [extension] directory
+    inputFiles <- findByExtension [extension] directory
     -- only choose the ones without an output file, so as to not edit the ones already with outputs
-    inputFiles <- filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
+    -- inputFiles <- filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
     case run of
       Eval -> do
         for_ inputFiles

@@ -2,7 +2,7 @@
 {-# LANGUAGE ParallelListComp  #-}
 module Common where
 
-import Data.Text (Text)
+import Data.Text qualified as T
 import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserError, ParserErrorBundle (ParseErrorB))
@@ -15,7 +15,7 @@ import Test.Tasty.HUnit (testCase, (@=?))
 import Text.Megaparsec (ParseErrorBundle, SourcePos)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
-import UntypedPlutusCore.Parser (parseProgram)
+import UntypedPlutusCore.Parser qualified as UPLC
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
@@ -31,14 +31,14 @@ evalUplcProg p =
 data TestContent =
    MkTestContent {
        testName    :: FilePath
-       , expected  :: Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
-       , inputProg :: Text
+       , expected  :: Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
+       , inputProg :: T.Text
    }
 
 mkTestContents ::
     [FilePath] ->
-        [Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)] ->
-            [Text] -> [TestContent]
+        [Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)] ->
+            [T.Text] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     if length lFilepaths == length lRes && length  lRes == length lProgs then
         zipWith3 (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs
@@ -52,19 +52,21 @@ mkTestContents lFilepaths lRes lProgs =
             , " Make sure all your input programs have an accompanying .expected file."
             ]
 
+parseProg :: TestContent -> Either ParserErrorBundle (UPLC.Program
+                      Name DefaultUni DefaultFun SourcePos)
+parseProg test = runQuoteT $ UPLC.parse UPLC.program (testName test) $ inputProg test
+
+mkExpected :: (UplcProg -> EvaluationResult UplcProg) ->
+    Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
+        Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
+mkExpected _ (Left (ParseErrorB err)) = Left err
+mkExpected runner (Right prog)        = Right $ runner $ () <$ prog
+
 mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO [TestTree]
 mkTestCases tests runner =
     do
-        let parseProg :: Text -> Either ParserErrorBundle (UPLC.Program
-                      Name DefaultUni DefaultFun SourcePos)
-            parseProg txt = runQuoteT $ parseProgram txt
-            lParsed = fmap (parseProg . inputProg) tests
-            mkExpected ::
-                Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
-                    Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
-            mkExpected (Left (ParseErrorB err)) = Left err
-            mkExpected (Right prog)             = Right $ runner $ () <$ prog
-            results = fmap mkExpected lParsed
+        let
+            results = fmap (mkExpected runner . parseProg) tests
         pure $
             [testCase (testName test) (expected test @=? result) | test <- tests | result <- results]
 
@@ -74,16 +76,15 @@ testUplcEvaluation lTest runner = do
     testContents <- mkTestCases lTest runner
     pure $ testGroup "UPLC evaluation tests" testContents
 
-shownEvaluationFailure :: Text
+shownEvaluationFailure :: T.Text
 shownEvaluationFailure = "evaluation failure"
 
-textToEvalRes :: Text -> Either (ParseErrorBundle Text ParserError) (EvaluationResult UplcProg)
+textToEvalRes :: T.Text -> Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
 textToEvalRes txt =
     if txt == shownEvaluationFailure then
         Right EvaluationFailure
-    else do
-        let parsed = runQuoteT $ parseProgram txt :: Either ParserErrorBundle (UPLC.Program
-                      Name DefaultUni DefaultFun SourcePos)
-        case parsed of
-            Left (ParseErrorB err) -> Left err
-            Right prog             -> Right $ EvaluationSuccess $ () <$ prog
+    else
+        let parsed = parseProg txt in
+            case parsed of
+                Left (ParseErrorB err) -> Left err
+                Right prog             -> Right $ EvaluationSuccess $ () <$ prog
