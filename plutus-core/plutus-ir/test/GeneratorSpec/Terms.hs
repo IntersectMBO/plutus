@@ -19,7 +19,6 @@ import PlutusCore.Name
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
-
 import Test.QuickCheck
 
 -- * Core properties for PIR generators

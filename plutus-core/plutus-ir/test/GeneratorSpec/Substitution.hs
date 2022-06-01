@@ -6,10 +6,8 @@ module GeneratorSpec.Substitution where
 
 import PlutusCore.Generators.PIR
 
-
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-
 
 import PlutusCore.Name
 import PlutusCore.Quote (runQuote)
@@ -20,8 +18,6 @@ import Data.Maybe
 import Data.String
 
 import Test.QuickCheck
-
-
 
 -- * Tests for unification and substitution
 

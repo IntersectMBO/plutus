@@ -4,14 +4,8 @@
 
 module GeneratorSpec.Types where
 
-import PlutusCore.Generators.PIR
-
-
 import Data.Map qualified as Map
-
-
-
-
+import PlutusCore.Generators.PIR
 import Test.QuickCheck
 
 -- | Check that the types we generate are kind-correct
