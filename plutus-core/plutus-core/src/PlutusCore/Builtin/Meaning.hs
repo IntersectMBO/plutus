@@ -164,7 +164,7 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = makeKnown
+    toImmediateF = oneShot makeKnown
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
@@ -181,7 +181,7 @@ instance
     knownMonoruntime = RuntimeSchemeArrow $ knownMonoruntime @val @args @res
 
     -- Unlift, then recurse.
-    toImmediateF !f = oneShot $ fmap (toImmediateF @val @args @res . f) . readKnown
+    toImmediateF f = fmap (toImmediateF @val @args @res . f) . readKnown
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
