@@ -622,12 +622,6 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
       unifies sub1 locals as bs
     unifies _ _ _ _ = mzero
 
-    fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
-      where
-          fvs = ftvTy a
-          ss  = Set.intersection (Map.keysSet sub) fvs
-          ns  = Set.difference fvs ss
-
 -- | Parallel substitution
 parSubstType :: Map TyName (Type TyName DefaultUni ())
              -> Type TyName DefaultUni ()
