@@ -49,6 +49,7 @@ import Prettyprinter
 import Test.QuickCheck
 import Text.PrettyBy
 
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
@@ -58,7 +59,10 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Error
+import PlutusIR.Subst
 import PlutusIR.TypeCheck
+
+import PlutusCore.Generators.PIR.GenTm
 
 {- Note [Debugging generators that don't generate well-typed/kinded terms/types]
     This module implements generators for well-typed terms and well-kinded types.
@@ -79,153 +83,7 @@ import PlutusIR.TypeCheck
     ```
 -}
 
--- | Term generators carry around a context to know
--- e.g. what types and terms are in scope.
-type GenTm = ReaderT GenEnv Gen
-
-data GenEnv = GenEnv
-  { geSize               :: Int
-  -- ^ Generator size bound
-  , geDatas              :: Map TyName (Datatype TyName Name DefaultUni DefaultFun ())
-  -- ^ Datatype context
-  , geTypes              :: Map TyName (Kind ())
-  -- ^ Type context
-  , geTerms              :: Map Name (Type TyName DefaultUni ())
-  -- ^ Term context
-  , geUnboundUsedTyNames :: Set TyName
-  -- ^ Names that we have generated and don't want to shadow but haven't bound yet.
-  , geEscaping           :: AllowEscape
-  -- ^ Are we in a place where we are allowed to generate a datatype binding?
-  , geCustomGen          :: Maybe (Type TyName DefaultUni ())
-                         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
-  -- ^ A custom user-controlled generator for terms - useful for situations where
-  -- we want to e.g. generate custom strings for coverage or test some specific
-  -- pattern that generates a special case for the compiler.
-  , geCustomFreq         :: Int
-  -- ^ How often do we use the custom generator -
-  -- values in the range of 10-30 are usually reasonable.
-  }
-
--- | Run a `GenTm  generator in a top-level empty context where we are allowed to generate
--- datatypes.
-runGenTm :: GenTm a -> Gen a
-runGenTm = runGenTmCustom 0 (error "No custom generator.")
-
--- | Run a `GenTm` generator with a plug-in custom generator for terms that is included with
--- the other generators.
-runGenTmCustom :: Int
-               -> (Maybe (Type TyName DefaultUni ())
-                  -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ()))
-               -> GenTm a
-               -> Gen a
-runGenTmCustom f cg g = sized $ \ n ->
-  runReaderT g $ GenEnv { geSize               = n
-                        , geDatas              = Map.empty
-                        , geTypes              = Map.empty
-                        , geTerms              = Map.empty
-                        , geUnboundUsedTyNames = Set.empty
-                        , geEscaping           = YesEscape
-                        , geCustomGen          = cg
-                        , geCustomFreq         = f
-                        }
-
--- * Utility functions
-
--- | Don't allow types to escape from a generator.
-noEscape :: GenTm a -> GenTm a
-noEscape = local $ \env -> env { geEscaping = NoEscape }
-
--- * Functions for lifting `Gen` stuff to `GenTm`
-
--- | Lift `Gen` generator to `GenTm` generator. Respects `geSize`.
-liftGen :: Gen a -> GenTm a
-liftGen gen = do
-  sz <- asks geSize
-  lift $ resize sz gen
-
--- | Lift functor operations like `oneof` from `Gen` to `GenTm`
-liftGenF :: Functor f => (f (Gen a) -> Gen a) -> f (GenTm a) -> GenTm a
-liftGenF oo gs = ReaderT $ \ env -> oo $ fmap (`runReaderT` env) gs
-
--- | Uniformly choose one of the generators in the list. Requires the
--- list to be non-empty.
-oneofTm :: [GenTm a] -> GenTm a
-oneofTm = liftGenF oneof
-
-newtype FreqList a = FreqList { unFreqList :: [(Int, a)] }
-  deriving stock Functor
-
--- | Non-uniformly pick a generator from the list weighted by
--- the first item in the tuple.
-frequencyTm :: [(Int, GenTm a)] -> GenTm a
-frequencyTm = liftGenF (frequency . unFreqList) . FreqList
-
--- | Lift a generator from items to lists.
-listTm :: GenTm a -> GenTm [a]
-listTm g = do
-  sz <- asks geSize
-  n  <- liftGen $ choose (0, div sz 3)
-  onSize (`div` n) $ replicateM n g
-
--- | Generate exactly `n` items of a given generator
-vecTm :: Int -> GenTm a -> GenTm [a]
-vecTm n = sequence . replicate n
-
--- * Dealing with size
-
--- | Map a function over the generator size
-onSize :: (Int -> Int) -> GenTm a -> GenTm a
-onSize f = local $ \ env -> env { geSize = f (geSize env) }
-
--- | Default to the first generator if the size is zero (or negative),
--- use the second generator otherwise.
-ifSizeZero :: GenTm a -> GenTm a -> GenTm a
-ifSizeZero ifZ nonZ = do
-  n <- asks geSize
-  if n <= 0 then ifZ else nonZ
-
--- | Locally set the size in a generator
-withSize :: Int -> GenTm a -> GenTm a
-withSize = onSize . const
-
--- | Split the size between two generators in the ratio specified by
--- the first two arguments.
-sizeSplit_ :: Int -> Int -> GenTm a -> GenTm b -> (a -> b -> c) -> GenTm c
-sizeSplit_ a b ga gb = sizeSplit a b ga (const gb)
-
--- | Split the size between two generators in the ratio specified by
--- the first two arguments and use the result of the first generator
--- in the second.
-sizeSplit :: Int -> Int -> GenTm a -> (a -> GenTm b) -> (a -> b -> c) -> GenTm c
-sizeSplit a b ga gb f = do
-  n <- asks geSize
-  let na = (a * n) `div` (a + b)
-      nb = (b * n) `div` (a + b)
-  x <- withSize na ga
-  f x <$> withSize nb (gb x)
-
 -- * Dealing with fresh names
-
--- | Get the free variables of a term
-fvTerm :: Term TyName Name DefaultUni DefaultFun ()
-       -> Set Name
-fvTerm tm = case tm of
-  Let _ Rec binds body -> Set.unions
-    (fvTerm body : [ fvTerm body | TermBind _ _ _ body <- toList binds ])
-    `Set.difference` Map.keysSet (foldr addTmBind mempty binds)
-  Let _ _ binds body -> foldr go (fvTerm body) binds
-    where go (TermBind _ _ (VarDecl _ x _) body) free = fvTerm body <> Set.delete x free
-          go _ free                                   = free
-  Var _ nm       -> Set.singleton nm
-  TyAbs _ _ _ t  -> fvTerm t
-  LamAbs _ x _ t -> Set.delete x (fvTerm t)
-  Apply _ t t'   -> fvTerm t <> fvTerm t'
-  TyInst _ t _   -> fvTerm t
-  Constant{}     -> mempty
-  Builtin{}      -> mempty
-  Error{}        -> mempty
-  IWrap{}        -> error "fvTerm: IWrap"
-  Unwrap{}       -> error "fvTerm: Unwrap"
 
 -- | Get the free variables in a type that appear in negative position
 negativeVars :: Type TyName DefaultUni () -> Set TyName
@@ -262,126 +120,19 @@ fvTypeBag ty = case ty of
   TyBuiltin{}      -> Map.empty
   TyIFix{}         -> error "fvTypeBag: TyIFix"
 
--- | Get the free type variables in a term.
-fvType :: Type TyName DefaultUni () -> Set TyName
-fvType = Map.keysSet . fvTypeBag
-
 -- | Recursively find all free type variables in a substitution
 fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
 fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
       where
-          fvs = fvType a
+          fvs = ftvTy a
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
-
--- | Get all uniques we have generated and are used in the current context.
-getUniques :: GenTm (Set Unique)
-getUniques = do
-  GenEnv{geDatas = dts, geTypes = tys, geTerms = tms, geUnboundUsedTyNames = used} <- ask
-  return $ Set.mapMonotonic (nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys <> used) <>
-           Set.mapMonotonic nameUnique (Map.keysSet tms) <>
-           Set.unions [ names d | d <- Map.elems dts ]
-  where
-    names (Datatype _ _ _ m cs) = Set.fromList $ nameUnique m : [ nameUnique c | VarDecl _ c _ <- cs ]
 
 -- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName
 freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
   where i  = succ $ Set.findMax is
         is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (nameUnique . unTyName) fvs
-
-{- Note [Warning about generating fresh names]: because `GenTm` is a *reader* monad
-   names are not immediately put into any state when generated. There is *no guarantee*
-   that in this situation:
-   ```
-   do nms <- genFreshNames ss
-      nms' <- genFreshNames ss
-   ```
-   the names in `nms` and `nms'` don't overlap.
-
-   Instead, what you are supposed to do is locally use the names in `nms` and `nms'` to
-   define generators that use them. This is done with functions like `bindTyName` and `bindTmName`:
-   ```
-   genLam ma mb = do
-      x <- genFreshName "x"
-      sizeSplit 1 7 (maybe (genType Star) return ma)
-                    --      v--- LOOK HERE!
-                    (\ a -> bindTmName x a . noEscape $ genTerm mb) $ \ a (b, body) ->
-                    --      ^--- LOOK HERE!
-                    TyFun () a b, LamAbs () x a body)
-   ```
--}
-
--- | Generate a fresh name. See Note [Warning about generating fresh names].
-genFreshName :: String -> GenTm Name
-genFreshName s = head <$> genFreshNames [s]
-
--- | Generate one fresh name per string in the input list.
--- names don't overlap. See Note [Warning about generating fresh names].
-genFreshNames :: [String] -> GenTm [Name]
-genFreshNames ss = do
-  used <- getUniques
-  let i = fromEnum $ Set.findMax $ Set.insert (Unique 0) used
-      js = [ j | j <- [1..i], not $ Unique j `Set.member` used ]
-      is = js ++ take (length ss + 10) [i+1..]
-  is' <- liftGen $ shuffle is
-  return [Name (fromString $ s ++ show j) (toEnum j) | (s, j) <- zip ss is']
-
--- | See `genFreshName`
-genFreshTyName :: String -> GenTm TyName
-genFreshTyName s = TyName <$> genFreshName s
-
--- | See `genFreshNames`
-genFreshTyNames :: [String] -> GenTm [TyName]
-genFreshTyNames ss = map TyName <$> genFreshNames ss
-
--- | Generate a name that overlaps with existing names on purpose. If there
--- are no existing names, generate a fresh name.
-genNotFreshName :: String -> GenTm Name
-genNotFreshName s = do
-  used <- Set.toList <$> getUniques
-  case used of
-    [] -> genFreshName s
-    _  -> liftGen $ elements [ Name (fromString $ s ++ show (unUnique i)) i | i <- used ]
-
--- | Generate a fresh name most (a bit more than 75%) of the time and otherwise
--- generate an already bound name. When there are no bound names generate a fresh name.
-genMaybeFreshName :: String -> GenTm Name
-genMaybeFreshName s = frequencyTm [(3, genFreshName s), (1, genNotFreshName s)]
-
--- | See `genMaybeFreshName`
-genMaybeFreshTyName :: String -> GenTm TyName
-genMaybeFreshTyName s = TyName <$> genMaybeFreshName s
-
--- | Bind a type name to a kind and avoid capturing free type variables.
-bindTyName :: TyName -> Kind () -> GenTm a -> GenTm a
-bindTyName x k = local $ \ e -> e { geTypes = Map.insert x k (geTypes e)
-                                  , geTerms = Map.filter (\ty -> not $ x `Set.member` fvType ty) (geTerms e)
-                                  , geDatas = Map.delete x (geDatas e)
-                                  }
-
--- | Bind type names
-bindTyNames :: [(TyName, Kind ())] -> GenTm a -> GenTm a
-bindTyNames = flip $ foldr (uncurry bindTyName)
-
--- | Remember that we have generated a type name locally but don't bind it.
--- Useful for non-recursive definitions where we want to control name overlap.
-registerTyName :: TyName -> GenTm a -> GenTm a
-registerTyName n = local $ \ e -> e { geUnboundUsedTyNames = Set.insert n (geUnboundUsedTyNames e) }
-
--- | Bind a term to a type in a generator.
-bindTmName :: Name -> Type TyName DefaultUni () -> GenTm a -> GenTm a
-bindTmName x ty = local $ \ e -> e { geTerms = Map.insert x ty (geTerms e) }
-
--- | Bind term names
-bindTmNames :: [(Name, Type TyName DefaultUni ())] -> GenTm a -> GenTm a
-bindTmNames = flip $ foldr (uncurry bindTmName)
-
--- | Create a fresh term name, bind it to a type, and use it in a generator.
-bindFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> GenTm a
-bindFreshTmName name ty k = do
-  x <- genFreshName name
-  bindTmName x ty (k x)
 
 -- | Get the names and types of the constructors of a datatype.
 constrTypes :: Datatype TyName Name DefaultUni DefaultFun () -> [(Name, Type TyName DefaultUni ())]
@@ -391,11 +142,11 @@ constrTypes (Datatype _ _ xs _ cs) = [ (c, abstr ty) | VarDecl _ c ty <- cs ]
 
 
 -- | Get the name and type of the match function for a given datatype.
-matchType :: Datatype TyName Name DefaultUni DefaultFun () -> (Name, (Type TyName DefaultUni ()))
+matchType :: Datatype TyName Name DefaultUni DefaultFun () -> (Name, Type TyName DefaultUni ())
 matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
-          mconcat [fvType ty | VarDecl _ _ ty <- cs]
+          mconcat [ftvTy ty | VarDecl _ _ ty <- cs]
     pars = [TyVar () x | TyVarDecl _ x _ <- xs]
     dtyp = foldl (TyApp ()) (TyVar () a) pars
     matchType = abstr $ dtyp ->> TyForall () r Star (foldr ((->>) . conArg) (TyVar () r) cs)
@@ -420,8 +171,7 @@ bindBind :: Binding TyName Name DefaultUni DefaultFun ()
          -> GenTm a
 bindBind (DatatypeBind _ dat)              = bindDat dat
 bindBind (TermBind _ _ (VarDecl _ x ty) _) = bindTmName x ty
--- CODE REVIEW: Should we try to generate type bindings and all the recursive types without datatypes stuff?
--- I don't think both datatypes and this stuff should actually show up in the same code, no?
+-- TODO: We should generate type bindings
 bindBind _                                 = error "unreachable"
 
 -- | Bind multiple bindings
@@ -478,12 +228,12 @@ minimalType ty =
     pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
 
 -- | Get the types of builtins at a given kind
-builtinTys :: Kind () -> [SomeTypeIn DefaultUni]
-builtinTys Star =
+builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
+builtinTysAt Star =
   [ SomeTypeIn DefaultUniInteger
   , SomeTypeIn DefaultUniUnit
   , SomeTypeIn DefaultUniBool ]
-builtinTys _ = []
+builtinTysAt _ = []
 
 -- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
 -- and lambda abstractions \ t0 ... tn. T
@@ -493,7 +243,7 @@ genAtomicType k = do
   dts <- asks geDatas
   let atoms = [ TyVar () x | (x, k') <- Map.toList tys, k == k' ] ++
               [ TyVar () x | (x, Datatype _ (TyVarDecl _ _ k') _ _ _) <- Map.toList dts, k == k' ]
-      builtins = map (TyBuiltin ()) $ builtinTys k
+      builtins = map (TyBuiltin ()) $ builtinTysAt k
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
@@ -563,13 +313,9 @@ substClosedType x sub ty =
     TyBuiltin{}   -> ty
     TyIFix{}      -> ty
 
--- CODE REVIEW: does this exist anywhere?
+-- | Get the kind of a builtin
 builtinKind :: SomeTypeIn DefaultUni -> Kind ()
-builtinKind (SomeTypeIn t) = case t of
-  DefaultUniProtoList -> Star :-> Star
-  DefaultUniProtoPair -> Star :-> Star :-> Star
-  DefaultUniApply f _ -> let _ :-> k = builtinKind (SomeTypeIn f) in k
-  _                   -> Star
+builtinKind (SomeTypeIn t) = kindOfBuiltinType t
 
 -- * Shrinking types and kinds
 
@@ -600,8 +346,8 @@ fixKind :: HasCallStack
         -> Type TyName DefaultUni ()
 fixKind ctx ty k
   -- Nothing to do if we already have the right kind
-  | inferKind_ ctx ty == k = ty
-  | not $ k `leKind` inferKind_ ctx ty =
+  | unsafeInferKind ctx ty == k = ty
+  | not $ k `leKind` unsafeInferKind ctx ty =
       error "fixKind not smaller"
   | otherwise = case ty of
     -- Switch a variable out for a different variable of the right kind
@@ -609,7 +355,7 @@ fixKind ctx ty k
                              , k == k' ] -> TyVar () y
               | otherwise -> minimalType k
     -- Try to fix application by fixing the function
-    TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (inferKind_ ctx b) k) b
+    TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (unsafeInferKind ctx b) k) b
     TyLam _ x kx b    ->
       case k of
         -- Fix lambdas to * by getting substituting a minimal type for the argument
@@ -625,7 +371,7 @@ fixKind ctx ty k
             where
               ctx' = Map.insert x ka ctx
               b'   = substClosedType x (minimalType kx) b
-              kb'  = inferKind_ ctx' b'
+              kb'  = unsafeInferKind ctx' b'
     -- Ill-kinded builtins just go to minimal types
     TyBuiltin{}       -> minimalType k
     _                 -> error "fixKind"
@@ -660,8 +406,8 @@ shrinkKindAndType ctx (k, ty) =
     -- doing simple stuff like shrinking the function and body separately when we can.
     -- The slightly tricky case is the concat trace. See comment below.
     TyApp _ f a       -> [(ka, a) | ka `leKind` k] ++
-                         [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (fvType b)] ++
-                         [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (fvType a)] ++
+                         [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (ftvTy b)] ++
+                         [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (ftvTy a)] ++
                          -- Here we try to shrink the function f, if we get something whose kind
                          -- is small enough we can return the new function f', otherwise we
                          -- apply f' to `fixKind ctx a ka'` - which takes `a` and tries to rewrite it
@@ -674,14 +420,14 @@ shrinkKindAndType ctx (k, ty) =
                          -- Here we shrink the argument and fixup the function to have the right kind.
                          [(k, TyApp () (fixKind ctx f (KindArrow () ka' k)) a)
                          | (ka', a) <- shrinkKindAndType ctx (ka, a)]
-      where ka = inferKind_ ctx a
+      where ka = unsafeInferKind ctx a
     -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
     TyLam _ x ka b    -> [ (KindArrow () ka' kb, TyLam () x ka' $ substClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
                          [ (KindArrow () ka kb', TyLam () x ka b)
                          | (kb', b) <- shrinkKindAndType (Map.insert x ka ctx) (kb, b)]
       where KindArrow _ _ kb = k
-    TyForall _ x ka b -> [ (k, b) | not $ Set.member x (fvType b) ] ++
+    TyForall _ x ka b -> [ (k, b) | not $ Set.member x (ftvTy b) ] ++
                          -- (above) If the bound variable doesn't matter we get rid of the binding
                          [ (k, TyForall () x ka' $ substClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
@@ -704,10 +450,10 @@ inferKind ctx ty = case ty of
   TyBuiltin _ b    -> pure $ builtinKind b
   TyIFix{}         -> error "inferKind: TyIFix"
 
--- | Partial inferKind_, useful for context where invariants are set up to guarantee
+-- | Partial unsafeInferKind, useful for context where invariants are set up to guarantee
 -- that types are well-kinded.
-inferKind_ :: HasCallStack => Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind ()
-inferKind_ ctx ty =
+unsafeInferKind :: HasCallStack => Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind ()
+unsafeInferKind ctx ty =
   case inferKind ctx ty of
     Nothing -> error "inferKind"
     Just k  -> k
@@ -746,7 +492,7 @@ substType' :: HasCallStack
            -> Type TyName DefaultUni ()
 substType' nested sub ty0 = go fvs Set.empty sub ty0
   where
-    fvs = Set.unions $ Map.keysSet sub : map fvType (Map.elems sub)
+    fvs = Set.unions $ Map.keysSet sub : map ftvTy (Map.elems sub)
 
     go :: HasCallStack => _
     go fvs seen sub ty = case ty of
@@ -760,11 +506,11 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
       TyLam _ x k b
         | Set.member x fvs -> TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
         | otherwise        -> TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> fvType b) x
+        where x' = freshenTyName (fvs <> ftvTy b) x
       TyForall _ x k b
         | Set.member x fvs -> TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
         | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> fvType b) x
+        where x' = freshenTyName (fvs <> ftvTy b) x
       TyBuiltin{}      -> ty
       TyIFix{}         -> error "substType: TyIFix"
 
@@ -888,7 +634,7 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
 
     fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
       where
-          fvs = fvType a
+          fvs = ftvTy a
           ss  = Set.intersection (Map.keysSet sub) fvs
           ns  = Set.difference fvs ss
 
@@ -932,7 +678,7 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
     shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
       where Just k = Map.lookup x ctx
     pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
-      where fvs = fvType ty
+      where fvs = ftvTy ty
 
 -- | This type keeps track of what kind of argument, term argument (`InstArg`) or
 -- type argument (`InstArg`) is required for a function. This type is used primarily
@@ -964,7 +710,7 @@ typeInstTerm ctx n target ty = do
       doSubI (InstArg t) = InstArg (doSub t)
   pure $ map doSubI insts
   where
-    fvs = fvType target <> fvType ty <> Map.keysSet ctx
+    fvs = ftvTy target <> ftvTy ty <> Map.keysSet ctx
     (ctx', flex, insts, b) = view Map.empty Set.empty [] n fvs ty
 
     view ctx' flex insts n fvs (TyForall _ x k b) = view (Map.insert x' k ctx') (Set.insert x' flex)
@@ -1083,7 +829,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
 
     -- Get the free variables that appear in arguments of a mixed arrow-forall type
     fvArgs (TyForall _ x _ b) = Set.delete x (fvArgs b)
-    fvArgs (TyFun _ a b)      = fvType a <> fvArgs b
+    fvArgs (TyFun _ a b)      = ftvTy a <> fvArgs b
     fvArgs _                  = mempty
 
 -- CODE REVIEW: does this exist anywhere?
@@ -1169,7 +915,7 @@ genTerm mty = do
     canConst (Just _)           = False
 
     genConst Nothing = do
-      b <- liftGen $ elements $ builtinTys Star
+      b <- liftGen $ elements $ builtinTysAt Star
       (TyBuiltin () b,) <$> genConstant b
     genConst (Just ty@(TyBuiltin _ b)) = (ty,) <$> genConstant b
     genConst _ = error "genConst: impossible"
@@ -1206,7 +952,7 @@ genTerm mty = do
 
     genForall x k a = do
       -- TODO: this freshenTyName here might be a bit paranoid
-      y <- freshenTyName (fvType a) <$> genFreshTyName "a"
+      y <- freshenTyName (ftvTy a) <$> genFreshTyName "a"
       let ty = TyForall () y k $ renameType x y a
       (ty,) . TyAbs () y k <$> (noEscape . bindTyName y k . genTermOfType $ renameType x y a)
 
@@ -1302,7 +1048,7 @@ shrinkClosedTypedTerm = shrinkTypedTerm mempty mempty
 scopeCheckTyVars :: Map TyName (Kind ())
                  -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                  -> Bool
-scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (fvType ty)
+scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (ftvTy ty)
   where
     inscope = Map.keysSet tyctx <> Set.fromList (map fst $ datatypes tm)
 
@@ -1493,7 +1239,7 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
   -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
   Normalized _ty' <- runQuoteT $ inferType cfg tm'
   -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.
-  let ty' = substEscape Pos (Map.keysSet esc <> foldr (<>) (fvType _ty') (fvType <$> esc)) esc _ty' -- yuck
+  let ty' = substEscape Pos (Map.keysSet esc <> foldr (<>) (ftvTy _ty') (ftvTy <$> esc)) esc _ty' -- yuck
   -- Get rid of the stuff we had to add for the context.
   return $ stripFuns tms $ stripForalls mempty tys ty'
   where
