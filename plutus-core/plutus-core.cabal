@@ -441,6 +441,10 @@ test-suite plutus-ir-test
         TransformSpec
         TypeSpec
         GeneratorSpec
+        GeneratorSpec.Substitution
+        GeneratorSpec.Types
+        GeneratorSpec.Terms
+        GeneratorSpec.Compiler
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,

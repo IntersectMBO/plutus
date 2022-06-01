@@ -1,0 +1,44 @@
+module GeneratorSpec.Compiler where
+
+-- CODE REVIEW: The property below checks that when we run a generated PIR term through the compiler
+-- we actually get something out. As the generators are supposed to generate reasonable stuff this is
+-- a test of the compiler. I think we
+--  1. Want this somewhere
+--  2. Don't want it here
+--  Where do we want something like this?
+--  Also, the code below is a giant hack to "conenct to" the compiler at the "right" place (as judged
+--  by us when we were ripping the compiler apart to extract something that did something reasonable-ish)
+--
+-- TODO: we want this property somewhere!
+-- compile :: Term TyName Name DefaultUni DefaultFun ()
+--         -> Either (CompileError DefaultUni DefaultFun) (CompiledCode a)
+-- compile _tm = either Left Right $ runQuoteT $ do
+--   -- Make sure that names are unique (that's not guaranteed by QuickCheck)
+--   tm <- rename _tm
+--   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+--   let hints = UPLC.InlineHints $ \a _ -> case a of
+--                 PIR.DatatypeComponent PIR.Destructor _ -> True
+--                 _                                      -> False
+--       pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
+--              & set (PIR.ccOpts . PIR.coOptimize) True
+--              & set (PIR.ccOpts . PIR.coPedantic) False
+--              & set (PIR.ccOpts . PIR.coVerbose) False
+--              & set (PIR.ccOpts . PIR.coDebug) False
+--              & set (PIR.ccOpts . PIR.coMaxSimplifierIterations)
+--                       (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
+--              & set PIR.ccTypeCheckConfig Nothing
+--       uplcSimplOpts = UPLC.defaultSimplifyOpts
+--             & set UPLC.soMaxSimplifierIterations (PIR.defaultCompilationOpts ^. PIR.coMaxSimplifierIterations)
+--             & set UPLC.soInlineHints hints
+--
+--   plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc $ fmap Original tm
+--   plcTcError <- runExceptT @(PLC.Error _ _ _)
+--              $ UPLC.deBruijnTerm =<< UPLC.simplifyTerm uplcSimplOpts (UPLC.erase plcT)
+--   case plcTcError of
+--     Left _   -> error "wrong"
+--     Right cc -> return $ DeserializedCode (UPLC.Program () (PLC.defaultVersion ()) $ void cc) Nothing mempty
+--
+-- prop_compile :: Property
+-- prop_compile =
+--   forAllDoc "_,tm" genTypeAndTermNoHelp_ shrinkClosedTypedTerm $ \ (_, tm) ->
+--   isRight $ compile tm

@@ -64,3 +64,8 @@ forAllDoc name g shr k =
     ceDoc (fromString name <+> "=" <+> prettyPirReadable x)
           (k x)
 
+-- | Check that a list of potential counterexamples is empty and display the
+-- list as a QuickCheck counterexample if its not.
+assertNoCounterexamples :: PrettyPir a => [a] -> Property
+assertNoCounterexamples []  = property True
+assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
