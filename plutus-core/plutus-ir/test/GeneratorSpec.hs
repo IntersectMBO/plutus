@@ -4,7 +4,6 @@
 module GeneratorSpec where
 
 import PlutusCore.Generators.PIR
-import PlutusCore.Generators.PIR.GenTm
 
 import Control.Monad.Reader
 

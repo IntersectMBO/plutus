@@ -318,6 +318,11 @@ library plutus-core-testlib
         PlutusCore.Generators
         PlutusCore.Generators.PIR
         PlutusCore.Generators.PIR.GenTm
+        PlutusCore.Generators.PIR.GenerateTypes
+        PlutusCore.Generators.PIR.GenerateTerms
+        PlutusCore.Generators.PIR.Common
+        PlutusCore.Generators.PIR.Substitutions
+        PlutusCore.Generators.PIR.Utils
         PlutusCore.Generators.AST
         PlutusCore.Generators.Interesting
         PlutusCore.Generators.NEAT.Common

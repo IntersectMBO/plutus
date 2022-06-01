@@ -30,37 +30,22 @@
 
 module PlutusCore.Generators.PIR.GenTm where
 
-import Control.Applicative ((<|>))
-import Control.Arrow hiding ((<+>))
-import Control.Lens ((<&>))
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.Trans.Maybe
 
-import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
-import GHC.Stack
-import Prettyprinter
 import Test.QuickCheck
-import Text.PrettyBy
 
 import PlutusCore.Default
 import PlutusCore.Name
-import PlutusCore.Normalize
-import PlutusCore.Quote (runQuoteT)
-import PlutusCore.Rename
 import PlutusIR
 import PlutusIR.Compiler
-import PlutusIR.Core.Instance.Pretty.Readable
-import PlutusIR.Error
 import PlutusIR.Subst
-import PlutusIR.TypeCheck
 
 -- | Term generators carry around a context to know
 -- e.g. what types and terms are in scope.
@@ -306,3 +291,27 @@ bindFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> G
 bindFreshTmName name ty k = do
   x <- genFreshName name
   bindTmName x ty (k x)
+
+-- Containers (zipper-ish, very useful for shrinking.)
+-- CODE REVIEW: should these go elsewhere? Do these already exist somewhere?
+
+class Container f where
+  data OneHoleContext f :: * -> *
+  oneHoleContexts :: f a -> [(OneHoleContext f a, a)]
+  plugHole :: OneHoleContext f a -> a -> f a
+
+instance Container [] where
+  data OneHoleContext [] a = ListContext [a] [a]
+  oneHoleContexts (x : xs) = (ListContext [] xs, x) : [ (ListContext (x : ys) zs, y)
+                                                      | (ListContext ys zs, y) <- oneHoleContexts xs ]
+  oneHoleContexts []       = []
+  plugHole (ListContext xs ys) z = xs ++ [z] ++ ys
+
+instance Container NonEmpty where
+  data OneHoleContext NonEmpty a = NonEmptyContext [a] [a]
+  oneHoleContexts (x :| xs) = (NonEmptyContext [] xs, x) : [ (NonEmptyContext (x : ys) zs, y)
+                                                           | (ListContext ys zs, y) <- oneHoleContexts xs ]
+  plugHole (NonEmptyContext []       ys) z = z :| ys
+  plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
+
+
