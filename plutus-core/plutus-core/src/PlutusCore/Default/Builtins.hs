@@ -35,7 +35,6 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
-import GHC.Exts (oneShot)
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest builtins at the front to have more compact encoding?
@@ -840,43 +839,43 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         => DefaultFun -> BuiltinMeaning val BuiltinCostModel
     toBuiltinMeaning AddInteger =
         makeBuiltinMeaning
-            (oneShot $ (+) @Integer)
+            ((+) @Integer)
             (runCostingFunTwoArguments . paramAddInteger)
     toBuiltinMeaning SubtractInteger =
         makeBuiltinMeaning
-            (oneShot $ (-) @Integer)
+            ((-) @Integer)
             (runCostingFunTwoArguments . paramSubtractInteger)
     toBuiltinMeaning MultiplyInteger =
         makeBuiltinMeaning
-            (oneShot $ (*) @Integer)
+            ((*) @Integer)
             (runCostingFunTwoArguments . paramMultiplyInteger)
     toBuiltinMeaning DivideInteger =
         makeBuiltinMeaning
-            (oneShot $ nonZeroArg div)
+            (nonZeroArg div)
             (runCostingFunTwoArguments . paramDivideInteger)
     toBuiltinMeaning QuotientInteger =
         makeBuiltinMeaning
-            (oneShot $ nonZeroArg quot)
+            (nonZeroArg quot)
             (runCostingFunTwoArguments . paramQuotientInteger)
     toBuiltinMeaning RemainderInteger =
         makeBuiltinMeaning
-            (oneShot $ nonZeroArg rem)
+            (nonZeroArg rem)
             (runCostingFunTwoArguments . paramRemainderInteger)
     toBuiltinMeaning ModInteger =
         makeBuiltinMeaning
-            (oneShot $ nonZeroArg mod)
+            (nonZeroArg mod)
             (runCostingFunTwoArguments . paramModInteger)
     toBuiltinMeaning EqualsInteger =
         makeBuiltinMeaning
-            (oneShot $ (==) @Integer)
+            ((==) @Integer)
             (runCostingFunTwoArguments . paramEqualsInteger)
     toBuiltinMeaning LessThanInteger =
         makeBuiltinMeaning
-            (oneShot $ (<) @Integer)
+            ((<) @Integer)
             (runCostingFunTwoArguments . paramLessThanInteger)
     toBuiltinMeaning LessThanEqualsInteger =
         makeBuiltinMeaning
-            (oneShot $ (<=) @Integer)
+            ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqualsInteger)
     -- Bytestrings
     toBuiltinMeaning AppendByteString =
@@ -885,11 +884,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramAppendByteString)
     toBuiltinMeaning ConsByteString =
         makeBuiltinMeaning
-            (oneShot $ \n xs -> BS.cons (fromIntegral @Integer n) xs)
+            (\n xs -> BS.cons (fromIntegral @Integer n) xs)
             (runCostingFunTwoArguments . paramConsByteString)
     toBuiltinMeaning SliceByteString =
         makeBuiltinMeaning
-            (oneShot $ \start n xs -> BS.take n (BS.drop start xs))
+            (\start n xs -> BS.take n (BS.drop start xs))
             (runCostingFunThreeArguments . paramSliceByteString)
     toBuiltinMeaning LengthOfByteString =
         makeBuiltinMeaning
@@ -897,20 +896,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramLengthOfByteString)
     toBuiltinMeaning IndexByteString =
         makeBuiltinMeaning
-            (oneShot $ \xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
+            (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
             -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
             (runCostingFunTwoArguments . paramIndexByteString)
     toBuiltinMeaning EqualsByteString =
         makeBuiltinMeaning
-            (oneShot $ (==) @BS.ByteString)
+            ((==) @BS.ByteString)
             (runCostingFunTwoArguments . paramEqualsByteString)
     toBuiltinMeaning LessThanByteString =
         makeBuiltinMeaning
-            (oneShot $ (<) @BS.ByteString)
+            ((<) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanByteString)
     toBuiltinMeaning LessThanEqualsByteString =
         makeBuiltinMeaning
-            (oneShot $ (<=) @BS.ByteString)
+            ((<=) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanEqualsByteString)
     -- Cryptography and hashes
     toBuiltinMeaning Sha2_256 =
@@ -927,7 +926,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b_256)
     toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            (oneShot $ verifyEd25519Signature @EvaluationResult)
+            (verifyEd25519Signature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
@@ -956,11 +955,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
-            (oneShot $ (<>) @Text)
+            ((<>) @Text)
             (runCostingFunTwoArguments . paramAppendString)
     toBuiltinMeaning EqualsString =
         makeBuiltinMeaning
-            (oneShot $ (==) @Text)
+            ((==) @Text)
             (runCostingFunTwoArguments . paramEqualsString)
     toBuiltinMeaning EncodeUtf8 =
         makeBuiltinMeaning
@@ -968,22 +967,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramEncodeUtf8)
     toBuiltinMeaning DecodeUtf8 =
         makeBuiltinMeaning
-            (oneShot $ reoption @_ @EvaluationResult . decodeUtf8')
+            (reoption @_ @EvaluationResult . decodeUtf8')
             (runCostingFunOneArgument . paramDecodeUtf8)
     -- Bool
     toBuiltinMeaning IfThenElse =
         makeBuiltinMeaning
-            (oneShot $ \b x y -> if b then x else y)
+            (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
     -- Unit
     toBuiltinMeaning ChooseUnit =
         makeBuiltinMeaning
-            (oneShot $ \() a -> a)
+            (\() a -> a)
             (runCostingFunTwoArguments . paramChooseUnit)
     -- Tracing
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (oneShot $ \text a -> a <$ emit text)
+            (\text a -> a <$ emit text)
             (runCostingFunTwoArguments . paramTrace)
     -- Pairs
     toBuiltinMeaning FstPair =
@@ -1075,7 +1074,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- Data
     toBuiltinMeaning ChooseData =
         makeBuiltinMeaning
-            (oneShot $ \d
+            (\d
               xConstr
               xMap xList xI xB ->
                   case d of
@@ -1087,80 +1086,80 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunSixArguments . paramChooseData)
     toBuiltinMeaning ConstrData =
         makeBuiltinMeaning
-            (oneShot Constr)
+            Constr
             (runCostingFunTwoArguments . paramConstrData)
     toBuiltinMeaning MapData =
         makeBuiltinMeaning
-            (oneShot Map)
+            Map
             (runCostingFunOneArgument . paramMapData)
     toBuiltinMeaning ListData =
         makeBuiltinMeaning
-            (oneShot List)
+            List
             (runCostingFunOneArgument . paramListData)
     toBuiltinMeaning IData =
         makeBuiltinMeaning
-            (oneShot I)
+            I
             (runCostingFunOneArgument . paramIData)
     toBuiltinMeaning BData =
         makeBuiltinMeaning
-            (oneShot B)
+            B
             (runCostingFunOneArgument . paramBData)
     toBuiltinMeaning UnConstrData =
         makeBuiltinMeaning
-            (oneShot $ \case
+            (\case
                 Constr i ds -> EvaluationSuccess (i, ds)
                 _           -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnConstrData)
     toBuiltinMeaning UnMapData =
         makeBuiltinMeaning
-            (oneShot $ \case
+            (\case
                 Map es -> EvaluationSuccess es
                 _      -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnMapData)
     toBuiltinMeaning UnListData =
         makeBuiltinMeaning
-            (oneShot $ \case
+            (\case
                 List ds -> EvaluationSuccess ds
                 _       -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnListData)
     toBuiltinMeaning UnIData =
         makeBuiltinMeaning
-            (oneShot $ \case
+            (\case
                 I i -> EvaluationSuccess i
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnIData)
     toBuiltinMeaning UnBData =
         makeBuiltinMeaning
-            (oneShot $ \case
+            (\case
                 B b -> EvaluationSuccess b
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnBData)
     toBuiltinMeaning EqualsData =
         makeBuiltinMeaning
-            (oneShot $ (==) @Data)
+            ((==) @Data)
             (runCostingFunTwoArguments . paramEqualsData)
     toBuiltinMeaning SerialiseData =
         makeBuiltinMeaning
-            (oneShot $ BS.toStrict . serialise @Data)
+            (BS.toStrict . serialise @Data)
             (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
     toBuiltinMeaning MkPairData =
         makeBuiltinMeaning
-            (oneShot $ (,) @Data @Data)
+            ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
     toBuiltinMeaning MkNilData =
         -- Nullary builtins don't work, so we need a unit argument.
         -- We don't really need this builtin, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
-            (oneShot $ \() -> [] @Data)
+            (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
     toBuiltinMeaning MkNilPairData =
         -- Nullary builtins don't work, so we need a unit argument.
         -- We don't really need this builtin, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
-            (oneShot $ \() -> [] @(Data,Data))
+            (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

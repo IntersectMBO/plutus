@@ -1,5 +1,4 @@
 {-# LANGUAGE AllowAmbiguousTypes       #-}
-{-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE ExistentialQuantification #-}
@@ -264,7 +263,7 @@ instance
         BuiltinMeaning (knownPolytype @binds @val @args @res) f $
             BuiltinRuntimeOptions
                 { _broRuntimeScheme = knownPolyruntime @binds @val @args @res
-                , _broImmediateF    = toImmediateF @val @args @res f
+                , _broImmediateF    = oneShot (toImmediateF @val @args @res) f
                 , _broDeferredF     = toDeferredF @val @args @res $ pure f
                 , _broToExF         = toExF
                 }
