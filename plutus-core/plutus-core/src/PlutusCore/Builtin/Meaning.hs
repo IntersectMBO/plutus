@@ -164,7 +164,7 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = oneShot makeKnown
+    toImmediateF = makeKnown
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
