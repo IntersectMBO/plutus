@@ -534,7 +534,7 @@ genType k = onSize (min 10) $
 genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())
 genClosedType_ = genTypeWithCtx mempty
 
--- | Generate a well-kinded term in a given context
+-- | Generate a type in the given context with the given kind.
 genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
