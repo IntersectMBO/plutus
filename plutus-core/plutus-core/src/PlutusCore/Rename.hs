@@ -44,6 +44,14 @@ class Rename a where
 getRenamed :: (Rename a, MonadQuote m) => a -> m (Renamed a)
 getRenamed = fmap Renamed . rename
 
+-- | Wrap a value in 'Dupable'.
+dupable :: a -> Dupable a
+dupable = Dupable
+
+-- | Extract the value stored in a @Dupable a@ and rename it.
+liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a
+liftDupable = liftQuote . rename . unDupable
+
 instance HasUniques (Type tyname uni ann) => Rename (Type tyname uni ann) where
     -- See Note [Marking].
     rename = through markNonFreshType >=> runRenameT @TypeRenaming . renameTypeM
@@ -58,26 +66,3 @@ instance HasUniques (Program tyname name uni fun ann) => Rename (Program tyname 
 
 instance Rename a => Rename (Normalized a) where
     rename = traverse rename
-
--- | @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
--- which renames the stored value along the way. This type is used whenever
---
--- 1. preserving global uniqueness is required
--- 2. some value may be used multiple times
---
--- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
--- global uniqueness is preserved.
---
--- 'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
--- access the underlying value.
-newtype Dupable a = Dupable
-    { unDupable :: a
-    } deriving stock (Show, Eq)
-
--- | Wrap a value in 'Dupable'.
-dupable :: a -> Dupable a
-dupable = Dupable
-
--- | Extract the value stored in a @Dupable a@ and rename it.
-liftDupable :: (MonadQuote m, Rename a) => Dupable a -> m a
-liftDupable = liftQuote . rename . unDupable
