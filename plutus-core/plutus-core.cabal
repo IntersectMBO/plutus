@@ -105,6 +105,8 @@ library
         PlutusCore.StdLib.Meta.Data.Tuple
         PlutusCore.StdLib.Type
         PlutusCore.Subst
+        PlutusCore.TypeCheck
+        PlutusCore.TypeCheck.Internal
 
         PlutusIR
         PlutusIR.Analysis.RetainedSize
@@ -137,6 +139,7 @@ library
         PlutusIR.Transform.ThunkRecursions
         PlutusIR.Transform.Unwrap
         PlutusIR.TypeCheck
+        PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore
         UntypedPlutusCore.Check.Scope
@@ -207,8 +210,6 @@ library
         PlutusCore.Pretty.Readable
         PlutusCore.Pretty.Utils
         PlutusCore.Size
-        PlutusCore.TypeCheck
-        PlutusCore.TypeCheck.Internal
 
         PlutusIR.Analysis.Dependencies
         PlutusIR.Analysis.Size
@@ -221,7 +222,6 @@ library
         PlutusIR.Compiler.Recursion
         PlutusIR.Compiler.Types
         PlutusIR.Normalize
-        PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore.Analysis.Definitions
         UntypedPlutusCore.Analysis.Usages
