@@ -473,10 +473,6 @@ shrinkTypeAtKind :: HasCallStack
                  -> [Type TyName DefaultUni ()]
 shrinkTypeAtKind ctx k ty = [ ty' | (k', ty') <- shrinkKindAndType ctx (k, ty), k == k' ]
 
-data Polarity = Pos
-              | Neg
-              deriving stock (Ord, Eq, Show)
-
 substType :: HasCallStack
           => Map TyName (Type TyName DefaultUni ())
           -> Type TyName DefaultUni ()
@@ -526,25 +522,19 @@ renameType x y | x == y    = id
 -- This might not be a welcome opinion, but working with this stuff exposes some of
 -- the shortcomings of the current PIR design. It would be cleaner if a PIR program was a list
 -- of declarations and datatype declarations weren't in terms.
-substEscape :: Polarity
-            -> Set TyName
+-- TODO: Is this actually doing anything other than what we already do in other substitution functions?!
+substEscape :: Set TyName
             -> Map TyName (Type TyName DefaultUni ())
             -> Type TyName DefaultUni ()
             -> Type TyName DefaultUni ()
-substEscape pol fv sub ty = case ty of
-  TyVar _ x      -> maybe ty (substEscape pol fv sub) (Map.lookup x sub)
-  TyFun _ a b    -> TyFun () (substEscape pol fv sub a) (substEscape pol fv sub b)  -- TODO: pol was Neg
-  TyApp _ a b    -> TyApp () (substEscape pol fv sub a) (substEscape pol fv sub b)
-  TyLam _ x k b
-    | Pos <- pol -> TyLam () x k $ substEscape pol (Set.insert x fv) sub b
-    | otherwise  -> TyLam () x' k $ substEscape pol (Set.insert x' fv) sub (renameType x x' b)
-    where x' = freshenTyName fv x
-  TyForall _ x k b
-    | Pos <- pol -> TyForall () x k $ substEscape pol (Set.insert x fv) sub b
-    | otherwise  -> TyForall () x' k $ substEscape pol (Set.insert x' fv) sub (renameType x x' b)
-    where x' = freshenTyName fv x
-  TyBuiltin{}    -> ty
-  TyIFix{}       -> ty
+substEscape fv sub ty = case ty of
+  TyVar _ x        -> maybe ty (substEscape fv sub) (Map.lookup x sub)
+  TyFun _ a b      -> TyFun () (substEscape fv sub a) (substEscape fv sub b)
+  TyApp _ a b      -> TyApp () (substEscape fv sub a) (substEscape fv sub b)
+  TyLam _ x k b    -> TyLam () x k $ substEscape (Set.insert x fv) sub b
+  TyForall _ x k b -> TyForall () x k $ substEscape (Set.insert x fv) sub b
+  TyBuiltin{}      -> ty
+  TyIFix{}         -> ty
 
 -- | Check well-kindedness of a type in a context
 checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Bool
@@ -1239,7 +1229,7 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
   -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
   Normalized _ty' <- runQuoteT $ inferType cfg tm'
   -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.
-  let ty' = substEscape Pos (Map.keysSet esc <> foldr (<>) (ftvTy _ty') (ftvTy <$> esc)) esc _ty' -- yuck
+  let ty' = substEscape (Map.keysSet esc <> foldr (<>) (ftvTy _ty') (ftvTy <$> esc)) esc _ty' -- yuck
   -- Get rid of the stuff we had to add for the context.
   return $ stripFuns tms $ stripForalls mempty tys ty'
   where

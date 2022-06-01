@@ -4,6 +4,7 @@
 module GeneratorSpec where
 
 import PlutusCore.Generators.PIR
+import PlutusCore.Generators.PIR.GenTm
 
 import Control.Monad.Reader
 
@@ -20,6 +21,7 @@ import PlutusCore.Quote (runQuote)
 import PlutusCore.Rename
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Subst
 
 import Data.Maybe
 import Data.String
@@ -283,7 +285,7 @@ prop_unify =
   letCE "sty2" (substType sub ty2) $ \ sty2 ->
   letCE "nsty1" (normalizeTy sty1) $ \ nsty1 ->
   letCE "nsty2" (normalizeTy sty2) $ \ nsty2 ->
-  tabulate "sizes" [show $ min (Set.size $ fvType ty1) (Set.size $ fvType ty2)] $
+  tabulate "sizes" [show $ min (Set.size $ ftvTy ty1) (Set.size $ ftvTy ty2)] $
   foldr (.&&.) (property $ nsty1 == nsty2) (map checkSub (Map.toList sub))
   where
     allTheVarsCalledX = [ TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..] ]
@@ -304,7 +306,7 @@ prop_substType =
   forAllDoc "ty" (genTypeWithCtx ctx Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
   letCE "res" (substType sub ty) $ \ res ->
-  fvTypeR sub ty == fvType res && checkKind ctx res Star
+  fvTypeR sub ty == ftvTy res && checkKind ctx res Star
 
 -- | Check that there are no one-step shrink loops
 prop_noTermShrinkLoops :: Property
