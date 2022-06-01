@@ -27,7 +27,7 @@ prop_shrinkTypeSound =
   -- See discussion about the same trick in `prop_shrinkTermSound`
   checkKind ctx ty k ==>
   assertNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType ctx (k, ty)
-                                   , not $ checkKind ctx ty k ]
+                                    , not $ checkKind ctx ty k ]
 
 -- Utility tests for debugging
 
@@ -52,5 +52,5 @@ prop_fixKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
   assertNoCounterexamples [ (ty', k') | k' <- shrink k
-                                     , let ty' = fixKind ctx ty k'
-                                     , not $ checkKind ctx ty' k' ]
+                                      , let ty' = fixKind ctx ty k'
+                                      , not $ checkKind ctx ty' k' ]
