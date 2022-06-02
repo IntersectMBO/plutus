@@ -15,13 +15,13 @@ main = do
     lEvaluatedRes <- traverse readFile outputFiles
     if length inputFiles == length lProgTxt && length  lEvaluatedRes == length lProgTxt then
         do
-        let lRes = fmap textToEvalRes lEvaluatedRes
+        let lRes = fmap textToEvalRes (zip inputFiles lEvaluatedRes)
             testContents = mkTestContents inputFiles lRes lProgTxt
         testTree <- testUplcEvaluation testContents evalUplcProg
         defaultMain testTree
     else
         error $ unlines
-            ["mkTestContents: Cannot run the tests because the number of input and output programs are not the same. "
+            ["Cannot run the tests because the number of input and output programs are not the same. "
             , "Number of input files: "
             , show (length lProgTxt)
             , " Number of output files: "
