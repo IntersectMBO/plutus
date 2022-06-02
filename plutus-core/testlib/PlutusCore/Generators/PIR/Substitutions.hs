@@ -168,3 +168,14 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
         where x' = freshenTyName (fvs <> ftvTy b) x
       TyBuiltin{}      -> ty
       TyIFix{}         -> error "substType: TyIFix"
+
+-- | Find all free type variables of type `a` given substitution `sub`. If variable `x` is
+-- free in `a` but in the domain of `sub` we look up `x` in `sub` and get all the free type
+-- variables of the result - up to the substitution.
+fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
+fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (Set.toList freeButInSub)
+      where
+          fvs = ftvTy a
+          subDom = Map.keysSet sub
+          freeButInSub = Set.intersection subDom fvs
+          freeAndNotInSub = Set.difference fvs subDom

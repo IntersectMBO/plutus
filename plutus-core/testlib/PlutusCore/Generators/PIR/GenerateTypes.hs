@@ -109,14 +109,6 @@ fvTypeBag ty = case ty of
   TyBuiltin{}      -> Map.empty
   TyIFix{}         -> error "fvTypeBag: TyIFix"
 
--- | Recursively find all free type variables in a substitution
-fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
-fvTypeR sub a = Set.unions $ ns : map (fvTypeR sub . (Map.!) sub) (Set.toList ss)
-      where
-          fvs = ftvTy a
-          ss  = Set.intersection (Map.keysSet sub) fvs
-          ns  = Set.difference fvs ss
-
 -- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName
 freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
