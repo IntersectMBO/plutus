@@ -424,7 +424,7 @@ mkHelp _ ty                       = Error () ty
 
 -- | Shrink a typed term in a type and term context.
 -- NOTE: if you want to understand what's going on in this function it's a good
--- idea to look at how we do this for types above (it's a lot simpler).
+-- idea to look at how we do this for types first (it's a lot simpler).
 shrinkTypedTerm :: HasCallStack
                 => Map TyName (Kind ())
                 -> Map Name (Type TyName DefaultUni ())
@@ -654,6 +654,7 @@ datatypes tm = case tm of
   Error _ _ -> mempty
   _ -> error "nope"
 
+-- | Try to find a variable of type `forall x. x` in the context.
 findHelp :: Map Name (Type TyName DefaultUni ()) -> Maybe Name
 findHelp ctx =
   case Map.toList $ Map.filter isHelpType ctx of
