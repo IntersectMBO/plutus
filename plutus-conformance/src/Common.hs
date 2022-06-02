@@ -5,14 +5,15 @@ module Common where
 import Data.Text qualified as T
 import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error (ParserError, ParserErrorBundle (ParseErrorB))
+import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
+import System.FilePath (takeBaseName)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
-import Text.Megaparsec (ParseErrorBundle, SourcePos)
+import Text.Megaparsec (SourcePos, errorBundlePretty)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
@@ -31,13 +32,13 @@ evalUplcProg p =
 data TestContent =
    MkTestContent {
        testName    :: FilePath
-       , expected  :: Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
+       , expected  :: Either T.Text (EvaluationResult UplcProg)
        , inputProg :: T.Text
    }
 
 mkTestContents ::
     [FilePath] ->
-        [Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)] ->
+        [Either T.Text (EvaluationResult UplcProg)] ->
             [T.Text] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     if length lFilepaths == length lRes && length  lRes == length lProgs then
@@ -54,19 +55,19 @@ mkTestContents lFilepaths lRes lProgs =
 
 parseProg :: TestContent -> Either ParserErrorBundle (UPLC.Program
                       Name DefaultUni DefaultFun SourcePos)
-parseProg test = runQuoteT $ UPLC.parse UPLC.program (testName test) $ inputProg test
+parseProg test = runQuoteT $ UPLC.parse UPLC.program (takeBaseName (testName test)) $ inputProg test
 
-mkExpected :: (UplcProg -> EvaluationResult UplcProg) ->
+mkResult :: (UplcProg -> EvaluationResult UplcProg) ->
     Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
-        Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
-mkExpected _ (Left (ParseErrorB err)) = Left err
-mkExpected runner (Right prog)        = Right $ runner $ () <$ prog
+        Either T.Text (EvaluationResult UplcProg)
+mkResult _ (Left (ParseErrorB err)) = Left $ T.pack $ errorBundlePretty err
+mkResult runner (Right prog)        = Right $ runner $ () <$ prog
 
 mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO [TestTree]
 mkTestCases tests runner =
     do
         let
-            results = fmap (mkExpected runner . parseProg) tests
+            results = fmap (mkResult runner . parseProg) tests
         pure $
             [testCase (testName test) (expected test @=? result) | test <- tests | result <- results]
 
@@ -79,15 +80,15 @@ testUplcEvaluation lTest runner = do
 shownEvaluationFailure :: T.Text
 shownEvaluationFailure = "evaluation failure"
 
-textToEvalRes :: (FilePath, T.Text) -> Either (ParseErrorBundle T.Text ParserError) (EvaluationResult UplcProg)
-textToEvalRes (path,txt) =
+textToEvalRes :: T.Text -> Either T.Text (EvaluationResult UplcProg)
+textToEvalRes txt =
     if txt == shownEvaluationFailure then
         Right EvaluationFailure
     else
-        let parseTxt :: FilePath -> T.Text -> Either ParserErrorBundle (UPLC.Program
+        let parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
                       Name DefaultUni DefaultFun SourcePos)
-            parseTxt filepath resTxt = runQuoteT $ UPLC.parse UPLC.program filepath resTxt
+            parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
         in
-            case parseTxt path txt of
-                Left (ParseErrorB err) -> Left err
-                Right prog             -> Right $ EvaluationSuccess $ () <$ prog
+            case parseTxt txt of
+                Left _     -> Left txt
+                Right prog -> Right $ EvaluationSuccess $ () <$ prog

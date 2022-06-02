@@ -15,7 +15,7 @@ main = do
     lEvaluatedRes <- traverse readFile outputFiles
     if length inputFiles == length lProgTxt && length  lEvaluatedRes == length lProgTxt then
         do
-        let lRes = fmap textToEvalRes (zip inputFiles lEvaluatedRes)
+        let lRes = fmap textToEvalRes lEvaluatedRes
             testContents = mkTestContents inputFiles lRes lProgTxt
         testTree <- testUplcEvaluation testContents evalUplcProg
         defaultMain testTree

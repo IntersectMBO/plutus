@@ -22,6 +22,7 @@ import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import PlutusCore.Quote (runQuoteT)
 import System.Directory (doesFileExist)
+import System.FilePath (takeBaseName)
 import Test.Tasty.Golden (findByExtension)
 import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore.Parser as UPLC (parse, program)
@@ -90,7 +91,7 @@ main = do
         for_ inputFiles
           (\inputFile -> do
             inputStr <- readFile inputFile
-            let parsed = runQuoteT $ UPLC.parse UPLC.program inputFile $ T.pack inputStr
+            let parsed = runQuoteT $ UPLC.parse UPLC.program (takeBaseName inputFile) $ T.pack inputStr
                 outFilePath = inputFile <> ".expected"
             case parsed of
               Left (ParseErrorB peb) -> do

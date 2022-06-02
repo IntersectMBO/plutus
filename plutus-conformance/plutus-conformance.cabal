@@ -44,7 +44,8 @@ library
         tasty-hunit -any,
         text -any,
         megaparsec -any,
-        mtl -any
+        mtl -any,
+        filepath -any
 
 executable add-test-output
     import: lang
@@ -60,7 +61,8 @@ executable add-test-output
         plutus-conformance -any,
         plutus-core,
         megaparsec -any,
-        optparse-applicative -any
+        optparse-applicative -any,
+        filepath -any
 
 test-suite uplc-eval-test
     import: lang
