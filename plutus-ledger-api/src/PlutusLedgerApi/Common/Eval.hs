@@ -15,6 +15,8 @@ import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
+import PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters as Plutus
+import PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters as Plutus
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common.SerialisedScript
@@ -146,8 +148,8 @@ See Note [Inlining meanings of builtins].
 mkDynEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
 mkDynEvaluationContext newCMP =
     EvaluationContext
-        <$> inline mkMachineParametersFor UnliftingImmediate newCMP
-        <*> inline mkMachineParametersFor UnliftingDeferred newCMP
+        <$> immediateMachineParameters newCMP
+        <*> deferredMachineParameters newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
