@@ -65,15 +65,15 @@ prop_shrinkTermSound =
 
 -- * Utility tests for debugging generators that behave weirdly
 
--- | Test that `typeInstTerm` results in a well-typed instantiation.
-prop_typeInstTerm :: Property
-prop_typeInstTerm =
+-- | Test that `findInstantiation` results in a well-typed instantiation.
+prop_findInstantiation :: Property
+prop_findInstantiation =
   forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
   forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
   assertNoCounterexamples [ (n, insts)
                          | n <- [0..arity ty+3]
-                         , Just insts <- [typeInstTerm ctx n target ty]
+                         , Just insts <- [findInstantiation ctx n target ty]
                          , not $ checkInst ctx x ty insts target
                          ]
   where

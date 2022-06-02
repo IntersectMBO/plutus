@@ -81,7 +81,7 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
 
 -- | This type keeps track of what kind of argument, term argument (`InstArg`) or
 -- type argument (`InstArg`) is required for a function. This type is used primarily
--- with `typeInstTerm` below.when we
+-- with `findInstantiation` below.when we
 -- do unification to figure out if we can get a variable
 data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
   deriving stock Show
@@ -90,21 +90,21 @@ instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst w
   prettyBy ctx (InstApp ty) = prettyBy ctx ty
   prettyBy ctx (InstArg ty) = brackets (prettyBy ctx ty)
 
--- | If successful `typeInstTerm n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
+-- | If successful `findInstantiation n target ty` for an `x :: ty` gives a sequence of `TyInst`s containing `n`
 --   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
 --   the given type for `InstArg`) at the `TyInsts`s has type `target`
-typeInstTerm :: HasCallStack
-             => Map TyName (Kind ())
-             -> Int
-             -> Type TyName DefaultUni ()
-             -> Type TyName DefaultUni ()
-             -> Maybe [TyInst]
-typeInstTerm ctx n target ty = do
+findInstantiation :: HasCallStack
+                  => Map TyName (Kind ())
+                  -> Int
+                  -> Type TyName DefaultUni ()
+                  -> Type TyName DefaultUni ()
+                  -> Maybe [TyInst]
+findInstantiation ctx n target ty = do
   sub <- unifyType (ctx <> ctx') flex Map.empty target b
       -- We map any unsolved flexible variables to ∀ a. a
   let defaultSub = minimalType <$> ctx'
       doSub :: HasCallStack => _
-      doSub      = substType defaultSub . substType sub
+      doSub = substType defaultSub . substType sub
       doSubI (InstApp t) = InstApp (doSub t)
       doSubI (InstArg t) = InstArg (doSub t)
   pure $ map doSubI insts
@@ -112,6 +112,7 @@ typeInstTerm ctx n target ty = do
     fvs = ftvTy target <> ftvTy ty <> Map.keysSet ctx
     (ctx', flex, insts, b) = view Map.empty Set.empty [] n fvs ty
 
+    -- TODO: documentation!
     view ctx' flex insts n fvs (TyForall _ x k b) = view (Map.insert x' k ctx') (Set.insert x' flex)
                                                          (InstApp (TyVar () x') : insts) n
                                                          (Set.insert x' fvs) b'
@@ -165,7 +166,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
                 ctx  <- asks geTypes
                 let cands = Map.toList vars
                     -- If we are instantiating something simply instantiate every
-                    -- type application with type required by typeInstTerm
+                    -- type application with type required by findInstantiation
                     doInst _ tm (InstApp instTy) = pure $ TyInst () tm instTy
                     -- If we instantiate an application, only succeed if we find
                     -- a non-error argument.
@@ -175,7 +176,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
                        $ foldM (doInst n) (Var () x') insts
                      | (x', a)    <- cands,
                        n          <- [0..typeArity a],
-                       Just insts <- [typeInstTerm ctx n ty a],
+                       Just insts <- [findInstantiation ctx n ty a],
                        x `Set.notMember` fvArgs a
                      ] of
                   [] -> mzero
@@ -187,7 +188,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
       | Set.member d (fvArgs conTy) = mzero   -- <- This is ok, since no mutual recursion
       | otherwise = do
           tyctx <- lift $ asks geTypes
-          insts <- maybe mzero pure $ typeInstTerm tyctx (typeArity conTy) ty conTy
+          insts <- maybe mzero pure $ findInstantiation tyctx (typeArity conTy) ty conTy
           let go tm [] = return tm
               go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
               go tm (InstArg ty : insts) = do
@@ -216,7 +217,7 @@ genAtomicTerm ty = do
   ctx  <- asks geTypes
   vars <- asks geTerms
   -- First try cheap unification
-  let unifyVar (x, xty) = typeInstTerm ctx 0 ty xty
+  let unifyVar (x, xty) = findInstantiation ctx 0 ty xty
                        <&> \ tys -> foldl (TyInst ()) (Var () x) [t | InstApp t <- tys]
   case catMaybes $ map unifyVar $ Map.toList vars of
     -- If unification didn't work try the heavy-handed `inhabitType`.
@@ -378,7 +379,7 @@ genTerm mty = do
       case [ foldM (doInst n) (Var () x) insts
            | (x, a)     <- cands,
              n          <- [0..typeArity a],
-             Just insts <- [typeInstTerm ctx n ty a]
+             Just insts <- [findInstantiation ctx n ty a]
            ] of
         [] -> (ty,) <$> inhabitType ty
         gs -> (ty,) <$> oneofTm gs
