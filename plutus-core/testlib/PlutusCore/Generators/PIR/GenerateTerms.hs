@@ -80,9 +80,9 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
       where fvs = ftvTy ty
 
 -- | This type keeps track of what kind of argument, term argument (`InstArg`) or
--- type argument (`InstArg`) is required for a function. This type is used primarily
--- with `findInstantiation` below.when we
--- do unification to figure out if we can get a variable
+-- type argument (`InstApp`) is required for a function. This type is used primarily
+-- with `findInstantiation` below where we do unification to figure out if we can
+-- use a variable to construct a term of a target type.
 data TyInst = InstApp (Type TyName DefaultUni ()) | InstArg (Type TyName DefaultUni ())
   deriving stock Show
 
