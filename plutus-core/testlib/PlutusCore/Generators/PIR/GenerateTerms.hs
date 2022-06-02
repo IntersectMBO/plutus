@@ -69,16 +69,6 @@ addTmBind (TermBind _ _ (VarDecl _ x a) _) = Map.insert x a
 addTmBind (DatatypeBind _ dat)             = (Map.fromList (matchType dat : constrTypes dat) <>)
 addTmBind _                                = id
 
-shrinkSubst :: Map TyName (Kind ())
-            -> Map TyName (Type TyName DefaultUni ())
-            -> [Map TyName (Type TyName DefaultUni ())]
-shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
-  where
-    shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
-      where Just k = Map.lookup x ctx
-    pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
-      where fvs = ftvTy ty
-
 -- | This type keeps track of what kind of argument, term argument (`InstArg`) or
 -- type argument (`InstApp`) is required for a function. This type is used primarily
 -- with `findInstantiation` below where we do unification to figure out if we can

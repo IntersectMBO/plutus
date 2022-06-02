@@ -29,12 +29,10 @@
 
 module PlutusCore.Generators.PIR.GenerateTypes where
 
-import Control.Monad.Except
 import Control.Monad.Reader
 
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
@@ -490,21 +488,6 @@ genCtx = do
   let xs = take n shuf
   ks <- vectorOf n arbitrary
   return $ Map.fromList $ zip xs ks
-
--- | Generate a type substitution that is valid in a given context.
-genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
-genSubst ctx = do
-  xks <- sublistOf <=< shuffle $ Map.toList ctx
-  go ctx Map.empty xks
-  where
-    go _ _ [] = return mempty
-    go ctx counts ((x, k) : xs) = do
-      let ctx' = Map.delete x ctx
-          w    = fromMaybe 1 $ Map.lookup x counts
-      ty <- sized $ \ n -> resize (div n w) $ genTypeWithCtx ctx' k
-      let moreCounts = fmap (* w) $ fvTypeBag ty
-          counts'    = Map.unionWith (+) counts moreCounts
-      Map.insert x ty <$> go ctx' counts' xs
 
 -- CODE REVIEW: this should probably go somewhere else (??), where? Does it already exist?!
 instance Arbitrary (Kind ()) where

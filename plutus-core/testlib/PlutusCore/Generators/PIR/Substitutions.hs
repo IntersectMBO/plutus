@@ -33,9 +33,11 @@ import Control.Monad.Except
 
 import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
 import GHC.Stack
+import Test.QuickCheck
 
 import PlutusCore.Default
 import PlutusCore.Name
@@ -179,3 +181,31 @@ fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (
           subDom = Map.keysSet sub
           freeButInSub = Set.intersection subDom fvs
           freeAndNotInSub = Set.difference fvs subDom
+
+-- * Generators for substitutions
+
+-- | Generate a type substitution that is valid in a given context.
+genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
+genSubst ctx = do
+  xks <- sublistOf <=< shuffle $ Map.toList ctx
+  go ctx Map.empty xks
+  where
+    go _ _ [] = return mempty
+    go ctx counts ((x, k) : xs) = do
+      let ctx' = Map.delete x ctx
+          w    = fromMaybe 1 $ Map.lookup x counts
+      ty <- sized $ \ n -> resize (div n w) $ genTypeWithCtx ctx' k
+      let moreCounts = fmap (* w) $ fvTypeBag ty
+          counts'    = Map.unionWith (+) counts moreCounts
+      Map.insert x ty <$> go ctx' counts' xs
+
+
+shrinkSubst :: Map TyName (Kind ())
+            -> Map TyName (Type TyName DefaultUni ())
+            -> [Map TyName (Type TyName DefaultUni ())]
+shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
+  where
+    shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
+      where Just k = Map.lookup x ctx
+    pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
+      where fvs = ftvTy ty
