@@ -44,7 +44,7 @@ import PlutusIR.Subst
 
 import PlutusCore.Generators.PIR.GenerateTypes
 
--- TODO: more haddock
+-- | Perform unification. Sound but not complete.
 unifyType :: Map TyName (Kind ())
           -- ^ Type context
           -> Set TyName
@@ -81,14 +81,18 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
           where z = freshenTyName (locals <> Map.keysSet ctx) x
         _                                              -> mzero
       where
-        validSolve z c = and [Set.member z flex,
-                              not $ Set.member z locals,
-                              not $ Set.member z fvs,
-                              checkKind ctx c (ctx Map.! z),
-                              null $ Set.intersection fvs locals
-                             ]
-          where
-            fvs = fvTypeR sub c
+        -- Check that in the current context we can solve variable z to type ty.
+        validSolve z ty = and [ Set.member z flex -- z must be a "meta variable"
+                              -- z can't be a locally bound variable
+                              , not $ Set.member z locals
+                              -- we can't solve z by changing it to a type
+                              -- where `z` is free in the type.
+                              , not $ Set.member z fvs
+                              -- The solve has to be well scoped
+                              , checkKind ctx ty (ctx Map.! z)
+                              -- We can't capture a locally bound variable
+                              , null $ Set.intersection fvs locals ]
+                              where fvs = fvTypeR sub ty
 
     unifies sub _ [] [] = pure sub
     unifies sub locals (a : as) (b : bs) = do
