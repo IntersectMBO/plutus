@@ -224,13 +224,17 @@ newtype Datum = Datum { getDatum :: BuiltinData  }
 
 instance Serialise Datum where
     encode (Datum (BuiltinData d)) = encode d
-    decode = Datum . BuiltinData <$> decode
+    decode = Datum . BuiltinData Haskell.<$> decode
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData)
+
+instance Serialise Redeemer where
+    encode (Redeemer (BuiltinData d)) = encode d
+    decode = Redeemer . BuiltinData Haskell.<$> decode
 
 -- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
 newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
