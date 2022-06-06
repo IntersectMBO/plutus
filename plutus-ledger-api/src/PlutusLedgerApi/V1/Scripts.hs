@@ -49,7 +49,7 @@ module PlutusLedgerApi.V1.Scripts
 import Prelude qualified as Haskell
 
 import Codec.CBOR.Extras (SerialiseViaFlat (..))
-import Codec.Serialise (Serialise, serialise)
+import Codec.Serialise (Serialise (..), serialise)
 import Control.DeepSeq (NFData)
 import Control.Lens hiding (Context)
 import Control.Monad.Except (MonadError, throwError)
@@ -221,6 +221,10 @@ newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData)
+
+instance Serialise Datum where
+    encode (Datum (BuiltinData d)) = encode d
+    decode = Datum . BuiltinData <$> decode
 
 -- | 'Redeemer' is a wrapper around 'Data' values that are used as redeemers in transaction inputs.
 newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
