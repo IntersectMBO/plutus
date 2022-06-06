@@ -17,16 +17,57 @@ The tests currently covers or will cover:
 
 There is also an executable `add-test-output` for easy addition of test cases. Run 
 
-`cabal run add-test-output -- -h` for the manual.
+`cabal run add-test-output -- -h` 
 
-<!-- ## Testing alternative implementation
+for the manual.
 
-We provide a function  -->
+## The Plutus Conformance Test Suite Library
+
+The library provides functions that users can import and run conformance tests with their own implementation.
+
+## Untyped Plutus Core Program Evaluation
+
+The `uplc-eval-test` test suite ensures conformance of evaluation of untyped plutus core programs. The expected output may contain:
+
+1. "parse error"
+
+The input files are expected to have the concrete syntax of our parser. The expected output will show "parse error" when the parser fails to parse the input file.
+
+2. "evaluation error"
+
+If the input file cannot be evaluated, the expected output will show "evaluation error".
+
+3. An untyped plutus core program
+
+This means the input file successfully evaluates to the output program as per our specification. The evaluated program is represented in our concrete syntax.
+
+### Testing alternative implementation
+
+In the library We provide a function named `runTests` with the following signature:
+
+```haskell
+import UntypedPlutusCore.Core.Type qualified as UPLC
+
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+
+runTests :: (UplcProg -> EvaluationResult UplcProg) -> IO ()
+```
+
+Users can call this function with their own `runners` with the signature
+
+```haskell
+runner :: (UplcProg -> EvaluationResult UplcProg)
+```
+
+The runner should evaluate a UPLC program and return an `EvaluationResult` (in /plutus/plutus-core/plutus-core/src/PlutusCore/Evaluation/Result.hs):
+
+```haskell
+data EvaluationResult a
+    = EvaluationSuccess a
+    | EvaluationFailure
+```
+
 <!-- 
-## Untyped Plutus Core Evaluation
-
-The `uplc-eval-test` test suite ensures that the input untyped plutus core programs evaluate to the expected output. The expected output is obtained by evaluating the programs using the CEK machine.
-
 ### The CEK machine
 
 We have an executable, `uplc`, that can call the CEK machine to evaluate untyped plutus core programs. Run 
