@@ -117,6 +117,17 @@ in `Script`, but that led to a lot of deserializing and reserializing in `applyP
 Here we have to serialize when we do `Eq` or `Ord` operations, but this happens comparatively
 infrequently (I believe).
 -}
+
+{- Note [Serialise instances for Datum and Redeemer]
+The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
+
+- They are useful for the indexers in plutus-apps
+- There's clearly only one sensible way to encode `Datum` and `Redeemer` into CBOR,
+  since they just wrap `PLC.Data`.
+- The encoders and decoders are annoying to implement downstream, because one would
+  have to import `BuiltinData` which is from a different package.
+-}
+
 instance Haskell.Eq Script where
     a == b = Builtins.toBuiltin (BSL.toStrict (serialise a)) == Builtins.toBuiltin (BSL.toStrict (serialise b))
 
@@ -222,6 +233,7 @@ newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData)
 
+-- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Datum where
     encode (Datum (BuiltinData d)) = encode d
     decode = Datum . BuiltinData Haskell.<$> decode
@@ -232,6 +244,7 @@ newtype Redeemer = Redeemer { getRedeemer :: BuiltinData }
   deriving newtype (Haskell.Eq, Haskell.Ord, Eq, ToData, FromData, UnsafeFromData, Pretty)
   deriving anyclass (NFData)
 
+-- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Redeemer where
     encode (Redeemer (BuiltinData d)) = encode d
     decode = Redeemer . BuiltinData Haskell.<$> decode
