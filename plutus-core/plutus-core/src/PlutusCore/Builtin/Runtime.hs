@@ -2,13 +2,10 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
 
 {-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.Runtime where
-
-import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
