@@ -127,7 +127,7 @@ prop_builtinEvaluation bn mkGen f = property $ do
             (RuntimeSchemeArrow sch', a : as) -> do
                 res <- liftReadKnownM (fn a)
                 go sch' res as
-            (RuntimeSchemeResult, []) -> fn
+            (RuntimeSchemeResult, []) -> unLazy fn
             (RuntimeSchemeAll sch', _) -> go sch' fn args
             -- TODO: can we make this function run in GenT MakeKnownM and generate arguments
             -- on the fly to avoid this error case?
