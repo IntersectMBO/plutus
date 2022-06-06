@@ -1,3 +1,7 @@
+-- | Defines the type of default machine parameters and a function for creating a value of the type.
+-- We keep them separate, because the function unfolds into multiple thousands of lines of Core and
+-- we want to instantiate it in two different ways on top of that, which gives another ton of Core
+-- that we need to inspect, hence we dedicate an entire folder to that.
 module PlutusCore.Evaluation.Machine.MachineParameters.Default where
 
 import PlutusCore.Builtin
