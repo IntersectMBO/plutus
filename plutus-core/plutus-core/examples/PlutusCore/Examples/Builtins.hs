@@ -304,7 +304,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             -> EvaluationResult (SomeConstant DefaultUni [b])
         unsafeCoerceElPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList _ <- pure uniList
-            pure . SomeConstant $ someValueOf uniList xs
+            pure $ fromValueOf uniList xs
 
     toBuiltinMeaning Undefined =
         makeBuiltinMeaning
@@ -327,7 +327,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             -> SomeConstant uni b
             -> SomeConstant uni (a, b)
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
-            SomeConstant $ someValueOf (DefaultUniPair uniA uniB) (x, y)
+            fromValueOf (DefaultUniPair uniA uniB) (x, y)
 
     toBuiltinMeaning BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
         biconstPairPlc
@@ -342,7 +342,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 DefaultUniPair uniA' uniB' <- pure uniPairAB
                 Just Refl <- pure $ uniA `geq` uniA'
                 Just Refl <- pure $ uniB `geq` uniB'
-                pure . SomeConstant $ someValueOf uniPairAB (x, y)
+                pure $ fromValueOf uniPairAB (x, y)
 
     toBuiltinMeaning Swap = makeBuiltinMeaning swapPlc mempty where
         swapPlc
@@ -350,7 +350,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             -> EvaluationResult (SomeConstant uni (b, a))
         swapPlc (SomeConstant (Some (ValueOf uniPairAB p))) = do
             DefaultUniPair uniA uniB <- pure uniPairAB
-            pure . SomeConstant $ someValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
+            pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
     toBuiltinMeaning SwapEls = makeBuiltinMeaning swapElsPlc mempty where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
@@ -360,4 +360,4 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         swapElsPlc (SomeConstant (Some (ValueOf uniList xs))) = do
             DefaultUniList (DefaultUniPair uniA DefaultUniBool) <- pure uniList
             let uniList' = DefaultUniList $ DefaultUniPair DefaultUniBool uniA
-            pure . SomeConstant . someValueOf uniList' $ map swap xs
+            pure . fromValueOf uniList' $ map swap xs
