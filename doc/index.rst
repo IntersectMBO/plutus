@@ -8,10 +8,10 @@ To read more about the overall architecture of writing applications using Plutus
    :caption: Explore Plutus
    :maxdepth: 2
 
-   plutus/explanations/index
-   plutus/tutorials/index
-   plutus/howtos/index
-   plutus/troubleshooting
+   explanations/index
+   tutorials/index
+   howtos/index
+   troubleshooting
 
 .. toctree::
    :caption: Reference
