@@ -1,16 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | This executable is for easy addition of tests. When run,
--- output files will be added to all tests that had no output files.
--- You are advised to manually check that the output is correct.
--- In other parts of the codebase we use golden tests with the `accept` test option turned on.
--- Here we use an executable for easier customization.
+{- | This executable is for easy addition of tests. When run with the option `-- -missing`,
+output files will be added to all tests that had no output files.
+You can specify to add outputs to all input files with `-- -all`.
+You are advised to manually check that the outputs are correct.
+In other parts of the codebase we use golden tests with the `accept` test option turned on.
+Here we use an executable for easier customization.
+ -}
 
 module Main
     ( main
     ) where
 
-import Common (UplcProg, evalUplcProg, shownEvaluationFailure)
+import Common (UplcProg, evalUplcProg, shownEvaluationFailure, shownParseError)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
@@ -24,15 +26,15 @@ import PlutusCore.Quote (runQuoteT)
 import System.Directory (doesFileExist)
 import System.FilePath (takeBaseName)
 import Test.Tasty.Golden (findByExtension)
-import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore.Parser as UPLC (parse, program)
 
 -- |  The arguments to the executable.
 data Args = MkArgs
-  { _argExt    :: String -- ^ file extension to be searched
-  , _argDir    :: FilePath -- ^ directory to be searched
-  , _argRunner :: Runner
+  { _argExt       :: String -- ^ file extension to be searched
+  , _argDir       :: FilePath -- ^ directory to be searched
+  , _argRunner    :: Runner
   -- ^ the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests)
+  , _allOrMissing :: SomeOrAll
   }
 
 ext :: Parser String
@@ -63,29 +65,51 @@ runnerReader inp =
   Left ("Unsupported test " <> show inp <>
         ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests).")
 
+data SomeOrAll =
+  Missing
+  | All
+
+missing :: Parser SomeOrAll
+missing =
+  flag' Missing ( long "missing"
+    <> short 'm'
+    <> help "only add missing outputs" )
+
+allInputs :: Parser SomeOrAll
+allInputs =
+  flag' All ( long "all"
+    <> short 'a'
+    <> help "add outputs to all input files" )
+
+allOrMissing :: Parser SomeOrAll
+allOrMissing = missing <|> allInputs
+
 args :: ParserInfo Args
-args = info ((MkArgs <$> ext <*> dir <*> runner) <**> helper)
+args = info ((MkArgs <$> ext <*> dir <*> runner <*> allOrMissing) <**> helper)
   (fullDesc <> progDesc helpText)
 
 helpText :: String
 helpText = unlines
   ["This program adds test outputs to specified inputs."
-  , "To run the program, input the following 3 arguments: "
+  , "To run the program, input the following 4 arguments: "
   , "(1) file extension to be searched "
   , "(2) directory to be searched "
   , "(3) the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests). "
+  , "(4) whether to write output files to all inputs or only the ones missing output files."
   , "E.g. run "
-  , "`cabal run add-test-output .uplc plutus-conformance/uplc/ eval` "
+  , "`cabal run add-test-output .uplc plutus-conformance/uplc/ eval` -- --missing"
   , "to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. "
   , " It will evaluate and create output files for them."
   ]
 
 main :: IO ()
 main = do
-    MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
-    inputFiles <- findByExtension [extension] directory
-    -- only choose the ones without an output file, so as to not edit the ones already with outputs
-    -- inputFiles <- filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
+    MkArgs extension directory run fileOpt <- customExecParser (prefs showHelpOnEmpty) args
+    allInputFiles <- findByExtension [extension] directory
+    inputFiles <-
+      case fileOpt of
+        Missing -> filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
+        All     -> pure allInputFiles
     case run of
       Eval -> do
         for_ inputFiles
@@ -94,10 +118,10 @@ main = do
             let parsed = runQuoteT $ UPLC.parse UPLC.program (takeBaseName inputFile) $ T.pack inputStr
                 outFilePath = inputFile <> ".expected"
             case parsed of
-              Left (ParseErrorB peb) -> do
+              Left (ParseErrorB _) -> do -- specifying parsed to ParserError for the compiler
                 -- warn the user that the file failed to parse
                 putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
-                writeFile outFilePath (errorBundlePretty peb)
+                T.writeFile outFilePath shownParseError
               Right pro -> do
                 res <- try (evaluate $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
                 case res of

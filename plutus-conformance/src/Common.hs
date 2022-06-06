@@ -80,15 +80,20 @@ testUplcEvaluation lTest runner = do
 shownEvaluationFailure :: T.Text
 shownEvaluationFailure = "evaluation failure"
 
+shownParseError :: T.Text
+shownParseError = "parse error"
+
 textToEvalRes :: T.Text -> Either T.Text (EvaluationResult UplcProg)
-textToEvalRes txt =
-    if txt == shownEvaluationFailure then
-        Right EvaluationFailure
-    else
-        let parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
-                      Name DefaultUni DefaultFun SourcePos)
-            parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
-        in
-            case parseTxt txt of
-                Left _     -> Left txt
-                Right prog -> Right $ EvaluationSuccess $ () <$ prog
+textToEvalRes txt
+  | txt == shownEvaluationFailure =
+    Right EvaluationFailure
+  | txt == shownParseError =
+    Left txt
+  | otherwise =
+    let parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
+              Name DefaultUni DefaultFun SourcePos)
+        parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
+    in
+    case parseTxt txt of
+        Left _     -> Left shownParseError
+        Right prog -> Right $ EvaluationSuccess $ () <$ prog
