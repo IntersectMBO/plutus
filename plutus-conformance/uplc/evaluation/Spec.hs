@@ -13,7 +13,7 @@ main = do
     outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
     lProgTxt <- traverse readFile inputFiles
     lEvaluatedRes <- traverse readFile outputFiles
-    if length inputFiles == length lProgTxt && length  lEvaluatedRes == length lProgTxt then
+    if length inputFiles == length lProgTxt && length lEvaluatedRes == length lProgTxt then
         do
         let lRes = fmap textToEvalRes lEvaluatedRes
             testContents = mkTestContents inputFiles lRes lProgTxt

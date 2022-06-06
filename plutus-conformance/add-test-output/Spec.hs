@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-{- | This executable is for easy addition of tests. When run with the option `-- -missing`,
+{- | This executable is for easy addition of tests. When run with the option `-- --missing`,
 output files will be added to all tests that had no output files.
-You can specify to add outputs to all input files with `-- -all`.
+You can specify to add outputs to all input files with `-- --all`.
 You are advised to manually check that the outputs are correct.
 In other parts of the codebase we use golden tests with the `accept` test option turned on.
 Here we use an executable for easier customization.
@@ -16,17 +16,15 @@ import Common (UplcProg, evalUplcProg, shownEvaluationFailure, shownParseError)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
-import Data.Text qualified as T
-import Data.Text.IO qualified as T (writeFile)
+import Data.Text.IO qualified as T (readFile, writeFile)
 import Options.Applicative
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import PlutusCore.Quote (runQuoteT)
 import System.Directory (doesFileExist)
-import System.FilePath (takeBaseName)
 import Test.Tasty.Golden (findByExtension)
-import UntypedPlutusCore.Parser as UPLC (parse, program)
+import UntypedPlutusCore.Parser as UPLC (parseProgram)
 
 -- |  The arguments to the executable.
 data Args = MkArgs
@@ -34,7 +32,7 @@ data Args = MkArgs
   , _argDir       :: FilePath -- ^ directory to be searched
   , _argRunner    :: Runner
   -- ^ the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests)
-  , _allOrMissing :: SomeOrAll
+  , _allOrMissing :: SomeOrAll -- ^ whether to write all output files or only the ones with missing outputs.
   }
 
 ext :: Parser String
@@ -114,8 +112,8 @@ main = do
       Eval -> do
         for_ inputFiles
           (\inputFile -> do
-            inputStr <- readFile inputFile
-            let parsed = runQuoteT $ UPLC.parse UPLC.program (takeBaseName inputFile) $ T.pack inputStr
+            inputStr <- T.readFile inputFile
+            let parsed = runQuoteT $ UPLC.parseProgram inputStr
                 outFilePath = inputFile <> ".expected"
             case parsed of
               Left (ParseErrorB _) -> do -- specifying parsed to ParserError for the compiler

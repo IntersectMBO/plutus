@@ -44,8 +44,7 @@ library
         tasty-hunit -any,
         text -any,
         megaparsec -any,
-        mtl -any,
-        filepath -any
+        mtl -any
 
 executable add-test-output
     import: lang

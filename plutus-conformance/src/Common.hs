@@ -2,6 +2,7 @@
 {-# LANGUAGE ParallelListComp  #-}
 module Common where
 
+import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T
 import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -10,10 +11,9 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
-import System.FilePath (takeBaseName)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
-import Text.Megaparsec (SourcePos, errorBundlePretty)
+import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
@@ -53,21 +53,26 @@ mkTestContents lFilepaths lRes lProgs =
             , " Make sure all your input programs have an accompanying .expected file."
             ]
 
-parseProg :: TestContent -> Either ParserErrorBundle (UPLC.Program
-                      Name DefaultUni DefaultFun SourcePos)
-parseProg test = runQuoteT $ UPLC.parse UPLC.program (takeBaseName (testName test)) $ inputProg test
-
 mkResult :: (UplcProg -> EvaluationResult UplcProg) ->
     Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
-        Either T.Text (EvaluationResult UplcProg)
-mkResult _ (Left (ParseErrorB err)) = Left $ T.pack $ errorBundlePretty err
-mkResult runner (Right prog)        = Right $ runner $ () <$ prog
+        IO (Either T.Text (EvaluationResult UplcProg))
+mkResult _ (Left (ParseErrorB _err)) = pure $ Left shownParseError
+mkResult runner (Right prog)        = do
+    maybeException <- try (evaluate $ runner (() <$ prog)):: IO (Either SomeException (EvaluationResult UplcProg))
+    case maybeException of
+        Left _                  -> pure $ Left shownEvaluationFailure
+        -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
+        Right EvaluationFailure -> pure $ Left shownEvaluationFailure
+        Right a                 -> pure $ Right a
+
+parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
+              Name DefaultUni DefaultFun SourcePos)
+parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO [TestTree]
 mkTestCases tests runner =
     do
-        let
-            results = fmap (mkResult runner . parseProg) tests
+        results <- traverse (mkResult runner . parseTxt . inputProg) tests
         pure $
             [testCase (testName test) (expected test @=? result) | test <- tests | result <- results]
 
@@ -86,14 +91,10 @@ shownParseError = "parse error"
 textToEvalRes :: T.Text -> Either T.Text (EvaluationResult UplcProg)
 textToEvalRes txt
   | txt == shownEvaluationFailure =
-    Right EvaluationFailure
+    Left txt
   | txt == shownParseError =
     Left txt
   | otherwise =
-    let parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
-              Name DefaultUni DefaultFun SourcePos)
-        parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
-    in
     case parseTxt txt of
         Left _     -> Left shownParseError
         Right prog -> Right $ EvaluationSuccess $ () <$ prog
