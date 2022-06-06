@@ -7,8 +7,9 @@ Reference
 
    compiler-options
    common-weaknesses/index
+   language-changes
+   cost-model-parameters
    optimization
    examples
-   cost-model-parameters
    glossary
    bibliography

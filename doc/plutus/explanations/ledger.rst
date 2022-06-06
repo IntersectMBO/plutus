@@ -57,6 +57,8 @@ UTXO-based ledgers are more complicated, but avoid some of the issues of account
 Cardano is a UTXO-based ledger, and we heavily rely on this.
 For example, :term:`Hydra`, Cardano's scalability solution, uses the fact that independent parts of the transaction graph can be processed in parallel to improve throughput.
 
+.. _scripts_and_the_eutxo_model:
+
 Scripts and the Extended UTXO Model
 -----------------------------------
 
@@ -87,6 +89,17 @@ As an example, let's see how we could implement an atomic swap.
 
 The logic of the validator script is then: does the transaction make a payment from the second party to the first party, containing the value that they are supposed to send?
 If so, then they may spend this output and send it where they want (or we could insist that the send it to their key, but we might as well let them do what they like with it).
+
+Different kinds of scripts
+--------------------------
+
+The Cardano ledger currently has a few different kinds of validator scripts:
+
+- The "simple" script language (introduced in the Allegra hard fork), which allows basic checks such as time locks
+- Various Plutus language versions (see :ref:`What are Plutus language versions? <what_are_plutus_language_versions>`)
+
+These behave
+
 
 Further reading
 ---------------
