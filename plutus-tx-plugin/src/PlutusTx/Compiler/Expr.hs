@@ -755,7 +755,14 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             let strict = PIR.isPure (const PIR.NonStrict) rhs'
             withVarScoped b $ \v -> do
                 rhs'' <- maybeProfileRhs v rhs'
-                let binds = pure $ PIR.TermBind AnnOther (if strict then PIR.Strict else PIR.NonStrict) v rhs''
+                let binds =
+                        pure $
+                            PIR.TermBind
+                                -- Ensure that if `rhs''` is marked `AnnInline`, so is the bind.
+                                (PIR.termAnn rhs'')
+                                (if strict then PIR.Strict else PIR.NonStrict)
+                                v
+                                rhs''
                 body' <- compileExpr body
                 pure $ PIR.Let AnnOther PIR.NonRec binds body'
         GHC.Let (GHC.Rec bs) body ->
@@ -777,7 +784,14 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             withVarScoped b $ \v -> do
                 body' <- compileExpr body
                 -- See Note [At patterns]
-                let binds = [ PIR.TermBind AnnOther PIR.Strict v scrutinee' ]
+                let binds =
+                        [ PIR.TermBind
+                            -- Ensure that if `scrutinee'` is marked `AnnInline`, so is the bind.
+                            (PIR.termAnn scrutinee')
+                            PIR.Strict
+                            v
+                            scrutinee'
+                        ]
                 pure $ PIR.mkLet AnnOther PIR.NonRec binds body'
         GHC.Case scrutinee b t alts -> do
             -- See Note [At patterns]
@@ -819,7 +833,14 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 mainCase <- maybeForce lazyCase applied
 
                 -- See Note [At patterns]
-                let binds = pure $ PIR.TermBind AnnOther PIR.NonStrict v scrutinee'
+                let binds =
+                        pure $
+                            PIR.TermBind
+                                -- Ensure that if `scrutinee'` is marked `AnnInline`, so is the bind.
+                                (PIR.termAnn scrutinee')
+                                PIR.NonStrict
+                                v
+                                scrutinee'
                 pure $ PIR.Let AnnOther PIR.NonRec binds mainCase
 
         -- we can use source notes to get a better context for the inner expression
