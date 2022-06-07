@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ParallelListComp  #-}
+
 module Common where
 
 import Control.Exception (SomeException, evaluate, try)
@@ -11,6 +11,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
+import PlutusPrelude (zipWith3Exact, zipWithExact)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
 import Text.Megaparsec (SourcePos)
@@ -41,10 +42,9 @@ mkTestContents ::
         [Either T.Text (EvaluationResult UplcProg)] ->
             [T.Text] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
-    if length lFilepaths == length lRes && length  lRes == length lProgs then
-        zipWith3 (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs
-    else
-        error $ unlines
+    case zipWith3Exact (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs of
+        Just tests -> tests
+        Nothing -> error $ unlines
             ["mkTestContents: Cannot run the tests because the number of input and output programs are not the same. "
             , "Number of input files: "
             , show (length lProgs)
@@ -73,8 +73,13 @@ mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO [T
 mkTestCases tests runner =
     do
         results <- traverse (mkResult runner . parseTxt . inputProg) tests
-        pure $
-            [testCase (testName test) (expected test @=? result) | test <- tests | result <- results]
+        -- make everything (name, assertion) all at once to make sure pairings are correct
+        let maybeNameAssertion =
+                zipWithExact (\t res -> (testName t, expected t @=? res)) tests results
+        case maybeNameAssertion of
+            Just lNameAssertion -> pure $
+                fmap (\a -> uncurry testCase a) lNameAssertion
+            Nothing -> error "mkTestCases: Number of tests and results don't match."
 
 
 testUplcEvaluation :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO TestTree
