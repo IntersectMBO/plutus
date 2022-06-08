@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/chooseDataConstr/chooseDataConstr.uplc:3:7:
-  |
-3 |  (con data {Constr 1 [Integer 1]})]
-  |       ^^^^^^^^^^
-unexpected "data {Cons"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error
