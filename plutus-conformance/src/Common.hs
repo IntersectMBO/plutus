@@ -11,7 +11,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
-import PlutusPrelude (zipWith3Exact, zipWithExact)
+import PlutusPrelude (Pretty (pretty), Render (render), zipWith3Exact, zipWithExact)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@=?))
 import Text.Megaparsec (SourcePos)
@@ -33,13 +33,13 @@ evalUplcProg p =
 data TestContent =
    MkTestContent {
        testName    :: FilePath
-       , expected  :: Either T.Text (EvaluationResult UplcProg)
+       , expected  :: T.Text
        , inputProg :: T.Text
    }
 
 mkTestContents ::
     [FilePath] ->
-        [Either T.Text (EvaluationResult UplcProg)] ->
+        [T.Text] ->
             [T.Text] -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     case zipWith3Exact (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs of
@@ -55,15 +55,15 @@ mkTestContents lFilepaths lRes lProgs =
 
 mkResult :: (UplcProg -> EvaluationResult UplcProg) ->
     Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
-        IO (Either T.Text (EvaluationResult UplcProg))
-mkResult _ (Left (ParseErrorB _err)) = pure $ Left shownParseError
+        IO T.Text
+mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
     maybeException <- try (evaluate $ runner (() <$ prog)):: IO (Either SomeException (EvaluationResult UplcProg))
     case maybeException of
-        Left _                  -> pure $ Left shownEvaluationFailure
+        Left _                  -> pure shownEvaluationFailure
         -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
-        Right EvaluationFailure -> pure $ Left shownEvaluationFailure
-        Right a                 -> pure $ Right a
+        Right EvaluationFailure -> pure shownEvaluationFailure
+        Right a                 -> pure $ render $ pretty a
 
 parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
               Name DefaultUni DefaultFun SourcePos)
@@ -92,14 +92,3 @@ shownEvaluationFailure = "evaluation failure"
 
 shownParseError :: T.Text
 shownParseError = "parse error"
-
-textToEvalRes :: T.Text -> Either T.Text (EvaluationResult UplcProg)
-textToEvalRes txt
-  | txt == shownEvaluationFailure =
-    Left txt
-  | txt == shownParseError =
-    Left txt
-  | otherwise =
-    case parseTxt txt of
-        Left _     -> Left shownParseError
-        Right prog -> Right $ EvaluationSuccess $ () <$ prog

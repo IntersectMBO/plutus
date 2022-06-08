@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
-import Common (evalUplcProg, mkTestContents, testUplcEvaluation, textToEvalRes)
+import Common (evalUplcProg, mkTestContents, testUplcEvaluation)
 import Data.Text.IO (readFile)
 import Prelude hiding (readFile)
 import Test.Tasty (defaultMain)
@@ -15,8 +15,7 @@ main = do
     lEvaluatedRes <- traverse readFile outputFiles
     if length inputFiles == length lProgTxt && length lEvaluatedRes == length lProgTxt then
         do
-        let lRes = fmap textToEvalRes lEvaluatedRes
-            testContents = mkTestContents inputFiles lRes lProgTxt
+        let testContents = mkTestContents inputFiles lEvaluatedRes lProgTxt
         testTree <- testUplcEvaluation testContents evalUplcProg
         defaultMain testTree
     else
