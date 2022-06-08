@@ -44,9 +44,9 @@ builtinMeaningsToTypes
     :: (MonadError err m, AsTypeError err term uni fun ann, Typecheckable uni fun)
     => ann -> m (BuiltinTypes uni fun)
 builtinMeaningsToTypes ann =
-    runQuoteT . fmap (BuiltinTypes . Just) . sequence . tabulateArray $ \fun -> do
+    runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
         let ty = typeOfBuiltinFunction fun
-        _ <- inferKind (TypeCheckConfig $ BuiltinTypes Nothing) $ ann <$ ty
+        _ <- inferKind $ ann <$ ty
         dupable <$> normalizeType ty
 
 -- | Get the default type checking config.
@@ -58,16 +58,16 @@ getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann
 -- | Infer the kind of a type.
 inferKind
     :: (MonadQuote m, MonadError err m, AsTypeError err term uni fun ann, ToKind uni)
-    => TypeCheckConfig uni fun -> Type TyName uni ann -> m (Kind ())
-inferKind config = runTypeCheckM config . inferKindM
+    => Type TyName uni ann -> m (Kind ())
+inferKind = runTypeCheckM () . inferKindM
 
 -- | Check a type against a kind.
 -- Infers the kind of the type and checks that it's equal to the given kind
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
     :: (MonadQuote m, MonadError err m, AsTypeError err term uni fun ann, ToKind uni)
-    => TypeCheckConfig uni fun -> ann -> Type TyName uni ann -> Kind () -> m ()
-checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
+    => ann -> Type TyName uni ann -> Kind () -> m ()
+checkKind ann ty = runTypeCheckM () . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType

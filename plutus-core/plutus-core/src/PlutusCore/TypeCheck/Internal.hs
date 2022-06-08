@@ -81,21 +81,7 @@ functions that cannot fail look like this:
 
 -- | Mapping from 'Builtin's to their 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
-    -- We need to kind check types of all built-in functions before proceeding to type checking a
-    -- program, so when we do that we don't have any normalized types of built-in functions yet
-    -- (as normalization has to be preceded by kind/type checking, which is the very thing that
-    -- we are up to). And since both kind and type checking run in the same 'TypeCheckM' monad,
-    -- we do need to provide a 'BuiltinTypes' argument, even though we know that at kind checking
-    -- time no built-in function can be encountered (as those live at the value level, not the type
-    -- one). So we could wrap an empty 'Array' with 'BuiltinTypes' but how to construct an empty
-    -- array? This works:
-    --
-    --     listArray (maxBound, minBound) []
-    --
-    -- but only when 'maxBound' is not equal to 'minBound' (and both exist). Which sucks.
-    --
-    -- So we use 'Nothing' to say "no builtins". It's sufficient and doesn't complicate anything.
-    { unBuiltinTypes :: Maybe (Array fun (Dupable (Normalized (Type TyName uni ()))))
+    { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
     }
 
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
@@ -125,6 +111,12 @@ type TypeCheckM uni fun cfg err = ReaderT (TypeCheckEnv uni fun cfg) (ExceptT er
 
 
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
+--
+-- Used for both type and kind checking, because we need to do kind checking during type checking
+-- and so it makes sense to keep a single monad. However type checking requires a 'TypeCheckConfig',
+-- while kind checking doesn't, hence we keep the kind checker fully polymorphic over the type of
+-- config, so that the kinder checker can be run with an empty config (such as @()@) and access to
+-- a 'TypeCheckConfig' is not needed.
 runTypeCheckM :: (MonadError err m, MonadQuote m) => cfg -> TypeCheckM uni fun cfg err a -> m a
 runTypeCheckM config a =
     liftEither =<< liftQuote (runExceptT $ runReaderT a env) where
@@ -139,8 +131,10 @@ lookupBuiltinM
     :: (AsTypeError err term uni fun ann, HasTypeCheckConfig cfg uni fun, Ix fun)
     => ann -> fun -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
 lookupBuiltinM ann fun = do
-    BuiltinTypes mayArr <- view $ tceTypeCheckConfig . tccBuiltinTypes
-    case mayArr >>= preview (ix fun) of
+    BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
+    -- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array
+    -- safely.
+    case preview (ix fun) arr of
         Nothing -> throwing _TypeError $ UnknownBuiltinFunctionE ann fun
         Just ty -> liftDupable ty
 
