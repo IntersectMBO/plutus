@@ -24,6 +24,9 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 termToProg :: UPLC.Term Name DefaultUni DefaultFun () -> UplcProg
 termToProg = UPLC.Program () (defaultVersion ())
 
+{- using the unsafe version of evaluate here so that it has a more generic signature.
+Any exceptions will be caught for any input runner in the tests, including our `evalUplcProg`.
+ -}
 evalUplcProg :: UplcProg -> EvaluationResult UplcProg
 evalUplcProg p =
     fmap
