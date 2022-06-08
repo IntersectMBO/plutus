@@ -4,6 +4,7 @@ module Common where
 
 import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
@@ -12,26 +13,13 @@ import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (Pretty (pretty), Render (render), zipWith3Exact, zipWithExact)
-import Test.Tasty (TestTree, testGroup)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.HUnit (testCase, (@=?))
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
-
-type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
-
-termToProg :: UPLC.Term Name DefaultUni DefaultFun () -> UplcProg
-termToProg = UPLC.Program () (defaultVersion ())
-
-{- using the unsafe version of evaluate here so that it has a more generic signature.
-Any exceptions will be caught for any input runner in the tests, including our `evalUplcProg`.
- -}
-evalUplcProg :: UplcProg -> EvaluationResult UplcProg
-evalUplcProg p =
-    fmap
-        termToProg
-        (unsafeEvaluateCekNoEmit defaultCekParameters (UPLC._progTerm p))
 
 data TestContent =
    MkTestContent {
@@ -55,6 +43,28 @@ mkTestContents lFilepaths lRes lProgs =
             , show (length lRes)
             , " Make sure all your input programs have an accompanying .expected file."
             ]
+
+shownParseError :: T.Text
+shownParseError = "parse error"
+
+shownEvaluationFailure :: T.Text
+shownEvaluationFailure = "evaluation failure"
+
+-- For UPLC evaluation tests
+
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+
+termToProg :: UPLC.Term Name DefaultUni DefaultFun () -> UplcProg
+termToProg = UPLC.Program () (defaultVersion ())
+
+{- using the unsafe version of evaluate here so that it has a more generic signature.
+Any exceptions will be caught for any input runner in the tests, including our `evalUplcProg`.
+ -}
+evalUplcProg :: UplcProg -> EvaluationResult UplcProg
+evalUplcProg p =
+    fmap
+        termToProg
+        (unsafeEvaluateCekNoEmit defaultCekParameters (UPLC._progTerm p))
 
 mkResult :: (UplcProg -> EvaluationResult UplcProg) ->
     Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
@@ -90,8 +100,23 @@ testUplcEvaluation lTest runner = do
     testContents <- mkTestCases lTest runner
     pure $ testGroup "UPLC evaluation tests" testContents
 
-shownEvaluationFailure :: T.Text
-shownEvaluationFailure = "evaluation failure"
-
-shownParseError :: T.Text
-shownParseError = "parse error"
+runTests :: (UplcProg -> EvaluationResult UplcProg) -> IO ()
+runTests runner = do
+    inputFiles <- findByExtension [".uplc"] "uplc/evaluation/"
+    outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
+    lProgTxt <- traverse T.readFile inputFiles
+    lEvaluatedRes <- traverse T.readFile outputFiles
+    if length inputFiles == length lProgTxt && length lEvaluatedRes == length lProgTxt then
+        do
+        let testContents = mkTestContents inputFiles lEvaluatedRes lProgTxt
+        testTree <- testUplcEvaluation testContents runner
+        defaultMain testTree
+    else
+        error $ unlines
+            ["Cannot run the tests because the number of input and output programs are not the same. "
+            , "Number of input files: "
+            , show (length lProgTxt)
+            , " Number of output files: "
+            , show (length lEvaluatedRes)
+            , " Make sure all your input programs have an accompanying .expected file."
+            ]

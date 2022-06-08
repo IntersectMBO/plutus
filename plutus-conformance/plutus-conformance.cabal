@@ -43,7 +43,8 @@ library
         tasty -any,
         tasty-hunit -any,
         text -any,
-        megaparsec -any
+        megaparsec -any,
+        tasty-golden
         
 executable add-test-output
     import: lang
@@ -68,9 +69,6 @@ test-suite uplc-eval-test
     other-modules:
     build-depends:
         base >=4.9 && <5,
-        tasty -any,
-        tasty-golden -any,
-        text -any,
         plutus-conformance
 
 test-suite tplc-eval-test
