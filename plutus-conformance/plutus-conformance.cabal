@@ -43,9 +43,8 @@ library
         tasty -any,
         tasty-hunit -any,
         text -any,
-        megaparsec -any,
-        mtl -any
-
+        megaparsec -any
+        
 executable add-test-output
     import: lang
     type: exitcode-stdio-1.0
@@ -59,9 +58,7 @@ executable add-test-output
         text -any,
         plutus-conformance -any,
         plutus-core,
-        megaparsec -any,
-        optparse-applicative -any,
-        filepath -any
+        optparse-applicative -any
 
 test-suite uplc-eval-test
     import: lang
