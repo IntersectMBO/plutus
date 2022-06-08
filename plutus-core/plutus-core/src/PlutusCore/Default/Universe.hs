@@ -29,6 +29,7 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniList
     , pattern DefaultUniPair
     , module Export  -- Re-exporting universes infrastructure for convenience.
+    , noMoreTypeFunctions
     ) where
 
 import PlutusCore.Builtin
@@ -118,6 +119,8 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
+    uniApply = DefaultUniApply
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 

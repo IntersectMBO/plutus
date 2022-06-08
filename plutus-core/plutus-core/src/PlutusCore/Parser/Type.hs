@@ -1,15 +1,24 @@
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds         #-}
 
 module PlutusCore.Parser.Type where
 
 import PlutusPrelude
-import Text.Megaparsec hiding (ParseError, State, parse, some)
 
 import PlutusCore.Core.Type
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkIterTyApp)
 import PlutusCore.Name
 import PlutusCore.Parser.ParserCommon
+
+import Control.Monad
+import Text.Megaparsec hiding (ParseError, State, many, parse, some)
+
+import Data.Text (Text, pack)
+import PlutusCore.Error
+import PlutusCore.Quote
 
 -- | A PLC @Type@ to be parsed. ATM the parser only works
 -- for types in the @DefaultUni@ with @DefaultFun@.
@@ -31,7 +40,7 @@ ifixType :: Parser PType
 ifixType = inParens $ TyIFix <$> wordPos "ifix" <*> pType <*> pType
 
 builtinType :: Parser PType
-builtinType = inParens $ TyBuiltin <$> wordPos "con" <*> defaultUniType
+builtinType = inParens $ TyBuiltin <$> wordPos "con" <*> undefined -- defaultUniType
 
 appType :: Parser PType
 appType = inBrackets $ do
@@ -58,15 +67,45 @@ pType = choice $ map try
     , varType
     ]
 
-defaultUniType :: Parser (SomeTypeIn DefaultUni)
-defaultUniType = choice $ map try
-  [ inParens defaultUniType
-  , SomeTypeIn DefaultUniInteger <$ symbol "integer"
-  , SomeTypeIn DefaultUniByteString <$ symbol "bytestring"
-  , SomeTypeIn DefaultUniString <$ symbol "string"
-  , SomeTypeIn DefaultUniUnit <$ symbol "unit"
-  , SomeTypeIn DefaultUniBool <$ symbol "bool"
-  ] --TODO complete all defaultUni types
+defaultUniPart :: Parser (SomeTypeIn (Kinded DefaultUni))
+defaultUniPart = choice $ map try
+    [ inParens defaultUniType
+    , SomeTypeIn (Kinded DefaultUniInteger) <$ symbol "integer"
+    , SomeTypeIn (Kinded DefaultUniByteString) <$ symbol "bytestring"
+    , SomeTypeIn (Kinded DefaultUniString) <$ symbol "string"
+    , SomeTypeIn (Kinded DefaultUniUnit) <$ symbol "unit"
+    , SomeTypeIn (Kinded DefaultUniBool) <$ symbol "bool"
+    , SomeTypeIn (Kinded DefaultUniProtoList) <$ symbol "list"
+    , SomeTypeIn (Kinded DefaultUniProtoPair) <$ symbol "pair"
+    , SomeTypeIn (Kinded DefaultUniData) <$ symbol "data"
+    ]
+defaultUniType :: Parser (SomeTypeIn (Kinded DefaultUni))
+defaultUniType = do
+    f <- defaultUniPart
+    as <- many defaultUniPart
+    foldM uniApplyM f as
 
 tyName :: Parser TyName
 tyName = TyName <$> name
+
+
+
+
+
+doIt :: forall a. Show a => Parser a -> String -> IO ()
+doIt p = print . parseIt . pack where
+    parseIt :: Text -> Either ParserErrorBundle a
+    parseIt = runQuoteT . parseGen p
+
+-- >>> doIt defaultUniType "list"
+-- Right (SomeTypeIn (Kinded list))
+-- >>> doIt defaultUniType "list integer"
+-- Right (SomeTypeIn (Kinded list (integer)))
+-- >>> doIt defaultUniType "pair (list bool)"
+-- Right (SomeTypeIn (Kinded pair (list (bool))))
+-- >>> doIt defaultUniType "pair (list unit) integer"
+-- Right (SomeTypeIn (Kinded pair (list (unit)) (integer)))
+-- >>> doIt defaultUniType "list (pair unit integer)"
+-- Right (SomeTypeIn (Kinded list (pair (unit) (integer))))
+-- >>> doIt defaultUniType "pair unit (pair bool integer)"
+-- Right (SomeTypeIn (Kinded pair (unit) (pair (bool) (integer))))

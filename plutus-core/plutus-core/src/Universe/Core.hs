@@ -36,6 +36,7 @@ module Universe.Core
     , HasUniApply (..)
     , checkStar
     , withApplicable
+    , uniApplyM
     , knownUniOf
     , GShow (..)
     , gshow
@@ -551,6 +552,8 @@ type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
+    uniApply :: forall k l (f :: k -> l) a. uni (Esc f) -> uni (Esc a) -> uni (Esc (f a))
+
     -- | Deconstruct a type application into the function and the argument and feed them to the
     -- continuation. If the type is not an application, then return the default value.
     matchUniApply
@@ -594,6 +597,13 @@ withApplicable _ _ k =
             Refl <- fromJustM $ typeRepKind repB `testEquality` typeRep @Type
             withTypeable repB k
         _ -> mzero
+
+uniApplyM
+    :: (MonadPlus m, HasUniApply uni)
+    => SomeTypeIn (Kinded uni) -> SomeTypeIn (Kinded uni) -> m (SomeTypeIn (Kinded uni))
+uniApplyM (SomeTypeIn (Kinded uniF)) (SomeTypeIn (Kinded uniA)) =
+    withApplicable uniF uniA $
+        pure . SomeTypeIn . Kinded $ uniF `uniApply` uniA
 
 {- Note [The G, the Tag and the Auto]
 Providing instances for

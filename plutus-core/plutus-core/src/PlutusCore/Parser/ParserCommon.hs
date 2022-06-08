@@ -24,6 +24,9 @@ import PlutusCore.Quote
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
+required :: MonadPlus m => m (Maybe a) -> m a
+required a = a >>= maybe mzero pure
+
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 
