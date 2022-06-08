@@ -15,8 +15,6 @@ module PlutusIR.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import PlutusCore (ToKind)
-import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR
@@ -25,8 +23,6 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck.Internal
 
 import Control.Monad.Except
-import Data.Ix
-import Universe
 
 {- Note [Goal of PIR typechecker]
 
@@ -56,11 +52,7 @@ would be better written as `let (nonrec) x = 3 in`. In such cases we could signa
 
 -- | The default 'TypeCheckConfig'.
 getDefTypeCheckConfig
-    :: forall uni fun m err ann.
-       ( MonadError err m
-       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann
-       , PLC.Typecheckable uni fun
-       )
+    :: (MonadKindCheck err term uni fun ann m, PLC.Typecheckable uni fun)
     => ann -> m (PirTCConfig uni fun)
 getDefTypeCheckConfig ann = do
     configPlc <- PLC.getDefTypeCheckConfig ann
@@ -69,9 +61,7 @@ getDefTypeCheckConfig ann = do
 -- | Infer the type of a term.
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferType
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPir err uni fun ann m
     => PirTCConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
@@ -80,9 +70,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 -- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkType
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPir err uni fun ann m
     => PirTCConfig uni fun
     -> ann
     -> Term TyName Name uni fun ann
@@ -95,22 +83,16 @@ checkType config ann term ty = do
 -- | Infer the type of a program.
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferTypeOfProgram
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann, MonadError e m, MonadQuote m
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPir err uni fun ann m
     => PirTCConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ term) = inferType config term
-
 
 -- | Check a program against a type.
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 -- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkTypeOfProgram
-    :: ( AsTypeError e (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni, AsTypeErrorExt e uni ann,
-        MonadError e m, MonadQuote m
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPir err uni fun ann m
     => PirTCConfig uni fun
     -> ann
     -> Program TyName Name uni fun ann
