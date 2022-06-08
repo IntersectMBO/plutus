@@ -59,6 +59,7 @@ let
     editorconfig-core-c
     ghcid
     jq
+    # See https://github.com/cachix/pre-commit-hooks.nix/issues/148 for why we need this
     pre-commit
     nixFlakesAlias
     nixpkgs-fmt
