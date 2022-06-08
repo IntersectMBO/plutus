@@ -32,6 +32,9 @@ module PlutusPrelude
     , void
     , through
     , coerce
+    , coerceVia
+    , coerceArg
+    , coerceRes
     , Generic
     , NFData
     , Natural
@@ -83,7 +86,7 @@ module PlutusPrelude
     , showText
     ) where
 
-import Control.Applicative (Alternative (..))
+import Control.Applicative (Alternative (..), liftA2)
 import Control.Arrow ((&&&))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
@@ -98,7 +101,6 @@ import Data.Either (fromRight, isRight)
 import Data.Foldable (fold, toList)
 import Data.Function (on)
 import Data.Functor (($>))
-import Data.Functor.Compose
 import Data.List (foldl')
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
@@ -138,11 +140,29 @@ instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Eithe
 deriving via PrettyCommon (Either a b)
     instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
 
+-- | Coerce the second argument to the result type of the first one. The motivation for this
+-- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
+-- to construct an explicit coercion function, so this combinator can be used in cases like that.
+-- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
+coerceVia :: Coercible a b => (a -> b) -> a -> b
+coerceVia _ = coerce
+{-# INLINE coerceVia #-}
+
+-- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
+coerceArg :: Coercible a b => (a -> s) -> b -> s
+coerceArg = coerce
+{-# INLINE coerceArg #-}
+
+-- | Same as @\f -> coerce . f@, but does not create any closures and so is completely free.
+coerceRes :: Coercible s t => (a -> s) -> a -> t
+coerceRes = coerce
+{-# INLINE coerceRes #-}
+
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
-(<<$>>) f = getCompose . fmap f . Compose
+(<<$>>) = fmap . fmap
 
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
-f <<*>> a = getCompose $ Compose f <*> Compose a
+(<<*>>) = liftA2 (<*>)
 
 -- | Makes an effectful function ignore its result value and return its input value.
 through :: Functor f => (a -> f b) -> (a -> f a)

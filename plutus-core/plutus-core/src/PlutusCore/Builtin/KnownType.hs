@@ -30,6 +30,8 @@ module PlutusCore.Builtin.KnownType
     , readKnownSelf
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
@@ -38,7 +40,6 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Monad.Except
-import Data.Coerce
 import Data.DList (DList)
 import Data.Either.Extras
 import Data.String
@@ -70,6 +71,11 @@ concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise G
 them to two definitions (one calling the other) for some reason.
 So always add an @INLINE@ pragma to all definitions of 'makeKnown' and 'readKnown' unless you have
 a specific reason not to.
+
+Neither 'readKnown' nor 'makeKnown' should appear in the generated Core for builtins. In most cases
+they would slow builtins down, but even if a 'readKnown' only throws an error, it still makes sense
+to keep it out of Core just not to trigger an investigation on whether it's fine that a call to
+'readKnown' is not inlined.
 
 Some 'readKnown' implementations require inserting a call to 'oneShot'. E.g. if 'oneShot' is not
 used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' branch, thus
@@ -301,7 +307,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    makeKnown x = pure . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -352,6 +358,8 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
     makeKnown a = case runEmitter a of
@@ -363,6 +371,8 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
     makeKnown = coerceArg $ pure . fromConstant
@@ -373,24 +383,9 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    readKnown = coerceArg pure
     {-# INLINE readKnown #-}
-
--- Utils
-
--- | Coerce the second argument to the result type of the first one. The motivation for this
--- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
--- to construct an explicit coercion function, so this combinator can be used in cases like that.
--- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
-coerceVia :: Coercible a b => (a -> b) -> a -> b
-coerceVia _ = coerce
-{-# INLINE coerceVia #-}
-
--- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
-coerceArg :: Coercible a b => (a -> r) -> b -> r
-coerceArg = coerce
-{-# INLINE coerceArg #-}
