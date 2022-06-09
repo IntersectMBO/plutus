@@ -55,7 +55,7 @@ conText = fmap T.pack $ char '\"' *> manyTill Lex.charLiteral (char '\"')
 
 -- | Parser for unit.
 conUnit :: Parser ()
-conUnit = () <$ symbol "()"
+conUnit = () <$ (symbol "(" *> symbol ")")
 
 -- | Parser for bool.
 conBool :: Parser Bool
