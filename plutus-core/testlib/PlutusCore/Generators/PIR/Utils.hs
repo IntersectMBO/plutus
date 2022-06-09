@@ -99,7 +99,7 @@ fvTypeBag ty = case ty of
   TyIFix{}         -> error "fvTypeBag: TyIFix"
 
 -- | Get the free variables in a type that appear in negative position
--- This is used to ensure we only generate positive datatypes.
+-- Note: This is used to ensure we only generate positive datatypes.
 negativeVars :: Type TyName DefaultUni () -> Set TyName
 negativeVars ty = case ty of
   TyFun _ a b      -> positiveVars a <> negativeVars b
