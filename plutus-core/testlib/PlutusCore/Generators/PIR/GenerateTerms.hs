@@ -510,9 +510,6 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
         Const DefaultUniString _ ->
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-        Const b _ -> [ (TyBuiltin () (SomeTypeIn b), bin) | bin@(Const b' _) <- [ minimalBuiltin (SomeTypeIn b) ]
-                                                          -- TODO: make this compile...
-                                                          , b /= b' ]
 
         _ -> []
 
