@@ -292,14 +292,18 @@ bindFreshTmName name ty k = do
   x <- genFreshName name
   bindTmName x ty (k x)
 
--- Containers (zipper-ish, very useful for shrinking.)
--- CODE REVIEW: should these go elsewhere? Do these already exist somewhere?
+-- * Containers (zipper-ish, very useful for shrinking.)
 
+-- | A type is a container for the purposes of shrinking if it has:
 class Container f where
   data OneHoleContext f :: * -> *
+  -- ^ One hole context where we can shrink a single "element" of the container
   oneHoleContexts :: f a -> [(OneHoleContext f a, a)]
+  -- ^ A way of getting all the one hole contexts of an `f a`
   plugHole :: OneHoleContext f a -> a -> f a
+  -- ^ A way to plug the hole with a new, shrunk, term
 
+-- | Containers for lists is zipper like, a hole is a specific position in the list
 instance Container [] where
   data OneHoleContext [] a = ListContext [a] [a]
   oneHoleContexts (x : xs) = (ListContext [] xs, x) : [ (ListContext (x : ys) zs, y)
@@ -307,11 +311,10 @@ instance Container [] where
   oneHoleContexts []       = []
   plugHole (ListContext xs ys) z = xs ++ [z] ++ ys
 
+-- | An analogous implementation of `Container` as for lists
 instance Container NonEmpty where
   data OneHoleContext NonEmpty a = NonEmptyContext [a] [a]
   oneHoleContexts (x :| xs) = (NonEmptyContext [] xs, x) : [ (NonEmptyContext (x : ys) zs, y)
                                                            | (ListContext ys zs, y) <- oneHoleContexts xs ]
   plugHole (NonEmptyContext []       ys) z = z :| ys
   plugHole (NonEmptyContext (x : xs) ys) z = x :| xs ++ [z] ++ ys
-
-

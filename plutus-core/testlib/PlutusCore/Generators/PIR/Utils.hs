@@ -29,7 +29,6 @@
 
 module PlutusCore.Generators.PIR.Utils where
 
-
 import Prettyprinter
 
 import Control.Monad.Reader
@@ -169,5 +168,3 @@ bindBind _                                 = error "unreachable"
 -- | Bind multiple bindings
 bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
 bindBinds = flip (foldr bindBind)
-
-
