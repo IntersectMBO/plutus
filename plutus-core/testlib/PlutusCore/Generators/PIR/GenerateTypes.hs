@@ -33,7 +33,6 @@ import Control.Monad.Reader
 
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
 import GHC.Stack
@@ -45,6 +44,7 @@ import PlutusCore.Generators.PIR.Common
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote (runQuoteT)
+import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
 import PlutusIR.Error
 import PlutusIR.Subst
@@ -331,16 +331,14 @@ shrinkKindAndType ctx (k, ty) =
     TyBuiltin{}       -> []
     TyIFix{}          -> error "shrinkKindAndType: TyIFix"
 
--- CODE REVIEW: does this exist anywhere?
+-- | Infer the kind of a type in a given kind context
 inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Maybe (Kind ())
-inferKind ctx ty = case ty of
-  TyVar _ x        -> Map.lookup x ctx
-  TyFun _ _ _      -> pure $ Star
-  TyApp _ a _      -> do KindArrow _ _ k <- inferKind ctx a; pure k
-  TyLam _ x k b    -> KindArrow () k <$> inferKind (Map.insert x k ctx) b
-  TyForall _ _ _ _ -> pure $ Star
-  TyBuiltin _ b    -> pure $ builtinKind b
-  TyIFix{}         -> error "inferKind: TyIFix"
+inferKind ctx ty = case runQuoteT $ runTypeCheckM () $
+                          foldr (uncurry withTyVar)
+                                (inferKindM @(Error DefaultUni DefaultFun ()) ty)
+                                (Map.toList ctx) of
+                      Left _  -> Nothing
+                      Right k -> Just k
 
 -- | Partial unsafeInferKind, useful for context where invariants are set up to guarantee
 -- that types are well-kinded.
