@@ -250,7 +250,7 @@ fixKind ctx ty k
     TyApp _ a b       -> TyApp () (fixKind ctx a $ KindArrow () (unsafeInferKind ctx b) k) b
     TyLam _ x kx b    ->
       case k of
-        -- Fix lambdas to * by getting substituting a minimal type for the argument
+        -- Fix lambdas to * by substituting a minimal type for the argument
         -- and fixing the body.
         Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
         -- Fix functions by either keeping the argument around (if we can) or getting
