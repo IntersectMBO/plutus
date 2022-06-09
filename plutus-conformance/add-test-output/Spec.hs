@@ -12,19 +12,17 @@ module Main
     ( main
     ) where
 
-import Common (UplcProg, evalUplcProg, shownEvaluationFailure, shownParseError)
+import Common
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
-import Data.Text.IO qualified as T (readFile, writeFile)
+import Data.Text.IO qualified as T
 import Options.Applicative
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
-import PlutusCore.Quote (runQuoteT)
 import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
-import UntypedPlutusCore.Parser as UPLC (parseProgram)
 
 -- |  The arguments to the executable.
 data Args = MkArgs
@@ -109,31 +107,30 @@ main = do
         Missing -> filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
         All     -> pure allInputFiles
     case run of
-      Eval -> do
-        for_ inputFiles
-          (\inputFile -> do
-            inputStr <- T.readFile inputFile
-            let parsed = runQuoteT $ UPLC.parseProgram inputStr
-                outFilePath = inputFile <> ".expected"
-            case parsed of
-              Left (ParseErrorB _) -> do -- specifying parsed to ParserError for the compiler
-                -- warn the user that the file failed to parse
-                putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
-                T.writeFile outFilePath shownParseError
-              Right pro -> do
-                res <- try (evaluate $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
-                case res of
-                  Right (EvaluationSuccess prog) -> do
-                    putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                    T.writeFile outFilePath (render $ pretty prog)
-                  Right EvaluationFailure      -> do
-                    -- warn the user that the file failed to evaluate
-                    putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                    T.writeFile outFilePath shownEvaluationFailure
-                  Left _ -> do
-                    -- warn the user that exception is thrown
-                    putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
-                    T.writeFile outFilePath shownEvaluationFailure
-          )
+      Eval ->
+        for_ inputFiles printAndWrite
+          where printAndWrite inputFile = do
+                  inputTxt <- T.readFile inputFile
+                  let parsed = parseTxt inputTxt
+                      outFilePath = inputFile <> ".expected"
+                  case parsed of
+                    Left (ParseErrorB _) -> do -- specifying parsed to ParserError for the compiler
+                      -- warn the user that the file failed to parse
+                      putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
+                      T.writeFile outFilePath shownParseError
+                    Right pro -> do
+                      res <- try (evaluate $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
+                      case res of
+                        Right (EvaluationSuccess prog) -> do
+                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
+                          T.writeFile outFilePath (render $ pretty prog)
+                        Right EvaluationFailure      -> do
+                          -- warn the user that the file failed to evaluate
+                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+                          T.writeFile outFilePath shownEvaluationFailure
+                        Left _ -> do
+                          -- warn the user that exception is thrown
+                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
+                          T.writeFile outFilePath shownEvaluationFailure
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
