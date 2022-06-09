@@ -47,11 +47,11 @@ hexByte = do
 
 -- | Parser for bytestring constants. They start with "#".
 conBS :: Parser ByteString
-conBS = fmap pack $ char '#' *> many hexByte
+conBS = lexeme . fmap pack $ char '#' *> many hexByte
 
 -- | Parser for string constants. They are wrapped in double quotes.
 conText :: Parser T.Text
-conText = fmap T.pack $ char '\"' *> manyTill Lex.charLiteral (char '\"')
+conText = lexeme . fmap T.pack $ char '\"' *> manyTill Lex.charLiteral (char '\"')
 
 -- | Parser for unit.
 conUnit :: Parser ()
