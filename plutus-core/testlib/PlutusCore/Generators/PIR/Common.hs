@@ -87,11 +87,11 @@ integer = TyBuiltin () (SomeTypeIn DefaultUniInteger)
 bool :: Type tyname DefaultUni ()
 bool = TyBuiltin () (SomeTypeIn DefaultUniBool)
 
--- CODE REVIEW: this should probably go elsewhere?
+-- TODO: this should probably go elsewhere
 instance PrettyBy config i => PrettyBy config (NonNegative i) where
   prettyBy ctx (NonNegative i) = prettyBy ctx i
 
--- CODE REVIEW: this should probably go elsewhere?
+-- TODO: this should probably go elsewhere
 instance ( HasPrettyDefaults config ~ 'True
          , PrettyBy config k
          , PrettyBy config v) => PrettyBy config (Map k v) where

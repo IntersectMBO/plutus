@@ -61,6 +61,7 @@ import PlutusCore.Generators.PIR.Common
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateTypes
 import PlutusCore.Generators.PIR.Substitutions
+import PlutusCore.Generators.PIR.Utils
 
 addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
           -> Map Name (Type TyName DefaultUni ())
@@ -391,6 +392,9 @@ genDatatypeLet rec cont = do
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
                        | (c, _conArgs) <- zip cs conArgss
+                       -- Perform a positivity check to make sure we don't generate negative datatypes
+                       -- TODO: we should maybe have an option to allow you to generate negative
+                       -- datatypes if you really want to.
                        , let conArgs = filter (Set.notMember d . negativeVars) _conArgs]
     bindDat dat $ cont dat
 
@@ -506,8 +510,9 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
         Const DefaultUniString _ ->
           [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-        Const b _ -> [ (TyBuiltin () (SomeTypeIn b), bin) | bin <- [ minimalBuiltin (SomeTypeIn b) ]
-                                                          , bin /= tm ]
+        Const b _ -> [ (TyBuiltin () (SomeTypeIn b), bin) | bin@(Const b' _) <- [ minimalBuiltin (SomeTypeIn b) ]
+                                                          -- TODO: make this compile...
+                                                          , b /= b' ]
 
         _ -> []
 
