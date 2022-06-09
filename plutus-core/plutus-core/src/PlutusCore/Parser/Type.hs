@@ -40,7 +40,7 @@ ifixType :: Parser PType
 ifixType = inParens $ TyIFix <$> wordPos "ifix" <*> pType <*> pType
 
 builtinType :: Parser PType
-builtinType = inParens $ TyBuiltin <$> wordPos "con" <*> undefined -- defaultUniType
+builtinType = inParens $ TyBuiltin <$> wordPos "con" <*> ((\(SomeTypeIn (Kinded uni)) -> SomeTypeIn uni) <$> defaultUniType)
 
 appType :: Parser PType
 appType = inBrackets $ do
