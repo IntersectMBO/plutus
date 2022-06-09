@@ -365,17 +365,7 @@ shrinkTypeAtKind ctx k ty = [ ty' | (k', ty') <- shrinkKindAndType ctx (k, ty), 
 
 -- | Check well-kindedness of a type in a context
 checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Bool
-checkKind ctx ty k = case ty of
-  TyVar _ x        -> Just k == Map.lookup x ctx
-  TyFun _ a b      -> k == Star && checkKind ctx a k && checkKind ctx b k
-  TyApp _ a b | Just kb <- inferKind ctx b -> checkKind ctx a (KindArrow () kb k) && checkKind ctx b kb
-              | otherwise                  -> False
-  TyLam _ x kx b
-    | KindArrow _ ka kb <- k -> kx == ka && checkKind (Map.insert x kx ctx) b kb
-    | otherwise              -> False
-  TyForall _ x kx b -> k == Star && checkKind (Map.insert x kx ctx) b k
-  TyBuiltin _ b    -> k == builtinKind b
-  TyIFix{}         -> error "checkKind: TyIFix"
+checkKind ctx ty k = inferKind ctx ty == Just k
 
 -- | Generate an arbitrary kind and closed type of that kind.
 genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
