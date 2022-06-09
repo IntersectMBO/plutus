@@ -71,17 +71,17 @@ sepBy1 :: Alternative m => m a -> m sep -> m [a]
 sepBy1 p sep = (:) <$> p <*> many (sep *> p)
 
 conList :: DefaultUni (Esc a) -> Parser [a]
-conList uniA = inBrackets $ constant uniA `sepBy` symbol ","
+conList uniA = inBrackets $ constantOf uniA `sepBy` symbol ","
 
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
 conPair uniA uniB = inParens $ do
-    a <- constant uniA
+    a <- constantOf uniA
     _ <- symbol ","
-    b <- constant uniB
+    b <- constantOf uniB
     pure (a, b)
 
-constant :: DefaultUni (Esc a) -> Parser a
-constant conTy = lexeme $ case conTy of
+constantOf :: DefaultUni (Esc a) -> Parser a
+constantOf uni = case uni of
     DefaultUniInteger                                                 -> conInteger
     DefaultUniByteString                                              -> conBS
     DefaultUniString                                                  -> conText
@@ -93,8 +93,8 @@ constant conTy = lexeme $ case conTy of
     DefaultUniData                                                    ->
         error "Data not supported"
 
-pSomeValueOf :: Parser (Some (ValueOf DefaultUni))
-pSomeValueOf = do
+constant :: Parser (Some (ValueOf DefaultUni))
+constant = do
     SomeTypeIn (Kinded uni) <- defaultUniType
     Refl <- reoption $ checkStar uni
-    someValueOf uni <$> constant uni
+    someValueOf uni <$> constantOf uni

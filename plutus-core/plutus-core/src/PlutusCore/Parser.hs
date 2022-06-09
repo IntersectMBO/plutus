@@ -40,7 +40,7 @@ appTerm :: Parser PTerm
 appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
 
 conTerm :: Parser PTerm
-conTerm = inParens $ Constant <$> wordPos "con" <*> pSomeValueOf
+conTerm = inParens $ Constant <$> wordPos "con" <*> constant
 
 builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
