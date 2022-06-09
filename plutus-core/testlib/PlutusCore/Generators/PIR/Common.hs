@@ -78,15 +78,6 @@ var s i = Name (fromString s) (toEnum i)
 tyvar :: String -> Int -> TyName
 tyvar s i = TyName (var s i)
 
-unit :: Type tyname DefaultUni ()
-unit = TyBuiltin () (SomeTypeIn DefaultUniUnit)
-
-integer :: Type tyname DefaultUni ()
-integer = TyBuiltin () (SomeTypeIn DefaultUniInteger)
-
-bool :: Type tyname DefaultUni ()
-bool = TyBuiltin () (SomeTypeIn DefaultUniBool)
-
 -- TODO: this should probably go elsewhere
 instance PrettyBy config i => PrettyBy config (NonNegative i) where
   prettyBy ctx (NonNegative i) = prettyBy ctx i

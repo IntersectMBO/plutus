@@ -48,6 +48,7 @@ import Test.QuickCheck
 import Text.PrettyBy
 
 import PlutusCore.Default
+import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Rename
@@ -740,7 +741,7 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
                                  | ty' <- shrinkType ctx' ty
                                  , let ty'' = setTarget (getTarget ty) ty'
                                  , ty'' /= ty
-                                 , d `Set.notMember` positiveVars (setTarget unit ty') ]
+                                 , d `Set.notMember` positiveVars (setTarget (mkTyBuiltin @() ()) ty') ]
       where
         getTarget (TyFun _ _ b) = getTarget b
         getTarget b             = b
