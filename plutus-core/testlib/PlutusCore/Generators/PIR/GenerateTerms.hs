@@ -741,7 +741,7 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
                                  | ty' <- shrinkType ctx' ty
                                  , let ty'' = setTarget (getTarget ty) ty'
                                  , ty'' /= ty
-                                 , d `Set.notMember` positiveVars (setTarget (mkTyBuiltin @() ()) ty') ]
+                                 , d `Set.notMember` positiveVars (setTarget (mkTyBuiltin @_ @() ()) ty') ]
       where
         getTarget (TyFun _ _ b) = getTarget b
         getTarget b             = b
