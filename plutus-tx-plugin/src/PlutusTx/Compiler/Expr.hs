@@ -48,12 +48,12 @@ import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
 
-import Control.Lens ((&), (.~), (<&>))
 import Control.Monad
 import Control.Monad.Reader (MonadReader (ask))
 
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
+import Data.Functor ((<&>))
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -461,15 +461,10 @@ hoistExpr var t = do
                 mempty
 
             t' <- maybeProfileRhs var' =<< compileExpr t
-                -- See Note [Non-strict let-bindings]
+            -- See Note [Non-strict let-bindings]
             let strict = PIR.isPure (const PIR.NonStrict) t'
-                -- Use `t'`'s annotation on `varAnnotated`, which ensures that if `t'` is marked
-                -- `AnnInline`, so is `varAnnotated`.
-                -- See Note [Annotations on Bindings]
-                varAnnotated = var' & PLC.varDeclAnn .~ PIR.termAnn t'
-            PIR.modifyTermDef
-                lexName
-                (const $ PIR.Def varAnnotated (t', if strict then PIR.Strict else PIR.NonStrict))
+
+            PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar AnnOther var'
 
 maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
