@@ -38,11 +38,11 @@ The lengths of the input lists have to be the same, otherwise, an error occurs. 
 mkTestContents ::
     -- | The list of paths of the input files.
     [FilePath] ->
-        -- | The list of expected outputs.
-        [T.Text] ->
-            -- | The list of the inputs.
-            [T.Text] ->
-                [TestContent]
+    -- | The list of expected outputs.
+    [T.Text] ->
+    -- | The list of the inputs.
+    [T.Text] ->
+    [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     case zipWith3Exact (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs of
         Just tests -> tests
@@ -55,7 +55,9 @@ mkTestContents lFilepaths lRes lProgs =
             , " Make sure all your input programs have an accompanying .expected file."
             ]
 
--- | The default shown text when a parse error occurs.
+{- | The default shown text when a parse error occurs.
+We don't want to show the detailed parse errors so that
+users of the test suite can produce this expected outputs more easily. -}
 shownParseError :: T.Text
 shownParseError = "parse error"
 
@@ -98,8 +100,9 @@ mkResult runner (Right prog)        = do
         Right a                 -> pure $ render $ pretty a
 
 -- | The default parser to parse the inputs.
-parseTxt :: T.Text -> Either ParserErrorBundle (UPLC.Program
-              Name DefaultUni DefaultFun SourcePos)
+parseTxt ::
+    T.Text ->
+    Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | Build the test tree given a list of `TestContent` and the runner.
@@ -120,23 +123,12 @@ mkTestCases lTest runner = do
 runTests ::
     -- | The action to run the input through for the tests.
     (UplcProg -> EvaluationResult UplcProg) ->
-        IO ()
+    IO ()
 runTests runner = do
     inputFiles <- findByExtension [".uplc"] "uplc/evaluation/"
     outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
     lProgTxt <- for inputFiles T.readFile
     lEvaluatedRes <- for outputFiles T.readFile
-    if length inputFiles == length lProgTxt && length lEvaluatedRes == length lProgTxt then
-        do
-        let testContents = mkTestContents inputFiles lEvaluatedRes lProgTxt
-        testTree <- mkTestCases testContents runner
-        defaultMain testTree
-    else
-        error $ unlines
-            ["Cannot run the tests because the number of input and output programs are not the same. "
-            , "Number of input files: "
-            , show (length lProgTxt)
-            , " Number of output files: "
-            , show (length lEvaluatedRes)
-            , " Make sure all your input programs have an accompanying .expected file."
-            ]
+    let testContents = mkTestContents inputFiles lEvaluatedRes lProgTxt
+    testTree <- mkTestCases testContents runner
+    defaultMain testTree
