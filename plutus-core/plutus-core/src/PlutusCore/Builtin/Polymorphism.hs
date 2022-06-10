@@ -16,6 +16,8 @@ module PlutusCore.Builtin.Polymorphism
     , TyForallRep
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
 
@@ -67,6 +69,12 @@ type instance UniOf (Opaque val rep) = UniOf val
 newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
+
+type instance UniOf (SomeConstant uni rep) = uni
+
+instance HasConstant (SomeConstant uni rep) where
+    asConstant   = coerceArg pure
+    fromConstant = coerce
 
 {- Note [Implementation of polymorphic built-in functions]
 Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
