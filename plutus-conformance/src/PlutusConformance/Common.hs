@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | Plutus conformance test suite library. -}
-module Common where
+module PlutusConformance.Common where
 
 import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T

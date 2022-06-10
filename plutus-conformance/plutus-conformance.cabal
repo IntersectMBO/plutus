@@ -33,10 +33,10 @@ common lang
 
 library
     import: lang
-    visibility: public
-    hs-source-dirs: src/
+    hs-source-dirs: 
+        src
     exposed-modules:
-        Common
+        PlutusConformance.Common
     build-depends:
         base -any,
         plutus-core -any,

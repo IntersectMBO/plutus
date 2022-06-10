@@ -12,12 +12,12 @@ module Main
     ( main
     ) where
 
-import Common
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
 import Options.Applicative
+import PlutusConformance.Common
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
