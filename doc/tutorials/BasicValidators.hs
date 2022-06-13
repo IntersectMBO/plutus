@@ -96,5 +96,5 @@ serializedCompiledCode = Flat.flat $ alwaysSucceedsCompiled
 -- The 'loadFromFile' function is a drop-in replacement for 'compile', but
 -- takes the file path instead of the code to compile.
 validatorCodeFromFile :: CompiledCode (() -> () -> ScriptContext -> Bool)
-validatorCodeFromFile = $$(loadFromFile "plutus/howtos/myscript.uplc")
+validatorCodeFromFile = $$(loadFromFile "howtos/myscript.uplc")
 -- BLOCK7
