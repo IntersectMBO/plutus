@@ -41,6 +41,13 @@ If evaluation fails with an error, the expected output will show "evaluation err
 
 This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
 
+<!-- 
+### The CEK machine
+
+The included UPLC test suite uses the CEK machine as the runner.
+
+``` -->
+
 ### Testing alternative implementation
 
 In the library We provide a function named `runTests` with the following signature:
@@ -50,39 +57,16 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
-runTests :: (UplcProg -> EvaluationResult UplcProg) -> IO ()
+runTests :: (UplcProg -> Maybe UplcProg) -> IO ()
 ```
 
-Users can call this function with their own `runners` with the signature
+Users can call this function with their own `runners` with the signature:
 
 ```haskell
-runner :: (UplcProg -> EvaluationResult UplcProg)
+runner :: (UplcProg -> Maybe UplcProg)
 ```
 
-The runner should evaluate a UPLC program and return an `EvaluationResult` (in /plutus/plutus-core/plutus-core/src/PlutusCore/Evaluation/Result.hs):
-
-```haskell
-data EvaluationResult a
-    = EvaluationSuccess a
-    | EvaluationFailure
-```
-
-<!-- 
-### The CEK machine
-
-We have an executable, `uplc`, that can call the CEK machine to evaluate untyped plutus core programs. Run 
-
-`cabal run uplc evaluate -- -h` 
-
-for a full list of options.
-
-The CEK machine returns an `EvaluationResult` which is either a successfully computed `Term` or a failure:
-
-```haskell
-data EvaluationResult a
-    = EvaluationSuccess a
-    | EvaluationFailure
-``` -->
+The runner should evaluate a UPLC program and return a `Maybe UplcProg`. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.
 
 <!-- 
 ### Type checker

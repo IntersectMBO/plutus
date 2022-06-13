@@ -11,7 +11,6 @@ import PlutusCore.Core (defaultVersion)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
-import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude
@@ -20,7 +19,7 @@ import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.HUnit (testCase, (@=?))
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore.Core.Type qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (unsafeEvaluateCekNoEmit)
+import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 
 -- | A TestContent contains what you need to run a test.
@@ -70,30 +69,33 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 termToProg :: UPLC.Term Name DefaultUni DefaultFun () -> UplcProg
 termToProg = UPLC.Program () (defaultVersion ())
 
-{- using the unsafe version of evaluate here so that it has a more generic signature.
-Any exceptions will be caught for any input runner in the tests, including our `evalUplcProg`.
- -}
-evalUplcProg :: UplcProg -> EvaluationResult UplcProg
+-- | Our `runner` for the UPLC tests is the CEK machine.
+evalUplcProg :: UplcProg -> Maybe UplcProg
 evalUplcProg p =
-    fmap
-        termToProg
-        (unsafeEvaluateCekNoEmit defaultCekParameters (UPLC._progTerm p))
+    let eitherExceptionProg =
+            fmap
+                termToProg
+                (evaluateCekNoEmit defaultCekParameters (UPLC._progTerm p))
+    in
+        case eitherExceptionProg of
+            Left _     -> Nothing
+            Right prog -> Just prog
 
 {- | Run the inputs with the runner and return the results, in `Text`.
 When fail, the results are the default texts for parse error or evaluation failure. -}
 mkResult ::
-    (UplcProg -> EvaluationResult UplcProg) -- ^ The `runner` to run the test inputs with.
+    (UplcProg -> Maybe UplcProg) -- ^ The `runner` to run the test inputs with.
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
     -- ^ The result of parsing.
     -> IO T.Text -- ^ The result in `Text`.
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
-    maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (EvaluationResult UplcProg))
+    maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
     case maybeException of
-        Left _                  -> pure shownEvaluationFailure
+        Left _         -> pure shownEvaluationFailure
         -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
-        Right EvaluationFailure -> pure shownEvaluationFailure
-        Right a                 -> pure $ display a
+        Right Nothing  -> pure shownEvaluationFailure
+        Right (Just a) -> pure $ display a
 
 -- | The default parser to parse the inputs.
 parseTxt ::
@@ -103,7 +105,7 @@ parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | Build the test tree given a list of `TestContent` and the runner.
 -- TODO maybe abstract this for other tests too if it takes in `mkResult` and `runner`.
-mkTestCases :: [TestContent] -> (UplcProg -> EvaluationResult UplcProg) -> IO TestTree
+mkTestCases :: [TestContent] -> (UplcProg -> Maybe UplcProg) -> IO TestTree
 mkTestCases lTest runner = do
     results <- for lTest (mkResult runner . parseTxt . inputProg)
     -- make everything (name, assertion) all at once to make sure pairings are correct
@@ -117,7 +119,7 @@ mkTestCases lTest runner = do
 
 -- | Run the tests given a `runner`.
 runTests ::
-    (UplcProg -> EvaluationResult UplcProg)-- ^ The action to run the input through for the tests.
+    (UplcProg -> Maybe UplcProg)-- ^ The action to run the input through for the tests.
     -> IO ()
 runTests runner = do
     inputFiles <- findByExtension [".uplc"] "uplc/evaluation/"

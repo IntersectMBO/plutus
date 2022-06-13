@@ -20,7 +20,6 @@ import Data.Text.IO qualified as T
 import Options.Applicative
 import PlutusConformance.Common
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
-import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
@@ -120,12 +119,12 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       T.writeFile outFilePath shownParseError
                     Right pro -> do
-                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
+                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
                       case res of
-                        Right (EvaluationSuccess prog) -> do
+                        Right (Just prog) -> do
                           T.writeFile outFilePath (render $ pretty prog)
                           putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                        Right EvaluationFailure      -> do
+                        Right Nothing      -> do
                           -- warn the user that the file failed to evaluate
                           T.writeFile outFilePath shownEvaluationFailure
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
