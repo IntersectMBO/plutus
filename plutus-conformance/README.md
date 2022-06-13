@@ -31,15 +31,15 @@ The `uplc-eval-test` test suite ensures conformance of evaluation of untyped plu
 
 1. "parse error"
 
-The input files are expected to have the concrete syntax of our parser. The expected output will show "parse error" when the parser fails to parse the input file.
+The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
 
 2. "evaluation error"
 
-If the input file cannot be evaluated, the expected output will show "evaluation error".
+If evaluation fails with an error, the expected output will show "evaluation error".
 
 3. An untyped plutus core program
 
-This means the input file successfully evaluates to the output program as per our specification. The evaluated program is represented in our concrete syntax.
+This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
 
 ### Testing alternative implementation
 

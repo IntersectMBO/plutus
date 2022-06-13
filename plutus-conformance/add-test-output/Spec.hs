@@ -12,6 +12,7 @@ module Main
     ( main
     ) where
 
+import Control.DeepSeq (force)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
@@ -30,7 +31,7 @@ data Args = MkArgs
   , _argDir       :: FilePath -- ^ directory to be searched
   , _argRunner    :: Runner
   -- ^ the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests)
-  , _allOrMissing :: SomeOrAll -- ^ whether to write all output files or only the ones with missing outputs.
+  , _allOrMissing :: MissingOrAll -- ^ whether to write all output files or only the ones with missing outputs.
   }
 
 ext :: Parser String
@@ -61,23 +62,23 @@ runnerReader inp =
   Left ("Unsupported test " <> show inp <>
         ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests).")
 
-data SomeOrAll =
+data MissingOrAll =
   Missing
   | All
 
-missing :: Parser SomeOrAll
+missing :: Parser MissingOrAll
 missing =
   flag' Missing ( long "missing"
     <> short 'm'
     <> help "only add missing outputs" )
 
-allInputs :: Parser SomeOrAll
+allInputs :: Parser MissingOrAll
 allInputs =
   flag' All ( long "all"
     <> short 'a'
     <> help "add outputs to all input files" )
 
-allOrMissing :: Parser SomeOrAll
+allOrMissing :: Parser MissingOrAll
 allOrMissing = missing <|> allInputs
 
 args :: ParserInfo Args
@@ -104,12 +105,12 @@ main = do
     allInputFiles <- findByExtension [extension] directory
     inputFiles <-
       case fileOpt of
-        Missing -> filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
+        Missing -> filterM (\testIn -> not <$> doesFileExist (testIn <> ".expected")) allInputFiles
+        -- Missing -> filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
         All     -> pure allInputFiles
     case run of
       Eval ->
-        for_ inputFiles printAndWrite
-          where printAndWrite inputFile = do
+        for_ inputFiles $ \inputFile -> do
                   inputTxt <- T.readFile inputFile
                   let parsed = parseTxt inputTxt
                       outFilePath = inputFile <> ".expected"
@@ -119,18 +120,19 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       T.writeFile outFilePath shownParseError
                     Right pro -> do
-                      res <- try (evaluate $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
+                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (EvaluationResult UplcProg))
                       case res of
                         Right (EvaluationSuccess prog) -> do
-                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
                           T.writeFile outFilePath (render $ pretty prog)
+                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
                         Right EvaluationFailure      -> do
                           -- warn the user that the file failed to evaluate
-                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
                           T.writeFile outFilePath shownEvaluationFailure
+                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
                         Left _ -> do
                           -- warn the user that exception is thrown
-                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
                           T.writeFile outFilePath shownEvaluationFailure
+                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
+
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."

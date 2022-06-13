@@ -39,12 +39,13 @@ library
         PlutusConformance.Common
     build-depends:
         base -any,
+        deepseq -any,
+        megaparsec -any,
         plutus-core -any,
         tasty -any,
+        tasty-golden, 
         tasty-hunit -any,
-        text -any,
-        megaparsec -any,
-        tasty-golden
+        text -any
         
 executable add-test-output
     import: lang
@@ -54,12 +55,13 @@ executable add-test-output
     other-modules:
     build-depends:
         base >=4.9 && <5,
+        deepseq -any,
         directory -any,
-        tasty-golden -any,
-        text -any,
+        optparse-applicative -any,
         plutus-conformance -any,
         plutus-core,
-        optparse-applicative -any
+        tasty-golden -any,
+        text -any
 
 test-suite uplc-eval-test
     import: lang

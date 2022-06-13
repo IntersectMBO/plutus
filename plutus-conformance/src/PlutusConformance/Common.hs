@@ -3,6 +3,7 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
+import Control.DeepSeq (force)
 import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -36,13 +37,10 @@ data TestContent =
 {- | Create a list of `TestContent` with the given lists.
 The lengths of the input lists have to be the same, otherwise, an error occurs. -}
 mkTestContents ::
-    -- | The list of paths of the input files.
-    [FilePath] ->
-    -- | The list of expected outputs.
-    [T.Text] ->
-    -- | The list of the inputs.
-    [T.Text] ->
-    [TestContent]
+    [FilePath] -- ^ The list of paths of the input files.
+    -> [T.Text] -- ^ The list of expected outputs.
+    -> [T.Text] -- ^ The list of the inputs.
+    -> [TestContent]
 mkTestContents lFilepaths lRes lProgs =
     case zipWith3Exact (\f r p -> MkTestContent f r p) lFilepaths lRes lProgs of
         Just tests -> tests
@@ -84,25 +82,23 @@ evalUplcProg p =
 {- | Run the inputs with the runner and return the results, in `Text`.
 When fail, the results are the default texts for parse error or evaluation failure. -}
 mkResult ::
-    -- | The `runner` to run the test inputs with.
-    (UplcProg -> EvaluationResult UplcProg) ->
-    -- | The result of parsing.
-    Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos) ->
-    -- | The result in `Text`.
-        IO T.Text
+    (UplcProg -> EvaluationResult UplcProg) -- ^ The `runner` to run the test inputs with.
+    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
+    -- ^ The result of parsing.
+    -> IO T.Text -- ^ The result in `Text`.
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
-    maybeException <- try (evaluate $ runner (() <$ prog)):: IO (Either SomeException (EvaluationResult UplcProg))
+    maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (EvaluationResult UplcProg))
     case maybeException of
         Left _                  -> pure shownEvaluationFailure
         -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
         Right EvaluationFailure -> pure shownEvaluationFailure
-        Right a                 -> pure $ render $ pretty a
+        Right a                 -> pure $ display a
 
 -- | The default parser to parse the inputs.
 parseTxt ::
-    T.Text ->
-    Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
+    T.Text
+    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | Build the test tree given a list of `TestContent` and the runner.
@@ -121,9 +117,8 @@ mkTestCases lTest runner = do
 
 -- | Run the tests given a `runner`.
 runTests ::
-    -- | The action to run the input through for the tests.
-    (UplcProg -> EvaluationResult UplcProg) ->
-    IO ()
+    (UplcProg -> EvaluationResult UplcProg)-- ^ The action to run the input through for the tests.
+    -> IO ()
 runTests runner = do
     inputFiles <- findByExtension [".uplc"] "uplc/evaluation/"
     outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
