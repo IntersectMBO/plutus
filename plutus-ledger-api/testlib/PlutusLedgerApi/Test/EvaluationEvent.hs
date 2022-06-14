@@ -2,8 +2,6 @@
 
 module PlutusLedgerApi.Test.EvaluationEvent (
     ScriptEvaluationEvent (..),
-    ScriptEvaluationEventPlutusV1 (..),
-    ScriptEvaluationEventPlutusV2 (..),
     ScriptEvaluationData (..),
     ScriptEvaluationResult (..),
 ) where
@@ -29,22 +27,8 @@ data ScriptEvaluationData = ScriptEvaluationData
     deriving stock (Generic)
     deriving anyclass (Serialise)
 
-data ScriptEvaluationEventPlutusV1 = ScriptEvaluationEventPlutusV1
-    { v1Data   :: ScriptEvaluationData
-    , v1Result :: ScriptEvaluationResult
-    }
-    deriving stock (Generic)
-    deriving anyclass (Serialise)
-
-data ScriptEvaluationEventPlutusV2 = ScriptEvaluationEventPlutusV2
-    { v2Data   :: ScriptEvaluationData
-    , v2Result :: ScriptEvaluationResult
-    }
-    deriving stock (Generic)
-    deriving anyclass (Serialise)
-
 data ScriptEvaluationEvent
-    = PlutusV1Event ScriptEvaluationEventPlutusV1
-    | PlutusV2Event ScriptEvaluationEventPlutusV2
+    = PlutusV1Event ScriptEvaluationData ScriptEvaluationResult
+    | PlutusV2Event ScriptEvaluationData ScriptEvaluationResult
     deriving stock (Generic)
     deriving anyclass (Serialise)
