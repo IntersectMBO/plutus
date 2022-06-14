@@ -14,7 +14,7 @@ import Codec.Serialise (Serialise (..))
 import GHC.Generics (Generic)
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
-    deriving stock (Generic)
+    deriving stock (Show, Generic)
     deriving anyclass (Serialise)
 
 data ScriptEvaluationData = ScriptEvaluationData
