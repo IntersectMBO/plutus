@@ -55,6 +55,10 @@ let
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
+    # For scripts/s3-sync-unzip.sh
+    awscli2
+    # For scripts/s3-sync-unzip.sh
+    bzip2
     cacert
     editorconfig-core-c
     ghcid
