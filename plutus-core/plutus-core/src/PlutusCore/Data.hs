@@ -26,6 +26,8 @@ import GHC.Generics
 import Prelude
 import Prettyprinter
 
+-- Attempting to make this strict made code slower by 2%,
+-- see https://github.com/input-output-hk/plutus/pull/4622
 -- | A generic "data" type.
 --
 -- The main constructor 'Constr' represents a datatype value in sum-of-products
@@ -93,15 +95,37 @@ stuck: the script demands something they cannot represent.
 This is unpleasant and introduces limits. Probably limits that nobody will hit, but it's nicer to just not have them.
 And it turns out that we can evade the problem with some clever encoding.
 
-The fundamental argument is that an *indefinite-length* CBOR bytestring is just as obfuscated as a list of bytestrings,
-since it consists of a list of chunks *with metadata*. Since we already allow people to make lists of <64 byte bytestrings,
-we might as well let them make indefinite-length bytestrings too.
+The fundamental
+ trick is that an *indefinite-length* CBOR bytestring is just as obfuscated as a list of bytestrings,
+since it consists of a list of definite-length chunks, and each definite-length chunk must be *tagged* (at least with the size).
+So we get a sequence like:
 
-So that solves the problem for bytestrings: if they are >64bytes, we encode them as indefinite-length bytestrings
-with 64-byte chunks. We have to write our own encoders/decoders so we can produce chunks of the right size and check
-the sizes when we decode, but that's okay.
+   <list start>
+   <chunk length metadata>
+   <chunk>
+   <chunk length metadata>
+   ...
+   <list end>
 
-For integers, we have two cases. Small integers (<64bits) can be encoded normally. Big integers are already
+The chunk length metadata has a prescribed format, such that it's difficult to manipulate it so that it
+matches your "desired" data.
+So this effectively breaks up the bytestring in much the same way as a list of <64 byte bytestrings.
+
+So that solves the problem for bytestrings on the encoding side:
+- if they are <=64 bytes, we can just encode them as a normal bytestring
+- if they are >64 bytes, we encode them as indefinite-length bytestrings with 64-byte chunks
+
+On the decoding side, we need to check when we decode that we never decode a definite-length
+bytestring of >64 bytes. That covers our two cases:
+- Short definite-length bytestrings are fine
+- Long indefinite-length bytestrings are just made of short definite-length bytestings.
+
+Unfortunately this all means that we have to write our own encoders/decoders so we can produce
+chunks of the right size and check the sizes when we decode, but that's okay. Users need to do the same
+thing: anyone encoding `Data` with their own encoders who doesn't split up big bytestrings in this way
+will get failures when we decode them.
+
+For integers, we have two cases. Small integers (<=64bits) can be encoded normally. Big integers are already
 encoded *with a byte string*. The spec allows this to be an indefinite-length bytestring (although cborg doesn't
 like it), so we can reuse our trick. Again, we need to write some manual encoders/decoders.
 -}

@@ -42,8 +42,8 @@ executable doc-doctests
     if(impl(ghcjs) || os(windows))
       buildable: False
     hs-source-dirs:
-      plutus/tutorials
-      plutus/howtos
+      tutorials
+      howtos
     main-is: Main.hs
     ghc-options: -Wno-unused-imports
     build-tool-depends: doctest:doctest -any

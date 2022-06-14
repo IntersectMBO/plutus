@@ -2,13 +2,10 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
 
 {-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.Runtime where
-
-import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -102,10 +99,14 @@ data UnliftingMode
 -- former by choosing the runtime denotation of the builtin (either '_broImmediateF' for immediate
 -- unlifting or '_broDeferredF' for deferred unlifting, see 'UnliftingMode' for details) and by
 -- instantiating '_broToExF' with a cost model to get the costing function for the builtin.
+--
+-- The runtime denotations are lazy, so that we don't need to worry about a builtin being bottom
+-- (happens in tests). The production path is not affected by that, since 'BuiltinRuntimeOptions'
+-- doesn't survive optimization.
 data BuiltinRuntimeOptions n val cost = BuiltinRuntimeOptions
     { _broRuntimeScheme :: RuntimeScheme n
-    , _broImmediateF    :: ToRuntimeDenotationType val n
-    , _broDeferredF     :: ToRuntimeDenotationType val n
+    , _broImmediateF    :: ~(ToRuntimeDenotationType val n)
+    , _broDeferredF     :: ~(ToRuntimeDenotationType val n)
     , _broToExF         :: cost -> ToCostingType n
     }
 

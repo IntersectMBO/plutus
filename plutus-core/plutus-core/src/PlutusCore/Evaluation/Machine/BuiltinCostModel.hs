@@ -65,24 +65,6 @@ type BuiltinCostModel = BuiltinCostModelBase CostingFun
 -- builtin functions. See 'CostModelGeneration.md' for how this is
 -- generated. Calibrated for the CEK machine.
 
-{- | Many of the builtins have simple costs in for certain combinations of
-   arguments but more complicated costs for other combinations: for example,
-   equalsByteString will return imemdiately if the arguments have different
-   lengths, and divideInteger a b will return immediately if a<b.  This type
-   allows us to say exactly where the cost model applies (for a small selection
-   of common situations) and only run the full costing function if necessary,
-   returning a small cost (currently zero) otherwise. This is also helpful
-   because we can't fit a sensible model to something like divideInteger, where
-   costs really are zero above the diagonal but very complicated below it).
--}
-data Support
-    = Everywhere
-    | OnDiagonal
-    | BelowOrOnDiagonal
-    | AboveOrOnDiagonal
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
 data BuiltinCostModelBase f =
     BuiltinCostModelBase
     {
@@ -110,10 +92,9 @@ data BuiltinCostModelBase f =
     , paramSha2_256                        :: f ModelOneArgument
     , paramSha3_256                        :: f ModelOneArgument
     , paramBlake2b_256                     :: f ModelOneArgument
-    , paramVerifySignature                 :: f ModelThreeArguments
+    , paramVerifyEd25519Signature          :: f ModelThreeArguments
     , paramVerifyEcdsaSecp256k1Signature   :: f ModelThreeArguments
     , paramVerifySchnorrSecp256k1Signature :: f ModelThreeArguments
-
     -- Strings
     , paramAppendString                    :: f ModelTwoArguments
     , paramEqualsString                    :: f ModelTwoArguments

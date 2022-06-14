@@ -10,8 +10,8 @@ import Test.Tasty.HUnit
 
 import Data.Either
 import Data.RandomAccessList.Class qualified as Env
-import PlutusCore qualified as PLC
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.MkPlc
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek

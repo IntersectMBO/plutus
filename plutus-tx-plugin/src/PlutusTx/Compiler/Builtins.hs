@@ -45,6 +45,7 @@ import Language.Haskell.TH.Syntax qualified as TH
 import Control.Monad.Reader (MonadReader (ask))
 
 import Data.ByteString qualified as BS
+import Data.Functor
 import Data.Proxy
 import Data.Text (Text)
 
@@ -149,8 +150,8 @@ Fortunately, we have a more sophisticated purity check that also detects unsatur
 which handles these cases too.
 -}
 
-mkBuiltin :: fun -> PIR.Term tyname name uni fun ()
-mkBuiltin = PIR.Builtin ()
+mkBuiltin :: fun -> PIR.Term tyname name uni fun Ann
+mkBuiltin = PIR.Builtin AnnOther
 
 -- | The 'TH.Name's for which 'NameInfo' needs to be provided.
 builtinNames :: [TH.Name]
@@ -173,7 +174,7 @@ builtinNames = [
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature
 
-    , 'Builtins.verifySignature
+    , 'Builtins.verifyEd25519Signature
 
     , ''Integer
     , 'Builtins.addInteger
@@ -238,167 +239,175 @@ builtinNames = [
     , 'Builtins.unsafeDataAsI
     ]
 
-defineBuiltinTerm :: CompilingDefault uni fun m => TH.Name -> PIRTerm uni fun -> m ()
-defineBuiltinTerm name term = do
+defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
+defineBuiltinTerm ann name term = do
     ghcId <- GHC.tyThingId <$> getThing name
-    var <- compileVarFresh ghcId
+    var <- compileVarFresh ann ghcId
     -- See Note [Builtin terms and values]
     let strictness = if PIR.isPure (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)
     PIR.defineTerm (LexName $ GHC.getName ghcId) def mempty
 
 -- | Add definitions for all the builtin types to the environment.
-defineBuiltinType :: forall uni fun m. Compiling uni fun m => TH.Name -> PIRType uni -> m ()
+defineBuiltinType :: forall uni fun m ann. Compiling uni fun m ann => TH.Name -> PIRType uni -> m ()
 defineBuiltinType name ty = do
     tc <- GHC.tyThingTyCon <$> getThing name
     var <- compileTcTyVarFresh tc
     PIR.defineType (LexName $ GHC.getName tc) (PIR.Def var ty) mempty
     -- these are all aliases for now
-    PIR.recordAlias @LexName @uni @fun @() (LexName $ GHC.getName tc)
+    PIR.recordAlias (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: CompilingDefault uni fun m => m ()
+defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTerms = do
     CompileContext {ccOpts=compileOpts} <- ask
 
     -- See Note [Builtin terms and values]
     -- Bool
-    defineBuiltinTerm 'Builtins.ifThenElse $ mkBuiltin PLC.IfThenElse
-    defineBuiltinTerm 'Builtins.true $ PIR.mkConstant () True
-    defineBuiltinTerm 'Builtins.false $ PIR.mkConstant () False
+    defineBuiltinTerm AnnOther 'Builtins.ifThenElse $ mkBuiltin PLC.IfThenElse
+    defineBuiltinTerm AnnOther 'Builtins.true $ PIR.mkConstant AnnOther True
+    defineBuiltinTerm AnnOther 'Builtins.false $ PIR.mkConstant AnnOther False
 
-    defineBuiltinTerm 'Builtins.unitval $ PIR.mkConstant () ()
-    defineBuiltinTerm 'Builtins.chooseUnit $ mkBuiltin PLC.ChooseUnit
+    defineBuiltinTerm AnnOther 'Builtins.unitval $ PIR.mkConstant AnnOther ()
+    defineBuiltinTerm AnnOther 'Builtins.chooseUnit $ mkBuiltin PLC.ChooseUnit
 
     -- Bytestring builtins
-    defineBuiltinTerm 'Builtins.appendByteString $ mkBuiltin PLC.AppendByteString
-    defineBuiltinTerm 'Builtins.consByteString $ mkBuiltin PLC.ConsByteString
-    defineBuiltinTerm 'Builtins.sliceByteString $ mkBuiltin PLC.SliceByteString
-    defineBuiltinTerm 'Builtins.lengthOfByteString $ mkBuiltin PLC.LengthOfByteString
-    defineBuiltinTerm 'Builtins.indexByteString $ mkBuiltin PLC.IndexByteString
-    defineBuiltinTerm 'Builtins.sha2_256 $ mkBuiltin PLC.Sha2_256
-    defineBuiltinTerm 'Builtins.sha3_256 $ mkBuiltin PLC.Sha3_256
-    defineBuiltinTerm 'Builtins.blake2b_256 $ mkBuiltin PLC.Blake2b_256
-    defineBuiltinTerm 'Builtins.equalsByteString $ mkBuiltin PLC.EqualsByteString
-    defineBuiltinTerm 'Builtins.lessThanByteString $ mkBuiltin PLC.LessThanByteString
-    defineBuiltinTerm 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString
-    defineBuiltinTerm 'Builtins.emptyByteString $ PIR.mkConstant () BS.empty
-    defineBuiltinTerm 'Builtins.decodeUtf8 $ mkBuiltin PLC.DecodeUtf8
-    defineBuiltinTerm 'Builtins.verifyEcdsaSecp256k1Signature $ mkBuiltin PLC.VerifyEcdsaSecp256k1Signature
-    defineBuiltinTerm 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
+    defineBuiltinTerm AnnOther 'Builtins.appendByteString $ mkBuiltin PLC.AppendByteString
+    defineBuiltinTerm AnnOther 'Builtins.consByteString $ mkBuiltin PLC.ConsByteString
+    defineBuiltinTerm AnnOther 'Builtins.sliceByteString $ mkBuiltin PLC.SliceByteString
+    defineBuiltinTerm AnnOther 'Builtins.lengthOfByteString $ mkBuiltin PLC.LengthOfByteString
+    defineBuiltinTerm AnnOther 'Builtins.indexByteString $ mkBuiltin PLC.IndexByteString
+    defineBuiltinTerm AnnOther 'Builtins.sha2_256 $ mkBuiltin PLC.Sha2_256
+    defineBuiltinTerm AnnOther 'Builtins.sha3_256 $ mkBuiltin PLC.Sha3_256
+    defineBuiltinTerm AnnOther 'Builtins.blake2b_256 $ mkBuiltin PLC.Blake2b_256
+    defineBuiltinTerm AnnOther 'Builtins.equalsByteString $ mkBuiltin PLC.EqualsByteString
+    defineBuiltinTerm AnnOther 'Builtins.lessThanByteString $ mkBuiltin PLC.LessThanByteString
+    defineBuiltinTerm AnnOther 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString
+    defineBuiltinTerm AnnOther 'Builtins.emptyByteString $ PIR.mkConstant AnnOther BS.empty
+    defineBuiltinTerm AnnOther 'Builtins.decodeUtf8 $ mkBuiltin PLC.DecodeUtf8
+    defineBuiltinTerm AnnOther 'Builtins.verifyEcdsaSecp256k1Signature $ mkBuiltin PLC.VerifyEcdsaSecp256k1Signature
+    defineBuiltinTerm AnnOther 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
 
     -- Crypto
-    defineBuiltinTerm 'Builtins.verifySignature $ mkBuiltin PLC.VerifySignature
+    defineBuiltinTerm AnnOther 'Builtins.verifyEd25519Signature $ mkBuiltin PLC.VerifyEd25519Signature
 
     -- Integer builtins
-    defineBuiltinTerm 'Builtins.addInteger $ mkBuiltin PLC.AddInteger
-    defineBuiltinTerm 'Builtins.subtractInteger $ mkBuiltin PLC.SubtractInteger
-    defineBuiltinTerm 'Builtins.multiplyInteger $ mkBuiltin PLC.MultiplyInteger
-    defineBuiltinTerm 'Builtins.divideInteger $ mkBuiltin PLC.DivideInteger
-    defineBuiltinTerm 'Builtins.modInteger $ mkBuiltin PLC.ModInteger
-    defineBuiltinTerm 'Builtins.quotientInteger $ mkBuiltin PLC.QuotientInteger
-    defineBuiltinTerm 'Builtins.remainderInteger $ mkBuiltin PLC.RemainderInteger
-    defineBuiltinTerm 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
-    defineBuiltinTerm 'Builtins.lessThanEqualsInteger $ mkBuiltin PLC.LessThanEqualsInteger
-    defineBuiltinTerm 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger
+    defineBuiltinTerm AnnOther 'Builtins.addInteger $ mkBuiltin PLC.AddInteger
+    defineBuiltinTerm AnnOther 'Builtins.subtractInteger $ mkBuiltin PLC.SubtractInteger
+    defineBuiltinTerm AnnOther 'Builtins.multiplyInteger $ mkBuiltin PLC.MultiplyInteger
+    defineBuiltinTerm AnnOther 'Builtins.divideInteger $ mkBuiltin PLC.DivideInteger
+    defineBuiltinTerm AnnOther 'Builtins.modInteger $ mkBuiltin PLC.ModInteger
+    defineBuiltinTerm AnnOther 'Builtins.quotientInteger $ mkBuiltin PLC.QuotientInteger
+    defineBuiltinTerm AnnOther 'Builtins.remainderInteger $ mkBuiltin PLC.RemainderInteger
+    defineBuiltinTerm AnnOther 'Builtins.lessThanInteger $ mkBuiltin PLC.LessThanInteger
+    defineBuiltinTerm AnnOther 'Builtins.lessThanEqualsInteger $ mkBuiltin PLC.LessThanEqualsInteger
+    defineBuiltinTerm AnnOther 'Builtins.equalsInteger $ mkBuiltin PLC.EqualsInteger
 
     -- Error
     -- See Note [Delaying error]
     func <- delayedErrorFunc
-    defineBuiltinTerm 'Builtins.error func
+    -- We always want to inline `error :: forall a . () -> a`, hence `AnnInline`.
+    defineBuiltinTerm AnnInline 'Builtins.error func
 
     -- Strings and chars
-    defineBuiltinTerm 'Builtins.appendString $ mkBuiltin PLC.AppendString
-    defineBuiltinTerm 'Builtins.emptyString $ PIR.mkConstant () ("" :: Text)
-    defineBuiltinTerm 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
-    defineBuiltinTerm 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
+    defineBuiltinTerm AnnOther 'Builtins.appendString $ mkBuiltin PLC.AppendString
+    defineBuiltinTerm AnnOther 'Builtins.emptyString $ PIR.mkConstant AnnOther ("" :: Text)
+    defineBuiltinTerm AnnOther 'Builtins.equalsString $ mkBuiltin PLC.EqualsString
+    defineBuiltinTerm AnnOther 'Builtins.encodeUtf8 $ mkBuiltin PLC.EncodeUtf8
 
     -- Tracing
     -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
-    traceTerm <- if coRemoveTrace compileOpts
-        then liftQuote $ do
-            ta <- freshTyName "a"
-            t <- freshName "t"
-            a <- freshName "a"
-            pure $ PIR.tyAbs () ta (PLC.Type ())
-                 $ PIR.mkIterLamAbs
-                    [ PIR.VarDecl () t (PIR.mkTyBuiltin @_ @Text ())
-                    , PIR.VarDecl () a (PLC.TyVar () ta)
-                    ]
-                 $ PIR.Var () a
-        else pure (mkBuiltin PLC.Trace)
-    defineBuiltinTerm 'Builtins.trace traceTerm
+    (traceTerm, ann) <-
+        if coRemoveTrace compileOpts
+            then liftQuote $ do
+                ta <- freshTyName "a"
+                t <- freshName "t"
+                a <- freshName "a"
+                pure
+                    ( PIR.tyAbs AnnOther ta (PLC.Type AnnOther) $
+                        PIR.mkIterLamAbs
+                            [ PIR.VarDecl AnnOther t (PIR.mkTyBuiltin @_ @Text AnnOther)
+                            , PIR.VarDecl AnnOther a (PLC.TyVar AnnOther ta)
+                            ]
+                            $ PIR.Var AnnOther a
+                    , -- We always want to inline `\_ a -> a` (especially because the first
+                      -- element is a string), hence `AnnInline`.
+                      AnnInline
+                    )
+            else pure (mkBuiltin PLC.Trace, AnnOther)
+    defineBuiltinTerm ann 'Builtins.trace traceTerm
 
     -- Pairs
-    defineBuiltinTerm 'Builtins.fst $ mkBuiltin PLC.FstPair
-    defineBuiltinTerm 'Builtins.snd $ mkBuiltin PLC.SndPair
-    defineBuiltinTerm 'Builtins.mkPairData $ mkBuiltin PLC.MkPairData
+    defineBuiltinTerm AnnOther 'Builtins.fst $ mkBuiltin PLC.FstPair
+    defineBuiltinTerm AnnOther 'Builtins.snd $ mkBuiltin PLC.SndPair
+    defineBuiltinTerm AnnOther 'Builtins.mkPairData $ mkBuiltin PLC.MkPairData
 
     -- List
-    defineBuiltinTerm 'Builtins.null $ mkBuiltin PLC.NullList
-    defineBuiltinTerm 'Builtins.head $ mkBuiltin PLC.HeadList
-    defineBuiltinTerm 'Builtins.tail $ mkBuiltin PLC.TailList
-    defineBuiltinTerm 'Builtins.chooseList $ mkBuiltin PLC.ChooseList
-    defineBuiltinTerm 'Builtins.mkNilData $ mkBuiltin PLC.MkNilData
-    defineBuiltinTerm 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
-    defineBuiltinTerm 'Builtins.mkCons $ mkBuiltin PLC.MkCons
+    defineBuiltinTerm AnnOther 'Builtins.null $ mkBuiltin PLC.NullList
+    defineBuiltinTerm AnnOther 'Builtins.head $ mkBuiltin PLC.HeadList
+    defineBuiltinTerm AnnOther 'Builtins.tail $ mkBuiltin PLC.TailList
+    defineBuiltinTerm AnnOther 'Builtins.chooseList $ mkBuiltin PLC.ChooseList
+    defineBuiltinTerm AnnOther 'Builtins.mkNilData $ mkBuiltin PLC.MkNilData
+    defineBuiltinTerm AnnOther 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
+    defineBuiltinTerm AnnOther 'Builtins.mkCons $ mkBuiltin PLC.MkCons
 
     -- Data
-    defineBuiltinTerm 'Builtins.chooseData $ mkBuiltin PLC.ChooseData
-    defineBuiltinTerm 'Builtins.equalsData $ mkBuiltin PLC.EqualsData
-    defineBuiltinTerm 'Builtins.mkConstr $ mkBuiltin PLC.ConstrData
-    defineBuiltinTerm 'Builtins.mkMap $ mkBuiltin PLC.MapData
-    defineBuiltinTerm 'Builtins.mkList $ mkBuiltin PLC.ListData
-    defineBuiltinTerm 'Builtins.mkI $ mkBuiltin PLC.IData
-    defineBuiltinTerm 'Builtins.mkB $ mkBuiltin PLC.BData
-    defineBuiltinTerm 'Builtins.unsafeDataAsConstr $ mkBuiltin PLC.UnConstrData
-    defineBuiltinTerm 'Builtins.unsafeDataAsMap $ mkBuiltin PLC.UnMapData
-    defineBuiltinTerm 'Builtins.unsafeDataAsList $ mkBuiltin PLC.UnListData
-    defineBuiltinTerm 'Builtins.unsafeDataAsB $ mkBuiltin PLC.UnBData
-    defineBuiltinTerm 'Builtins.unsafeDataAsI $ mkBuiltin PLC.UnIData
-    defineBuiltinTerm 'Builtins.serialiseData $ mkBuiltin PLC.SerialiseData
+    defineBuiltinTerm AnnOther 'Builtins.chooseData $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm AnnOther 'Builtins.equalsData $ mkBuiltin PLC.EqualsData
+    defineBuiltinTerm AnnOther 'Builtins.mkConstr $ mkBuiltin PLC.ConstrData
+    defineBuiltinTerm AnnOther 'Builtins.mkMap $ mkBuiltin PLC.MapData
+    defineBuiltinTerm AnnOther 'Builtins.mkList $ mkBuiltin PLC.ListData
+    defineBuiltinTerm AnnOther 'Builtins.mkI $ mkBuiltin PLC.IData
+    defineBuiltinTerm AnnOther 'Builtins.mkB $ mkBuiltin PLC.BData
+    defineBuiltinTerm AnnOther 'Builtins.unsafeDataAsConstr $ mkBuiltin PLC.UnConstrData
+    defineBuiltinTerm AnnOther 'Builtins.unsafeDataAsMap $ mkBuiltin PLC.UnMapData
+    defineBuiltinTerm AnnOther 'Builtins.unsafeDataAsList $ mkBuiltin PLC.UnListData
+    defineBuiltinTerm AnnOther 'Builtins.unsafeDataAsB $ mkBuiltin PLC.UnBData
+    defineBuiltinTerm AnnOther 'Builtins.unsafeDataAsI $ mkBuiltin PLC.UnIData
+    defineBuiltinTerm AnnOther 'Builtins.serialiseData $ mkBuiltin PLC.SerialiseData
 
 defineBuiltinTypes
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => m ()
 defineBuiltinTypes = do
-    defineBuiltinType ''Builtins.BuiltinByteString $ PLC.toTypeAst $ Proxy @BS.ByteString
-    defineBuiltinType ''Integer $ PLC.toTypeAst $ Proxy @Integer
-    defineBuiltinType ''Builtins.BuiltinBool $ PLC.toTypeAst $ Proxy @Bool
-    defineBuiltinType ''Builtins.BuiltinUnit $ PLC.toTypeAst $ Proxy @()
-    defineBuiltinType ''Builtins.BuiltinString $ PLC.toTypeAst $ Proxy @Text
-    defineBuiltinType ''Builtins.BuiltinData $ PLC.toTypeAst $ Proxy @PLC.Data
-    defineBuiltinType ''Builtins.BuiltinPair $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
-    defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
+    defineBuiltinType ''Builtins.BuiltinByteString . ($> AnnOther) $ PLC.toTypeAst $ Proxy @BS.ByteString
+    defineBuiltinType ''Integer . ($> AnnOther) $ PLC.toTypeAst $ Proxy @Integer
+    defineBuiltinType ''Builtins.BuiltinBool . ($> AnnOther) $ PLC.toTypeAst $ Proxy @Bool
+    defineBuiltinType ''Builtins.BuiltinUnit . ($> AnnOther) $ PLC.toTypeAst $ Proxy @()
+    defineBuiltinType ''Builtins.BuiltinString . ($> AnnOther) $ PLC.toTypeAst $ Proxy @Text
+    defineBuiltinType ''Builtins.BuiltinData . ($> AnnOther) $ PLC.toTypeAst $ Proxy @PLC.Data
+    defineBuiltinType ''Builtins.BuiltinPair . ($> AnnOther) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoPair)
+    defineBuiltinType ''Builtins.BuiltinList . ($> AnnOther) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
-lookupBuiltinTerm :: Compiling uni fun m => TH.Name -> m (PIRTerm uni fun)
+lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeTerm <- PIR.lookupTerm () (LexName ghcName)
+    maybeTerm <- PIR.lookupTerm AnnOther (LexName ghcName)
     case maybeTerm of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
-lookupBuiltinType :: Compiling uni fun m => TH.Name -> m (PIRType uni)
+lookupBuiltinType :: Compiling uni fun m ann => TH.Name -> m (PIRType uni)
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
-    maybeType <- PIR.lookupType () (LexName ghcName)
+    maybeType <- PIR.lookupType AnnOther (LexName ghcName)
     case maybeType of
         Just t  -> pure t
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | The function 'error :: forall a . a'.
-errorFunc :: Compiling uni fun m => m (PIRTerm uni fun)
+errorFunc :: Compiling uni fun m ann => m (PIRTerm uni fun)
 errorFunc = do
     n <- safeFreshTyName "e"
-    pure $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
+    pure $ PIR.TyAbs AnnOther n (PIR.Type AnnOther) (PIR.Error AnnOther (PIR.TyVar AnnOther n))
 
 -- | The delayed error function 'error :: forall a . () -> a'.
-delayedErrorFunc :: CompilingDefault uni fun m => m (PIRTerm uni fun)
+delayedErrorFunc :: CompilingDefault uni fun m ann => m (PIRTerm uni fun)
 delayedErrorFunc = do
     n <- safeFreshTyName "a"
     t <- liftQuote (freshName "thunk")
     let ty = PLC.toTypeAst $ Proxy @()
-    pure $ PIR.TyAbs () n (PIR.Type ()) $ PIR.LamAbs () t ty $ PIR.Error () (PIR.TyVar () n)
+    pure $ PIR.TyAbs AnnOther n (PIR.Type AnnOther) $
+        PIR.LamAbs AnnOther t (ty $> AnnOther) $ PIR.Error AnnOther (PIR.TyVar AnnOther n)

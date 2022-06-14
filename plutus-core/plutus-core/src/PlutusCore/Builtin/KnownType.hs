@@ -3,34 +3,34 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
+{-# LANGUAGE StrictData            #-}
 
 module PlutusCore.Builtin.KnownType
     ( KnownTypeError
     , throwKnownTypeErrorWithCause
     , KnownBuiltinTypeIn
     , KnownBuiltinType
-    , MakeKnownM
+    , MakeKnownM (..)
     , ReadKnownM
+    , liftReadKnownM
     , readKnownConstant
     , MakeKnownIn (..)
     , MakeKnown
     , ReadKnownIn (..)
     , ReadKnown
-    , makeKnownRun
     , makeKnownOrFail
     , readKnownSelf
     ) where
 
-import PlutusPrelude (reoption)
+import PlutusPrelude
 
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
@@ -40,8 +40,8 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Monad.Except
-import Data.Coerce
 import Data.DList (DList)
+import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
@@ -71,6 +71,11 @@ concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise G
 them to two definitions (one calling the other) for some reason.
 So always add an @INLINE@ pragma to all definitions of 'makeKnown' and 'readKnown' unless you have
 a specific reason not to.
+
+Neither 'readKnown' nor 'makeKnown' should appear in the generated Core for builtins. In most cases
+they would slow builtins down, but even if a 'readKnown' only throws an error, it still makes sense
+to keep it out of Core just not to trigger an investigation on whether it's fine that a call to
+'readKnown' is not inlined.
 
 Some 'readKnown' implementations require inserting a call to 'oneShot'. E.g. if 'oneShot' is not
 used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' branch, thus
@@ -184,22 +189,84 @@ typeMismatchError uniExp uniAct = fromString $ concat
 -- failure message and evaluation is about to be shut anyway.
 {-# NOINLINE typeMismatchError #-}
 
-{- Note [MakeKnownM and ReadKnownM being type synonyms]
-Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
-is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
-make 'MakeKnownM' and 'ReadKnownM' type synonyms for convenience: that way we don't need to derive
-a ton of instances (and add new ones whenever we need them), wrap and unwrap all the time
-(including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
-'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
--}
-
--- See Note [MakeKnownM and ReadKnownM being type synonyms].
 -- | The monad that 'makeKnown' runs in.
-type MakeKnownM = ExceptT KnownTypeError Emitter
+-- Equivalent to @ExceptT KnownTypeError Emitter@, except optimized in two ways:
+--
+-- 1. everything is strict
+-- 2. has the 'MakeKnownSuccess' constructor that is used for returning a value with no logs
+--    attached, which is the most common case for us, so it helps a lot not to construct and
+--    deconstruct a redundant tuple
+--
+-- Moving from @ExceptT KnownTypeError Emitter@ to this data type gave us a speedup of 8% of total
+-- evaluation time.
+--
+-- Logs are represented as a 'DList', because we don't particularly care about the efficiency of
+-- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise
+-- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.
+data MakeKnownM a
+    = MakeKnownFailure (DList Text) KnownTypeError
+    | MakeKnownSuccess a
+    | MakeKnownSuccessWithLogs (DList Text) a
 
--- See Note [MakeKnownM and ReadKnownM being type synonyms].
+-- | Prepend logs to a 'MakeKnownM' computation.
+withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
+withLogs logs1 = \case
+    MakeKnownFailure logs2 err       -> MakeKnownFailure (logs1 <> logs2) err
+    MakeKnownSuccess x               -> MakeKnownSuccessWithLogs logs1 x
+    MakeKnownSuccessWithLogs logs2 x -> MakeKnownSuccessWithLogs (logs1 <> logs2) x
+{-# INLINE withLogs #-}
+
+instance Functor MakeKnownM where
+    fmap _ (MakeKnownFailure logs err)       = MakeKnownFailure logs err
+    fmap f (MakeKnownSuccess x)              = MakeKnownSuccess (f x)
+    fmap f (MakeKnownSuccessWithLogs logs x) = MakeKnownSuccessWithLogs logs (f x)
+    {-# INLINE fmap #-}
+
+    -- Written out explicitly just in case (see @fmap@ above for what the case might be).
+    _ <$ MakeKnownFailure logs err       = MakeKnownFailure logs err
+    x <$ MakeKnownSuccess _              = MakeKnownSuccess x
+    x <$ MakeKnownSuccessWithLogs logs _ = MakeKnownSuccessWithLogs logs x
+    {-# INLINE (<$) #-}
+
+instance Applicative MakeKnownM where
+    pure = MakeKnownSuccess
+    {-# INLINE pure #-}
+
+    MakeKnownFailure logs err       <*> _ = MakeKnownFailure logs err
+    MakeKnownSuccess f              <*> a = fmap f a
+    MakeKnownSuccessWithLogs logs f <*> a = withLogs logs $ fmap f a
+    {-# INLINE (<*>) #-}
+
+    -- Better than the default implementation, because the value in the 'MakeKnownSuccess' case
+    -- doesn't need to be retained.
+    MakeKnownFailure logs err       *> _ = MakeKnownFailure logs err
+    MakeKnownSuccess _              *> a = a
+    MakeKnownSuccessWithLogs logs _ *> a = withLogs logs a
+    {-# INLINE (*>) #-}
+
+instance Monad MakeKnownM where
+    MakeKnownFailure logs err       >>= _ = MakeKnownFailure logs err
+    MakeKnownSuccess x              >>= f = f x
+    MakeKnownSuccessWithLogs logs x >>= f = withLogs logs $ f x
+    {-# INLINE (>>=) #-}
+
+    (>>) = (*>)
+    {-# INLINE (>>) #-}
+
+-- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
+-- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
+-- make 'ReadKnownM' type synonyms for convenience: that way we don't need to derive all the
+-- instances (and add new ones whenever we need them), wrap and unwrap all the time
+-- (including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
+-- 'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either KnownTypeError
+
+-- | Lift a 'ReadKnownM' computation into 'MakeKnownM'.
+liftReadKnownM :: ReadKnownM a -> MakeKnownM a
+liftReadKnownM (Left err) = MakeKnownFailure mempty err
+liftReadKnownM (Right x)  = MakeKnownSuccess x
+{-# INLINE liftReadKnownM #-}
 
 -- See Note [Unlifting values of built-in types].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
@@ -232,10 +299,15 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     -- The inverse of 'readKnown'.
     makeKnown :: a -> MakeKnownM val
     default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
-    -- Forcing the value to avoid space leaks. Note that the value is only forced to WHNF,
-    -- so care must be taken to ensure that every value of a type from the universe gets forced
-    -- to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    -- Everything on evaluation path has to be strict in production, so in theory we don't need to
+    -- force anything here. In practice however all kinds of weird things happen in tests and @val@
+    -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
+    -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
+    -- which doesn't affect the overall cost and benchmarking results suggest the same.
+    --
+    -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
+    -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
+    makeKnown x = pure . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -253,15 +325,12 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
-makeKnownRun
-    :: MakeKnownIn uni val a
-    => a -> (ReadKnownM val, DList Text)
-makeKnownRun = runEmitter . runExceptT . makeKnown
-{-# INLINE makeKnownRun #-}
-
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
-makeKnownOrFail = reoption . fst . makeKnownRun
+makeKnownOrFail x = case makeKnown x of
+    MakeKnownFailure _ _           -> EvaluationFailure
+    MakeKnownSuccess val           -> EvaluationSuccess val
+    MakeKnownSuccessWithLogs _ val -> EvaluationSuccess val
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
@@ -270,11 +339,11 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either (throwKnownTypeErrorWithCause val) pure $ readKnown val
+readKnownSelf val = fromRightM (throwKnownTypeErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = throwing_ _EvaluationFailure
+    makeKnown EvaluationFailure     = MakeKnownFailure mempty KnownTypeEvaluationFailure
     makeKnown (EvaluationSuccess x) = makeKnown x
     {-# INLINE makeKnown #-}
 
@@ -289,9 +358,12 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown = lift >=> makeKnown
+    makeKnown a = case runEmitter a of
+        (x, logs) -> withLogs logs $ makeKnown x
     {-# INLINE makeKnown #-}
 
 instance
@@ -299,6 +371,8 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
     makeKnown = coerceArg $ pure . fromConstant
@@ -309,24 +383,9 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    readKnown = coerceArg pure
     {-# INLINE readKnown #-}
-
--- Utils
-
--- | Coerce the second argument to the result type of the first one. The motivation for this
--- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
--- to construct an explicit coercion function, so this combinator can be used in cases like that.
--- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
-coerceVia :: Coercible a b => (a -> b) -> a -> b
-coerceVia _ = coerce
-{-# INLINE coerceVia #-}
-
--- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
-coerceArg :: Coercible a b => (a -> r) -> b -> r
-coerceArg = coerce
-{-# INLINE coerceArg #-}

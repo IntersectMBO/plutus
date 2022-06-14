@@ -59,6 +59,8 @@ let
     editorconfig-core-c
     ghcid
     jq
+    # See https://github.com/cachix/pre-commit-hooks.nix/issues/148 for why we need this
+    pre-commit
     nixFlakesAlias
     nixpkgs-fmt
     shellcheck
@@ -91,7 +93,7 @@ haskell.project.shellFor {
     ${pre-commit-check.shellHook}
   '';
 
-  # This is no longer set automatically as of more recent `haskell.nix` revisions, 
+  # This is no longer set automatically as of more recent `haskell.nix` revisions,
   # but is useful for users with LANG settings.
   LOCALE_ARCHIVE = lib.optionalString (stdenv.hostPlatform.libc == "glibc") "${glibcLocales}/lib/locale/locale-archive";
 }

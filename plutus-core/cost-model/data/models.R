@@ -12,7 +12,7 @@ library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 ## require changes here to get sensible results.
 
 
-## At present, times in the becnhmarking data are typically of the order of
+## At present, times in the benchmarking data are typically of the order of
 ## 10^(-6) seconds. WE SCALE THESE UP TO MICROSECONDS because the resulting
 ## numbers are much easier to work with interactively.  For use in the Plutus
 ## Core cost model we scale times up by a further factor of 10^6 (to
@@ -74,7 +74,7 @@ arity <- function(name) {
         "Sha2_256" = 1,
         "Sha3_256" = 1,
         "Blake2b_256" = 1,
-        "VerifySignature" = 3,
+        "VerifyEd25519Signature" = 3,
         "VerifyEcdsaSecp256k1Signature" = 3,
         "VerifySchnorrSecp256k1Signature" = 3,
         "AppendString" = 2,
@@ -490,13 +490,13 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
-    ## VerifySignature in fact takes three arguments, but the first and third
-    ## are of fixed size, so we only gather benchmarking data for different
-    ## sizes of the second argument (the "message" being signed).  This can be
-    ## very large, but the time appears to be kind of random, even up to size
-    ## 120000.
-    verifySignatureModel <- {
-        fname <- "VerifySignature"
+    ## VerifyEd25519Signature in fact takes three arguments, but the first and
+    ## third are of fixed size, so we only gather benchmarking data for
+    ## different sizes of the second argument (the "message" being signed).
+    ## This can be very large, but the time appears to be kind of random, even
+    ## up to size 120000.
+    verifyEd25519SignatureModel <- {
+        fname <- "VerifyEd25519Signature"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
@@ -504,8 +504,25 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
-
+    ## The verifyEcdsaSecp256k1Signature function returns quickly for 50% of
+    ## randomly-generated signatures because the Bitcoin implementation that
+    ## underlies it enforces a requirement that the lower of the two possible
+    ## values of the s component of the signature is used, returning immediately
+    ## if that's not the case: see Note [ECDSA secp256k1 signature verification]
+    ## in Builtins.hs.  This gives us bencharking results where the times fall
+    ## into two distinct bands.  To get a good upper bound for realistic cases
+    ## we eliminate the lower band by discarding results less than the mean and
+    ## then fit a constant model to the remaining data.
+    verifyEcdsaSecp256k1SignatureModel <- {
+        fname <-"VerifyEcdsaSecp256k1Signature"
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            filter(t > mean(t)) %>%
+            discard.overhead ()
+        m <- lm(t ~ 1, filtered)
+        adjustModel (m,fname)
+    }
+    
     verifySchnorrSecp256k1SignatureModel <- {
         fname <- "VerifySchnorrSecp256k1Signature"
         filtered <- data %>%
@@ -668,7 +685,7 @@ modelFun <- function(path) {
         sha2_256Model                        = sha2_256Model,
         sha3_256Model                        = sha3_256Model,
         blake2b_256Model                     = blake2b_256Model,
-        verifySignatureModel                 = verifySignatureModel,
+        verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,
         appendStringModel                    = appendStringModel,

@@ -303,8 +303,8 @@ type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
-    _cekEmitterInfoEmit       :: CekEmitter uni fun  s
-    , _cekEmitterInfoGetFinal :: ST s [Text]
+    _cekEmitterInfoEmit       :: !(CekEmitter uni fun s)
+    , _cekEmitterInfoGetFinal :: !(ST s [Text])
     }
 
 -- | An emitting mode to execute the CEK machine in, similar to 'ExBudgetMode'.
@@ -350,6 +350,7 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun s = (GivenCekRuntime uni fun, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
+    -- @plutus-errors@ prevents this from being strict. Not that it matters anyway.
     = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
@@ -439,8 +440,13 @@ instance AsEvaluationFailure CekUserError where
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
-        group $ "The budget was overspent. Final negative state:" <+> pretty res
-    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
+        cat
+          [ "The machine terminated part way through evaluation due to overspending the budget."
+          , "The budget when the machine terminated was:"
+          , pretty res
+          , "Negative numbers indicate the overspent budget; note that this only indicatessthe budget that was needed for the next step, not to run the program to completion."
+          ]
+    pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
@@ -569,11 +575,12 @@ evalBuiltinApp
 evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
     RuntimeSchemeResult -> do
         spendBudgetCek (BBuiltinApp fun) cost
-        let !(errOrRes, logs) = runEmitter $ runExceptT getX
-        ?cekEmitter logs
-        case errOrRes of
-            Left err  -> throwKnownTypeErrorWithCause term err
-            Right res -> pure res
+        case getX of
+            MakeKnownFailure logs err       -> do
+                ?cekEmitter logs
+                throwKnownTypeErrorWithCause term err
+            MakeKnownSuccess x              -> pure x
+            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
