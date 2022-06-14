@@ -9,27 +9,25 @@ module PlutusCore.Normalize
 import PlutusCore.Core
 import PlutusCore.Name
 import PlutusCore.Normalize.Internal
-import PlutusCore.Quote
 import PlutusCore.Rename
 
 import Control.Monad ((>=>))
-import Universe
 
 -- See Note [Normalization].
 -- | Normalize a 'Type'.
 normalizeType
-    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
+    :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
     => Type tyname uni ann -> m (Normalized (Type tyname uni ann))
 normalizeType = rename >=> runNormalizeTypeT . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
 normalizeTypesIn
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni)
+    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadNormalizeType uni m)
     => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
 normalizeTypesIn = rename >=> runNormalizeTypeT . normalizeTypesInM
 
 -- | Normalize every 'Type' in a 'Program'.
 normalizeTypesInProgram
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni)
+    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadNormalizeType uni m)
     => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 normalizeTypesInProgram (Program x v t) = Program x v <$> normalizeTypesIn t
