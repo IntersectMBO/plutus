@@ -7,7 +7,7 @@
 #     AWS_SECRET_ACCESS_KEY=<...> \
 #     AWS_DEFAULT_REGION=<...> \
 #     AWS_ENDPOINT_URL=https://s3.devx.iog.io \
-#     ./s3-sync-unzip.sh \
+#     ./scripts/s3-sync-unzip.sh \
 #     s3://plutus/script-evaluation-dump/ \
 #     \*.event.bz2
 
@@ -20,4 +20,4 @@ mkdir -p "$LOCAL_DIR"
 
 set -x
 aws --endpoint-url "$AWS_ENDPOINT_URL" s3 sync "$S3_PREFIX" "$LOCAL_DIR" --exclude "*" --include "$S3_SUFFIX"
-bunzip2 -k "$LOCAL_DIR"/*.bz2 || ({ set +x; } 2>/dev/null; true)
+bunzip2 -k "$LOCAL_DIR"/*.bz2 || { true; } 2>/dev/null
