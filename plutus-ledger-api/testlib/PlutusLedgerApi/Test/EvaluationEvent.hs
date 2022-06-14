@@ -35,8 +35,10 @@ data ScriptEvaluationEvent
     deriving anyclass (Serialise)
 
 data ScriptEvaluationEvents = ScriptEvaluationEvents
-    { eventsCostParamsV1 :: [Integer]
-    , eventsCostParamsV2 :: [Integer]
+    { eventsCostParamsV1 :: Maybe [Integer]
+    -- ^ Cost parameters shared by all PlutusV1 evaluation events in `eventsEvents`, if any.
+    , eventsCostParamsV2 :: Maybe [Integer]
+    -- ^ Cost parameters shared by all PlutusV2 evaluation events in `eventsEvents`, if any.
     , eventsEvents       :: NonEmpty ScriptEvaluationEvent
     }
     deriving stock (Generic)
