@@ -97,6 +97,7 @@ library plutus-ledger-api-testlib
     exposed-modules:
         PlutusLedgerApi.Test.Examples
         PlutusLedgerApi.Test.EvaluationContext
+        PlutusLedgerApi.Test.EvaluationEvent
         PlutusLedgerApi.Test.Scripts
     build-depends:
         base >=4.9 && <5,
