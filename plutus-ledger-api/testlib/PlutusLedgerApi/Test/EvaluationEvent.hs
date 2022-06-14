@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 module PlutusLedgerApi.Test.EvaluationEvent (
+    ScriptEvaluationEvents (..),
     ScriptEvaluationEvent (..),
     ScriptEvaluationData (..),
     ScriptEvaluationResult (..),
@@ -11,6 +12,7 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
 import PlutusLedgerApi.Common
 
 import Codec.Serialise (Serialise (..))
+import Data.List.NonEmpty (NonEmpty)
 import GHC.Generics (Generic)
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
@@ -19,7 +21,6 @@ data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
 
 data ScriptEvaluationData = ScriptEvaluationData
     { dataProtocolVersion :: ProtocolVersion
-    , dataCostParams      :: [Integer]
     , dataBudget          :: ExBudget
     , dataScript          :: SerialisedScript
     , dataInputs          :: [PLC.Data]
@@ -30,5 +31,13 @@ data ScriptEvaluationData = ScriptEvaluationData
 data ScriptEvaluationEvent
     = PlutusV1Event ScriptEvaluationData ScriptEvaluationResult
     | PlutusV2Event ScriptEvaluationData ScriptEvaluationResult
+    deriving stock (Generic)
+    deriving anyclass (Serialise)
+
+data ScriptEvaluationEvents
+    = ScriptEvaluationEvents
+        [Integer]
+        -- ^ Cost parameters shared by all `ScriptEvaluationEvent`s
+        (NonEmpty ScriptEvaluationEvent)
     deriving stock (Generic)
     deriving anyclass (Serialise)
