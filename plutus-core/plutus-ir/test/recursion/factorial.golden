@@ -1,0 +1,48 @@
+(program
+  1.0.0
+  [
+    (lam factorial_90 [ factorial_90 (con integer 5) ])
+    [
+      (lam arg_0_139 arg_0_139)
+      [
+        (lam s_120 [ s_120 s_120 ])
+        (lam
+          s_126
+          (lam
+            x_130
+            [
+              (lam
+                factorial_140
+                [
+                  [
+                    [
+                      [
+                        (force (builtin ifThenElse))
+                        [ [ (builtin equalsInteger) x_130 ] (con integer 0) ]
+                      ]
+                      (lam u_142 (con integer 1))
+                    ]
+                    (lam
+                      u_143
+                      [
+                        [ (builtin multiplyInteger) x_130 ]
+                        [
+                          factorial_140
+                          [
+                            [ (builtin subtractInteger) x_130 ] (con integer 1)
+                          ]
+                        ]
+                      ]
+                    )
+                  ]
+                  (con unit ())
+                ]
+              )
+              [ s_126 s_126 ]
+            ]
+          )
+        )
+      ]
+    ]
+  ]
+)
