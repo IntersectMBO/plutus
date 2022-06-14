@@ -17,10 +17,15 @@ import PlutusPrelude
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.HUnit (testCase, (@=?))
+import Test.Tasty.Options
+import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
+import UnliftIO.Exception
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
+
+-- TODO instance IsTest UplcEval where
 
 -- | A TestContent contains what you need to run a test.
 data TestContent =

@@ -45,7 +45,8 @@ library
         tasty -any,
         tasty-golden, 
         tasty-hunit -any,
-        text -any
+        text -any,
+        unliftio -any
         
 executable add-test-output
     import: lang
