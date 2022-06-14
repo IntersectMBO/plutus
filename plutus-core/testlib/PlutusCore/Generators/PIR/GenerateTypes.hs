@@ -333,7 +333,7 @@ shrinkKindAndType ctx (k, ty) =
 
 -- | Infer the kind of a type in a given kind context
 inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Maybe (Kind ())
-inferKind ctx ty = case runQuoteT $ runTypeCheckM () $
+inferKind ctx ty = case runTypeCheckM () $
                           foldr (uncurry withTyVar)
                                 (inferKindM @(Error DefaultUni DefaultFun ()) ty)
                                 (Map.toList ctx) of

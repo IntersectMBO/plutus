@@ -603,7 +603,7 @@ inferTypeInContext tyctx ctx tm = either (const Nothing) Just
   -- the renaming behaviour of type inference is documented and maintained.
   cfg <- getDefTypeCheckConfig ()
   -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
-  Normalized _ty' <- runQuoteT $ inferType cfg tm'
+  Normalized _ty' <- inferType cfg tm'
   -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.
   let ty' = substEscape (Map.keysSet esc <> foldr (<>) (ftvTy _ty') (ftvTy <$> esc)) esc _ty' -- yuck
   -- Get rid of the stuff we had to add for the context.
