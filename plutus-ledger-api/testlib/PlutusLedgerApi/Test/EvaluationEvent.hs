@@ -34,10 +34,10 @@ data ScriptEvaluationEvent
     deriving stock (Generic)
     deriving anyclass (Serialise)
 
-data ScriptEvaluationEvents
-    = ScriptEvaluationEvents
-        [Integer]
-        -- ^ Cost parameters shared by all `ScriptEvaluationEvent`s
-        (NonEmpty ScriptEvaluationEvent)
+data ScriptEvaluationEvents = ScriptEvaluationEvents
+    { eventsCostParamsV1 :: [Integer]
+    , eventsCostParamsV2 :: [Integer]
+    , eventsEvents       :: NonEmpty ScriptEvaluationEvent
+    }
     deriving stock (Generic)
     deriving anyclass (Serialise)
