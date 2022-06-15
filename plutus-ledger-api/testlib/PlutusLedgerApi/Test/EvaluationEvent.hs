@@ -34,7 +34,7 @@ data ScriptEvaluationData = ScriptEvaluationData
     deriving stock (Generic)
     deriving anyclass (Serialise)
 
--- | Information about an on-chain script evaluation event.
+-- | Information about an on-chain script evaluation event, specifically the information needed to evaluate the script, and the expected result.
 data ScriptEvaluationEvent
     = PlutusV1Event ScriptEvaluationData ScriptEvaluationResult
     | PlutusV2Event ScriptEvaluationData ScriptEvaluationResult
