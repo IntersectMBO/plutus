@@ -24,7 +24,8 @@ data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Generic)
     deriving anyclass (Serialise)
 
--- | Data used for an on-chain script evaluation.
+-- | All the data needed to evaluate a script using the ledger API, except for the cost model
+-- parameters, as these are tracked separately.
 data ScriptEvaluationData = ScriptEvaluationData
     { dataProtocolVersion :: ProtocolVersion
     , dataBudget          :: ExBudget
@@ -34,7 +35,8 @@ data ScriptEvaluationData = ScriptEvaluationData
     deriving stock (Generic)
     deriving anyclass (Serialise)
 
--- | Information about an on-chain script evaluation event, specifically the information needed to evaluate the script, and the expected result.
+-- | Information about an on-chain script evaluation event, specifically the information needed
+-- to evaluate the script, and the expected result.
 data ScriptEvaluationEvent
     = PlutusV1Event ScriptEvaluationData ScriptEvaluationResult
     | PlutusV2Event ScriptEvaluationData ScriptEvaluationResult
@@ -58,12 +60,17 @@ data ScriptEvaluationEvents = ScriptEvaluationEvents
 
 -- | Error type when re-evaluating a `ScriptEvaluationEvent`.
 data UnexpectedEvaluationResult
-    = UnexpectedEvaluationResult
+    = UnexpectedEvaluationSuccess
         ScriptEvaluationEvent
         [Integer]
         -- ^ Cost parameters
-        (Either EvaluationError ExBudget)
-        -- ^ Actual evaluation outcome
+        ExBudget
+        -- ^ Actual budget consumed
+    | UnexpectedEvaluationFailure
+        ScriptEvaluationEvent
+        [Integer]
+        -- ^ Cost parameters
+        EvaluationError
 
 -- | Re-evaluate an on-chain script evaluation event.
 checkEvaluationEvent ::
@@ -95,7 +102,7 @@ checkEvaluationEvent ctx params ev = case ev of
          in verify expected actual
   where
     verify ScriptEvaluationSuccess (Left err) =
-        Just $ UnexpectedEvaluationResult ev params (Left err)
+        Just $ UnexpectedEvaluationFailure ev params err
     verify ScriptEvaluationFailure (Right budget) =
-        Just $ UnexpectedEvaluationResult ev params (Right budget)
+        Just $ UnexpectedEvaluationSuccess ev params budget
     verify _ _ = Nothing
