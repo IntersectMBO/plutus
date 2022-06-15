@@ -18,6 +18,7 @@ import Control.Monad.Morph
 import Control.Monad.Reader as Reader
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
@@ -28,7 +29,6 @@ import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, parse)
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
-import UntypedPlutusCore qualified as UPLC
 
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -50,7 +50,7 @@ instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
-        pure . PLC.runQuote . UPLC.simplifyProgram UPLC.defaultSimplifyOpts $ UPLC.eraseProgram p'
+        pure $ PLC.runQuote $ flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram  p'
 
 -- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
 asIfThrown

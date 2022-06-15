@@ -29,6 +29,7 @@ module PlutusCore.Generators.NEAT.Spec
   ) where
 
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.NEAT.Common
@@ -155,11 +156,11 @@ prop_agree_termEval tyG tmG = do
     evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
 
   -- erase CK output
-  let tmUCk = U.erase tmCk
+  let tmUCk = eraseTerm tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParameters (eraseTerm tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
