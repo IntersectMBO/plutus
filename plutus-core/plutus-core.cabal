@@ -321,6 +321,7 @@ library plutus-core-testlib
         PlutusCore.Test
         PlutusCore.Generators
         PlutusCore.Generators.PIR
+        PlutusCore.Generators.PIR.Builtin
         PlutusCore.Generators.PIR.GenTm
         PlutusCore.Generators.PIR.GenerateTypes
         PlutusCore.Generators.PIR.GenerateTerms

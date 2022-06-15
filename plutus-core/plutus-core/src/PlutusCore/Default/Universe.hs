@@ -29,6 +29,7 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniList
     , pattern DefaultUniPair
     , module Export  -- Re-exporting universes infrastructure for convenience.
+    , noMoreTypeFunctions
     ) where
 
 import PlutusCore.Builtin

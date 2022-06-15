@@ -40,13 +40,15 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe
+import Data.Proxy
 import Data.Set qualified as Set
-import Data.String
 import GHC.Stack
 import Prettyprinter
 import Test.QuickCheck
 import Text.PrettyBy
 
+import PlutusCore.Builtin
+import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
@@ -58,11 +60,13 @@ import PlutusIR.Error
 import PlutusIR.Subst
 import PlutusIR.TypeCheck
 
+import PlutusCore.Generators.PIR.Builtin
 import PlutusCore.Generators.PIR.Common
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateTypes
 import PlutusCore.Generators.PIR.Substitutions
 import PlutusCore.Generators.PIR.Utils
+import PlutusCore.MkPlc (mkConstant)
 
 addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
           -> Map Name (Type TyName DefaultUni ())
@@ -114,12 +118,12 @@ findInstantiation ctx n target ty = do
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
 
 genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
-genConstant b = case b of
-  SomeTypeIn DefaultUniBool    -> Const DefaultUniBool <$> liftGen arbitrary
-  SomeTypeIn DefaultUniInteger -> Const DefaultUniInteger <$> liftGen arbitrary
-  SomeTypeIn DefaultUniUnit    -> pure $ Const DefaultUniUnit ()
-  SomeTypeIn DefaultUniString  -> Const DefaultUniString . fromString . getPrintableString <$> liftGen arbitrary
-  _                            -> error "genConstant"
+genConstant (SomeTypeIn b) = case toSingKind b of
+    SingType -> Const b <$> bring (Proxy @ArbitraryBuiltin) b (liftGen arbitraryBuiltin)
+    _        -> error "Higher-kinded built-in types cannot be used here"
+
+shrinkConstant :: DefaultUni (Esc a) -> a -> [Term TyName Name DefaultUni DefaultFun ()]
+shrinkConstant uni x = map (Const uni) $ bring (Proxy @ArbitraryBuiltin) uni $ shrinkBuiltin x
 
 -- | Try to inhabit a given type in as simple a way as possible,
 -- prefers to not default to `error`
@@ -505,12 +509,9 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           ]
 
         -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
-        Const DefaultUniBool _ ->
-          [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-        Const DefaultUniInteger _ ->
-          [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
-        Const DefaultUniString _ ->
-          [ (TyBuiltin () (SomeTypeIn DefaultUniUnit), Const DefaultUniUnit ()) ]
+        Const uni _ -> case uni of
+            DefaultUniUnit -> []
+            _              -> [(mkTyBuiltin @_ @() (), mkConstant () ())]
 
         _ -> []
 
@@ -578,11 +579,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
           ]
 
-        Const DefaultUniBool b ->
-          [ (ty, Const DefaultUniBool b') | b' <- shrink b ]
-
-        Const DefaultUniInteger i ->
-          [ (ty, Const DefaultUniInteger i') | i' <- shrink i ]
+        Const uni x -> map ((,) ty) $ shrinkConstant uni x
 
         _ -> []
 
@@ -702,11 +699,20 @@ fixupTerm _ _ tyctxNew ctxNew tyNew tm
   | otherwise                                       = mkHelp ctxNew tyNew
 
 minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
-minimalBuiltin (SomeTypeIn b@DefaultUniUnit)    = Const b ()
-minimalBuiltin (SomeTypeIn b@DefaultUniInteger) = Const b 0
-minimalBuiltin (SomeTypeIn b@DefaultUniBool)    = Const b False
-minimalBuiltin (SomeTypeIn b@DefaultUniString)  = Const b ""
-minimalBuiltin b                                = error $ "minimalBuiltin: " ++ show b
+minimalBuiltin (SomeTypeIn b) = case toSingKind b of
+    SingType -> Const b $ go b
+    _        -> error "Higher-kinded built-in types cannot be used here"
+  where
+    go :: DefaultUni (Esc a) -> a
+    go DefaultUniUnit                                                   = ()
+    go DefaultUniInteger                                                = 0
+    go DefaultUniBool                                                   = False
+    go DefaultUniString                                                 = ""
+    go DefaultUniByteString                                             = ""
+    go DefaultUniData                                                   = I 0
+    go (DefaultUniProtoList `DefaultUniApply` _)                        = []
+    go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)
+    go (f  `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
 
 shrinkBind :: HasCallStack
            => Recursivity

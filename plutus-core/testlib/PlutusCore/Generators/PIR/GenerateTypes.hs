@@ -122,9 +122,20 @@ minimalType ty =
 -- | Get the types of builtins at a given kind
 builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
 builtinTysAt Star =
+  -- TODO: add 'DefaultUniData' once it has a non-throwing 'ArbitraryBuiltin' instance.
   [ SomeTypeIn DefaultUniInteger
   , SomeTypeIn DefaultUniUnit
-  , SomeTypeIn DefaultUniBool ]
+  , SomeTypeIn DefaultUniBool
+  , SomeTypeIn DefaultUniByteString
+  , SomeTypeIn DefaultUniString
+  -- TODO: should we have more examples of lists and pairs here?
+  , SomeTypeIn $ DefaultUniList DefaultUniBool
+  , SomeTypeIn $ DefaultUniPair DefaultUniInteger DefaultUniUnit]
+builtinTysAt (Star :-> Star) =
+  [ SomeTypeIn DefaultUniProtoList
+  , SomeTypeIn $ DefaultUniProtoPair `DefaultUniApply` DefaultUniString
+  ]
+builtinTysAt (Star :-> Star :-> Star) = [SomeTypeIn DefaultUniProtoPair]
 builtinTysAt _ = []
 
 -- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
@@ -139,6 +150,7 @@ genAtomicType k = do
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
+  -- TODO: probably should be 'frequencyTm'?
   oneofTm $ map pure (atoms ++ builtins) ++ [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
 
 -- | Generate a type at a given kind
