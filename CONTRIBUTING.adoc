@@ -167,6 +167,10 @@ You can update it xref:update-nix-pins[with the Nix flake commands].
 
 == Working conventions
 
+=== Style guide
+
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
+
 === Code is communication
 
 We are a relatively large team working on sometimes quite abstruse problems.
@@ -259,6 +263,12 @@ The key bottleneck in getting a PR merged is code review.
 Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
 
 The amount of time it's worth spending doing this is probably much more than you think.
+
+==== What branch to target
+
+Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
+PRs should target `master` unless there is a very good reason not to.
+The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
 
 ==== What changes to include
 

@@ -9,8 +9,6 @@ where
 
 import PlutusCore.Builtin
 
-import PlutusCore.Evaluation.Machine.ExBudget ()
-
 import Control.DeepSeq
 import Control.Lens
 import GHC.Exts (inline)

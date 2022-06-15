@@ -40,14 +40,14 @@ library
     import: lang
     exposed-modules:
         PlutusCore
-        PlutusCore.Check.Normal
-        PlutusCore.Check.Scoping
-        PlutusCore.Check.Uniques
-        PlutusCore.Check.Value
         PlutusCore.Builtin
         PlutusCore.Builtin.Debug
         PlutusCore.Builtin.Elaborate
         PlutusCore.Builtin.Emitter
+        PlutusCore.Check.Normal
+        PlutusCore.Check.Scoping
+        PlutusCore.Check.Uniques
+        PlutusCore.Check.Value
         PlutusCore.Core
         PlutusCore.Data
         PlutusCore.DataFilePaths
@@ -60,9 +60,13 @@ library
         PlutusCore.Evaluation.Machine.CostingFun.Core
         PlutusCore.Evaluation.Machine.CostingFun.JSON
         PlutusCore.Evaluation.Machine.ExBudget
+        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.Evaluation.Machine.ExMemory
         PlutusCore.Evaluation.Machine.Exception
         PlutusCore.Evaluation.Machine.MachineParameters
+        PlutusCore.Evaluation.Machine.MachineParameters.Default
+        PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
+        PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
         PlutusCore.Evaluation.Result
         PlutusCore.Examples.Builtins
         PlutusCore.Examples.Data.Data
@@ -104,6 +108,8 @@ library
         PlutusCore.StdLib.Meta.Data.Tuple
         PlutusCore.StdLib.Type
         PlutusCore.Subst
+        PlutusCore.TypeCheck
+        PlutusCore.TypeCheck.Internal
 
         PlutusIR
         PlutusIR.Analysis.RetainedSize
@@ -136,18 +142,20 @@ library
         PlutusIR.Transform.ThunkRecursions
         PlutusIR.Transform.Unwrap
         PlutusIR.TypeCheck
+        PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore
-        UntypedPlutusCore.DeBruijn
-        UntypedPlutusCore.Evaluation.Machine.Cek
-        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-        UntypedPlutusCore.Parser
-        UntypedPlutusCore.Rename
-        UntypedPlutusCore.MkUPlc
         UntypedPlutusCore.Check.Scope
         UntypedPlutusCore.Check.Uniques
         UntypedPlutusCore.Core
         UntypedPlutusCore.Core.Type
+        UntypedPlutusCore.DeBruijn
+        UntypedPlutusCore.Evaluation.Machine.Cek
+        UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+        UntypedPlutusCore.MkUPlc
+        UntypedPlutusCore.Parser
+        UntypedPlutusCore.Rename
 
         Crypto
         Data.ByteString.Hash
@@ -156,6 +164,7 @@ library
         ErrorCode
         PlutusPrelude
         Universe
+        Data.Either.Extras
     hs-source-dirs:
         plutus-core/src
         plutus-core/stdlib
@@ -191,11 +200,10 @@ library
         PlutusCore.Default.Builtins
         PlutusCore.Default.Universe
         PlutusCore.Eq
-        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
         PlutusCore.InlineUtils
+        PlutusCore.Parser.Builtin
         PlutusCore.Parser.ParserCommon
         PlutusCore.Parser.Type
-        PlutusCore.Parser.Builtin
         PlutusCore.Pretty.Classic
         PlutusCore.Pretty.ConfigName
         PlutusCore.Pretty.ConfigName
@@ -205,8 +213,6 @@ library
         PlutusCore.Pretty.Readable
         PlutusCore.Pretty.Utils
         PlutusCore.Size
-        PlutusCore.TypeCheck
-        PlutusCore.TypeCheck.Internal
 
         PlutusIR.Analysis.Dependencies
         PlutusIR.Analysis.Size
@@ -219,7 +225,6 @@ library
         PlutusIR.Compiler.Recursion
         PlutusIR.Compiler.Types
         PlutusIR.Normalize
-        PlutusIR.TypeCheck.Internal
 
         UntypedPlutusCore.Analysis.Definitions
         UntypedPlutusCore.Analysis.Usages
@@ -233,7 +238,6 @@ library
         UntypedPlutusCore.Core.Instance.Pretty.Readable
         UntypedPlutusCore.Core.Instance.Recursive
         UntypedPlutusCore.Core.Plated
-        UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
         UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
         UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
         UntypedPlutusCore.Mark
@@ -367,7 +371,6 @@ test-suite satint-test
   import: lang
   type:              exitcode-stdio-1.0
   main-is:           TestSatInt.hs
-  ghc-options:       -Wall
   build-depends:     base >=4.9 && <5,
                      test-framework,
                      test-framework-hunit,
@@ -385,6 +388,7 @@ test-suite plutus-core-test
     hs-source-dirs: plutus-core/test
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     other-modules:
+        CBOR.DataStability
         Check.Spec
         CostModelInterface.Spec
         Evaluation.Machines
@@ -416,6 +420,8 @@ test-suite plutus-core-test
         text -any,
         transformers -any,
         aeson -any,
+        hex-text -any,
+        serialise -any,
         template-haskell -any,
         th-lift-instances -any,
         th-utilities -any,
@@ -642,8 +648,7 @@ executable generate-cost-model
     import: lang
     main-is: Main.hs
     hs-source-dirs: cost-model/create-cost-model
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns
-                 -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N
     build-depends:
         base >=4.9 && <5,
         plutus-core -any,
@@ -692,6 +697,17 @@ benchmark cost-model-test
         vector -any
     other-modules:
         CreateBuiltinCostModel
+
+executable print-cost-model           
+    import: lang
+    main-is: Main.hs
+    hs-source-dirs: cost-model/print-cost-model
+    other-modules: Paths_plutus_core
+    build-depends:
+        base >=4.9 && <5,
+        aeson -any,
+        bytestring -any,
+        text -any
 
 library index-envs
     import: lang

@@ -8,6 +8,7 @@ module UntypedPlutusCore (
     , PLC.DefaultFun
     ) where
 
+import UntypedPlutusCore.Check.Scope as Export
 import UntypedPlutusCore.Core as Export
 import UntypedPlutusCore.DeBruijn as Export
 import UntypedPlutusCore.Parser as Parser (parseScoped)

@@ -50,7 +50,7 @@ instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
-        pure $ UPLC.eraseProgram p'
+        pure . PLC.runQuote . UPLC.simplifyProgram UPLC.defaultSimplifyOpts $ UPLC.eraseProgram p'
 
 -- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
 asIfThrown
@@ -126,6 +126,11 @@ goldenPlcFromPir ::
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
+
+goldenNamedUPlcFromPir ::
+    ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+    Parser a -> String -> TestNested
+goldenNamedUPlcFromPir = goldenPirM $ ppThrow . toUPlc
 
 goldenPlcFromPirCatch ::
     ToTPlc a PLC.DefaultUni PLC.DefaultFun =>

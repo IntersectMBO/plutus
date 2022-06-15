@@ -2,22 +2,23 @@
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.MkPlc
+import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
+import PlutusLedgerApi.V1 as Api
+import PlutusLedgerApi.V1.Scripts as Scripts
+import UntypedPlutusCore as UPLC
+
 import Codec.Serialise qualified as CBOR
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
 import Data.Either
-import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
-import Plutus.Ledger.Test.ProtocolVersions
-import Plutus.V1.Ledger.Api as Api
-import Plutus.V1.Ledger.Scripts as Scripts
-import PlutusCore qualified as PLC
-import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.MkPlc
 import Test.Tasty
 import Test.Tasty.HUnit
-import UntypedPlutusCore as UPLC
 
 {- NOTE [Direct UPLC code]
 For this test-suite we write the programs directly in the UPLC AST,
@@ -124,15 +125,15 @@ testScripts = "v1-scripts" `testWith` evalScripts
 
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
-Notably, this goes via serializing and deserializing the program, so we can see any errors that might arise from that.
+Notably, this goes via serialising and deserialising the program, so we can see any errors that might arise from that.
 -}
 testAPI :: TestTree
 testAPI = "v1-api" `testWith` evalAPI vasilPV
 
 evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
 evalAPI pv t =
-    -- handcraft a serialized script
-    let s :: SerializedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
+    -- handcraft a serialised script
+    let s :: SerialisedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
     in isRight $ snd $ Api.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.

@@ -83,11 +83,13 @@ datatypes = testNested "datatypes"
     , goldenPlcFromPirCatch pTerm "idleAll"
     , goldenPlcFromPirCatch pTerm "some"
     , goldenEvalPir pTerm "listMatchEval"
+    , goldenTypeFromPir PLC.topSourcePos pTerm "dataEscape"
     ]
 
 recursion :: TestNested
 recursion = testNested "recursion"
-    [ goldenPlcFromPir pTerm "even3"
+    [ goldenNamedUPlcFromPir pTerm "factorial"
+    , goldenPlcFromPir pTerm "even3"
     , goldenEvalPir pTerm "even3Eval"
     , goldenPlcFromPir pTerm "stupidZero"
     , goldenPlcFromPir pTerm "mutuallyRecursiveValues"

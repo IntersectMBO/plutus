@@ -11,6 +11,7 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE UnboxedTuples      #-}
 module Data.SatInt (SatInt) where
 
+import Codec.Serialise (Serialise)
 import Control.DeepSeq (NFData)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Bits
@@ -30,6 +31,7 @@ newtype SatInt = SI { unSatInt :: Int }
     deriving stock (Lift, Generic)
     deriving (FromJSON, ToJSON) via Int
     deriving FromField via Int  -- For reading cost model data from CSV input
+    deriving Serialise via Int
 
 instance Show SatInt where
   showsPrec p x = showsPrec p (unSatInt x)

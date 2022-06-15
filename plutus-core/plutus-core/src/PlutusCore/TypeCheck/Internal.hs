@@ -1,9 +1,7 @@
 -- | The internal module of the type checker that defines the actual algorithms,
 -- but not the user-facing API.
 
--- 'makeLenses' produces an unused lens.
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
-
+{-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -12,14 +10,17 @@
 {-# LANGUAGE TypeOperators          #-}
 
 module PlutusCore.TypeCheck.Internal
-  -- export all because a lot are used by the pir-typechecker
-  where
+    ( -- export all because a lot are used by the pir-typechecker
+      module PlutusCore.TypeCheck.Internal
+    , MonadNormalizeType
+    ) where
 
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.MkPlc
 import PlutusCore.Name
+import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
 import PlutusCore.Quote
 import PlutusCore.Rename
@@ -28,7 +29,9 @@ import PlutusPrelude
 import Control.Lens
 import Control.Monad.Error.Lens
 import Control.Monad.Except
-import Control.Monad.Reader
+-- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
+-- on 'local'.
+import Control.Monad.Trans.Reader
 import Data.Array
 import Universe
 
@@ -81,21 +84,7 @@ functions that cannot fail look like this:
 
 -- | Mapping from 'Builtin's to their 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
-    -- We need to kind check types of all built-in functions before proceeding to type checking a
-    -- program, so when we do that we don't have any normalized types of built-in functions yet
-    -- (as normalization has to be preceded by kind/type checking, which is the very thing that
-    -- we are up to). And since both kind and type checking run in the same 'TypeCheckM' monad,
-    -- we do need to provide a 'BuiltinTypes' argument, even though we know that at kind checking
-    -- time no built-in function can be encountered (as those live at the value level, not the type
-    -- one). So we could wrap an empty 'Array' with 'BuiltinTypes' but how to construct an empty
-    -- array? This works:
-    --
-    --     listArray (maxBound, minBound) []
-    --
-    -- but only when 'maxBound' is not equal to 'minBound' (and both exist). Which sucks.
-    --
-    -- So we use 'Nothing' to say "no builtins". It's sufficient and doesn't complicate anything.
-    { unBuiltinTypes :: Maybe (Array fun (Dupable (Normalized (Type TyName uni ()))))
+    { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
     }
 
 type TyVarKinds = UniqueMap TypeUnique (Kind ())
@@ -117,7 +106,28 @@ makeLenses ''TypeCheckEnv
 
 -- | The type checking monad that the type checker runs in.
 -- In contains a 'TypeCheckEnv' and allows to throw 'TypeError's.
-type TypeCheckM uni fun cfg err = ReaderT (TypeCheckEnv uni fun cfg) (ExceptT err Quote)
+type TypeCheckT uni fun cfg m = ReaderT (TypeCheckEnv uni fun cfg) m
+
+-- | The constraints that are required for kind checking.
+type MonadKindCheck err term uni fun ann m =
+    ( MonadError err m                  -- Kind/type checking can fail
+    , AsTypeError err term uni fun ann  -- with a 'TypeError'.
+    , ToKind uni                        -- For getting the kind of a built-in type.
+    )
+
+-- | The general constraints that are required for type checking a Plutus AST.
+type MonadTypeCheck err term uni fun ann m =
+    ( MonadKindCheck err term uni fun ann m  -- Kind checking is run during type checking
+                                             -- (this includes the constraint for throwing errors).
+    , Norm.MonadNormalizeType uni m          -- Type lambdas open up type computation.
+    , GEq uni                                -- For checking equality of built-in types.
+    , Ix fun                                 -- For indexing into the precomputed array of types of
+                                             -- built-in functions.
+    )
+
+-- | The constraints that are required for type checking Plutus Core.
+type MonadTypeCheckPlc err uni fun ann m =
+    MonadTypeCheck err (Term TyName Name uni fun ()) uni fun ann m
 
 -- #########################
 -- ## Auxiliary functions ##
@@ -125,33 +135,43 @@ type TypeCheckM uni fun cfg err = ReaderT (TypeCheckEnv uni fun cfg) (ExceptT er
 
 
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
-runTypeCheckM :: (MonadError err m, MonadQuote m) => cfg -> TypeCheckM uni fun cfg err a -> m a
-runTypeCheckM config a =
-    liftEither =<< liftQuote (runExceptT $ runReaderT a env) where
-        env = TypeCheckEnv config mempty mempty
+--
+-- Used for both type and kind checking, because we need to do kind checking during type checking
+-- and so it makes sense to keep a single monad. However type checking requires a 'TypeCheckConfig',
+-- while kind checking doesn't, hence we keep the kind checker fully polymorphic over the type of
+-- config, so that the kinder checker can be run with an empty config (such as @()@) and access to
+-- a 'TypeCheckConfig' is not needed.
+runTypeCheckM :: cfg -> TypeCheckT uni fun cfg m a -> m a
+runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
-withTyVar :: TyName -> Kind () -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
+withTyVar :: TyName -> Kind () -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a
 withTyVar name = local . over tceTyVarKinds . insertByName name
 
 -- | Look up the type of a built-in function.
 lookupBuiltinM
-    :: (AsTypeError err term uni fun ann, HasTypeCheckConfig cfg uni fun, Ix fun)
-    => ann -> fun -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
+    :: (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    => ann -> fun -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupBuiltinM ann fun = do
-    BuiltinTypes mayArr <- view $ tceTypeCheckConfig . tccBuiltinTypes
-    case mayArr >>= preview (ix fun) of
+    BuiltinTypes arr <- view $ tceTypeCheckConfig . tccBuiltinTypes
+    -- Believe it or not, but 'Data.Array' doesn't seem to expose any way of indexing into an array
+    -- safely.
+    case preview (ix fun) arr of
         Nothing -> throwing _TypeError $ UnknownBuiltinFunctionE ann fun
         Just ty -> liftDupable ty
 
 -- | Extend the context of a 'TypeCheckM' computation with a typed variable.
-withVar :: Name -> Normalized (Type TyName uni ()) -> TypeCheckM uni fun cfg err a -> TypeCheckM uni fun cfg err a
-withVar name = local . over tceVarTypes . insertByName name . pure
+withVar
+    :: Name
+    -> Normalized (Type TyName uni ())
+    -> TypeCheckT uni fun cfg m a
+    -> TypeCheckT uni fun cfg m a
+withVar name = local . over tceVarTypes . insertByName name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
-    :: (AsTypeError err term uni fun ann)
-    => ann -> TyName -> TypeCheckM uni fun cfg err (Kind ())
+    :: MonadKindCheck err term uni fun ann m
+    => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
     mayKind <- asks $ lookupName name . _tceTyVarKinds
     case mayKind of
@@ -160,8 +180,8 @@ lookupTyVarM ann name = do
 
 -- | Look up a term variable in the current context.
 lookupVarM
-    :: AsTypeError err term uni fun ann
-    => ann -> Name -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
+    :: MonadTypeCheck err term uni fun ann m
+    => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
     mayTy <- asks $ lookupName name . _tceVarTypes
     case mayTy of
@@ -190,19 +210,19 @@ dummyType = TyVar () dummyTyName
 
 -- | Normalize a 'Type'.
 normalizeTypeM
-    :: HasUniApply uni
+    :: MonadNormalizeType uni m
     => Type TyName uni ann
-    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ann))
-normalizeTypeM ty = Norm.runNormalizeTypeM $ Norm.normalizeTypeM ty
+    -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ann))
+normalizeTypeM ty = Norm.runNormalizeTypeT $ Norm.normalizeTypeM ty
 
 -- | Substitute a type for a variable in a type and normalize the result.
 substNormalizeTypeM
-    :: HasUniApply uni
+    :: MonadNormalizeType uni m
     => Normalized (Type TyName uni ())  -- ^ @ty@
     -> TyName                           -- ^ @name@
     -> Type TyName uni ()               -- ^ @body@
-    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
-substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeTypeM ty name body
+    -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
+substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeTypeM ty name body
 
 -- ###################
 -- ## Kind checking ##
@@ -210,8 +230,8 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeM $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: (AsTypeError err term uni fun ann, ToKind uni)
-    => Type TyName uni ann -> TypeCheckM uni fun cfg err (Kind ())
+    :: MonadKindCheck err term uni fun ann m
+    => Type TyName uni ann -> TypeCheckT uni fun cfg m (Kind ())
 
 -- b :: k
 -- ------------------------
@@ -268,8 +288,8 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: (AsTypeError err term uni fun ann, ToKind uni)
-    => ann -> Type TyName uni ann -> Kind () -> TypeCheckM uni fun cfg err ()
+    :: MonadKindCheck err term uni fun ann m
+    => ann -> Type TyName uni ann -> Kind () -> TypeCheckT uni fun cfg m ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
 -- ---------------------------------
@@ -280,11 +300,11 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: (AsTypeError err term uni fun ann, ToKind uni)
+    :: MonadKindCheck err term uni fun ann m
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.
-    -> TypeCheckM uni fun cfg err ()
+    -> TypeCheckT uni fun cfg m ()
 checkKindOfPatternFunctorM ann pat k =
     checkKindM ann pat $ KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 
@@ -294,11 +314,11 @@ checkKindOfPatternFunctorM ann pat k =
 
 -- | @unfoldIFixOf pat arg k = NORM (vPat (\(a :: k) -> ifix vPat a) arg)@
 unfoldIFixOf
-    :: HasUniApply uni
+    :: MonadNormalizeType uni m
     => Normalized (Type TyName uni ())  -- ^ @vPat@
     -> Normalized (Type TyName uni ())  -- ^ @vArg@
     -> Kind ()                          -- ^ @k@
-    -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
+    -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 unfoldIFixOf pat arg k = do
     let vPat = unNormalized pat
         vArg = unNormalized arg
@@ -321,10 +341,8 @@ unfoldIFixOf pat arg k = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
-       )
-    => Term TyName Name uni fun ann -> TypeCheckM uni fun cfg err (Normalized (Type TyName uni ()))
+    :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
+    => Term TyName Name uni fun ann -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 
 -- c : vTy
 -- -------------------------
@@ -418,13 +436,11 @@ inferTypeM (Error ann ty) = do
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
-    :: ( AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , HasTypeCheckConfig cfg uni fun, GEq uni, Ix fun
-       )
+    :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
-    -> TypeCheckM uni fun cfg err ()
+    -> TypeCheckT uni fun cfg m ()
 
 -- [infer| G !- term : vTermTy]    vTermTy ~ vTy
 -- ---------------------------------------------

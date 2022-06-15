@@ -689,8 +689,8 @@ Here's a similar built-in function:
         where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-              DefaultUniPair uniA _ <- pure uniPairAB          -- [1]
-              pure . fromConstant . someValueOf uniA $ fst xy  -- [2]
+              DefaultUniPair uniA _ <- pure uniPairAB  -- [1]
+              pure . fromValueOf uniA $ fst xy         -- [2]
 
 In this definition we extract the first element of a pair by checking that the given constant is
 indeed a pair [1] and lifting its first element into @val@ using the type tag for the first
@@ -728,9 +728,9 @@ Our final example is this:
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList uniA' <- pure uniListA                -- [1]
-                Just Refl <- pure $ uniA `geq` uniA'                 -- [2]
-                pure . fromConstant . someValueOf uniListA $ x : xs  -- [3]
+                DefaultUniList uniA' <- pure uniListA  -- [1]
+                Just Refl <- pure $ uniA `geq` uniA'   -- [2]
+                pure . fromValueOf uniListA $ x : xs   -- [3]
 
 Here we prepend an element to a list [3] after checking that the second argument is indeed a
 list [1] and that the type tag of the element being prepended equals the type tag for elements of
@@ -1151,7 +1151,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
-              pure . fromConstant . someValueOf uniA $ fst xy
+              pure . fromValueOf uniA $ fst xy
           {-# INLINE fstPlc #-}
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
@@ -1161,7 +1161,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
           sndPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
-              pure . fromConstant . someValueOf uniB $ snd xy
+              pure . fromValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
     -- Lists
     toBuiltinMeaning ChooseList =
@@ -1194,7 +1194,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- Should that rather give us an 'UnliftingError'? For that we need
                 -- https://github.com/input-output-hk/plutus/pull/3035
                 Just Refl <- pure $ uniA `geq` uniA'
-                pure . fromConstant . someValueOf uniListA $ x : xs
+                pure . fromValueOf uniListA $ x : xs
           {-# INLINE consPlc #-}
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
@@ -1205,7 +1205,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           headPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
-              pure . fromConstant $ someValueOf uniA x
+              pure $ fromValueOf uniA x
           {-# INLINE headPlc #-}
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
@@ -1216,7 +1216,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs
-              pure . fromConstant $ someValueOf uniListA xs'
+              pure $ fromValueOf uniListA xs'
           {-# INLINE tailPlc #-}
     toBuiltinMeaning NullList =
         makeBuiltinMeaning

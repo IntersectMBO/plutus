@@ -20,6 +20,7 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusPrelude
 
+import Codec.Serialise (Serialise)
 import Control.Monad.RWS.Strict
 import Data.Aeson
 import Data.ByteString qualified as BS
@@ -104,6 +105,7 @@ newtype ExMemory = ExMemory CostingInteger
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
+  deriving Serialise via CostingInteger
 instance Pretty ExMemory where
     pretty (ExMemory i) = pretty (toInteger i)
 instance PrettyBy config ExMemory where
@@ -116,6 +118,7 @@ newtype ExCPU = ExCPU CostingInteger
   deriving newtype (Num, NFData)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
+  deriving Serialise via CostingInteger
 instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where

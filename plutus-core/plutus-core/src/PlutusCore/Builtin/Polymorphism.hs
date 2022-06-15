@@ -16,16 +16,11 @@ module PlutusCore.Builtin.Polymorphism
     , TyForallRep
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
-import PlutusCore.Pretty
 
-import Control.Applicative
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.Bifoldable
-import Data.Bifunctor
-import Data.Bitraversable
 import Data.Kind qualified as GHC (Type)
 import GHC.Ix
 import GHC.TypeLits
@@ -61,7 +56,9 @@ We need to support polymorphism for built-in functions for these reasons:
 -- Haskell and back and instead can keep it intact.
 newtype Opaque val (rep :: GHC.Type) = Opaque
     { unOpaque :: val
-    } deriving newtype (Pretty, HasConstant)
+    } deriving newtype (HasConstant)
+-- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
+-- kind of type errors.
 
 type instance UniOf (Opaque val rep) = UniOf val
 
@@ -73,6 +70,12 @@ type instance UniOf (Opaque val rep) = UniOf val
 newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
     }
+
+type instance UniOf (SomeConstant uni rep) = uni
+
+instance HasConstant (SomeConstant uni rep) where
+    asConstant   = coerceArg pure
+    fromConstant = coerce
 
 {- Note [Implementation of polymorphic built-in functions]
 TODO: FIX THIS MESS
@@ -198,11 +201,11 @@ underTypeError :: void
 underTypeError = error "Panic: a 'TypeError' was bypassed"
 
 type NoStandalonePolymorphicDataErrMsg =
-    'Text "Plutus type variables can't directly appear inside built-in types" ':$$:
+    'Text "An unwrapped built-in type constructor can't be applied to a type variable" ':$$:
     'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
-    'Text "In that case you need to wrap all polymorphic built-in types having type variables" ':$$:
-    'Text "  in them with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the type" ':$$:
-    'Text "  of an argument or the type of the result, respectively"
+    'Text "In that case you need to wrap all polymorphic built-in types applied to type" ':$$:
+    'Text "  variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the" ':$$:
+    'Text "  type of an argument or the type of the result, respectively"
 
 instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
     knownUni = underTypeError
@@ -251,47 +254,3 @@ instance TypeError NoConstraintsErrMsg => Semigroup (Opaque val rep) where
 
 instance TypeError NoConstraintsErrMsg => Monoid (Opaque val rep) where
     mempty = underTypeError
-
-type NoRegularlyAppliedHkVarsMsg =
-    'Text "Built-in functions are not allowed to have higher-kinded type variables" ':$$:
-    'Text "  applied via regular type application" ':$$:
-    'Text "To fix this error instantiate all higher-kinded type variables"
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Functor (Opaque val) where
-    fmap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Foldable (Opaque val) where
-    foldMap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Traversable (Opaque val) where
-    traverse = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Applicative (Opaque val) where
-    pure = underTypeError
-    (<*>) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Alternative (Opaque val) where
-    empty = underTypeError
-    (<|>) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Monad (Opaque val) where
-    (>>=) = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadIO (Opaque val) where
-    liftIO = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadPlus (Opaque val) where
-    mzero = underTypeError
-    mplus = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => MonadFail (Opaque val) where
-    fail = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bifunctor Opaque where
-    bimap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bifoldable Opaque where
-    bifoldMap = underTypeError
-
-instance TypeError NoRegularlyAppliedHkVarsMsg => Bitraversable Opaque where
-    bitraverse = underTypeError
