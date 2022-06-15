@@ -119,7 +119,7 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       T.writeFile outFilePath shownParseError
                     Right pro -> do
-                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
+                      res <- trySyncOrAsync (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
                       case res of
                         Right (Just prog) -> do
                           T.writeFile outFilePath (render $ pretty prog)

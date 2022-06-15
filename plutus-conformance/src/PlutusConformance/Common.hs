@@ -93,7 +93,7 @@ mkResult ::
     -> IO T.Text -- ^ The result in `Text`.
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
-    maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
+    maybeException <- trySyncOrAsync (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
     case maybeException of
         Left e       ->
             if isAsyncException e then

@@ -23,7 +23,7 @@ for the manual.
 
 ## The Plutus Conformance Test Suite Library
 
-The library provides functions that users can import and run conformance tests with their own implementation.
+The library provides functions that users can import and run conformance tests with their own implementation. (At the moment the tests can only be run against another Haskell implementation. More support will be added later.)
 
 ## Untyped Plutus Core Program Evaluation
 
