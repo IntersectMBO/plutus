@@ -166,10 +166,8 @@ scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s Sc
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
-        -- See Note [Size checking of constants in PLC programs]
-        sizeLimit = if lv < PlutusV2 then UPLC.NoLimit else UPLC.Limit 64
         -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-        flatDecoder = UPLC.decodeProgram sizeLimit (\f -> f `Set.member` availableBuiltins)
+        flatDecoder = UPLC.decodeProgram (\f -> f `Set.member` availableBuiltins)
     in do
         -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder

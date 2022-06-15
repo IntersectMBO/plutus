@@ -91,7 +91,6 @@ newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni 
   deriving stock (Generic)
   deriving anyclass (NFData)
   -- See Note [Using Flat inside CBOR instance of Script]
-  -- Important to go via 'WithSizeLimits' to ensure we enforce the size limits for constants
   -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
   -- about introducing a working version
   deriving Serialise via (SerialiseViaFlat (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ()))

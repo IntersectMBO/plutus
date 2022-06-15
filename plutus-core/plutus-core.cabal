@@ -460,7 +460,6 @@ test-suite untyped-plutus-core-test
         bytestring -any,
         cardano-crypto-class -any,
         hedgehog -any,
-        flat -any,
         lens -any,
         mtl -any,
         plutus-core -any,
