@@ -4,7 +4,6 @@
 module PlutusConformance.Common where
 
 import Control.DeepSeq (force)
-import Control.Exception (SomeException, evaluate, try)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Core (defaultVersion)
@@ -14,10 +13,9 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude
-import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.HUnit (testCase, (@=?))
-import Test.Tasty.Options
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UnliftIO.Exception
@@ -97,7 +95,11 @@ mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
     maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
     case maybeException of
-        Left _         -> pure shownEvaluationFailure
+        Left e       ->
+            if isAsyncException e then
+                throwIO e
+            else
+                pure shownEvaluationFailure
         -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
         Right Nothing  -> pure shownEvaluationFailure
         Right (Just a) -> pure $ display a

@@ -62,7 +62,8 @@ executable add-test-output
         plutus-conformance -any,
         plutus-core,
         tasty-golden -any,
-        text -any
+        text -any,
+        unliftio -any
 
 test-suite uplc-eval-test
     import: lang

@@ -13,7 +13,6 @@ module Main
     ) where
 
 import Control.DeepSeq (force)
-import Control.Exception (SomeException, evaluate, try)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
@@ -23,6 +22,7 @@ import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
+import UnliftIO.Exception
 
 -- |  The arguments to the executable.
 data Args = MkArgs
@@ -128,10 +128,13 @@ main = do
                           -- warn the user that the file failed to evaluate
                           T.writeFile outFilePath shownEvaluationFailure
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                        Left _ -> do
-                          -- warn the user that exception is thrown
-                          T.writeFile outFilePath shownEvaluationFailure
-                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
+                        Left e ->
+                          if isAsyncException e then
+                            throwIO e
+                          else do
+                            -- warn the user that exception is thrown
+                            T.writeFile outFilePath shownEvaluationFailure
+                            putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
 
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
