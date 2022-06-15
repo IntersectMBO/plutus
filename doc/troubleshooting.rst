@@ -64,6 +64,32 @@ So get this working in your editor, make sure to do these two things:
 
 If this doesn't work, run ``which haskell-language-server`` in `nix-shell`, and use this absolute path in the configuration of your editor.
 
+Script deserialisation errors
+-----------------------------
+
+BuiltinByteString size limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Currently the maximum size of a `BuiltinByteString` is limited to slightly less than 64 bytes. When such a bytestring is encoded into the script or used as part of a Datum or a Redeemer, the script will fail with the following error:
+
+```
+DeserialiseFailure 175 "BadEncoding (0x00000042000d60ff,S {currPtr = 0x00000042000d60da, usedBits = 0}) \"Used more than 64 bytes decoding the constant: (con\\n  bytestring\\n  #048379352db5140c4a39137dd08c69193af732a7ceee3e6ff8cb07e37ce82e035579551734d7d9e4b6853d45c4a7846d5ef570e56f0353f83dad3b478a5f6699\\n)\""
+
+However, we sometimes need more than this. For example ECDSA SECP256k1 signatures use a 64 byte verification key. To mitigate this problem, we could split the bytestring into multiple pieces, and concatenate them on-chain.
+
+**Off-chain code:**
+```haskell
+let datum = bimap PlutusTx.Builtins.toBuiltin PlutusTx.Builtins.toBuiltin $ ByteString.splitAt 32 vkey
+```
+
+**On-chain code:**
+```haskell
+let (vkey1, vkey2) = datum
+    vkey = PlutusTx.Builtins.appendByteString vkey1 vkey2
+```
+
+There is a plan to remove this limitation in a later version:
+https://github.com/input-output-hk/plutus/issues/4697
+
 Error codes
 -----------
 

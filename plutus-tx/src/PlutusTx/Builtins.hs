@@ -176,6 +176,8 @@ decodeUtf8 = BI.decodeUtf8
 -- The verification key, the signature, and the message hash must all be of
 -- appropriate form and length. This function will error if any of
 -- these are not the case.
+--
+-- The ESDSA SECP256k1 verification key is 64 bytes, but currently there is a limitation for BuiltinByteString sizes. See [Troubleshooting](https://github.com/input-output-hk/plutus/blob/master/doc/troubleshooting.rst#builtinbytestring-size-limit) for more information.
 verifyEcdsaSecp256k1Signature
   :: BuiltinByteString -- ^ Verification key (64 bytes)
   -> BuiltinByteString -- ^ Message hash (32 bytes)
@@ -193,6 +195,8 @@ verifyEcdsaSecp256k1Signature vk msg sig =
 --
 -- The verification key and signature must all be of appropriate form and
 -- length. This function will error if this is not the case.
+--
+-- The Schnorr SECP256k1 verification key is 64 bytes, but currently there is a limitation for BuiltinByteString sizes. See [Troubleshooting](https://github.com/input-output-hk/plutus/blob/master/doc/troubleshooting.rst#builtinbytestring-size-limit) for more information.
 verifySchnorrSecp256k1Signature
   :: BuiltinByteString -- ^ Verification key (64 bytes)
   -> BuiltinByteString -- ^ Message
