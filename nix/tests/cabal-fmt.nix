@@ -1,6 +1,6 @@
 { runCommand, fixCabalFmt, src, lib, diffutils, glibcLocales }:
 let
-  src' = lib.sourceFilesBySuffix src [ ".cabal" ];
+  src' = lib.sourceFilesBySuffices src [ ".cabal" ];
 in
 runCommand "cabal-fmt"
 {
