@@ -97,22 +97,46 @@ builtins this is rarely the case as most of the time we want aggressive inlining
 and the "just compute the damn thing" behavior.
 -}
 
-{- Note [Unlifting values of built-in types]
-It's trivial to unlift from a term a value of a monomorphic type like 'Integer': just check that
-the term is a constant, extract the type tag and check it for equality with the type tag of
-'Integer'.
+{- Note [Unlifting terminology]
+This function:
+
+    f :: Integer -> CkValue DefaultUni fun
+    f = VCon . Some . ValueOf DefaultUniInteger
+
+lifts an 'Integer' to 'CkValue'. Unlifting is the opposite:
+
+    g :: CkValue DefaultUni fun -> Maybe Integer
+    g (VCon (Some (ValueOf uni x))) = case uni of
+        DefaultUniInteger -> Just x
+        _                 -> Nothing
+
+The following usages of the "unlift" term are grammatical:
+
+1. unlift a 'CkValue' to 'Integer'
+2. unlift to 'Integer'
+3. unlift a 'CkValue' as an 'Integer'
+4. unlift from the 'VCon' constructor (or just 'VCon') to 'Integer'
+
+We call the integer that @g@ returns "the unlifted integer".
+-}
+
+{- Note [Unlifting a term as a value of a built-in type]
+See Note [Unlifting terminology] first.
+
+It's trivial to unlift a term to a monomorphic type like 'Integer': just check that the term is a
+constant, extract the type tag and check it for equality with the type tag of 'Integer'.
 
 Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
 any different from just 'Integer' unlifting-wise.
 
-However there's no sensible way of unlifting a value of, say, @[a]@ where @a@ in not a built-in
-type. So let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions
-that don't deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd
-need to write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which
-is really easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be
-cheap and that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making
-perfectly linear algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for
-how that would look like.
+However there's no sensible way of unlifting to, say, @[a]@ where @a@ in not a built-in type. So
+let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions that don't
+deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd need to
+write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which is really
+easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be cheap and
+that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making perfectly linear
+algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for how that would
+look like.
 
 So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of
 statically-unknown type (that @a@ is existential) to @[a']@ where @a'@ is known statically.
@@ -140,10 +164,10 @@ So what we do is we simply require the user to write
 
     nullList :: SomeConstant uni [a] -> Bool
 
-and unlift a @[a]@ manually within the definition of the builtin. This works, because the
+and unlift to @[a]@ manually within the definition of the builtin. This works, because the
 existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
 and use it immediately without ever exposing the existential parts to the outside and it's not fine
-to try to return a value having an existential inside of it, which is what unlifting of @[a]@ would
+to try to return a value having an existential inside of it, which is what unlifting to @[a]@ would
 amount to.
 
 Could we somehow align the unlifting machinery so that it does not construct values of particular
@@ -152,7 +176,7 @@ try to escape? Maybe, but see point 2 from the above, we do want to get our hand
 universes sometimes and point 1 prevents us from doing that generically, so it doesn't seem like
 we could do that within some automated machinery.
 
-Overall, asking the user to manually unlift from @SomeConstant uni [a]@ is just always going to be
+Overall, asking the user to manually unlift a @SomeConstant uni [a]@ is just always going to be
 faster than any kind of fancy encoding.
 -}
 
@@ -170,6 +194,7 @@ constraints are completely different in the two cases and we keep the two concep
 -- | Attach a @cause@ to a 'KnownTypeError' and throw that.
 -- Note that an evaluator might require the cause to be computed lazily for best performance on the
 -- happy path, hence this function must not force its first argument.
+-- TODO: wrap @cause@ in 'Lazy' once we have it.
 throwKnownTypeErrorWithCause
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
     => cause -> KnownTypeError -> m void

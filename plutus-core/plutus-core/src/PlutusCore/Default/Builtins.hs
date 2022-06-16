@@ -37,7 +37,7 @@ import Flat.Decoder
 import Flat.Encoder as Flat
 
 -- See Note [Pattern matching on built-in types].
--- TODO: should we have the commonest builtins at the front to have more compact encoding?
+-- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
@@ -91,6 +91,7 @@ data DefaultFun
     | TailList
     | NullList
     -- Data
+    -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
@@ -107,10 +108,10 @@ data DefaultFun
     | UnBData
     | EqualsData
     | SerialiseData
-    -- Misc constructors
-    -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in
-    -- functions over polymorphic built-in types])
+    -- Misc monomorphized constructors.
+    -- We could simply replace those with constants, but we use built-in functions for consistency
+    -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
+    -- See note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -453,7 +454,7 @@ So we use the @Opaque val rep@ wrapper, which is basically a @val@ with a @rep@ 
 Not only does this encoding allow us to specify both the Haskell and the Plutus types of the
 builtin simultaneously, but it also makes it possible to infer such a type from a regular
 polymorphic Haskell function (how that is done is a whole another story), so that we don't even need
-to specify any types when creating builtins out of simple polymorphic functions.
+to specify any types when creating built-in functions out of simple polymorphic denotations.
 
 If we wanted to specify the type explicitly, we could do it like this (leaving out the @Var0@ thing
 for the elaboration machinery to figure out):
@@ -621,8 +622,9 @@ As opposed to "automatic unlifting" that we were using before where 'Bool' in th
 denotation of a builtin causes the builtins machinery to convert the given argument to a 'Bool'
 constant automatically behind the scenes.
 
-3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift
-automatically to a constant and then unlift manually to 'Bool' using the 'SomeConstant' wrapper:
+3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift a value
+automatically as a constant and then unlift the result manually to 'Bool' using the 'SomeConstant'
+wrapper:
 
     newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
         { unSomeConstant :: Some (ValueOf uni)
@@ -659,8 +661,8 @@ we'll get an error, saying that a polymorphic built-in type can't be applied to 
 It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
 general case, plus it has to be very inefficient.
 
-Instead we have to use 'SomeConstant' to automatically unlift to a constant and then check that the
-value inside of it is a list (by matching on the type tag):
+Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
+check that the value inside of it is a list (by matching on the type tag):
 
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
@@ -758,7 +760,7 @@ This last part means that one can attach any (legal) @rep@ to an 'Opaque' or 'So
 it'll be used by the Plutus type checker completely regardless of what the built-in function
 actually does. Let's look at some examples.
 
-1. The following built-in function unlifts a 'Bool' and returns it back:
+1. The following built-in function unlifts to 'Bool' and lifts the result back:
 
     toBuiltinMeaning IdIntegerAsBool =
         makeBuiltinMeaning
@@ -829,9 +831,9 @@ goes without saying that this is not supposed to be done.
 
 So overall one needs to be very careful when defining built-in functions that have explicit
 'Opaque' and 'SomeConstant' arguments. Expressiveness doesn't come for free.
+
+Read Note [Pattern matching on built-in types] next.
 -}
-
-
 
 {- Note [Pattern matching on built-in types]
 At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
@@ -860,9 +862,10 @@ make its pattern matcher into a builtin we can have the following builtin:
 which fits perfectly well into the builtins machinery.
 
 Although that becomes annoying for more complex data types. For tuples we need to provide two
-projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too
-bad, but to get pattern matching on lists we need three built-in functions: @null@, @head@ and
-@tail@ and to require `Bool` to be in the universe to be able to define a PLC equivalent of
+projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too bad,
+but to get pattern matching on lists we need a more complicated setup. For example we can have three
+built-in functions: @null@, @head@ and @tail@, plus require `Bool` to be in the universe, so that we
+can define an equivalent of
 
     matchList :: [a] -> r -> (a -> [a] -> r) -> r
     matchList xs z f = if null xs then z else f (head xs) (tail xs)
@@ -903,14 +906,24 @@ are omitted for clarity):
 
 which, for example, evaluates to @fMap es@ when @d@ is @Map es@
 
+We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency.
+
 On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
 prioritize performance over convenience, especially given the fact that performance is of a concern
 to every single end user while the inconvenience is only a concern for the compiler writers and
 we don't add complex built-in types too often.
+
+It is not however clear if we can't get more performance gains by defining matchers directly as
+higher-order built-in functions compared to forbidding them. Particularly since if higher-order
+built-in functions were allowed, we could define not only matches, but also folds and keep recursion
+on the Haskell side for conversions from 'Data', which can potentially have a huge positive impact
+on performance.
+
+Read Note [Representable built-in functions over polymorphic built-in types] next.
 -}
 
 {- Note [Representable built-in functions over polymorphic built-in types]
-In Note [Pattern matching on built-in types] we talked about how general higher-order polymorphic
+In Note [Pattern matching on built-in types] we discussed how general higher-order polymorphic
 built-in functions are troubling, but polymorphic built-in functions can be troubling even in
 the first-order case. In a Plutus program we always pair constants of built-in types with their
 tags from the universe, which means that in order to produce a constant embedded into a program
@@ -985,9 +998,10 @@ and then defining
 
 and then the Plutus Tx compiler can provide a type class or something for constructing singletons
 for built-in types.
+
+This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but we decided not to
+do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
-
-
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
@@ -1306,15 +1320,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
     toBuiltinMeaning MkNilData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
     toBuiltinMeaning MkNilPairData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
