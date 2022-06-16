@@ -18,7 +18,7 @@ import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
 import Criterion.Main
-import Data.Bits (complement)
+import Data.Bits (complement, xor, (.&.))
 import Data.ByteString qualified as BS
 import Hedgehog qualified as H
 import System.Random (StdGen)
@@ -63,7 +63,14 @@ mkSignatureData seed msg =
     let !signKey = genKeyDSIGN $ mkSeedFromBytes seed :: SignKeyDSIGN v
         !goodSig = signDSIGN () msg signKey
         !goodSigBytes = rawSerialiseSigDSIGN goodSig
-        !badSigBytes = BS.reverse goodSigBytes -- BS.map complement goodSigBytes  --
+        !badSigBytes =
+            let r = goodSigBytes -- BS.reverse goodSigBytes
+                h = BS.head r
+                t = BS.tail r
+                h' = 0x00
+                r' = BS.cons h' t
+            in r'  -- BS.reverse r'
+
         !vk = deriveVerKeyDSIGN signKey
         !vkBytes = rawSerialiseVerKeyDSIGN vk
     in SignatureData msg vkBytes goodSigBytes badSigBytes
@@ -114,6 +121,26 @@ benchVerifyEd25519SignatureX =
 -- However in the latter case the program will terminate anyway, so we don't
 -- care about costing it accurately.] Just to be sure, check the results, maybe
 -- try with bigger inputs.
+
+{- benchVerifyEd25519Signature :: Benchmark
+benchVerifyEd25519Signature =
+    let !name = VerifyEd25519Signature
+        !msgs = bigByteStrings seedA
+        !seeds = makeSizedByteStrings seedA $ take (length msgs) $ repeat 64
+        !sigdata = zipWith (mkSignatureData @ Ed25519DSIGN) seeds msgs
+        !pubkeys = map vkey sigdata
+        !goodSigs = map goodSignature sigdata
+        !badSigs = map badSignature sigdata
+    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (badSigs++goodSigs)
+-}
+
+benchVerifyEcdsaSecp256k1SignatureX :: Benchmark
+benchVerifyEcdsaSecp256k1SignatureX =
+    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
+        where name = VerifyEcdsaSecp256k1Signature
+              pubkeys    = listOfSizedByteStrings 50 64
+              messages   = listOfSizedByteStrings 50 32
+              signatures = listOfSizedByteStrings 50 64
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
