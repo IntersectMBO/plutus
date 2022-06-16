@@ -123,11 +123,13 @@ We call the integer that @g@ returns "the unlifted integer".
 {- Note [Unlifting a term as a value of a built-in type]
 See Note [Unlifting terminology] first.
 
-It's trivial to unlift a term to a monomorphic type like 'Integer': just check that the term is a
-constant, extract the type tag and check it for equality with the type tag of 'Integer'.
+It's trivial to unlift a term to a monomorphic built-in type like 'Integer': just check that the
+term is a constant, extract the type tag and check it for equality with the type tag of 'Integer'.
 
 Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
 any different from just 'Integer' unlifting-wise.
+
+(TODO: the following explanation needs to be improved, there's PLT-338 for that)
 
 However there's no sensible way of unlifting to, say, @[a]@ where @a@ in not a built-in type. So
 let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions that don't
@@ -189,6 +191,48 @@ polymorphic built-in types are only liftable/unliftable when they're fully monom
 'toTypeAst' works for polymorphic built-in types that have type variables in them, and so the
 constraints are completely different in the two cases and we keep the two concepts apart
 (there doesn't seem to be any cons to that).
+-}
+
+{- Note [Allowed unlifting and lifting]
+Read Note [Alignment of ReadKnownIn and MakeKnownIn] first.
+
+The following classes of Haskell types represent Plutus types:
+
+1. monomorphic built-in types such as @Bool@
+   (assuming @Bool@ is in the universe)
+2. polymorphic built-in types such as @(a, b)@ for any @a@ and @b@ representing Plutus types
+   (assuming @(,)@ is in the universe)
+3. @Opaque val rep@ for any @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for any @rep@ representing a Plutus type
+5. @Emitter a@ for any @a@ representing a Plutus type
+6. @EvaluationResult a@ for any @a@ representing a Plutus type
+7. 'TyVarRep', 'TyAppRep', 'TyForallRep' and all similar types mirroring constructors of @Type@
+8. @a -> b@ for any @a@ and @b@ representing Plutus types (mirrors 'TyFun')
+9. anything else that has a 'KnownTypeAst' instance, for example we express the
+   @KnownTypeAst DefaultUni Int@ instance in terms of the @KnownType DefaultUni Integer@
+   one
+
+Unlifting is allowed to the following classes of types:
+
+1. monomorphic built-in types such as @Bool@
+2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+3. @Opaque val rep@ for @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+5. anything else that implements 'ReadKnownIn', for example we express the
+   @ReadKnownIn DefaultUni term Int@ instance in terms of the @ReadKnownIn DefaultUni term Integer@
+   one, and for another example define an instance for 'Void' in tests
+
+Lifting is allowed to the following classes of types:
+
+1. monomorphic built-in types such as @Bool@
+2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+3. @Opaque val rep@ for @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+5. @Emitter a@ for any @a@ that lifting is allowed to
+6. @EvaluationResult a@ for any @a@ that lifting is allowed to
+7. anything else that implements 'MakeKnownIn', for example we express the
+   @MakeKnownIn DefaultUni term Int@ instance in terms of the @MakeKnownIn DefaultUni term Integer@
+   one, and for another example define an instance for 'Void' in tests
 -}
 
 -- | Attach a @cause@ to a 'KnownTypeError' and throw that.
