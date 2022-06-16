@@ -741,7 +741,7 @@ library index-envs
     , ral              ==0.1
     , vector
 
--- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
+-- We use ral==0.1 as ral 0.2 conflicts with cardano-binary:recursion-schemes
 benchmark index-envs-bench
   import:           lang
   type:             exitcode-stdio-1.0
