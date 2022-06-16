@@ -103,25 +103,25 @@ library
     , transformers
 
 library plutus-ledger-api-testlib
-    import: lang
-    visibility: public
-    hs-source-dirs: testlib
-    exposed-modules:
-        PlutusLedgerApi.Test.Examples
-        PlutusLedgerApi.Test.EvaluationContext
-        PlutusLedgerApi.Test.EvaluationEvent
-        PlutusLedgerApi.Test.Scripts
-    build-depends:
-        base >=4.9 && <5,
-        base64-bytestring -any,
-        bytestring -any,
-        prettyprinter -any,
-        plutus-core ^>=1.0,
-        plutus-tx ^>=1.0,
-        plutus-ledger-api -any,
-        serialise -any,
-        text -any,
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  testlib
+  exposed-modules:
+    PlutusLedgerApi.Test.EvaluationContext
+    PlutusLedgerApi.Test.EvaluationEvent
+    PlutusLedgerApi.Test.Examples
+    PlutusLedgerApi.Test.Scripts
 
+  build-depends:
+    , base               >=4.9 && <5
+    , base64-bytestring
+    , bytestring
+    , plutus-core        ^>=1.0
+    , plutus-ledger-api
+    , plutus-tx          ^>=1.0
+    , prettyprinter
+    , serialise
+    , text
 
 test-suite plutus-ledger-api-test
   import:         lang
