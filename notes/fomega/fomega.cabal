@@ -100,4 +100,5 @@ benchmark fomega-z-combinator-benchmarks
   --
   -- hash: b7d37f2e5d15616c5c328230dd89daf584a0ee424665fe95c683c6778a9a920b
 
+
   default-language: Haskell2010

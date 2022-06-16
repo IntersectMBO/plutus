@@ -756,7 +756,6 @@ benchmark index-envs-bench
     , ral              ==0.1
     , random           >=1.2.0
 
--- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 test-suite index-envs-test
   import:           lang
   type:             exitcode-stdio-1.0
