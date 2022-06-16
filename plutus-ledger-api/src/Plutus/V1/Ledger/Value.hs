@@ -343,17 +343,17 @@ checkBinRel f l r =
             These a b -> f a b
     in checkPred unThese l r
 
+{-# INLINABLE eq #-}
+-- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
+eq :: Value -> Value -> Bool
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
+eq = checkBinRel (==)
+
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel (>=)
-
-{-# INLINABLE gt #-}
--- | Check whether one 'Value' is strictly greater than another. See 'Value' for an explanation of how operations on 'Value's work.
-gt :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-gt l r = not (isZero l && isZero r) && checkBinRel (>) l r
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
@@ -361,17 +361,17 @@ leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel (<=)
 
-{-# INLINABLE lt #-}
--- | Check whether one 'Value' is strictly less than another. See 'Value' for an explanation of how operations on 'Value's work.
-lt :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true. So we have a special case.
-lt l r = not (isZero l && isZero r) && checkBinRel (<) l r
+{-# INLINABLE gt #-}
+-- | Check whether one 'Value' is strictly greater than another.
+-- This is *not* a pointwise operation. @gt l r@ means @geq l r && not (eq l r)@.
+gt :: Value -> Value -> Bool
+gt l r = geq l r && not (eq l r)
 
-{-# INLINABLE eq #-}
--- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-eq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-eq = checkBinRel (==)
+{-# INLINABLE lt #-}
+-- | Check whether one 'Value' is strictly less than another.
+-- This is *not* a pointwise operation. @lt l r@ means @leq l r && not (eq l r)@.
+lt :: Value -> Value -> Bool
+lt l r = leq l r && not (eq l r)
 
 -- | Split a value into its positive and negative parts. The first element of
 --   the tuple contains the negative parts of the value, the second element
