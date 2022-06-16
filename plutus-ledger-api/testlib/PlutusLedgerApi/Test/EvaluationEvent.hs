@@ -1,5 +1,7 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module PlutusLedgerApi.Test.EvaluationEvent (
     ScriptEvaluationEvents (..),
@@ -12,42 +14,84 @@ module PlutusLedgerApi.Test.EvaluationEvent (
 
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
+import PlutusCore.Pretty
 import PlutusLedgerApi.Common
-
-import Codec.Serialise (Serialise (..))
-import Data.List.NonEmpty (NonEmpty)
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
+import Codec.Serialise (Serialise (..), serialise)
+import Data.ByteString.Base64 qualified as Base64
+import Data.ByteString.Lazy qualified as Lazy
+import Data.ByteString.Short qualified as BS
+import Data.List.NonEmpty (NonEmpty)
+import Data.Text.Encoding qualified as Text
+import GHC.Generics (Generic)
+import Prettyprinter
+
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
-    deriving stock (Generic)
+    deriving stock (Show, Generic)
     deriving anyclass (Serialise)
 
--- | All the data needed to evaluate a script using the ledger API, except for the cost model
--- parameters, as these are tracked separately.
+instance Pretty ScriptEvaluationResult where
+    pretty = viaShow
+
+{- | All the data needed to evaluate a script using the ledger API, except for the cost model
+ parameters, as these are tracked separately.
+-}
 data ScriptEvaluationData = ScriptEvaluationData
     { dataProtocolVersion :: ProtocolVersion
     , dataBudget          :: ExBudget
     , dataScript          :: SerialisedScript
     , dataInputs          :: [PLC.Data]
     }
-    deriving stock (Generic)
+    deriving stock (Show, Generic)
     deriving anyclass (Serialise)
 
--- | Information about an on-chain script evaluation event, specifically the information needed
--- to evaluate the script, and the expected result.
+instance Pretty ScriptEvaluationData where
+    pretty ScriptEvaluationData{..} =
+        vsep
+            [ "protocol version:" <+> pretty dataProtocolVersion
+            , "budget: " <+> pretty dataBudget
+            , "script: " <+> pretty (Text.decodeLatin1 . Base64.encode $ BS.fromShort dataScript)
+            , "data: "
+                <+> pretty
+                    ( Text.decodeLatin1 . Base64.encode . Lazy.toStrict $
+                        serialise dataInputs
+                    )
+            ]
+
+{- | Information about an on-chain script evaluation event, specifically the information needed
+ to evaluate the script, and the expected result.
+-}
 data ScriptEvaluationEvent
     = PlutusV1Event ScriptEvaluationData ScriptEvaluationResult
     | PlutusV2Event ScriptEvaluationData ScriptEvaluationResult
-    deriving stock (Generic)
+    deriving stock (Show, Generic)
     deriving anyclass (Serialise)
 
--- | This type contains a list of on-chain script evaluation events. All PlutusV1
--- evaluations (if any) share the same cost parameters. Same with PlutusV2.
---
--- Sharing the cost parameters lets us avoid creating a new `EvaluationContext` for
--- each `ScriptEvaluationEvent`.
+instance Pretty ScriptEvaluationEvent where
+    pretty = \case
+        PlutusV1Event d res ->
+            nest 2 $
+                vsep
+                    [ "PlutusV1Event"
+                    , pretty d
+                    , pretty res
+                    ]
+        PlutusV2Event d res ->
+            nest 2 $
+                vsep
+                    [ "PlutusV2Event"
+                    , pretty d
+                    , pretty res
+                    ]
+
+{- | This type contains a list of on-chain script evaluation events. All PlutusV1
+ evaluations (if any) share the same cost parameters. Same with PlutusV2.
+
+ Sharing the cost parameters lets us avoid creating a new `EvaluationContext` for
+ each `ScriptEvaluationEvent`.
+-}
 data ScriptEvaluationEvents = ScriptEvaluationEvents
     { eventsCostParamsV1 :: Maybe [Integer]
     -- ^ Cost parameters shared by all PlutusV1 evaluation events in `eventsEvents`, if any.
@@ -71,6 +115,26 @@ data UnexpectedEvaluationResult
         [Integer]
         -- ^ Cost parameters
         EvaluationError
+    deriving stock (Show)
+
+instance Pretty UnexpectedEvaluationResult where
+    pretty = \case
+        UnexpectedEvaluationSuccess ev params budget ->
+            nest 2 $
+                vsep
+                    [ "UnexpectedEvaluationSuccess"
+                    , pretty ev
+                    , "Cost parameters:" <+> pretty params
+                    , "Budget spent:" <+> pretty budget
+                    ]
+        UnexpectedEvaluationFailure ev params err ->
+            nest 2 $
+                vsep
+                    [ "UnexpectedEvaluationFailure"
+                    , pretty ev
+                    , "Cost parameters:" <+> pretty params
+                    , "Evaluation error:" <+> pretty err
+                    ]
 
 -- | Re-evaluate an on-chain script evaluation event.
 checkEvaluationEvent ::
