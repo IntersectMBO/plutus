@@ -162,6 +162,7 @@ decodeTerm sizeLimit builtinPred = go
         handleTerm 5 = Force    <$> decode <*> go
         handleTerm 6 = Error    <$> decode
         handleTerm 7 = do
+
             ann <- decode
             fun <- decode
             let t :: Term name uni fun ann

@@ -1,15 +1,27 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+
 module Benchmarks.CryptoAndHashes (makeBenchmarks) where
 
 import Common
 import Generators
-
 import PlutusCore
 
-import Criterion.Main
-import Data.ByteString qualified as BS
-import System.Random (StdGen)
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
+                                   rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
+                                   rawSerialiseVerKeyDSIGN, signDSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN, VerKeyDSIGN)
+import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
+import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
+import Cardano.Crypto.Seed (mkSeedFromBytes)
 
+import Criterion.Main
+import Data.Bits (complement)
+import Data.ByteString qualified as BS
 import Hedgehog qualified as H
+import System.Random (StdGen)
 
 byteStringSizes :: [Int]
 byteStringSizes = fmap (100*) [0,2..98]
@@ -20,6 +32,48 @@ mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 bigByteStrings :: H.Seed -> [BS.ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
+
+mkGoodSignature ::
+    (Signable v a, DSIGNAlgorithm v, ContextDSIGN v ~ ())
+    => ContextDSIGN v
+    -> a
+    -> SignKeyDSIGN v
+    -> SigDSIGN v
+mkGoodSignature ctx msg key = signDSIGN ctx msg key
+
+-- Given a message (size depends on algorithm)
+--  * Generate a good keypair for the given algorithm
+--  * Generate a good signature for the message
+--  * Generate a bad signature or a bad public key (random of appropriate size)
+--  * Benchmark the appropriate signature algorithm with both good data and bad data
+
+data SignatureData = SignatureData {
+      message       :: BS.ByteString
+    , vkey          :: BS.ByteString
+    , goodSignature :: BS.ByteString
+    , badSignature  :: BS.ByteString
+    }
+
+mkSignatureData :: forall v .
+    (Signable v BS.ByteString, DSIGNAlgorithm v, ContextDSIGN v ~ ())
+    => BS.ByteString
+    -> BS.ByteString
+    -> SignatureData
+mkSignatureData seed msg =
+    let signKey = genKeyDSIGN $ mkSeedFromBytes seed :: SignKeyDSIGN v
+        goodSig = signDSIGN () msg signKey
+        goodSigBytes = rawSerialiseSigDSIGN goodSig
+        badSigBytes = BS.map complement goodSigBytes
+        vk = deriveVerKeyDSIGN signKey
+        vkBytes = rawSerialiseVerKeyDSIGN vk
+    in SignatureData msg vkBytes goodSigBytes badSigBytes
+
+{- function                    pubkey message signature
+-------------------------------------------------------
+verifyEd25519Signature           32     any      64
+verifyEcdsaSecp256k1Signature    64      32      64
+verifySchnorrSecp256k1Signature  64     any      64
+-}
 
 
 ---------------- Signature verification ----------------
@@ -33,6 +87,17 @@ bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 
 benchVerifyEd25519Signature :: Benchmark
 benchVerifyEd25519Signature =
+    let !name = VerifyEd25519Signature
+        !msgs = bigByteStrings seedA
+        !seeds = makeSizedByteStrings seedA $ take (length msgs) $ repeat 64
+        !sigdata = zipWith (mkSignatureData @ Ed25519DSIGN) seeds msgs
+        !pubkeys = map vkey sigdata
+        !goodSigs = map goodSignature sigdata
+        !badSigs = map badSignature sigdata
+    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (goodSigs++badSigs)
+
+benchVerifyEd25519SignatureX :: Benchmark
+benchVerifyEd25519SignatureX =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
            where name = VerifyEd25519Signature
                  pubkeys    = listOfSizedByteStrings 50 32

@@ -625,6 +625,7 @@ executable cost-model-budgeting-bench
         plutus-core -any,
         base >=4.9 && <5,
         bytestring -any,
+        cardano-crypto-class -any,
         criterion -any,
         criterion-measurement -any,
         deepseq -any,
