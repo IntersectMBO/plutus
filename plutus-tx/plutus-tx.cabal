@@ -115,15 +115,14 @@ library plutus-tx-testlib
   hs-source-dirs:  testlib
   exposed-modules: PlutusTx.Test
   build-depends:
-    , base           >=4.9 && <5
+    , base                                            >=4.9 && <5
     , filepath
     , flat
     , ghc-prim
     , lens
     , mtl
-    , plutus-core
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
     , plutus-tx
-    , plutus-core:plutus-core-testlib ^>=1.0
     , prettyprinter
     , tagged
     , tasty
@@ -151,7 +150,7 @@ test-suite plutus-tx-test
     Suites.Laws.Serialization
 
   hs-source-dirs:     test
-  build-tool-depends: doctest:doctest -any
+  build-tool-depends: doctest:doctest
   build-depends:
     , aeson
     , base            >=4.9 && <5

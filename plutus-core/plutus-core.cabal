@@ -1,40 +1,50 @@
-cabal-version: 3.0
-name: plutus-core
-version: 1.0.0.0
-license: Apache-2.0
+cabal-version:      3.0
+name:               plutus-core
+version:            1.0.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: michael.peyton-jones@iohk.io
-author: Plutus Core Team
-synopsis: Language library for Plutus Core
-description:
-    Pretty-printer, parser, and typechecker for Plutus Core.
-category: Language, Plutus
-build-type: Simple
-extra-doc-files: README.md
+
+maintainer:         michael.peyton-jones@iohk.io
+author:             Plutus Core Team
+synopsis:           Language library for Plutus Core
+description:        Pretty-printer, parser, and typechecker for Plutus Core.
+category:           Language, Plutus
+build-type:         Simple
+extra-doc-files:    README.md
 extra-source-files:
-    cost-model/data/builtinCostModel.json
-    cost-model/data/cekMachineCosts.json
-    cost-model/data/benching.csv
-    cost-model/data/*.R
-    plutus-core/test/CostModelInterface/defaultCostModelParams.json
+  cost-model/data/*.R
+  cost-model/data/benching.csv
+  cost-model/data/builtinCostModel.json
+  cost-model/data/cekMachineCosts.json
+  plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
-    type: git
-    location: https://github.com/input-output-hk/plutus
+  type:     git
+  location: https://github.com/input-output-hk/plutus
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities -Wunused-packages
-                 -Wmissing-deriving-strategies
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
 
 library
     import: lang
@@ -317,139 +327,143 @@ library
 
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
-    import: lang
-    visibility: public
-    hs-source-dirs: testlib
-    exposed-modules:
-        PlutusCore.Test
-        PlutusCore.Generators
-        PlutusCore.Generators.AST
-        PlutusCore.Generators.Interesting
-        PlutusCore.Generators.NEAT.Common
-        PlutusCore.Generators.NEAT.Spec
-        PlutusCore.Generators.NEAT.Term
-        PlutusCore.Generators.NEAT.Type
-        PlutusCore.Generators.Test
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  testlib
+  exposed-modules:
+    PlutusCore.Generators
+    PlutusCore.Generators.AST
+    PlutusCore.Generators.Interesting
+    PlutusCore.Generators.NEAT.Common
+    PlutusCore.Generators.NEAT.Spec
+    PlutusCore.Generators.NEAT.Term
+    PlutusCore.Generators.NEAT.Type
+    PlutusCore.Generators.Test
+    PlutusCore.Test
+    PlutusIR.Generators.AST
+    PlutusIR.Test
+    Test.Tasty.Extras
 
-        PlutusIR.Test
-        PlutusIR.Generators.AST
+  other-modules:
+    PlutusCore.Generators.Internal.Builtin
+    PlutusCore.Generators.Internal.Denotation
+    PlutusCore.Generators.Internal.Entity
+    PlutusCore.Generators.Internal.TypedBuiltinGen
+    PlutusCore.Generators.Internal.TypeEvalCheck
+    PlutusCore.Generators.Internal.Utils
 
-        Test.Tasty.Extras
-    other-modules:
-        PlutusCore.Generators.Internal.Builtin
-        PlutusCore.Generators.Internal.Denotation
-        PlutusCore.Generators.Internal.Entity
-        PlutusCore.Generators.Internal.TypeEvalCheck
-        PlutusCore.Generators.Internal.TypedBuiltinGen
-        PlutusCore.Generators.Internal.Utils
-    build-depends:
-        base >=4.9 && <5,
-        bifunctors -any,
-        bytestring -any,
-        containers -any,
-        dependent-map >=0.4.0.0,
-        filepath -any,
-        ghc-prim -any,
-        hedgehog >=1.0,
-        integer-gmp -any,
-        lazy-search -any,
-        lens -any,
-        megaparsec -any,
-        mmorph -any,
-        mtl -any,
-        plutus-core -any,
-        prettyprinter >=1.1.0.1,
-        prettyprinter-configurable -any,
-        size-based -any,
-        some < 1.0.3,
-        Stream -any,
-        tasty -any,
-        tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        text -any,
-        transformers -any
+  build-depends:
+    , base                        >=4.9     && <5
+    , bifunctors
+    , bytestring
+    , containers
+    , dependent-map               >=0.4.0.0
+    , filepath
+    , ghc-prim
+    , hedgehog                    >=1.0
+    , integer-gmp
+    , lazy-search
+    , lens
+    , megaparsec
+    , mmorph
+    , mtl
+    , plutus-core
+    , prettyprinter               >=1.1.0.1
+    , prettyprinter-configurable
+    , size-based
+    , some                        <1.0.3
+    , Stream
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , text
+    , transformers
 
 test-suite satint-test
-  import: lang
-  type:              exitcode-stdio-1.0
-  main-is:           TestSatInt.hs
-  build-depends:     base >=4.9 && <5,
-                     test-framework,
-                     test-framework-hunit,
-                     test-framework-quickcheck2,
-                     HUnit,
-                     QuickCheck,
-                     plutus-core
-  default-language:  Haskell2010
-  hs-source-dirs:    plutus-core/satint-test
+  import:           lang
+  type:             exitcode-stdio-1.0
+  main-is:          TestSatInt.hs
+  build-depends:
+    , base                        >=4.9 && <5
+    , HUnit
+    , plutus-core
+    , QuickCheck
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+
+  default-language: Haskell2010
+  hs-source-dirs:   plutus-core/satint-test
 
 test-suite plutus-core-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: plutus-core/test
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
-    other-modules:
-        CBOR.DataStability
-        Check.Spec
-        CostModelInterface.Spec
-        Evaluation.Machines
-        Evaluation.Spec
-        Names.Spec
-        Normalization.Check
-        Normalization.Type
-        Pretty.Readable
-        TypeSynthesis.Spec
-    default-language: Haskell2010
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        containers -any,
-        extra -any,
-        filepath -any,
-        flat -any,
-        hedgehog -any,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        megaparsec -any,
-        mmorph -any,
-        mtl -any,
-        prettyprinter -any,
-        tasty -any,
-        tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        text -any,
-        transformers -any,
-        aeson -any,
-        hex-text -any,
-        serialise -any,
-        template-haskell -any,
-        th-lift-instances -any,
-        th-utilities -any,
-        data-default-class -any,
+  import:           lang
+  type:             exitcode-stdio-1.0
+  main-is:          Spec.hs
+  hs-source-dirs:   plutus-core/test
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    CBOR.DataStability
+    Check.Spec
+    CostModelInterface.Spec
+    Evaluation.Machines
+    Evaluation.Spec
+    Names.Spec
+    Normalization.Check
+    Normalization.Type
+    Pretty.Readable
+    TypeSynthesis.Spec
+
+  default-language: Haskell2010
+  build-depends:
+    , aeson
+    , base                 >=4.9 && <5
+    , bytestring
+    , containers
+    , data-default-class
+    , extra
+    , filepath
+    , flat
+    , hedgehog
+    , hex-text
+    , megaparsec
+    , mmorph
+    , mtl
+    , plutus-core
+    , plutus-core-testlib
+    , prettyprinter
+    , serialise
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , template-haskell
+    , text
+    , th-lift-instances
+    , th-utilities
+    , transformers
 
 test-suite plutus-ir-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: plutus-ir/test
-    other-modules:
-        NamesSpec
-        ParserSpec
-        TransformSpec
-        TypeSpec
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        flat -any,
-        hedgehog -any,
-        megaparsec -any,
-        tasty -any,
-        tasty-hedgehog -any,
-        text -any
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: plutus-ir/test
+  other-modules:
+    NamesSpec
+    ParserSpec
+    TransformSpec
+    TypeSpec
+
+  build-depends:
+    , base                 >=4.9 && <5
+    , flat
+    , hedgehog
+    , megaparsec
+    , plutus-core
+    , plutus-core-testlib
+    , tasty
+    , tasty-hedgehog
+    , text
 
 test-suite untyped-plutus-core-test
     import: lang
@@ -492,181 +506,181 @@ test-suite untyped-plutus-core-test
         text -any
 
 executable plc
-    import: lang
-    main-is: plc/Main.hs
-    hs-source-dirs: executables
-    other-modules:
-        Common
-        Parsers
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        aeson -any,
-        bytestring -any,
-        deepseq -any,
-        flat -any,
-        monoidal-containers -any,
-        mtl -any,
-        optparse-applicative -any,
-        prettyprinter -any,
-        text -any,
-        transformers -any,
-        lens -any,
-        megaparsec -any
+  import:         lang
+  main-is:        plc/Main.hs
+  hs-source-dirs: executables
+  other-modules:
+    Common
+    Parsers
+
+  build-depends:
+    , aeson
+    , base                  >=4.9 && <5
+    , bytestring
+    , deepseq
+    , flat
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core
+    , plutus-core-testlib
+    , prettyprinter
+    , text
+    , transformers
 
 executable uplc
-    import: lang
-    main-is: uplc/Main.hs
-    hs-source-dirs: executables
-    other-modules:
-        Common
-        Parsers
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        aeson -any,
-        bytestring -any,
-        deepseq -any,
-        flat -any,
-        monoidal-containers -any,
-        mtl -any,
-        optparse-applicative -any,
-        prettyprinter -any,
-        split -any,
-        text -any,
-        transformers -any,
-        lens -any,
-        megaparsec -any
+  import:         lang
+  main-is:        uplc/Main.hs
+  hs-source-dirs: executables
+  other-modules:
+    Common
+    Parsers
+
+  build-depends:
+    , aeson
+    , base                  >=4.9 && <5
+    , bytestring
+    , deepseq
+    , flat
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core
+    , plutus-core-testlib
+    , prettyprinter
+    , split
+    , text
+    , transformers
 
 executable pir
-    import: lang
-    main-is: pir/Main.hs
-    hs-source-dirs: executables
-    other-modules:
-        Common
-        Parsers
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        aeson -any,
-        bytestring -any,
-        flat -any,
-        lens -any,
-        deepseq -any,
-        monoidal-containers -any,
-        optparse-applicative -any,
-        mtl -any,
-        transformers -any,
-        bytestring -any,
-        containers -any,
-        prettyprinter -any,
-        cassava -any,
-        text -any,
-        megaparsec -any
+  import:         lang
+  main-is:        pir/Main.hs
+  hs-source-dirs: executables
+  other-modules:
+    Common
+    Parsers
+
+  build-depends:
+    , aeson
+    , base                  >=4.9 && <5
+    , bytestring
+    , cassava
+    , containers
+    , deepseq
+    , flat
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core
+    , plutus-core-testlib
+    , prettyprinter
+    , text
+    , transformers
 
 executable traceToStacks
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: executables/traceToStacks
-    other-modules:
-        Common
-    build-depends:
-        base >=4.9 && <5,
-        cassava -any,
-        integer-gmp -any,
-        bytestring -any,
-        optparse-applicative -any,
-        text -any,
-        vector -any,
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: executables/traceToStacks
+  other-modules:  Common
+  build-depends:
+    , base                  >=4.9 && <5
+    , bytestring
+    , cassava
+    , integer-gmp
+    , optparse-applicative
+    , text
+    , vector
 
 -- Tests for functions called by @traceToStacks@.
 test-suite traceToStacks-test
-    import: lang
-    type: exitcode-stdio-1.0
-    hs-source-dirs: executables/traceToStacks
-    default-language: Haskell2010
-    main-is: TestGetStacks.hs
-    other-modules:
-        Common
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cassava -any,
-        tasty -any,
-        tasty-hunit -any,
-        text -any,
-        vector -any,
+  import:           lang
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   executables/traceToStacks
+  default-language: Haskell2010
+  main-is:          TestGetStacks.hs
+  other-modules:    Common
+  build-depends:
+    , base         >=4.9 && <5
+    , bytestring
+    , cassava
+    , tasty
+    , tasty-hunit
+    , text
+    , vector
 
 -- This runs the microbenchmarks used to generate the cost models for built-in
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
 executable cost-model-budgeting-bench
-    import: lang
-    main-is: Main.hs
-    other-modules:
-        Common
-        CriterionExtensions
-        Generators
-        Benchmarks.Bool
-        Benchmarks.ByteStrings
-        Benchmarks.CryptoAndHashes
-        Benchmarks.Data
-        Benchmarks.Integers
-        Benchmarks.Lists
-        Benchmarks.Misc
-        Benchmarks.Nops
-        Benchmarks.Pairs
-        Benchmarks.Strings
-        Benchmarks.Tracing
-        Benchmarks.Unit
-    hs-source-dirs: cost-model/budgeting-bench
-    build-depends:
-        plutus-core -any,
-        base >=4.9 && <5,
-        bytestring -any,
-        criterion -any,
-        criterion-measurement -any,
-        deepseq -any,
-        filepath -any,
-        directory -any,
-        hedgehog -any,
-        mtl -any,
-        optparse-applicative -any,
-        QuickCheck -any,
-        quickcheck-instances -any,
-        random -any,
-        text -any,
-        time -any
+  import:         lang
+  main-is:        Main.hs
+  other-modules:
+    Benchmarks.Bool
+    Benchmarks.ByteStrings
+    Benchmarks.CryptoAndHashes
+    Benchmarks.Data
+    Benchmarks.Integers
+    Benchmarks.Lists
+    Benchmarks.Misc
+    Benchmarks.Nops
+    Benchmarks.Pairs
+    Benchmarks.Strings
+    Benchmarks.Tracing
+    Benchmarks.Unit
+    Common
+    CriterionExtensions
+    Generators
 
+  hs-source-dirs: cost-model/budgeting-bench
+  build-depends:
+    , base                   >=4.9 && <5
+    , bytestring
+    , criterion
+    , criterion-measurement
+    , deepseq
+    , directory
+    , filepath
+    , hedgehog
+    , mtl
+    , optparse-applicative
+    , plutus-core
+    , QuickCheck
+    , quickcheck-instances
+    , random
+    , text
+    , time
 
 -- This reads CSV data generated by cost-model-budgeting-bench, uses R to build
 -- the cost models for built-in functions, and saves them in a specified
 -- JSON file (see the help).  The 'official' cost model should be checked in
 -- in plutus-core/cost-model/data/builtinCostModel.json.
 executable generate-cost-model
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: cost-model/create-cost-model
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        aeson-pretty -any,
-        barbies -any,
-        bytestring -any,
-        cassava -any,
-        exceptions -any,
-        extra -any,
-        inline-r -any,
-        text -any,
-        vector -any,
-        optparse-applicative -any,
-        directory -any
-    other-modules:
-        CreateBuiltinCostModel
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: cost-model/create-cost-model
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , aeson-pretty
+    , barbies
+    , base                  >=4.9 && <5
+    , bytestring
+    , cassava
+    , directory
+    , exceptions
+    , extra
+    , inline-r
+    , optparse-applicative
+    , plutus-core
+    , text
+    , vector
+
+  other-modules:  CreateBuiltinCostModel
 
 -- The cost models for builtins are generated using R and converted into a JSON
 -- form that can later be used to construct Haskell functions.  This tests that
@@ -678,27 +692,25 @@ executable generate-cost-model
 -- (unlike `cabal run` for exectuables, which sets the working directory to the
 -- current shell directory).
 benchmark cost-model-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: TestCostModels.hs
-    other-modules: TH
-    hs-source-dirs: cost-model/test, cost-model/create-cost-model
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core -any,
-        barbies -any,
-        bytestring -any,
-        cassava -any,
-        exceptions -any,
-        extra -any,
-        hedgehog -any,
-        inline-r -any,
-        mmorph -any,
-        template-haskell -any,
-        text -any,
-        vector -any
-    other-modules:
-        CreateBuiltinCostModel
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        TestCostModels.hs
+  other-modules:  TH
+  hs-source-dirs: cost-model/test cost-model/create-cost-model
+  build-depends:
+    , barbies
+    , base              >=4.9 && <5
+    , bytestring
+    , cassava
+    , exceptions
+    , extra
+    , hedgehog
+    , inline-r
+    , mmorph
+    , plutus-core
+    , template-haskell
+    , text
+    , vector
 
 executable print-cost-model
     import: lang
@@ -712,51 +724,51 @@ executable print-cost-model
         text -any
 
 library index-envs
-    import: lang
-    hs-source-dirs: index-envs/src
-    default-language: Haskell2010
-    exposed-modules:
-      Data.RandomAccessList.Class
-      Data.RandomAccessList.SkewBinary
-      Data.RandomAccessList.SkewBinarySlab
-      Data.RandomAccessList.RelativizedMap
-    build-depends:
-        base >=4.9 && <5,
-        containers -any,
-        extra -any,
-        vector -any,
-        nonempty-vector -any,
-        -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
-        ral == 0.1
+  import:           lang
+  hs-source-dirs:   index-envs/src
+  default-language: Haskell2010
+  exposed-modules:
+    Data.RandomAccessList.Class
+    Data.RandomAccessList.RelativizedMap
+    Data.RandomAccessList.SkewBinary
+    Data.RandomAccessList.SkewBinarySlab
 
+  build-depends:
+    , base             >=4.9 && <5
+    , containers
+    , extra
+    , nonempty-vector
+    , ral              ==0.1
+    , vector
+
+-- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 benchmark index-envs-bench
-    import: lang
-    type: exitcode-stdio-1.0
-    hs-source-dirs: index-envs/bench
-    default-language: Haskell2010
-    main-is: Main.hs
-    build-depends:
-        base >=4.9 && <5,
-        index-envs -any,
-        criterion >= 1.5.9.0,
-        random >= 1.2.0,
-        nonempty-vector -any,
-        -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
-        ral == 0.1
+  import:           lang
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   index-envs/bench
+  default-language: Haskell2010
+  main-is:          Main.hs
+  build-depends:
+    , base             >=4.9     && <5
+    , criterion        >=1.5.9.0
+    , index-envs
+    , nonempty-vector
+    , ral              ==0.1
+    , random           >=1.2.0
 
+-- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 test-suite index-envs-test
-    import: lang
-    type: exitcode-stdio-1.0
-    hs-source-dirs: index-envs/test
-    default-language: Haskell2010
-    main-is: Spec.hs
-    other-modules:
-        RAList.Spec
-    build-depends:
-        base >=4.9 && <5,
-        index-envs -any,
-        nonempty-vector -any,
-        QuickCheck -any,
-        quickcheck-instances -any,
-        tasty -any,
-        tasty-quickcheck -any
+  import:           lang
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   index-envs/test
+  default-language: Haskell2010
+  main-is:          Spec.hs
+  other-modules:    RAList.Spec
+  build-depends:
+    , base                  >=4.9 && <5
+    , index-envs
+    , nonempty-vector
+    , QuickCheck
+    , quickcheck-instances
+    , tasty
+    , tasty-quickcheck

@@ -5,7 +5,7 @@
 let
   inherit (packages) pkgs plutus docs;
   inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt glibcLocales;
-  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
+  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks cabal-fmt;
   inherit (plutus) agdaWithStdlib;
 
   # For Sphinx, and ad-hoc usage
@@ -27,6 +27,7 @@ let
       stylish-haskell = stylish-haskell;
       nixpkgs-fmt = nixpkgs-fmt;
       shellcheck = pkgs.shellcheck;
+      cabal-fmt = cabal-fmt;
     };
     hooks = {
       stylish-haskell.enable = true;
@@ -37,6 +38,7 @@ let
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
         excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*/spago-packages.nix$" ".*/packages.nix$" ];
       };
+      cabal-fmt.enable = true;
       shellcheck.enable = true;
       png-optimization = {
         enable = true;
@@ -67,6 +69,7 @@ let
     pre-commit
     nixFlakesAlias
     nixpkgs-fmt
+    cabal-fmt
     shellcheck
     yq
     zlib
@@ -78,6 +81,7 @@ let
     cardano-repo-tool
     fixPngOptimization
     fixStylishHaskell
+    fixCabalFmt
     haskell-language-server
     haskell-language-server-wrapper
     hie-bios
