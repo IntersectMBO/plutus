@@ -18,6 +18,8 @@ instance Arbitrary Data where
     arbitrary = error "implement me"
     shrink = error "implement me"
 
+-- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
+-- the default implementation of the methods for a built-in type.
 class ArbitraryBuiltin a where
     arbitraryBuiltin :: Gen a
     default arbitraryBuiltin :: Arbitrary a => Gen a
@@ -40,6 +42,9 @@ instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
 
+-- | For providing an 'Arbitrary' instance deferring to 'ArbitraryBuiltin'. Useful for implementing
+-- 'ArbitraryBuiltin' for a polymorphic built-in type by taking the logic for handling spines from
+-- the 'Arbitrary' class and the logic for handling elements from 'ArbitraryBuiltin'.
 newtype AsArbitraryBuiltin a = AsArbitraryBuiltin
     { unAsArbitraryBuiltin :: a
     }
