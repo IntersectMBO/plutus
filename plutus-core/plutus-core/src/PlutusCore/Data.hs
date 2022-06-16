@@ -51,7 +51,9 @@ instance Pretty Data where
         Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
         List ds     -> brackets (sep (punctuate comma (fmap pretty ds)))
         I i         -> pretty i
-        B b         -> pretty (Text.decodeLatin1 (Base64.encode b))
+        B b         ->
+            -- Base64 encode the ByteString since it may contain arbitrary bytes
+            pretty (Text.decodeLatin1 (Base64.encode b))
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually
