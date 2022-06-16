@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
@@ -23,9 +25,9 @@ import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 
--- TODO instance IsTest UplcEval where
+-- Common functions for all tests
 
--- | A TestContent contains what you need to run a test.
+-- | A TestContent contains the input file path, input and output file contents.
 data TestContent =
    MkTestContent {
        -- | The path of the input file. This is also used to name the test.
@@ -84,13 +86,13 @@ evalUplcProg p =
             Left _     -> Nothing
             Right prog -> Just prog
 
-{- | Run the inputs with the runner and return the results, in `Text`.
-When fail, the results are the default texts for parse error or evaluation failure. -}
+{- | Run an input with the `runner` and return the result, in `Text`.
+When fail, the result is either the default text for parse error or evaluation failure. -}
 mkResult ::
     (UplcProg -> Maybe UplcProg) -- ^ The `runner` to run the test inputs with.
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
     -- ^ The result of parsing.
-    -> IO T.Text -- ^ The result in `Text`.
+    -> IO T.Text -- ^ The result of the `runner` in `Text`.
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
     -- catch exceptions from `runner` and keep going unless it's an async exception.
@@ -111,29 +113,22 @@ parseTxt ::
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
--- | Build the test tree given a list of `TestContent` and the runner.
--- TODO maybe abstract this for other tests too if it takes in `mkResult` and `runner`.
-mkTestCases :: [TestContent] -> (UplcProg -> Maybe UplcProg) -> IO TestTree
-mkTestCases lTest runner = do
-    results <- for lTest (mkResult runner . parseTxt . inputProg)
-    -- make everything (name, assertion) all at once to make sure pairings are correct
-    let maybeNameAssertion =
-            zipWithExact (\t res -> (testName t, expected t @=? res)) lTest results
-    testContents <- case maybeNameAssertion of
-        Just lNameAssertion -> pure $
-            fmap (\a -> uncurry testCase a) lNameAssertion
-        Nothing -> error "mkTestCases: Number of tests and results don't match."
-    pure $ testGroup "UPLC evaluation tests" testContents
+-- | Build a test given the runner and a `TestContent`.
+-- TODO maybe abstract this for other tests too if it takes in `mkResult`.
+mkUplcTestCase :: (UplcProg -> Maybe UplcProg) -> TestContent -> TestTree
+mkUplcTestCase runner test =
+    testCase (testName test) (
+        do r <- mkResult runner (parseTxt (inputProg test))
+           expected test @=? r)
 
--- | Run the tests given a `runner`.
-runTests ::
+-- | Run the tests given a `runner` that evaluates UPLC programs.
+runUplcEvalTests ::
     (UplcProg -> Maybe UplcProg)-- ^ The action to run the input through for the tests.
     -> IO ()
-runTests runner = do
+runUplcEvalTests runner = do
     inputFiles <- findByExtension [".uplc"] "uplc/evaluation/"
     outputFiles <- findByExtension [".expected"] "uplc/evaluation/"
     lProgTxt <- for inputFiles T.readFile
     lEvaluatedRes <- for outputFiles T.readFile
     let testContents = mkTestContents inputFiles lEvaluatedRes lProgTxt
-    testTree <- mkTestCases testContents runner
-    defaultMain testTree
+    defaultMain $ testGroup "UPLC evaluation tests" $ fmap (mkUplcTestCase runner) testContents

@@ -84,8 +84,7 @@ module PlutusPrelude
     , printPretty
     -- * Text
     , showText
-    -- * safe zips
-    , zipWithExact
+    -- * safe zip
     , zipWith3Exact
     ) where
 
@@ -217,11 +216,6 @@ printPretty = print . pretty
 
 showText :: Show a => a -> T.Text
 showText = T.pack . show
-
-zipWithExact :: (a -> b -> c) -> [a] -> [b] -> Maybe [c]
-zipWithExact _ [] []         = Just []
-zipWithExact f (a:as) (b:bs) = (:) (f a b) <$> zipWithExact f as bs
-zipWithExact _ _ _           = Nothing
 
 zipWith3Exact :: (a -> b -> c -> d) -> [a] -> [b] -> [c]-> Maybe [d]
 zipWith3Exact _ [] [] []             = Just []
