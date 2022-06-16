@@ -105,7 +105,6 @@ main = do
     inputFiles <-
       case fileOpt of
         Missing -> filterM (\testIn -> not <$> doesFileExist (testIn <> ".expected")) allInputFiles
-        -- Missing -> filterM (fmap (fmap not) (\testIn -> doesFileExist (testIn <> ".expected"))) allInputFiles
         All     -> pure allInputFiles
     case run of
       Eval ->
@@ -119,6 +118,8 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       T.writeFile outFilePath shownParseError
                     Right pro -> do
+                      -- catch all sync exceptions and keep going
+                      -- (we still need this even with `evalUplcProg` using the safe eval function)
                       res <- trySyncOrAsync (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
                       case res of
                         Right (Just prog) -> do
