@@ -434,8 +434,13 @@ instance AsEvaluationFailure CekUserError where
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
-        group $ "The budget was overspent. Final negative state:" <+> pretty res
-    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
+        cat
+          [ "The machine terminated part way through evaluation due to overspending the budget."
+          , "The budget when the machine terminated was:"
+          , pretty res
+          , "Negative numbers indicate the overspent budget; note that this only indicatessthe budget that was needed for the next step, not to run the program to completion."
+          ]
+    pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
