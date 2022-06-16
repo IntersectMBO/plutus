@@ -60,12 +60,12 @@ mkSignatureData :: forall v .
     -> BS.ByteString
     -> SignatureData
 mkSignatureData seed msg =
-    let signKey = genKeyDSIGN $ mkSeedFromBytes seed :: SignKeyDSIGN v
-        goodSig = signDSIGN () msg signKey
-        goodSigBytes = rawSerialiseSigDSIGN goodSig
-        badSigBytes = BS.map complement goodSigBytes
-        vk = deriveVerKeyDSIGN signKey
-        vkBytes = rawSerialiseVerKeyDSIGN vk
+    let !signKey = genKeyDSIGN $ mkSeedFromBytes seed :: SignKeyDSIGN v
+        !goodSig = signDSIGN () msg signKey
+        !goodSigBytes = rawSerialiseSigDSIGN goodSig
+        !badSigBytes = BS.reverse goodSigBytes -- BS.map complement goodSigBytes  --
+        !vk = deriveVerKeyDSIGN signKey
+        !vkBytes = rawSerialiseVerKeyDSIGN vk
     in SignatureData msg vkBytes goodSigBytes badSigBytes
 
 {- function                    pubkey message signature
@@ -94,7 +94,7 @@ benchVerifyEd25519Signature =
         !pubkeys = map vkey sigdata
         !goodSigs = map goodSignature sigdata
         !badSigs = map badSignature sigdata
-    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (goodSigs++badSigs)
+    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (badSigs++goodSigs)
 
 benchVerifyEd25519SignatureX :: Benchmark
 benchVerifyEd25519SignatureX =
