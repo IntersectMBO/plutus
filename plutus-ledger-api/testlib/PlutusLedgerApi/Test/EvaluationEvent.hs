@@ -19,9 +19,8 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
-import Codec.Serialise (Serialise (..), serialise)
+import Codec.Serialise (Serialise (..))
 import Data.ByteString.Base64 qualified as Base64
-import Data.ByteString.Lazy qualified as Lazy
 import Data.ByteString.Short qualified as BS
 import Data.List.NonEmpty (NonEmpty)
 import Data.Text.Encoding qualified as Text
@@ -53,11 +52,7 @@ instance Pretty ScriptEvaluationData where
             [ "protocol version:" <+> pretty dataProtocolVersion
             , "budget: " <+> pretty dataBudget
             , "script: " <+> pretty (Text.decodeLatin1 . Base64.encode $ BS.fromShort dataScript)
-            , "data: "
-                <+> pretty
-                    ( Text.decodeLatin1 . Base64.encode . Lazy.toStrict $
-                        serialise dataInputs
-                    )
+            , "data: " <+> nest 2 (vsep $ pretty <$> dataInputs)
             ]
 
 {- | Information about an on-chain script evaluation event, specifically the information needed
