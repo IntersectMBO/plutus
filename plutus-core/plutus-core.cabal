@@ -48,6 +48,8 @@ library
         PlutusCore.Check.Scoping
         PlutusCore.Check.Uniques
         PlutusCore.Check.Value
+        PlutusCore.Compiler
+        PlutusCore.Compiler.Erase
         PlutusCore.Core
         PlutusCore.Data
         PlutusCore.DataFilePaths
