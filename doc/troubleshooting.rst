@@ -79,11 +79,12 @@ However, we sometimes need more than this. For example ECDSA SECP256k1 signature
 
 **Off-chain code:**
 ::
-  let datum = bimap PlutusTx.Builtins.toBuiltin PlutusTx.Builtins.toBuiltin $ ByteString.splitAt 32 vkey
 
+  let datum = bimap PlutusTx.Builtins.toBuiltin PlutusTx.Builtins.toBuiltin $ ByteString.splitAt 32 vkey
 
 **On-chain code:**
 ::
+
   let (vkey1, vkey2) = datum
       vkey = PlutusTx.Builtins.appendByteString vkey1 vkey2
 
