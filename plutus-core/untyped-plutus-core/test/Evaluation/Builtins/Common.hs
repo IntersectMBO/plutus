@@ -11,6 +11,7 @@ module Evaluation.Builtins.Common
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase qualified as TPLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -30,7 +31,7 @@ typecheckAnd
 typecheckAnd action runtime term = TPLC.runQuoteT $ do
     tcConfig <- TPLC.getDefTypeCheckConfig ()
     _ <- TPLC.inferType tcConfig term
-    return . action runtime $ UPLC.erase term
+    return . action runtime $ TPLC.eraseTerm term
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
