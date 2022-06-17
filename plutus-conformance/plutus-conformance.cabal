@@ -48,13 +48,14 @@ library
   build-depends:
     , base
     , deepseq
+    , directory
+    , filepath
+    , lens
     , megaparsec
     , plutus-core
     , tasty
-    , tasty-golden
-    , tasty-hunit
     , text
-    , unliftio
+    , witherable
 
 executable add-test-output
   import:         lang
