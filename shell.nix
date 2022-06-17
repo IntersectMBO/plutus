@@ -55,9 +55,9 @@ let
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
-    # For plutus-ledger-api:evaluation-test
+    # For scripts/s3-sync-unzip.sh
     awscli2
-    # For plutus-ledger-api:evaluation-test
+    # For scripts/s3-sync-unzip.sh
     bzip2
     cacert
     editorconfig-core-c

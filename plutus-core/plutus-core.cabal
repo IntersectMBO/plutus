@@ -48,6 +48,8 @@ library
         PlutusCore.Check.Scoping
         PlutusCore.Check.Uniques
         PlutusCore.Check.Value
+        PlutusCore.Compiler
+        PlutusCore.Compiler.Erase
         PlutusCore.Core
         PlutusCore.Data
         PlutusCore.DataFilePaths
@@ -259,6 +261,7 @@ library
         array -any,
         barbies -any,
         base >=4.9 && <5,
+        base64-bytestring -any,
         bimap -any,
         bytestring -any,
         cardano-crypto,
@@ -698,7 +701,7 @@ benchmark cost-model-test
     other-modules:
         CreateBuiltinCostModel
 
-executable print-cost-model           
+executable print-cost-model
     import: lang
     main-is: Main.hs
     hs-source-dirs: cost-model/print-cost-model

@@ -101,11 +101,15 @@ library plutus-ledger-api-testlib
         PlutusLedgerApi.Test.Scripts
     build-depends:
         base >=4.9 && <5,
+        base64-bytestring -any,
+        bytestring -any,
+        prettyprinter -any,
         plutus-core ^>=1.0,
         plutus-tx ^>=1.0,
         plutus-ledger-api -any,
         serialise -any,
-        bytestring -any
+        text -any,
+
 
 test-suite plutus-ledger-api-test
     import: lang
