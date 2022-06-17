@@ -160,6 +160,7 @@ executable evaluation-test
         plutus-core -any,
         plutus-ledger-api -any,
         plutus-ledger-api-testlib -any,
+        prettyprinter -any,
         serialise -any,
         text -any,
     default-language: Haskell2010
