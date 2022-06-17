@@ -47,283 +47,274 @@ common lang
     -Wunused-packages -Wmissing-deriving-strategies
 
 library
-    import: lang
-    exposed-modules:
-        PlutusCore
-        PlutusCore.Builtin
-        PlutusCore.Builtin.Debug
-        PlutusCore.Builtin.Elaborate
-        PlutusCore.Builtin.Emitter
-        PlutusCore.Check.Normal
-        PlutusCore.Check.Scoping
-        PlutusCore.Check.Uniques
-        PlutusCore.Check.Value
-        PlutusCore.Compiler
-        PlutusCore.Compiler.Erase
-        PlutusCore.Core
-        PlutusCore.Data
-        PlutusCore.DataFilePaths
-        PlutusCore.DeBruijn
-        PlutusCore.Default
-        PlutusCore.Error
-        PlutusCore.Evaluation.Machine.BuiltinCostModel
-        PlutusCore.Evaluation.Machine.Ck
-        PlutusCore.Evaluation.Machine.CostModelInterface
-        PlutusCore.Evaluation.Machine.CostingFun.Core
-        PlutusCore.Evaluation.Machine.CostingFun.JSON
-        PlutusCore.Evaluation.Machine.ExBudget
-        PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-        PlutusCore.Evaluation.Machine.ExMemory
-        PlutusCore.Evaluation.Machine.Exception
-        PlutusCore.Evaluation.Machine.MachineParameters
-        PlutusCore.Evaluation.Machine.MachineParameters.Default
-        PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
-        PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
-        PlutusCore.Evaluation.Result
-        PlutusCore.Examples.Builtins
-        PlutusCore.Examples.Data.Data
-        PlutusCore.Examples.Data.InterList
-        PlutusCore.Examples.Data.List
-        PlutusCore.Examples.Data.Pair
-        PlutusCore.Examples.Data.Shad
-        PlutusCore.Examples.Data.TreeForest
-        PlutusCore.Examples.Data.Vec
-        PlutusCore.Examples.Everything
-        PlutusCore.Flat
-        PlutusCore.FsTree
-        PlutusCore.Mark
-        PlutusCore.MkPlc
-        PlutusCore.Name
-        PlutusCore.Normalize
-        PlutusCore.Normalize.Internal
-        PlutusCore.Parser
-        PlutusCore.Pretty
-        PlutusCore.Quote
-        PlutusCore.Rename
-        PlutusCore.Rename.Internal
-        PlutusCore.Rename.Monad
-        PlutusCore.StdLib.Data.Bool
-        PlutusCore.StdLib.Data.ChurchNat
-        PlutusCore.StdLib.Data.Data
-        PlutusCore.StdLib.Data.Function
-        PlutusCore.StdLib.Data.Integer
-        PlutusCore.StdLib.Data.List
-        PlutusCore.StdLib.Data.Nat
-        PlutusCore.StdLib.Data.Pair
-        PlutusCore.StdLib.Data.ScottList
-        PlutusCore.StdLib.Data.ScottUnit
-        PlutusCore.StdLib.Data.Sum
-        PlutusCore.StdLib.Data.Unit
-        PlutusCore.StdLib.Everything
-        PlutusCore.StdLib.Meta
-        PlutusCore.StdLib.Meta.Data.Function
-        PlutusCore.StdLib.Meta.Data.Tuple
-        PlutusCore.StdLib.Type
-        PlutusCore.Subst
-        PlutusCore.TypeCheck
-        PlutusCore.TypeCheck.Internal
+  import:          lang
+  exposed-modules:
+    Crypto
+    Data.ByteString.Hash
+    Data.Either.Extras
+    Data.SatInt
+    ErrorCode
+    PlutusCore
+    PlutusCore.Builtin
+    PlutusCore.Builtin.Debug
+    PlutusCore.Builtin.Elaborate
+    PlutusCore.Builtin.Emitter
+    PlutusCore.Check.Normal
+    PlutusCore.Check.Scoping
+    PlutusCore.Check.Uniques
+    PlutusCore.Check.Value
+    PlutusCore.Compiler
+    PlutusCore.Compiler.Erase
+    PlutusCore.Core
+    PlutusCore.Data
+    PlutusCore.DataFilePaths
+    PlutusCore.DeBruijn
+    PlutusCore.Default
+    PlutusCore.Error
+    PlutusCore.Evaluation.Machine.BuiltinCostModel
+    PlutusCore.Evaluation.Machine.Ck
+    PlutusCore.Evaluation.Machine.CostingFun.Core
+    PlutusCore.Evaluation.Machine.CostingFun.JSON
+    PlutusCore.Evaluation.Machine.CostModelInterface
+    PlutusCore.Evaluation.Machine.ExBudget
+    PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+    PlutusCore.Evaluation.Machine.Exception
+    PlutusCore.Evaluation.Machine.ExMemory
+    PlutusCore.Evaluation.Machine.MachineParameters
+    PlutusCore.Evaluation.Machine.MachineParameters.Default
+    PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
+    PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
+    PlutusCore.Evaluation.Result
+    PlutusCore.Examples.Builtins
+    PlutusCore.Examples.Data.Data
+    PlutusCore.Examples.Data.InterList
+    PlutusCore.Examples.Data.List
+    PlutusCore.Examples.Data.Pair
+    PlutusCore.Examples.Data.Shad
+    PlutusCore.Examples.Data.TreeForest
+    PlutusCore.Examples.Data.Vec
+    PlutusCore.Examples.Everything
+    PlutusCore.Flat
+    PlutusCore.FsTree
+    PlutusCore.Mark
+    PlutusCore.MkPlc
+    PlutusCore.Name
+    PlutusCore.Normalize
+    PlutusCore.Normalize.Internal
+    PlutusCore.Parser
+    PlutusCore.Pretty
+    PlutusCore.Quote
+    PlutusCore.Rename
+    PlutusCore.Rename.Internal
+    PlutusCore.Rename.Monad
+    PlutusCore.StdLib.Data.Bool
+    PlutusCore.StdLib.Data.ChurchNat
+    PlutusCore.StdLib.Data.Data
+    PlutusCore.StdLib.Data.Function
+    PlutusCore.StdLib.Data.Integer
+    PlutusCore.StdLib.Data.List
+    PlutusCore.StdLib.Data.Nat
+    PlutusCore.StdLib.Data.Pair
+    PlutusCore.StdLib.Data.ScottList
+    PlutusCore.StdLib.Data.ScottUnit
+    PlutusCore.StdLib.Data.Sum
+    PlutusCore.StdLib.Data.Unit
+    PlutusCore.StdLib.Everything
+    PlutusCore.StdLib.Meta
+    PlutusCore.StdLib.Meta.Data.Function
+    PlutusCore.StdLib.Meta.Data.Tuple
+    PlutusCore.StdLib.Type
+    PlutusCore.Subst
+    PlutusCore.TypeCheck
+    PlutusCore.TypeCheck.Internal
+    PlutusIR
+    PlutusIR.Analysis.RetainedSize
+    PlutusIR.Compiler
+    PlutusIR.Compiler.Definitions
+    PlutusIR.Compiler.Names
+    PlutusIR.Core
+    PlutusIR.Core.Instance
+    PlutusIR.Core.Instance.Flat
+    PlutusIR.Core.Instance.Pretty
+    PlutusIR.Core.Instance.Pretty.Readable
+    PlutusIR.Core.Instance.Scoping
+    PlutusIR.Core.Plated
+    PlutusIR.Core.Type
+    PlutusIR.Error
+    PlutusIR.Mark
+    PlutusIR.MkPir
+    PlutusIR.Parser
+    PlutusIR.Purity
+    PlutusIR.Subst
+    PlutusIR.Transform.Beta
+    PlutusIR.Transform.DeadCode
+    PlutusIR.Transform.Inline
+    PlutusIR.Transform.LetFloat
+    PlutusIR.Transform.LetMerge
+    PlutusIR.Transform.NonStrict
+    PlutusIR.Transform.RecSplit
+    PlutusIR.Transform.Rename
+    PlutusIR.Transform.Substitute
+    PlutusIR.Transform.ThunkRecursions
+    PlutusIR.Transform.Unwrap
+    PlutusIR.TypeCheck
+    PlutusIR.TypeCheck.Internal
+    PlutusPrelude
+    Prettyprinter.Custom
+    Universe
+    UntypedPlutusCore
+    UntypedPlutusCore.Check.Scope
+    UntypedPlutusCore.Check.Uniques
+    UntypedPlutusCore.Core
+    UntypedPlutusCore.Core.Type
+    UntypedPlutusCore.DeBruijn
+    UntypedPlutusCore.Evaluation.Machine.Cek
+    UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+    UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+    UntypedPlutusCore.MkUPlc
+    UntypedPlutusCore.Parser
+    UntypedPlutusCore.Rename
 
-        PlutusIR
-        PlutusIR.Analysis.RetainedSize
-        PlutusIR.Compiler
-        PlutusIR.Compiler.Definitions
-        PlutusIR.Compiler.Names
-        PlutusIR.Core
-        PlutusIR.Core.Instance
-        PlutusIR.Core.Instance.Flat
-        PlutusIR.Core.Instance.Pretty
-        PlutusIR.Core.Instance.Pretty.Readable
-        PlutusIR.Core.Instance.Scoping
-        PlutusIR.Core.Plated
-        PlutusIR.Core.Type
-        PlutusIR.Error
-        PlutusIR.Mark
-        PlutusIR.MkPir
-        PlutusIR.Parser
-        PlutusIR.Purity
-        PlutusIR.Subst
-        PlutusIR.Transform.Beta
-        PlutusIR.Transform.DeadCode
-        PlutusIR.Transform.Inline
-        PlutusIR.Transform.LetFloat
-        PlutusIR.Transform.LetMerge
-        PlutusIR.Transform.RecSplit
-        PlutusIR.Transform.NonStrict
-        PlutusIR.Transform.Rename
-        PlutusIR.Transform.Substitute
-        PlutusIR.Transform.ThunkRecursions
-        PlutusIR.Transform.Unwrap
-        PlutusIR.TypeCheck
-        PlutusIR.TypeCheck.Internal
+  hs-source-dirs:
+    plutus-core/src plutus-core/stdlib plutus-core/examples
+    plutus-ir/src untyped-plutus-core/src prelude common
 
-        UntypedPlutusCore
-        UntypedPlutusCore.Check.Scope
-        UntypedPlutusCore.Check.Uniques
-        UntypedPlutusCore.Core
-        UntypedPlutusCore.Core.Type
-        UntypedPlutusCore.DeBruijn
-        UntypedPlutusCore.Evaluation.Machine.Cek
-        UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-        UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-        UntypedPlutusCore.MkUPlc
-        UntypedPlutusCore.Parser
-        UntypedPlutusCore.Rename
+  other-modules:
+    Data.Aeson.Flatten
+    Data.Aeson.THReader
+    Data.Functor.Foldable.Monadic
+    GHC.Natural.Extras
+    PlutusCore.Analysis.Definitions
+    PlutusCore.Builtin.HasConstant
+    PlutusCore.Builtin.KnownKind
+    PlutusCore.Builtin.KnownType
+    PlutusCore.Builtin.KnownTypeAst
+    PlutusCore.Builtin.Meaning
+    PlutusCore.Builtin.Polymorphism
+    PlutusCore.Builtin.Runtime
+    PlutusCore.Builtin.TestKnown
+    PlutusCore.Builtin.TypeScheme
+    PlutusCore.Core.Instance
+    PlutusCore.Core.Instance.Eq
+    PlutusCore.Core.Instance.Pretty
+    PlutusCore.Core.Instance.Pretty.Classic
+    PlutusCore.Core.Instance.Pretty.Common
+    PlutusCore.Core.Instance.Pretty.Default
+    PlutusCore.Core.Instance.Pretty.Plc
+    PlutusCore.Core.Instance.Pretty.Readable
+    PlutusCore.Core.Instance.Recursive
+    PlutusCore.Core.Instance.Scoping
+    PlutusCore.Core.Plated
+    PlutusCore.Core.Type
+    PlutusCore.DeBruijn.Internal
+    PlutusCore.Default.Builtins
+    PlutusCore.Default.Universe
+    PlutusCore.Eq
+    PlutusCore.InlineUtils
+    PlutusCore.Parser.Builtin
+    PlutusCore.Parser.ParserCommon
+    PlutusCore.Parser.Type
+    PlutusCore.Pretty.Classic
+    PlutusCore.Pretty.ConfigName
+    PlutusCore.Pretty.Default
+    PlutusCore.Pretty.Plc
+    PlutusCore.Pretty.PrettyConst
+    PlutusCore.Pretty.Readable
+    PlutusCore.Pretty.Utils
+    PlutusCore.Size
+    PlutusIR.Analysis.Dependencies
+    PlutusIR.Analysis.Size
+    PlutusIR.Analysis.Usages
+    PlutusIR.Compiler.Datatype
+    PlutusIR.Compiler.Error
+    PlutusIR.Compiler.Let
+    PlutusIR.Compiler.Lower
+    PlutusIR.Compiler.Provenance
+    PlutusIR.Compiler.Recursion
+    PlutusIR.Compiler.Types
+    PlutusIR.Normalize
+    Universe.Core
+    UntypedPlutusCore.Analysis.Definitions
+    UntypedPlutusCore.Analysis.Usages
+    UntypedPlutusCore.Core.Instance
+    UntypedPlutusCore.Core.Instance.Eq
+    UntypedPlutusCore.Core.Instance.Flat
+    UntypedPlutusCore.Core.Instance.Pretty
+    UntypedPlutusCore.Core.Instance.Pretty.Classic
+    UntypedPlutusCore.Core.Instance.Pretty.Default
+    UntypedPlutusCore.Core.Instance.Pretty.Plc
+    UntypedPlutusCore.Core.Instance.Pretty.Readable
+    UntypedPlutusCore.Core.Instance.Recursive
+    UntypedPlutusCore.Core.Plated
+    UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+    UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+    UntypedPlutusCore.Mark
+    UntypedPlutusCore.Rename.Internal
+    UntypedPlutusCore.Simplify
+    UntypedPlutusCore.Size
+    UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.ForceDelay
+    UntypedPlutusCore.Transform.Inline
 
-        Crypto
-        Data.ByteString.Hash
-        Data.SatInt
-        Prettyprinter.Custom
-        ErrorCode
-        PlutusPrelude
-        Universe
-        Data.Either.Extras
-    hs-source-dirs:
-        plutus-core/src
-        plutus-core/stdlib
-        plutus-core/examples
-        plutus-ir/src
-        untyped-plutus-core/src
-        prelude
-        common
-    other-modules:
-        PlutusCore.Analysis.Definitions
-        PlutusCore.Builtin.HasConstant
-        PlutusCore.Builtin.KnownKind
-        PlutusCore.Builtin.KnownType
-        PlutusCore.Builtin.KnownTypeAst
-        PlutusCore.Builtin.Meaning
-        PlutusCore.Builtin.Polymorphism
-        PlutusCore.Builtin.Runtime
-        PlutusCore.Builtin.TestKnown
-        PlutusCore.Builtin.TypeScheme
-        PlutusCore.Core.Instance
-        PlutusCore.Core.Instance.Eq
-        PlutusCore.Core.Instance.Pretty
-        PlutusCore.Core.Instance.Pretty.Classic
-        PlutusCore.Core.Instance.Pretty.Common
-        PlutusCore.Core.Instance.Pretty.Default
-        PlutusCore.Core.Instance.Pretty.Plc
-        PlutusCore.Core.Instance.Pretty.Readable
-        PlutusCore.Core.Instance.Recursive
-        PlutusCore.Core.Instance.Scoping
-        PlutusCore.Core.Plated
-        PlutusCore.Core.Type
-        PlutusCore.DeBruijn.Internal
-        PlutusCore.Default.Builtins
-        PlutusCore.Default.Universe
-        PlutusCore.Eq
-        PlutusCore.InlineUtils
-        PlutusCore.Parser.Builtin
-        PlutusCore.Parser.ParserCommon
-        PlutusCore.Parser.Type
-        PlutusCore.Pretty.Classic
-        PlutusCore.Pretty.ConfigName
-        PlutusCore.Pretty.ConfigName
-        PlutusCore.Pretty.Default
-        PlutusCore.Pretty.Plc
-        PlutusCore.Pretty.PrettyConst
-        PlutusCore.Pretty.Readable
-        PlutusCore.Pretty.Utils
-        PlutusCore.Size
-
-        PlutusIR.Analysis.Dependencies
-        PlutusIR.Analysis.Size
-        PlutusIR.Analysis.Usages
-        PlutusIR.Compiler.Datatype
-        PlutusIR.Compiler.Error
-        PlutusIR.Compiler.Let
-        PlutusIR.Compiler.Lower
-        PlutusIR.Compiler.Provenance
-        PlutusIR.Compiler.Recursion
-        PlutusIR.Compiler.Types
-        PlutusIR.Normalize
-
-        UntypedPlutusCore.Analysis.Definitions
-        UntypedPlutusCore.Analysis.Usages
-        UntypedPlutusCore.Core.Instance
-        UntypedPlutusCore.Core.Instance.Eq
-        UntypedPlutusCore.Core.Instance.Flat
-        UntypedPlutusCore.Core.Instance.Pretty
-        UntypedPlutusCore.Core.Instance.Pretty.Classic
-        UntypedPlutusCore.Core.Instance.Pretty.Default
-        UntypedPlutusCore.Core.Instance.Pretty.Plc
-        UntypedPlutusCore.Core.Instance.Pretty.Readable
-        UntypedPlutusCore.Core.Instance.Recursive
-        UntypedPlutusCore.Core.Plated
-        UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-        UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
-        UntypedPlutusCore.Mark
-        UntypedPlutusCore.Rename.Internal
-        UntypedPlutusCore.Simplify
-        UntypedPlutusCore.Size
-        UntypedPlutusCore.Subst
-        UntypedPlutusCore.Transform.ForceDelay
-        UntypedPlutusCore.Transform.Inline
-
-        Data.Aeson.Flatten
-        Data.Aeson.THReader
-        Data.Functor.Foldable.Monadic
-        Universe.Core
-        GHC.Natural.Extras
-    build-depends:
-        aeson -any,
-        algebraic-graphs >= 0.3,
-        array -any,
-        barbies -any,
-        base >=4.9 && <5,
-        base64-bytestring -any,
-        bimap -any,
-        bytestring -any,
-        cardano-crypto,
-        cassava -any,
-        cborg -any,
-        composition-prelude >=1.1.0.1,
-        containers -any,
-        cryptonite -any,
-        data-default-class -any,
-        deepseq -any,
-        dependent-sum-template -any,
-        deriving-aeson >= 0.2.3,
-        deriving-compat -any,
-        dlist -any,
-        dom-lt -any,
-        exceptions -any,
-        extra -any,
-        filepath -any,
-        flat -any,
-        ghc-prim -any,
-        hashable,
-        hedgehog >=1.0,
-        int-cast -any,
-        integer-gmp -any,
-        lens -any,
-        megaparsec -any,
-        mmorph -any,
-        monoidal-containers,
-        mtl -any,
-        parser-combinators >= 0.4.0,
-        prettyprinter >=1.1.0.1,
-        prettyprinter-configurable -any,
-        primitive -any,
-        recursion-schemes -any,
-        secp256k1-haskell -any,
-        semigroupoids -any,
-        semigroups >=0.19.1,
-        serialise -any,
-        some < 1.0.3,
-        template-haskell -any,
-        th-compat -any,
-        text -any,
-        th-lift -any,
-        th-lift-instances -any,
-        th-utilities -any,
-        time -any,
-        transformers -any,
-        unordered-containers -any,
-        witherable -any,
-        word-array -any,
-        cardano-crypto-class -any,
-        index-envs
+  build-depends:
+    , aeson
+    , algebraic-graphs            >=0.3
+    , array
+    , barbies
+    , base                        >=4.9     && <5
+    , base64-bytestring
+    , bimap
+    , bytestring
+    , cardano-crypto
+    , cardano-crypto-class
+    , cassava
+    , cborg
+    , composition-prelude         >=1.1.0.1
+    , containers
+    , cryptonite
+    , data-default-class
+    , deepseq
+    , dependent-sum-template
+    , deriving-aeson              >=0.2.3
+    , deriving-compat
+    , dlist
+    , dom-lt
+    , exceptions
+    , extra
+    , filepath
+    , flat
+    , ghc-prim
+    , hashable
+    , hedgehog                    >=1.0
+    , index-envs
+    , int-cast
+    , integer-gmp
+    , lens
+    , megaparsec
+    , mmorph
+    , monoidal-containers
+    , mtl
+    , parser-combinators          >=0.4.0
+    , prettyprinter               >=1.1.0.1
+    , prettyprinter-configurable
+    , primitive
+    , recursion-schemes
+    , secp256k1-haskell
+    , semigroupoids
+    , semigroups                  >=0.19.1
+    , serialise
+    , some                        <1.0.3
+    , template-haskell
+    , text
+    , th-compat
+    , th-lift
+    , th-lift-instances
+    , th-utilities
+    , time
+    , transformers
+    , unordered-containers
+    , witherable
+    , word-array
 
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
@@ -466,44 +457,45 @@ test-suite plutus-ir-test
     , text
 
 test-suite untyped-plutus-core-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: untyped-plutus-core/test
-    ghc-options: -O2 -threaded -rtsopts -with-rtsopts=-N
-    other-modules:
-        Evaluation.Builtins
-        Evaluation.Builtins.Coherence
-        Evaluation.Builtins.Common
-        Evaluation.Builtins.Definition
-        Evaluation.Builtins.MakeRead
-        Evaluation.Builtins.SECP256k1
-        Evaluation.FreeVars
-        Evaluation.Golden
-        Evaluation.Machines
-        Transform.Simplify
-        DeBruijn.Common
-        DeBruijn.Scope
-        DeBruijn.Spec
-        DeBruijn.UnDeBruijnify
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cardano-crypto-class -any,
-        hedgehog -any,
-        lens -any,
-        mtl -any,
-        plutus-core -any,
-        plutus-core-testlib -any,
-        index-envs -any,
-        prettyprinter -any,
-        pretty-show -any,
-        secp256k1-haskell -any,
-        tasty -any,
-        tasty-golden -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        text -any
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: untyped-plutus-core/test
+  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    DeBruijn.Common
+    DeBruijn.Scope
+    DeBruijn.Spec
+    DeBruijn.UnDeBruijnify
+    Evaluation.Builtins
+    Evaluation.Builtins.Coherence
+    Evaluation.Builtins.Common
+    Evaluation.Builtins.Definition
+    Evaluation.Builtins.MakeRead
+    Evaluation.Builtins.SECP256k1
+    Evaluation.FreeVars
+    Evaluation.Golden
+    Evaluation.Machines
+    Transform.Simplify
+
+  build-depends:
+    , base                  >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , hedgehog
+    , index-envs
+    , lens
+    , mtl
+    , plutus-core
+    , plutus-core-testlib
+    , pretty-show
+    , prettyprinter
+    , secp256k1-haskell
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , text
 
 executable plc
   import:         lang
@@ -713,15 +705,15 @@ benchmark cost-model-test
     , vector
 
 executable print-cost-model
-    import: lang
-    main-is: Main.hs
-    hs-source-dirs: cost-model/print-cost-model
-    other-modules: Paths_plutus_core
-    build-depends:
-        base >=4.9 && <5,
-        aeson -any,
-        bytestring -any,
-        text -any
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: cost-model/print-cost-model
+  other-modules:  Paths_plutus_core
+  build-depends:
+    , aeson
+    , base        >=4.9 && <5
+    , bytestring
+    , text
 
 library index-envs
   import:           lang
