@@ -5,6 +5,7 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
+import Control.DeepSeq (force)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Core (defaultVersion)
@@ -19,6 +20,7 @@ import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.HUnit (testCase, (@=?))
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
+import UnliftIO.Exception
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
@@ -93,10 +95,17 @@ mkResult ::
     -> IO T.Text -- ^ The result of the `runner` in `Text`.
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
-    -- exceptions from the `runner` will be handled by tasty
-    case runner (() <$prog) of
-        Nothing -> pure shownEvaluationFailure
-        Just a  -> pure $ display a
+    -- catch exceptions from `runner` and keep going unless it's an async exception.
+    maybeException <- trySyncOrAsync (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
+    case maybeException of
+        Left e       ->
+            if isAsyncException e then
+                throwIO e
+            else
+                pure shownEvaluationFailure
+        -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
+        Right Nothing  -> pure shownEvaluationFailure
+        Right (Just a) -> pure $ display a
 
 -- | The default parser to parse the inputs.
 parseTxt ::
