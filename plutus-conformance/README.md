@@ -23,7 +23,7 @@ for the manual.
 
 ## The Plutus Conformance Test Suite Library
 
-The library provides functions that users can import and run conformance tests with their own implementation. (At the moment the tests can only be run against another Haskell implementation. More support will be added later.)
+The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See an explanation [here](https://www.fpcomplete.com/blog/2017/02/typed-process/) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
 
 ## Untyped Plutus Core Program Evaluation
 

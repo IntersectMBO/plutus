@@ -120,7 +120,7 @@ main = do
                     Right pro -> do
                       -- catch all sync exceptions and keep going
                       -- (we still need this even with `evalUplcProg` using the safe eval function)
-                      res <- trySyncOrAsync (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
+                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
                       case res of
                         Right (Just prog) -> do
                           T.writeFile outFilePath (render $ pretty prog)
@@ -129,13 +129,10 @@ main = do
                           -- warn the user that the file failed to evaluate
                           T.writeFile outFilePath shownEvaluationFailure
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                        Left e ->
-                          if isAsyncException e then
-                            throwIO e
-                          else do
-                            -- warn the user that exception is thrown
-                            T.writeFile outFilePath shownEvaluationFailure
-                            putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
+                        Left _ -> do
+                          -- warn the user that exception is thrown
+                          T.writeFile outFilePath shownEvaluationFailure
+                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
 
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
