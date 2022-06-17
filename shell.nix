@@ -68,6 +68,7 @@ let
     nixFlakesAlias
     nixpkgs-fmt
     shellcheck
+    wget
     yq
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
