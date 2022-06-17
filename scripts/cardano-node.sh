@@ -18,6 +18,8 @@ node_config_files=(
   "mainnet-topology.json"
 )
 
+trap 'kill $cardano_node_pid; exit' INT TERM QUIT
+
 set -x
 mkdir -p "$NODE_BIN_DIR"
 # Download cardano-node binary
@@ -38,4 +40,7 @@ done
   --database-path "$NODE_DIR"/db/ \
   --socket-path "$NODE_DIR"/db/node.socket \
   --host-addr 127.0.0.1 \
-  --port 1337
+  --port 1337 &
+
+cardano_node_pid=$!
+wait $cardano_node_pid
