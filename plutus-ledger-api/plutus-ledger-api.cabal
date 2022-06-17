@@ -151,7 +151,6 @@ executable evaluation-test
     build-depends:
         PyF -any,
         base >=4.7 && <5,
-        base16-bytestring -any,
         bytestring -any,
         extra -any,
         filepath -any,

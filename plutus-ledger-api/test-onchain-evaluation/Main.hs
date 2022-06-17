@@ -59,6 +59,7 @@ main = do
     eventFiles <- filter (O.optsEventFileExt opts `isExtensionOf`) <$> listFiles (O.optsDir opts)
     errs <- fmap concat . for (zip [1 :: Int ..] eventFiles) $ \(i, eventFile) -> do
         putStrLn [fmt|Processing event file {i}: {eventFile}|]
+        -- Each event dump file serialises a `ScriptEvaluationEvents`.
         events <- CBOR.readFileDeserialise @ScriptEvaluationEvents eventFile
         ctxV1 <-
             either invalidCostParams pure $
