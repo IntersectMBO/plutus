@@ -38,6 +38,8 @@ compareTerm
 compareTerm (Var _ n) (Var _ n')                   = compareName n n'
 compareTerm (LamAbs _ n t) (LamAbs _ n' t')        = compareName n n' && compareTerm t t'
 compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
+compareTerm (Force _ t ) (Force _ t')              = compareTerm t t'
+compareTerm (Delay _ t ) (Delay _ t')              = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)          = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
 compareTerm (Error _ ) (Error _ )                  = True
