@@ -101,18 +101,3 @@ parseTerm = parseGen term
 parseType :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Text -> m (Type TyName DefaultUni SourcePos)
 parseType = parseGen pType
-
-
-
-
-
--- >>> doIt term "(con bool True)"
--- Right (Constant (SourcePos {sourceName = "test", sourceLine = Pos 1, sourceColumn = Pos 2}) (Some (ValueOf bool True)))
--- >>> doIt term "(con (list bool) [True, False])"
--- Right (Constant (SourcePos {sourceName = "test", sourceLine = Pos 1, sourceColumn = Pos 2}) (Some (ValueOf list (bool) [True,False])))
--- >>> doIt term "(con (pair unit (list integer)) ((),[1,2,3]))"
--- Right (Constant (SourcePos {sourceName = "test", sourceLine = Pos 1, sourceColumn = Pos 2}) (Some (ValueOf pair (unit) (list (integer)) ((),[1,2,3]))))
--- >>> doIt term "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])"
--- Right (Constant (SourcePos {sourceName = "test", sourceLine = Pos 1, sourceColumn = Pos 2}) (Some (ValueOf list (pair (string) (bool)) [("abc",True),("def",False)])))
--- >>> doIt term "(con string \"abc\")"
--- Right (Constant (SourcePos {sourceName = "test", sourceLine = Pos 1, sourceColumn = Pos 2}) (Some (ValueOf string "abc")))

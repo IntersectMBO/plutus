@@ -16,10 +16,6 @@ import PlutusCore.Parser.ParserCommon
 import Control.Monad
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
-import Data.Text (Text, pack)
-import PlutusCore.Error
-import PlutusCore.Quote
-
 -- | A PLC @Type@ to be parsed. ATM the parser only works
 -- for types in the @DefaultUni@ with @DefaultFun@.
 type PType = Type TyName DefaultUni SourcePos
@@ -87,25 +83,3 @@ defaultUniType = do
 
 tyName :: Parser TyName
 tyName = TyName <$> name
-
-
-
-
-
-doIt :: forall a. Show a => Parser a -> String -> IO ()
-doIt p = print . parseIt . pack where
-    parseIt :: Text -> Either ParserErrorBundle a
-    parseIt = runQuoteT . parseGen p
-
--- >>> doIt defaultUniType "list"
--- Right (SomeTypeIn (Kinded list))
--- >>> doIt defaultUniType "list integer"
--- Right (SomeTypeIn (Kinded list (integer)))
--- >>> doIt defaultUniType "pair (list bool)"
--- Right (SomeTypeIn (Kinded pair (list (bool))))
--- >>> doIt defaultUniType "pair (list unit) integer"
--- Right (SomeTypeIn (Kinded pair (list (unit)) (integer)))
--- >>> doIt defaultUniType "list (pair unit integer)"
--- Right (SomeTypeIn (Kinded list (pair (unit) (integer))))
--- >>> doIt defaultUniType "pair unit (pair bool integer)"
--- Right (SomeTypeIn (Kinded pair (unit) (pair (bool) (integer))))
