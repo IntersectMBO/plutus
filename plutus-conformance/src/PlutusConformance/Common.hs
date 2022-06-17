@@ -96,13 +96,9 @@ mkResult ::
 mkResult _ (Left (ParseErrorB _err)) = pure shownParseError
 mkResult runner (Right prog)        = do
     -- catch exceptions from `runner` and keep going unless it's an async exception.
-    maybeException <- trySyncOrAsync (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
+    maybeException <- try (evaluate $ force $ runner (() <$ prog)):: IO (Either SomeException (Maybe UplcProg))
     case maybeException of
-        Left e       ->
-            if isAsyncException e then
-                throwIO e
-            else
-                pure shownEvaluationFailure
+        Left _         -> pure shownEvaluationFailure
         -- it doesn't matter how the evaluation fail, they're all "evaluation failure"
         Right Nothing  -> pure shownEvaluationFailure
         Right (Just a) -> pure $ display a
