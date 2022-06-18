@@ -47,13 +47,13 @@ data MessageSize = Arbitrary | Fixed Int
   implementation requires that the first three bits of the final byte of the
   64-byte signature are all zero, and fails immediately if this is not the case.
   This feature isn't documented.  Another example is that ECDSA verification
-  admits two valid signatures (a point on a curve and its inverse) for a given
-  message, but in the Bitcoin implementation for EcdsaSecp256k1 signatures
-  (which we use here), only the smaller one (as a bytestring) is accepted.
-  Again, this fact isn't particularly well advertised.  If these basic
-  preconditions are met however, verification time should depend more or less
-  linearly on the length of the message since the whole of the message has to be
-  examined before it can be determined whether a (key, message, signature)
+  admits two valid signatures (involving a point on a curve and its inverse) for
+  a given message, but in the Bitcoin implementation for EcdsaSecp256k1
+  signatures (which we use here), only the smaller one (as a bytestring) is
+  accepted.  Again, this fact isn't particularly well advertised.  If these
+  basic preconditions are met however, verification time should depend more or
+  less linearly on the length of the message since the whole of the message has
+  to be examined before it can be determined whether a (key, message, signature)
   triple is valid or not.
 -}
 
@@ -108,48 +108,6 @@ benchVerifySchnorrSecp256k1Signature =
     let name = VerifySchnorrSecp256k1Signature
         inputs = mkBmInputs @SchnorrSecp256k1DSIGN id Arbitrary
     in createThreeTermBuiltinBenchElementwise name [] inputs
-
-
---- Old benchmarks
-
-benchVerifyEd25519SignatureX :: Benchmark
-benchVerifyEd25519SignatureX =
-    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
-           where name = VerifyEd25519Signature
-                 pubkeys    = listOfSizedByteStrings 50 32
-                 messages   = bigByteStrings seedA
-                 signatures = listOfSizedByteStrings 50 64
--- TODO: this seems suspicious.  The benchmark results seem to be pretty much
--- constant (a few microseconds) irrespective of the size of the input, but I'm
--- pretty certain that you need to look at every byte of the input to verify the
--- signature.  If you change the size of the public key then it takes three
--- times as long, but the 'verify' implementation checks the size and fails
--- immediately if the key or signature has the wrong size. [This is possibly due
--- to the fact that the underlying C implementation is *extremely* fast, but
--- there's quite a bit of error handling when an argument is the wrong size.
--- However in the latter case the program will terminate anyway, so we don't
--- care about costing it accurately.] Just to be sure, check the results, maybe
--- try with bigger inputs.
-
-benchVerifyEcdsaSecp256k1SignatureX :: Benchmark
-benchVerifyEcdsaSecp256k1SignatureX =
-    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
-        where name = VerifyEcdsaSecp256k1Signature
-              pubkeys    = listOfSizedByteStrings 50 64
-              messages   = listOfSizedByteStrings 50 32
-              signatures = listOfSizedByteStrings 50 64
--- NB: verifyEcdsaSecp256k1Signature returns immediately for 50% of
--- randomly-chosen signatures: see Note [ECDSA secp256k1 signature verification]
--- in Builtins.hs.  This doesn't apply to VerifySchnorrSecp256k1Signature.
-
-
-benchVerifySchnorrSecp256k1SignatureX :: Benchmark
-benchVerifySchnorrSecp256k1SignatureX =
-    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
-        where name = VerifySchnorrSecp256k1Signature
-              pubkeys    = listOfSizedByteStrings 50 64
-              messages   = bigByteStrings seedA
-              signatures = listOfSizedByteStrings 50 64
 
 
 ---------------- Hashing functions ----------------
