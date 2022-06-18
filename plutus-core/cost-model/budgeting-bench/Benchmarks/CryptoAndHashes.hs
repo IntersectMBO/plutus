@@ -1,5 +1,4 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 
@@ -18,70 +17,71 @@ import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
 import Criterion.Main
-import Data.Bits (complement, xor, (.&.))
-import Data.ByteString qualified as BS
+import Crypto.Secp256k1 qualified (msg)
+import Data.ByteString (ByteString)
 import Hedgehog qualified as H
 import System.Random (StdGen)
 
-byteStringSizes :: [Int]
-byteStringSizes = fmap (100*) [0,2..98]
+numSamples :: Int
+numSamples = 5
 
-mediumByteStrings :: H.Seed -> [BS.ByteString]
+byteStringSizes :: [Int]
+byteStringSizes = fmap (200*) [0..numSamples-1]
+
+mediumByteStrings :: H.Seed -> [ByteString]
 mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 
-bigByteStrings :: H.Seed -> [BS.ByteString]
+bigByteStrings :: H.Seed -> [ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
 
-mkGoodSignature ::
-    (Signable v a, DSIGNAlgorithm v, ContextDSIGN v ~ ())
-    => ContextDSIGN v
-    -> a
-    -> SignKeyDSIGN v
-    -> SigDSIGN v
-mkGoodSignature ctx msg key = signDSIGN ctx msg key
+data MessageSize = Arbitrary | Fixed Int
 
--- Given a message (size depends on algorithm)
---  * Generate a good keypair for the given algorithm
---  * Generate a good signature for the message
---  * Generate a bad signature or a bad public key (random of appropriate size)
---  * Benchmark the appropriate signature algorithm with both good data and bad data
+mkBmInputs :: forall v msg .
+    (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
+    => (ByteString -> Maybe msg)
+    -> MessageSize
+    -> [(ByteString, ByteString, ByteString)]
+mkBmInputs toMsg msgSize =
+    map mkOneInput (zip seeds messages)
+    where seeds = listOfSizedByteStrings numSamples 128
+          -- For some algortihms the seed has to be a certain minimal size, and
+          -- there's a SeedBytesExhausted error if it's not big enough; 128
+          -- seems to be OK for everything here.
+          messages =
+              case msgSize of
+                Arbitrary -> bigByteStrings seedA
+                Fixed n   -> listOfSizedByteStrings numSamples n
+          getMsg x = case toMsg x of { Nothing -> error "Invalid message";  Just m -> m }
+          mkOneInput (seed, msg) =
+              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed
+                  sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (getMsg msg) signKey
+                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
+              in (vkBytes, msg, sigBytes)
 
-data SignatureData = SignatureData {
-      message       :: BS.ByteString
-    , vkey          :: BS.ByteString
-    , goodSignature :: BS.ByteString
-    , badSignature  :: BS.ByteString
-    }
-
-mkSignatureData :: forall v .
-    (Signable v BS.ByteString, DSIGNAlgorithm v, ContextDSIGN v ~ ())
-    => BS.ByteString
-    -> BS.ByteString
-    -> SignatureData
-mkSignatureData seed msg =
-    let !signKey = genKeyDSIGN $ mkSeedFromBytes seed :: SignKeyDSIGN v
-        !goodSig = signDSIGN () msg signKey
-        !goodSigBytes = rawSerialiseSigDSIGN goodSig
-        !badSigBytes =
-            let r = goodSigBytes -- BS.reverse goodSigBytes
-                h = BS.head r
-                t = BS.tail r
-                h' = 0x00
-                r' = BS.cons h' t
-            in r'  -- BS.reverse r'
-
-        !vk = deriveVerKeyDSIGN signKey
-        !vkBytes = rawSerialiseVerKeyDSIGN vk
-    in SignatureData msg vkBytes goodSigBytes badSigBytes
-
-{- function                    pubkey message signature
--------------------------------------------------------
-verifyEd25519Signature           32     any      64
-verifyEcdsaSecp256k1Signature    64      32      64
-verifySchnorrSecp256k1Signature  64     any      64
--}
-
+mkBmInputs' :: forall v msg .
+    (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
+    => MessageSize
+    -> (ByteString, ByteString, ByteString)
+mkBmInputs' msgSize =
+    mkOneInput seed message
+    where seed = head $ listOfSizedByteStrings numSamples 128
+          -- For some algortihms the seed has to be a certain minimal size, and
+          -- there's a SeedBytesExhausted error if it's not big enough; 128
+          -- seems to be OK for everything here.
+          message =
+              case msgSize of
+                Arbitrary -> head $ bigByteStrings seedA
+                Fixed n   -> head $ listOfSizedByteStrings numSamples n
+          mkOneInput seed msg =
+              let signKey = genKeyDSIGN @EcdsaSecp256k1DSIGN $ mkSeedFromBytes seed
+                  sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (fromJust $ Crypto.Secp256k1.msg msg) signKey
+                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
+              in (vkBytes, msg, sigBytes)
+          fromJust (Just x) = x
+          fromJust Nothing  = error "Nothing"
+-- Why do we have to explicitly convert bytestrings to messages for Secp256k1?
+-- We didn't have to do that before.
 
 ---------------- Signature verification ----------------
 
@@ -94,18 +94,28 @@ verifySchnorrSecp256k1Signature  64     any      64
 
 benchVerifyEd25519Signature :: Benchmark
 benchVerifyEd25519Signature =
-    let !name = VerifyEd25519Signature
-        !msgs = bigByteStrings seedA
-        !seeds = makeSizedByteStrings seedA $ take (length msgs) $ repeat 64
-        !sigdata = zipWith (mkSignatureData @ Ed25519DSIGN) seeds msgs
-        !pubkeys = map vkey sigdata
-        !goodSigs = map goodSignature sigdata
-        !badSigs = map badSignature sigdata
-    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (badSigs++goodSigs)
+    let name = VerifyEd25519Signature
+        inputs = mkBmInputs @Ed25519DSIGN Just Arbitrary
+    in createThreeTermBuiltinBenchElementwise name [] inputs
+
+benchVerifyEcdsaSecp256k1Signature :: Benchmark
+benchVerifyEcdsaSecp256k1Signature =
+    let name = VerifyEcdsaSecp256k1Signature
+        inputs = mkBmInputs @EcdsaSecp256k1DSIGN Crypto.Secp256k1.msg (Fixed 32)
+    in createThreeTermBuiltinBenchElementwise name [] inputs
+
+benchVerifySchnorrSecp256k1Signature :: Benchmark
+benchVerifySchnorrSecp256k1Signature =
+    let name = VerifySchnorrSecp256k1Signature
+        inputs = mkBmInputs @SchnorrSecp256k1DSIGN Just Arbitrary
+    in createThreeTermBuiltinBenchElementwise name [] inputs
+
+
+--- Old benchmarks
 
 benchVerifyEd25519SignatureX :: Benchmark
 benchVerifyEd25519SignatureX =
-    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
+    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
            where name = VerifyEd25519Signature
                  pubkeys    = listOfSizedByteStrings 50 32
                  messages   = bigByteStrings seedA
@@ -122,29 +132,9 @@ benchVerifyEd25519SignatureX =
 -- care about costing it accurately.] Just to be sure, check the results, maybe
 -- try with bigger inputs.
 
-{- benchVerifyEd25519Signature :: Benchmark
-benchVerifyEd25519Signature =
-    let !name = VerifyEd25519Signature
-        !msgs = bigByteStrings seedA
-        !seeds = makeSizedByteStrings seedA $ take (length msgs) $ repeat 64
-        !sigdata = zipWith (mkSignatureData @ Ed25519DSIGN) seeds msgs
-        !pubkeys = map vkey sigdata
-        !goodSigs = map goodSignature sigdata
-        !badSigs = map badSignature sigdata
-    in createThreeTermBuiltinBenchElementwise name [] (pubkeys++pubkeys) (msgs++msgs) (badSigs++goodSigs)
--}
-
 benchVerifyEcdsaSecp256k1SignatureX :: Benchmark
 benchVerifyEcdsaSecp256k1SignatureX =
-    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
-        where name = VerifyEcdsaSecp256k1Signature
-              pubkeys    = listOfSizedByteStrings 50 64
-              messages   = listOfSizedByteStrings 50 32
-              signatures = listOfSizedByteStrings 50 64
-
-benchVerifyEcdsaSecp256k1Signature :: Benchmark
-benchVerifyEcdsaSecp256k1Signature =
-    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
+    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
         where name = VerifyEcdsaSecp256k1Signature
               pubkeys    = listOfSizedByteStrings 50 64
               messages   = listOfSizedByteStrings 50 32
@@ -154,9 +144,9 @@ benchVerifyEcdsaSecp256k1Signature =
 -- in Builtins.hs.  This doesn't apply to VerifySchnorrSecp256k1Signature.
 
 
-benchVerifySchnorrSecp256k1Signature :: Benchmark
-benchVerifySchnorrSecp256k1Signature =
-    createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
+benchVerifySchnorrSecp256k1SignatureX :: Benchmark
+benchVerifySchnorrSecp256k1SignatureX =
+    createThreeTermBuiltinBenchElementwise name [] $ zip3 pubkeys messages signatures
         where name = VerifySchnorrSecp256k1Signature
               pubkeys    = listOfSizedByteStrings 50 64
               messages   = bigByteStrings seedA

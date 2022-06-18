@@ -637,6 +637,7 @@ executable cost-model-budgeting-bench
         QuickCheck -any,
         quickcheck-instances -any,
         random -any,
+        secp256k1-haskell -any,
         text -any,
         time -any
 
