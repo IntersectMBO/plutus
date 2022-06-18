@@ -33,20 +33,21 @@ common lang
 
 library
     import: lang
-    visibility: public
-    hs-source-dirs: src/
+    hs-source-dirs: 
+        src
     exposed-modules:
-        Common
+        PlutusConformance.Common
     build-depends:
         base -any,
+        deepseq -any,
+        megaparsec -any,
         plutus-core -any,
         tasty -any,
-        tasty-golden -any,
+        tasty-golden, 
         tasty-hunit -any,
         text -any,
-        megaparsec -any,
-        mtl -any
-
+        unliftio -any
+        
 executable add-test-output
     import: lang
     type: exitcode-stdio-1.0
@@ -55,13 +56,14 @@ executable add-test-output
     other-modules:
     build-depends:
         base >=4.9 && <5,
+        deepseq -any,
         directory -any,
-        tasty-golden -any,
-        text -any,
+        optparse-applicative -any,
         plutus-conformance -any,
         plutus-core,
-        megaparsec -any,
-        optparse-applicative -any
+        tasty-golden -any,
+        text -any,
+        unliftio -any
 
 test-suite uplc-eval-test
     import: lang
@@ -71,8 +73,6 @@ test-suite uplc-eval-test
     other-modules:
     build-depends:
         base >=4.9 && <5,
-        tasty-golden -any,
-        text -any,
         plutus-conformance
 
 test-suite tplc-eval-test

@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/data/dataByteString/dataByteString.uplc:1:21:
-  |
-1 | (program 0.0.0 (con data {ByteString #0123456789ABCDEF}))
-  |                     ^^^^^^^^^^
-unexpected "data {Byte"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

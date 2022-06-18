@@ -1,1 +1,1 @@
-(con string "Ola mundo!")
+(program 1.0.0 (con string "Ola mundo!"))

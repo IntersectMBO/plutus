@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/constant/constrData/constrData.uplc:1:61:
-  |
-1 | (program 0.0.0 [[(builtin constrData) (con integer 1)] (con list(data) [{ Integer 0 }])] )
-  |                                                             ^^^^^^^^^^
-unexpected "list(data)"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error
