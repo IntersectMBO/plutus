@@ -30,7 +30,7 @@ rec {
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
-    inherit (plutus) fixStylishHaskell fixPngOptimization;
+    inherit (plutus) fixStylishHaskell fixPngOptimization fixCabalFmt;
     src = ./.;
   };
 
