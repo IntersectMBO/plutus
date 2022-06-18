@@ -23,7 +23,7 @@ import Hedgehog qualified as H
 import System.Random (StdGen)
 
 numSamples :: Int
-numSamples = 5
+numSamples = 50
 
 byteStringSizes :: [Int]
 byteStringSizes = fmap (200*) [0..numSamples-1]
@@ -35,79 +35,78 @@ bigByteStrings :: H.Seed -> [ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
 
+
+---------------- Signature verification ----------------
+
 data MessageSize = Arbitrary | Fixed Int
 
+{- Note [Inputs to signature verification functions] We have to use correctly
+  signed messages to get worst case behaviours because some signature
+  verification implementations return quickly if some basic precondition isn't
+  satisfied.  For example, at least one Ed25519 signature verification
+  implementation requires that the first three bits of the final byte of the
+  64-byte signature are all zero, and fails immediately if this is not the case.
+  This feature isn't documented.  Another example is that ECDSA verification
+  admits two valid signatures (a point on a curve and its inverse) for a given
+  message, but in the Bitcoin implementation for EcdsaSecp256k1 signatures
+  (which we use here), only the smaller one (as a bytestring) is accepted.
+  Again, this fact isn't particularly well advertised.  If these basic
+  preconditions are met however, verification time should depend more or less
+  linearly on the length of the message since the whole of the message has to be
+  examined before it can be determined whether a (key, message, signature)
+  triple is valid or not.
+-}
+
+{- | Create a list of valid (key,message,signature) triples.  The DSIGN
+   infrastructure lets us do this in a farily generic way.  However, to sign an
+   EcdsaSecp256k1DSIGN message we can't use a raw bytestring: we have to wrap it
+   up using Crypto.Secp256k1.msg, which checks that the bytestring is the right
+   length.  This means that we have to add a ByteString -> message function as a
+   parameter here.
+-}
 mkBmInputs :: forall v msg .
     (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
-    => (ByteString -> Maybe msg)
+    => (ByteString -> msg)
     -> MessageSize
     -> [(ByteString, ByteString, ByteString)]
 mkBmInputs toMsg msgSize =
     map mkOneInput (zip seeds messages)
     where seeds = listOfSizedByteStrings numSamples 128
-          -- For some algortihms the seed has to be a certain minimal size, and
-          -- there's a SeedBytesExhausted error if it's not big enough; 128
-          -- seems to be OK for everything here.
+          -- ^ Seeds for key generaetion. For some algorithms the seed has to be
+          -- a certain minimal size and there's a SeedBytesExhausted error if
+          -- it's not big enough; 128 is big enough for everything here though.
           messages =
               case msgSize of
                 Arbitrary -> bigByteStrings seedA
                 Fixed n   -> listOfSizedByteStrings numSamples n
-          getMsg x = case toMsg x of { Nothing -> error "Invalid message";  Just m -> m }
           mkOneInput (seed, msg) =
-              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed
-                  sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (getMsg msg) signKey
-                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
+              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed                 -- Signing key (private)
+                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey   -- Verification key (public)
+                  sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (toMsg msg) signKey
               in (vkBytes, msg, sigBytes)
-
-mkBmInputs' :: forall v msg .
-    (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
-    => MessageSize
-    -> (ByteString, ByteString, ByteString)
-mkBmInputs' msgSize =
-    mkOneInput seed message
-    where seed = head $ listOfSizedByteStrings numSamples 128
-          -- For some algortihms the seed has to be a certain minimal size, and
-          -- there's a SeedBytesExhausted error if it's not big enough; 128
-          -- seems to be OK for everything here.
-          message =
-              case msgSize of
-                Arbitrary -> head $ bigByteStrings seedA
-                Fixed n   -> head $ listOfSizedByteStrings numSamples n
-          mkOneInput seed msg =
-              let signKey = genKeyDSIGN @EcdsaSecp256k1DSIGN $ mkSeedFromBytes seed
-                  sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (fromJust $ Crypto.Secp256k1.msg msg) signKey
-                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
-              in (vkBytes, msg, sigBytes)
-          fromJust (Just x) = x
-          fromJust Nothing  = error "Nothing"
--- Why do we have to explicitly convert bytestrings to messages for Secp256k1?
--- We didn't have to do that before.
-
----------------- Signature verification ----------------
-
--- Signature verification functions.  Wrong input sizes cause error, time should
--- be otherwise independent of correctness/incorrectness of signature.
-
--- For VerifyEd25519Signature, for speed purposes it shouldn't matter if the
--- signature and public key are correct as long as they're the correct sizes
--- (256 bits/32 bytes for keys, 512 bytes/64 bits for signatures).
 
 benchVerifyEd25519Signature :: Benchmark
 benchVerifyEd25519Signature =
     let name = VerifyEd25519Signature
-        inputs = mkBmInputs @Ed25519DSIGN Just Arbitrary
+        inputs = mkBmInputs @Ed25519DSIGN id Arbitrary
     in createThreeTermBuiltinBenchElementwise name [] inputs
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
     let name = VerifyEcdsaSecp256k1Signature
-        inputs = mkBmInputs @EcdsaSecp256k1DSIGN Crypto.Secp256k1.msg (Fixed 32)
+        inputs = mkBmInputs @EcdsaSecp256k1DSIGN toMsg (Fixed 32)
     in createThreeTermBuiltinBenchElementwise name [] inputs
+        where toMsg b =
+                  case Crypto.Secp256k1.msg b of
+                    Just m  -> m
+                    Nothing -> error "Invalid EcdsaSecp256k1DSIGN message"
+                    -- This should only happen if we give it a message which isn't
+                    -- 32 bytes long, but that shouldn't happen because of Fixed 32.
 
 benchVerifySchnorrSecp256k1Signature :: Benchmark
 benchVerifySchnorrSecp256k1Signature =
     let name = VerifySchnorrSecp256k1Signature
-        inputs = mkBmInputs @SchnorrSecp256k1DSIGN Just Arbitrary
+        inputs = mkBmInputs @SchnorrSecp256k1DSIGN id Arbitrary
     in createThreeTermBuiltinBenchElementwise name [] inputs
 
 
