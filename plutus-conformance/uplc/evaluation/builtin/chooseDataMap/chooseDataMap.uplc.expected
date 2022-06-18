@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/chooseDataMap/chooseDataMap.uplc:3:7:
-  |
-3 |  (con data {Map [(Integer 0, ByteString #00), (Integer 1, ByteString #0F)]})]
-  |       ^^^^^^^^^^
-unexpected "data {Map "
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

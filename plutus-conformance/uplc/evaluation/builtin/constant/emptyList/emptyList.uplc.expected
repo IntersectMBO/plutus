@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/constant/emptyList/emptyList.uplc:1:21:
-  |
-1 | (program 0.0.0 (con list (integer) []))
-  |                     ^^^^^^^^^^
-unexpected "list (inte"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

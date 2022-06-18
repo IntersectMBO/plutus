@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/constant/unitList/unitList.uplc:1:21:
-  |
-1 | (program 0.0.0 (con list(unit) [(), (), (), (), ()]))
-  |                     ^^^^^^^^^^
-unexpected "list(unit)"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

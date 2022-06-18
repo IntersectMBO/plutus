@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/chooseList/chooseList.uplc:1:53:
-  |
-1 | (program 0.0.0 [[[(force (builtin chooseList)) (con list(integer) [ 0 , 1 , 2 ])] (con integer 1)] (con integer 2)])
-  |                                                     ^^^^^^^^^^
-unexpected "list(integ"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

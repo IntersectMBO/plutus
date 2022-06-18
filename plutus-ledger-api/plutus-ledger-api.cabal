@@ -1,136 +1,154 @@
 cabal-version: 3.0
-name: plutus-ledger-api
-version: 1.0.0.0
-license: Apache-2.0
+name:          plutus-ledger-api
+version:       1.0.0.0
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: michael.peyton-jones@iohk.io
-author: Michael Peyton Jones, Jann Mueller
-synopsis: Interface to the Plutus ledger for the Cardano ledger.
+
+maintainer:    michael.peyton-jones@iohk.io
+author:        Michael Peyton Jones, Jann Mueller
+synopsis:      Interface to the Plutus ledger for the Cardano ledger.
 description:
-    Interface to the Plutus scripting support for the Cardano ledger.
-category: Language
-build-type: Simple
+  Interface to the Plutus scripting support for the Cardano ledger.
+
+category:      Language
+build-type:    Simple
 
 source-repository head
-    type: git
-    location: https://github.com/input-output-hk/plutus
+  type:     git
+  location: https://github.com/input-output-hk/plutus
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable MultiParamTypeClasses FlexibleContexts
-                        ImportQualifiedPost DerivingStrategies
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities -Wunused-packages
-                 -Wmissing-deriving-strategies
-                 -- See Plutus Tx readme
-                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  -- See Plutus Tx readme for why we need the following flags: 
+  -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies -fobject-code
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 library
-    import: lang
-    hs-source-dirs: src
-    default-language: Haskell2010
-    exposed-modules:
-        PlutusLedgerApi.V1
-        PlutusLedgerApi.V1.Address
-        PlutusLedgerApi.V1.Bytes
-        PlutusLedgerApi.V1.Contexts
-        PlutusLedgerApi.V1.Credential
-        PlutusLedgerApi.V1.Crypto
-        PlutusLedgerApi.V1.DCert
-        PlutusLedgerApi.V1.Interval
-        PlutusLedgerApi.V1.Scripts
-        PlutusLedgerApi.V1.Tx
-        PlutusLedgerApi.V1.Time
-        PlutusLedgerApi.V1.Value
-        PlutusLedgerApi.V1.EvaluationContext
-        PlutusLedgerApi.V1.ParamName
+  import:           lang
+  hs-source-dirs:   src
+  default-language: Haskell2010
+  exposed-modules:
+    PlutusLedgerApi.Common
+    PlutusLedgerApi.Common.Versions
+    PlutusLedgerApi.V1
+    PlutusLedgerApi.V1.Address
+    PlutusLedgerApi.V1.Bytes
+    PlutusLedgerApi.V1.Contexts
+    PlutusLedgerApi.V1.Credential
+    PlutusLedgerApi.V1.Crypto
+    PlutusLedgerApi.V1.DCert
+    PlutusLedgerApi.V1.EvaluationContext
+    PlutusLedgerApi.V1.Interval
+    PlutusLedgerApi.V1.ParamName
+    PlutusLedgerApi.V1.Scripts
+    PlutusLedgerApi.V1.Time
+    PlutusLedgerApi.V1.Tx
+    PlutusLedgerApi.V1.Value
+    PlutusLedgerApi.V2
+    PlutusLedgerApi.V2.Contexts
+    PlutusLedgerApi.V2.EvaluationContext
+    PlutusLedgerApi.V2.ParamName
+    PlutusLedgerApi.V2.Tx
+    PlutusLedgerApi.V3
+    PlutusLedgerApi.V3.EvaluationContext
+    PlutusLedgerApi.V3.ParamName
 
-        PlutusLedgerApi.V2
-        PlutusLedgerApi.V2.Contexts
-        PlutusLedgerApi.V2.Tx
-        PlutusLedgerApi.V2.EvaluationContext
-        PlutusLedgerApi.V2.ParamName
+  other-modules:
+    Codec.CBOR.Extras
+    PlutusLedgerApi.Common.Eval
+    PlutusLedgerApi.Common.ParamName
+    PlutusLedgerApi.Common.ProtocolVersions
+    PlutusLedgerApi.Common.SerialisedScript
+    Prettyprinter.Extras
 
-        PlutusLedgerApi.V3
-        PlutusLedgerApi.V3.EvaluationContext
-        PlutusLedgerApi.V3.ParamName
-
-        PlutusLedgerApi.Common
-        PlutusLedgerApi.Common.Versions
-    other-modules:
-        Codec.CBOR.Extras
-        Prettyprinter.Extras
-        PlutusLedgerApi.Common.ParamName
-        PlutusLedgerApi.Common.SerialisedScript
-        PlutusLedgerApi.Common.Eval
-        PlutusLedgerApi.Common.ProtocolVersions
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        cborg -any,
-        containers -any,
-        flat -any,
-        plutus-core ^>=1.0,
-        mtl -any,
-        plutus-tx ^>=1.0,
-        serialise -any,
-        template-haskell -any,
-        text -any,
-        prettyprinter -any,
-        transformers -any,
-        base16-bytestring >= 1,
-        deepseq -any,
-        tagged -any,
-        lens -any,
-        extra -any
+  build-depends:
+    , base               >=4.9 && <5
+    , base16-bytestring  >=1
+    , bytestring
+    , cborg
+    , containers
+    , deepseq
+    , extra
+    , flat
+    , lens
+    , mtl
+    , plutus-core        ^>=1.0
+    , plutus-tx          ^>=1.0
+    , prettyprinter
+    , serialise
+    , tagged
+    , template-haskell
+    , text
+    , transformers
 
 library plutus-ledger-api-testlib
-    import: lang
-    visibility: public
-    hs-source-dirs: testlib
-    exposed-modules:
-        PlutusLedgerApi.Test.Examples
-        PlutusLedgerApi.Test.EvaluationContext
-        PlutusLedgerApi.Test.Scripts
-    build-depends:
-        base >=4.9 && <5,
-        plutus-core ^>=1.0,
-        plutus-tx ^>=1.0,
-        plutus-ledger-api -any,
-        serialise -any,
-        bytestring -any
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  testlib
+  exposed-modules:
+    PlutusLedgerApi.Test.EvaluationContext
+    PlutusLedgerApi.Test.EvaluationEvent
+    PlutusLedgerApi.Test.Examples
+    PlutusLedgerApi.Test.Scripts
+
+  build-depends:
+    , base               >=4.9 && <5
+    , base64-bytestring
+    , bytestring
+    , plutus-core        ^>=1.0
+    , plutus-ledger-api
+    , plutus-tx          ^>=1.0
+    , prettyprinter
+    , serialise
+    , text
 
 test-suite plutus-ledger-api-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: test
-    other-modules:
-        Spec.Interval
-        Spec.Eval
-        Spec.Builtins
-        Spec.CostModelParams
-    build-depends:
-        base >=4.9 && <5,
-        mtl -any,
-        containers -any,
-        plutus-core ^>=1.0,
-        plutus-ledger-api -any,
-        plutus-ledger-api-testlib -any,
-        hedgehog -any,
-        tasty -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        tasty-quickcheck -any,
-        bytestring -any,
-        serialise -any,
-        lens -any,
-        barbies -any,
-        text -any,
-        extra -any
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  other-modules:
+    Spec.Builtins
+    Spec.CostModelParams
+    Spec.Eval
+    Spec.Interval
+
+  build-depends:
+    , barbies
+    , base                       >=4.9 && <5
+    , bytestring
+    , containers
+    , extra
+    , hedgehog
+    , lens
+    , mtl
+    , plutus-core                ^>=1.0
+    , plutus-ledger-api
+    , plutus-ledger-api-testlib
+    , serialise
+    , tasty
+    , tasty-hedgehog
+    , tasty-hunit
+    , tasty-quickcheck
+    , text

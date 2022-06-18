@@ -182,7 +182,7 @@ unsafeExtractEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
-        [ "Could not unlift a builtin:", hardline
+        [ "Could not unlift a value:", hardline
         , pretty err
         ]
 

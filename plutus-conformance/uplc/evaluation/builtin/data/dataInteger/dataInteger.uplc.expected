@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/data/dataInteger/dataInteger.uplc:1:21:
-  |
-1 | (program 0.0.0 (con data {Integer 12354898}))
-  |                     ^^^^^^^^^^
-unexpected "data {Inte"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

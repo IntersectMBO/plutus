@@ -29,6 +29,7 @@ import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty (PrettyConst)
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
@@ -70,10 +71,10 @@ safeLift x = do
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = set (ccOpts . coMaxSimplifierIterations) 0 (toDefaultCompilationCtx tcConfig)
-        usOpts = set UPLC.soMaxSimplifierIterations 0 UPLC.defaultSimplifyOpts
-    compiled <- flip runReaderT ccConfig $ compileTerm lifted
-    let erased = UPLC.erase compiled
-    db <- UPLC.deBruijnTerm =<< UPLC.simplifyTerm usOpts erased
+        ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+    plc <- flip runReaderT ccConfig $ compileTerm lifted
+    uplc <- flip runReaderT ucOpts $ PLC.compileTerm plc
+    db <- UPLC.deBruijnTerm uplc
     pure $ void db
 
 -- | Get a Plutus Core program corresponding to the given value.
@@ -197,6 +198,6 @@ typeCode
     -> m (CompiledCodeIn uni fun a)
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
-    let erased = UPLC.eraseProgram prog
-    db <-  traverseOf UPLC.progTerm (\t -> UPLC.deBruijnTerm =<< UPLC.simplifyTerm UPLC.defaultSimplifyOpts t) erased
+    compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
+    db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
     pure $ DeserializedCode db Nothing mempty
