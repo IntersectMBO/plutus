@@ -42,48 +42,46 @@ common lang
     -Wunused-packages -Wmissing-deriving-strategies
 
 library
-    import: lang
-    hs-source-dirs: 
-        src
-    exposed-modules:
-        PlutusConformance.Common
-    build-depends:
-        base -any,
-        deepseq -any,
-        megaparsec -any,
-        plutus-core -any,
-        tasty -any,
-        tasty-golden, 
-        tasty-hunit -any,
-        text -any,
-        unliftio -any
-        
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules: PlutusConformance.Common
+  build-depends:
+    , base
+    , deepseq
+    , megaparsec
+    , plutus-core
+    , tasty
+    , tasty-golden
+    , tasty-hunit
+    , text
+    , unliftio
+
 executable add-test-output
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: add-test-output/
-    other-modules:
-    build-depends:
-        base >=4.9 && <5,
-        deepseq -any,
-        directory -any,
-        optparse-applicative -any,
-        plutus-conformance -any,
-        plutus-core,
-        tasty-golden -any,
-        text -any,
-        unliftio -any
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: add-test-output/
+  other-modules:
+  build-depends:
+    , base                  >=4.9 && <5
+    , deepseq
+    , directory
+    , optparse-applicative
+    , plutus-conformance
+    , plutus-core
+    , tasty-golden
+    , text
+    , unliftio
 
 test-suite uplc-eval-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: uplc/evaluation
-    other-modules:
-    build-depends:
-        base >=4.9 && <5,
-        plutus-conformance
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: uplc/evaluation
+  other-modules:
+  build-depends:
+    , base                >=4.9 && <5
+    , plutus-conformance
 
 test-suite tplc-eval-test
   import:         lang
