@@ -628,6 +628,7 @@ executable cost-model-budgeting-bench
     Common
     CriterionExtensions
     Generators
+
   hs-source-dirs: cost-model/budgeting-bench
   build-depends:
     , base                   >=4.9 && <5
