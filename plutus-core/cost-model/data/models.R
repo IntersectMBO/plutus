@@ -461,7 +461,7 @@ modelFun <- function(path) {
     lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
 
 
-    ###### Cryptography and hashes #####
+    ###### Hashing functions #####
 
     sha2_256Model <- {
         fname <- "Sha2_256"
@@ -490,8 +490,11 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
+
+    ###### Signature verification #####
+
     ## VerifyEd25519Signature in fact takes three arguments, but the first and
-    ## third are of fixed size, so we only gather benchmarking data for
+    ## third are of fixed size so we only gather benchmarking data for
     ## different sizes of the second argument (the message being signed).
     verifyEd25519SignatureModel <- {
         fname <- "VerifyEd25519Signature"
