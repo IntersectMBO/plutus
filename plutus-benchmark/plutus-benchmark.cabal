@@ -1,301 +1,292 @@
 cabal-version: 3.0
-name: plutus-benchmark
-version: 0.1.0.0
-license: Apache-2.0
+name:          plutus-benchmark
+version:       0.1.0.0
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: radu.ometita@iohk.io
-author: Radu Ometita
-homepage: https://github.com/iohk/plutus#readme
-bug-reports: https://github.com/iohk/plutus/issues
-description:
-    Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
-build-type: Simple
 
+maintainer:    radu.ometita@iohk.io
+author:        Radu Ometita
+homepage:      https://github.com/iohk/plutus#readme
+bug-reports:   https://github.com/iohk/plutus/issues
+description:
+  Please see the README on GitHub at <https://github.com/input-output-hk/plutus#readme>
+
+build-type:    Simple
 data-files:
-        common/templates/*.tpl
-        validation/data/*.flat
+  common/templates/*.tpl
+  validation/data/*.flat
 
 source-repository head
-    type: git
-    location: https://github.com/iohk/plutus
+  type:     git
+  location: https://github.com/iohk/plutus
 
 common lang
-  default-language: Haskell2010
-  default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                      DeriveGeneric StandaloneDeriving DeriveLift
-                      GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                      DeriveTraversable DerivingStrategies DerivingVia
-                      ImportQualifiedPost
-  ghc-options:
-    -fno-specialise
-    -fno-spec-constr
-    -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas
-  ghc-options:
-     -Wall -Wnoncanonical-monad-instances
-     -Wincomplete-uni-patterns -Wincomplete-record-updates
-     -Wredundant-constraints -Widentities -Wunused-packages
-     -Wmissing-deriving-strategies
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
 
+  ghc-options:
+    -fno-specialise -fno-spec-constr -fno-ignore-interface-pragmas
+    -fno-omit-interface-pragmas
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
 
 ---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
-  import: lang
-  hs-source-dirs:
-      common
+  import:          lang
+  hs-source-dirs:  common
   exposed-modules:
-      PlutusBenchmark.Common
-      PlutusBenchmark.NaturalSort
-  other-modules:
-      Paths_plutus_benchmark
-  build-depends:
-      base >=4.9 && <5
-    , plutus-core ^>=1.0
-    , plutus-tx ^>=1.0
-    , criterion -any
-    , filepath -any
+    PlutusBenchmark.Common
+    PlutusBenchmark.NaturalSort
 
+  other-modules:   Paths_plutus_benchmark
+  build-depends:
+    , base         >=4.9 && <5
+    , criterion
+    , filepath
+    , plutus-core  ^>=1.0
+    , plutus-tx    ^>=1.0
 
 ---------------- nofib ----------------
 
 library nofib-internal
-  import: lang
-  hs-source-dirs:
-      nofib/src
+  import:          lang
+  hs-source-dirs:  nofib/src
   exposed-modules:
-      PlutusBenchmark.NoFib.Clausify
-      PlutusBenchmark.NoFib.Queens
-      PlutusBenchmark.NoFib.Knights
-      PlutusBenchmark.NoFib.Knights.ChessSetList
-      PlutusBenchmark.NoFib.Knights.KnightHeuristic
-      PlutusBenchmark.NoFib.Knights.Queue
-      PlutusBenchmark.NoFib.Knights.Sort
-      PlutusBenchmark.NoFib.Knights.Utils
-      PlutusBenchmark.NoFib.LastPiece
-      PlutusBenchmark.NoFib.Prime
+    PlutusBenchmark.NoFib.Clausify
+    PlutusBenchmark.NoFib.Knights
+    PlutusBenchmark.NoFib.Knights.ChessSetList
+    PlutusBenchmark.NoFib.Knights.KnightHeuristic
+    PlutusBenchmark.NoFib.Knights.Queue
+    PlutusBenchmark.NoFib.Knights.Sort
+    PlutusBenchmark.NoFib.Knights.Utils
+    PlutusBenchmark.NoFib.LastPiece
+    PlutusBenchmark.NoFib.Prime
+    PlutusBenchmark.NoFib.Queens
+
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , plutus-core ^>=1.0
-    , plutus-tx ^>=1.0
-    , plutus-tx-plugin ^>=1.0
-    , deepseq -any
+    , base                     >=4.9 && <5
+    , deepseq
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
+    , plutus-tx                ^>=1.0
+    , plutus-tx-plugin         ^>=1.0
 
 executable nofib-exe
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs:
-      nofib/exe
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: nofib/exe
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , nofib-internal -any
-    , plutus-core ^>=1.0
-    , plutus-tx ^>=1.0
-    , ansi-wl-pprint -any
-    , bytestring -any
-    , flat -any
-    , optparse-applicative -any
-    , transformers -any
-    , lens -any
+    , ansi-wl-pprint
+    , base                     >=4.9 && <5
+    , bytestring
+    , flat
+    , lens
+    , nofib-internal
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
+    , plutus-tx                ^>=1.0
+    , transformers
 
 benchmark nofib
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: BenchPlc.hs
-  hs-source-dirs:
-    nofib/bench
-  other-modules:
-    Shared
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchPlc.hs
+  hs-source-dirs: nofib/bench
+  other-modules:  Shared
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , nofib-internal -any
-    , criterion >= 1.5.9.0
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , nofib-internal
+    , plutus-benchmark-common
 
 benchmark nofib-hs
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: BenchHaskell.hs
-  hs-source-dirs:
-    nofib/bench
-  other-modules:
-    Shared
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchHaskell.hs
+  hs-source-dirs: nofib/bench
+  other-modules:  Shared
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , nofib-internal -any
-    , criterion -any
+    , base                     >=4.9 && <5
+    , criterion
+    , nofib-internal
+    , plutus-benchmark-common
 
 test-suite plutus-benchmark-nofib-tests
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: nofib/test
-    build-depends:
-        base >=4.9 && <5
-      , plutus-benchmark-common -any
-      , nofib-internal -any
-      , plutus-core ^>=1.0
-      , plutus-core:plutus-core-testlib -any
-      , plutus-tx ^>=1.0
-      , plutus-tx:plutus-tx-testlib -any
-      , tasty -any
-      , tasty-hunit -any
-      , tasty-quickcheck -any
-
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: nofib/test
+  build-depends:
+    , base                                            >=4.9 && <5
+    , nofib-internal
+    , plutus-benchmark-common
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.0
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
 
 ---------------- lists ----------------
 
 library lists-internal
-  import: lang
-  hs-source-dirs:
-      lists/src
+  import:          lang
+  hs-source-dirs:  lists/src
   exposed-modules:
-      PlutusBenchmark.Lists.Sort
-      PlutusBenchmark.Lists.Sum.Compiled
-      PlutusBenchmark.Lists.Sum.HandWritten
+    PlutusBenchmark.Lists.Sort
+    PlutusBenchmark.Lists.Sum.Compiled
+    PlutusBenchmark.Lists.Sum.HandWritten
+
   other-modules:
-      PlutusBenchmark.Lists.Sort.GhcSort
-      PlutusBenchmark.Lists.Sort.InsertionSort
-      PlutusBenchmark.Lists.Sort.MergeSort
-      PlutusBenchmark.Lists.Sort.QuickSort
+    PlutusBenchmark.Lists.Sort.GhcSort
+    PlutusBenchmark.Lists.Sort.InsertionSort
+    PlutusBenchmark.Lists.Sort.MergeSort
+    PlutusBenchmark.Lists.Sort.QuickSort
+
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , plutus-core ^>=1.0
-    , plutus-tx ^>=1.0
-    , plutus-tx-plugin ^>=1.0
-    , mtl -any
+    , base                     >=4.9 && <5
+    , mtl
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
+    , plutus-tx                ^>=1.0
+    , plutus-tx-plugin         ^>=1.0
 
 executable list-sort-exe
-  import: lang
-  main-is: Main.hs
-  hs-source-dirs:
-      lists/exe
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: lists/exe
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , lists-internal -any
-    , monoidal-containers -any
-    , plutus-core ^>=1.0
+    , base                     >=4.9 && <5
+    , lists-internal
+    , monoidal-containers
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
 
 benchmark lists
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: Bench.hs
-  hs-source-dirs:
-      lists/bench
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: lists/bench
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , lists-internal -any
-    , criterion >= 1.5.9.0
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , lists-internal
+    , plutus-benchmark-common
 
 test-suite plutus-benchmark-lists-tests
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: lists/test
-    other-modules:
-        Sort.Spec
-        Sum.Spec
-    build-depends:
-        base >=4.9 && <5
-      , plutus-benchmark-common -any
-      , lists-internal -any
-      , tasty -any
-      , tasty-quickcheck -any
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: lists/test
+  other-modules:
+    Sort.Spec
+    Sum.Spec
+
+  build-depends:
+    , base                     >=4.9 && <5
+    , lists-internal
+    , plutus-benchmark-common
+    , tasty
+    , tasty-quickcheck
 
 ---------------- validation ----------------
 
 benchmark validation
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: BenchCek.hs
-  hs-source-dirs:
-      validation
-  other-modules:
-      Common
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchCek.hs
+  hs-source-dirs: validation
+  other-modules:  Common
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , plutus-core ^>=1.0
-    , bytestring -any
-    , criterion >= 1.5.9.0
-    , deepseq -any
-    , directory -any
-    , filepath -any
-    , flat -any
-    , optparse-applicative -any
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , deepseq
+    , directory
+    , filepath
+    , flat
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
 
 ---------------- validation-decode ----------------
 
 benchmark validation-decode
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: BenchDec.hs
-  hs-source-dirs:
-      validation
-  other-modules:
-      Common
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchDec.hs
+  hs-source-dirs: validation
+  other-modules:  Common
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , plutus-core ^>=1.0
-    , bytestring -any
-    , criterion >= 1.5.9.0
-    , directory -any
-    , filepath -any
-    , flat -any
-    , optparse-applicative -any
-    , plutus-ledger-api ^>=1.0
-    , serialise -any
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , directory
+    , filepath
+    , flat
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.0
+    , plutus-ledger-api        ^>=1.0
+    , serialise
 
 ---------------- validation-full ----------------
 
 benchmark validation-full
-  import: lang
-  type: exitcode-stdio-1.0
-  main-is: BenchFull.hs
-  hs-source-dirs:
-      validation
-  other-modules:
-      Common
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchFull.hs
+  hs-source-dirs: validation
+  other-modules:  Common
   build-depends:
-      base >=4.9 && <5
-    , plutus-benchmark-common -any
-    , plutus-core ^>=1.0
-    , bytestring -any
-    , criterion >= 1.5.9.0
-    , directory -any
-    , filepath -any
-    , flat -any
-    , optparse-applicative -any
-    , plutus-ledger-api ^>=1.0
-    , plutus-ledger-api:plutus-ledger-api-testlib -any
-    , serialise -any
+    , base                                                              >=4.9     && <5
+    , bytestring
+    , criterion                                                         >=1.5.9.0
+    , directory
+    , filepath
+    , flat
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core                                                       ^>=1.0
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.0
+    , serialise
 
 ---------------- Cek cost model calibration ----------------
 
 benchmark cek-calibration
-    import: lang
-    type: exitcode-stdio-1.0
-    default-language: Haskell2010
-    main-is: Main.hs
-    hs-source-dirs:
-       cek-calibration
-    -- Something weird causes this to sometimes report the plugin
-    -- package as unused...
-    ghc-options: -Wno-unused-packages
-    build-depends:
-        base >=4.9 && <5
-      , plutus-core ^>=1.0
-      , plutus-tx ^>=1.0
-      , plutus-tx-plugin ^>=1.0
-      , criterion >= 1.5.9.0
-      , mtl -any
-      , lens -any
+  import:           lang
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  main-is:          Main.hs
+  hs-source-dirs:   cek-calibration
+
+  -- Something weird causes this to sometimes report the plugin
+  -- package as unused...
+  ghc-options:      -Wno-unused-packages
+  build-depends:
+    , base              >=4.9     && <5
+    , criterion         >=1.5.9.0
+    , lens
+    , mtl
+    , plutus-core       ^>=1.0
+    , plutus-tx         ^>=1.0
+    , plutus-tx-plugin  ^>=1.0

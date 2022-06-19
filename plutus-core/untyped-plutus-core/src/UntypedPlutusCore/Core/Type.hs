@@ -19,8 +19,6 @@ module UntypedPlutusCore.Core.Type
     , bindFun
     , mapFun
     , termAnn
-    , erase
-    , eraseProgram
     , UVarDecl(..)
     , uvarDeclName
     , uvarDeclAnn
@@ -155,20 +153,3 @@ bindFun f = runIdentity . bindFunM (coerce f)
 
 mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann
 mapFun f = bindFun $ \ann fun -> Builtin ann (f ann fun)
-
--- | Erase a Typed Plutus Core term to its untyped counterpart.
-erase :: TPLC.Term tyname name uni fun ann -> Term name uni fun ann
-erase (TPLC.Var ann name)           = Var ann name
-erase (TPLC.TyAbs ann _ _ body)     = Delay ann (erase body)
-erase (TPLC.LamAbs ann name _ body) = LamAbs ann name (erase body)
-erase (TPLC.Apply ann fun arg)      = Apply ann (erase fun) (erase arg)
-erase (TPLC.Constant ann con)       = Constant ann con
-erase (TPLC.Builtin ann bn)         = Builtin ann bn
-erase (TPLC.TyInst ann term _)      = Force ann (erase term)
-erase (TPLC.Unwrap _ term)          = erase term
-erase (TPLC.IWrap _ _ _ term)       = erase term
-erase (TPLC.Error ann _)            = Error ann
-
--- | Erase a Typed Plutus Core Program to its untyped counterpart.
-eraseProgram :: TPLC.Program tyname name uni fun ann -> Program name uni fun ann
-eraseProgram (TPLC.Program a v t) = Program a v $ erase t

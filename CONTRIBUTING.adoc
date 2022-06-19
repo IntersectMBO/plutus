@@ -30,6 +30,7 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
 
 - `fix-stylish-haskell` will re-format all the Haskell sources correctly.
+- `fix-cabal-fmt` will re-format all the Cabal sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
 
 If you're not using `nix-shell` all the time and you want to run one of these, you can use `nix-shell --run`.
@@ -102,6 +103,9 @@ To resolve it, simply add the following lines in your `cabal.project.local`:
 package plutus-core
   ghc-options: -fexternal-interpreter
 ```
+
+This issue is tracked upstream at https://gitlab.haskell.org/ghc/ghc/-/issues/18320
+
 ====
 
 There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
@@ -129,7 +133,7 @@ We have pinned versions of some Haskell packages specified via the usual `source
 
 These can be managed normally, but ensure that:
 
-* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`.
+* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/pkgs/haskell/haskell.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
 [[update-nix-pins]]
@@ -163,6 +167,10 @@ This therefore needs to be newer than the index state.
 You can update it xref:update-nix-pins[with the Nix flake commands].
 
 == Working conventions
+
+=== Style guide
+
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
 
 === Code is communication
 
@@ -213,12 +221,11 @@ you could write a Note describing the trick (and justifying its usage!), and the
 
 === Code formatting
 
-We use `stylish-haskell` for Haskell code formatting.
-CI checks that running this is a no-op, so if you don’t apply it then your PR will not go green.
-To avoid annoyance, set up your editor to run them automatically.
-The `nix-shell` environment provides a `stylish-haskell` binaries of the correct version.
+We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal files.
+They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
-You can run `stylish-haskell` over your tree using the `fix-stylish-haskell` script provided by the `nix-shell` environment.
+To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `fix-stylish-haskell` or `fix-cabal-fmt` respectively. 
+They are provided by the `nix-shell` environment.
 
 === Compiler warnings
 
@@ -256,6 +263,12 @@ The key bottleneck in getting a PR merged is code review.
 Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
 
 The amount of time it's worth spending doing this is probably much more than you think.
+
+==== What branch to target
+
+Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
+PRs should target `master` unless there is a very good reason not to.
+The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
 
 ==== What changes to include
 

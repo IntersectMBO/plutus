@@ -125,7 +125,7 @@ prop_builtinEvaluation bn mkGen f = property $ do
             MakeKnownM (Term uni fun)
         go sch fn args = case (sch, args) of
             (RuntimeSchemeArrow sch', a : as) -> do
-                res <- liftEither (fn a)
+                res <- liftReadKnownM (fn a)
                 go sch' res as
             (RuntimeSchemeResult, []) -> fn
             (RuntimeSchemeAll sch', _) -> go sch' fn args

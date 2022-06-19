@@ -581,7 +581,7 @@ headList cpuModelR = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelOneArgumentConstantCost 32
   pure $ CostingFun cpuModel memModel
--- x:_ -> x, [] -> failure.  Successful case has fromConstant $ someValueOf etc.
+-- x:_ -> x, [] -> failure.  Successful case has fromValueOf etc.
 
 tailList :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 tailList cpuModelR = do

@@ -37,7 +37,7 @@ import Flat.Decoder
 import Flat.Encoder as Flat
 
 -- See Note [Pattern matching on built-in types].
--- TODO: should we have the commonest builtins at the front to have more compact encoding?
+-- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
@@ -91,6 +91,7 @@ data DefaultFun
     | TailList
     | NullList
     -- Data
+    -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
@@ -107,10 +108,10 @@ data DefaultFun
     | UnBData
     | EqualsData
     | SerialiseData
-    -- Misc constructors
-    -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in
-    -- functions over polymorphic built-in types])
+    -- Misc monomorphized constructors.
+    -- We could simply replace those with constants, but we use built-in functions for consistency
+    -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
+    -- See note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -364,7 +365,7 @@ polymorphism is fine. For example:
 
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emitM text)
+            (\text a -> a <$ emit text)
             <costingFunction>
 
 The inferred type of the denotation is
@@ -453,7 +454,7 @@ So we use the @Opaque val rep@ wrapper, which is basically a @val@ with a @rep@ 
 Not only does this encoding allow us to specify both the Haskell and the Plutus types of the
 builtin simultaneously, but it also makes it possible to infer such a type from a regular
 polymorphic Haskell function (how that is done is a whole another story), so that we don't even need
-to specify any types when creating builtins out of simple polymorphic functions.
+to specify any types when creating built-in functions out of simple polymorphic denotations.
 
 If we wanted to specify the type explicitly, we could do it like this (leaving out the @Var0@ thing
 for the elaboration machinery to figure out):
@@ -523,7 +524,7 @@ As a final simple example, consider
 
     toBuiltinMeaning Trace =
         makeBuiltinMeaning
-            (\text a -> a <$ emitM text)
+            (\text a -> a <$ emit text)
             <costingFunction>
 
 from [How to add a built-in function: simple cases]. The inferred type of the denotation is
@@ -603,7 +604,7 @@ argument as a 'Bool', we could do that:
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
-            case asConstant @_ @UnliftingError Nothing val of
+            case asConstant val of
                 Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
                 _                                       -> EvaluationFailure
 
@@ -612,20 +613,18 @@ Here in the denotation we unlift the given value as a constant, check that its t
 'EvaluationFailure'.
 
 This achieves almost the same as 'IdBool', which keeps all the bookkeeping behind the scenes, but
-there are a couple of differences:
+there is a minor difference: in case of error its message is ignored. It would be easy to allow for
+returning an unlifting error from a builtin explicitly, but we don't need that for anything, hence
+it's not implemented.
 
-- 'asConstant' is given 'Nothing' as the cause of a potential failure
-- in case of error its message is ignored
+We call this style of manually calling 'asConstant' and matching on the type tag "manual unlifting".
+As opposed to "automatic unlifting" that we were using before where 'Bool' in the type of the
+denotation of a builtin causes the builtins machinery to convert the given argument to a 'Bool'
+constant automatically behind the scenes.
 
-We could fix the latter, but changing the former is non-trivial: in general, the cause of a failure
-can be an arbitrary term, not just a value, and the meaning of a built-in function doesn't know
-anything about general terms, it only deals with values. The cause of a potential failure is
-provided to the builtins machinery from the outside (from within the internals of the CEK machine
-for example) and refactoring the builtins machinery into being aware of failure causes would force
-us to attach a term representation to each argument, which would make for a horrible interface.
-
-3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift
-automatically to a constant and then unlift manually to 'Bool' using the 'SomeConstant' wrapper:
+3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift a value
+automatically as a constant and then unlift the result manually to 'Bool' using the 'SomeConstant'
+wrapper:
 
     newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
         { unSomeConstant :: Some (ValueOf uni)
@@ -662,8 +661,8 @@ we'll get an error, saying that a polymorphic built-in type can't be applied to 
 It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
 general case, plus it has to be very inefficient.
 
-Instead we have to use 'SomeConstant' to automatically unlift to a constant and then check that the
-value inside of it is a list (by matching on the type tag):
+Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
+check that the value inside of it is a list (by matching on the type tag):
 
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
@@ -692,8 +691,8 @@ Here's a similar built-in function:
         where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-              DefaultUniPair uniA _ <- pure uniPairAB          -- [1]
-              pure . fromConstant . someValueOf uniA $ fst xy  -- [2]
+              DefaultUniPair uniA _ <- pure uniPairAB  -- [1]
+              pure . fromValueOf uniA $ fst xy         -- [2]
 
 In this definition we extract the first element of a pair by checking that the given constant is
 indeed a pair [1] and lifting its first element into @val@ using the type tag for the first
@@ -731,13 +730,277 @@ Our final example is this:
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList uniA' <- pure uniListA                -- [1]
-                Just Refl <- pure $ uniA `geq` uniA'                 -- [2]
-                pure . fromConstant . someValueOf uniListA $ x : xs  -- [3]
+                DefaultUniList uniA' <- pure uniListA  -- [1]
+                Just Refl <- pure $ uniA `geq` uniA'   -- [2]
+                pure . fromValueOf uniListA $ x : xs   -- [3]
 
 Here we prepend an element to a list [3] after checking that the second argument is indeed a
 list [1] and that the type tag of the element being prepended equals the type tag for elements of
 the list [2] (extracted from the type tag for the whole list constant [1]).
+-}
+
+{- Note [Builtins and Plutus type checking]
+There's a direct correspondence between the Haskell type of the denotation of a builtin and the
+Plutus type of the builtin:
+
+1. elaboration turns a Haskell type variable into a concrete Haskell type representing a Plutus type
+   variable, which later becomes demoted (in the regular @singletons@ sense via 'KnownSymbol' etc)
+   to a regular Haskell value representing a Plutus type variable (as a part of the AST)
+2. a builtin head (i.e. a completely uninstantiated built-in type such as @Bool@ and @[]@) is
+   considered abstract by the Plutus type checker. All the type checker cares about is being able to
+   get the (Plutus) kind of a builtin head and check two builtin heads for equality
+3. Plutus type normalization tears partially or fully instantiated built-in types (such as
+   @[Integer]@) apart and creates a Plutus type application for each Haskell type application
+4. 'Emitter' and 'EvaluationResult' do not appear on the Plutus side, since the logging and failure
+   effects are implicit in Plutus as was discussed above
+5. 'Opaque' and 'SomeConstant' both carry a Haskell @rep@ type argument representing some Plutus
+   type to be used for Plutus type checking
+
+This last part means that one can attach any (legal) @rep@ to an 'Opaque' or 'SomeConstant' and
+it'll be used by the Plutus type checker completely regardless of what the built-in function
+actually does. Let's look at some examples.
+
+1. The following built-in function unlifts to 'Bool' and lifts the result back:
+
+    toBuiltinMeaning IdIntegerAsBool =
+        makeBuiltinMeaning
+            idIntegerAsBool
+            <costingFunction>
+      where
+        idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
+        idIntegerAsBool = \case
+            con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
+            _                                                    -> EvaluationFailure
+
+but on the Plutus side its type is
+
+    integer -> integer
+
+because the @rep@ that 'SomeConstant' carries is 'Integer' in both the cases (in the type of the
+argument, as well as in the type of the result).
+
+This means that for this built-in function the Plutus type checker will accept a program that fails
+at runtime due to a type mismatch and will reject a program that runs successfully. Other built-in
+functions also can fail, e.g. the type of @ifThenElse@ says that the builtin expects a @Bool@ and
+feeding it something else will result in evaluation failure, but 'idIntegerAsBool' is different:
+it's respecting its type signature is what causes a failure, not disrespecting it.
+
+2. Another example of an unsafe built-in function is this one that checks whether an argument is a
+constant or not:
+
+    toBuiltinMeaning IsConstant =
+        makeBuiltinMeaning
+            isConstantPlc
+            <costingFunction>
+      where
+        -- The type signature is just for clarity, it's not required.
+        isConstantPlc :: Opaque val a -> Bool
+        isConstantPlc = isRight . asConstant
+
+Its type on the Plutus side is
+
+    all a. a -> bool
+
+By parametricity any inhabitant of this type has to be either bottom or a function ignoring its
+argument, but @IsConstant@ actually uses the argument and so we break parametricity with this
+built-in function.
+
+3. Finally, we can have a Plutus version of @unsafeCoerce@:
+
+    toBuiltinMeaning UnsafeCoerce =
+        makeBuiltinMeaning
+            unsafeCoercePlc
+            <costingFunction>
+      where
+        -- The type signature is just for clarity, it's not required.
+        unsafeCoercePlc :: Opaque val a -> Opaque val b
+        unsafeCoercePlc = Opaque . unOpaque
+
+Its type on the Plutus side is
+
+    all a b. a -> b
+
+and thus this built-in function allows for viewing any Plutus expression as having an arbitrary
+type. Which is of course not nearly as bad as @unsafeCoerce@ in Haskell, because in Plutus a
+blob of memory representing an @Integer@ is not going to be viewed as a @[Bool]@ and an attempt to
+actually extract that @[Bool]@ will result in evaluation failure, but this built-in function is
+still not a good citizen of the Plutus type system.
+
+One could of course simply wrap Haskell's @unsafeCoerce@ as a built-in function in Plutus, but it
+goes without saying that this is not supposed to be done.
+
+So overall one needs to be very careful when defining built-in functions that have explicit
+'Opaque' and 'SomeConstant' arguments. Expressiveness doesn't come for free.
+
+Read Note [Pattern matching on built-in types] next.
+-}
+
+{- Note [Pattern matching on built-in types]
+At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
+'Bool' etc. This is because the denotation of a builtin cannot construct general terms (as opposed
+to constants), only juggle the ones that were provided as arguments without changing them.
+So e.g. if we wanted to add the following data type:
+
+    newtype AnInt = AnInt Int
+
+as a built-in type, we wouldn't be able to add the following function as its pattern matcher:
+
+    matchAnInt :: AnInt -> (Int -> r) -> r
+    matchAnInt (AnInt i) f = f i
+
+because currently we cannot express the @f i@ part using the builtins machinery as that would
+require applying an arbitrary Plutus Core function in the denotation of a builtin, which would
+allow us to return arbitrary terms from the builtin application machinery, which is something
+that we originally had, but decided to abandon due to performance concerns.
+
+But it's still possible to have @AnInt@ as a built-in type, it's just that instead of trying to
+make its pattern matcher into a builtin we can have the following builtin:
+
+    anIntToInt :: AnInt -> Int
+    anIntToInt (AnInt i) = i
+
+which fits perfectly well into the builtins machinery.
+
+Although that becomes annoying for more complex data types. For tuples we need to provide two
+projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too bad,
+but to get pattern matching on lists we need a more complicated setup. For example we can have three
+built-in functions: @null@, @head@ and @tail@, plus require `Bool` to be in the universe, so that we
+can define an equivalent of
+
+    matchList :: [a] -> r -> (a -> [a] -> r) -> r
+    matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+If a constructor stores more than one value, the corresponding projection function packs them
+into a (possibly nested) pair, for example for
+
+    data Data
+        = Constr Integer [Data]
+        | <...>
+
+we have (pseudocode):
+
+    unConstrData (Constr i ds) = (i, ds)
+
+In order to get pattern matching over 'Data' we need a projection function per constructor as well
+as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of 'Data')
+
+    if isConstrData d
+        then uncurry fConstr $ unConstrData d
+        else if isMapData d
+            then fMap $ unMapData d
+            else if isListData d
+                then fList $ unListData d
+                else <...>
+
+is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
+its @Data@ argument and chooses the appropriate branch (type instantiations and strictness concerns
+are omitted for clarity):
+
+     chooseData
+        (uncurry fConstr $ unConstrData d)
+        (fMap $ unMapData d)
+        (fList $ unListData d)
+        <...>
+        d
+
+which, for example, evaluates to @fMap es@ when @d@ is @Map es@
+
+We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency.
+
+On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
+prioritize performance over convenience, especially given the fact that performance is of a concern
+to every single end user while the inconvenience is only a concern for the compiler writers and
+we don't add complex built-in types too often.
+
+It is not however clear if we can't get more performance gains by defining matchers directly as
+higher-order built-in functions compared to forbidding them. Particularly since if higher-order
+built-in functions were allowed, we could define not only matches, but also folds and keep recursion
+on the Haskell side for conversions from 'Data', which can potentially have a huge positive impact
+on performance.
+
+Read Note [Representable built-in functions over polymorphic built-in types] next.
+-}
+
+{- Note [Representable built-in functions over polymorphic built-in types]
+In Note [Pattern matching on built-in types] we discussed how general higher-order polymorphic
+built-in functions are troubling, but polymorphic built-in functions can be troubling even in
+the first-order case. In a Plutus program we always pair constants of built-in types with their
+tags from the universe, which means that in order to produce a constant embedded into a program
+we need the tag of the type of that constant. We can't get that tag from a Plutus type -- those
+are gone at runtime, so the only place we can get a type tag from during evaluation is some already
+existing constant. I.e. the following built-in function is representable:
+
+    tail : all a. [a] -> [a]
+
+because for constructing the result we need a type tag for @[a]@, but we have a value of that type
+as an argument and so we can extract the type tag from it. Same applies to
+
+    swap : all a b. (a, b) -> (b, a)
+
+since 'SomeConstantOf' always contains a type tag for each type that a polymorphic built-in type is
+instantiated with and so constructing a type tag for @(b, a)@ given type tags for @a@ and @b@ is
+unproblematic.
+
+And so neither
+
+    cons : all a. a -> [a] -> [a]
+
+is troubling (even though that ones requires checking at runtime that the element to be prepended
+is of the same type as the type of the elements of the list as it's impossible to enforce this kind
+of type safety in Haskell over possibly untyped PLC).
+
+However consider the following imaginary builtin:
+
+    nil : all a. [a]
+
+we can't represent it for two reasons:
+
+1. we don't have any argument providing us a type tag for @a@ and hence we can't construct a type
+   tag for @[a]@
+2. it would be a very unsound builtin to have. We can only instantiate built-in types with other
+   built-in types and so allowing @nil {some_non_built_in_type}@ would be a lie that couldn't reduce
+   to anything since it's not even possible to represent a built-in list with non-built-in elements
+   (even if there's zero of them)
+
+"Wait, but wouldn't @cons {some_non_built_in_type}@ be a lie as well?" -- No! Since @cons@ does not
+just construct a list filled with elements of a non-built-in type but also expects one as an
+argument and providing such an argument is impossible, 'cause it's pretty much the same thing as
+populating 'Void' -- both values are equally unrepresentable. And so @cons {some_non_built_in_type}@
+is a way to say @absurd@, which is perfectly fine to have.
+
+Finally,
+
+    comma :: all a b. a -> b -> (a, b)
+
+is representable (because we can require arguments to be constants carrying universes with them,
+which we can use to construct the resulting universe), but is still a lie, because instantiating
+that builtin with non-built-in types is possible and so the PLC type checker won't throw on such
+an instantiation, which will become 'EvalutionFailure' at runtime the moment unlifting of a
+non-constant is attempted when a constant is expected.
+
+So could we still get @nil@ or a safe version of @comma@ somehow? Well, we could have this
+weirdness:
+
+    nilOfTypeOf : all a. [a] -> [a]
+
+i.e. ask for an already existing list, but ignore the actual list and only use the type tag.
+
+But since we're ignoring the actual list, can't we just not pass it in the first place? And instead
+pass around our good old friends, singletons. We should be able to do that, but it hasn't been
+investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
+
+    DefaultUniProtoSing :: DefaultUni (Esc (Proxy @GHC.Type))
+
+and then defining
+
+    nil : all a. sing a -> [a]
+
+and then the Plutus Tx compiler can provide a type class or something for constructing singletons
+for built-in types.
+
+This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but we decided not to
+do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
@@ -902,7 +1165,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
-              pure . fromConstant . someValueOf uniA $ fst xy
+              pure . fromValueOf uniA $ fst xy
           {-# INLINE fstPlc #-}
     toBuiltinMeaning SndPair =
         makeBuiltinMeaning
@@ -912,7 +1175,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
           sndPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
-              pure . fromConstant . someValueOf uniB $ snd xy
+              pure . fromValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
     -- Lists
     toBuiltinMeaning ChooseList =
@@ -945,7 +1208,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- Should that rather give us an 'UnliftingError'? For that we need
                 -- https://github.com/input-output-hk/plutus/pull/3035
                 Just Refl <- pure $ uniA `geq` uniA'
-                pure . fromConstant . someValueOf uniListA $ x : xs
+                pure . fromValueOf uniListA $ x : xs
           {-# INLINE consPlc #-}
     toBuiltinMeaning HeadList =
         makeBuiltinMeaning
@@ -956,7 +1219,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           headPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
-              pure . fromConstant $ someValueOf uniA x
+              pure $ fromValueOf uniA x
           {-# INLINE headPlc #-}
     toBuiltinMeaning TailList =
         makeBuiltinMeaning
@@ -967,7 +1230,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs
-              pure . fromConstant $ someValueOf uniListA xs'
+              pure $ fromValueOf uniListA xs'
           {-# INLINE tailPlc #-}
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
@@ -1057,15 +1320,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
     toBuiltinMeaning MkNilData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
     toBuiltinMeaning MkNilPairData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))

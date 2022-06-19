@@ -11,6 +11,7 @@ module Main
 
 import PlutusPrelude
 
+import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import Evaluation.Spec (test_evaluation)
@@ -21,14 +22,16 @@ import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
+import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.DeBruijn
-import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Error
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
+import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
 import Data.Foldable (for_)
@@ -203,8 +206,32 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
+-- | Parse and rewrite so that names are globally unique, not just unique within
+-- their scope.
+-- don't require there to be no free variables at this point, we might be parsing an open term
+parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
+        MonadError e m, MonadQuote m) =>
+    T.Text
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+-- don't require there to be no free variables at this point, we might be parsing an open term
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
+
+printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
+        MonadError e m)
+    => T.Text
+    -> m T.Text
+printType txt = runQuoteT $ T.pack . show . pretty <$> do
+    scoped <- parseScoped txt
+    config <- getDefTypeCheckConfig topSourcePos
+    inferTypeOfProgram config scoped
+
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
+
+format
+    :: (AsParserErrorBundle e, MonadError e m)
+    => PrettyConfigPlc -> T.Text -> m T.Text
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden
@@ -246,6 +273,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
+    , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests NEAT.defaultGenOptions
     ]

@@ -14,6 +14,7 @@ module Evaluation.Builtins.Definition
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Interesting
 import PlutusCore.MkPlc hiding (error)
