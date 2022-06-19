@@ -15,10 +15,10 @@ import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
-import Criterion.Main
+import Criterion.Main (Benchmark, bgroup)
 import Crypto.Secp256k1 qualified (msg)
 import Data.ByteString (ByteString)
-import Hedgehog qualified as H
+import Hedgehog qualified as H (Seed)
 import System.Random (StdGen)
 
 numSamples :: Int
@@ -43,16 +43,16 @@ data MessageSize = Arbitrary | Fixed Int
   signed messages to get worst case behaviours because some signature
   verification implementations return quickly if some basic precondition isn't
   satisfied.  For example, at least one Ed25519 signature verification
-  implementation requires that the first three bits of the final byte of the
-  64-byte signature are all zero, and fails immediately if this is not the case.
-  This feature isn't documented.  Another example is that ECDSA verification
-  admits two valid signatures (involving a point on a curve and its inverse) for
-  a given message, but in the Bitcoin implementation for EcdsaSecp256k1
-  signatures (which we use here), only the smaller one (as a bytestring) is
-  accepted.  Again, this fact isn't particularly well advertised.  If these
-  basic preconditions are met however, verification time should depend more or
-  less linearly on the length of the message since the whole of the message has
-  to be examined before it can be determined whether a (key, message, signature)
+  implementation (in cardano-crypto) expects the first three bits of the final
+  byte of the 64-byte signature to all be zero, and fails immediately if this is
+  not the case.  This behaviour isn't documented.  Another example is that ECDSA
+  verification admits two valid signatures (involving a point on a curve and its
+  inverse) for a given message, but in the Bitcoin implementation for
+  EcdsaSecp256k1 signatures (which we use here), only the smaller one (as a
+  bytestring) is accepted.  Again, this fact isn't particularly well advertised.
+  If these basic preconditions are met however, verification time should depend
+  linearly on the length of the message since the whole of the message has to be
+  examined before it can be determined whether a (key, message, signature)
   triple is valid or not.
 -}
 
@@ -60,8 +60,8 @@ data MessageSize = Arbitrary | Fixed Int
    infrastructure lets us do this in a farily generic way.  However, to sign an
    EcdsaSecp256k1DSIGN message we can't use a raw bytestring: we have to wrap it
    up using Crypto.Secp256k1.msg, which checks that the bytestring is the right
-   length.  This means that we have to add a ByteString -> message function as a
-   parameter here.
+   length.  This means that we have to add a ByteString -> message conversion
+   function as a parameter here.
 -}
 mkBmInputs :: forall v msg .
     (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
@@ -71,7 +71,7 @@ mkBmInputs :: forall v msg .
 mkBmInputs toMsg msgSize =
     map mkOneInput (zip seeds messages)
     where seeds = listOfSizedByteStrings numSamples 128
-          -- ^ Seeds for key generaetion. For some algorithms the seed has to be
+          -- ^ Seeds for key generation. For some algorithms the seed has to be
           -- a certain minimal size and there's a SeedBytesExhausted error if
           -- it's not big enough; 128 is big enough for everything here though.
           messages =
