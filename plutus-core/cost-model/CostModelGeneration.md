@@ -280,9 +280,9 @@ entries for the new builtin in builtinCostModelNames
   , paramSquareInteger                   = "squareIntegerModel"
 ```
 (Getting the string wrong here, for example putting "squareInteger" instead will
-give `parse error (not enough input) at ""`. This will happen whenever the
+give `parse error (not enough input) at ""`. Errors will occur whenever the
 Haskell code attempts to read something from an R object that doesn't actually
-occur in the object.)
+occur in the object, and they can sometimes be qutie cryptic.)
 
 #### Step 7
 
@@ -335,6 +335,7 @@ size of the argument of the function:
 ```
     squareIntegerModel <- {
         fname <- "SquareInteger"
+        ## ^ This is the string appearing at the start of each line in the CSV file 
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
