@@ -218,7 +218,7 @@ The coefficients here are unimportant at the moment so we set them all to zero:
 Correct figures here will be filled in later by benchmarking, but we need to add
 the basic form of the costing functions first to avoid a circularity problem:
 see the Note "Modifying the Cost Model" in
-[`PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
+[`PlutusCore.Evaluation.Machine.ExBudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
 for how to deal with this.
 
 The JSON keys are obtained automatically from the types in
