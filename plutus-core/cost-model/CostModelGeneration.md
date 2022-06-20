@@ -164,14 +164,15 @@ For example
 ```
 
    The types of costing functions are defined in
-   `PlutusCore.Evaluation.Machine.CostingFun.Core`.  There are types
-   `ModelOneArgument`, `ModelTwoArguments`, `ModelThreeArguments`,
-   `ModelFourArguments`, `ModelFiveArguments`, and `ModelSixArguments`: each of
-   these types has a number of constructors describing different forms of costing
-   function for functions with the appropriate number of functions.  The existing
-   costing function types should suffice in most situations, but new constructors
-   can be added if necessary: in this case you should add new cases to the
-   appropriate `run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
+   [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFunction/Core.hs).
+   There are types `ModelOneArgument`, `ModelTwoArguments`,
+   `ModelThreeArguments`, `ModelFourArguments`, `ModelFiveArguments`, and
+   `ModelSixArguments`: each of these types has a number of constructors
+   describing different forms of costing function for functions with the
+   appropriate number of functions.  The existing costing function types should
+   suffice in most situations, but new constructors can be added if necessary:
+   in this case you should add new cases to the appropriate
+   `run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
 
    For `squareInteger` it would be reasonable to expect the time taken to be linear
    in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
