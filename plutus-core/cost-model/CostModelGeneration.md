@@ -126,11 +126,12 @@ see the extensive notes on "How to add a built-in function" in
 
     Note that there are certain restrictions on built-in functions: the function should be
     should be
+    
        * Easy to cost
        * Deterministic
        * It **must not throw any exceptions**.
 
-3. Add a tag for the Flat encoding in "instance Flat DefaultFun" in the same
+3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
 file.  This should be different from all the existing tags and should be less
 than 128; typically you should use the smallest unused number.  The existing
 tags *must not be changed* since changing them would prevent existing scripts
@@ -153,7 +154,9 @@ Plutus Core, but will not incur any charges when it is called.  To fix this we
 have to add a costing function of a suitable shape and replace the `mempty` in
 the definition of the function.
 
-#### Step 1 Firstly, add a new entry to the `BuiltinCostModelBase` type in
+#### Step 1
+
+Firstly, add a new entry to the `BuiltinCostModelBase` type in
 [`PlutusCore.Evaluation.Machine.BuiltinCostModel`](../plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs).
 For example
 
