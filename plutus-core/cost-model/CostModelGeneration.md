@@ -156,7 +156,7 @@ Plutus Core, but will not incur any charges when it is called.  To fix this we
 have to add a costing function of a suitable shape and replace the `mempty` in
 the definition of the function.
 
-#### Step 1: add the 
+#### Step 1: add the basic type of the costing function to the cost model type 
 
 Firstly, add a new entry to the `BuiltinCostModelBase` type in
 [`PlutusCore.Evaluation.Machine.BuiltinCostModel`](../plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs).
@@ -166,20 +166,20 @@ For example
     paramCubeInteger                   :: f ModelOneArgument
 ```
 
-   The types of costing functions are defined in
-   [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs).
-   There are types `ModelOneArgument`, `ModelTwoArguments`,
-   `ModelThreeArguments`, `ModelFourArguments`, `ModelFiveArguments`, and
-   `ModelSixArguments`: each of these types has a number of constructors
-   describing different forms of costing function for functions with the
-   appropriate number of functions.  The existing costing function types should
-   suffice in most situations, but new constructors can be added if necessary:
-   in this case you should add new cases to the appropriate
-   `run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
+The types of costing functions are defined in
+[`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs).
+There are types `ModelOneArgument`, `ModelTwoArguments`,
+`ModelThreeArguments`, `ModelFourArguments`, `ModelFiveArguments`, and
+`ModelSixArguments`: each of these types has a number of constructors
+describing different forms of costing function for functions with the
+appropriate number of functions.  The existing costing function types should
+suffice in most situations, but new constructors can be added if necessary:
+in this case you should add new cases to the appropriate
+`run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
 
-   For `cubeInteger` it would be reasonable to expect the time taken to be linear
-   in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
-   constructor: see Step 6 for this.
+For `cubeInteger` it would be reasonable to expect the time taken to be linear
+in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
+constructor: see Step 6 for this.
 
 
 #### Step 2: add unit cost model for new function
