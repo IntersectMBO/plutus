@@ -103,20 +103,22 @@ costing functions involves a number of steps.
 
 The process of updating the cost model when a new built-in function is added to
 Plutus Core is quite complex.  This section describes how to do that; for
-concreteness we show how to add a new builtin `squareInteger` and how to update
-the cost model to include it.  This is quite a simple example: for full
-technical details of how to add a new function or how to add a new built-in type
-see the extensive notes on "How to add a built-in function" in
-[`PlutusCore/Default/Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs.
+concreteness we show how to add a new builtin `cubeInteger` (which cubes an
+integer) and how to update the cost model to include it.  This is quite a simple
+example: for full technical details of how to add a new function see the
+extensive notes on "How to add a built-in function" in
+[`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs.
+To add a new built-in type, see [`Universe.Core`](../plutus-core/src/Universe/Core.hs).
+
 
 ### Adding a new function
 
 1. Add a new constructor to the `DefaultFun` type in
    [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs), In
-   our case we will call this constructor `SquareInteger`.  The functions in
+   our case we will call this constructor `CubeInteger`.  The functions in
    `DefaultFun` become accessible from Plutus Core via names obtained by
    converting the first character of their name to lower case, so in textual
-   Plutus core our function will be called `squareInteger`.
+   Plutus core our function will be called `cubeInteger`.
 
 2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
@@ -160,7 +162,7 @@ Firstly, add a new entry to the `BuiltinCostModelBase` type in
 For example
 
 ```
-    paramSquareInteger                   :: f ModelOneArgument
+    paramCubeInteger                   :: f ModelOneArgument
 ```
 
    The types of costing functions are defined in
@@ -174,7 +176,7 @@ For example
    in this case you should add new cases to the appropriate
    `run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
 
-   For `squareInteger` it would be reasonable to expect the time taken to be linear
+   For `cubeInteger` it would be reasonable to expect the time taken to be linear
    in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
    constructor.
 
@@ -185,18 +187,18 @@ Add a new entry in unitCostBuiltinCostModel in
 [`PlutusCore.Evaluation.Machine.ExbudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
 (this is used by the `uplc` command for counting the number of times each
 builtin is called during script execution, which can useful for diagnostic
-purposes).  It should be clear how to do this.  For the `squareInteger` function
+purposes).  It should be clear how to do this.  For the `cubeInteger` function
 we add
 
 ```
-    , paramSquareInteger                   = unitCostOneArgument
+    , paramCubeInteger                   = unitCostOneArgument
 ```
 
 #### Step 3
 Add a new entry in [`builtinCostModel.json`](./data/builtinCostModel.json):
 
 ```
-    "squareInteger": {
+    "cubeInteger": {
         "cpu": {
             "arguments": {
                 "intercept": 0,
@@ -244,9 +246,9 @@ Now go back to
 `param<builtin-name>` function:
 
 ```
-    toBuiltinMeaning SquareInteger =
+    toBuiltinMeaning CubeInteger =
         makeBuiltinMeaning (\(n::Integer) -> n*n)
-            (runCostingFunOneArgument . paramSquareInteger)
+            (runCostingFunOneArgument . paramCubeInteger)
 ```
 
 #### Step 5
@@ -277,9 +279,9 @@ models.  Go to
 entries for the new builtin in builtinCostModelNames
 
 ```
-  , paramSquareInteger                   = "squareIntegerModel"
+  , paramCubeInteger                   = "cubeIntegerModel"
 ```
-(Getting the string wrong here, for example putting "squareInteger" instead will
+(Getting the string wrong here, for example putting "cubeInteger" instead will
 give `parse error (not enough input) at ""`. Errors will occur whenever the
 Haskell code attempts to read something from an R object that doesn't actually
 occur in the object, and they can sometimes be qutie cryptic.)
@@ -289,17 +291,17 @@ occur in the object, and they can sometimes be qutie cryptic.)
 Also add a new clause in [`CreateBuiltinCostModel`](./create-cost-model/CreateBuiltinCostModel.hs):
 
 ```
-    paramSquareInteger                   <- getParams squareIntegerData  paramSquareInteger
+    paramCubeInteger                   <- getParams cubeIntegerData  paramCubeInteger
 ```
 
 and a function to extract the cost parameters for the R code.  This should be modelled on the existing
 functions at the end of the file:
 
 ```
-squareInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-squareInteger cpuModelR = do
+cubeInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+cubeInteger cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 2
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 3
   pure $ CostingFun cpuModel memModel
 ```
 
@@ -308,9 +310,9 @@ costing function is defined statically here.  Memory usage costing functions
 only account for memory retained after the function has returned and not for any
 working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
-by the builtin.  In the case of `squareInteger` it is a reasonable assumption
-that the result of squaring an integer of size `n` will be of size about `2n`, so
-we define the memory costing function to be `n -> 2*n + 0`.
+by the builtin.  In the case of `cubeInteger` it is a reasonable assumption
+that the result of squaring an integer of size `n` will be of size about `3n`, so
+we define the memory costing function to be `n -> 3*n + 0`.
 
 
 #### Step 8
@@ -323,7 +325,7 @@ an entry for the arity of the builtin in the `arity` function:
        switch (name,
            "AddInteger" = 2,
            ...
-           "SquareInteger" = 1,
+           "CubeInteger" = 1,
            ...
            )
 ```
@@ -333,9 +335,9 @@ benchmarking data.  We have assumed that the time taken will be linear in the
 size of the argument of the function:
 
 ```
-    squareIntegerModel <- {
-        fname <- "SquareInteger"
-        ## ^ This is the string appearing at the start of each line in the CSV file 
+    cubeIntegerModel <- {
+        fname <- "CubeInteger"
+                    ## ^ This is the string appearing at the start of each line in the CSV file 
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
@@ -347,16 +349,16 @@ size of the argument of the function:
 Finally, add an entry to the list which is returned by `modelFun` (at the very end of the file):
 
 ```
-   squareIntegerModel = squareIntegerModel
+   cubeIntegerModel = cubeIntegerModel
 ```
 
 From the point of view of Haskell this effectively creates a record field called
-`squareIntegerModel` which contains a Haskell representation of the R model
+`cubeIntegerModel` which contains a Haskell representation of the R model
 object.
 
 ### Step 9: testing the Haskell versions of the costing functions
 
-The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel)
+The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel.hs)
 converts the cost modelling functions fitted by R into Haskell functions.  As
 mentioned in the first section, there are tests in
 [`plutus-core/cost-model/test/TestCostModels.hs`](./test/TestCostModels.hs) that
