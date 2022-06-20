@@ -231,8 +231,9 @@ by a `CamelToSnake` transformation.  Similarly, the names of the
 `modelLinearSizeIntercept` and `modelLinearSizeSlope` fields in the
 `ModelLinearSize` type are converted to `slope` and `intercept`.  In many cases
 you should be able to see what the JSON should look like by looking at existing
-entries in `builtinCostModel.json`, but in case of difficulty try the
-alternative method mentioned in the "Modifying the Cost Model" note.
+entries in [`builtinCostModel.json`](./data/builtinCostModel.json), but in case
+of difficulty try the alternative method mentioned in the "Modifying the Cost
+Model" note.
 
 
 #### Step 4
