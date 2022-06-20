@@ -164,7 +164,7 @@ For example
 ```
 
    The types of costing functions are defined in
-   [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFunction/Core.hs).
+   [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs).
    There are types `ModelOneArgument`, `ModelTwoArguments`,
    `ModelThreeArguments`, `ModelFourArguments`, `ModelFiveArguments`, and
    `ModelSixArguments`: each of these types has a number of constructors
@@ -222,7 +222,7 @@ see the Note "Modifying the Cost Model" in
 for how to deal with this.
 
 The JSON keys are obtained automatically from the types in
-[`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFunction/Core.hs)
+[`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs)
 by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In our case,
 the costing function is given by the `ModelOneArgumentLinearCost` constructor of
 the `ModelOneArgument` type. The type prefix `ModelOneArgument` is removed from
