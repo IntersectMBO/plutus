@@ -107,8 +107,9 @@ concreteness we show how to add a new builtin `cubeInteger` (which cubes an
 integer) and how to update the cost model to include it.  This is quite a simple
 example: for full technical details of how to add a new function see the
 extensive notes on "How to add a built-in function" in
-[`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs.
-To add a new built-in type, see [`Universe.Core`](../plutus-core/src/Universe/Core.hs).
+[`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
+For documentation on how to add a new built-in type, see
+[`Universe.Core`](../plutus-core/src/Universe/Core.hs).
 
 
 ### Adding a new function
