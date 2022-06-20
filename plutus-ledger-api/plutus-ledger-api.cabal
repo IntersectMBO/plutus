@@ -161,16 +161,13 @@ test-suite evaluation-test
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base                       >=4.9 && <5
-    , bytestring
     , extra
     , filepath
     , plutus-core
     , plutus-ledger-api
     , plutus-ledger-api-testlib
-    , prettyprinter
     , serialise
     , tasty
     , tasty-hunit
-    , text
 
   default-language: Haskell2010
