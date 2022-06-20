@@ -112,15 +112,17 @@ see the extensive notes on "How to add a built-in function" in
 ### Adding a new function
 
 1. Add a new constructor to the `DefaultFun` type in
-   PlutusCore.Default.Builtins, In our case we will call this constructor
-   `SquareInteger`.  The functions in `DefaultFun` become accessible from Plutus
-   Core via names obtained by converting the first character of their name to
-   lower case, so in textual Plutus core our function will be called `squareInteger`.
+   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs), In
+   our case we will call this constructor `SquareInteger`.  The functions in
+   `DefaultFun` become accessible from Plutus Core via names obtained by
+   converting the first character of their name to lower case, so in textual
+   Plutus core our function will be called `squareInteger`.
 
 2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
-  `PlutusCore.Default.Builtins`.  The final argument of `ToBuiltinMeaning`
-   contains the costing functions for the relevant builtin.  Initially this should
-   be set to `mempty`; we'll come back and fix it later.
+  [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
+  The final argument of `ToBuiltinMeaning` contains the costing functions for
+  the relevant builtin.  Initially this should be set to `mempty`; we'll come
+  back and fix it later.
 
     Note that there are certain restrictions on built-in functions: the function should be
     should be
@@ -137,10 +139,12 @@ from being decoded properly.
 4. The new builtin should now become automatically available in Plutus Core.
 
 5. Further work will be required to make the builtin accessible from Haskell.
-See PlutusTx.Builtins for examples of how this is done.
+See [`PlutusTx.Builtins`](../../plutus-tx/src/PlutusTx/Builtins.hs) for examples
+of how this is done.
 
-6. May want to add tests to make sure semantics are correct: see ...
-
+6. You may want to add some tests in [`plutus-core/untyped-plutus-core/test](
+../untyped-plutus-core/test/) to make sure the semantics of the new builtin are
+correct.
 
 ### Adding the costing functions for a new built-in function
 
@@ -149,9 +153,9 @@ Plutus Core, but will not incur any charges when it is called.  To fix this we
 have to add a costing function of a suitable shape and replace the `mempty` in
 the definition of the function.
 
-#### Step 1
-Firstly, add a new entry to the `BuiltinCostModelBase` type in
-PlutusCore.Evaluation.Machine.BuiltinCostModel. For example
+#### Step 1 Firstly, add a new entry to the `BuiltinCostModelBase` type in
+[`PlutusCore.Evaluation.Machine.BuiltinCostModel`](../plutus-core/src/PlutusCore/Evaluation/Machine/BuiltinCostModel.hs).
+For example
 
 ```
     paramSquareInteger                   :: f ModelOneArgument
@@ -173,18 +177,20 @@ PlutusCore.Evaluation.Machine.BuiltinCostModel. For example
 
 
 #### Step 2
+
 Add a new entry in unitCostBuiltinCostModel in
-plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs (this is
-used by the `uplc` command for counting the number of times each builtin is
-called during script execution, which can useful for diagnostic purposes).  It
-should be clear how to do this.  For the `squareInteger` function we add
+[`PlutusCore.Evaluation.Machine.ExbudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
+(this is used by the `uplc` command for counting the number of times each
+builtin is called during script execution, which can useful for diagnostic
+purposes).  It should be clear how to do this.  For the `squareInteger` function
+we add
 
 ```
     , paramSquareInteger                   = unitCostOneArgument
 ```
 
 #### Step 3
-Add a new entry in plutus-core/cost-model/data/builtinCostModel.json:
+Add a new entry in [`builtinCostModel.json`](./data/builtinCostModel.json):
 
 ```
     "squareInteger": {
@@ -213,12 +219,12 @@ see the Note "Modifying the Cost Model" in
 for how to deal with this.
 
 The JSON keys are obtained automatically from the types in
-`PlutusCore.Evaluation.Machine.CostingFun.Core` by the code in
-`PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In our case, the costing
-function is given by the `ModelOneArgumentLinearCost` constructor of the
-`ModelOneArgument` type. The type prefix `ModelOneArgument` is removed from the
-constuctor name and the remaining `LinearCost` is converted to `linear_cost` by
-a `CamelToSnake` transformation.  Similarly, the names of the
+[`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFunction/Core.hs)
+by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In our case,
+the costing function is given by the `ModelOneArgumentLinearCost` constructor of
+the `ModelOneArgument` type. The type prefix `ModelOneArgument` is removed from
+the constuctor name and the remaining `LinearCost` is converted to `linear_cost`
+by a `CamelToSnake` transformation.  Similarly, the names of the
 `modelLinearSizeIntercept` and `modelLinearSizeSlope` fields in the
 `ModelLinearSize` type are converted to `slope` and `intercept`.  In many cases
 you should be able to see what the JSON should look like by looking at existing
@@ -226,10 +232,12 @@ entries in `builtinCostModel.json`, but in case of difficulty try the
 alternative method mentioned in the "Modifying the Cost Model" note.
 
 
-
 #### Step 4
-Now go back to Builtins.hs and replace `mempty` in the definition of the
-builtin with the appropriate `param<builtin-name>` function:
+
+Now go back to
+[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and replace
+`mempty` in the definition of the builtin with the appropriate
+`param<builtin-name>` function:
 
 ```
     toBuiltinMeaning SquareInteger =
@@ -238,29 +246,30 @@ builtin with the appropriate `param<builtin-name>` function:
 ```
 
 #### Step 5
+
 Now a CPU usage benchmark for the function will have to be added in
-`plutus-core/cost-model/budgeting-bench` and new R code will have to be added in
-`models.R` to process the results of the benchmark.  The benchmark should aim
-to cover a wide range of inputs in order to get a good idea of the worst-case
-behaviour of the function.  The exact form of the R code will depend on the
-behaviour of the function being added and will probably be based on the expected
-time complexity of the function, backed up by examination of the initial
-benchmark results.  In simpler cases it may be possible to re-use existing R
-code, but sometimes more complex code may be required to obtain a good model of
-the behaviour of the function.  Ideally the R model should accurate over a wide
-range of inputs so that charges for "typical" inputs are reasonable but
-worst-case inputs which require large computation times incur large charges
-which penalise excessive computation.  Some experimentation may be required to
-achieve this, and it may not always be possible to satisfy both goals
-simultaneously.  In such cases it may be necessary to sacrifice some accuracy in
-order to guarantee security.
+[`plutus-core/cost-model/budgeting-bench`](./budgeting-bench) and new R code
+will have to be added in [`models.R`](./data/models.R) to process the results of
+the benchmark.  The benchmark should aim to cover a wide range of inputs in
+order to get a good idea of the worst-case behaviour of the function.  The exact
+form of the R code will depend on the behaviour of the function being added and
+will probably be based on the expected time complexity of the function, backed
+up by examination of the initial benchmark results.  In simpler cases it may be
+possible to re-use existing R code, but sometimes more complex code may be
+required to obtain a good model of the behaviour of the function.  Ideally the R
+model should accurate over a wide range of inputs so that charges for "typical"
+inputs are reasonable but worst-case inputs which require large computation
+times incur large charges which penalise excessive computation.  Some
+experimentation may be required to achieve this, and it may not always be
+possible to satisfy both goals simultaneously.  In such cases it may be
+necessary to sacrifice some accuracy in order to guarantee security.
 
 
 #### Step 6
 
 Next we have to update the code which converts benchmarking results into JSON
 models.  Go to
-plutus-core/cost-model/create-cost-model/CreateBuiltinCostModel.hs and add
+[`CreateBuiltinCostModel`](./create-cost-model/CreateBuiltinCostModel.hs) and add
 entries for the new builtin in builtinCostModelNames
 
 ```
@@ -272,7 +281,8 @@ Haskell code attempts to read something from an R object that doesn't actually
 occur in the object.)
 
 #### Step 7
-Also add a new clause in `CreateBuiltinCostModel`:
+
+Also add a new clause in [`CreateBuiltinCostModel`](./create-cost-model/CreateBuiltinCostModel.hs):
 
 ```
     paramSquareInteger                   <- getParams squareIntegerData  paramSquareInteger
@@ -301,8 +311,8 @@ we define the memory costing function to be `n -> 2*n + 0`.
 
 #### Step 8
 
-We now have to extend the R code in `models.R`.  Firstly, add an entry for the
-arity of the builtin in the `arity` function:
+We now have to extend the R code in [`models.R`](./data/models.R).  Firstly, add
+an entry for the arity of the builtin in the `arity` function:
 
 ```
    arity <- function(name) {
@@ -341,20 +351,20 @@ object.
 
 ### Step 9: testing the Haskell versions of the costing functions
 
-The code in `CreateCostModel` converts the cost modelling functions fitted by R
-into Haskell functions.  To make sure that this has worked properly there are
-tests in `plutus-core/cost-model/test/TestCostModels.hs` that check that the
-results returned by the Haskell functions agree with those obtained by running
-the R code to within 1%.  Add a new case to the `main` function to cover the new
-builtin: it should be fairly clear how to do this.  The tests must be run
-manually with `cabal bench plutus-core:cost-model-test` (there are some problems
-if we run them in CI which can be avoided by treating them as benchmarks to
-prevent them being run automatically).
+The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel)
+converts the cost modelling functions fitted by R into Haskell functions.  As
+mentioned in the first section, there are tests in
+[`plutus-core/cost-model/test/TestCostModels.hs`](./test/TestCostModels.hs) that
+check that the results returned by the Haskell functions agree with those
+obtained by running the R code to within a reasonable mergin of error.  Add a
+new case to the `main` function to cover the new builtin (it should be fairly
+clear how to do this) and then run the tests with `cabal bench
+plutus-core:cost-model-test`.
 
 
 ### Step 10: updating the cost model
 
-Once the rpevious steps have been carried out, proceed as described in the first
+Once the previous steps have been carried out, proceed as described in the first
 section: run `cost-model-budgeting-bench` on the reference machine and then feed
 the results to `generate-cost-model` to produce a new JSON cost model file which
 will contain sensible coefficients for the costing functions for the new
