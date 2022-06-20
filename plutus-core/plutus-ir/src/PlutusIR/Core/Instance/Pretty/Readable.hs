@@ -66,7 +66,9 @@ viewLet _       = Nothing
 type PrettyConstraints configName tyname name uni fun =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
-  , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+  , Pretty (SomeTypeIn uni)
+  , Closed uni, uni `Everywhere` PrettyConst
+  , Pretty fun
   )
 
 instance PrettyConstraints configName tyname name uni fun

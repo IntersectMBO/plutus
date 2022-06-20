@@ -137,7 +137,7 @@ May throw a 'CekMachineException'.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 unsafeRunCekNoEmit
-    :: ( GShow uni, Typeable uni
+    :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
@@ -173,7 +173,7 @@ evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCek
-    :: ( GShow uni, Typeable uni
+    :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
@@ -188,7 +188,7 @@ unsafeEvaluateCek emitTime params =
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCekNoEmit
-    :: ( GShow uni, Typeable uni
+    :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `EverywhereAll` '[ExMemoryUsage, PrettyConst]
        , Ix fun, Pretty fun, Typeable fun
        )
