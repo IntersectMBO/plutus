@@ -126,14 +126,14 @@ see the extensive notes on "How to add a built-in function" in
 
     Note that there are certain restrictions on built-in functions: the function should be
     
-* Easy to cost
-* Deterministic
-* It **must not throw any exceptions**.
+   * Easy to cost
+   * Deterministic
+   * It **must not throw any exceptions**.
 
 3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
 file.  This should be different from all the existing tags and should be less
 than 128; typically you should use the smallest unused number.  The existing
-tags *must not be changed* since changing them would prevent existing scripts
+tags **must not be changed** since changing them would prevent existing scripts
 from being decoded properly.
 
 4. The new builtin should now become automatically available in Plutus Core.
