@@ -218,11 +218,10 @@ Add a new entry in [`builtinCostModel.json`](./data/builtinCostModel.json):
 ```
 
 The coefficients here are unimportant at the moment so we set them all to zero:
-Correct figures here will be filled in later by benchmarking, but we need to add
-the basic form of the costing functions first to avoid a circularity problem:
-see the Note "Modifying the Cost Model" in
-[`PlutusCore.Evaluation.Machine.ExBudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
-for how to deal with this.
+Correct figures will be filled in later based on benchmarking results, but we
+need to add the basic form of the costing functions first to avoid a circularity
+problem: see the Note "Modifying the Cost Model" in
+[`PlutusCore.Evaluation.Machine.ExBudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs).
 
 The JSON keys are obtained automatically from the types in
 [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs)
