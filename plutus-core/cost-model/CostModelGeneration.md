@@ -4,7 +4,7 @@ This file describes how to generate or update a cost model for Plutus Core. We
 start by describing how to update an existing cost model.  In the second section
 we describe how to extend the cost model when a new built-in function is added.
 
-## Updating an existing cost model.
+## Updating an existing cost model
 
 A cost model for Plutus Core consists of two components:
 
