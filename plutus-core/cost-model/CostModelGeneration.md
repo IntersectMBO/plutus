@@ -361,10 +361,11 @@ The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel.hs)
 converts the cost modelling functions fitted by R into Haskell functions.  As
 mentioned in the first section, there are tests in
 [`plutus-core/cost-model/test/TestCostModels.hs`](./test/TestCostModels.hs) that
-check that the results returned by the Haskell functions agree with those
-obtained by running the R code to within a reasonable margin of error.  Add a
-new case to the `main` function to cover the new builtin (it should be fairly
-clear how to do this) and then run the tests with `cabal bench
+check that the results returned by the Haskell functions (which do calculations
+in an integral type) agree with those obtained by running the R code (which does
+floating point calculations) to within a reasonable margin of error.  Add a new
+case to the `main` function to cover the new builtin (it should be fairly clear
+how to do this) and then run the tests with `cabal bench
 plutus-core:cost-model-test`.
 
 
