@@ -115,8 +115,8 @@ For documentation on how to add a new built-in type, see
 ### Adding a new function
 
 1. Add a new constructor to the `DefaultFun` type in
-   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs), In
-   our case we will call this constructor `CubeInteger`.  The functions in
+   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs). In
+   our example we will call this constructor `CubeInteger`.  The functions in
    `DefaultFun` become accessible from Plutus Core via names obtained by
    converting the first character of their name to lower case, so in textual
    Plutus core our function will be called `cubeInteger`.
