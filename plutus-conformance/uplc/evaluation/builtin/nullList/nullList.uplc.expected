@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/nullList/nullList.uplc:1:49:
-  |
-1 | (program 0.0.0 [(force (builtin nullList)) (con list(integer) [ 1, 2, 3 ])])
-  |                                                 ^^^^^^^^^^
-unexpected "list(integ"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

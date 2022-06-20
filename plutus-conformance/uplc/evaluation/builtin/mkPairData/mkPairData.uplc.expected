@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/mkPairData/mkPairData.uplc:2:15:
-  |
-2 |          (con data { List [ Integer 0, Integer 1 ] })]
-  |               ^^^^^^^^^^
-unexpected "data { Lis"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

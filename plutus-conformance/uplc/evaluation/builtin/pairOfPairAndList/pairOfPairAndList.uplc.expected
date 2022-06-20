@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/pairOfPairAndList/pairOfPairAndList.uplc:3:6:
-  |
-3 |      pair (pair (bool) (bytestring)) (list(integer))
-  |      ^^^^^^^^^^
-unexpected "pair (pair"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

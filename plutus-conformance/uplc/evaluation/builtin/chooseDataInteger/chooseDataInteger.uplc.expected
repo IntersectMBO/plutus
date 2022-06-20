@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/chooseDataInteger/chooseDataInteger.uplc:3:7:
-  |
-3 |  (con data {Integer 2})]
-  |       ^^^^^^^^^^
-unexpected "data {Inte"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error
