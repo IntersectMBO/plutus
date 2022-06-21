@@ -75,23 +75,26 @@ costing functions involves a number of steps.
   should therefore be run manually whenever new cost models are added or the R
   code is modified.** (Also, remember to add new tests when a new builtin is added).
 
-* (Not yet automated).  After the cost model for builtins has been generated we
-  run some more benchmarks which consist of entire Plutus core programs making
-  limited use of builtins.  We run the benchmarks, subtract the total time for
-  builtin execution as predicted by the builtin cost model, and divide the
-  remaining time by the number of basic machine steps executed to arrive at an
-  average time for each machine step (see the earlier discussion).  This is then
-  stored in another JSON file
+* (Not yet automated).  After the cost model for builtins has been
+  generated we run some more benchmarks which consist of entire Plutus
+  core programs making limited use of builtins.  We run the
+  benchmarks, subtract the total time for builtin execution as
+  predicted by the builtin cost model, and divide the remaining time
+  by the number of basic machine steps executed to arrive at an
+  average time for each machine step (see the earlier discussion).
+  This is then stored in another JSON file,
   [`plutus-core/cost-model/data/cekMachineCosts.json`](./data/cekMachineCosts.json).
-  This cost is currently the same for each step, but more careful testing may
-  enable us to produce more precise costs per step at some future date.  The
-  JSON file also contains a constant cost for machine startup (perhaps a
-  misnomer): this cost is currently zero, but experiments hint that there is an
-  element of overall execution time which cannot be explained purely by code
-  execution. This perhaps depends on the size of the AST or the number of unique
-  AST nodes which are visited during program execution, but we have not yet been
-  able to pin down precisely what is going on, and in any case this effect
-  appears to be relatively small.
+  This cost is currently the same for each step, but more careful
+  testing may enable us to produce more precise costs per step at some
+  future date.  The JSON file also contains a constant cost for
+  machine startup (perhaps a misnomer): this cost is currently very
+  small (ideally it would be zero, but that caused difficulties when
+  reading the JSON), but experiments hint that there is an element of
+  overall execution time which cannot be explained purely by code
+  execution. This perhaps depends on the size of the AST or the number
+  of unique AST nodes which are visited during program execution, but
+  we have not yet been able to pin down precisely what is going on,
+  and in any case this effect appears to be relatively small.
 
 *  We can now assign a cost to an arbitrary Plutus Core program by running it
    and adding up the costs for each machine step and for each evaluation of a
