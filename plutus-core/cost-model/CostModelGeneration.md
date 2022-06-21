@@ -394,10 +394,11 @@ plutus-core:cost-model-test`.
 Once the previous steps have been carried out, proceed as described in
 the first section: run `cost-model-budgeting-bench` on the reference
 machine and then feed the results to `generate-cost-model` to produce
-a new JSON cost model file which will contain sensible coefficients
-for the costing functions for the new builtin, and check it in along
-with a CSV file containing a full set of benchmark results which can
-be used to reproduce it.
+a new JSON cost model file (which will contain sensible coefficients
+for the costing functions for the new builtin in place of the arbitray
+ones we added in Step 3), and check it in along with a CSV file
+containing a full set of benchmark results which can be used to
+reproduce it.
 
 If you're confident that the evaluator hasn't changed too much since
 the cost model was last fully updated it may be possible to save time
