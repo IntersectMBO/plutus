@@ -36,7 +36,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags: 
+  -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -152,3 +152,23 @@ test-suite plutus-ledger-api-test
     , tasty-hunit
     , tasty-quickcheck
     , text
+
+-- This is a nightly test, so it is an executable instead of test-suite to avoid
+-- running this in CI.
+executable evaluation-test
+  import:           lang
+  main-is:          Main.hs
+  hs-source-dirs:   test-onchain-evaluation
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                       >=4.9 && <5
+    , extra
+    , filepath
+    , plutus-core
+    , plutus-ledger-api
+    , plutus-ledger-api-testlib
+    , serialise
+    , tasty
+    , tasty-hunit
+
+  default-language: Haskell2010
