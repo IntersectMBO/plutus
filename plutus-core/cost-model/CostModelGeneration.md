@@ -233,17 +233,21 @@ problem: see the Note "Modifying the Cost Model" in
 
 The JSON keys are obtained automatically from the types in
 [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs)
-by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In our case,
-the costing function is given by the `ModelOneArgumentLinearCost` constructor of
-the `ModelOneArgument` type. The type prefix `ModelOneArgument` is removed from
-the constructor name and the remaining `LinearCost` is converted to `linear_cost`
-by a `CamelToSnake` transformation.  Similarly, the names of the
+by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In
+our case, the costing function is given by the
+`ModelOneArgumentLinearCost` constructor of the `ModelOneArgument`
+type. The type prefix `ModelOneArgument` is removed from the
+constructor name and the remaining `LinearCost` is converted to
+`linear_cost` by the Aeson library's
+[`CamelToSnake`](https://hackage.haskell.org/package/deriving-aeson-0.2.8/docs/Deriving-Aeson.html#t:CamelToSnake)
+transformation.  Similarly, the names of the
 `modelLinearSizeIntercept` and `modelLinearSizeSlope` fields in the
-`ModelLinearSize` type are converted to `slope` and `intercept`.  In many cases
-you should be able to see what the JSON should look like by looking at existing
-entries in [`builtinCostModel.json`](./data/builtinCostModel.json), but in case
-of difficulty try the alternative method mentioned in the "Modifying the Cost
-Model" note.
+`ModelLinearSize` type are converted to `slope` and `intercept`.  In
+many cases you should be able to see what the JSON should look like by
+looking at existing entries in
+[`builtinCostModel.json`](./data/builtinCostModel.json), but in case
+of difficulty try the alternative method mentioned in the "Modifying
+the Cost Model" note.
 
 
 #### Step 4: add the correct costing function to the definition of the new builtin
