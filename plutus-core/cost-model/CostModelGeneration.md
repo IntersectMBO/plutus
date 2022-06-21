@@ -104,11 +104,13 @@ costing functions involves a number of steps.
 
 ## Adding a new built-in function
 
-The process of updating the cost model when a new built-in function is added to
-Plutus Core is quite complex.  This section describes how to do that; for
-concreteness we show how to add a new builtin `cubeInteger` (which cubes an
-integer) and how to update the cost model to include it.  This is quite a simple
-example: for full technical details of how to add a new function see the
+This section describes the process of updating the cost model when a
+new built-in function is added to Plutus Core, which is quite
+complicated. For concreteness we show how to add a new builtin
+`cubeInteger` (which cubes an integer) and how to update the cost
+model to include it.  This is quite a simple example, but serves to
+illustrate all of the steps that need to be taken to update the cost
+model.  For full technical details of how to add a new function see the
 extensive notes on "How to add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
