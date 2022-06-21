@@ -153,9 +153,8 @@ test-suite plutus-ledger-api-test
     , tasty-quickcheck
     , text
 
-test-suite evaluation-test
+executable evaluation-test
   import:           lang
-  type:             exitcode-stdio-1.0
   main-is:          Main.hs
   hs-source-dirs:   test-onchain-evaluation
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
