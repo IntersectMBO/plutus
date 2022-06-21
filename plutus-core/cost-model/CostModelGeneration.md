@@ -132,9 +132,11 @@ For documentation on how to add a new built-in type, see
   the relevant builtin.  Initially this should be set to `mempty`; we'll come
   back and fix it later.
 
-    Note that there are certain restrictions on built-in functions: the
-    function should be deterministic, easy to cost, and it **must not
-    throw any exceptions.
+    Note that there are certain restrictions on built-in functions:
+    the function should be deterministic, it **must not throw any
+    exceptions**, and ideally it should be easy to cost (the execution
+    time should depend on the sizes of the arguments in some fairly
+    strightforward way).
 
 3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
 file.  This should be different from all the existing tags and should be less
