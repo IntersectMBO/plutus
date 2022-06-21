@@ -162,7 +162,7 @@ of how this is done.
 
 6. You may want to add some tests in
 [`Evaluation.Builtins.Definition`](../untyped-plutus-core/test/Evaluation/Builtins/Definition.hs)
-to make sure the semantics of the new builtin are correct.
+to check that the semantics of the new builtin are correct.
 
 ### Adding the costing functions for a new built-in function
 
