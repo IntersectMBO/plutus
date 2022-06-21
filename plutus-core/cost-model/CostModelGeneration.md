@@ -135,9 +135,9 @@ For documentation on how to add a new built-in type, see
 	    mempty
     ```
 
-  The final argument of `ToBuiltinMeaning` contains the costing functions for
-  the relevant builtin.  Initially this should be set to `mempty`; we'll come
-  back and fix it later.
+    The final argument of `ToBuiltinMeaning` contains the costing functions for
+    the relevant builtin.  Initially this should be set to `mempty`; we'll come
+    back and fix it later.
 
     Note that there are certain restrictions on built-in functions:
     the function should be deterministic, it **must not throw any
