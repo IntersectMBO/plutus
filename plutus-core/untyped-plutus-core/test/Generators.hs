@@ -1,11 +1,11 @@
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Generators where
 
 import PlutusPrelude
 
-import PlutusCore (Name, DefaultUni, DefaultFun, nameString, runQuoteT)
+import PlutusCore (DefaultFun, DefaultUni, Name, nameString, runQuoteT)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
@@ -17,7 +17,7 @@ import Universe
 
 import Data.Text qualified as T
 
-import Hedgehog (tripping, property)
+import Hedgehog (property, tripping)
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
@@ -35,15 +35,15 @@ compareName = (==) `on` nameString
 compareTerm
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
     => Term Name uni fun a -> Term Name uni fun a -> Bool
-compareTerm (Var _ n) (Var _ n')                   = compareName n n'
-compareTerm (LamAbs _ n t) (LamAbs _ n' t')        = compareName n n' && compareTerm t t'
-compareTerm (Apply _ t t'') (Apply _ t' t''')      = compareTerm t t' && compareTerm t'' t'''
-compareTerm (Force _ t ) (Force _ t')              = compareTerm t t'
-compareTerm (Delay _ t ) (Delay _ t')              = compareTerm t t'
-compareTerm (Constant _ x) (Constant _ y)          = x == y
-compareTerm (Builtin _ bi) (Builtin _ bi')         = bi == bi'
-compareTerm (Error _ ) (Error _ )                  = True
-compareTerm _ _                                    = False
+compareTerm (Var _ n) (Var _ n')              = compareName n n'
+compareTerm (LamAbs _ n t) (LamAbs _ n' t')   = compareName n n' && compareTerm t t'
+compareTerm (Apply _ t t'') (Apply _ t' t''') = compareTerm t t' && compareTerm t'' t'''
+compareTerm (Force _ t ) (Force _ t')         = compareTerm t t'
+compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
+compareTerm (Constant _ x) (Constant _ y)     = x == y
+compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
+compareTerm (Error _ ) (Error _ )             = True
+compareTerm _ _                               = False
 
 compareProgram
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
