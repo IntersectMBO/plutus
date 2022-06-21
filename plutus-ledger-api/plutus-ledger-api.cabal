@@ -153,6 +153,8 @@ test-suite plutus-ledger-api-test
     , tasty-quickcheck
     , text
 
+-- This is a nightly test, so it is an executable instead of test-suite to avoid
+-- running this in CI.
 executable evaluation-test
   import:           lang
   main-is:          Main.hs
