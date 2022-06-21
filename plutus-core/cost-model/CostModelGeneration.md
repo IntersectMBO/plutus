@@ -329,7 +329,7 @@ only account for memory retained after the function has returned and not for any
 working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
 by the builtin.  In the case of `cubeInteger` it is a reasonable assumption
-that the result of squaring an integer of size `n` will be of size about `3n`, so
+that the result of cubing an integer of size `n` will be of size about `3n`, so
 we define the memory costing function to be `n -> 3*n + 0`.
 
 
@@ -348,9 +348,10 @@ an entry for the arity of the builtin in the `arity` function:
            )
 ```
 
-Now add a function to infer coefficients for the CPU costing function from
-benchmarking data.  We have assumed that the time taken will be linear in the
-size of the argument of the function:
+Now add a function to infer coefficients for the CPU costing function
+from benchmarking data.  In the case of `cubeInteger` we assume that
+the time taken will be linear in the size of the argument of the
+function:
 
 ```
     cubeIntegerModel <- {
