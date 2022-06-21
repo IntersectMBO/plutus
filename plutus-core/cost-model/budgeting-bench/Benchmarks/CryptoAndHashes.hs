@@ -57,7 +57,7 @@ data MessageSize = Arbitrary | Fixed Int
 -}
 
 {- | Create a list of valid (key,message,signature) triples.  The DSIGN
-   infrastructure lets us do this in a farily generic way.  However, to sign an
+   infrastructure lets us do this in a fairly generic way.  However, to sign an
    EcdsaSecp256k1DSIGN message we can't use a raw bytestring: we have to wrap it
    up using Crypto.Secp256k1.msg, which checks that the bytestring is the right
    length.  This means that we have to add a ByteString -> message conversion
