@@ -160,9 +160,9 @@ prevent existing scripts from being decoded properly.
 See [`PlutusTx.Builtins`](../../plutus-tx/src/PlutusTx/Builtins.hs) for examples
 of how this is done.
 
-6. You may want to add some tests in [`plutus-core/untyped-plutus-core/test`](
-../untyped-plutus-core/test/) to make sure the semantics of the new builtin are
-correct.
+6. You may want to add some tests in
+[`Evaluation.Builtins.Definition`](../untyped-plutus-core/test/Evaluation/Builtins/Definition.hs)
+to make sure the semantics of the new builtin are correct.
 
 ### Adding the costing functions for a new built-in function
 
