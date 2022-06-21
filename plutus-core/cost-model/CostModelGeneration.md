@@ -136,13 +136,15 @@ For documentation on how to add a new built-in type, see
     the function should be deterministic, it **must not throw any
     exceptions**, and ideally it should be easy to cost (the execution
     time should depend on the sizes of the arguments in some fairly
-    strightforward way).
+    straightforward way).
 
-3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
-file.  This should be different from all the existing tags and should be less
-than 128; typically you should use the smallest unused number.  The existing
-tags **must not be changed** since changing them would prevent existing scripts
-from being decoded properly.
+3. Add an integer tag for the new function to the `endcode` and
+`decode` methods in `instance Flat DefaultFun` in the same file.  This
+determines how the new builtin is encoded in the `Flat` serialisation
+format: it should be different from all the existing tags and should
+be less than 128; typically you should use the smallest unused number.
+The existing tags **must not be changed** since changing them would
+prevent existing scripts from being decoded properly.
 
 4. The new builtin should now become automatically available in Plutus Core.
 
