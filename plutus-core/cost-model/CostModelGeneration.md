@@ -146,7 +146,7 @@ be less than 128; typically you should use the smallest unused number.
 The existing tags **must not be changed** since changing them would
 prevent existing scripts from being decoded properly.
 
-4. The new builtin should now become automatically available in Plutus Core.
+4. The new builtin should now  automatically become available in Plutus Core.
 
 5. Further work will be required to make the builtin accessible from Haskell.
 See [`PlutusTx.Builtins`](../../plutus-tx/src/PlutusTx/Builtins.hs) for examples
