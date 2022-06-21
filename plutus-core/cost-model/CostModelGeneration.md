@@ -350,8 +350,8 @@ an entry for the arity of the builtin in the `arity` function:
 
 Now add a function to infer coefficients for the CPU costing function
 from benchmarking data.  In the case of `cubeInteger` we assume that
-the time taken will be linear in the size of the argument of the
-function:
+the time taken will be linear in the size of argument (ie, the
+argument of the new builtin).
 
 ```
     cubeIntegerModel <- {
