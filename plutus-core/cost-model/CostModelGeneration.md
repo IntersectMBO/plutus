@@ -75,23 +75,26 @@ costing functions involves a number of steps.
   should therefore be run manually whenever new cost models are added or the R
   code is modified.** (Also, remember to add new tests when a new builtin is added).
 
-* (Not yet automated).  After the cost model for builtins has been generated we
-  run some more benchmarks which consist of entire Plutus core programs making
-  limited use of builtins.  We run the benchmarks, subtract the total time for
-  builtin execution as predicted by the builtin cost model, and divide the
-  remaining time by the number of basic machine steps executed to arrive at an
-  average time for each machine step (see the earlier discussion).  This is then
-  stored in another JSON file
+* (Not yet automated).  After the cost model for builtins has been
+  generated we run some more benchmarks which consist of entire Plutus
+  core programs making limited use of builtins.  We run the
+  benchmarks, subtract the total time for builtin execution as
+  predicted by the builtin cost model, and divide the remaining time
+  by the number of basic machine steps executed to arrive at an
+  average time for each machine step (see the earlier discussion).
+  This is then stored in another JSON file,
   [`plutus-core/cost-model/data/cekMachineCosts.json`](./data/cekMachineCosts.json).
-  This cost is currently the same for each step, but more careful testing may
-  enable us to produce more precise costs per step at some future date.  The
-  JSON file also contains a constant cost for machine startup (perhaps a
-  misnomer): this cost is currently zero, but experiments hint that there is an
-  element of overall execution time which cannot be explained purely by code
-  execution. This perhaps depends on the size of the AST or the number of unique
-  AST nodes which are visited during program execution, but we have not yet been
-  able to pin down precisely what is going on, and in any case this effect
-  appears to be relatively small.
+  This cost is currently the same for each step, but more careful
+  testing may enable us to produce more precise costs per step at some
+  future date.  The JSON file also contains a constant cost for
+  machine startup (perhaps a misnomer): this cost is currently very
+  small (ideally it would be zero, but that caused difficulties when
+  reading the JSON), but experiments hint that there is an element of
+  overall execution time which cannot be explained purely by code
+  execution. This perhaps depends on the size of the AST or the number
+  of unique AST nodes which are visited during program execution, but
+  we have not yet been able to pin down precisely what is going on,
+  and in any case this effect appears to be relatively small.
 
 *  We can now assign a cost to an arbitrary Plutus Core program by running it
    and adding up the costs for each machine step and for each evaluation of a
@@ -101,11 +104,13 @@ costing functions involves a number of steps.
 
 ## Adding a new built-in function
 
-The process of updating the cost model when a new built-in function is added to
-Plutus Core is quite complex.  This section describes how to do that; for
-concreteness we show how to add a new builtin `cubeInteger` (which cubes an
-integer) and how to update the cost model to include it.  This is quite a simple
-example: for full technical details of how to add a new function see the
+This section describes the somewhat complicated process of updating
+the cost model when a new built-in function is added to Plutus
+Core. For concreteness we show how to add a new builtin `cubeInteger`
+(which cubes an integer) and how to update the cost model to include
+it.  This is quite a simple example, but serves to illustrate all of
+the steps that need to be taken to update the cost model.  For full
+technical details of how to add a new built-in function see the
 extensive notes on "How to add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
@@ -121,25 +126,35 @@ For documentation on how to add a new built-in type, see
    converting the first character of their name to lower case, so in textual
    Plutus core our function will be called `cubeInteger`.
 
-2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
-  [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
-  The final argument of `ToBuiltinMeaning` contains the costing functions for
-  the relevant builtin.  Initially this should be set to `mempty`; we'll come
-  back and fix it later.
+2. Add a clause for the new function in the instances for
+  `ToBuiltinMeaning` in
+  [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs):
 
-    Note that there are certain restrictions on built-in functions: the function should be
-    
-   * Easy to cost
-   * Deterministic
-   * It **must not throw any exceptions**.
+    ```
+	toBuiltinMeaning CubeInteger =
+	    makeBuiltinMeaning (\(n::Integer) -> n*n*n)
+	    mempty
+    ```
 
-3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
-file.  This should be different from all the existing tags and should be less
-than 128; typically you should use the smallest unused number.  The existing
-tags **must not be changed** since changing them would prevent existing scripts
-from being decoded properly.
+    The final argument of `ToBuiltinMeaning` contains the costing functions for
+    the relevant builtin.  Initially this should be set to `mempty`; we'll come
+    back and fix it later.
 
-4. The new builtin should now become automatically available in Plutus Core.
+    Note that there are certain restrictions on built-in functions:
+    the function should be deterministic, it **must not throw any
+    exceptions**, and ideally it should be easy to cost (the execution
+    time should depend on the sizes of the arguments in some fairly
+    straightforward way).
+
+3. Add an integer tag for the new function to the `endcode` and
+`decode` methods in `instance Flat DefaultFun` in the same file.  This
+determines how the new builtin is encoded in the `Flat` serialisation
+format: it should be different from all the existing tags and should
+be less than 128; typically you should use the smallest unused number.
+The existing tags **must not be changed** since changing them would
+prevent existing scripts from being decoded properly.
+
+4. The new builtin should now  automatically become available in Plutus Core.
 
 5. Further work will be required to make the builtin accessible from Haskell.
 See [`PlutusTx.Builtins`](../../plutus-tx/src/PlutusTx/Builtins.hs) for examples
@@ -182,14 +197,14 @@ in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
 constructor: see Step 6 for this.
 
 
-#### Step 2: add unit cost model for new function
+#### Step 2: add a unit cost model for new function
 
-Add a new entry in unitCostBuiltinCostModel in
+Add a new entry in `unitCostBuiltinCostModel` in
 [`PlutusCore.Evaluation.Machine.ExbudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
-(this is used by the `uplc` command for counting the number of times each
-builtin is called during script execution, which can useful for diagnostic
-purposes).  It should be clear how to do this.  For the `cubeInteger` function
-we add
+(this is used by the `uplc` command for counting the number of times
+each builtin is called during script execution, which can useful for
+diagnostic purposes).  It should be clear how to do this.  For the
+`cubeInteger` function we add
 
 ```
     , paramCubeInteger                   = unitCostOneArgument
@@ -226,29 +241,33 @@ problem: see the Note "Modifying the Cost Model" in
 
 The JSON keys are obtained automatically from the types in
 [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs)
-by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In our case,
-the costing function is given by the `ModelOneArgumentLinearCost` constructor of
-the `ModelOneArgument` type. The type prefix `ModelOneArgument` is removed from
-the constructor name and the remaining `LinearCost` is converted to `linear_cost`
-by a `CamelToSnake` transformation.  Similarly, the names of the
+by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In
+our case, the costing function is given by the
+`ModelOneArgumentLinearCost` constructor of the `ModelOneArgument`
+type. The type prefix `ModelOneArgument` is removed from the
+constructor name and the remaining `LinearCost` is converted to
+`linear_cost` by the Aeson library's
+[`CamelToSnake`](https://hackage.haskell.org/package/deriving-aeson-0.2.8/docs/Deriving-Aeson.html#t:CamelToSnake)
+transformation.  Similarly, the names of the
 `modelLinearSizeIntercept` and `modelLinearSizeSlope` fields in the
-`ModelLinearSize` type are converted to `slope` and `intercept`.  In many cases
-you should be able to see what the JSON should look like by looking at existing
-entries in [`builtinCostModel.json`](./data/builtinCostModel.json), but in case
-of difficulty try the alternative method mentioned in the "Modifying the Cost
-Model" note.
+`ModelLinearSize` type are converted to `slope` and `intercept`.  In
+many cases you should be able to see what the JSON should look like by
+looking at existing entries in
+[`builtinCostModel.json`](./data/builtinCostModel.json), but in case
+of difficulty try the alternative method mentioned in the "Modifying
+the Cost Model" note.
 
 
 #### Step 4: add the correct costing function to the definition of the new builtin
 
 Now go back to
-[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and replace
-`mempty` in the definition of the builtin with the appropriate
-`param<builtin-name>` function:
+[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and
+replace `mempty` in the definition of the builtin with some code to
+run the appropriate `param<builtin-name>` function:
 
 ```
     toBuiltinMeaning CubeInteger =
-        makeBuiltinMeaning (\(n::Integer) -> n*n)
+        makeBuiltinMeaning (\(n::Integer) -> n*n*n)
             (runCostingFunOneArgument . paramCubeInteger)
 ```
 
@@ -310,7 +329,7 @@ only account for memory retained after the function has returned and not for any
 working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
 by the builtin.  In the case of `cubeInteger` it is a reasonable assumption
-that the result of squaring an integer of size `n` will be of size about `3n`, so
+that the result of cubing an integer of size `n` will be of size about `3n`, so
 we define the memory costing function to be `n -> 3*n + 0`.
 
 
@@ -329,9 +348,10 @@ an entry for the arity of the builtin in the `arity` function:
            )
 ```
 
-Now add a function to infer coefficients for the CPU costing function from
-benchmarking data.  We have assumed that the time taken will be linear in the
-size of the argument of the function:
+Now add a function to infer coefficients for the CPU costing function
+from benchmarking data.  In the case of `cubeInteger` we assume that
+the time taken will be linear in the size of argument (ie, the
+argument of the new builtin).
 
 ```
     cubeIntegerModel <- {
@@ -369,23 +389,31 @@ how to do this) and then run the tests with `cabal bench
 plutus-core:cost-model-test`.
 
 
-### Step 9: update the cost model
+### Step 9: update the cost model JSON file
 
-Once the previous steps have been carried out, proceed as described in the first
-section: run `cost-model-budgeting-bench` on the reference machine and then feed
-the results to `generate-cost-model` to produce a new JSON cost model file which
-will contain sensible coefficients for the costing functions for the new
-builtin.  If you're confident that the evaluator hasn't changed too much since
-the cost model was last fully updated it may be possible to save time by using
-the `-p` option just to run the benchmark for the new builtin: the results can
-then be manually inserted into the CSV file containing the figures for the other
-builtins.  If you do this then you may wish to re-run some subset of the
-benchmarks to check that things haven't changed too much.  (In future we hope to
-make this process easier to carry out, and perhaps also to provide some
-mechanism to allow external contributors can run benchmarks on their own machine
-and have the results re-scaled to be compatible with our reference machine,
-thereby removing (or at least lessening) the necessity for Cardano developers to
-do the benchmarking).
+Once the previous steps have been carried out, proceed as described in
+the first section: run `cost-model-budgeting-bench` on the reference
+machine and then feed the results to `generate-cost-model` to produce
+a new JSON cost model file (which will contain sensible coefficients
+for the costing functions for the new builtin in place of the arbitray
+ones we added in Step 3), and check it in along with a CSV file
+containing a full set of benchmark results which can be used to
+reproduce it.
+
+If you're confident that the evaluator hasn't changed too much since
+the cost model was last fully updated it may be possible to save time
+by using the `-p` option just to run the benchmark for the new
+builtin: the results can then be manually inserted into the CSV file
+containing the figures for the other builtins.  If you do this then
+you may wish to re-run some subset of the benchmarks to check that
+things haven't changed too much.
+
+(In future we hope to make this process easier to carry out, and
+perhaps also to provide some mechanism to allow external contributors
+can run benchmarks on their own machine and have the results re-scaled
+to be compatible with our reference machine, thereby removing (or at
+least lessening) the necessity for Cardano developers to do the
+benchmarking).
 
 
 
