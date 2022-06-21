@@ -12,8 +12,8 @@ import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
 import Codec.Serialise qualified as CBOR
-import Control.Exception (evaluate)
 import Data.Foldable (toList)
+import Data.Functor
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf)
@@ -30,11 +30,12 @@ data SingleTest
 instance IsTest SingleTest where
     run _opts (SingleTest ver mbCtx ev) _reportProgress = case mbCtx of
         Just (ctx, params) ->
-            evaluate
-                =<< ( pure . maybe (testPassed mempty) (testFailed . display) $
-                        checkEvaluationEvent ctx params ev
-                    )
-        Nothing -> pure . testFailed $ "missing cost parameters for " <> show ver
+            pure . maybe (testPassed mempty) (testFailed . display) $
+                checkEvaluationEvent ctx params ev
+        Nothing ->
+            pure . testFailed $
+                "Missing cost parameters for " <> show ver
+                    <> ". Report this as a bug against the script dumper in plutus-apps."
 
     testOptions = mempty
 
@@ -46,13 +47,10 @@ testOneFile name events =
          ) of
         (Right ctxV1, Right ctxV2) ->
             testGroup name $
-                fmap
-                    ( \(idx, event) ->
-                        singleTest ("test case " <> show idx) $ case event of
-                            PlutusV1Event{} -> SingleTest PlutusV1 ctxV1 event
-                            PlutusV2Event{} -> SingleTest PlutusV2 ctxV2 event
-                    )
-                    (zip [1 :: Int ..] (toList (eventsEvents events)))
+                zip [1 :: Int ..] (toList (eventsEvents events)) <&> \(idx, event) ->
+                    singleTest ("test case " <> show idx) $ case event of
+                        PlutusV1Event{} -> SingleTest PlutusV1 ctxV1 event
+                        PlutusV2Event{} -> SingleTest PlutusV2 ctxV2 event
         (Left err, _) ->
             testCase name . assertFailure $ display err
         (_, Left err) ->
@@ -66,6 +64,8 @@ main :: IO ()
 main = do
     dir <- getEnv "EVENT_DUMP_DIR"
     eventFiles <- filter ("event" `isExtensionOf`) <$> listFiles dir
+    -- TODO: if @readFileDeserialise@ fails on any file, no test would be run.
+    -- Ideally we should run @readFileDeserialise@ within a @TestTree@.
     eventss <- traverse (CBOR.readFileDeserialise @ScriptEvaluationEvents) eventFiles
     defaultMain . testGroup "Mainnet script evaluation test" . fmap (uncurry testOneFile) $
         zip eventFiles eventss
