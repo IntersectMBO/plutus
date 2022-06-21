@@ -126,8 +126,9 @@ For documentation on how to add a new built-in type, see
    converting the first character of their name to lower case, so in textual
    Plutus core our function will be called `cubeInteger`.
 
-2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
-  [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
+2. Add a clause for the new function in the instances for
+  `ToBuiltinMeaning` in
+  [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs):
 
     ```
 	toBuiltinMeaning CubeInteger =
@@ -260,9 +261,9 @@ the Cost Model" note.
 #### Step 4: add the correct costing function to the definition of the new builtin
 
 Now go back to
-[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and replace
-`mempty` in the definition of the builtin with the appropriate
-`param<builtin-name>` function:
+[`Builtins.hs`](../plutus-core/src/PlutusCore/Default/Builtins.hs) and
+replace `mempty` in the definition of the builtin with some code to
+run the appropriate `param<builtin-name>` function:
 
 ```
     toBuiltinMeaning CubeInteger =
