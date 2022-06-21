@@ -1,0 +1,17 @@
+# A nightly job which downloads script evaluation dumps from S3 and runs a regression test.
+steps:
+  - label: "Download and unzip dump files"
+    command: |
+      nix-shell --run 'LOCAL_DIR=$(realpath .)/../mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ \\*.event.bz2'
+    concurrency: 1
+    concurrency_group: "plutus-script-evaluation"
+    agents:
+      queue: "plutus"
+  - wait
+  - label: "Script evaluation test"
+    command: |
+      nix-shell --run 'cabal update && EVENT_DUMP_DIR=$(realpath .)/../mainnet-script-dump-downloaded cabal v2-test plutus-ledger-api:evaluation-test'
+    concurrency: 1
+    concurrency_group: "plutus-script-evaluation"
+    agents:
+      queue: "plutus"
