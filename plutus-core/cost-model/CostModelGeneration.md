@@ -110,8 +110,8 @@ Core. For concreteness we show how to add a new builtin `cubeInteger`
 (which cubes an integer) and how to update the cost model to include
 it.  This is quite a simple example, but serves to illustrate all of
 the steps that need to be taken to update the cost model.  For full
-technical details of how to add a new function see the extensive notes
-on "How to add a built-in function" in
+technical details of how to add a new built-in function see the
+extensive notes on "How to add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
 [`Universe.Core`](../plutus-core/src/Universe/Core.hs).
@@ -132,11 +132,9 @@ For documentation on how to add a new built-in type, see
   the relevant builtin.  Initially this should be set to `mempty`; we'll come
   back and fix it later.
 
-    Note that there are certain restrictions on built-in functions: the function should be
-    
-   * Easy to cost
-   * Deterministic
-   * It **must not throw any exceptions**.
+  Note that there are certain restrictions on built-in functions: the
+  function should be deterministic, easy to cost, and it **must not
+  throw any exceptions.
 
 3. Add a tag for the Flat encoding in `instance Flat DefaultFun` in the same
 file.  This should be different from all the existing tags and should be less
