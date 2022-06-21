@@ -12,7 +12,6 @@ module Main
     ( main
     ) where
 
-import Control.DeepSeq (force)
 import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
@@ -23,7 +22,6 @@ import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
-import UnliftIO.Exception
 
 -- |  The arguments to the executable.
 data Args = MkArgs
@@ -127,19 +125,13 @@ main = do
                     Right pro -> do
                       -- catch all sync exceptions and keep going
                       -- (we still need this even with `evalUplcProg` using the safe eval function)
-                      res <- try (evaluate $ force $ evalUplcProg (() <$ pro)):: IO (Either SomeException (Maybe UplcProg))
-                      case res of
-                        Right (Just prog) -> do
+                      case evalUplcProg (() <$ pro) of
+                        (Just prog) -> do
                           T.writeFile outFilePath (render $ pretty prog)
                           putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                        Right Nothing      -> do
+                        Nothing      -> do
                           -- warn the user that the file failed to evaluate
                           T.writeFile outFilePath shownEvaluationFailure
                           putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-                        Left _ -> do
-                          -- warn the user that exception is thrown
-                          T.writeFile outFilePath shownEvaluationFailure
-                          putStrLn $ "Exception thrown during evaluation of " <> inputFile <>".Written to " <> outFilePath
-
       Typecheck ->
         putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."

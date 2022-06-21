@@ -21,7 +21,6 @@ import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable
@@ -100,13 +99,13 @@ runUplcEvalTests evaluator = do
 
 -- Common functions for all tests
 
--- | Walk a file tree, making test groups for directories with subdirectores,
+-- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
 discoverTests :: IsTest t => (FilePath -> t) -> FilePath -> IO TestTree
 discoverTests tester dir = do
     let name = takeBaseName dir
     children <- listDirectory dir
-    subdirs <- (flip wither) children $ \child -> do
+    subdirs <- flip wither children $ \child -> do
         let fullPath = dir </> child
         isDir <- doesDirectoryExist fullPath
         pure $ if isDir then Just fullPath else Nothing

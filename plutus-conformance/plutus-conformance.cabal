@@ -47,7 +47,6 @@ library
   exposed-modules: PlutusConformance.Common
   build-depends:
     , base
-    , deepseq
     , directory
     , filepath
     , lens
@@ -65,14 +64,12 @@ executable add-test-output
   other-modules:
   build-depends:
     , base                  >=4.9 && <5
-    , deepseq
     , directory
     , optparse-applicative
     , plutus-conformance
     , plutus-core
     , tasty-golden
     , text
-    , unliftio
 
 test-suite uplc-eval-test
   import:         lang
