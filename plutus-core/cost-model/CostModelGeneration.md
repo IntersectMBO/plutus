@@ -189,14 +189,14 @@ in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
 constructor: see Step 6 for this.
 
 
-#### Step 2: add unit cost model for new function
+#### Step 2: add a unit cost model for new function
 
-Add a new entry in unitCostBuiltinCostModel in
+Add a new entry in `unitCostBuiltinCostModel` in
 [`PlutusCore.Evaluation.Machine.ExbudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
-(this is used by the `uplc` command for counting the number of times each
-builtin is called during script execution, which can useful for diagnostic
-purposes).  It should be clear how to do this.  For the `cubeInteger` function
-we add
+(this is used by the `uplc` command for counting the number of times
+each builtin is called during script execution, which can useful for
+diagnostic purposes).  It should be clear how to do this.  For the
+`cubeInteger` function we add
 
 ```
     , paramCubeInteger                   = unitCostOneArgument
