@@ -128,6 +128,13 @@ For documentation on how to add a new built-in type, see
 
 2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
+
+    ```
+	toBuiltinMeaning CubeInteger =
+	    makeBuiltinMeaning (\(n::Integer) -> n*n*n)
+	    mempty
+    ```
+
   The final argument of `ToBuiltinMeaning` contains the costing functions for
   the relevant builtin.  Initially this should be set to `mempty`; we'll come
   back and fix it later.
@@ -259,7 +266,7 @@ Now go back to
 
 ```
     toBuiltinMeaning CubeInteger =
-        makeBuiltinMeaning (\(n::Integer) -> n*n)
+        makeBuiltinMeaning (\(n::Integer) -> n*n*n)
             (runCostingFunOneArgument . paramCubeInteger)
 ```
 
