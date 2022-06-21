@@ -389,23 +389,30 @@ how to do this) and then run the tests with `cabal bench
 plutus-core:cost-model-test`.
 
 
-### Step 9: update the cost model
+### Step 9: update the cost model JSON file
 
-Once the previous steps have been carried out, proceed as described in the first
-section: run `cost-model-budgeting-bench` on the reference machine and then feed
-the results to `generate-cost-model` to produce a new JSON cost model file which
-will contain sensible coefficients for the costing functions for the new
-builtin.  If you're confident that the evaluator hasn't changed too much since
-the cost model was last fully updated it may be possible to save time by using
-the `-p` option just to run the benchmark for the new builtin: the results can
-then be manually inserted into the CSV file containing the figures for the other
-builtins.  If you do this then you may wish to re-run some subset of the
-benchmarks to check that things haven't changed too much.  (In future we hope to
-make this process easier to carry out, and perhaps also to provide some
-mechanism to allow external contributors can run benchmarks on their own machine
-and have the results re-scaled to be compatible with our reference machine,
-thereby removing (or at least lessening) the necessity for Cardano developers to
-do the benchmarking).
+Once the previous steps have been carried out, proceed as described in
+the first section: run `cost-model-budgeting-bench` on the reference
+machine and then feed the results to `generate-cost-model` to produce
+a new JSON cost model file which will contain sensible coefficients
+for the costing functions for the new builtin, and check it in along
+with a CSV file containing a full set of benchmarks which can be used
+to reproduce it.
+
+If you're confident that the evaluator hasn't changed too much since
+the cost model was last fully updated it may be possible to save time
+by using the `-p` option just to run the benchmark for the new
+builtin: the results can then be manually inserted into the CSV file
+containing the figures for the other builtins.  If you do this then
+you may wish to re-run some subset of the benchmarks to check that
+things haven't changed too much.
+
+(In future we hope to make this process easier to carry out, and
+perhaps also to provide some mechanism to allow external contributors
+can run benchmarks on their own machine and have the results re-scaled
+to be compatible with our reference machine, thereby removing (or at
+least lessening) the necessity for Cardano developers to do the
+benchmarking).
 
 
 
