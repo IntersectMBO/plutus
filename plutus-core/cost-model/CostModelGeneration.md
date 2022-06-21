@@ -1,4 +1,4 @@
-# Generating and updating the Plutus Core Cost Model
+# Generating and Updating the Plutus Core Cost Model
 
 This file describes how to generate or update a cost model for Plutus Core. We
 start by describing how to update an existing cost model.  In the second section
