@@ -83,6 +83,7 @@ allOrMissing = missing <|> allInputs
 
 args :: ParserInfo Args
 args = info ((MkArgs <$> ext <*> dir <*> runner <*> allOrMissing) <**> helper)
+  -- using progDescDoc instead of progDesc because progDesc messes up the formatting.
   (fullDesc <> progDescDoc (Just helpText))
 
 helpText :: Doc
