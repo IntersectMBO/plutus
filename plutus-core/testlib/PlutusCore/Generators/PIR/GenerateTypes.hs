@@ -171,7 +171,7 @@ genType k = onSize (min 10) $
     -- established, if you are unhappy about the compleixty of the
     -- type of arguments that are generated tweaking this might
     -- be a good idea.
-    genFun = sizeSplit_ 1 7 (genType k) (genType k) (TyFun ())
+    genFun = uncurry (TyFun ()) <$> sizeSplit_ 1 7 (genType k) (genType k)
 
     genForall = do
       x <- genMaybeFreshTyName "a"
@@ -184,7 +184,7 @@ genType k = onSize (min 10) $
 
     genApp = do
       k' <- liftGen arbitrary
-      sizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k') $ TyApp ()
+      uncurry (TyApp ()) <$> sizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k')
 
 -- | Generate a closed type at a given kind
 genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())

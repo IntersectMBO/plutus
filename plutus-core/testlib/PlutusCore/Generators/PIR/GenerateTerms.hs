@@ -314,11 +314,12 @@ genTerm mty = do
                         | otherwise = noEscape . genTermOfType $ a
       -- Generate both bound terms and body with a size split of 1:7 (note, we are generating up to three bound
       -- terms, so the size split is really something like n:7).
-      sizeSplit_ 1 7 (mapM genBin (zip xs as)) (bindTmNames (zip xs as) $ genTerm mty) $ \ tms (ty, body) ->
-        let mkBind (x, a, s) tm = TermBind () s
-                                    (VarDecl () x a) tm
-            b : bs = zipWith mkBind (zip3 xs as ss) tms
-        in (ty, Let () (if r then Rec else NonRec) (b :| bs) body)
+      (tms, (ty, body)) <-
+          sizeSplit_ 1 7 (mapM genBin (zip xs as)) (bindTmNames (zip xs as) $ genTerm mty)
+      let mkBind (x, a, s) tm = TermBind () s
+                                  (VarDecl () x a) tm
+          b : bs = zipWith mkBind (zip3 xs as ss) tms
+      pure (ty, Let () (if r then Rec else NonRec) (b :| bs) body)
 
     genForall x k a = do
       -- TODO: this freshenTyName here might be a bit paranoid
@@ -328,12 +329,18 @@ genTerm mty = do
 
     genLam ma mb = do
       x <- genFreshName "x"
-      sizeSplit 1 7 (maybe (genType Star) return ma)
-                    (\ a -> bindTmName x a . noEscape $ genTerm mb) $ \ a (b, body) ->
-                      (TyFun () a b, LamAbs () x a body)
+      (a, (b, body)) <-
+        sizeSplit 1 7
+          (maybe (genType Star) return ma)
+          (\ a -> bindTmName x a . noEscape $ genTerm mb)
+      pure (TyFun () a b, LamAbs () x a body)
 
-    genApp mty = noEscape $ sizeSplit 1 4 (genTerm Nothing) (\ (argTy, _) -> genFun argTy mty) $
-                  \ (_, arg) (TyFun _ _ resTy, fun) -> (resTy, Apply () fun arg)
+    genApp mty = noEscape $ do
+        ((_, arg), (toResTy, fun)) <-
+          sizeSplit 1 4 (genTerm Nothing) (\ (argTy, _) -> genFun argTy mty)
+        case toResTy of
+          TyFun _ _ resTy -> pure (resTy, Apply () fun arg)
+          _               -> error $ display toResTy ++ "\n\n is not a 'TyFun'"
       where
         genFun argTy mty = genTerm . Just . TyFun () argTy =<< maybe (genType Star) pure mty
 

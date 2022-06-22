@@ -148,19 +148,19 @@ withSize = onSize . const
 
 -- | Split the size between two generators in the ratio specified by
 -- the first two arguments.
-sizeSplit_ :: Int -> Int -> GenTm a -> GenTm b -> (a -> b -> c) -> GenTm c
+sizeSplit_ :: Int -> Int -> GenTm a -> GenTm b -> GenTm (a, b)
 sizeSplit_ a b ga gb = sizeSplit a b ga (const gb)
 
 -- | Split the size between two generators in the ratio specified by
 -- the first two arguments and use the result of the first generator
 -- in the second.
-sizeSplit :: Int -> Int -> GenTm a -> (a -> GenTm b) -> (a -> b -> c) -> GenTm c
-sizeSplit a b ga gb f = do
+sizeSplit :: Int -> Int -> GenTm a -> (a -> GenTm b) -> GenTm (a, b)
+sizeSplit a b ga gb = do
   n <- asks geSize
   let na = (a * n) `div` (a + b)
       nb = (b * n) `div` (a + b)
   x <- withSize na ga
-  f x <$> withSize nb (gb x)
+  (,) x <$> withSize nb (gb x)
 
 -- * Names
 
