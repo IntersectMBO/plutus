@@ -42,6 +42,7 @@ import Test.QuickCheck.GenT
 import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Generators.PIR.Common
+import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote (runQuoteT)
@@ -95,6 +96,11 @@ import PlutusCore.Generators.PIR.GenTm
      See e.g. `prop_noTermShrinkLoops` in module `GeneratorSpec`.
 -}
 
+-- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
+argsKind :: Kind ann -> [Kind ann]
+argsKind Type{}            = []
+argsKind (KindArrow _ k l) = k : argsKind l
+
 -- | Give a unique "least" (intentionally vaguely specified by "shrinking order")
 -- type of that kind. Note: this function requires care and attention to not get
 -- a shrinking loop. If you think you need to mess with this function:
@@ -104,21 +110,16 @@ import PlutusCore.Generators.PIR.GenTm
 --    test the shrinking to make sure you don't get in a loop.
 -- 3. Finally, you *must* read the note Note [Avoiding Shrinking Loops]
 minimalType :: Kind () -> Type TyName DefaultUni ()
-minimalType ty =
-  case ty of
-    Type{} -> unit
-    KindArrow _ k1 k2 ->
-      case k1 : view k2 of
-        [Type{}]         -> list
-        [Type{}, Type{}] -> pair
-        _                -> TyLam () (TyName $ Name "_" (toEnum 0)) k1 $ minimalType k2
-  where
-    view (KindArrow _ k1 k2) = k1 : view k2
-    view _                   = []
+minimalType = go . argsKind where
+  go = \case
+    []               -> unit
+    [Type{}]         -> list
+    [Type{}, Type{}] -> pair
+    k:ks             -> TyLam () (TyName $ Name "_" (toEnum 0)) k $ go ks
 
-    unit = TyBuiltin () (SomeTypeIn DefaultUniUnit)
-    list = TyBuiltin () (SomeTypeIn DefaultUniProtoList)
-    pair = TyBuiltin () (SomeTypeIn DefaultUniProtoPair)
+  unit = mkTyBuiltin @_ @() ()
+  list = mkTyBuiltin @_ @[] ()
+  pair = mkTyBuiltin @_ @(,) ()
 
 -- | Get the types of builtins at a given kind
 builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
@@ -227,11 +228,8 @@ builtinKind (SomeTypeIn t) = kindOfBuiltinType t
 
 -- | Shriking-order on kinds
 leKind :: Kind () -> Kind () -> Bool
-leKind k1 k2 = go (reverse $ args k1) (reverse $ args k2)
+leKind k1 k2 = go (reverse $ argsKind k1) (reverse $ argsKind k2)
   where
-    args Type{}            = []
-    args (KindArrow _ a b) = a : args b
-
     go [] _                = True
     go _ []                = False
     go (k : ks) (k' : ks')
