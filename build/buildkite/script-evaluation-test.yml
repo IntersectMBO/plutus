@@ -1,6 +1,8 @@
 # A nightly job which downloads script evaluation dumps from S3 and runs a regression test.
 steps:
   - label: "Download and unzip dump files"
+    # The "../" is the parent of the pipeline-specific directory. This makes the script dump easily accessible
+    # regardless of which buildkite pipeline we use.
     command: |
       nix-shell --run 'LOCAL_DIR=$(realpath .)/../mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ \\*.event.bz2'
     concurrency: 1
