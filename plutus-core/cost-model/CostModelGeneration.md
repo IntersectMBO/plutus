@@ -369,7 +369,7 @@ example, we have assumed that the execution time of `xorByteString` is linear in
 the _minimum_ of the argument sizes since the function stops when it gets to the
 end of the smaller argument, but note that we call `unpack` on both arguments
 and that this takes linear time. Examination of benchmark results might reveal
-that if one input is very large the unpacking step will dominate the execution
+that if one input is very large then the unpacking step will dominate the execution
 time, and if this is the case it might be more sensible to use a model linear in
 the _maximum_ of the input sizes.  In general, think carefully about the
 structure of the model and issues such as whether the raw data might need to
