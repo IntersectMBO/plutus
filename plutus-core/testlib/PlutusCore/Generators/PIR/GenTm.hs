@@ -28,7 +28,12 @@
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 
-module PlutusCore.Generators.PIR.GenTm where
+module PlutusCore.Generators.PIR.GenTm
+  ( module PlutusCore.Generators.PIR.GenTm
+  , module Export
+  , Arbitrary (..)
+  , Gen
+  ) where
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -39,7 +44,9 @@ import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.String
-import Test.QuickCheck
+import Test.QuickCheck (Arbitrary (..), Gen)
+import Test.QuickCheck qualified as QC
+import Test.QuickCheck.GenT as Export hiding (var)
 
 import PlutusCore.Default
 import PlutusCore.Name
@@ -47,9 +54,13 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Subst
 
+instance MonadReader r m => MonadReader r (GenT m) where
+    ask = lift ask
+    local f (GenT k) = GenT $ \qc size -> local f $ k qc size
+
 -- | Term generators carry around a context to know
 -- e.g. what types and terms are in scope.
-type GenTm = ReaderT GenEnv Gen
+type GenTm = GenT (Reader GenEnv)
 
 data GenEnv = GenEnv
   { geSize               :: Int
@@ -98,61 +109,25 @@ runGenTmCustom :: Int
                   -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ()))
                -> GenTm a
                -> Gen a
-runGenTmCustom f cg g = sized $ \ n ->
-  runReaderT g $ GenEnv { geSize               = n
-                        , geDatas              = Map.empty
-                        , geTypes              = Map.empty
-                        , geTerms              = Map.empty
-                        , geUnboundUsedTyNames = Set.empty
-                        , geEscaping           = YesEscape
-                        , geCustomGen          = cg
-                        , geCustomFreq         = f
-                        }
+runGenTmCustom f cg g = do
+  sized $ \ n -> do
+    let env = GenEnv
+          { geSize               = n
+          , geDatas              = Map.empty
+          , geTypes              = Map.empty
+          , geTerms              = Map.empty
+          , geUnboundUsedTyNames = Set.empty
+          , geEscaping           = YesEscape
+          , geCustomGen          = cg
+          , geCustomFreq         = f
+          }
+    flip runReader env <$> runGenT g
 
 -- * Utility functions
 
 -- | Don't allow types to escape from a generator.
 noEscape :: GenTm a -> GenTm a
 noEscape = local $ \env -> env { geEscaping = NoEscape }
-
--- * Functions for lifting `Gen` stuff to `GenTm`
-
--- | Lift `Gen` generator to `GenTm` generator. Respects `geSize`.
-liftGen :: Gen a -> GenTm a
-liftGen gen = do
-  sz <- asks geSize
-  lift $ resize sz gen
-
--- | Lift functor operations like `oneof` from `Gen` to `GenTm`
-liftGenF :: Functor f => (f (Gen a) -> Gen a) -> f (GenTm a) -> GenTm a
-liftGenF oo gs = ReaderT $ \ env -> oo $ fmap (`runReaderT` env) gs
-
--- | Uniformly choose one of the generators in the list. Requires the
--- list to be non-empty.
-oneofTm :: [GenTm a] -> GenTm a
-oneofTm = liftGenF oneof
-
--- | Functor of frequency-lists. Only used with `liftGenF` in `frequencyTm`
--- below. (One could have wished for Haskell to give us the ability to use this
--- functor without having to write down a newtype, but here we are).
-newtype FreqList a = FreqList { unFreqList :: [(Int, a)] }
-  deriving stock Functor
-
--- | Non-uniformly pick a generator from the list weighted by
--- the first item in the tuple.
-frequencyTm :: [(Int, GenTm a)] -> GenTm a
-frequencyTm = liftGenF (frequency . unFreqList) . FreqList
-
--- | Lift a generator from items to lists.
-listTm :: GenTm a -> GenTm [a]
-listTm g = do
-  sz <- asks geSize
-  n  <- liftGen $ choose (0, div sz 3)
-  onSize (`div` n) $ replicateM n g
-
--- | Generate exactly `n` items of a given generator
-vecTm :: Int -> GenTm a -> GenTm [a]
-vecTm n = sequence . replicate n
 
 -- * Dealing with size
 
@@ -233,7 +208,7 @@ genFreshNames ss = do
   let i = fromEnum $ Set.findMax $ Set.insert (Unique 0) used
       js = [ j | j <- [1..i], not $ Unique j `Set.member` used ]
       is = js ++ take (length ss + 10) [i+1..]
-  is' <- liftGen $ shuffle is
+  is' <- liftGen $ QC.shuffle is
   return [Name (fromString $ s ++ show j) (toEnum j) | (s, j) <- zip ss is']
 
 -- | See `genFreshName`
@@ -256,7 +231,7 @@ genNotFreshName s = do
 -- | Generate a fresh name most (a bit more than 75%) of the time and otherwise
 -- generate an already bound name. When there are no bound names generate a fresh name.
 genMaybeFreshName :: String -> GenTm Name
-genMaybeFreshName s = frequencyTm [(3, genFreshName s), (1, genNotFreshName s)]
+genMaybeFreshName s = frequency [(3, genFreshName s), (1, genNotFreshName s)]
 
 -- | See `genMaybeFreshName`
 genMaybeFreshTyName :: String -> GenTm TyName

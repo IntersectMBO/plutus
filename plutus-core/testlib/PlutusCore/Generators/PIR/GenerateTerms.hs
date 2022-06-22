@@ -44,7 +44,7 @@ import Data.Proxy
 import Data.Set qualified as Set
 import GHC.Stack
 import Prettyprinter
-import Test.QuickCheck
+import Test.QuickCheck (shrinkList)
 import Text.PrettyBy
 
 import PlutusCore.Builtin
@@ -247,17 +247,18 @@ genTerm mty = do
       atomic | Just ty <- mty = (ty,) <$> genAtomicTerm ty
              | otherwise      = do ty <- genType Star; (ty,) <$> genAtomicTerm ty
   ifSizeZero atomic $
-    frequencyTm $ [ (10, atomic) ]                                             ++
-                  [ (letF, genLet mty) ]                                       ++
-                  [ (30, genForall x k a) | Just (TyForall _ x k a) <- [mty] ] ++
-                  [ (lamF, genLam a b)    | Just (a, b) <- [funTypeView mty] ] ++
-                  [ (varAppF, genVarApp mty) ]                                 ++
-                  [ (10, genApp mty) ]                                         ++
-                  [ (1, genError mty) ]                                        ++
-                  [ (10, genConst mty)    | canConst mty ]                     ++
-                  [ (10, genDatLet mty)   | YesEscape <- [esc] ]               ++
-                  [ (10, genIfTrace)      | isNothing mty ]                    ++
-                  [ (customF, customG mty) ]
+    frequency $
+      [ (10, atomic) ]                                             ++
+      [ (letF, genLet mty) ]                                       ++
+      [ (30, genForall x k a) | Just (TyForall _ x k a) <- [mty] ] ++
+      [ (lamF, genLam a b)    | Just (a, b) <- [funTypeView mty] ] ++
+      [ (varAppF, genVarApp mty) ]                                 ++
+      [ (10, genApp mty) ]                                         ++
+      [ (1, genError mty) ]                                        ++
+      [ (10, genConst mty)    | canConst mty ]                     ++
+      [ (10, genDatLet mty)   | YesEscape <- [esc] ]               ++
+      [ (10, genIfTrace)      | isNothing mty ]                    ++
+      [ (customF, customG mty) ]
   where
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
@@ -290,7 +291,7 @@ genTerm mty = do
     genConst _ = error "genConst: impossible"
 
     genDatLet mty = do
-      rec <- lift arbitrary
+      rec <- liftGen arbitrary
       genDatatypeLet rec $ \ dat -> do
         (ty, tm) <- genTerm mty
         return $ (ty, Let () (if rec then Rec else NonRec) (DatatypeBind () dat :| []) tm)
@@ -302,9 +303,9 @@ genTerm mty = do
       xs  <- genFreshNames $ replicate n "f"
       -- Types of the bound terms
       -- TODO: generate something that matches the target type
-      as  <- onSize (`div` 8) $ vecTm n $ genType Star
+      as  <- onSize (`div` 8) $ vectorOf n $ genType Star
       -- Strictness
-      ss  <- vecTm n $ liftGen $ elements [Strict, NonStrict]
+      ss  <- vectorOf n $ liftGen $ elements [Strict, NonStrict]
       -- Recursive?
       r   <- liftGen $ frequency [(5, pure True), (30, pure False)]
       -- Generate the binding
@@ -362,7 +363,7 @@ genTerm mty = do
         []   -> do
           ty <- genType Star
           (ty,) <$> inhabitType ty
-        vars -> oneofTm $ map genV vars
+        vars -> oneof $ map genV vars
 
     genVarApp (Just ty) = do
       vars <- asks geTerms
@@ -378,7 +379,7 @@ genTerm mty = do
              Just insts <- [findInstantiation ctx n ty a]
            ] of
         [] -> (ty,) <$> inhabitType ty
-        gs -> (ty,) <$> oneofTm gs
+        gs -> (ty,) <$> oneof gs
 
 genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni DefaultFun () -> GenTm a) -> GenTm a
 genDatatypeLet rec cont = do
@@ -393,7 +394,7 @@ genDatatypeLet rec cont = do
         bty d = if rec
                 then bindTyName d k
                 else registerTyName d
-    conArgss <- bty d $ bindTyNames (zip xs ks) $ onSize (`div` n) $ replicateM n $ listTm (genType Star)
+    conArgss <- bty d $ bindTyNames (zip xs ks) $ onSize (`div` n) $ replicateM n $ listOf (genType Star)
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
                        | (c, _conArgs) <- zip cs conArgss

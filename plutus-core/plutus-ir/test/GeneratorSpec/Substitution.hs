@@ -17,7 +17,7 @@ import PlutusIR.Subst
 import Data.Maybe
 import Data.String
 
-import Test.QuickCheck
+import Test.QuickCheck hiding (choose, vectorOf)
 
 -- * Tests for unification and substitution
 

@@ -36,7 +36,8 @@ import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.String
 import GHC.Stack
-import Test.QuickCheck
+import Test.QuickCheck (shuffle)
+import Test.QuickCheck.GenT
 
 import PlutusCore.Builtin
 import PlutusCore.Default
@@ -151,17 +152,18 @@ genAtomicType k = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
   -- TODO: probably should be 'frequencyTm'?
-  oneofTm $ map pure (atoms ++ builtins) ++ [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
+  oneof $ map pure (atoms ++ builtins) ++ [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
 
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = onSize (min 10) $
   ifSizeZero (genAtomicType k) $
-    frequencyTm $ [ (1, genAtomicType k) ] ++
-                  [ (2, genFun) | k == Star ] ++
-                  [ (1, genForall) | k == Star ] ++
-                  [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
-                  [ (1, genApp) ]
+    frequency $
+      [ (1, genAtomicType k) ] ++
+      [ (2, genFun) | k == Star ] ++
+      [ (1, genForall) | k == Star ] ++
+      [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
+      [ (1, genApp) ]
   where
     -- this size split keeps us from generating riddiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the

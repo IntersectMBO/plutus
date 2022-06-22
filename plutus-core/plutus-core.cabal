@@ -373,6 +373,7 @@ library plutus-core-testlib
         tasty-hedgehog -any,
         tasty-hunit -any,
         QuickCheck -any,
+        quickcheck-transformer -any,
         text -any,
         transformers -any,
         pretty -any
