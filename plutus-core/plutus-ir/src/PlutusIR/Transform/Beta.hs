@@ -8,7 +8,6 @@ module PlutusIR.Transform.Beta (
   ) where
 
 import PlutusIR
-import PlutusIR.Core.Type
 
 import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE

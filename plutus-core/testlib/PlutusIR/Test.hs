@@ -18,6 +18,7 @@ import Control.Monad.Morph
 import Control.Monad.Reader as Reader
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
@@ -28,7 +29,6 @@ import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, parse)
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
-import UntypedPlutusCore qualified as UPLC
 
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -38,19 +38,19 @@ import PlutusCore.Error (ParserErrorBundle)
 import Prettyprinter
 import Prettyprinter.Render.Text
 
-instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
+instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Typeable uni, Typeable fun, Ord a
          ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
     toTPlc = asIfThrown . fmap (PLC.Program () (PLC.defaultVersion ()) . void) . compileAndMaybeTypecheck True
 
-instance ( PLC.GShow uni, PLC.GEq uni, PLC.Typecheckable uni fun
+instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Typeable uni, Typeable fun, Ord a
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
-        pure $ UPLC.eraseProgram p'
+        pure $ PLC.runQuote $ flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram  p'
 
 -- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if it caught them in 'IO'.
 asIfThrown
@@ -60,7 +60,7 @@ asIfThrown
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileAndMaybeTypecheck
-    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.GShow uni, uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a)
+    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.Pretty (PLC.SomeTypeIn uni), uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a)
     => Bool
     -> Term TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
@@ -126,6 +126,11 @@ goldenPlcFromPir ::
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
+
+goldenNamedUPlcFromPir ::
+    ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+    Parser a -> String -> TestNested
+goldenNamedUPlcFromPir = goldenPirM $ ppThrow . toUPlc
 
 goldenPlcFromPirCatch ::
     ToTPlc a PLC.DefaultUni PLC.DefaultFun =>

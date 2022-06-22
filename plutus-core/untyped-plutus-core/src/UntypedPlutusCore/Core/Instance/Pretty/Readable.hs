@@ -23,7 +23,7 @@ import Universe
 
 instance
         ( PrettyReadableBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ val -> unitDocM $ pretty val

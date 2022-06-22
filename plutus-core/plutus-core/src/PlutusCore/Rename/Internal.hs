@@ -3,6 +3,8 @@
 
 module PlutusCore.Rename.Internal
     ( module Export
+    , Renamed (..)
+    , Dupable (..)
     , withFreshenedTyVarDecl
     , withFreshenedVarDecl
     , renameTypeM
@@ -16,6 +18,33 @@ import PlutusCore.Quote
 import PlutusCore.Rename.Monad as Export
 
 import Control.Monad.Reader
+
+-- | A wrapper for signifying that the value inside of it satisfies global uniqueness.
+--
+-- It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only exported
+-- from this internal module and should not be exported from the main API.
+--
+-- Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
+-- like with 'Functor').
+newtype Renamed a = Renamed
+    { unRenamed :: a
+    } deriving stock (Show, Eq)
+
+-- | @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
+-- (defined in the main API module because of a constraint requirement) which renames the stored
+-- value along the way. This type is used whenever
+--
+-- 1. preserving global uniqueness is required
+-- 2. some value may be used multiple times
+--
+-- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
+-- global uniqueness is preserved.
+--
+-- 'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
+-- access the underlying value.
+newtype Dupable a = Dupable
+    { unDupable :: a
+    } deriving stock (Show, Eq)
 
 -- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
 -- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.

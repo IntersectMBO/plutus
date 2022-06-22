@@ -3,11 +3,9 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -32,6 +30,8 @@ module PlutusCore.Builtin.KnownType
     , readKnownSelf
     ) where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
@@ -40,8 +40,8 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Monad.Except
-import Data.Coerce
 import Data.DList (DList)
+import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
@@ -50,7 +50,8 @@ import Universe
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
-type KnownBuiltinTypeIn uni val a = (HasConstantIn uni val, GShow uni, GEq uni, uni `Contains` a)
+type KnownBuiltinTypeIn uni val a =
+    (HasConstantIn uni val, Pretty (SomeTypeIn uni), GEq uni, uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -72,6 +73,11 @@ them to two definitions (one calling the other) for some reason.
 So always add an @INLINE@ pragma to all definitions of 'makeKnown' and 'readKnown' unless you have
 a specific reason not to.
 
+Neither 'readKnown' nor 'makeKnown' should appear in the generated Core for builtins. In most cases
+they would slow builtins down, but even if a 'readKnown' only throws an error, it still makes sense
+to keep it out of Core just not to trigger an investigation on whether it's fine that a call to
+'readKnown' is not inlined.
+
 Some 'readKnown' implementations require inserting a call to 'oneShot'. E.g. if 'oneShot' is not
 used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' branch, thus
 allocating a thunk of type 'String' that is completely redundant whenever there's no error,
@@ -92,22 +98,48 @@ builtins this is rarely the case as most of the time we want aggressive inlining
 and the "just compute the damn thing" behavior.
 -}
 
-{- Note [Unlifting values of built-in types]
-It's trivial to unlift from a term a value of a monomorphic type like 'Integer': just check that
-the term is a constant, extract the type tag and check it for equality with the type tag of
-'Integer'.
+{- Note [Unlifting terminology]
+This function:
+
+    f :: Integer -> CkValue DefaultUni fun
+    f = VCon . Some . ValueOf DefaultUniInteger
+
+lifts an 'Integer' to 'CkValue'. Unlifting is the opposite:
+
+    g :: CkValue DefaultUni fun -> Maybe Integer
+    g (VCon (Some (ValueOf uni x))) = case uni of
+        DefaultUniInteger -> Just x
+        _                 -> Nothing
+
+The following usages of the "unlift" term are grammatical:
+
+1. unlift a 'CkValue' to 'Integer'
+2. unlift to 'Integer'
+3. unlift a 'CkValue' as an 'Integer'
+4. unlift from the 'VCon' constructor (or just 'VCon') to 'Integer'
+
+We call the integer that @g@ returns "the unlifted integer".
+-}
+
+{- Note [Unlifting a term as a value of a built-in type]
+See Note [Unlifting terminology] first.
+
+It's trivial to unlift a term to a monomorphic built-in type like 'Integer': just check that the
+term is a constant, extract the type tag and check it for equality with the type tag of 'Integer'.
 
 Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
 any different from just 'Integer' unlifting-wise.
 
-However there's no sensible way of unlifting a value of, say, @[a]@ where @a@ in not a built-in
-type. So let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions
-that don't deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd
-need to write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which
-is really easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be
-cheap and that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making
-perfectly linear algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for
-how that would look like.
+(TODO: the following explanation needs to be improved, there's PLT-338 for that)
+
+However there's no sensible way of unlifting to, say, @[a]@ where @a@ in not a built-in type. So
+let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions that don't
+deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd need to
+write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which is really
+easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be cheap and
+that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making perfectly linear
+algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for how that would
+look like.
 
 So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of
 statically-unknown type (that @a@ is existential) to @[a']@ where @a'@ is known statically.
@@ -135,10 +167,10 @@ So what we do is we simply require the user to write
 
     nullList :: SomeConstant uni [a] -> Bool
 
-and unlift a @[a]@ manually within the definition of the builtin. This works, because the
+and unlift to @[a]@ manually within the definition of the builtin. This works, because the
 existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
 and use it immediately without ever exposing the existential parts to the outside and it's not fine
-to try to return a value having an existential inside of it, which is what unlifting of @[a]@ would
+to try to return a value having an existential inside of it, which is what unlifting to @[a]@ would
 amount to.
 
 Could we somehow align the unlifting machinery so that it does not construct values of particular
@@ -147,7 +179,7 @@ try to escape? Maybe, but see point 2 from the above, we do want to get our hand
 universes sometimes and point 1 prevents us from doing that generically, so it doesn't seem like
 we could do that within some automated machinery.
 
-Overall, asking the user to manually unlift from @SomeConstant uni [a]@ is just always going to be
+Overall, asking the user to manually unlift a @SomeConstant uni [a]@ is just always going to be
 faster than any kind of fancy encoding.
 -}
 
@@ -162,7 +194,52 @@ constraints are completely different in the two cases and we keep the two concep
 (there doesn't seem to be any cons to that).
 -}
 
--- | Throw a @ErrorWithCause KnownTypeError cause@.
+{- Note [Allowed unlifting and lifting]
+Read Note [Alignment of ReadKnownIn and MakeKnownIn] first.
+
+The following classes of Haskell types represent Plutus types:
+
+1. monomorphic built-in types such as @Bool@
+   (assuming @Bool@ is in the universe)
+2. polymorphic built-in types such as @(a, b)@ for any @a@ and @b@ representing Plutus types
+   (assuming @(,)@ is in the universe)
+3. @Opaque val rep@ for any @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for any @rep@ representing a Plutus type
+5. @Emitter a@ for any @a@ representing a Plutus type
+6. @EvaluationResult a@ for any @a@ representing a Plutus type
+7. 'TyVarRep', 'TyAppRep', 'TyForallRep' and all similar types mirroring constructors of @Type@
+8. @a -> b@ for any @a@ and @b@ representing Plutus types (mirrors 'TyFun')
+9. anything else that has a 'KnownTypeAst' instance, for example we express the
+   @KnownTypeAst DefaultUni Int@ instance in terms of the @KnownType DefaultUni Integer@
+   one
+
+Unlifting is allowed to the following classes of types:
+
+1. monomorphic built-in types such as @Bool@
+2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+3. @Opaque val rep@ for @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+5. anything else that implements 'ReadKnownIn', for example we express the
+   @ReadKnownIn DefaultUni term Int@ instance in terms of the @ReadKnownIn DefaultUni term Integer@
+   one, and for another example define an instance for 'Void' in tests
+
+Lifting is allowed to the following classes of types:
+
+1. monomorphic built-in types such as @Bool@
+2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+3. @Opaque val rep@ for @rep@ representing a Plutus type
+4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+5. @Emitter a@ for any @a@ that lifting is allowed to
+6. @EvaluationResult a@ for any @a@ that lifting is allowed to
+7. anything else that implements 'MakeKnownIn', for example we express the
+   @MakeKnownIn DefaultUni term Int@ instance in terms of the @MakeKnownIn DefaultUni term Integer@
+   one, and for another example define an instance for 'Void' in tests
+-}
+
+-- | Attach a @cause@ to a 'KnownTypeError' and throw that.
+-- Note that an evaluator might require the cause to be computed lazily for best performance on the
+-- happy path, hence this function must not force its first argument.
+-- TODO: wrap @cause@ in 'Lazy' once we have it.
 throwKnownTypeErrorWithCause
     :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
     => cause -> KnownTypeError -> m void
@@ -171,14 +248,14 @@ throwKnownTypeErrorWithCause cause = \case
     KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
 
 typeMismatchError
-    :: GShow uni
+    :: Pretty (SomeTypeIn uni)
     => uni (Esc a)
     -> uni (Esc b)
     -> UnliftingError
 typeMismatchError uniExp uniAct = fromString $ concat
     [ "Type mismatch: "
-    , "expected: " ++ gshow uniExp
-    , "; actual: " ++ gshow uniAct
+    , "expected: " ++ display (SomeTypeIn uniExp)
+    , "; actual: " ++ display (SomeTypeIn uniAct)
     ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.
@@ -278,15 +355,6 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Nothing   -> Left . KnownTypeUnliftingError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
-{- Note [Cause of failure]
-'readKnown' and 'makeKnown' each take a @Maybe cause@ argument to report the cause of a potential
-failure. @cause@ is different to @val@ to support evaluators that distinguish between terms and
-values (@makeKnown@ normally constructs a value, but it's convenient to report the cause of a failure
-as a term). Note that an evaluator might require the cause to be computed lazily for best
-performance on the happy path and @Maybe@ ensures that even if we somehow force the argument,
-the cause stored in it is not forced due to @Maybe@ being a lazy data type.
--}
-
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- See Note [Cause of failure].
@@ -302,7 +370,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromConstant . someValue $! x
+    makeKnown x = pure . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -334,7 +402,7 @@ readKnownSelf
        , AsUnliftingError err, AsEvaluationFailure err
        )
     => val -> Either (ErrorWithCause err val) a
-readKnownSelf val = either (throwKnownTypeErrorWithCause val) pure $ readKnown val
+readKnownSelf val = fromRightM (throwKnownTypeErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
@@ -353,6 +421,8 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (EvaluationResult a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
     makeKnown a = case runEmitter a of
@@ -364,6 +434,8 @@ instance
         , uni ~ UniOf val
         ) => ReadKnownIn uni val (Emitter a) where
     readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+    -- Just for 'readKnown' not to appear in the generated Core.
+    {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
     makeKnown = coerceArg $ pure . fromConstant
@@ -374,24 +446,9 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    makeKnown = coerceArg pure
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown = coerceArg pure  -- A faster @pure . Opaque@.
+    readKnown = coerceArg pure
     {-# INLINE readKnown #-}
-
--- Utils
-
--- | Coerce the second argument to the result type of the first one. The motivation for this
--- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
--- to construct an explicit coercion function, so this combinator can be used in cases like that.
--- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
-coerceVia :: Coercible a b => (a -> b) -> a -> b
-coerceVia _ = coerce
-{-# INLINE coerceVia #-}
-
--- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
-coerceArg :: Coercible a b => (a -> r) -> b -> r
-coerceArg = coerce
-{-# INLINE coerceArg #-}

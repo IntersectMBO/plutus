@@ -5,7 +5,9 @@ import Data.Coolean
 import Data.Either
 import Data.List
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.NEAT.Spec
 import PlutusCore.Generators.NEAT.Term
 import PlutusCore.Normalize
@@ -54,7 +56,7 @@ prop_Type k tyG = do
   k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
   -- infer kind using production kind inferer:
-  k2 <- withExceptT TypeError $ inferKind tcConfig ty
+  k2 <- withExceptT TypeError $ inferKind ty
 
   -- 2. check that production and Agda kind inferer agree:
   unless (k1 == k2) $
@@ -119,7 +121,7 @@ prop_Term tyG tmG = do
   -- 4. untyped_reduce . erase == erase . typed_reduce
 
   -- erase original named term
-  let tmU = U.erase tm
+  let tmU = eraseTerm tm
   -- turn it into an untyped de Bruij term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
@@ -132,7 +134,7 @@ prop_Term tyG tmG = do
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
   -- erase it after the fact
-  let tmU'' = U.erase tm''
+  let tmU'' = eraseTerm tm''
   unless (tmU' == tmU'') $
     throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmU'),("reduce;erase" , tmU'')])
 

@@ -24,6 +24,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
+import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm)
 
 -- Parsers for UPLC terms
@@ -44,7 +45,7 @@ lamTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
 lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
 
 appTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
-appTerm = inBrackets $ UPLC.Apply <$> getSourcePos <*> term <*> term
+appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
 
 delayTerm :: Parser PTerm
 delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term

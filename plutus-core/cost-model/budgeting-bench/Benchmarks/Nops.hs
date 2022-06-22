@@ -19,6 +19,7 @@ import Generators (randBool, randNwords)
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
 import PlutusCore.Pretty
@@ -248,34 +249,34 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     toBuiltinMeaning Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
-             (\_ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 11))
+             (\_ -> fromValueOf DefaultUniInteger 11)
              (runCostingFunOneArgument . paramNop1)
     toBuiltinMeaning Nop2o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
-             (\_ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 22))
+             (\_ _ -> fromValueOf DefaultUniInteger 22)
              (runCostingFunTwoArguments . paramNop2)
     toBuiltinMeaning Nop3o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer)
-             (\_ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 33))
+             (\_ _ _ -> fromValueOf DefaultUniInteger 33)
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning Nop4o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
-             (\_ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 44))
+             (\_ _ _ _ -> fromValueOf DefaultUniInteger 44)
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning Nop5o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
-             (\_ _ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 55))
+             (\_ _ _ _ _ -> fromValueOf DefaultUniInteger 55)
              (runCostingFunFiveArguments . paramNop5)
     toBuiltinMeaning Nop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
-             (\_ _ _ _ _ _ -> Opaque (fromConstant $ someValueOf DefaultUniInteger 66))
+             (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
 

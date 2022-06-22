@@ -2,13 +2,10 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
 
 {-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.Runtime where
-
-import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -39,7 +36,7 @@ deriving stock instance Show (RuntimeScheme n)
 -- we use strictdata, so this is just for the purpose of completeness
 instance NFData (RuntimeScheme n) where
     rnf r = case r of
-        RuntimeSchemeResult    -> rwhnf r
+        RuntimeSchemeResult    -> ()
         RuntimeSchemeArrow arg -> rnf arg
         RuntimeSchemeAll arg   -> rnf arg
 

@@ -371,7 +371,13 @@ type CekEvaluationException name uni fun =
     EvaluationException CekUserError (MachineError fun) (Term name uni fun ())
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
-type PrettyUni uni fun = (GShow uni, Closed uni, Pretty fun, Typeable uni, Typeable fun, Everywhere uni PrettyConst)
+type PrettyUni uni fun =
+    ( Pretty (SomeTypeIn uni)
+    , Closed uni, uni `Everywhere` PrettyConst
+    , Pretty fun
+    , Typeable uni
+    , Typeable fun
+    )
 
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
@@ -403,7 +409,7 @@ But in our case this is okay, because:
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: (PrettyUni uni fun)
+    :: PrettyUni uni fun
     => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun
@@ -440,8 +446,13 @@ instance AsEvaluationFailure CekUserError where
 
 instance Pretty CekUserError where
     pretty (CekOutOfExError (ExRestrictingBudget res)) =
-        group $ "The budget was overspent. Final negative state:" <+> pretty res
-    pretty CekEvaluationFailure = "The provided Plutus code called 'error'."
+        cat
+          [ "The machine terminated part way through evaluation due to overspending the budget."
+          , "The budget when the machine terminated was:"
+          , pretty res
+          , "Negative numbers indicate the overspent budget; note that this only indicates the budget that was needed for the next step, not to run the program to completion."
+          ]
+    pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
@@ -491,7 +502,7 @@ dischargeCekValue = \case
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
 
-instance (Closed uni, GShow uni, uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 

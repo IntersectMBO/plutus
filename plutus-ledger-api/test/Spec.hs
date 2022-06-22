@@ -1,4 +1,12 @@
-module Main(main) where
+module Main where
+
+import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
+import PlutusLedgerApi.Test.Examples
+import PlutusLedgerApi.V1
+import Spec.Builtins qualified
+import Spec.Eval qualified
+import Spec.Interval qualified
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -7,13 +15,7 @@ import Test.Tasty.QuickCheck
 import Control.Monad (void)
 import Data.Either
 import Data.Word (Word8)
-import Plutus.Ledger.Test.EvaluationContext (evalCtxForTesting)
-import Plutus.Ledger.Test.Examples
-import Plutus.Ledger.Test.ProtocolVersions
-import Plutus.V1.Ledger.Api
-import Spec.Builtins qualified
-import Spec.Eval qualified
-import Spec.Interval qualified
+import Spec.CostModelParams qualified
 
 main :: IO ()
 main = defaultMain tests
@@ -90,4 +92,5 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.Interval.tests
     , Spec.Eval.tests
     , Spec.Builtins.tests
+    , Spec.CostModelParams.tests
     ]

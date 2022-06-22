@@ -28,9 +28,7 @@ kindcheck
     :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
     => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ do
-        tcConfig <- getDefTypeCheckConfig ()
-        inferKind tcConfig ty
+    _ <- runQuoteT $ inferKind ty
     return ty
 
 typecheck
@@ -108,7 +106,7 @@ test_typecheckFun name = goldenVsDoc testName path doc where
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
     => String -> TestTree
-test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumeration @fun
+test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumerate @fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
