@@ -104,14 +104,13 @@ costing functions involves a number of steps.
 
 ## Adding a new built-in function
 
-This section describes the somewhat complicated process of updating
-the cost model when a new built-in function is added to Plutus
-Core. For concreteness we show how to add a new builtin `cubeInteger`
-(which cubes an integer) and how to update the cost model to include
-it.  This is quite a simple example, but serves to illustrate all of
-the steps that need to be taken to update the cost model.  For full
-technical details of how to add a new built-in function see the
-extensive notes on "How to add a built-in function" in
+This section describes the somewhat complicated process of updating the cost
+model when a new built-in function is added to Plutus Core. For concreteness we
+show how to add a new builtin `xorByteString` and how to extend the cost model
+to cover it.  This is quite a simple example, but serves to illustrate all of
+the steps that need to be taken to update the cost model.  For full technical
+details of how to add a new built-in function see the extensive notes on "How to
+add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
 [`Universe.Core`](../plutus-core/src/Universe/Core.hs).
@@ -121,30 +120,38 @@ For documentation on how to add a new built-in type, see
 
 1. Add a new constructor to the `DefaultFun` type in
    [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs). In
-   our example we will call this constructor `CubeInteger`.  The functions in
+   our example we will call this constructor `XorByteString`.  The functions in
    `DefaultFun` become accessible from Plutus Core via names obtained by
    converting the first character of their name to lower case, so in textual
-   Plutus core our function will be called `cubeInteger`.
+   Plutus core our function will be called `xorByteString`.
 
-2. Add a clause for the new function in the instances for
-  `ToBuiltinMeaning` in
+2. Add a clause for the new function in the instances for `ToBuiltinMeaning` in
   [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs):
 
     ```
-	toBuiltinMeaning CubeInteger =
-	    makeBuiltinMeaning (\(n::Integer) -> n*n*n)
-	    mempty
+    toBuiltinMeaning XorByteString =
+        makeBuiltinMeaning
+            xorByteString
+            mempty
+            where xorByteString a b =
+                      Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
     ```
+
+    This assumes that the appropriate modules have been imported.  The
+    implementation is arguably incorrect since if the arguments have different
+    lengths the trailing bytes in the longer argument will be ignored, but it
+    serves to illustrate the process; a more robust implementation might perform
+    a check that the inputs are the same length.  For more complicated functions
+    one might also put the implementation in a separate file.
 
     The final argument of `ToBuiltinMeaning` contains the costing functions for
     the relevant builtin.  Initially this should be set to `mempty`; we'll come
     back and fix it later.
 
-    Note that there are certain restrictions on built-in functions:
-    the function should be deterministic, it **must not throw any
-    exceptions**, and ideally it should be easy to cost (the execution
-    time should depend on the sizes of the arguments in some fairly
-    straightforward way).
+    Note that there are certain restrictions on built-in functions: for example,
+    the function should be deterministic, it **must not throw any exceptions**,
+    and ideally it should be easy to cost (the execution time should depend on
+    the sizes of the arguments in some fairly straightforward way).
 
 3. Add an integer tag for the new function to the `endcode` and
 `decode` methods in `instance Flat DefaultFun` in the same file.  This
@@ -178,7 +185,7 @@ Firstly, add a new entry to the `BuiltinCostModelBase` type in
 For example
 
 ```
-    paramCubeInteger                   :: f ModelOneArgument
+    paramXorByteString :: f ModelTwoArguments
 ```
 
 The types of costing functions are defined in
@@ -192,8 +199,9 @@ suffice in most situations, but new constructors can be added if necessary:
 in this case you should add new cases to the appropriate
 `run<N>ArgumentModel` and `runCostingFunction<N>Arguments` functions.
 
-For `cubeInteger` it would be reasonable to expect the time taken to be linear
-in the size of the argument, so we should use the `ModelOneArgumentLinearCost`
+For `xorByteString` it would be reasonable to expect the time taken to be linear
+in the minimum of the argument sizes (the function stops when it gets to the end
+of the smaller bytestring), so we should use the `ModelTwoArgumentsMinSize`
 constructor: see Step 6 for this.
 
 
@@ -207,7 +215,7 @@ diagnostic purposes).  It should be clear how to do this.  For the
 `cubeInteger` function we add
 
 ```
-    , paramCubeInteger                   = unitCostOneArgument
+    , paramXorByteString                   = unitCostTwoArguments
 ```
 
 #### Step 3: add an outline costing function entry in the JSON file
@@ -215,20 +223,20 @@ diagnostic purposes).  It should be clear how to do this.  For the
 Add a new entry in [`builtinCostModel.json`](./data/builtinCostModel.json):
 
 ```
-    "cubeInteger": {
+    "xorByteString": {
         "cpu": {
             "arguments": {
                 "intercept": 0,
                 "slope": 0
             },
-            "type": "linear_cost"
+            "type": "min_size"
         },
         "memory": {
             "arguments": {
                 "intercept": 0,
                 "slope": 0
             },
-            "type": "linear_cost"
+            "type": "min_size"
         }
     }
 ```
@@ -243,14 +251,14 @@ The JSON keys are obtained automatically from the types in
 [`PlutusCore.Evaluation.Machine.CostingFun.Core`](../plutus-core/src/PlutusCore/Evaluation/Machine/CostingFun/Core.hs)
 by the code in `PlutusCore.Evaluation.Machine.CostingFun.JSON`.  In
 our case, the costing function is given by the
-`ModelOneArgumentLinearCost` constructor of the `ModelOneArgument`
-type. The type prefix `ModelOneArgument` is removed from the
-constructor name and the remaining `LinearCost` is converted to
-`linear_cost` by the Aeson library's
+`ModelTwoArgumentsMinSize` constructor of the `ModelTwoArguments`
+type. The type prefix `ModelTwoArguments` is removed from the
+constructor name and the remaining `MinSize` is converted to
+`min_size` by the Aeson library's
 [`CamelToSnake`](https://hackage.haskell.org/package/deriving-aeson-0.2.8/docs/Deriving-Aeson.html#t:CamelToSnake)
 transformation.  Similarly, the names of the
-`modelLinearSizeIntercept` and `modelLinearSizeSlope` fields in the
-`ModelLinearSize` type are converted to `slope` and `intercept`.  In
+`modelMinSizeIntercept` and `modelMinSizeSlope` fields in the
+`ModelMinSize` type are converted to `slope` and `intercept`.  In
 many cases you should be able to see what the JSON should look like by
 looking at existing entries in
 [`builtinCostModel.json`](./data/builtinCostModel.json), but in case
@@ -266,9 +274,12 @@ replace `mempty` in the definition of the builtin with some code to
 run the appropriate `param<builtin-name>` function:
 
 ```
-    toBuiltinMeaning CubeInteger =
-        makeBuiltinMeaning (\(n::Integer) -> n*n*n)
-            (runCostingFunOneArgument . paramCubeInteger)
+    toBuiltinMeaning XorByteString =
+        makeBuiltinMeaning
+            xorByteString
+            (runCostingFunTwoArguments . paramXorByteString)
+            where xorByteString a b =
+                      Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
 ```
 
 #### Step 5: add a benchmark for the new builtin
@@ -299,9 +310,9 @@ models.  Go to
 entries for the new builtin in builtinCostModelNames
 
 ```
-  , paramCubeInteger                   = "cubeIntegerModel"
+  , paramXorByteString                   = "xorByteStringModel"
 ```
-(Getting the string wrong here, for example putting "cubeInteger" instead will
+(Getting the string wrong here, for example putting "xorByteString" instead will
 give `parse error (not enough input) at ""`. Errors will occur whenever the
 Haskell code attempts to read something from an R object that doesn't actually
 occur in the object, and they can sometimes be quite cryptic.)
@@ -309,18 +320,18 @@ occur in the object, and they can sometimes be quite cryptic.)
 Also add a new clause in [`CreateBuiltinCostModel`](./create-cost-model/CreateBuiltinCostModel.hs):
 
 ```
-    paramCubeInteger                   <- getParams cubeIntegerData  paramCubeInteger
+    paramXorByteString                   <- getParams xorByteString paramXorByteString
 ```
 
 and a function to extract the cost parameters for the R code.  This should be modelled on the existing
 functions at the end of the file:
 
 ```
-cubeInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-cubeInteger cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 3
-  pure $ CostingFun cpuModel memModel
+xorByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+xorByteString cpuModelR = do
+  cpuModel <- ModelTwoArgumentsMinSize <$> readModelMinSize cpuModelR
+  let memModel = ModelTwoArgumentsMinSize $ ModelMinSize 0 1
+  pure $ CostingFun (cpuModel) memModel
 ```
 
 The CPU costing function is obtained by running the R code, but the memory usage
@@ -328,9 +339,9 @@ costing function is defined statically here.  Memory usage costing functions
 only account for memory retained after the function has returned and not for any
 working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
-by the builtin.  In the case of `cubeInteger` it is a reasonable assumption
-that the result of cubing an integer of size `n` will be of size about `3n`, so
-we define the memory costing function to be `n -> 3*n + 0`.
+by the builtin.  In the case of `xorByteString` if the arguments have sizes `m`
+and `n` the result have size `min(m,n)` so we define the memory costing function to
+be `(m,n) -> 0 + 1*min(m,n)
 
 
 #### Step 7: update the R code
@@ -343,36 +354,35 @@ an entry for the arity of the builtin in the `arity` function:
        switch (name,
            "AddInteger" = 2,
            ...
-           "CubeInteger" = 1,
+           "XorByteString" = 2,
            ...
            )
 ```
 
-Now add a function to infer coefficients for the CPU costing function
-from benchmarking data.  In the case of `cubeInteger` we assume that
-the time taken will be linear in the size of argument (ie, the
-argument of the new builtin).
+Now add a function to infer coefficients for the CPU costing function from
+benchmarking data.  In the case of `xorByteString` we assume that the time taken
+will be linear in the minimum of the sizes of the arguments (ie, the arguments of
+the new builtin).
 
 ```
-    cubeIntegerModel <- {
-        fname <- "CubeInteger"
-                    ## ^ This is the string appearing at the start of each line in the CSV file 
+    xorByteStringModel <- {
+        fname <- "XorByteString"
         filtered <- data %>%
-            filter.and.check.nonempty (fname)  %>%
+            filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel (m, fname)
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        adjustModel(m,fname)
     }
 ```
 
 Finally, add an entry to the list which is returned by `modelFun` (at the very end of the file):
 
 ```
-   cubeIntegerModel = cubeIntegerModel
+        xorByteStringModel = xorByteStringModel,
 ```
 
 From the point of view of Haskell this effectively creates a record field called
-`cubeIntegerModel` which contains a Haskell representation of the R model
+`xorByteStringModel` which contains a Haskell representation of the R model
 object.
 
 ### Step 8: test the Haskell versions of the costing functions
@@ -391,13 +401,12 @@ plutus-core:cost-model-test`.
 
 ### Step 9: update the cost model JSON file
 
-Once the previous steps have been carried out, proceed as described in
-the first section: run `cost-model-budgeting-bench` on the reference
-machine and then feed the results to `generate-cost-model` to produce
-a new JSON cost model file (which will contain sensible coefficients
-for the costing functions for the new builtin in place of the arbitray
-ones we added in Step 3), and check it in along with a CSV file
-containing a full set of benchmark results which can be used to
+Once the previous steps have been carried out, proceed as described in the first
+section: run `cost-model-budgeting-bench` on the reference machine and then feed
+the results to `generate-cost-model` to produce a new JSON cost model file
+(which will contain sensible coefficients for the costing functions for the new
+builtin in place of the arbitray ones we added in Step 3), and check it in along
+with a CSV file containing a full set of benchmark results which can be used to
 reproduce it.
 
 If you're confident that the evaluator hasn't changed too much since
