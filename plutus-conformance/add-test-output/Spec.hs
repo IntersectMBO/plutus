@@ -17,6 +17,7 @@ import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
 import Options.Applicative
+import Options.Applicative.Help.Pretty (Doc, string)
 import PlutusConformance.Common
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
@@ -82,20 +83,26 @@ allOrMissing = missing <|> allInputs
 
 args :: ParserInfo Args
 args = info ((MkArgs <$> ext <*> dir <*> runner <*> allOrMissing) <**> helper)
-  (fullDesc <> progDesc helpText)
+  -- using progDescDoc instead of progDesc because progDesc messes up the formatting.
+  (fullDesc <> progDescDoc (Just helpText))
 
-helpText :: String
-helpText = unlines
+helpText :: Doc
+helpText = string $ unlines
   ["This program adds test outputs to specified inputs."
-  , "To run the program, input the following 4 arguments: "
-  , "(1) file extension to be searched "
-  , "(2) directory to be searched "
-  , "(3) the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests). "
+  , "To run the program, input the following 4 arguments:"
+  , "(1) file extension to be searched"
+  , "(2) directory to be searched"
+  , "(3) the action to run the input files through;"
+  , "eval (for evaluation tests) or typecheck (for typechecking tests)."
   , "(4) whether to write output files to all inputs or only the ones missing output files."
-  , "E.g. run "
-  , "`cabal run add-test-output .uplc plutus-conformance/uplc/ eval` -- --missing"
-  , "to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. "
-  , " It will evaluate and create output files for them."
+  , "E.g. run \n"
+  , "cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing \n"
+  , "to have the executable search for files with extension `.uplc`"
+  , "in the /uplc directory that are missing output files."
+  , "It will evaluate and create output files for them."
+  , "Or run \n"
+  , "cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all \n"
+  , "to update all files."
   ]
 
 main :: IO ()
