@@ -144,7 +144,7 @@ For documentation on how to add a new built-in type, see
     a check that the inputs are the same length.  For more complicated functions
     one might also put the implementation in a separate file.
 
-    The final argument of `ToBuiltinMeaning` contains the costing functions for
+    The final argument of `makeBuiltinMeaning` contains the costing functions for
     the relevant builtin.  Initially this should be set to `mempty`; we'll come
     back and fix it later.
 
