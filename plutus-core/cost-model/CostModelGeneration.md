@@ -395,7 +395,9 @@ Finally, add an entry to the list which is returned by `modelFun` (at the very e
 
 From the point of view of Haskell this effectively creates a record field called
 `xorByteStringModel` which contains a Haskell representation of the R model
-object.
+object. (That's what gets read in by the code in Step 6: `paramXorByteString`
+contains the string "xorByteStringModel" and that lets the Haskell code retrieve
+the correct thing from R.)
 
 ### Step 8: test the Haskell versions of the costing functions
 
