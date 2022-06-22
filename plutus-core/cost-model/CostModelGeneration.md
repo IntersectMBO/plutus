@@ -362,10 +362,12 @@ an entry for the arity of the builtin in the `arity` function:
 Now add a function to infer coefficients for the CPU costing function from
 benchmarking data.  In the case of `xorByteString` we assume that the time taken
 will be linear in the minimum of the sizes of the arguments (ie, the arguments
-of the new builtin).  Think carefully about the structure of the model and
-issues such as whether the raw data might need to have outliers discarded or
-whether only some subset of the data should be used to arrive at an accurate
-worst-case model.
+of the new builtin).  It is often worthwhile to plot the benchmark data and
+experiment with it in order to check that in has the form expected when the
+basic shape of the costing function was selected (Steps 1 and 6). Think
+carefully about the structure of the model and issues such as whether the raw
+data might need to have outliers discarded or whether only some subset of the
+data should be used to arrive at an accurate worst-case model.
 
 ```
     xorByteStringModel <- {
