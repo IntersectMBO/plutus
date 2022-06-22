@@ -202,7 +202,7 @@ in this case you should add new cases to the appropriate
 For `xorByteString` it would be reasonable to expect the time taken to be linear
 in the minimum of the argument sizes (the function stops when it gets to the end
 of the smaller bytestring), so we should use the `ModelTwoArgumentsMinSize`
-constructor: see Step 6 for this.
+constructor: see Step 6 for this, and Step 7 for a caveat.
 
 
 #### Step 2: add a unit cost model for new function
@@ -364,10 +364,17 @@ benchmarking data.  In the case of `xorByteString` we assume that the time taken
 will be linear in the minimum of the sizes of the arguments (ie, the arguments
 of the new builtin).  It is often worthwhile to plot the benchmark data and
 experiment with it in order to check that in has the form expected when the
-basic shape of the costing function was selected (Steps 1, 3 and 6). Think
-carefully about the structure of the model and issues such as whether the raw
-data might need to have outliers discarded or whether only some subset of the
-data should be used to arrive at an accurate worst-case model.
+basic shape of the costing function was selected (Steps 1, 3 and 6).  For
+example, we have assumed that the execution time of `xorByteString` is linear in
+the _minimum_ of the argument sizes since the function stops when it gets to the
+end of the smaller argument, but note that we call `unpack` on both arguments
+and that this takes linear time. Examination of benchmark results might reveal
+that if one input is very large the unpacking step might dominate the execution
+time, and if this is the case it might be more sensible to use a model linear in
+the _maximum_ of the input sizes.  In general, think carefully about the
+structure of the model and issues such as whether the raw data might need to
+have outliers discarded or whether only some subset of the data should be used
+to arrive at an accurate worst-case model.
 
 ```
     xorByteStringModel <- {
