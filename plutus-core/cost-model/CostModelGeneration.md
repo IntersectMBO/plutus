@@ -339,9 +339,9 @@ costing function is defined statically here.  Memory usage costing functions
 only account for memory retained after the function has returned and not for any
 working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
-by the builtin.  In the case of `xorByteString` if the arguments have sizes `m`
-and `n` the result have size `min(m,n)` so we define the memory costing function to
-be `(m,n) -> 0 + 1*min(m,n)`.
+by the builtin.  For our `xorByteString` implementation, if the arguments have
+sizes `m` and `n` then the result will have size `min(m,n)` so we define the memory
+costing function to be `(m,n) -> 0 + 1*min(m,n)`.
 
 
 #### Step 7: update the R code
