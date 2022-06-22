@@ -341,7 +341,7 @@ working memory that may be allocated during its execution.  Typically this means
 that the memory costing function should measure the size of the object returned
 by the builtin.  In the case of `xorByteString` if the arguments have sizes `m`
 and `n` the result have size `min(m,n)` so we define the memory costing function to
-be `(m,n) -> 0 + 1*min(m,n)
+be `(m,n) -> 0 + 1*min(m,n)`.
 
 
 #### Step 7: update the R code
