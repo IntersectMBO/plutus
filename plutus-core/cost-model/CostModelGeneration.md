@@ -153,7 +153,7 @@ For documentation on how to add a new built-in type, see
     and ideally it should be easy to cost (the execution time should depend on
     the sizes of the arguments in some fairly straightforward way).
 
-3. Add an integer tag for the new function to the `endcode` and
+3. Add an integer tag for the new function to the `encode` and
 `decode` methods in `instance Flat DefaultFun` in the same file.  This
 determines how the new builtin is encoded in the `Flat` serialisation
 format: it should be different from all the existing tags and should
@@ -208,11 +208,11 @@ constructor: see Step 6 for this.
 #### Step 2: add a unit cost model for new function
 
 Add a new entry in `unitCostBuiltinCostModel` in
-[`PlutusCore.Evaluation.Machine.ExbudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
+[`PlutusCore.Evaluation.Machine.ExBudgetingDefaults`](../plutus-core/src/PlutusCore/Evaluation/Machine/ExBudgetingDefaults.hs)
 (this is used by the `uplc` command for counting the number of times
 each builtin is called during script execution, which can useful for
 diagnostic purposes).  It should be clear how to do this.  For the
-`cubeInteger` function we add
+`xorByteString` function we add
 
 ```
     , paramXorByteString                   = unitCostTwoArguments
