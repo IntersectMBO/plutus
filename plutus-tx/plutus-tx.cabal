@@ -33,13 +33,14 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
+  -- See Plutus Tx readme for why we need the following flags: 
+  -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
--- See Plutus Tx readme
 library
   import:          lang
   hs-source-dirs:  src
@@ -115,15 +116,14 @@ library plutus-tx-testlib
   hs-source-dirs:  testlib
   exposed-modules: PlutusTx.Test
   build-depends:
-    , base           >=4.9 && <5
+    , base                                            >=4.9 && <5
     , filepath
     , flat
     , ghc-prim
     , lens
     , mtl
-    , plutus-core
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
     , plutus-tx
-    , plutus-core:plutus-core-testlib ^>=1.0
     , prettyprinter
     , tagged
     , tasty
@@ -151,7 +151,7 @@ test-suite plutus-tx-test
     Suites.Laws.Serialization
 
   hs-source-dirs:     test
-  build-tool-depends: doctest:doctest -any
+  build-tool-depends: doctest:doctest
   build-depends:
     , aeson
     , base            >=4.9 && <5

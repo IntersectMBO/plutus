@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/equalsData/equalsData.uplc:2:15:
-  |
-2 |          (con data { Constr 1 [ Integer 0 ] }) ]
-  |               ^^^^^^^^^^
-unexpected "data { Con"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

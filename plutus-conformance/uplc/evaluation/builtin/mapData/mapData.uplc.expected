@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/mapData/mapData.uplc:2:22:
-  |
-2 |                 (con list(pair (data) (data))
-  |                      ^^^^^^^^^^
-unexpected "list(pair "
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

@@ -145,7 +145,7 @@ type Compiling m e uni fun a =
     -- Pretty printing instances
     , PLC.Pretty fun
     , PLC.Closed uni
-    , PLC.GShow uni
+    , PLC.Pretty (PLC.SomeTypeIn uni)
     , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )

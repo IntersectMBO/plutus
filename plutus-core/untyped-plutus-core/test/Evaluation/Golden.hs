@@ -17,12 +17,12 @@ import PlutusCore.StdLib.Meta.Data.Tuple
 import PlutusCore.StdLib.Type
 
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Data.Bifunctor
@@ -330,14 +330,14 @@ goldenVsPretty extn name value =
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
-    . bimap (fmap UPLC.erase) UPLC.erase
+    . bimap (fmap eraseTerm) eraseTerm
     . evaluateCkNoEmit defaultBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
     = goldenVsPretty ".uplc.golden" name
     . evaluateCekNoEmit defaultCekParameters
-    . UPLC.erase
+    . eraseTerm
 
 runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()

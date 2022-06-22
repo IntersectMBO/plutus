@@ -6,6 +6,7 @@ module Generators where
 import PlutusPrelude
 
 import PlutusCore (DefaultFun, DefaultUni, Name, nameString, runQuoteT)
+import PlutusCore.Compiler.Erase
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST

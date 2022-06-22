@@ -242,7 +242,7 @@ builtinNames = [
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm ann name term = do
     ghcId <- GHC.tyThingId <$> getThing name
-    var <- ($> ann) <$> compileVarFresh ghcId
+    var <- compileVarFresh ann ghcId
     -- See Note [Builtin terms and values]
     let strictness = if PIR.isPure (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)

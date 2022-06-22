@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/unListData/unListData.uplc:1:43:
-  |
-1 | (program 0.0.0 [(builtin unListData) (con data { List [ Integer 0, Integer 1 ] })])
-  |                                           ^^^^^^^^^^
-unexpected "data { Lis"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

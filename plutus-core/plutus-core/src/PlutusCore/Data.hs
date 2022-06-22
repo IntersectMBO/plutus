@@ -19,8 +19,10 @@ import Control.DeepSeq (NFData)
 import Control.Monad.Except
 import Data.Bits (shiftR)
 import Data.ByteString qualified as BS
+import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Lazy qualified as BSL
 import Data.Data qualified
+import Data.Text.Encoding qualified as Text
 import Data.Word (Word64, Word8)
 import GHC.Generics
 import Prelude
@@ -49,7 +51,9 @@ instance Pretty Data where
         Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
         List ds     -> brackets (sep (punctuate comma (fmap pretty ds)))
         I i         -> pretty i
-        B b         -> viaShow b
+        B b         ->
+            -- Base64 encode the ByteString since it may contain arbitrary bytes
+            pretty (Text.decodeLatin1 (Base64.encode b))
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually

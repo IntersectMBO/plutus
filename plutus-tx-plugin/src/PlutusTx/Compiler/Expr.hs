@@ -453,7 +453,7 @@ hoistExpr var t = do
         Just term -> pure term
         -- See Note [Dependency tracking]
         Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-            var' <- compileVarFresh var
+            var' <- compileVarFresh AnnOther var
             -- See Note [Occurrences of recursive names]
             PIR.defineTerm
                 lexName

@@ -1,1 +1,1 @@
-(con bytestring #aa00ff)
+(program 1.0.0 (con bytestring #aa00ff))

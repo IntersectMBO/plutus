@@ -23,6 +23,12 @@ runCommand "stylish-check"
   chmod -R +w stylish
   cd stylish
   fix-stylish-haskell
+  EXIT_CODE=$?
+  if [[ $EXIT_CODE != 0 ]]
+  then 
+    echo "*** stylish-haskell failed to format some files"
+    exit $EXIT_CODE
+  fi
   cd ..
   diff --brief --recursive orig stylish > /dev/null
   EXIT_CODE=$?
