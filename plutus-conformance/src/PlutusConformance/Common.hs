@@ -38,6 +38,8 @@ data UplcEvaluationTest =
        , testDir :: FilePath
     }
 
+-- Tells 'tasty' that 'UplcEvaluationTest' "is" a test that can be run,
+-- by specifying how to run it and what custom options it might expect.
 instance IsTest UplcEvaluationTest where
     run _ MkUplcEvaluationTest{testDir,evaluator} _ = do
         let name = takeBaseName testDir
