@@ -405,8 +405,8 @@ the correct thing from R.)
 
 The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel.hs)
 converts the cost modelling functions fitted by R into Haskell functions.  As
-mentioned in the [first section](#updating-an-existing-cost-model), there are tests in
-
+mentioned in the [first section](#updating-an-existing-cost-model), there are
+tests in
 [`plutus-core/cost-model/test/TestCostModels.hs`](./test/TestCostModels.hs) that
 check that the results returned by the Haskell functions (which do calculations
 in an integral type) agree with those obtained by running the R code (which does
