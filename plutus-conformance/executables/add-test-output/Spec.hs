@@ -124,8 +124,6 @@ main = do
                       putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
                       T.writeFile outFilePath shownParseError
                     Right pro -> do
-                      -- catch all sync exceptions and keep going
-                      -- (we still need this even with `evalUplcProg` using the safe eval function)
                       case evalUplcProg (() <$ pro) of
                         (Just prog) -> do
                           T.writeFile outFilePath (render $ pretty prog)

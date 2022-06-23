@@ -133,7 +133,7 @@ parseTxt ::
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
--- | Our `evaluator` for the UPLC tests is the CEK machine.
+-- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
 evalUplcProg :: UplcEvaluator
 evalUplcProg = traverseOf UPLC.progTerm eval
   where
@@ -145,6 +145,10 @@ evalUplcProg = traverseOf UPLC.progTerm eval
         case evaluateCekNoEmit defaultCekParameters t of
             Left _     -> Nothing
             Right prog -> Just prog
+
+-- | Our `evaluator` for the Agda UPLC tests is the CEK machine.
+agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
+agdaEvalUplcProg _p = undefined
 
 -- | Run the tests given a `evaluator` that evaluates UPLC programs.
 runUplcEvalTests ::
