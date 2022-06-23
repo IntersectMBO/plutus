@@ -164,9 +164,11 @@ executable evaluation-test
     , base                       >=4.9 && <5
     , extra
     , filepath
+    , parallel-io
     , plutus-core
     , plutus-ledger-api
     , plutus-ledger-api-testlib
+    , PyF
     , serialise
     , tasty
     , tasty-hunit

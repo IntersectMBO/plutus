@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -12,60 +13,71 @@ import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
 import Codec.Serialise qualified as CBOR
-import Data.Foldable (toList)
-import Data.Functor
+import Control.Concurrent.ParallelIO qualified as Concurrent
+import Control.Exception (evaluate)
+import Control.Monad.Extra (whenJust)
+import Data.List.NonEmpty (NonEmpty, nonEmpty, toList)
+import Data.Maybe (catMaybes)
+import PyF (fmt)
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
-import System.FilePath (isExtensionOf)
+import System.FilePath (isExtensionOf, takeBaseName)
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.Providers
 
-data SingleTest
-    = SingleTest
-        LedgerPlutusVersion
-        (Maybe (EvaluationContext, [Integer]))
-        ScriptEvaluationEvent
+data TestFailure
+    = InvalidResult UnexpectedEvaluationResult
+    | MissingCostParametersFor LedgerPlutusVersion
 
-instance IsTest SingleTest where
-    run _opts (SingleTest ver mbCtx ev) _reportProgress = case mbCtx of
-        Just (ctx, params) ->
-            pure . maybe (testPassed mempty) (testFailed . display) $
-                checkEvaluationEvent ctx params ev
-        Nothing ->
-            pure . testFailed $
-                "Missing cost parameters for " <> show ver
-                    <> ". Report this as a bug against the script dumper in plutus-apps."
+renderTestFailure :: TestFailure -> String
+renderTestFailure = \case
+    InvalidResult err -> display err
+    MissingCostParametersFor ver ->
+        [fmt|
+Missing cost parameters for {show ver}. Report this as a bug
+against the script dumper in plutus-apps."
+|]
 
-    testOptions = mempty
+renderTestFailures :: NonEmpty TestFailure -> String
+renderTestFailures xs =
+    [fmt|
+Number of failed test cases: {length xs}
+{unlines . fmap renderTestFailure $ toList xs}
+|]
 
 -- | Test cases from a single event dump file
-testOneFile :: TestName -> ScriptEvaluationEvents -> TestTree
-testOneFile name events =
+testOneFile :: FilePath -> TestTree
+testOneFile eventFile = testCase (takeBaseName eventFile) $ do
+    events <- CBOR.readFileDeserialise @ScriptEvaluationEvents eventFile
+
     case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
          , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
          ) of
-        (Right ctxV1, Right ctxV2) ->
-            testGroup name $
-                zip [1 :: Int ..] (toList (eventsEvents events)) <&> \(idx, event) ->
-                    singleTest ("test case " <> show idx) $ case event of
-                        PlutusV1Event{} -> SingleTest PlutusV1 ctxV1 event
-                        PlutusV2Event{} -> SingleTest PlutusV2 ctxV2 event
-        (Left err, _) ->
-            testCase name . assertFailure $ display err
-        (_, Left err) ->
-            testCase name . assertFailure $ display err
+        (Right ctxV1, Right ctxV2) -> do
+            errs <-
+                fmap catMaybes . Concurrent.parallel $
+                    fmap
+                        (evaluate . runSingleEvent ctxV1 ctxV2)
+                        (toList (eventsEvents events))
+            whenJust (nonEmpty errs) $ assertFailure . renderTestFailures
+        (Left err, _) -> assertFailure $ display err
+        (_, Left err) -> assertFailure $ display err
   where
     mkContext f = \case
         Nothing         -> Right Nothing
         Just costParams -> Just . (,costParams) <$> f costParams
 
+    runSingleEvent ctxV1 ctxV2 event =
+        case event of
+            PlutusV1Event{} -> case ctxV1 of
+                Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+                Nothing            -> Just $ MissingCostParametersFor PlutusV1
+            PlutusV2Event{} -> case ctxV2 of
+                Just (ctx, params) -> InvalidResult <$> checkEvaluationEvent ctx params event
+                Nothing            -> Just $ MissingCostParametersFor PlutusV2
+
 main :: IO ()
 main = do
     dir <- getEnv "EVENT_DUMP_DIR"
     eventFiles <- filter ("event" `isExtensionOf`) <$> listFiles dir
-    -- TODO: if @readFileDeserialise@ fails on any file, no test would be run.
-    -- Ideally we should run @readFileDeserialise@ within a @TestTree@.
-    eventss <- traverse (CBOR.readFileDeserialise @ScriptEvaluationEvents) eventFiles
-    defaultMain . testGroup "Mainnet script evaluation test" . fmap (uncurry testOneFile) $
-        zip eventFiles eventss
+    defaultMain . testGroup "Mainnet script evaluation test" $ fmap testOneFile eventFiles
