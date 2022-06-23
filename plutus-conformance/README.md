@@ -6,20 +6,24 @@ This package aims to provide an official and comprehensive test suite that check
 
 ## Specification
 
-The tests currently covers or will cover:
+The tests currently cover or will cover the Haskell and Agda implementation of:
 
-- An evaluation test suite for UPLC (`uplc-eval-test`)
-- A typechecking test suite for TPLC, including checking of alpha equivalence. (`tplc-typecheck-test`)
-- An evaluation test suite for TPLC (`tplc-eval-test`)
-- A TPLC to UPLC erasure test suite
-- Costing conformance 
+- UPLC evaluation
+- Typechecking for TPLC, including checking of alpha equivalence. (`tplc-typecheck-test`)
+- TPLC evaluation
+- Erasure of TPLC to UPLC
 - Coverage test
+<!-- - Costing conformance? -->
 
-There is also an executable `add-test-output` for easy addition/alteration of test cases. Run
+There are also executables for users to run:
+
+1. `add-test-output` for easy addition/alteration of test cases. Run
 
 `cabal run add-test-output -- -h`
 
 for the manual.
+
+2. (WIP) `haskell-implementation` for Haskell implementation CLI testing/usage. 
 
 ## The Plutus Conformance Test Suite Library
 
@@ -27,7 +31,7 @@ The library provides functions that users can import and run conformance tests w
 
 ## Untyped Plutus Core Program Evaluation
 
-The `uplc-eval-test` test suite ensures conformance of evaluation of untyped plutus core programs. The expected output may contain:
+The UPLC evaluation tests ensure conformance of evaluation of untyped plutus core programs. The expected output may contain:
 
 1. "parse error"
 
@@ -41,23 +45,16 @@ If evaluation fails with an error, the expected output will show "evaluation err
 
 This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
 
-<!-- 
-### The CEK machine
-
-The included UPLC test suite uses the CEK machine as the runner.
-
-``` -->
-
 ### Testing alternative implementation
 
-In the library We provide a function named `runTests` with the following signature:
+In the library We provide a function named `runUplcEvalTests` with the following signature:
 
 ```haskell
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
-runTests :: (UplcProg -> Maybe UplcProg) -> IO ()
+runUplcEvalTests :: (UplcProg -> Maybe UplcProg) -> IO ()
 ```
 
 Users can call this function with their own `runners` with the signature:
