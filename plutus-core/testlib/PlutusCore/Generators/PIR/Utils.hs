@@ -95,7 +95,7 @@ fvTypeBag ty = case ty of
   TyLam _ x _ b    -> Map.delete x (fvTypeBag b)
   TyForall _ x _ b -> Map.delete x (fvTypeBag b)
   TyBuiltin{}      -> Map.empty
-  TyIFix{}         -> error "fvTypeBag: TyIFix"
+  TyIFix _ a b     -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
 
 -- | Get the free variables in a type that appear in negative position
 -- Note: This is used to ensure we only generate positive datatypes.
@@ -107,7 +107,7 @@ negativeVars ty = case ty of
   TyForall _ x _ b -> Set.delete x $ negativeVars b
   TyVar _ _        -> mempty
   TyBuiltin{}      -> mempty
-  TyIFix{}         -> error "negativeVars: TyIFix"
+  TyIFix _ a b     -> negativeVars a <> negativeVars b
 
 -- | Get the free variables in a type that appear in positive position
 positiveVars :: Type TyName DefaultUni () -> Set TyName
@@ -118,7 +118,7 @@ positiveVars ty = case ty of
   TyForall _ x _ b -> Set.delete x $ positiveVars b
   TyVar _ x        -> Set.singleton x
   TyBuiltin{}      -> mempty
-  TyIFix{}         -> error "positiveVars: TyIFix"
+  TyIFix _ a b     -> positiveVars a <> positiveVars b
 
 -- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName

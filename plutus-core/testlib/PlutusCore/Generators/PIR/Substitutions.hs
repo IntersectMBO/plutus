@@ -82,6 +82,7 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
                                                                  (renameType x z a')
                                                                  (renameType y z b')
           where z = freshenTyName (locals <> Map.keysSet ctx) x
+        (TyIFix _ a1 a2, TyIFix _ b1 b2 )              -> unifies sub locals [a1, a2] [b1, b2]
         _                                              -> mzero
       where
         -- Check that in the current context we can solve variable z to type ty.
@@ -128,7 +129,7 @@ substEscape fv sub ty = case ty of
   TyLam _ x k b    -> TyLam () x k $ substEscape (Set.insert x fv) sub b
   TyForall _ x k b -> TyForall () x k $ substEscape (Set.insert x fv) sub b
   TyBuiltin{}      -> ty
-  TyIFix{}         -> ty
+  TyIFix _ a b     -> TyIFix () (substEscape fv sub a) (substEscape fv sub b)
 
 -- CODE REVIEW: does this exist anywhere?
 renameType :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
@@ -170,7 +171,7 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
         | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
         where x' = freshenTyName (fvs <> ftvTy b) x
       TyBuiltin{}      -> ty
-      TyIFix{}         -> error "substType: TyIFix"
+      TyIFix _ a b     -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
 
 -- | Find all free type variables of type `a` given substitution `sub`. If variable `x` is
 -- free in `a` but in the domain of `sub` we look up `x` in `sub` and get all the free type

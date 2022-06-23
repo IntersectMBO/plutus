@@ -163,6 +163,7 @@ genType k = onSize (min 10) $
       [ (1, genAtomicType k) ] ++
       [ (2, genFun) | k == Star ] ++
       [ (1, genForall) | k == Star ] ++
+      [ (1, genIFix) | k == Star ] ++
       [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
       [ (1, genApp) ]
   where
@@ -186,6 +187,12 @@ genType k = onSize (min 10) $
     genApp = do
       k' <- liftGen arbitrary
       uncurry (TyApp ()) <$> sizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k')
+
+    genIFix = do
+      k' <- liftGen arbitrary
+      uncurry (TyIFix ()) <$> sizeSplit_ 5 2
+        (genType $ (k' :-> Star) :-> k' :-> Star)
+        (genType k')
 
 -- | Generate a closed type at a given kind
 genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())
@@ -218,7 +225,7 @@ substClosedType x sub ty =
       | x == y    -> ty
       | otherwise -> TyForall () y k $ substClosedType x sub b
     TyBuiltin{}   -> ty
-    TyIFix{}      -> ty
+    TyIFix _ a b  -> TyIFix () (substClosedType x sub a) (substClosedType x sub b)
 
 -- | Get the kind of a builtin
 builtinKind :: SomeTypeIn DefaultUni -> Kind ()
@@ -341,7 +348,19 @@ shrinkKindAndType ctx (k, ty) =
                          | (_, b) <- shrinkKindAndType (Map.insert x ka ctx) (Star, b)]
                          -- (above) or we shrink the body
     TyBuiltin{}       -> []
-    TyIFix{}          -> error "shrinkKindAndType: TyIFix"
+    TyIFix _ pat arg  ->
+        [(Star, fixKind ctx pat Star), (Star, fixKind ctx arg Star)] ++
+        [(Star, TyIFix () pat' (fixKind ctx arg kArg'))
+          | (kPat', pat') <- shrinkKindAndType ctx (toPatKind kArg, pat),
+            Just kArg' <- [fromPatKind kPat']] ++
+        [ (Star, TyIFix () (fixKind ctx pat $ toPatKind kArg') arg')
+          | (kArg', arg') <- shrinkKindAndType ctx (kArg, arg)]
+      where
+        kArg = unsafeInferKind ctx arg
+        toPatKind k = (k :-> Star) :-> k :-> Star
+
+        fromPatKind ((k1 :-> Star) :-> k2 :-> Star) | k1 == k2 = Just k1
+        fromPatKind _                                          = Nothing
 
 -- | Infer the kind of a type in a given kind context
 inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Maybe (Kind ())
