@@ -1,8 +1,9 @@
 # Generating and Updating the Plutus Core Cost Model
 
 This file describes how to generate or update a cost model for Plutus Core. We
-start by describing how to update an existing cost model.  In the second section
-we describe how to extend the cost model when a new built-in function is added.
+start by describing how to update an existing cost model.  In the [second
+section](#adding-a-new-built-in-function-and-a-suitable-costing-function) we
+describe how to extend the cost model when a new built-in function is added.
 
 ## Updating an existing cost model
 
@@ -102,13 +103,14 @@ costing functions involves a number of steps.
    argument sizes).  This can be done automatically with `uplc evaluate --counting`
    (see [plutus-core/executables](../../plutus-core/executables)).
 
-## Adding a new built-in function
 
-This section describes the somewhat complicated process of updating the cost
-model when a new built-in function is added to Plutus Core. For concreteness we
-show how to add a new builtin `xorByteString` and how to extend the cost model
-to cover it.  This is quite a simple example, but serves to illustrate all of
-the steps that need to be taken to update the cost model.  For full technical
+## Adding a new built-in function and a suitable costing function
+
+This section describes the somewhat involved process of updating the cost model
+when a new built-in function is added to Plutus Core. For concreteness we show
+how to add a new builtin `xorByteString` and how to extend the cost model to
+cover it.  This is quite a simple example, but serves to illustrate all of the
+steps that need to be taken to update the cost model.  For full technical
 details of how to add a new built-in function see the extensive notes on "How to
 add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
@@ -403,7 +405,7 @@ the correct thing from R.)
 
 The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel.hs)
 converts the cost modelling functions fitted by R into Haskell functions.  As
-mentioned in the first section, there are tests in
+mentioned in the [first section](#updating-an-existing-cost-model), there are tests in
 [`plutus-core/cost-model/test/TestCostModels.hs`](./test/TestCostModels.hs) that
 check that the results returned by the Haskell functions (which do calculations
 in an integral type) agree with those obtained by running the R code (which does
