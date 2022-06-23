@@ -1,11 +1,8 @@
 # A nightly job which downloads script evaluation dumps from S3 and runs a regression test.
 steps:
   - label: "Download and unzip dump files"
-    # The "../" is the parent of the pipeline-specific directory. This makes the script dump easily accessible
-    # regardless of which buildkite pipeline we use.
-    # TODO: should we use somewhere in $HOME?
     command: |
-      nix-shell --run 'LOCAL_DIR=$(realpath .)/../mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ \\*.event.bz2'
+      nix-shell --run 'LOCAL_DIR=$HOME/mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ *.event.bz2'
     concurrency: 1
     concurrency_group: "plutus-script-evaluation"
     agents:
@@ -13,7 +10,7 @@ steps:
   - wait
   - label: "Script evaluation test"
     command: |
-      nix-shell --run 'cabal update && EVENT_DUMP_DIR=$(realpath .)/../mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test'
+      nix-shell --run 'cabal update && EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test'
     concurrency: 1
     concurrency_group: "plutus-script-evaluation"
     agents:
