@@ -86,7 +86,7 @@ instance HasErrorCode (Error _a _b _c) where
       errorCode (PLCError e)           = errorCode e
       errorCode (PIRError e)           = errorCode e
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
+instance (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where
     pretty = PLC.prettyPlcClassicDebug
 
@@ -115,7 +115,7 @@ instance
     _Error = _NoContext . _PIRError
 
 instance
-    (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
+    (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
     PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a)
     where
     prettyBy config = \case

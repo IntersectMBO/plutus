@@ -8,7 +8,7 @@
 #     AWS_DEFAULT_REGION=<...> \
 #     AWS_ENDPOINT_URL=https://s3.devx.iog.io \
 #     ./scripts/s3-sync-unzip.sh \
-#     s3://plutus/script-evaluation-dump/ \
+#     s3://plutus/mainnet-script-dump/ \
 #     \*.event.bz2
 
 set -euo pipefail

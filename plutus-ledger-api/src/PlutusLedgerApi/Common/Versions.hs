@@ -39,7 +39,7 @@ data LedgerPlutusVersion =
       PlutusV1
     | PlutusV2
     | PlutusV3
-   deriving stock (Eq, Ord)
+   deriving stock (Eq, Ord, Show)
 
 {-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
 

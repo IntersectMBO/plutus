@@ -118,9 +118,6 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
-instance GShow uni => Pretty (SomeTypeIn uni) where
-    pretty (SomeTypeIn uni) = pretty $ gshow uni
-
 -- | Special treatment for built-in constants: see the Note in PlutusCore.Pretty.PrettyConst.
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
     pretty (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyConst x
