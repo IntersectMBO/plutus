@@ -7,6 +7,7 @@
 module PlutusConformance.Common where
 
 import Control.Lens (traverseOf)
+import Data.Proxy (Proxy (Proxy))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -18,6 +19,7 @@ import PlutusPrelude
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
 import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.Options
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
@@ -38,26 +40,53 @@ data UplcEvaluationTest =
        , testDir :: FilePath
     }
 
+-- This is basically the same option as 'tasty-golden' uses, but it's not
+-- worth a dependency just to reuse the tiny datatype.
+-- Set like other tasty options with --test-options, e.g.
+-- cabal test plutus-conformance --test-options=--accept
+newtype AcceptTests = AcceptTests Bool
+  deriving stock (Eq, Ord, Typeable)
+instance IsOption AcceptTests where
+  defaultValue = AcceptTests False
+  parseValue = fmap AcceptTests . safeReadBool
+  optionName = return "accept"
+  optionHelp = return "Accept current results of tests"
+  optionCLParser = flagCLParser Nothing (AcceptTests True)
+
+-- | Checks an expected file against actual computed contents.
+checkExpected :: AcceptTests -> FilePath -> T.Text -> IO Result
+checkExpected (AcceptTests accept) expectedFile actual = do
+    expected <- T.readFile expectedFile
+    if actual == expected
+    -- matched
+    then pure (testPassed "")
+    else
+        -- didn't match
+        if accept
+        then do
+            T.writeFile expectedFile actual
+            pure $ testPassed "Unexpected output, accepted it"
+        else pure $ testFailed $ "Unexpected output:" ++ show actual
+
 -- Tells 'tasty' that 'UplcEvaluationTest' "is" a test that can be run,
 -- by specifying how to run it and what custom options it might expect.
 instance IsTest UplcEvaluationTest where
-    run _ MkUplcEvaluationTest{testDir,evaluator} _ = do
+    run opts MkUplcEvaluationTest{testDir,evaluator} _ = do
         let name = takeBaseName testDir
+            expectedFile = testDir </> name <> ".uplc.expected"
+            check = checkExpected (lookupOption opts) expectedFile
+
         input <- T.readFile $ testDir </> name <> ".uplc"
         let parsed = parseTxt input
 
-        expected <- T.readFile $ testDir </> name <> ".uplc.expected"
-        let checkContents c | c == expected = pure (testPassed "")
-            checkContents c = pure (testFailed (show c))
-
         case parsed of
-            Left _ -> checkContents shownParseError
+            Left _ -> check shownParseError
             Right p -> do
                case evaluator (void p) of
-                   Nothing -> checkContents shownEvaluationFailure
-                   Just p' -> checkContents (display p')
+                   Nothing -> check shownEvaluationFailure
+                   Just p' -> check (display p')
 
-    testOptions = pure []
+    testOptions = pure [Option (Proxy :: Proxy AcceptTests)]
 
 
 {- | The default shown text when a parse error occurs.
