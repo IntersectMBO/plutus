@@ -49,7 +49,6 @@ library
     , base
     , directory
     , filepath
-    , lens
     , megaparsec
     , plutus-core
     , tasty
@@ -86,7 +85,7 @@ executable haskell-implementation
     , tasty-golden
     , text
 
-test-suite haskell-implementation-conformance
+test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
@@ -94,10 +93,11 @@ test-suite haskell-implementation-conformance
   other-modules:
   build-depends:
     , base                >=4.9 && <5
+    , lens
     , plutus-conformance
     , plutus-core
 
-test-suite agda-implementation-conformance
+test-suite agda-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs

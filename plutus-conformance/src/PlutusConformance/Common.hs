@@ -6,13 +6,12 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
-import Control.Lens (traverseOf)
 import Data.Proxy (Proxy (Proxy))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import PlutusCore.Core.Type qualified as PLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude
@@ -23,7 +22,6 @@ import Test.Tasty.Options
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable
 
@@ -98,6 +96,10 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
 type UplcEvaluator = UplcProg -> Maybe UplcProg
 
+-- | Turn a UPLC program to a UPLC term.
+mkTerm :: UPLC.Program name uni fun () -> UPLC.Term name uni fun ()
+mkTerm (UPLC.Program _ _ t) = t
+
 -- | A UPLC evaluation test suite.
 data UplcEvaluationTest =
     MkUplcEvaluationTest {
@@ -127,30 +129,13 @@ instance IsTest UplcEvaluationTest where
 
     testOptions = pure [Option (Proxy :: Proxy AcceptTests)]
 
--- | The default parser to parse the inputs.
+-- | The default parser to parse the UPLC program inputs.
 parseTxt ::
     T.Text
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
--- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
-evalUplcProg :: UplcEvaluator
-evalUplcProg = traverseOf UPLC.progTerm eval
-  where
-    eval t = do
-        -- The evaluator throws if the term has free variables
-        case UPLC.deBruijnTerm t of
-            Left (_ :: UPLC.FreeVariableError) -> Nothing
-            Right _                            -> Just ()
-        case evaluateCekNoEmit defaultCekParameters t of
-            Left _     -> Nothing
-            Right prog -> Just prog
-
--- | Our `evaluator` for the Agda UPLC tests is the CEK machine.
-agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
-agdaEvalUplcProg _p = undefined
-
--- | Run the tests given a `evaluator` that evaluates UPLC programs.
+-- | Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC programs.
 runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
     -> IO ()

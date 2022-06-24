@@ -15,15 +15,31 @@ The tests currently cover or will cover the Haskell and Agda implementation of:
 - Coverage test
 <!-- - Costing conformance? -->
 
-There are also executables for users to run:
+## Adding/updating test outputs
 
-1. `add-test-output` for easy addition/alteration of test cases. Run
+To update test outputs, use the accept test option of the tests. E.g., to have the test results overwriting the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
+
+`cabal test haskell-conformance --test-options=--accept`
+
+There is also an executable (`add-test-output`) for adding test output with more refined options:
+
+E.g., run
+
+`cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing`
+
+to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
+
+Or, to update and add outputs to all files in the /uplc directory, run
+
+cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all
+
+For the manual, run:
 
 `cabal run add-test-output -- -h`
 
-for the manual.
+## Executable for Haskell implementation
 
-2. (WIP) `haskell-implementation` for Haskell implementation CLI testing/usage. 
+(WIP) `haskell-implementation` is an executable for Haskell implementation CLI testing/usage. 
 
 ## The Plutus Conformance Test Suite Library
 
