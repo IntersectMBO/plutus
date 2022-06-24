@@ -29,6 +29,7 @@ import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.Short
 import Data.Text as Text
 import Data.Tuple
+import NoThunks.Class
 import Prettyprinter
 
 -- | Errors that can be thrown when evaluating a Plutus script.
@@ -99,7 +100,7 @@ data EvaluationContext = EvaluationContext
     , machineParametersDeferred  :: DefaultMachineParameters
     }
     deriving stock Generic
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 {-|  Build the 'EvaluationContext'.
 
