@@ -5,12 +5,13 @@ module Generators where
 
 import PlutusPrelude
 
-import PlutusCore (DefaultFun, DefaultUni, Name, nameString, runQuoteT)
+import PlutusCore (DefaultFun, DefaultUni, Name, nameString)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Pretty
+import PlutusCore.Quote
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Parser
 
@@ -20,6 +21,7 @@ import Data.Text qualified as T
 
 import Hedgehog (property, tripping)
 import Test.Tasty
+import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
 
 import Flat qualified
@@ -68,8 +70,20 @@ propParser = testProperty "Parser" $ property $ do
         parseProg :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
         parseProg p = runQuoteT $ parseProgram p
 
+propUnit :: TestTree
+propUnit = testCase "Unit" $ fold
+    [ pTerm "(con bool True)" @?= "(con bool True)"
+    , pTerm "(con list bool [True, False])" @?= "(con list bool [True,False])"
+    , pTerm "(con pair unit (list integer) ((),[1,2,3]))" @?= "(con pair unit (list integer) ((), [1,2,3]))"
+    , pTerm "(con list (pair string bool) [(\"abc\", True), (\"def\", False)])" @?= "(con list (pair string bool) [(\"abc\", True), (\"def\", False)])"
+    , pTerm "(con string \"abc\")" @?= "(con string \"abc\")"
+    ]
+    where
+        pTerm s = either show display $ runQuoteT $ parseTerm @_ @(QuoteT (Either ParserErrorBundle)) $ T.pack s
+
 test_parsing :: TestTree
 test_parsing = testGroup "Parsing"
                [ propFlat
                , propParser
+               , propUnit
                ]

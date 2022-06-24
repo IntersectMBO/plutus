@@ -476,6 +476,7 @@ test-suite untyped-plutus-core-test
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
+    Generators
     Transform.Simplify
 
   build-depends:
