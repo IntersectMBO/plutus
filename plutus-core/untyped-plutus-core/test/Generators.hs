@@ -5,17 +5,17 @@ module Generators where
 
 import PlutusPrelude
 
-import PlutusCore (DefaultFun, DefaultUni, Name, nameString)
+import PlutusCore (Name, nameString)
 import PlutusCore.Compiler.Erase
+import PlutusCore.Default
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
+import PlutusCore.Parser (defaultUniType, parseGen)
 import PlutusCore.Pretty
 import PlutusCore.Quote
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Parser
-
-import Universe
 
 import Data.Text qualified as T
 
@@ -81,9 +81,22 @@ propUnit = testCase "Unit" $ fold
     where
         pTerm s = either show display $ runQuoteT $ parseTerm @_ @(QuoteT (Either ParserErrorBundle)) $ T.pack s
 
+propType :: TestTree
+propType = testCase "Type" $ fold
+    [ pTerm "list" @?= "SomeTypeIn (Kinded DefaultUniProtoList)"
+    , pTerm "list integer" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoList DefaultUniInteger))"
+    , pTerm "pair (list bool)" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoPair (DefaultUniApply DefaultUniProtoList DefaultUniBool)))"
+    , pTerm "pair (list unit) integer" @?= "SomeTypeIn (Kinded (DefaultUniApply (DefaultUniApply DefaultUniProtoPair (DefaultUniApply DefaultUniProtoList DefaultUniUnit)) DefaultUniInteger))"
+    , pTerm "list (pair unit integer)" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoList (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniUnit) DefaultUniInteger)))"
+    , pTerm "pair unit (pair bool integer)" @?= "SomeTypeIn (Kinded (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniUnit) (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniBool) DefaultUniInteger)))"
+    ]
+    where
+        pTerm s = either show show $ runQuoteT $ parseGen @_ @(QuoteT (Either ParserErrorBundle)) defaultUniType $ T.pack s
+
 test_parsing :: TestTree
 test_parsing = testGroup "Parsing"
                [ propFlat
                , propParser
                , propUnit
+               , propType
                ]
