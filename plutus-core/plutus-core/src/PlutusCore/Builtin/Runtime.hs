@@ -98,8 +98,8 @@ instance NoThunks (BuiltinRuntime val) where
     -- Skipping `_denot` in `allNoThunks` check, since it is supposed to be lazy
     wNoThunks ctx (BuiltinRuntime sch _denot costing) =
         allNoThunks
-            [ -- The order here is important: we must check `sch` first before pattern matching
-              -- on it in `noThunksInCosting`, in case `sch` itself is a thunk.
+            [ -- The order here is important: we must first check that `sch` doesn't have
+              -- thunks, before inspecting it in `noThunksInCosting`.
               noThunks ctx sch
             , noThunksInCosting ctx costing sch
             ]
