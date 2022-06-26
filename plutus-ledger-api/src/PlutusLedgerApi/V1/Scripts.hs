@@ -197,6 +197,8 @@ mkError evalError (Just t) =
        UPLC.Var _ _       -> Nothing
        UPLC.Constant _ _  -> Nothing
        UPLC.Error _       -> Nothing
+       UPLC.Term1 _ t     -> findBuiltin t
+       UPLC.Term2 _ t     -> findBuiltin t
 
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
