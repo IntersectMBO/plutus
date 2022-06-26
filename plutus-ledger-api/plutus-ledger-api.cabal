@@ -120,6 +120,7 @@ library plutus-ledger-api-testlib
     , plutus-ledger-api
     , plutus-tx          ^>=1.0
     , prettyprinter
+    , PyF
     , serialise
     , text
 
@@ -168,7 +169,6 @@ executable evaluation-test
     , plutus-core
     , plutus-ledger-api
     , plutus-ledger-api-testlib
-    , PyF
     , serialise
     , tasty
     , tasty-hunit

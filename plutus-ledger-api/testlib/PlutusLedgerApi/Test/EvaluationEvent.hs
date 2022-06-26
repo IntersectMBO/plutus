@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE RecordWildCards   #-}
 
 module PlutusLedgerApi.Test.EvaluationEvent (
@@ -9,6 +10,9 @@ module PlutusLedgerApi.Test.EvaluationEvent (
     ScriptEvaluationData (..),
     ScriptEvaluationResult (..),
     UnexpectedEvaluationResult (..),
+    TestFailure (..),
+    renderTestFailure,
+    renderTestFailures,
     checkEvaluationEvent,
 ) where
 
@@ -22,10 +26,11 @@ import PlutusLedgerApi.V2 qualified as V2
 import Codec.Serialise (Serialise (..))
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Short qualified as BS
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Prettyprinter
+import PyF (fmt)
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Show, Generic)
@@ -130,6 +135,26 @@ instance Pretty UnexpectedEvaluationResult where
                     , "Cost parameters:" <+> pretty params
                     , "Evaluation error:" <+> pretty err
                     ]
+
+data TestFailure
+    = InvalidResult UnexpectedEvaluationResult
+    | MissingCostParametersFor LedgerPlutusVersion
+
+renderTestFailure :: TestFailure -> String
+renderTestFailure = \case
+    InvalidResult err -> display err
+    MissingCostParametersFor ver ->
+        [fmt|
+Missing cost parameters for {show ver}. Report this as a bug
+against the script dumper in plutus-apps."
+|]
+
+renderTestFailures :: NonEmpty TestFailure -> String
+renderTestFailures xs =
+    [fmt|
+Number of failed test cases: {length xs}
+{unlines . fmap renderTestFailure $ toList xs}
+|]
 
 -- | Re-evaluate an on-chain script evaluation event.
 checkEvaluationEvent ::

@@ -16,34 +16,14 @@ import Codec.Serialise qualified as CBOR
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
-import Data.List.NonEmpty (NonEmpty, nonEmpty, toList)
+import Data.List.NonEmpty (nonEmpty, toList)
 import Data.Maybe (catMaybes)
-import PyF (fmt)
+
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
 import Test.Tasty
 import Test.Tasty.HUnit
-
-data TestFailure
-    = InvalidResult UnexpectedEvaluationResult
-    | MissingCostParametersFor LedgerPlutusVersion
-
-renderTestFailure :: TestFailure -> String
-renderTestFailure = \case
-    InvalidResult err -> display err
-    MissingCostParametersFor ver ->
-        [fmt|
-Missing cost parameters for {show ver}. Report this as a bug
-against the script dumper in plutus-apps."
-|]
-
-renderTestFailures :: NonEmpty TestFailure -> String
-renderTestFailures xs =
-    [fmt|
-Number of failed test cases: {length xs}
-{unlines . fmap renderTestFailure $ toList xs}
-|]
 
 -- | Test cases from a single event dump file
 testOneFile :: FilePath -> TestTree
