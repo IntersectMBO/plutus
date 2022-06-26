@@ -645,7 +645,9 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
         throwing_ _EvaluationFailure
-
+    computeCek !unbudgetedSteps !ctx !env (Term1 _ body) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
+        computeCek unbudgetedSteps' ctx env body
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
     from the context and uses it to decide how to proceed with the current value v.
