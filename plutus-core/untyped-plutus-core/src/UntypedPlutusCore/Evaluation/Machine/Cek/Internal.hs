@@ -648,6 +648,9 @@ enterComputeCek = computeCek (toWordArray 0) where
     computeCek !unbudgetedSteps !ctx !env (Term1 _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
         computeCek unbudgetedSteps' ctx env body
+    computeCek !unbudgetedSteps !ctx !env (Term2 _ body) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
+        computeCek unbudgetedSteps' ctx env body
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
     from the context and uses it to decide how to proceed with the current value v.

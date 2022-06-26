@@ -77,6 +77,7 @@ data Term name uni fun ann
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
     | Term1 !ann !(Term name uni fun ann)
+    | Term2 !ann !(Term name uni fun ann)
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -131,6 +132,7 @@ termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
 termAnn (Term1 ann _)    = ann
+termAnn (Term2 ann _)    = ann
 
 bindFunM
     :: Monad m
@@ -147,6 +149,7 @@ bindFunM f = go where
     go (Force ann term)       = Force ann <$> go term
     go (Error ann)            = pure $ Error ann
     go (Term1 ann term)       = Term1 ann <$> go term
+    go (Term2 ann term)       = Term2 ann <$> go term
 
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)
