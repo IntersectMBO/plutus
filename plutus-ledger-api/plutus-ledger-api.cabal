@@ -120,6 +120,7 @@ library plutus-ledger-api-testlib
     , plutus-ledger-api
     , plutus-tx          ^>=1.0
     , prettyprinter
+    , PyF
     , serialise
     , text
 
@@ -161,6 +162,7 @@ executable evaluation-test
   hs-source-dirs:   test-onchain-evaluation
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
+    , async
     , base                       >=4.9 && <5
     , extra
     , filepath
