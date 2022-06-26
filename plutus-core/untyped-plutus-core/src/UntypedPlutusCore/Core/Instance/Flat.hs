@@ -114,6 +114,8 @@ encodeTerm = \case
     Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
     Error    ann      -> encodeTermTag 6 <> encode ann
     Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    Term1    ann t    -> encodeTermTag 8 <> encode ann <> encodeTerm t
+    Term2    ann t    -> encodeTermTag 9 <> encode ann <> encodeTerm t
 
 decodeTerm
     :: forall name uni fun ann
@@ -169,6 +171,8 @@ sizeTerm tm sz = termTagWidth + sz + case tm of
     Force    ann t    -> getSize ann + getSize t
     Error    ann      -> getSize ann
     Builtin  ann bn   -> getSize ann + getSize bn
+    Term1    ann t    -> getSize ann + getSize t
+    Term2    ann t    -> getSize ann + getSize t
 
 decodeProgram
     :: forall name uni fun ann

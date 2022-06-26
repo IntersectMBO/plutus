@@ -39,6 +39,12 @@ instance
                 "delay" <+> prettyEl term
         Force _ term ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "term1" <+> prettyEl term
+        Term1 _ term ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                "term2" <+> prettyEl term
+        Term2 _ term ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "force" <+> prettyEl term
         Error _ -> unitDocM "error"
 

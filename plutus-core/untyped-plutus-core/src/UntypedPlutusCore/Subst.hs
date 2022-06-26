@@ -75,6 +75,8 @@ termSubstFreeNamesA f = go Set.empty where
     go _   term@Constant{}        = pure term
     go _   term@Builtin{}         = pure term
     go _   term@Error{}           = pure term
+    go bvs (Term1 ann term)       = Term1 ann <$> go bvs term
+    go bvs (Term2 ann term)       = Term1 ann <$> go bvs term
 
 -- | Substitute *free* names using the given function.
 termSubstFreeNames
@@ -105,6 +107,8 @@ termMapNames f = go
             Constant ann c       -> Constant ann c
             Builtin ann b        -> Builtin ann b
             Error ann            -> Error ann
+            Term1 ann t          -> Term1 ann (go t)
+            Term2 ann t          -> Term2 ann (go t)
 
 programMapNames
     :: forall name name' uni fun ann

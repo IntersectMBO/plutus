@@ -28,6 +28,8 @@ renameTermM (Delay ann term)           = Delay ann <$> renameTermM term
 renameTermM (Force ann term)           = Force ann <$> renameTermM term
 renameTermM con@Constant{}             = pure con
 renameTermM bi@Builtin{}               = pure bi
+renameTermM (Term1 ann term)           = Term1 ann <$> renameTermM term
+renameTermM (Term2 ann term)           = Term2 ann <$> renameTermM term
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM
