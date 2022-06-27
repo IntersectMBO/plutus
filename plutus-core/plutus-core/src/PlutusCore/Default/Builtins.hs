@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# OPTIONS_GHC -Werror #-}
 
 module PlutusCore.Default.Builtins where
 
@@ -23,6 +24,9 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import Bitwise (andByteString, byteStringToInteger, complementByteString, findFirstSetByteString, integerToByteString,
+                iorByteString, popCountByteString, rotateByteString, shiftByteString, testBitByteString,
+                writeBitByteString, xorByteString)
 import Codec.Serialise (serialise)
 import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
@@ -115,6 +119,19 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
+    -- Bitwise
+    | IntegerToByteString
+    | ByteStringToInteger
+    | AndByteString
+    | IorByteString
+    | XorByteString
+    | ComplementByteString
+    | ShiftByteString
+    | RotateByteString
+    | PopCountByteString
+    | TestBitByteString
+    | WriteBitByteString
+    | FindFirstSetByteString
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1333,6 +1350,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
+    -- Bitwise
+    toBuiltinMeaning IntegerToByteString =
+        makeBuiltinMeaning integerToByteString mempty
+    toBuiltinMeaning ByteStringToInteger =
+        makeBuiltinMeaning byteStringToInteger mempty
+    toBuiltinMeaning AndByteString =
+        makeBuiltinMeaning andByteString mempty
+    toBuiltinMeaning IorByteString =
+        makeBuiltinMeaning iorByteString mempty
+    toBuiltinMeaning XorByteString =
+        makeBuiltinMeaning xorByteString mempty
+    toBuiltinMeaning ComplementByteString =
+        makeBuiltinMeaning complementByteString mempty
+    toBuiltinMeaning ShiftByteString =
+        makeBuiltinMeaning shiftByteString mempty
+    toBuiltinMeaning RotateByteString =
+        makeBuiltinMeaning rotateByteString mempty
+    toBuiltinMeaning PopCountByteString =
+        makeBuiltinMeaning popCountByteString mempty
+    toBuiltinMeaning TestBitByteString =
+        makeBuiltinMeaning testBitByteString mempty
+    toBuiltinMeaning WriteBitByteString =
+        makeBuiltinMeaning writeBitByteString mempty
+    toBuiltinMeaning FindFirstSetByteString =
+        makeBuiltinMeaning findFirstSetByteString mempty
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1416,6 +1458,19 @@ instance Flat DefaultFun where
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
 
+              IntegerToByteString             -> 54
+              ByteStringToInteger             -> 55
+              AndByteString                   -> 56
+              IorByteString                   -> 57
+              XorByteString                   -> 58
+              ComplementByteString            -> 59
+              ShiftByteString                 -> 60
+              RotateByteString                -> 61
+              PopCountByteString              -> 62
+              TestBitByteString               -> 63
+              WriteBitByteString              -> 64
+              FindFirstSetByteString          -> 65
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -1471,6 +1526,18 @@ instance Flat DefaultFun where
               go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure IntegerToByteString
+              go 55 = pure ByteStringToInteger
+              go 56 = pure AndByteString
+              go 57 = pure IorByteString
+              go 58 = pure XorByteString
+              go 59 = pure ComplementByteString
+              go 60 = pure ShiftByteString
+              go 61 = pure RotateByteString
+              go 62 = pure PopCountByteString
+              go 63 = pure TestBitByteString
+              go 64 = pure WriteBitByteString
+              go 65 = pure FindFirstSetByteString
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

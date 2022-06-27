@@ -65,6 +65,13 @@ builtinsIntroducedIn = Map.fromList [
   -- Vasil is protocolversion=7.0
   ((PlutusV2, vasilPV), Set.fromList [
           SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
+          ]),
+  ((PlutusV3, changPV), Set.fromList [
+          IntegerToByteString, ByteStringToInteger,
+          AndByteString, IorByteString, XorByteString, ComplementByteString,
+          ShiftByteString, RotateByteString,
+          TestBitByteString, WriteBitByteString,
+          PopCountByteString, FindFirstSetByteString
           ])
   ]
 
