@@ -11,14 +11,21 @@ module Bitwise (
   iorByteString,
   xorByteString,
   complementByteString,
-  popCountByteString
+  popCountByteString,
+  testBitByteString,
+  writeBitByteString,
+  findFirstSetByteString,
+  shiftByteString,
+  rotateByteString,
   ) where
 
-import Data.Bits (FiniteBits, bit, complement, popCount, shiftL, xor, (.&.), (.|.))
+import Control.Monad (foldM_, unless)
+import Data.Bits (FiniteBits, bit, complement, popCount, shiftL, shiftR, xor, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
-import Data.Foldable (foldl')
+import Data.Foldable (foldl', for_)
+import Data.Functor (void)
 import Data.Kind (Type)
 import Data.List.Split (chunksOf)
 import Data.Text (Text, pack)
@@ -26,11 +33,148 @@ import Data.Word (Word64, Word8)
 import Foreign.C.Types (CChar)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
-import Foreign.Storable (Storable (peek, poke))
+import Foreign.Storable (Storable (peek, poke, sizeOf))
 import GHC.Exts (fromList)
+import GHC.IO.Handle.Text (memcpy)
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 import System.IO.Unsafe (unsafeDupablePerformIO)
+
+{-# NOINLINE rotateByteString #-}
+rotateByteString :: ByteString -> Integer -> ByteString
+rotateByteString bs i = case magnitude `rem` bitLength of
+  0 -> bs -- nothing to do irrespective of direction
+  actualMagnitude -> case signum i of
+    0 -> bs -- dummy case that never happens
+    (-1) ->
+      unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingRotation actualMagnitude
+    _ ->
+      unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingRotation actualMagnitude
+  where
+    magnitude :: Int
+    magnitude = fromIntegral . abs $ i
+    bitLength :: Int
+    bitLength = BS.length bs * 8
+    decreasingRotation :: Int -> (Ptr CChar, Int) -> IO ByteString
+    decreasingRotation actualMagnitude (src, len) = do
+      let (bigShift, smallShift) = actualMagnitude `quotRem` 8
+      dst <- mallocBytes len
+      -- rotate over bytes
+      for_ [0 .. len - 1] $ \srcIx -> do
+        byte :: Word8 <- peek . plusPtr src $ srcIx
+        let dstIx = (srcIx + bigShift) `mod` len
+        poke (plusPtr dst dstIx) byte
+      endByte :: Word8 <- peek . plusPtr src $ len - 1
+      let mask = endByte `shiftL` (8 - smallShift)
+      unless (smallShift == 0)
+             (foldM_ (decreasingFixUp smallShift dst) mask [0 .. len - 1])
+      unsafePackMallocCStringLen (dst, len)
+    increasingRotation :: Int -> (Ptr CChar, Int) -> IO ByteString
+    increasingRotation actualMagnitude (src, len) = do
+      let (bigShift, smallShift) = actualMagnitude `quotRem` 8
+      dst <- mallocBytes len
+      for_ [0 .. len - 1] $ \srcIx -> do
+        byte :: Word8 <- peek . plusPtr src $ srcIx
+        let dstIx = (srcIx + len - bigShift) `mod` len
+        poke (plusPtr dst dstIx) byte
+      startByte :: Word8 <- peek . castPtr $ src
+      let mask = startByte `shiftR` smallShift
+      unless (smallShift == 0)
+             (foldM_ (increasingFixUp smallShift dst) mask [len - 1, len - 2 .. 0])
+      unsafePackMallocCStringLen (dst, len)
+
+{-# NOINLINE shiftByteString #-}
+shiftByteString :: ByteString -> Integer -> ByteString
+shiftByteString bs i
+  | magnitude >= bitLength = BS.replicate (BS.length bs) 0
+  | otherwise = case signum i of
+      0 -> bs
+      (-1) ->
+        unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingShift
+      _ ->
+        unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingShift
+  where
+    magnitude :: Int
+    magnitude = fromIntegral . abs $ i
+    bitLength :: Int
+    bitLength = BS.length bs * 8
+    decreasingShift :: (Ptr CChar, Int) -> IO ByteString
+    decreasingShift (src, len) = do
+      let (bigShift, smallShift) = magnitude `quotRem` 8
+      dst <- mallocBytes len
+      -- clear the first bigShift bytes
+      for_ [0 .. bigShift - 1] $ \j -> poke (plusPtr dst j) (0 :: CChar)
+      -- copy in the rest, offset by bigShift
+      void . memcpy (plusPtr dst bigShift) src . fromIntegral $ len - bigShift
+      -- correct any outstanding shifts
+      unless (smallShift == 0)
+             (foldM_ (decreasingFixUp smallShift dst) 0 [bigShift .. len - 1])
+      -- pack it all up and go
+      unsafePackMallocCStringLen (dst, len)
+    increasingShift :: (Ptr CChar, Int) -> IO ByteString
+    increasingShift (src, len) = do
+      let (bigShift, smallShift) = magnitude `quotRem` 8
+      dst <- mallocBytes len
+      -- copy in the last len - bigShift bytes, offset to start from 0
+      void . memcpy dst (plusPtr src bigShift) . fromIntegral $ len - bigShift
+      -- clear the rest
+      for_ [len - bigShift, len - bigShift + 1 .. len - 1] $ \j -> poke (plusPtr dst j) (0 :: CChar)
+      -- correct any outstanding shifts
+      unless (smallShift == 0)
+             (foldM_ (increasingFixUp smallShift dst) 0 [len - bigShift - 1, len - bigShift .. 0])
+      -- pack it all up and go
+      unsafePackMallocCStringLen (dst, len)
+
+findFirstSetByteString :: ByteString -> Integer
+findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
+  where
+    go :: Integer -> Int -> Integer
+    go acc ix
+      | acc /= (-1) = acc -- we found one already
+      | otherwise = case BS.index bs (len - ix - 1) of
+          0  -> (-1) -- keep looking, nothing to find here
+          w8 -> fromIntegral $ (ix * 8) + findPosition w8
+    len :: Int
+    len = BS.length bs
+
+testBitByteString :: ByteString -> Integer -> Emitter (EvaluationResult Bool)
+testBitByteString bs i
+  | i < 0 || i >= bitLen = indexOutOfBoundsError "testBitByteString" bitLen i
+  | otherwise = do
+      let (bigOffset, smallOffset) = i `quotRem` 8
+      let bigIx = fromIntegral $ byteLen - bigOffset - 1
+      let mask = bit 0 `shiftL` fromIntegral smallOffset
+      pure . pure $ case mask .&. BS.index bs bigIx of
+        0 -> False
+        _ -> True
+  where
+    byteLen :: Integer
+    byteLen = fromIntegral . BS.length $ bs
+    bitLen :: Integer
+    bitLen = byteLen * 8
+
+{-# NOINLINE writeBitByteString #-}
+writeBitByteString :: ByteString -> Integer -> Bool -> Emitter (EvaluationResult ByteString)
+writeBitByteString bs i b
+  | i < 0 || i >= bitLen = indexOutOfBoundsError "writeBitByteString" bitLen i
+  | otherwise = do
+      let (bigOffset, smallOffset) = i `quotRem` 8
+      let bigIx = fromIntegral $ byteLen - bigOffset - 1
+      let mask = bit 0 `shiftL` fromIntegral smallOffset
+      pure . pure . unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go bigIx mask
+  where
+    byteLen :: Integer
+    byteLen = fromIntegral . BS.length $ bs
+    bitLen :: Integer
+    bitLen = byteLen * 8
+    go :: Int -> Word8 -> (Ptr CChar, Int) -> IO ByteString
+    go bigIx mask (src, len) = do
+      dst <- mallocBytes len
+      void . memcpy dst src . fromIntegral $ len
+      byte :: Word8 <- peek . plusPtr src $ bigIx
+      let byte' = if b then mask .|. byte else complement mask .&. byte
+      poke (castPtr . plusPtr src $ bigIx) byte'
+      unsafePackMallocCStringLen (dst, len)
 
 integerToByteString :: Integer -> ByteString
 integerToByteString i = case signum i of
@@ -193,6 +337,18 @@ mismatchedLengthError loc bs bs' = do
   emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
   pure EvaluationFailure
 
+indexOutOfBoundsError :: forall (a :: Type) .
+  Text ->
+  Integer ->
+  Integer ->
+  Emitter (EvaluationResult a)
+indexOutOfBoundsError loc lim i = do
+  emit $ loc <> " failed"
+  emit "Reason: out of bounds"
+  emit $ "Attempted access at index " <> (pack . show $ i)
+  emit $ "Valid indexes: from 0 to " <> (pack . show $ lim - 1)
+  pure EvaluationFailure
+
 zipBuild ::
   (forall (a :: Type) . (FiniteBits a, Storable a) => a -> a -> a) ->
   Ptr CChar ->
@@ -221,10 +377,39 @@ zipBuild f ptr ptr' len = do
     go dst src src' offset lim
       | offset == lim = pure ()
       | otherwise = do
-          block :: b <- peek . plusPtr src $ offset
-          block' :: b <- peek . plusPtr src' $ offset
-          poke (plusPtr dst offset) (f block block')
+          let offset' = sizeOf (undefined :: b) * offset
+          block :: b <- peek . plusPtr src $ offset'
+          block' :: b <- peek . plusPtr src' $ offset'
+          poke (plusPtr dst offset') (f block block')
           go dst src src' (offset + 1) lim
+
+findPosition :: Word8 -> Int
+findPosition w8 = foldl' go 7 . fmap (\i -> (i, bit 0 `shiftL` i)) $ [0 .. 7]
+  where
+    go :: Int -> (Int, Word8) -> Int
+    go acc (i, mask) = case mask .&. w8 of
+      0 -> acc -- nothing to see here, move along
+      _ -> min acc i
+
+decreasingFixUp :: Int -> Ptr CChar -> Word8 -> Int -> IO Word8
+decreasingFixUp smallShift dst mask ix = do
+  let ptr = plusPtr dst ix
+  byte :: Word8 <- peek ptr
+  let bitsWeCareAbout = byte `shiftR` smallShift
+  let mask' = byte `shiftL` (8 - smallShift)
+  let masked = bitsWeCareAbout .|. mask
+  poke ptr masked
+  pure mask'
+
+increasingFixUp :: Int -> Ptr CChar -> Word8 -> Int -> IO Word8
+increasingFixUp smallShift dst mask ix = do
+  let ptr = plusPtr dst ix
+  byte :: Word8 <- peek ptr
+  let bitsWeCareAbout = byte `shiftL` smallShift
+  let mask' = byte `shiftR` (8 - smallShift)
+  let masked = bitsWeCareAbout .|. mask
+  poke ptr masked
+  pure mask'
 
 countBits :: forall (a :: Type) .
   (FiniteBits a, Storable a) =>
