@@ -53,9 +53,6 @@ instance
         Term1 ann term ->
             sexp "term1" (consAnnIf config ann
                 [prettyBy config term])
-        Term2 ann term ->
-            sexp "term2" (consAnnIf config ann
-                [prettyBy config term])
       where
         prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni

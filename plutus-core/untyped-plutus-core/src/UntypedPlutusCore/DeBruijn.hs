@@ -89,7 +89,6 @@ deBruijnTermWithM h = go
        Constant ann con -> pure $ Constant ann con
        Builtin ann bn -> pure $ Builtin ann bn
        Term1 ann t -> Term1 ann <$> go t
-       Term2 ann t -> Term2 ann <$> go t
        Error ann -> pure $ Error ann
 
 -- | Takes a "handler" function to execute when encountering free variables.
@@ -118,4 +117,3 @@ unDeBruijnTermWithM h = go
         Builtin ann bn -> pure $ Builtin ann bn
         Error ann -> pure $ Error ann
         Term1 ann t -> Term1 ann <$> go t
-        Term2 ann t -> Term2 ann <$> go t

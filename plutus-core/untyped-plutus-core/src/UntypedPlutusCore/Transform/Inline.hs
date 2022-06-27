@@ -240,7 +240,6 @@ costIsAcceptable = \case
   Force{}    -> True
   Delay{}    -> True
   Term1{}    -> True
-  Term2{}    -> True
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
 sizeIsAcceptable :: Term name uni fun a -> Bool
@@ -260,7 +259,6 @@ sizeIsAcceptable = \case
   Force _ t  -> sizeIsAcceptable t
   Delay _ t  -> sizeIsAcceptable t
   Term1 _ t  -> sizeIsAcceptable t
-  Term2 _ t  -> sizeIsAcceptable t
 
 isPure :: Term name uni fun a -> Bool
 isPure = go

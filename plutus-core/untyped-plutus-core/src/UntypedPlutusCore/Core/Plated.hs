@@ -44,7 +44,6 @@ termSubterms f = \case
     Delay ann t     -> Delay ann <$> f t
     Force ann t     -> Force ann <$> f t
     Term1 ann t     -> Term1 ann <$> f t
-    Term2 ann t     -> Term2 ann <$> f t
     e@Error {}      -> pure e
     v@Var {}        -> pure v
     c@Constant {}   -> pure c

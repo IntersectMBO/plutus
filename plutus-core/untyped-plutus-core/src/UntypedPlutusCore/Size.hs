@@ -23,7 +23,6 @@ termSize = \case
     Force _ t    -> 1 + termSize t
     Error _      -> 1
     Term1 _ t    -> 1 + termSize t
-    Term2 _ t    -> 1 + termSize t
 
 -- | Count the number of AST nodes in a program.
 programSize :: Program name uni fun ann -> Integer

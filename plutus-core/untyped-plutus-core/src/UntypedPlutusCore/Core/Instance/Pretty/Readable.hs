@@ -43,9 +43,6 @@ instance
         Term1 _ term ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "term2" <+> prettyEl term
-        Term2 _ term ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                "force" <+> prettyEl term
         Error _ -> unitDocM "error"
 
 instance PrettyReadableBy configName (Term name uni fun a) =>

@@ -71,9 +71,6 @@ eqTermM (Force ann1 term1) (Force ann2 term2) = do
 eqTermM (Term1 ann1 term1) (Term1 ann2 term2) = do
     eqM ann1 ann2
     eqTermM term1 term2
-eqTermM (Term2 ann1 term1) (Term2 ann2 term2) = do
-    eqM ann1 ann2
-    eqTermM term1 term2
 eqTermM (Error ann1) (Error ann2) = eqM ann1 ann2
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
@@ -84,4 +81,3 @@ eqTermM Delay{}    _ = empty
 eqTermM Force{}    _ = empty
 eqTermM Error{}    _ = empty
 eqTermM Term1{}    _ = empty
-eqTermM Term2{}    _ = empty
