@@ -125,7 +125,7 @@ decodeTerm
     , Flat name
     , Flat (Binder name)
     )
-    => (fun -> Bool)
+    => (fun -> Maybe String)
     -> Get (Term name uni fun ann)
 decodeTerm builtinPred = go
     where
@@ -142,9 +142,9 @@ decodeTerm builtinPred = go
             fun <- decode
             let t :: Term name uni fun ann
                 t = Builtin ann fun
-            if builtinPred fun
-            then pure t
-            else fail $ "Forbidden builtin function: " ++ show (prettyPlcDef t)
+            case builtinPred fun of
+                Nothing -> pure t
+                Just e  -> fail e
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -180,7 +180,7 @@ decodeProgram
     , Flat name
     , Flat (Binder name)
     )
-    => (fun -> Bool)
+    => (fun -> Maybe String)
     -> Get (Program name uni fun ann)
 decodeProgram builtinPred = Program <$> decode <*> decode <*> decodeTerm builtinPred
 
@@ -202,7 +202,7 @@ instance ( Closed uni
          , Flat (Binder name)
          ) => Flat (Term name uni fun ann) where
     encode = encodeTerm
-    decode = decodeTerm (const True)
+    decode = decodeTerm (const Nothing)
     size = sizeTerm
 
 -- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
