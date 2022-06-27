@@ -6,6 +6,7 @@ module UntypedPlutusCore (
     , parseScoped
     , PLC.DefaultUni
     , PLC.DefaultFun
+    , mkProg
     ) where
 
 import UntypedPlutusCore.Check.Scope as Export
@@ -25,3 +26,5 @@ applyProgram :: Program name uni fun () -> Program name uni fun () -> Program na
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
 
 
+mkProg :: Term name uni fun () -> Program name uni fun ()
+mkProg = Program () (PLC.defaultVersion ())

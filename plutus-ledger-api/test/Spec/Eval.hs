@@ -122,7 +122,7 @@ testScripts :: TestTree
 testScripts = "v1-scripts" `testWith` evalScripts
   where
       evalScripts :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      evalScripts = isRight . runExcept . Scripts.evaluateScript . Script . mkProg
+      evalScripts = isRight . runExcept . Scripts.evaluateScript . Script . UPLC.mkProg
 
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
@@ -134,7 +134,7 @@ testAPI = "v1-api" `testWith` evalAPI vasilPV
 evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
-    let s :: SerialisedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ mkProg t
+    let s :: SerialisedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ UPLC.mkProg t
     in isRight $ snd $ Api.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.
@@ -162,9 +162,6 @@ tests = testGroup "eval"
             , testAPI
             , testUnlifting
             ]
-
-mkProg :: UPLC.Term DeBruijn DefaultUni DefaultFun () ->  UPLC.Program DeBruijn DefaultUni DefaultFun ()
-mkProg = Program () $ PLC.defaultVersion ()
 
 true :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 true = mkConstant @Bool () True
