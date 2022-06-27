@@ -5,6 +5,8 @@
 
 module PlutusCore.TypeCheck
     ( ToKind
+    , MonadKindCheck
+    , MonadTypeCheck
     , Typecheckable
     -- * Configuration.
     , BuiltinTypes (..)
@@ -25,23 +27,27 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
-import PlutusCore.Error
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck.Internal
 
-import Control.Monad.Except
-import Data.Array
 import Universe
 
+-- | The constraint for built-in types/functions are kind/type-checkable.
+--
+-- We keep this separate from 'MonadKindCheck'/'MonadTypeCheck', because those mainly constrain the
+-- monad and 'Typecheckable' constraints only the builtins. In particular useful when the monad gets
+-- instantiated and builtins don't. Another reason is that 'Typecheckable' is not required during
+-- type checking, since it's only needed for computing 'BuiltinTypes', which is passed as a regular
+-- argument to the worker of the type checker.
 type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
-    :: (MonadError err m, AsTypeError err term uni fun ann, Typecheckable uni fun)
+    :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
     => ann -> m (BuiltinTypes uni fun)
 builtinMeaningsToTypes ann =
     runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
@@ -51,13 +57,13 @@ builtinMeaningsToTypes ann =
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig
-    :: (MonadError err m, AsTypeError err term uni fun ann, Typecheckable uni fun)
+    :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
     => ann -> m (TypeCheckConfig uni fun)
 getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann
 
 -- | Infer the kind of a type.
 inferKind
-    :: (MonadQuote m, MonadError err m, AsTypeError err term uni fun ann, ToKind uni)
+    :: MonadKindCheck err term uni fun ann m
     => Type TyName uni ann -> m (Kind ())
 inferKind = runTypeCheckM () . inferKindM
 
@@ -65,16 +71,13 @@ inferKind = runTypeCheckM () . inferKindM
 -- Infers the kind of the type and checks that it's equal to the given kind
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
-    :: (MonadQuote m, MonadError err m, AsTypeError err term uni fun ann, ToKind uni)
+    :: MonadKindCheck err term uni fun ann m
     => ann -> Type TyName uni ann -> Kind () -> m ()
 checkKind ann ty = runTypeCheckM () . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType
-    :: ( MonadError err m, MonadQuote m
-       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPlc err uni fun ann m
     => TypeCheckConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
@@ -82,10 +85,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- Infers the type of the term and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkType
-    :: ( MonadError err m, MonadQuote m
-       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPlc err uni fun ann m
     => TypeCheckConfig uni fun
     -> ann
     -> Term TyName Name uni fun ann
@@ -97,10 +97,7 @@ checkType config ann term ty = do
 
 -- | Infer the type of a program.
 inferTypeOfProgram
-    :: ( MonadError err m, MonadQuote m
-       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPlc err uni fun ann m
     => TypeCheckConfig uni fun
     -> Program TyName Name uni fun ann
     -> m (Normalized (Type TyName uni ()))
@@ -110,10 +107,7 @@ inferTypeOfProgram config (Program _ _ term) = inferType config term
 -- Infers the type of the program and checks that it's equal to the given type
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkTypeOfProgram
-    :: ( MonadError err m, MonadQuote m
-       , AsTypeError err (Term TyName Name uni fun ()) uni fun ann, ToKind uni, HasUniApply uni
-       , GEq uni, Ix fun
-       )
+    :: MonadTypeCheckPlc err uni fun ann m
     => TypeCheckConfig uni fun
     -> ann
     -> Program TyName Name uni fun ann

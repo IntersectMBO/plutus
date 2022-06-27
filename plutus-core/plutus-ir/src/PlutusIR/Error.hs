@@ -69,7 +69,10 @@ instance PLC.AsFreeVariableError (Error uni fun a) where
 ------------------
 
 type PrettyUni uni ann =
-    (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty ann)
+    ( PP.Pretty (PLC.SomeTypeIn uni)
+    , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+    , PP.Pretty ann
+    )
 
 instance (PrettyUni uni ann) => PrettyBy PLC.PrettyConfigPlc (TypeErrorExt uni ann) where
     prettyBy config (MalformedDataConstrResType ann expType) =
@@ -86,12 +89,12 @@ deriving anyclass instance
 
 instance
         (Pretty ann, Pretty fun,
-        PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+        PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
         ) => Pretty (Error uni fun ann) where
     pretty = PLC.prettyPlcClassicDef
 
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
+instance (PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
      prettyBy config er = PP.pretty (errorCode er) <> ":" <+> case er of
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"

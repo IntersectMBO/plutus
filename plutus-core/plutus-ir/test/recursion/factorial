@@ -1,0 +1,14 @@
+(let (rec)
+  (termbind (strict) (vardecl factorial (fun (con integer) (con integer)))
+    (lam i (con integer)
+      [ {(builtin ifThenElse) (fun (con unit) (con integer))}
+          [(builtin equalsInteger) i (con integer 0)]
+          (lam u (con unit) (con integer 1))
+          (lam u (con unit)
+            [ (builtin multiplyInteger)
+                i
+                [factorial [(builtin subtractInteger) i (con integer 1)]]
+            ])
+          (con unit ())
+      ]))
+  [factorial (con integer 5)])

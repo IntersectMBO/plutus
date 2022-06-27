@@ -158,7 +158,7 @@ instance KnownTypeAst DefaultUni Void where
 instance UniOf term ~ DefaultUni => MakeKnownIn DefaultUni term Void where
     makeKnown = absurd
 instance UniOf term ~ DefaultUni => ReadKnownIn DefaultUni term Void where
-    readKnown _ = throwing _UnliftingError "Can't unlift a 'Void'"
+    readKnown _ = throwing _UnliftingError "Can't unlift to 'Void'"
 
 data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)

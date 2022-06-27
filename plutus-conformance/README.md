@@ -15,33 +15,58 @@ The tests currently covers or will cover:
 - Costing conformance 
 - Coverage test
 
-There is also an executable `add-test-output` for easy addition of test cases. Run 
+There is also an executable `add-test-output` for easy addition/alteration of test cases. Run
 
-`cabal run add-test-output -- -h` for the manual.
+`cabal run add-test-output -- -h`
 
-<!-- ## Testing alternative implementation
+for the manual.
 
-We provide a function  -->
+## The Plutus Conformance Test Suite Library
+
+The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See an explanation [here](https://www.fpcomplete.com/blog/2017/02/typed-process/) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
+
+## Untyped Plutus Core Program Evaluation
+
+The `uplc-eval-test` test suite ensures conformance of evaluation of untyped plutus core programs. The expected output may contain:
+
+1. "parse error"
+
+The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
+
+2. "evaluation error"
+
+If evaluation fails with an error, the expected output will show "evaluation error".
+
+3. An untyped plutus core program
+
+This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
+
 <!-- 
-## Untyped Plutus Core Evaluation
-
-The `uplc-eval-test` test suite ensures that the input untyped plutus core programs evaluate to the expected output. The expected output is obtained by evaluating the programs using the CEK machine.
-
 ### The CEK machine
 
-We have an executable, `uplc`, that can call the CEK machine to evaluate untyped plutus core programs. Run 
+The included UPLC test suite uses the CEK machine as the runner.
 
-`cabal run uplc evaluate -- -h` 
+``` -->
 
-for a full list of options.
+### Testing alternative implementation
 
-The CEK machine returns an `EvaluationResult` which is either a successfully computed `Term` or a failure:
+In the library We provide a function named `runTests` with the following signature:
 
 ```haskell
-data EvaluationResult a
-    = EvaluationSuccess a
-    | EvaluationFailure
-``` -->
+import UntypedPlutusCore.Core.Type qualified as UPLC
+
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+
+runTests :: (UplcProg -> Maybe UplcProg) -> IO ()
+```
+
+Users can call this function with their own `runners` with the signature:
+
+```haskell
+runner :: (UplcProg -> Maybe UplcProg)
+```
+
+The runner should evaluate a UPLC program and return a `Maybe UplcProg`. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.
 
 <!-- 
 ### Type checker

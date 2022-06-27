@@ -36,7 +36,7 @@ withVarScoped ::
     m a
 withVarScoped v k = do
     let ghcName = GHC.getName v
-    var <- compileVarFresh v
+    var <- compileVarFresh AnnOther v
     local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
 
 withVarsScoped ::
@@ -47,7 +47,7 @@ withVarsScoped ::
 withVarsScoped vs k = do
     vars <- for vs $ \v -> do
         let name = GHC.getName v
-        var' <- compileVarFresh v
+        var' <- compileVarFresh AnnOther v
         pure (name, var')
     local (\c -> c {ccScopes=pushNames vars (ccScopes c)}) (k (fmap snd vars))
 

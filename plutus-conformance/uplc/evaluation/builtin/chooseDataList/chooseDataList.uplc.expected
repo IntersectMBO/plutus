@@ -1,6 +1,1 @@
-plutus-conformance/uplc//evaluation/builtin/chooseDataList/chooseDataList.uplc:3:7:
-  |
-3 |  (con data {List [ Integer 0, Integer 1 ]})]
-  |       ^^^^^^^^^^
-unexpected "data {List"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('
+parse error

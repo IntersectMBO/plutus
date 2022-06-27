@@ -26,6 +26,7 @@ let
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
   cardano-repo-tool = exeFromExtras "cardano-repo-tool";
   stylish-haskell = exeFromExtras "stylish-haskell";
+  cabal-fmt = exeFromExtras "cabal-fmt";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
   haskell-language-server-wrapper = pkgs.writeShellScriptBin "haskell-language-server-wrapper" ''${haskell-language-server}/bin/haskell-language-server "$@"'';
@@ -89,6 +90,7 @@ let
   #
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
   fixPngOptimization = pkgs.callPackage ./fix-png-optimization { };
+  fixCabalFmt = pkgs.callPackage ./fix-cabal-fmt { inherit cabal-fmt; };
 
   #
   # sphinx python packages
@@ -131,8 +133,8 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios;
-  inherit fixStylishHaskell fixPngOptimization;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios cabal-fmt;
+  inherit fixStylishHaskell fixPngOptimization fixCabalFmt;
   inherit plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;
