@@ -227,21 +227,19 @@ createTwoTermBuiltinBenchElementwise name tys xs ys =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
-{- | Given a builtin function f of type a * b * c -> _ together with lists
-   xs::[a], ys::[b], and zs::[c], create a collection of benchmarks which run f
-   on all pairs in 'zip3 xs ys zs'.
+{- | Given a builtin function f of type a * b * c -> _ together with a list of
+   inputs of type (a,b,c), create a collection of benchmarks which run f on all
+   inputs.
 -}
 createThreeTermBuiltinBenchElementwise
     :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, uni `Includes` c,
             ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c, NFData a, NFData b, NFData c)
     => fun
     -> [Type tyname uni ()]
-    -> [a]
-    -> [b]
-    -> [c]
+    -> [(a,b,c)]
     -> Benchmark
-createThreeTermBuiltinBenchElementwise name tys xs ys zs =
-    bgroup (show name) $ zipWith3 (\x y z -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]]) xs ys zs
+createThreeTermBuiltinBenchElementwise name tys inputs =
+    bgroup (show name) $ map (\(x, y, z) -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]]) inputs
         where mkBM x y z = benchDefault (showMemoryUsage z) $ mkApp3 name tys x y z
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.

@@ -635,6 +635,7 @@ executable cost-model-budgeting-bench
   build-depends:
     , base                   >=4.9 && <5
     , bytestring
+    , cardano-crypto-class
     , criterion
     , criterion-measurement
     , deepseq
@@ -647,6 +648,7 @@ executable cost-model-budgeting-bench
     , QuickCheck
     , quickcheck-instances
     , random
+    , secp256k1-haskell
     , text
     , time
 
