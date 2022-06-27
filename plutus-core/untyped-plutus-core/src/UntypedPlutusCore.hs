@@ -7,6 +7,7 @@ module UntypedPlutusCore (
     , PLC.DefaultUni
     , PLC.DefaultFun
     , mkProg
+    , mkTerm
     ) where
 
 import UntypedPlutusCore.Check.Scope as Export
@@ -25,6 +26,10 @@ import PlutusCore.Name as Export
 applyProgram :: Program name uni fun () -> Program name uni fun () -> Program name uni fun ()
 applyProgram (Program _ _ t1) (Program _ _ t2) = Program () (PLC.defaultVersion ()) (Apply () t1 t2)
 
-
+-- | Turn a UPLC term to a UPLC program.
 mkProg :: Term name uni fun () -> Program name uni fun ()
 mkProg = Program () (PLC.defaultVersion ())
+
+-- | Turn a UPLC program to a UPLC term.
+mkTerm :: Program name uni fun () -> Term name uni fun ()
+mkTerm (Program _ _ t) = t

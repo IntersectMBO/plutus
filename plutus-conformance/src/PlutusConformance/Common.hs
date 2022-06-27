@@ -6,12 +6,13 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
+import Control.Lens (traverseOf)
 import Data.Proxy (Proxy (Proxy))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import PlutusCore.Core.Type qualified as PLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude
@@ -22,6 +23,7 @@ import Test.Tasty.Options
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable
 
@@ -96,10 +98,6 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
 type UplcEvaluator = UplcProg -> Maybe UplcProg
 
--- | Turn a UPLC program to a UPLC term.
-mkTerm :: UPLC.Program name uni fun () -> UPLC.Term name uni fun ()
-mkTerm (UPLC.Program _ _ t) = t
-
 -- | A UPLC evaluation test suite.
 data UplcEvaluationTest =
     MkUplcEvaluationTest {
@@ -108,6 +106,19 @@ data UplcEvaluationTest =
        -- | The test directory in which the test files are located.
        , testDir :: FilePath
     }
+
+-- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
+evalUplcProg :: UplcEvaluator
+evalUplcProg = traverseOf UPLC.progTerm eval
+  where
+    eval t = do
+        -- The evaluator throws if the term has free variables
+        case UPLC.deBruijnTerm t of
+            Left (_ :: UPLC.FreeVariableError) -> Nothing
+            Right _                            -> Just ()
+        case evaluateCekNoEmit defaultCekParameters t of
+            Left _     -> Nothing
+            Right prog -> Just prog
 
 -- Tells 'tasty' that 'UplcEvaluationTest' "is" a test that can be run,
 -- by specifying how to run it and what custom options it might expect.
