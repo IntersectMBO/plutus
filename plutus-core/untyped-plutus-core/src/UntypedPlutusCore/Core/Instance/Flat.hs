@@ -12,7 +12,6 @@ module UntypedPlutusCore.Core.Instance.Flat where
 import UntypedPlutusCore.Core.Type
 
 import PlutusCore.Flat
-import PlutusCore.Pretty
 
 import Data.Word (Word8)
 import Flat
@@ -97,7 +96,6 @@ encodeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -119,7 +117,6 @@ decodeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -151,7 +148,6 @@ sizeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -174,7 +170,6 @@ decodeProgram
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -195,7 +190,6 @@ the expected behaviour.
 
 instance ( Closed uni
          , uni `Everywhere` Flat
-         , PrettyPlc (Term name uni fun ann)
          , Flat fun
          , Flat ann
          , Flat name
@@ -208,7 +202,6 @@ instance ( Closed uni
 -- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
 instance ( Closed uni
          , uni `Everywhere` Flat
-         , PrettyPlc (Term name uni fun ann)
          , Flat fun
          , Flat ann
          , Flat name
