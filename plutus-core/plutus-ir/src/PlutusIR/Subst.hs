@@ -1,99 +1,125 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module PlutusIR.Subst
-    ( uniquesTerm
-    , uniquesType
-    , fvTerm
+    ( fvTerm
     , ftvTerm
     , fvBinding
     , ftvBinding
     , ftvTy
+    , vTerm
+    , tvTerm
+    , tvTy
     ) where
 
 import PlutusCore.Core.Type qualified as PLC
-import PlutusCore.Name qualified as PLC
-import PlutusCore.Subst (ftvTy, uniquesType)
+import PlutusCore.Subst (ftvTy, ftvTyCtx, tvTy)
 
-import PlutusIR.Compiler.Datatype
 import PlutusIR.Core
 
 import Control.Lens
+import Control.Lens.Unsound qualified as Unsound
 import Data.Set as S hiding (foldr)
 import Data.Set.Lens (setOf)
-
-uniquesTerm
-    :: PLC.HasUniques (Term tyname name uni fun ann)
-    => Term tyname name uni fun ann -> Set PLC.Unique
-uniquesTerm = setOf termUniquesDeep
+import Data.Traversable (mapAccumL)
+import PlutusCore.Core.Plated (typeTyVars)
 
 -- | Get all the free term variables in a PIR term.
-fvTerm :: Ord name => Term tyname name uni fun ann -> Set name
-fvTerm = \case
-    Let _ NonRec bs tIn ->
-        let fvLinearScope b acc = fvBinding b
-                                   <> (acc \\ setOf bindingNames b)
-        in foldr fvLinearScope (fvTerm tIn) bs
+fvTerm :: Ord name => Traversal' (Term tyname name uni fun ann) name
+fvTerm = fvTermCtx mempty
 
-    Let _ Rec bs tIn ->
-        (foldMap fvBinding bs <> fvTerm tIn)
-        \\ setOf (traversed.bindingNames) bs
+fvTermCtx :: Ord name => S.Set name -> Traversal' (Term tyname name uni fun ann) name
+fvTermCtx bound f = \case
+    Let a r@NonRec bs tIn ->
+        let fvLinearScope boundSoFar b = (boundSoFar `union` setOf bindingNames b, fvBindingCtx boundSoFar f b)
+            (boundAtTheEnd, bs') = mapAccumL fvLinearScope bound bs
+        in Let a r <$> sequenceA bs' <*> fvTermCtx boundAtTheEnd f tIn
+    Let a r@Rec bs tIn ->
+        let bound' = bound `union` setOf (traversed . bindingNames) bs
+        in Let a r <$> traverse (fvBindingCtx bound f) bs <*> fvTermCtx bound' f tIn
 
-    LamAbs _ n _ t -> delete n $ fvTerm t
-    Apply _ t1 t2 -> fvTerm t1 <> fvTerm t2
-    Var _ n -> singleton n
-    TyAbs _ _ _ t ->   fvTerm t
-    TyInst _ t _ ->    fvTerm t
-    Unwrap _ t ->      fvTerm t
-    IWrap _ _ _ t ->   fvTerm t
-    Constant{}       -> mempty
-    Builtin{}        -> mempty
-    Error{}          -> mempty
+    Var a n         -> Var a <$> (if S.member n bound then pure n else f n)
+    LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (S.insert n bound) f t
+    t -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.
-ftvTerm :: Ord tyname => Term tyname name uni fun ann -> Set tyname
-ftvTerm = \case
-    Let _ r@NonRec bs tIn ->
-        let ftvLinearScope b acc = ftvBinding r b
-                                   <> (acc \\ setOf bindingTyNames b)
-        in foldr ftvLinearScope (ftvTerm tIn) bs
+ftvTerm :: Ord tyname => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm = ftvTermCtx mempty
 
-    Let _ r@Rec bs tIn ->
-        (ftvTerm tIn <> foldMap (ftvBinding r) bs)
-        \\ setOf (traversed.bindingTyNames) bs
-    TyAbs _ ty _ t    -> delete ty $ ftvTerm t
-    LamAbs _ _ ty t   -> ftvTy ty <> ftvTerm t
-    Apply _ t1 t2     -> ftvTerm t1 <> ftvTerm t2
-    TyInst _ t ty     -> ftvTerm t <> ftvTy ty
-    Unwrap _ t        -> ftvTerm t
-    IWrap _ pat arg t -> ftvTy pat <> ftvTy arg <> ftvTerm t
-    Error _ ty        -> ftvTy ty
-    Var{}               -> mempty
-    Constant{}          -> mempty
-    Builtin{}           -> mempty
+ftvTermCtx :: Ord tyname => Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx bound f = \case
+    Let a r@NonRec bs tIn ->
+        let ftvLinearScope bound' b = (bound' `union` setOf bindingTyNames b, ftvBindingCtx r bound' f b)
+            (bound'', bs') = mapAccumL ftvLinearScope bound bs
+        in Let a r <$> sequenceA bs' <*> ftvTermCtx bound'' f tIn
+
+    Let a r@Rec bs tIn ->
+        let bound' = bound `union` setOf (traversed . bindingTyNames) bs
+        in Let a r <$> traverse (ftvBindingCtx r bound f) bs <*> ftvTermCtx bound' f tIn
+
+    TyAbs a tn k t    -> TyAbs a tn k <$> ftvTermCtx (S.insert tn bound) f t
+    -- sound because the subterms and subtypes are disjoint
+    t -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free variables in a PIR single let-binding.
-fvBinding :: Ord name => Binding tyname name uni fun ann -> Set name
-fvBinding b = mconcat $ fvTerm <$> ( b^..bindingSubterms)
+fvBinding :: Ord name => Traversal' (Binding tyname name uni fun ann) name
+fvBinding = fvBindingCtx mempty
+
+fvBindingCtx :: Ord name => Set name -> Traversal' (Binding tyname name uni fun ann) name
+fvBindingCtx bound = bindingSubterms . fvTermCtx bound
 
 -- | Get all the free type variables in a PIR single let-binding.
-ftvBinding :: forall tyname name uni fun ann.
-             Ord tyname => Recursivity -> Binding tyname name uni fun ann -> Set tyname
-ftvBinding r b = mconcat $ ftvTs ++ ftvTys
- where
-    ftvTs = ftvTerm <$> b^..bindingSubterms
-    ftvTys = ftvTyDataSpecial <$> b^..bindingSubtypes
+ftvBinding :: Ord tyname => Recursivity -> Traversal' (Binding tyname name uni fun ann) tyname
+ftvBinding r = ftvBindingCtx r mempty
 
-    -- like ftvTy but specialized for the datatypebind case
-    ftvTyDataSpecial :: Type tyname uni ann -> Set tyname
-    ftvTyDataSpecial ty = case b of
-        DatatypeBind _ (Datatype _ tyconstr tyvars _ _) -> case r of
-            -- for rec, both tyconstr+tyvars are in scope in *WHOLE* dataconstructors
-            Rec -> ftvTy ty \\ setOf bindingTyNames b
-            NonRec ->
-                let tyvarsNames = setOf (traversed.PLC.tyVarDeclName) tyvars
-                    ftvDom = mconcat $ ftvTy <$> funTyArgs ty
-                    -- tyconstr is in scope *only* in the result type codomain
-                    ftvCod = ftvTy (funResultType ty) \\ setOf PLC.tyVarDeclName tyconstr
-                -- for nonrec, the tyvars are in scope in *WHOLE* dataconstructors
-                in (ftvDom <> ftvCod) \\ tyvarsNames
-        _ -> ftvTy ty
+ftvBindingCtx :: Ord tyname => Recursivity -> Set tyname -> Traversal' (Binding tyname name uni fun ann) tyname
+ftvBindingCtx r bound f = \case
+    DatatypeBind a d -> DatatypeBind a <$> ftvDatatypeCtx r bound f d
+    -- sound because the subterms and subtypes are disjoint
+    b                -> ((bindingSubterms . ftvTermCtx bound) `Unsound.adjoin` (bindingSubtypes . ftvTyCtx bound)) f b
+
+ftvDatatypeCtx :: Ord tyname => Recursivity -> Set tyname -> Traversal' (Datatype tyname name uni fun ann) tyname
+ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
+    let
+        tyConstr = setOf PLC.tyVarDeclName tyconstr
+        tyVars = setOf (traversed.PLC.tyVarDeclName) tyvars
+        allBound = bound `union` tyConstr `union` tyVars
+        varsBound = bound `union` tyVars
+    in case r of
+        -- recursive: introduced names are in scope throughout
+        Rec -> (datatypeSubtypes . ftvTyCtx allBound) f d
+        -- nonrecursive: type constructor is in scope only in the result type of the constructors
+        NonRec ->
+            let
+                combinedTraversal =
+                    -- type arguments are in scope in the argument types
+                    (funArgs . ftvTyCtx varsBound)
+                    -- sound because the argument types and result type are disjoint
+                    `Unsound.adjoin`
+                    -- type constructor and arguments are in scope in the result type
+                    (funRes . ftvTyCtx allBound)
+                constrs' = traverseOf (traversed . PLC.varDeclType . combinedTraversal) f constrs
+            in Datatype a tyconstr tyvars destr <$> constrs'
+
+-- | Traverse the arguments of a function type (nothing if the type is not a function type).
+funArgs :: Traversal' (Type tyname uni a) (Type tyname uni a)
+funArgs f = \case
+    TyFun a dom cod@TyFun{} -> TyFun a <$> f dom <*> funArgs f cod
+    TyFun a dom res         -> TyFun a <$> f dom <*> pure res
+    t                       -> pure t
+
+-- | Traverse the result type of a function type (the type itself if it is not a function type).
+funRes :: Lens' (Type tyname uni a) (Type tyname uni a)
+funRes f = \case
+    TyFun a dom cod -> TyFun a dom <$> funRes f cod
+    t               -> f t
+
+-- TODO: these could be Traversals
+-- | Get all the term variables in a term.
+vTerm :: Fold (Term tyname name uni fun ann) name
+vTerm = termSubtermsDeep . termVars
+
+-- | Get all the type variables in a term.
+tvTerm :: Fold (Term tyname name uni fun ann) tyname
+tvTerm = termSubtypesDeep . typeTyVars

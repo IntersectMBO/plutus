@@ -25,16 +25,12 @@ module PlutusCore.Core.Plated
     , termUniquesDeep
     ) where
 
+import PlutusPrelude ((<^>))
+
 import PlutusCore.Core.Type
 import PlutusCore.Name
 
 import Control.Lens
-
-infixr 6 <^>
-
--- | Compose two folds to make them run in parallel. The results are concatenated.
-(<^>) :: Fold s a -> Fold s a -> Fold s a
-(f1 <^> f2) g s = f1 g s *> f2 g s
 
 kindSubkinds :: Traversal' (Kind ann) (Kind ann)
 kindSubkinds f kind0 = case kind0 of
