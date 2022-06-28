@@ -2,8 +2,9 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE StrictData               #-}
 {-# LANGUAGE TypeFamilies             #-}
+
+{-# LANGUAGE StrictData               #-}
 
 module PlutusCore.Builtin.Runtime where
 
@@ -107,9 +108,12 @@ instance NoThunks (BuiltinRuntime val) where
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
 
--- | Check whether the given `ToCostingType n` contains thunks.
+-- | Check whether the given `ToCostingType n` contains thunks. The `RuntimeScheme n` is used to
+-- refine `n`.
 noThunksInCosting :: NoThunks.Context -> ToCostingType n -> RuntimeScheme n -> IO (Maybe ThunkInfo)
 noThunksInCosting ctx costing = \case
+    -- @n ~ 'Z@, and @ToCostingType n ~ ExBudget@, which should not be a thunk or contain
+    -- nested thunks.
     RuntimeSchemeResult ->
         noThunks ctx costing
     RuntimeSchemeArrow _ ->
