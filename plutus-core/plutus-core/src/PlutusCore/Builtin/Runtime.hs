@@ -95,7 +95,8 @@ data BuiltinRuntime val =
         (ToCostingType n)
 
 instance NoThunks (BuiltinRuntime val) where
-    -- Skipping `_denot` in `allNoThunks` check, since it is supposed to be lazy
+    -- Skipping `_denot` in `allNoThunks` check, since it is supposed to be lazy and
+    -- is allowed to contain thunks.
     wNoThunks ctx (BuiltinRuntime sch _denot costing) =
         allNoThunks
             [ -- The order here is important: we must first check that `sch` doesn't have
