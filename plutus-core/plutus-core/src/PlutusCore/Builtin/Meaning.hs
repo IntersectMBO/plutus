@@ -284,5 +284,5 @@ toBuiltinsRuntime
 toBuiltinsRuntime unlMode cost =
     let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
      in -- Force array elements to WHNF
-        case foldr seq () arr of () -> BuiltinsRuntime arr
+        foldr seq (BuiltinsRuntime arr) arr
 {-# INLINE toBuiltinsRuntime #-}
