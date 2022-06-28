@@ -283,5 +283,6 @@ toBuiltinsRuntime
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
     let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
-     in case foldr seq () arr of () -> BuiltinsRuntime arr
+     in -- Force array elements to WHNF
+        case foldr seq () arr of () -> BuiltinsRuntime arr
 {-# INLINE toBuiltinsRuntime #-}
