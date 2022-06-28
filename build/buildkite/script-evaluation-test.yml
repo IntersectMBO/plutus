@@ -9,8 +9,12 @@ steps:
       queue: "plutus"
   - wait
   - label: "Script evaluation test"
+    # Run the test cases sequentially. This ensures we don't need to simultaneously store
+    # multiple `ScriptEvaluationEvents`, which are large, in memory. Each test case
+    # contains many script evaluation events, and those are run in parallel based on
+    # the number of available processors.
     command: |
-      nix-shell --run 'cabal update && EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test'
+      nix-shell --run 'cabal update && EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test -- --num-threads=1'
     concurrency: 1
     concurrency_group: "plutus-script-evaluation"
     agents:
