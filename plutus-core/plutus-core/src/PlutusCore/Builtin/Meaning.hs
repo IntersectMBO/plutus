@@ -282,5 +282,6 @@ toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
+    let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
+     in case foldr seq () arr of () -> BuiltinsRuntime arr
 {-# INLINE toBuiltinsRuntime #-}
