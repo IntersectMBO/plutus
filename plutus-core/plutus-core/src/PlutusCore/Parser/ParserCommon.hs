@@ -21,9 +21,16 @@ import PlutusCore.Error
 import PlutusCore.Name
 import PlutusCore.Quote
 
+{- Note [Whitespace invariant]
+Every top-level 'Parser' must consume all whitespace after the thing that it parses, hence make
+sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'takeWhileP',
+'manyTill', 'Lex.decimal' etc) in a call to 'lexeme'.
+-}
+
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
+-- | The opposite of @optional :: Alternative f => f a -> f (Maybe a)@.
 required :: MonadPlus m => m (Maybe a) -> m a
 required a = a >>= maybe mzero pure
 
@@ -110,4 +117,3 @@ name = lexeme $ try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str
-

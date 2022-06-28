@@ -8,15 +8,15 @@ import PlutusPrelude (Word8, reoption)
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon
-import PlutusCore.Parser.Type (defaultUniType)
+import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
-import Control.Applicative
+import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
-import Text.Megaparsec (MonadParsec (takeWhileP), choice, customFailure, getSourcePos, manyTill)
+import Text.Megaparsec (customFailure, getSourcePos, takeWhileP)
 import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
@@ -64,15 +64,11 @@ conBool = choice
     , False <$ symbol "False"
     ]
 
--- Taken verbatim from https://hackage.haskell.org/package/parsec-3.1.15.1/docs/Text-Parsec-Combinator.html#v:sepBy
-sepBy :: Alternative m => m a -> m sep -> m [a]
-sepBy p sep = sepBy1 p sep <|> pure []
-sepBy1 :: Alternative m => m a -> m sep -> m [a]
-sepBy1 p sep = (:) <$> p <*> many (sep *> p)
-
+-- | Parser for lists.
 conList :: DefaultUni (Esc a) -> Parser [a]
 conList uniA = inBrackets $ constantOf uniA `sepBy` symbol ","
 
+-- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
 conPair uniA uniB = inParens $ do
     a <- constantOf uniA
@@ -80,6 +76,7 @@ conPair uniA uniB = inParens $ do
     b <- constantOf uniB
     pure (a, b)
 
+-- | Parser for constants of the given type.
 constantOf :: DefaultUni (Esc a) -> Parser a
 constantOf uni = case uni of
     DefaultUniInteger                                                 -> conInteger
@@ -91,10 +88,14 @@ constantOf uni = case uni of
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
     DefaultUniData                                                    ->
-        error "Data not supported"
+        fail "Data not supported"
 
+-- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))
 constant = do
-    SomeTypeIn (Kinded uni) <- defaultUniType
+    -- Parse the type tag.
+    SomeTypeIn (Kinded uni) <- defaultUni
+    -- Check it's of kind @*@.
     Refl <- reoption $ checkStar uni
+    -- Parse the constant of the type represented by the type tag.
     someValueOf uni <$> constantOf uni

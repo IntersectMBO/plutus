@@ -11,7 +11,7 @@ import PlutusCore.Default
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
-import PlutusCore.Parser (defaultUniType, parseGen)
+import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty
 import PlutusCore.Quote
 import UntypedPlutusCore.Core.Type
@@ -73,30 +73,39 @@ propParser = testProperty "Parser" $ property $ do
 propUnit :: TestTree
 propUnit = testCase "Unit" $ fold
     [ pTerm "(con bool True)" @?= "(con bool True)"
-    , pTerm "(con list bool [True, False])" @?= "(con list bool [True,False])"
-    , pTerm "(con pair unit (list integer) ((),[1,2,3]))" @?= "(con pair unit (list integer) ((), [1,2,3]))"
-    , pTerm "(con list (pair string bool) [(\"abc\", True), (\"def\", False)])" @?= "(con list (pair string bool) [(\"abc\", True), (\"def\", False)])"
+    , pTerm "(con (list bool) [True, False])" @?= "(con (list bool) [True,False])"
+    , pTerm "(con (pair unit (list integer)) ((),[1,2,3]))" @?= "(con (pair unit (list integer)) ((), [1,2,3]))"
+    , pTerm "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])" @?= "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])"
     , pTerm "(con string \"abc\")" @?= "(con string \"abc\")"
     ]
     where
-        pTerm s = either show display $ runQuoteT $ parseTerm @_ @(QuoteT (Either ParserErrorBundle)) $ T.pack s
+        pTerm
+            = either (error . show) display
+            . runQuoteT
+            . parseTerm @_ @(QuoteT (Either ParserErrorBundle))
+            . T.pack
 
-propType :: TestTree
-propType = testCase "Type" $ fold
-    [ pTerm "list" @?= "SomeTypeIn (Kinded DefaultUniProtoList)"
-    , pTerm "list integer" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoList DefaultUniInteger))"
-    , pTerm "pair (list bool)" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoPair (DefaultUniApply DefaultUniProtoList DefaultUniBool)))"
-    , pTerm "pair (list unit) integer" @?= "SomeTypeIn (Kinded (DefaultUniApply (DefaultUniApply DefaultUniProtoPair (DefaultUniApply DefaultUniProtoList DefaultUniUnit)) DefaultUniInteger))"
-    , pTerm "list (pair unit integer)" @?= "SomeTypeIn (Kinded (DefaultUniApply DefaultUniProtoList (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniUnit) DefaultUniInteger)))"
-    , pTerm "pair unit (pair bool integer)" @?= "SomeTypeIn (Kinded (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniUnit) (DefaultUniApply (DefaultUniApply DefaultUniProtoPair DefaultUniBool) DefaultUniInteger)))"
+propDefaultUni :: TestTree
+propDefaultUni = testCase "DefaultUni" $ fold
+    [ pDefaultUni "bool" @?= "bool"
+    , pDefaultUni "list" @?= "list"
+    , pDefaultUni "(list integer)" @?= "(list integer)"
+    , pDefaultUni "(pair (list bool))" @?= "(pair (list bool))"
+    , pDefaultUni "(pair (list unit) integer)" @?= "(pair (list unit) integer)"
+    , pDefaultUni "(list (pair unit integer))" @?= "(list (pair unit integer))"
+    , pDefaultUni "(pair unit (pair bool integer))" @?= "(pair unit (pair bool integer))"
     ]
     where
-        pTerm s = either show show $ runQuoteT $ parseGen @_ @(QuoteT (Either ParserErrorBundle)) defaultUniType $ T.pack s
+        pDefaultUni
+            = either (error . show) display
+            . runQuoteT
+            . parseGen @_ @(QuoteT (Either ParserErrorBundle)) defaultUni
+            . T.pack
 
 test_parsing :: TestTree
 test_parsing = testGroup "Parsing"
                [ propFlat
                , propParser
                , propUnit
-               , propType
+               , propDefaultUni
                ]
