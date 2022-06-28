@@ -2,6 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
+{-# LANGUAGE StrictData        #-}
+
 module PlutusLedgerApi.Common.Eval where
 
 import PlutusCore
