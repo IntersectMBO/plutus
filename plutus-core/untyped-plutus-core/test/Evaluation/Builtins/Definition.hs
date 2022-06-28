@@ -30,6 +30,9 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
+import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndCommutes, bitwiseAndIdentity, bitwiseAndSelf,
+                                    bitwiseIorAbsorbing, bitwiseIorCommutes, bitwiseIorIdentity, bitwiseIorSelf,
+                                    bitwiseXorCommutes, bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -70,7 +73,7 @@ test_Factorial =
 -- a const defined in PLC itself.
 test_Const :: TestTree
 test_Const =
-    testProperty "Const" . property $ do
+    testPropertyNamed "Const" "Const" . property $ do
         c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
@@ -580,9 +583,50 @@ testSECP256k1 :: TestTree
 testSECP256k1 =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signatures on the SECP256k1 curve" $ [
-    testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
-    testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
+    testPropertyNamed "ECDSA verification behaves correctly on all inputs"
+                      "ECDSA verification behaves correctly on all inputs" .
+      property $ ecdsaSecp256k1Prop,
+    testPropertyNamed "Schnorr verification behaves correctly on all inputs"
+                      "Schnorr verification behaves correctly on all inputs" .
+      property $ schnorrSecp256k1Prop
     ]
+
+-- Test the bitwise builtins are behaving correctly
+testBitwise :: TestTree
+testBitwise =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  testGroup "Bitwise operations" $ [
+    testAndByteString,
+    testIorByteString,
+    testXorByteString
+  ]
+
+-- Tests for bitwise AND on ByteStrings
+testAndByteString :: TestTree
+testAndByteString = testGroup "AndByteString" [
+  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseAndCommutes,
+  testPropertyNamed "All-1s is an identity" "All-1s is an identity" . property $ bitwiseAndIdentity,
+  testPropertyNamed "All-0s is absorbing" "All-0s is absorbing" . property $ bitwiseAndAbsorbing,
+  testPropertyNamed "AND with yourself does nothing" "AND with yourself does nothing" . property $ bitwiseAndSelf
+  ]
+
+-- Tests for bitwise IOR on ByteStrings
+testIorByteString :: TestTree
+testIorByteString = testGroup "IorByteString" [
+  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseIorCommutes,
+  testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseIorIdentity,
+  testPropertyNamed "All-1s is absorbing" "All-0s is absorbing" . property $ bitwiseIorAbsorbing,
+  testPropertyNamed "IOR with yourself does nothing" "IOR with yourself does nothing" . property $ bitwiseIorSelf
+  ]
+
+-- Tests for bitwise XOR on ByteStrings
+testXorByteString :: TestTree
+testXorByteString = testGroup "XorByteString" [
+  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseXorCommutes,
+  testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseXorIdentity,
+  testPropertyNamed "XOR with all-1s is complement" "XOR with all 1s is complement" . property $ bitwiseXorComplement,
+  testPropertyNamed "XOR with yourself gives all-0" "XOR with yourself gives all-0" . property $ bitwiseXorSelf
+  ]
 
 test_definition :: TestTree
 test_definition =
@@ -608,5 +652,6 @@ test_definition =
         , test_Data
         , test_Crypto
         , testSECP256k1
+        , testBitwise
         , test_Other
         ]

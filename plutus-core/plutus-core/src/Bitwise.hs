@@ -245,8 +245,9 @@ complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(
     go dst src offset lim
       | offset == lim = pure ()
       | otherwise = do
-          block :: a <- peek . plusPtr src $ offset
-          poke dst . complement $ block
+          let offset' = offset * sizeOf (undefined :: a)
+          block :: a <- peek . plusPtr src $ offset'
+          poke (plusPtr dst offset') . complement $ block
           go dst src (offset + 1) lim
 
 -- Helpers

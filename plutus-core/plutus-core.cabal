@@ -257,6 +257,7 @@ library
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
+  ghc-options:     -fsimpl-tick-factor=200
   build-depends:
     , aeson
     , algebraic-graphs            >=0.3
@@ -470,6 +471,7 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
+    Evaluation.Builtins.Bitwise
     Evaluation.Builtins.Coherence
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
