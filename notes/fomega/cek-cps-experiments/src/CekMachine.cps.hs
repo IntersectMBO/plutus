@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- This file contains a version of the CEK machine in
 -- continuation-passing-style, where the frames and return
 -- operation of the original version are replaced with explicit
