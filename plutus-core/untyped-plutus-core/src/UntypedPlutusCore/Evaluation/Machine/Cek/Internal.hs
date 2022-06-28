@@ -600,12 +600,6 @@ enterComputeCek
     -> Term NamedDeBruijn uni fun ()
     -> CekM uni fun s (Term NamedDeBruijn uni fun ())
 enterComputeCek = computeCek (toWordArray 0) where
-    -- | The computing part of the CEK machine.
-    -- Either
-    -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
-    -- 2. calls 'returnCek' on values ('Delay', 'LamAbs', 'Constant', 'Builtin')
-    -- 3. throws 'EvaluationFailure' ('Error')
-    -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
         :: WordArray
         -> Context uni fun
@@ -648,15 +642,6 @@ enterComputeCek = computeCek (toWordArray 0) where
           Error _ ->
               throwing_ _EvaluationFailure
 
-    {- | The returning phase of the CEK machine.
-    Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
-    from the context and uses it to decide how to proceed with the current value v.
-
-      * 'FrameForce': call forceEvaluate
-      * 'FrameApplyArg': call 'computeCek' over the context extended with 'FrameApplyFun'
-      * 'FrameApplyFun': call 'applyEvaluate' to attempt to apply the function
-          stored in the frame to an argument.
-    -}
     returnCek
         :: WordArray
         -> Context uni fun
@@ -675,12 +660,6 @@ enterComputeCek = computeCek (toWordArray 0) where
           FrameApplyFun fun ctx ->
               applyEvaluate unbudgetedSteps ctx fun x
 
-    -- | @force@ a term and proceed.
-    -- If v is a delay then compute the body of v;
-    -- if v is a builtin application then check that it's expecting a type argument,
-    -- and either calculate the builtin application or stick a 'Force' on top of its 'Term'
-    -- representation depending on whether the application is saturated or not,
-    -- if v is anything else, fail.
     forceEvaluate
         :: WordArray
         -> Context uni fun
@@ -708,7 +687,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     applyEvaluate !unbudgetedSteps !ctx val arg =
-        case arg of
+        case val of
           VLamAbs _ body env -> computeCek unbudgetedSteps ctx (Env.cons arg env) body
           VBuiltin fun term (BuiltinRuntime sch f exF) ->
               do
