@@ -1,5 +1,4 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- This file contains a version of the CEK machine in
 -- implemented as a simple recursie evaluator, with
