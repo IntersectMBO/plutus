@@ -135,6 +135,7 @@ test-suite plutus-ledger-api-test
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
+    Spec.NoThunks
 
   build-depends:
     , barbies
@@ -145,6 +146,7 @@ test-suite plutus-ledger-api-test
     , hedgehog
     , lens
     , mtl
+    , nothunks
     , plutus-core                ^>=1.0
     , plutus-ledger-api
     , plutus-ledger-api-testlib
