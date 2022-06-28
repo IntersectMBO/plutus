@@ -30,9 +30,11 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
-import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndCommutes, bitwiseAndIdentity, bitwiseAndSelf,
-                                    bitwiseIorAbsorbing, bitwiseIorCommutes, bitwiseIorIdentity, bitwiseIorSelf,
-                                    bitwiseXorCommutes, bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf)
+import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, bitwiseAndCommutes, bitwiseAndDeMorgan,
+                                    bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
+                                    bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
+                                    bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -598,34 +600,46 @@ testBitwise =
   testGroup "Bitwise operations" $ [
     testAndByteString,
     testIorByteString,
-    testXorByteString
+    testXorByteString,
+    testComplementByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
 testAndByteString :: TestTree
 testAndByteString = testGroup "AndByteString" [
   testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseAndCommutes,
+  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseAndAssociates,
   testPropertyNamed "All-1s is an identity" "All-1s is an identity" . property $ bitwiseAndIdentity,
   testPropertyNamed "All-0s is absorbing" "All-0s is absorbing" . property $ bitwiseAndAbsorbing,
-  testPropertyNamed "AND with yourself does nothing" "AND with yourself does nothing" . property $ bitwiseAndSelf
+  testPropertyNamed "AND with yourself does nothing" "AND with yourself does nothing" . property $ bitwiseAndSelf,
+  testPropertyNamed "De Morgan's law" "De Morgan's law" . property $ bitwiseAndDeMorgan
   ]
 
 -- Tests for bitwise IOR on ByteStrings
 testIorByteString :: TestTree
 testIorByteString = testGroup "IorByteString" [
   testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseIorCommutes,
+  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseIorAssociates,
   testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseIorIdentity,
   testPropertyNamed "All-1s is absorbing" "All-0s is absorbing" . property $ bitwiseIorAbsorbing,
-  testPropertyNamed "IOR with yourself does nothing" "IOR with yourself does nothing" . property $ bitwiseIorSelf
+  testPropertyNamed "IOR with yourself does nothing" "IOR with yourself does nothing" . property $ bitwiseIorSelf,
+  testPropertyNamed "De Morgan's law" "De Morgan's law" . property $ bitwiseIorDeMorgan
   ]
 
 -- Tests for bitwise XOR on ByteStrings
 testXorByteString :: TestTree
 testXorByteString = testGroup "XorByteString" [
   testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseXorCommutes,
+  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseXorAssociates,
   testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseXorIdentity,
   testPropertyNamed "XOR with all-1s is complement" "XOR with all 1s is complement" . property $ bitwiseXorComplement,
   testPropertyNamed "XOR with yourself gives all-0" "XOR with yourself gives all-0" . property $ bitwiseXorSelf
+  ]
+
+-- Tests for bitwise complement on ByteStrings
+testComplementByteString :: TestTree
+testComplementByteString = testGroup "ComplementByteString" [
+  testPropertyNamed "Self-inversion" "Self-inversion" . property $ bitwiseComplementSelfInverts
   ]
 
 test_definition :: TestTree

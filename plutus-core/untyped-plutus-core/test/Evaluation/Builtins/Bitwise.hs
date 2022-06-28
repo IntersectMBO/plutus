@@ -16,6 +16,12 @@ module Evaluation.Builtins.Bitwise (
   bitwiseAndSelf,
   bitwiseIorSelf,
   bitwiseXorSelf,
+  bitwiseAndAssociates,
+  bitwiseIorAssociates,
+  bitwiseXorAssociates,
+  bitwiseComplementSelfInverts,
+  bitwiseAndDeMorgan,
+  bitwiseIorDeMorgan,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -25,7 +31,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Word (Word8)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
-import GHC.Exts (fromListN)
+import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -106,7 +112,121 @@ bitwiseXorSelf = do
     EvaluationSuccess res -> res === expected
     _                     -> failure
 
+bitwiseAndAssociates :: PropertyT IO ()
+bitwiseAndAssociates = associative (.&.) AndByteString
+
+bitwiseIorAssociates :: PropertyT IO ()
+bitwiseIorAssociates = associative (.|.) IorByteString
+
+bitwiseXorAssociates :: PropertyT IO ()
+bitwiseXorAssociates = associative xor XorByteString
+
+bitwiseComplementSelfInverts :: PropertyT IO ()
+bitwiseComplementSelfInverts = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  let bs' = mkConstant @ByteString () bs
+  let comp = mkIterApp () (builtin () ComplementByteString) [
+        mkIterApp () (builtin () ComplementByteString) [bs']
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant () bs
+    _                     -> failure
+
+bitwiseAndDeMorgan :: PropertyT IO ()
+bitwiseAndDeMorgan = demorgan AndByteString IorByteString
+
+bitwiseIorDeMorgan :: PropertyT IO ()
+bitwiseIorDeMorgan = demorgan IorByteString AndByteString
+
 -- Helpers
+
+demorgan ::
+  DefaultFun ->
+  DefaultFun ->
+  PropertyT IO ()
+demorgan b b' = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  let len = BS.length bs
+  bs' <- forAllWith ppShow . Gen.bytes . Range.singleton $ len
+  outcome <- demorganing b b' bs bs'
+  case outcome of
+    (EvaluationSuccess res1, EvaluationSuccess res2) -> res1 === res2
+    _                                                -> failure
+
+demorganing ::
+  DefaultFun ->
+  DefaultFun ->
+  ByteString ->
+  ByteString ->
+  PropertyT IO (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()),
+                EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
+demorganing fun fun' x y = do
+  let x' = mkConstant @ByteString () x
+  let y' = mkConstant @ByteString () y
+  let comp = mkIterApp () (builtin () ComplementByteString) [
+        mkIterApp () (builtin () fun) [x', y']
+        ]
+  let comp' = mkIterApp () (builtin () fun') [
+        mkIterApp () (builtin () ComplementByteString) [x'],
+        mkIterApp () (builtin () ComplementByteString) [y']
+        ]
+  bitraverse cekEval cekEval (comp, comp')
+
+data AssociativeCase =
+  AssociativeMismatched ByteString ByteString ByteString |
+  AssociativeMatched ByteString ByteString ByteString ByteString
+  deriving stock (Eq, Show)
+
+getAssociativeArgs :: AssociativeCase -> (ByteString, ByteString, ByteString)
+getAssociativeArgs = \case
+  AssociativeMismatched x y z -> (x, y, z)
+  AssociativeMatched x y z _  -> (x, y, z)
+
+_AssociativeResult :: Fold AssociativeCase ByteString
+_AssociativeResult = folding $ \case
+  AssociativeMatched _ _ _ res -> pure res
+  _                            -> Nothing
+
+associative ::
+  (Word8 -> Word8 -> Word8) ->
+  DefaultFun ->
+  PropertyT IO ()
+associative f b = do
+  testCase <- forAllWith ppShow . genAssociativeCase $ f
+  cover 45 "mismatched lengths" . hasn't _AssociativeResult $ testCase
+  cover 45 "matched lengths" . has _AssociativeResult $ testCase
+  let expectedMay = preview _AssociativeResult testCase
+  let (x, y, z) = getAssociativeArgs testCase
+  outcome <- associatively b x y z
+  case (outcome, expectedMay) of
+    ((EvaluationFailure, EvaluationFailure), Nothing) -> success
+    (_, Nothing) -> annotate "Unexpected failure" >> failure
+    ((EvaluationSuccess leftAssoc, EvaluationSuccess rightAssoc), Just expected) -> do
+      leftAssoc === rightAssoc
+      leftAssoc === mkConstant () expected
+    _ -> annotate "Unexpected failure" >> failure
+
+associatively ::
+  DefaultFun ->
+  ByteString ->
+  ByteString ->
+  ByteString ->
+  PropertyT IO (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()),
+                EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
+associatively fun x y z = do
+  let x' = mkConstant @ByteString () x
+  let y' = mkConstant @ByteString () y
+  let z' = mkConstant @ByteString () z
+  let leftAssoc = mkIterApp () (builtin () fun) [
+        mkIterApp () (builtin () fun) [x', y'],
+        z'
+        ]
+  let rightAssoc = mkIterApp () (builtin () fun) [
+        x',
+        mkIterApp () (builtin () fun) [y', z']
+        ]
+  bitraverse cekEval cekEval (leftAssoc, rightAssoc)
 
 self :: DefaultFun -> PropertyT IO ()
 self b = do
@@ -307,6 +427,31 @@ genAbsorbingCase w8 = Gen.choice [mismatched, matched]
     matched = do
       bs <- Gen.bytes byteBoundRange
       pure . AbsorbingMatched bs $ w8
+
+genAssociativeCase :: (Word8 -> Word8 -> Word8) -> Gen AssociativeCase
+genAssociativeCase f = Gen.choice [mismatched, matched]
+  where
+    mismatched :: Gen AssociativeCase
+    mismatched = do
+      x <- Gen.bytes byteBoundRange
+      y <- Gen.bytes byteBoundRange
+      z <- Gen.bytes byteBoundRange
+      if BS.length x == BS.length y && BS.length y == BS.length z
+      then do
+        extension <- Gen.bytes . diffRange $ 5
+        let x' = x <> extension
+        Gen.element [AssociativeMismatched x' y z,
+                     AssociativeMismatched y x' z,
+                     AssociativeMismatched y z x']
+      else pure . AssociativeMismatched x y $ z
+    matched :: Gen AssociativeCase
+    matched = do
+      x <- Gen.bytes byteBoundRange
+      let len = BS.length x
+      y <- Gen.bytes . Range.singleton $ len
+      z <- Gen.bytes . Range.singleton $ len
+      let result = fromListN len . zipWith f (toList x) . BS.zipWith f y $ z
+      pure . AssociativeMatched x y z $ result
 
 -- Ranges
 
