@@ -34,7 +34,8 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
-                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf)
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, popCountAppend,
+                                    popCountSingleByte)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -601,7 +602,8 @@ testBitwise =
     testAndByteString,
     testIorByteString,
     testXorByteString,
-    testComplementByteString
+    testComplementByteString,
+    testPopCountByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -640,6 +642,17 @@ testXorByteString = testGroup "XorByteString" [
 testComplementByteString :: TestTree
 testComplementByteString = testGroup "ComplementByteString" [
   testPropertyNamed "Self-inversion" "Self-inversion" . property $ bitwiseComplementSelfInverts
+  ]
+
+-- Tests for population count on ByteStrings
+testPopCountByteString :: TestTree
+testPopCountByteString = testGroup "PopCountByteString" [
+  testCase "popcount of empty ByteString is 0" $ do
+    let arg = mkConstant @ByteString () ""
+    let comp = mkIterApp () (builtin () PopCountByteString) [ arg ]
+    typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ 0),
+  testPropertyNamed "popcount of singleton ByteString is correct" "popcount of singleton ByteString is correct" . property $ popCountSingleByte,
+  testPropertyNamed "popcount of append is sum of popcounts" "popcount of append is sum of popcounts" . property $ popCountAppend
   ]
 
 test_definition :: TestTree

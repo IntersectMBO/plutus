@@ -22,11 +22,13 @@ module Evaluation.Builtins.Bitwise (
   bitwiseComplementSelfInverts,
   bitwiseAndDeMorgan,
   bitwiseIorDeMorgan,
+  popCountSingleByte,
+  popCountAppend,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
 import Data.Bitraversable (bitraverse)
-import Data.Bits (complement, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (complement, popCount, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Word (Word8)
@@ -35,8 +37,8 @@ import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AndByteString, ComplementByteString, IorByteString, XorByteString), DefaultUni,
-                   EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, IorByteString, PopCountByteString, XorByteString),
+                   DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import Text.Show.Pretty (ppShow)
@@ -138,6 +140,37 @@ bitwiseAndDeMorgan = demorgan AndByteString IorByteString
 
 bitwiseIorDeMorgan :: PropertyT IO ()
 bitwiseIorDeMorgan = demorgan IorByteString AndByteString
+
+popCountSingleByte :: PropertyT IO ()
+popCountSingleByte = do
+  w8 <- forAllWith ppShow Gen.enumBounded
+  let bs = BS.singleton w8
+  let expected :: Integer = fromIntegral . popCount $ w8
+  let comp = mkIterApp () (builtin () PopCountByteString) [
+        mkConstant @ByteString () bs
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant () expected
+    _                     -> failure
+
+popCountAppend :: PropertyT IO ()
+popCountAppend = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  bs' <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  let arg1 = mkConstant @ByteString () bs
+  let arg2 = mkConstant @ByteString () bs'
+  let comp1 = mkIterApp () (builtin () PopCountByteString) [
+        mkIterApp () (builtin () AppendByteString) [arg1, arg2]
+        ]
+  let comp2 = mkIterApp () (builtin () AddInteger) [
+        mkIterApp () (builtin () PopCountByteString) [arg1],
+        mkIterApp () (builtin () PopCountByteString) [arg2]
+        ]
+  outcome <- bitraverse cekEval cekEval (comp1, comp2)
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
 
 -- Helpers
 

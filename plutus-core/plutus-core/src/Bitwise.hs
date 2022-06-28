@@ -421,6 +421,7 @@ countBits ptr len = go 0 0
     go total offset
       | offset == len = pure total
       | otherwise = do
-          block :: a <- peek . plusPtr ptr $ offset
+          let offset' = offset * sizeOf (undefined :: a)
+          block :: a <- peek . plusPtr ptr $ offset'
           let total' = total + popCount block
           go total' (offset + 1)
