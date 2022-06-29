@@ -2,7 +2,6 @@
 
 module Main (main) where
 
-import Control.Monad.Error.Class
 import Control.Monad.Trans.Except
 import MAlonzo.Code.Main (runUAgda)
 import PlutusConformance.Common
@@ -14,10 +13,11 @@ import UntypedPlutusCore.DeBruijn
 
 -- | Our `evaluator` for the Agda UPLC tests is the CEK machine.
 agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
-agdaEvalUplcProg p =
+agdaEvalUplcProg (UPLC.Program () version tmU) =
     let
+        -- progVersion = UPLC.progVer p
         -- turn a UPLC program to a UPLC term
-        tmU = UPLC.progTerm p
+        -- tmU = UPLC.progTerm p
         -- turn it into an untyped de Bruijn term
         tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
         tmUDB = deBruijnTerm tmU
@@ -27,13 +27,13 @@ agdaEvalUplcProg p =
         Left _ -> Nothing
         -- evaluate the untyped term with CEK
         Right tmUDBSuccess ->
-            case liftEither $ runUAgda tmUDBSuccess of
+            case runUAgda tmUDBSuccess of
                 Left _ -> Nothing
                 Right tmEvaluated ->
                     -- turn it back into a named term
                     case runQuote $ runExceptT $ withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
                         Left _          -> Nothing
-                        Right namedTerm -> Just $ UPLC.mkDefaultProg namedTerm
+                        Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
 main :: IO ()
 main =
