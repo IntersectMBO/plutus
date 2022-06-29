@@ -227,13 +227,17 @@ genAtomicTerm ty = do
     [] -> inhabitType ty
     gs -> liftGen $ elements gs
 
--- | Generate a term of a given type
+-- | Generate a term of a given type.
+--
+-- Requires the type to be of kind *.
 genTermOfType :: Type TyName DefaultUni ()
               -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genTermOfType ty = snd <$> genTerm (Just ty)
 
 -- | Generate a term, if the first argument is Nothing then we get something of any type
 -- and if the first argument is `Just ty` we get something of type `ty`.
+--
+-- Requires the type to be of kind *.
 genTerm :: Maybe (Type TyName DefaultUni ())
         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTerm mty = do
