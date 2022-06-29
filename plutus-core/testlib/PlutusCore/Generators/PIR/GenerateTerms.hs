@@ -273,15 +273,17 @@ genTerm mty = checkInvariants $ do
       debug    <- asks geDebug
       tyctx    <- asks geTypes
       tmctx    <- asks geTerms
-      when debug $ case typeCheckTermInContext tyctx tmctx tm ty of
-        Left err ->
-           (error . show $ "genTerm - checkInvariants: term " <> prettyPirReadable tm
-                         <> " does not type check at type " <> prettyPirReadable ty
-                         <> " in type context " <> prettyPirReadable tyctx
-                         <> " and term context " <> prettyPirReadable tmctx
-                         <> " with error message " <> fromString err)
-        _ -> return ()
-      return (ty, tm)
+      if debug then
+        case typeCheckTermInContext tyctx tmctx tm ty of
+          Left err ->
+             (error . show $ "genTerm - checkInvariants: term " <> prettyPirReadable tm
+                           <> " does not type check at type " <> prettyPirReadable ty
+                           <> " in type context " <> prettyPirReadable tyctx
+                           <> " and term context " <> prettyPirReadable tmctx
+                           <> " with error message " <> fromString err)
+          _ -> return (ty, tm)
+      else
+        return (ty, tm)
 
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)

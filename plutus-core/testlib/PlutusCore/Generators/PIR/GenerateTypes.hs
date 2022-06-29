@@ -175,14 +175,16 @@ genType k = checkInvariants $ onSize (min 10) $
       ty <- gen
       debug <- asks geDebug
       ctx <- asks geTypes
-      when debug $ case checkKind ctx ty k of
-        Left err ->
-           (error . show $ "genType - checkInvariants: type " <> prettyPirReadable ty
-                         <> " does not match kind " <> prettyPirReadable k
-                         <> " in context " <> prettyPirReadable ctx
-                         <> " with error message " <> fromString err)
-        _ -> return ()
-      return ty
+      if debug then
+        case checkKind ctx ty k of
+          Left err ->
+             (error . show $ "genType - checkInvariants: type " <> prettyPirReadable ty
+                           <> " does not match kind " <> prettyPirReadable k
+                           <> " in context " <> prettyPirReadable ctx
+                           <> " with error message " <> fromString err)
+          _ -> return ty
+      else
+        return ty
 
     -- this size split keeps us from generating riddiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the
