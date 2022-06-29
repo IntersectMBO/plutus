@@ -30,6 +30,7 @@ module Evaluation.Builtins.Bitwise (
   writeBitRead,
   writeBitDouble,
   ffsSingleByte,
+  ffsAppend,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -310,7 +311,59 @@ ffsSingleByte = do
     EvaluationSuccess res -> res === mkConstant @Integer () expected
     _                     -> failure
 
+ffsAppend :: PropertyT IO ()
+ffsAppend = do
+  testCase <- forAllWith ppShow genFFSAppendCase
+  let which = ffsAppendType testCase
+  cover 30 "both arguments zero" $ which == ZeroBoth
+  cover 30 "second argument zero" $ which == ZeroSecond
+  cover 30 "second argument nonzero" $ which == NotZeroSecond
+  let (bs, bs') = getFFSAppendArgs testCase
+  let comp = mkIterApp () (builtin () FindFirstSetByteString) [
+        mkIterApp () (builtin () AppendByteString) [
+          mkConstant @ByteString () bs,
+          mkConstant @ByteString () bs'
+          ]
+        ]
+  let comp' = case which of
+        ZeroBoth -> mkConstant @Integer () (-1)
+        ZeroSecond -> let bitLen' = fromIntegral $ 8 * BS.length bs' in
+          mkIterApp () (builtin () AddInteger) [
+            mkIterApp () (builtin () FindFirstSetByteString) [
+              mkConstant @ByteString () bs
+              ],
+            mkConstant @Integer () bitLen'
+          ]
+        NotZeroSecond -> mkIterApp () (builtin () FindFirstSetByteString) [
+            mkConstant @ByteString () bs'
+            ]
+  outcome <- bitraverse cekEval cekEval (comp, comp')
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
 -- Helpers
+
+data FFSAppendType = ZeroBoth | ZeroSecond | NotZeroSecond
+  deriving stock (Eq)
+
+data FFSAppendCase =
+  FFSAppendBothZero Int Int |
+  FFSAppendSecondZero ByteString Int |
+  FFSAppendSecondNonZero ByteString ByteString
+  deriving stock (Eq, Show)
+
+getFFSAppendArgs :: FFSAppendCase -> (ByteString, ByteString)
+getFFSAppendArgs = \case
+  FFSAppendBothZero len len'    -> (BS.replicate len zeroBits, BS.replicate len' zeroBits)
+  FFSAppendSecondZero bs len    -> (bs, BS.replicate len zeroBits)
+  FFSAppendSecondNonZero bs bs' -> (bs, bs')
+
+ffsAppendType :: FFSAppendCase -> FFSAppendType
+ffsAppendType = \case
+  FFSAppendBothZero{}      -> ZeroBoth
+  FFSAppendSecondZero{}    -> ZeroSecond
+  FFSAppendSecondNonZero{} -> NotZeroSecond
 
 data WriteBitCase =
   WriteBitOutOfBounds ByteString Integer Bool |
@@ -724,6 +777,29 @@ genWriteBitCase = Gen.choice [oob, inBounds]
       b <- Gen.enumBounded
       ix <- Gen.integral . indexRangeFor $ len
       pure . WriteBitInBounds bs' ix $ b
+
+genFFSAppendCase :: Gen FFSAppendCase
+genFFSAppendCase = Gen.choice [allZero, secondZero, secondNonZero]
+  where
+    allZero :: Gen FFSAppendCase
+    allZero = do
+      len <- Gen.integral . Range.linear 0 $ 63
+      len' <- Gen.integral . Range.linear 0 $ 63
+      pure . FFSAppendBothZero len $ len'
+    secondZero :: Gen FFSAppendCase
+    secondZero = do
+      bs <- Gen.bytes byteBoundRange
+      w8 <- Gen.filter (/= zeroBits) Gen.enumBounded
+      let firstArg = BS.cons w8 bs
+      len' <- Gen.integral . Range.linear 0 $ 63
+      pure . FFSAppendSecondZero firstArg $ len'
+    secondNonZero :: Gen FFSAppendCase
+    secondNonZero = do
+      bs <- Gen.bytes byteBoundRange
+      w8 <- Gen.filter (/= zeroBits) Gen.enumBounded
+      bs' <- Gen.bytes byteBoundRange
+      w8' <- Gen.filter (/= zeroBits) Gen.enumBounded
+      pure . FFSAppendSecondNonZero (BS.cons w8 bs) . BS.cons w8' $ bs'
 
 tooLowIx :: Integer -> Gen Integer
 tooLowIx = Gen.integral . Range.linear (-1) . negate

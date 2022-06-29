@@ -34,7 +34,7 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
-                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsSingleByte,
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
                                     popCountAppend, popCountSingleByte, testBitAppend, testBitEmpty, testBitSingleByte,
                                     writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
@@ -681,7 +681,8 @@ testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
     let arg = mkConstant @ByteString () ""
     let comp = mkIterApp () (builtin () FindFirstSetByteString) [ arg ]
     typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ (-1)),
-  testPropertyNamed "find first set on singletons works correctly" "find first set on singletons works correctly" . property $ ffsSingleByte
+  testPropertyNamed "find first set on singletons works correctly" "find first set on singletons works correctly" . property $ ffsSingleByte,
+  testPropertyNamed "find first set on appended ByteStrings works correctly" "find first set on appended ByteStrings works correctly" . property $ ffsAppend
   ]
 
 test_definition :: TestTree
