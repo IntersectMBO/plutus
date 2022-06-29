@@ -30,7 +30,6 @@
 
 module PlutusCore.Generators.PIR.Common where
 
-
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.String

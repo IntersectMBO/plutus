@@ -18,7 +18,7 @@ prop_genKindCorrect =
   -- Context minimality doesn't help readability, so no shrinking here
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   -- Note, no shrinking here because shrinking relies on well-kindedness.
-  forAllDoc "k,ty" genKindAndType (const []) $ \ (k, ty) ->
+  forAllDoc "k,ty" (genKindAndTypeDebug) (const []) $ \ (k, ty) ->
   checkKind ctx ty k
 
 -- | Check that shrinking types maintains kinds

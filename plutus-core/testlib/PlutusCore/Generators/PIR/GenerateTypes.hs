@@ -50,6 +50,7 @@ import PlutusCore.Pretty
 import PlutusCore.Quote (runQuote)
 import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
+import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Error
 import PlutusIR.Subst
 
@@ -159,7 +160,7 @@ genAtomicType k = do
 
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
-genType k = onSize (min 10) $
+genType k = checkInvariants $ onSize (min 10) $
   ifSizeZero (genAtomicType k) $
     frequency $
       [ (1, genAtomicType k) ] ++
@@ -169,6 +170,17 @@ genType k = onSize (min 10) $
       [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
       [ (1, genApp) ]
   where
+
+    checkInvariants gen = do
+      ty <- gen
+      debug <- asks geDebug
+      ctx <- asks geTypes
+      when (debug && not (checkKind ctx ty k))
+           (error . show $ "genType - checkInvariants: type " <> prettyPirReadable ty
+                         <> " does not match kind " <> prettyPirReadable k
+                         <> " in context " <> prettyPirReadable ctx)
+      return ty
+
     -- this size split keeps us from generating riddiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the
     -- genApp case below). This ratio of 1:7 was not scientifically
@@ -200,9 +212,17 @@ genType k = onSize (min 10) $
 genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())
 genClosedType_ = genTypeWithCtx mempty
 
+-- | Generate a closed type at a given kind
+genClosedTypeDebug_ :: Kind () -> Gen (Type TyName DefaultUni ())
+genClosedTypeDebug_ = genTypeWithCtxDebug mempty
+
 -- | Generate a type in the given context with the given kind.
 genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
+
+-- | Generate a type in the given context with the given kind.
+genTypeWithCtxDebug :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
+genTypeWithCtxDebug ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (debug $ genType k)
 
 -- | Generate a well-kinded type and its kind in a given context
 genKindAndTypeWithCtx :: Map TyName (Kind ()) -> Gen (Kind(), Type TyName DefaultUni ())
@@ -415,6 +435,13 @@ genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndType = do
   k <- arbitrary
   t <- genClosedType_ k
+  return (k, t)
+
+-- | Generate an arbitrary kind and closed type of that kind.
+genKindAndTypeDebug :: Gen (Kind (), Type TyName DefaultUni ())
+genKindAndTypeDebug = do
+  k <- arbitrary
+  t <- genClosedTypeDebug_ k
   return (k, t)
 
 -- | Normalize a type, throw an error if normalization fails due to e.g. wellkindedness issues.
