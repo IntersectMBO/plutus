@@ -240,6 +240,23 @@ Use Text instead of String unless you have a good reason not to.
 
 It’s 2022, use a proper, unicode aware string type instead of a linked list.
 
+=== Derive `Show`, define `Pretty`, use `Pretty` for human-readable output
+
+Always derive `Show`, do not define it manually.
+
+Always use `Pretty` for human-readable output, not `Show`.
+
+Always define `Pretty` explicitly (when you need it). It's okay to delegate to the `Show` instance if you think it's good enough.
+
+==== Reasoning
+
+The derived version of `Show` is always useful as a way of seeing the explicit strucuture of a value as a Haskell value.
+Defining `Show` can mean that this is no longer true, and you can't do a better job than the derived version.
+
+We use `Pretty` always for human-readable output, because it's actually friendly to layout and the derived `Show` instance is not usually human friendly.
+Therefore if you need to produce output for humans, define a `Pretty` instance.
+This will typically need to be hand-written, unless it happens that you can defer to the `Show` instance, e.g. for simple enums `Show` can be fine since it just prints the constructor names.
+
 === Use the package name as the root of the module name hierarchy
 
 If the package is `foo-bar`, then the modules should all be `FooBar.X`.
@@ -279,6 +296,19 @@ Avoid orphan instances, but don’t worry about it if https://www.michaelpj.com/
 ==== Reasoning
 
 See the blog post.
+
+=== Make data strict by default, use `nothunks` for long-lived data structures
+
+Use `StrictData` for new code; make fields strict unless you have a good reason not to.
+
+For data structures that might live for a long time, use `nothunks` to assert that they don't contain unexpected thunks.
+
+==== Reasoning
+
+A painful lesson of Haskell in production is that space leaks really suck, are a huge pain to track down, and can originate in surprising locations.
+This suggests that it's worth a bit of proactive paranoia: just make things strict as much as possible, in the hopes of squashing any nascent space leaks.
+
+This may seem like overkill to you... until you've experienced debugging a space leak!
 
 === Extensions
 
