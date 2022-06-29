@@ -24,20 +24,24 @@ module Evaluation.Builtins.Bitwise (
   bitwiseIorDeMorgan,
   popCountSingleByte,
   popCountAppend,
+  testBitEmpty,
+  testBitSingleByte,
+  testBitAppend,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
+import Control.Monad (guard)
 import Data.Bitraversable (bitraverse)
-import Data.Bits (complement, popCount, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (bit, complement, popCount, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Word (Word8)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN, toList)
-import Hedgehog (Gen, PropertyT, Range, annotate, cover, evalEither, failure, forAllWith, success, (===))
+import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, IorByteString, PopCountByteString, XorByteString),
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, IorByteString, PopCountByteString, TestBitByteString, XorByteString),
                    DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -172,7 +176,114 @@ popCountAppend = do
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
 
+testBitEmpty :: PropertyT IO ()
+testBitEmpty = do
+  ix <- forAllWith ppShow . Gen.integral $ indexRange
+  let arg = mkConstant @ByteString () ""
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        arg,
+        mkConstant @Integer () ix
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationFailure -> success
+    _                 -> failure
+
+testBitSingleByte :: PropertyT IO ()
+testBitSingleByte = do
+  w8 <- forAllWith ppShow Gen.enumBounded
+  let bs = BS.singleton w8
+  ix <- forAllWith ppShow . Gen.integral . indexRangeOf $ 8
+  cover 45 "out of bounds" $ ix < 0 || ix >= 8
+  cover 45 "in-bounds" $ 0 <= ix && ix < 8
+  let expected = bitAt w8 ix
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () ix
+        ]
+  outcome <- cekEval comp
+  case (expected, outcome) of
+    (Nothing, EvaluationFailure)    -> success
+    (Just b, EvaluationSuccess res) -> res === mkConstant @Bool () b
+    _                               -> failure
+
+testBitAppend :: PropertyT IO ()
+testBitAppend = do
+  testCase <- forAllWith ppShow genBitAppendCase
+  cover 30 "out of bounds" . appendOutOfBounds $ testCase
+  cover 30 "in-bounds, first argument" . appendInBoundsFirst $ testCase
+  cover 30 "in-bounds, second argument" . appendInBoundsSecond $ testCase
+  let (x, y, ix) = getBitAppendArgs testCase
+  let arg1 = mkConstant @ByteString () x
+  let arg2 = mkConstant @ByteString () y
+  let argIx = mkConstant @Integer () ix
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        mkIterApp () (builtin () AppendByteString) [arg1, arg2],
+        argIx
+        ]
+  let comp' = go x y ix
+  outcome <- bitraverse cekEval cekEval (comp, comp')
+  case outcome of
+    (EvaluationFailure, EvaluationFailure) -> success
+    (EvaluationSuccess res, EvaluationSuccess res') -> do
+      annotateShow res
+      annotateShow res'
+      res === res'
+    _ -> failure
+  where
+    go ::
+      ByteString ->
+      ByteString ->
+      Integer ->
+      Term Untyped.TyName Name DefaultUni DefaultFun ()
+    go bs bs' ix = let len' = fromIntegral $ 8 * BS.length bs' in
+      case compare ix len' of
+        LT -> mkIterApp () (builtin () TestBitByteString) [
+                mkConstant @ByteString () bs',
+                mkConstant @Integer () ix
+                ]
+        _ -> mkIterApp () (builtin () TestBitByteString) [
+                mkConstant @ByteString () bs,
+                mkConstant @Integer () (ix - len')
+                ]
+
 -- Helpers
+
+data BitAppendCase =
+  AppendOutOfBounds ByteString ByteString Integer |
+  AppendInBoundsFirst ByteString ByteString Integer |
+  AppendInBoundsSecond ByteString ByteString Integer
+  deriving stock (Eq, Show)
+
+appendOutOfBounds :: BitAppendCase -> Bool
+appendOutOfBounds = \case
+  AppendOutOfBounds{} -> True
+  _                   -> False
+
+appendInBoundsFirst :: BitAppendCase -> Bool
+appendInBoundsFirst = \case
+  AppendInBoundsFirst{} -> True
+  _                     -> False
+
+appendInBoundsSecond :: BitAppendCase -> Bool
+appendInBoundsSecond = \case
+  AppendInBoundsSecond{} -> True
+  _                      -> False
+
+getBitAppendArgs :: BitAppendCase -> (ByteString, ByteString, Integer)
+getBitAppendArgs = \case
+  AppendOutOfBounds bs bs' ix    -> (bs, bs', ix)
+  AppendInBoundsFirst bs bs' ix  -> (bs, bs', ix)
+  AppendInBoundsSecond bs bs' ix -> (bs, bs', ix)
+
+bitAt :: Word8 -> Integer -> Maybe Bool
+bitAt w8 ix = do
+  guard (ix >= 0)
+  guard (ix < 8)
+  let mask = bit 0 `shiftL` fromIntegral ix
+  pure $ case mask .&. w8 of
+    0 -> False
+    _ -> True
 
 demorgan ::
   DefaultFun ->
@@ -486,6 +597,40 @@ genAssociativeCase f = Gen.choice [mismatched, matched]
       let result = fromListN len . zipWith f (toList x) . BS.zipWith f y $ z
       pure . AssociativeMatched x y z $ result
 
+genBitAppendCase :: Gen BitAppendCase
+genBitAppendCase = Gen.choice [oob, inBounds1, inBounds2]
+  where
+    oob :: Gen BitAppendCase
+    oob = do
+      bs <- Gen.bytes byteBoundRange
+      bs' <- Gen.bytes byteBoundRange
+      let len = fromIntegral $ 8 * (BS.length bs + BS.length bs')
+      ix <- Gen.choice [tooLowIx len, tooHighIx len]
+      pure . AppendOutOfBounds bs bs' $ ix
+    inBounds1 :: Gen BitAppendCase
+    inBounds1 = do
+      bs <- Gen.bytes byteBoundRange
+      w8 <- Gen.enumBounded
+      let firstArg = BS.cons w8 bs
+      bs' <- Gen.bytes byteBoundRange
+      let len = fromIntegral $ 8 * BS.length firstArg
+      let len' = fromIntegral $ 8 * BS.length bs'
+      ix <- (len' +) <$> (Gen.integral . indexRangeFor $ len)
+      pure . AppendInBoundsFirst firstArg bs' $ ix
+    inBounds2 :: Gen BitAppendCase
+    inBounds2 = do
+      bs <- Gen.bytes byteBoundRange
+      bs' <- Gen.bytes byteBoundRange
+      w8 <- Gen.enumBounded
+      let secondArg = BS.cons w8 bs'
+      let len' = fromIntegral $ 8 * BS.length secondArg
+      ix <- Gen.integral . indexRangeFor $ len'
+      pure . AppendInBoundsSecond bs secondArg $ ix
+    tooLowIx :: Integer -> Gen Integer
+    tooLowIx i = Gen.integral . Range.linear (-1) . negate $ i
+    tooHighIx :: Integer -> Gen Integer
+    tooHighIx i = Gen.integral . Range.linear i $ i * 2
+
 -- Ranges
 
 byteBoundRange :: Range Int
@@ -494,3 +639,12 @@ byteBoundRange = Range.linear 0 64
 diffRange :: Int -> Range Int
 diffRange diff = let param = abs diff + 1 in
   Range.linear param (param * 2)
+
+indexRange :: Range Integer
+indexRange = Range.linearFrom 0 (-100) 100
+
+indexRangeOf :: Integer -> Range Integer
+indexRangeOf lim = Range.constantFrom 0 (negate lim) (lim - 1)
+
+indexRangeFor :: Integer -> Range Integer
+indexRangeFor i = Range.constant 0 (i - 1)

@@ -35,7 +35,7 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, popCountAppend,
-                                    popCountSingleByte)
+                                    popCountSingleByte, testBitAppend, testBitEmpty, testBitSingleByte)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -603,7 +603,8 @@ testBitwise =
     testIorByteString,
     testXorByteString,
     testComplementByteString,
-    testPopCountByteString
+    testPopCountByteString,
+    testTestBitByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -653,6 +654,14 @@ testPopCountByteString = testGroup "PopCountByteString" [
     typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ 0),
   testPropertyNamed "popcount of singleton ByteString is correct" "popcount of singleton ByteString is correct" . property $ popCountSingleByte,
   testPropertyNamed "popcount of append is sum of popcounts" "popcount of append is sum of popcounts" . property $ popCountAppend
+  ]
+
+-- Tests for bit indexing into a ByteString
+testTestBitByteString :: TestTree
+testTestBitByteString = testGroup "TestBitByteString" [
+  testPropertyNamed "any index on an empty ByteString fails" "any index on an empty ByteString fails" . property $ testBitEmpty,
+  testPropertyNamed "indexing on singletons works correctly" "indexing on singletons works correctly" . property $ testBitSingleByte,
+  testPropertyNamed "indexing appends agrees with components" "indexing appends agrees with components" . property $ testBitAppend
   ]
 
 test_definition :: TestTree
