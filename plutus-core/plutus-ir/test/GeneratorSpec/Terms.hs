@@ -33,7 +33,7 @@ prop_genTypeCorrect =
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
-  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
+  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
 
 -- | Test that when we generate a fully applied term we end up
 -- with a well-typed term.

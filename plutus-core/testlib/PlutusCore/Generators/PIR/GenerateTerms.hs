@@ -42,7 +42,9 @@ import Data.Map qualified as Map
 import Data.Maybe
 import Data.Proxy
 import Data.Set qualified as Set
+import Data.String
 import GHC.Stack
+import PlutusIR.Core.Instance.Pretty.Readable
 import Prettyprinter
 import Test.QuickCheck (shrinkList)
 import Text.PrettyBy
@@ -240,7 +242,7 @@ genTermOfType ty = snd <$> genTerm (Just ty)
 -- Requires the type to be of kind *.
 genTerm :: Maybe (Type TyName DefaultUni ())
         -> GenTm (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
-genTerm mty = do
+genTerm mty = checkInvariants $ do
   customF <- asks geCustomFreq
   customG <- asks geCustomGen
   vars <- asks geTerms
@@ -265,6 +267,22 @@ genTerm mty = do
       [ (10, genIfTrace)      | isNothing mty ]                    ++
       [ (customF, customG mty) ]
   where
+
+    checkInvariants gen = do
+      (ty, tm) <- gen
+      debug    <- asks geDebug
+      tyctx    <- asks geTypes
+      tmctx    <- asks geTerms
+      when debug $ case typeCheckTermInContext tyctx tmctx tm ty of
+        Left err ->
+           (error . show $ "genTerm - checkInvariants: term " <> prettyPirReadable tm
+                         <> " does not type check at type " <> prettyPirReadable ty
+                         <> " in type context " <> prettyPirReadable tyctx
+                         <> " and term context " <> prettyPirReadable tmctx
+                         <> " with error message " <> fromString err)
+        _ -> return ()
+      return (ty, tm)
+
     funTypeView Nothing                             = Just (Nothing, Nothing)
     funTypeView (Just (normalizeTy -> TyFun _ a b)) = Just (Just a, Just b)
     funTypeView _                                   = Nothing
@@ -769,6 +787,11 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
 
 genTypeAndTerm_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 genTypeAndTerm_ = runGenTm $ do
+  (ty, body) <- genTerm Nothing
+  return (ty, body)
+
+genTypeAndTermDebug_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
+genTypeAndTermDebug_ = runGenTm . debug $ do
   (ty, body) <- genTerm Nothing
   return (ty, body)
 
