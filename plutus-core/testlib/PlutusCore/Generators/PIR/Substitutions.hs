@@ -22,15 +22,13 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module PlutusCore.Generators.PIR.Substitutions where
 
 import Control.Monad.Except
 
+import Data.Either
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe
@@ -41,6 +39,7 @@ import Test.QuickCheck
 
 import PlutusCore.Default
 import PlutusCore.Name
+import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Subst
 
@@ -58,8 +57,8 @@ unifyType :: Map TyName (Kind ())
           -- ^ `t1`
           -> Type TyName DefaultUni ()
           -- ^ `t2`
-          -> Maybe (Map TyName (Type TyName DefaultUni ()))
-          -- ^ maybe a substitution with domain `flex` that unifies `t1` and `t2`
+          -> Either String (Map TyName (Type TyName DefaultUni ()))
+          -- ^ either an error or a substitution with domain `flex` that unifies `t1` and `t2`
 unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
   where
     go sub locals a b =
@@ -69,8 +68,8 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
         (TyVar _ x, TyVar _ y) | x == y                -> pure sub
         (TyVar _ x, b) | validSolve x b                -> pure $ Map.insert x b sub
         (a, TyVar _ y) | validSolve y a                -> pure $ Map.insert y a sub
-        (TyFun _ a1 a2, TyFun _ b1 b2 )                -> unifies sub locals [a1, a2] [b1, b2]
-        (TyApp _ a1 a2, TyApp _ b1 b2 )                -> unifies sub locals [a1, a2] [b1, b2]
+        (TyFun _ a1 a2, TyFun _ b1 b2 )                -> unifies sub locals [(a1, b1), (a2, b2)]
+        (TyApp _ a1 a2, TyApp _ b1 b2 )                -> unifies sub locals [(a1, b1), (a2, b2)]
         (TyBuiltin _ c1, TyBuiltin _ c2) | c1 == c2    -> pure sub
         (TyForall _ x k a', TyForall _ y k' b')
           | k == k'                                    -> go sub (Set.insert z locals)
@@ -82,9 +81,17 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
                                                                  (renameType x z a')
                                                                  (renameType y z b')
           where z = freshenTyName (locals <> Map.keysSet ctx) x
-        (TyIFix _ a1 a2, TyIFix _ b1 b2 )              -> unifies sub locals [a1, a2] [b1, b2]
-        _                                              -> mzero
+        (TyIFix _ a1 a2, TyIFix _ b1 b2 )              -> unifies sub locals [(a1, b1), (a2, b2)]
+        (a, b)                                         ->
+          Left $ concat
+            [ "Failed to unify\n\n"
+            , display a
+            , "\n\n and\n\n"
+            , display b
+            , "\n\n"
+            ]
       where
+        -- TODO: Eitherify that.
         -- Check that in the current context we can solve variable z to type ty.
         validSolve z ty = and [ Set.member z flex -- z must be a "meta variable"
                               -- z can't be a locally bound variable
@@ -93,16 +100,15 @@ unifyType ctx flex sub a b = go sub Set.empty (normalizeTy a) (normalizeTy b)
                               -- where `z` is free in the type.
                               , not $ Set.member z fvs
                               -- The solve has to be well scoped
-                              , checkKind ctx ty (ctx Map.! z)
+                              , isRight $ checkKind ctx ty (ctx Map.! z)
                               -- We can't capture a locally bound variable
                               , null $ Set.intersection fvs locals ]
                               where fvs = fvTypeR sub ty
 
-    unifies sub _ [] [] = pure sub
-    unifies sub locals (a : as) (b : bs) = do
+    unifies sub _ [] = pure sub
+    unifies sub locals ((a, b) : abs) = do
       sub1 <- go sub locals a b
-      unifies sub1 locals as bs
-    unifies _ _ _ _ = mzero
+      unifies sub1 locals abs
 
 -- | Parallel substitution
 parSubstType :: Map TyName (Type TyName DefaultUni ())
@@ -208,6 +214,6 @@ shrinkSubst :: Map TyName (Kind ())
 shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
   where
     shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
-      where Just k = Map.lookup x ctx
+      where k = fromMaybe (error $ "internal error: " ++ show x ++ " not found") $ Map.lookup x ctx
     pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
       where fvs = ftvTy ty

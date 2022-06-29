@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module GeneratorSpec.Types where
 
+import Data.Either
 import Data.Map qualified as Map
 import PlutusCore.Generators.PIR
 import Test.QuickCheck
@@ -25,9 +27,11 @@ prop_shrinkTypeSound =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "k,ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- See discussion about the same trick in `prop_shrinkTermSound`
-  checkKind ctx ty k ==>
-  assertNoCounterexamples [ (k, ty) | (k, ty) <- shrinkKindAndType ctx (k, ty)
-                                    , not $ checkKind ctx ty k ]
+  isRight (checkKind ctx ty k) ==>
+  assertNoCounterexamples $ lefts
+    [ (k, ty, ) <$> checkKind ctx ty k
+    | (k, ty) <- shrinkKindAndType ctx (k, ty)
+    ]
 
 -- Utility tests for debugging
 
@@ -35,9 +39,11 @@ prop_shrinkTypeSound =
 prop_shrinkTypeSmallerKind :: Property
 prop_shrinkTypeSmallerKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->
-  assertNoCounterexamples [ (k', ty')
-                          | (k', ty') <- shrinkKindAndType Map.empty (k, ty)
-                          , not $ leKind k' k ]
+  assertNoCounterexamples
+    [ (k', ty')
+    | (k', ty') <- shrinkKindAndType Map.empty (k, ty)
+    , not $ leKind k' k
+    ]
 
 -- | Test that shrinking kinds generates smaller kinds
 prop_shrinkKindSmaller :: Property
@@ -51,6 +57,8 @@ prop_fixKind =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
-  assertNoCounterexamples [ (ty', k') | k' <- shrink k
-                                      , let ty' = fixKind ctx ty k'
-                                      , not $ checkKind ctx ty' k' ]
+  assertNoCounterexamples $ lefts
+    [ (ty', k', ) <$> checkKind ctx ty' k'
+    | k' <- shrink k
+    , let ty' = fixKind ctx ty k'
+    ]

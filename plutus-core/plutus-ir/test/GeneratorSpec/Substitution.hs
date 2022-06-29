@@ -6,15 +6,15 @@ module GeneratorSpec.Substitution where
 
 import PlutusCore.Generators.PIR
 
-import Data.Map qualified as Map
-import Data.Set qualified as Set
-
 import PlutusCore.Name
 import PlutusCore.Quote (runQuote)
 import PlutusCore.Rename
 import PlutusIR.Subst
 
-import Data.Maybe
+import Control.Monad
+import Data.Either
+import Data.Map qualified as Map
+import Data.Set qualified as Set
 import Data.String
 
 import Test.QuickCheck hiding (choose, vectorOf)
@@ -40,8 +40,8 @@ prop_unify =
   letCE "nty1" (normalizeTy ty1)           $ \ _ ->
   letCE "nty2" (normalizeTy ty2)           $ \ _ ->
   letCE "res" (unifyType ctx (Set.fromList $ take m xs) Map.empty ty1 ty2) $ \ res ->
-  isJust res ==>
-  let sub = fromJust res
+  isRight res ==>
+  let sub = fromRight (error "impossible") res
       checkSub (x, ty) = letCE "x,ty" (x, ty)    $ \ _ ->
                          letCE "k" (ctx Map.! x) $ \ k -> checkKind ctx ty k
   in
@@ -59,7 +59,7 @@ prop_unifyRename :: Property
 prop_unifyRename =
   forAllDoc "_, ty" genKindAndType (shrinkKindAndType mempty) $ \ (_, ty) ->
   letCE "rename ty" (runQuote $ rename ty) $ \ rnty ->
-  isJust $ unifyType mempty mempty mempty ty rnty
+  void $ unifyType mempty mempty mempty ty rnty
 
 -- | Check that substitution gets rid of all the right variables
 prop_substType :: Property
@@ -69,5 +69,7 @@ prop_substType =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "ty" (genTypeWithCtx ctx Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
-  letCE "res" (substType sub ty) $ \ res ->
-  fvTypeR sub ty == ftvTy res && checkKind ctx res Star
+  letCE "res" (substType sub ty) $ \ res -> do
+    -- TODO: be more precise.
+    unless (fvTypeR sub ty == ftvTy res) $ Left "free type variables mismatch"
+    checkKind ctx res Star

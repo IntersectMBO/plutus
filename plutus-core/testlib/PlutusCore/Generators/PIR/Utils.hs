@@ -43,6 +43,7 @@ import Test.QuickCheck
 import PlutusCore.Default
 import PlutusCore.Generators.PIR.Common
 import PlutusCore.Name
+import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Subst
 
@@ -51,7 +52,7 @@ import PlutusIR.Core.Instance.Pretty.Readable
 
 -- | Show a `Doc` when a property fails.
 ceDoc :: Testable t => Doc ann -> t -> Property
-ceDoc d = counterexample (show d)
+ceDoc d = counterexample (render d)
 
 -- | Bind a value to a name in a property so that
 -- it is displayed as a `name = thing` binding if the

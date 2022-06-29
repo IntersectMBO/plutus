@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
@@ -8,11 +9,11 @@ import PlutusCore.Generators.PIR
 
 import Control.Monad.Reader
 
-import Data.Map qualified as Map
-
 import Data.Char
+import Data.Either
 import Data.List hiding (insert)
 import Data.List.NonEmpty (NonEmpty (..))
+import Data.Map qualified as Map
 import Text.Printf
 
 import PlutusCore.Name
@@ -56,12 +57,14 @@ prop_shrinkTermSound =
   -- Importantly, this property is only interesting when
   -- shrinking itself is broken, so we can only use the
   -- parts of shrinking that happen to be OK.
-  typeCheckTerm tm ty ==>
+  isRight (typeCheckTerm tm ty) ==>
   -- We don't want to let the shrinker get away with being empty, so we ignore empty shrinks. QuickCheck will give
   -- up and print an error if the shrinker returns the empty list too often.
   not (null shrinks) ==>
-  assertNoCounterexamples [ (ty, tm, scopeCheckTyVars Map.empty (ty, tm))
-                         | (ty, tm) <- shrinks, not $ typeCheckTerm tm ty ]
+  assertNoCounterexamples $ lefts
+    [ ((ty, tm), scopeCheckTyVars Map.empty (ty, tm), ) <$> typeCheckTerm tm ty
+    | (ty, tm) <- shrinks
+    ]
 
 -- * Utility tests for debugging generators that behave weirdly
 
@@ -71,11 +74,13 @@ prop_findInstantiation =
   forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
   forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
   forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
-  assertNoCounterexamples [ (n, insts)
-                         | n <- [0..arity ty+3]
-                         , Just insts <- [findInstantiation ctx n target ty]
-                         , not $ checkInst ctx x ty insts target
-                         ]
+  assertNoCounterexamples $ lefts
+    [ (n ,) <$> errOrFine
+    | n <- [0..arity ty+3]
+    , let errOrFine = do
+            insts <- findInstantiation ctx n target ty
+            checkInst ctx x ty insts target
+    ]
   where
     x = Name "x" (toEnum 0)
     arity (TyForall _ _ _ a) = arity a

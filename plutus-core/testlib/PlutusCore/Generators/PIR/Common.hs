@@ -34,12 +34,18 @@ module PlutusCore.Generators.PIR.Common where
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.String
-import Test.QuickCheck
+import Test.QuickCheck.Modifiers (NonNegative (..))
+import Test.QuickCheck.Property
 import Text.PrettyBy
 
 import PlutusCore.Default
 import PlutusCore.Name
 import PlutusIR
+
+instance Testable (Either String ()) where
+    property = property . \case
+        Left err -> failed { reason = err }
+        Right () -> succeeded
 
 -- CODE REVIEW: where to put the stuff below? Can we refactor to the point where we don't need them?
 -- Currently we need these for shrinking, getting rid of them would be nice.

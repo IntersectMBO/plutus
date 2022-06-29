@@ -30,12 +30,12 @@
 module PlutusCore.Generators.PIR.GenerateTerms where
 
 import Control.Applicative ((<|>))
-import Control.Arrow hiding ((<+>))
 import Control.Lens ((<&>))
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.Trans.Maybe
 
+import Data.Bifunctor
+import Data.Either
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map (Map)
 import Data.Map qualified as Map
@@ -94,7 +94,7 @@ findInstantiation :: HasCallStack
                   -> Int
                   -> Type TyName DefaultUni ()
                   -> Type TyName DefaultUni ()
-                  -> Maybe [TyInst]
+                  -> Either String [TyInst]
 findInstantiation ctx n target ty = do
   sub <- unifyType (ctx <> ctx') flex Map.empty target b
       -- We map any unsolved flexible variables to ∀ a. a
@@ -129,7 +129,7 @@ shrinkConstant uni x = map (Const uni) $ bring (Proxy @ArbitraryBuiltin) uni $ s
 -- prefers to not default to `error`
 inhabitType :: Type TyName DefaultUni () -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
-  fromJust <$> runMaybeT (findTm ty <|> pure (Error () ty))
+  either error id <$> runExceptT (findTm ty <|> pure (Error () ty))
   where
     -- Do the obvious thing as long as target type is not type var
     -- When type var: magic (if higher-kinded type var: black magic)
@@ -139,13 +139,14 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     -- NOTE: because we make recursive calls to findTm in this function instead of
     -- inhabitType we don't risk generating terms that are "mostly ok but something is error",
     -- this function will avoid error if possible.
-    findTm :: Type TyName DefaultUni () -> MaybeT GenTm (Term TyName Name DefaultUni DefaultFun ())
+    findTm :: Type TyName DefaultUni ()
+           -> ExceptT String GenTm (Term TyName Name DefaultUni DefaultFun ())
     findTm (normalizeTy -> ty) = case ty of
       TyFun _ a b -> do
         x <- lift $ genFreshName "x"
-        LamAbs () x a <$> mapMaybeT (bindTmName x a) (findTm b)
+        LamAbs () x a <$> mapExceptT (bindTmName x a) (findTm b)
       TyForall _ x k b -> do
-        TyAbs () x k <$> mapMaybeT (bindTyName x k) (findTm b)
+        TyAbs () x k <$> mapExceptT (bindTyName x k) (findTm b)
       TyBuiltin _ b -> lift $ genConstant b
       -- If we have a type-function application
       (viewApp [] -> (f, _)) ->
@@ -170,9 +171,9 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
                 -- Go over every type and try to inhabit the type at the arguments
                 case [ local (\e -> e { geTerms = Map.delete x' (geTerms e) })
                        $ foldM (doInst n) (Var () x') insts
-                     | (x', a)    <- cands,
-                       n          <- [0..typeArity a],
-                       Just insts <- [findInstantiation ctx n ty a],
+                     | (x', a)     <- cands,
+                       n           <- [0..typeArity a],
+                       Right insts <- [findInstantiation ctx n ty a],
                        x `Set.notMember` fvArgs a
                      ] of
                   [] -> mzero
@@ -184,7 +185,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
       | Set.member d (fvArgs conTy) = mzero   -- <- This is ok, since no mutual recursion
       | otherwise = do
           tyctx <- lift $ asks geTypes
-          insts <- maybe mzero pure $ findInstantiation tyctx (typeArity conTy) ty conTy
+          insts <- liftEither $ findInstantiation tyctx (typeArity conTy) ty conTy
           let go tm [] = return tm
               go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
               go tm (InstArg ty : insts) = do
@@ -215,7 +216,7 @@ genAtomicTerm ty = do
   -- First try cheap unification
   let unifyVar (x, xty) = findInstantiation ctx 0 ty xty
                        <&> \ tys -> foldl (TyInst ()) (Var () x) [t | InstApp t <- tys]
-  case catMaybes $ map unifyVar $ Map.toList vars of
+  case rights $ map unifyVar $ Map.toList vars of
     -- If unification didn't work try the heavy-handed `inhabitType`.
     -- NOTE: We could probably just replace this whole function with
     -- `inhabitType` and the generators would run fine, but this method
@@ -381,9 +382,9 @@ genTerm mty = do
                                        . noEscape
                                        $ Apply () tm <$> genTermOfType argTy
       case [ foldM (doInst n) (Var () x) insts
-           | (x, a)     <- cands,
-             n          <- [0..typeArity a],
-             Just insts <- [findInstantiation ctx n ty a]
+           | (x, a)      <- cands,
+             n           <- [0..typeArity a],
+             Right insts <- [findInstantiation ctx n ty a]
            ] of
         [] -> (ty,) <$> inhabitType ty
         gs -> (ty,) <$> oneof gs
@@ -503,7 +504,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           | TyFun _ _ b <- [ty]
           , x `Set.notMember` fvTerm body ]
 
-        Apply _ fun arg | Just argTy <- inferTypeInContext tyctx ctx arg ->
+        Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
           -- Drop substerms
           [(argTy, arg), (TyFun () argTy ty, fun)] ++
           -- Shrink subterms (TODO: this is really two-step shrinking and might not be necessary)
@@ -556,7 +557,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
                          -- TODO: use proper fixupType
                          | otherwise = substType (Map.singleton x $ minimalType k) tyInner
                 fun' = fixupTerm tyctx ctx tyctx ctx (TyForall () x k' tyInner') fun
-          ] where Just (TyForall _ x k tyInner) = inferTypeInContext tyctx ctx fun
+          ] where Right (TyForall _ x k tyInner) = inferTypeInContext tyctx ctx fun
 
         TyAbs _ x _ body | not $ Map.member x tyctx ->
           [ (TyForall () x k tyInner', TyAbs () x k body')
@@ -569,20 +570,20 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           | TyFun _ _ b <- [ty],
             (b', body') <- go tyctx (Map.insert x a ctx) (b, body)
           ] ++
-          [ (TyFun () a' *** LamAbs () x a') $ fixupTerm_ tyctx (Map.insert x a ctx)
-                                                          tyctx (Map.insert x a' ctx) b body
+          [ bimap (TyFun () a') (LamAbs () x a') $
+              fixupTerm_ tyctx (Map.insert x a ctx) tyctx (Map.insert x a' ctx) b body
           | TyFun _ _ b <- [ty],
             a' <- shrinkType tyctx a
           ]
 
         Apply _ fun arg ->
           [ (ty', Apply () fun' arg')
-          | Just argTy <- [inferTypeInContext tyctx ctx arg]
+          | Right argTy <- [inferTypeInContext tyctx ctx arg]
           , (TyFun _ argTy' ty', fun') <- go tyctx ctx (TyFun () argTy ty, fun)
           , let arg' = fixupTerm tyctx ctx tyctx ctx argTy' arg
           ] ++
           [ (ty,  Apply () fun' arg')
-          | Just argTy <- [inferTypeInContext tyctx ctx arg]
+          | Right argTy <- [inferTypeInContext tyctx ctx arg]
           , (argTy', arg') <- go tyctx ctx (argTy, arg)
           , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
           ]
@@ -597,8 +598,8 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 inferTypeInContext :: Map TyName (Kind ())
                    -> Map Name (Type TyName DefaultUni ())
                    -> Term TyName Name DefaultUni DefaultFun ()
-                   -> Maybe (Type TyName DefaultUni ())
-inferTypeInContext tyctx ctx tm = either (const Nothing) Just
+                   -> Either String (Type TyName DefaultUni ())
+inferTypeInContext tyctx ctx tm = first display
                                 $ runQuoteT @(Either (Error DefaultUni DefaultFun ())) $ do
   -- CODE REVIEW: this algorithm is fragile, it relies on knowing that `inferType`
   -- does renaming to compute the `esc` substitution for datatypes. However, there is also
@@ -683,8 +684,8 @@ fixupTerm_ :: Map TyName (Kind ())
            -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
 fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
   case inferTypeInContext tyctxNew ctxNew tm of
-    Nothing -> case tm of
-      LamAbs _ x a tm | TyFun () _ b <- tyNew -> (a ->>) *** (LamAbs () x a)
+    Left _ -> case tm of
+      LamAbs _ x a tm | TyFun () _ b <- tyNew -> bimap (a ->>) (LamAbs () x a)
                                               $ fixupTerm_ tyctxOld (Map.insert x a ctxOld)
                                                            tyctxNew (Map.insert x a ctxNew) b tm
       Apply _ (Apply _ (TyInst _ BIF_Trace _) s) tm ->
@@ -692,7 +693,7 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
         in (ty', Apply () (Apply () (TyInst () BIF_Trace ty') s) tm')
       _ | TyBuiltin _ b <- tyNew -> (tyNew, minimalBuiltin b)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
-    Just ty -> (ty, tm)
+    Right ty -> (ty, tm)
 
 -- | Try to take a term from an old context to a new context and a new type - default to `mkHelp`.
 fixupTerm :: Map TyName (Kind ())
@@ -703,8 +704,8 @@ fixupTerm :: Map TyName (Kind ())
           -> Term TyName Name DefaultUni DefaultFun ()
           -> Term TyName Name DefaultUni DefaultFun ()
 fixupTerm _ _ tyctxNew ctxNew tyNew tm
-  | typeCheckTermInContext tyctxNew ctxNew tm tyNew = tm
-  | otherwise                                       = mkHelp ctxNew tyNew
+  | isRight (typeCheckTermInContext tyctxNew ctxNew tm tyNew) = tm
+  | otherwise                                                 = mkHelp ctxNew tyNew
 
 minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
 minimalBuiltin (SomeTypeIn b) = case toSingKind b of
@@ -801,14 +802,14 @@ genTermInContext_ tyctx ctx ty =
 
 typeCheckTerm :: Term TyName Name DefaultUni DefaultFun ()
               -> Type TyName DefaultUni ()
-              -> Bool
+              -> Either String ()
 typeCheckTerm = typeCheckTermInContext Map.empty Map.empty
 
 typeCheckTermInContext :: Map TyName (Kind ())
                        -> Map Name (Type TyName DefaultUni ())
                        -> Term TyName Name DefaultUni DefaultFun ()
                        -> Type TyName DefaultUni ()
-                       -> Bool
-typeCheckTermInContext tyctx ctx tm ty = isJust $ do
+                       -> Either String ()
+typeCheckTermInContext tyctx ctx tm ty = void $ do
     ty' <- inferTypeInContext tyctx ctx tm
     unifyType tyctx mempty mempty ty' ty
