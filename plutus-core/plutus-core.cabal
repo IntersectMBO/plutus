@@ -294,6 +294,7 @@ library
     , mmorph
     , monoidal-containers
     , mtl
+    , nothunks
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
