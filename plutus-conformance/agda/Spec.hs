@@ -17,7 +17,7 @@ agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
 agdaEvalUplcProg p =
     let
         -- turn a UPLC program to a UPLC term
-        tmU = UPLC.mkTerm p
+        tmU = UPLC.progTerm p
         -- turn it into an untyped de Bruijn term
         tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
         tmUDB = deBruijnTerm tmU
@@ -33,7 +33,7 @@ agdaEvalUplcProg p =
                     -- turn it back into a named term
                     case runQuote $ runExceptT $ withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
                         Left _          -> Nothing
-                        Right namedTerm -> Just $ UPLC.mkProg namedTerm
+                        Right namedTerm -> Just $ UPLC.mkDefaultProg namedTerm
 
 main :: IO ()
 main =
