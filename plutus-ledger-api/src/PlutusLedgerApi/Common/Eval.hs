@@ -68,7 +68,7 @@ mkTermToEvaluate lv pv bs args = do
     (_, ScriptForExecution (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseFromBytes (scriptCBORDecoder lv pv) $ fromStrict $ fromShort bs
     unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
-        appliedT = UPLC.mkIterApp () t termArgs
+        appliedT = UPLC.mkIterApp () t $ termArgs
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
