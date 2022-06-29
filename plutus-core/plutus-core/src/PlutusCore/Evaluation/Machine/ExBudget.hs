@@ -1,10 +1,10 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE StrictData             #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE StrictData            #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 {- Note [Strict Data for budgeting]
 
@@ -144,6 +144,7 @@ module PlutusCore.Evaluation.Machine.ExBudget
     )
 where
 
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
@@ -151,7 +152,7 @@ import Data.Char (toLower)
 import Data.Semigroup
 import Deriving.Aeson
 import Language.Haskell.TH.Lift (Lift)
-import PlutusCore.Evaluation.Machine.ExMemory
+import NoThunks.Class
 import Prettyprinter
 
 
@@ -175,7 +176,7 @@ instance ExBudgetBuiltin fun () where
 
 data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving anyclass (PrettyBy config, NFData, Serialise)
+    deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 

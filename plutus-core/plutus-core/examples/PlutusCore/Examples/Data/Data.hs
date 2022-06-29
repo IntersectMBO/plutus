@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Examples.Data.Data
     ( ofoldrData

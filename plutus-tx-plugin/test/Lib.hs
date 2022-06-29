@@ -29,7 +29,7 @@ import PlutusCore.Pretty
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun) =>
+instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
     toUPlc v = do
         v' <- catchAll $ getPlc v

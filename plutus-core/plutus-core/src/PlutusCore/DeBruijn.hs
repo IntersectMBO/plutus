@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+
 -- | Support for using de Bruijn indices for term and type names.
 module PlutusCore.DeBruijn
     ( Index (..)

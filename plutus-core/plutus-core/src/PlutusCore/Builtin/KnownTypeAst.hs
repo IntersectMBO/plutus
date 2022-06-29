@@ -2,7 +2,6 @@
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DefaultSignatures        #-}
 {-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE KindSignatures           #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}

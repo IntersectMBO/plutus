@@ -143,7 +143,7 @@ goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 <$> (r
 
 -- Helpers
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun) =>
+instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
     toUPlc v = do
         v' <- catchAll $ getPlc v
