@@ -12,6 +12,7 @@ import PlutusLedgerApi.Common.ProtocolVersions
 import Data.Foldable
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import Prettyprinter
 
 {- Note [New builtins and protocol versions]
 When we add a new builtin to the language, that is a *backwards-compatible* change.
@@ -40,6 +41,9 @@ data LedgerPlutusVersion =
     | PlutusV2
     | PlutusV3
    deriving stock (Eq, Ord, Show)
+
+instance Pretty LedgerPlutusVersion where
+    pretty = viaShow
 
 {-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
 
