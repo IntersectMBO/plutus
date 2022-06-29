@@ -173,7 +173,7 @@ writeBitByteString bs i b
       void . memcpy dst src . fromIntegral $ len
       byte :: Word8 <- peek . plusPtr src $ bigIx
       let byte' = if b then mask .|. byte else complement mask .&. byte
-      poke (castPtr . plusPtr src $ bigIx) byte'
+      poke (castPtr . plusPtr dst $ bigIx) byte'
       unsafePackMallocCStringLen (dst, len)
 
 integerToByteString :: Integer -> ByteString

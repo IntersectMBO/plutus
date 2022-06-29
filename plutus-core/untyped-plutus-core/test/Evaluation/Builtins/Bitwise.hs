@@ -27,12 +27,15 @@ module Evaluation.Builtins.Bitwise (
   testBitEmpty,
   testBitSingleByte,
   testBitAppend,
+  writeBitRead,
+  writeBitDouble,
+  ffsSingleByte,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
 import Control.Monad (guard)
 import Data.Bitraversable (bitraverse)
-import Data.Bits (bit, complement, popCount, shiftL, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (bit, complement, countTrailingZeros, popCount, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Word (Word8)
@@ -41,7 +44,7 @@ import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, IorByteString, PopCountByteString, TestBitByteString, XorByteString),
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, TestBitByteString, WriteBitByteString, XorByteString),
                    DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -247,7 +250,82 @@ testBitAppend = do
                 mkConstant @Integer () (ix - len')
                 ]
 
+writeBitRead :: PropertyT IO ()
+writeBitRead = do
+  testCase <- forAllWith ppShow genWriteBitCase
+  cover 45 "out of bounds" . hasn't _WriteBitResult $ testCase
+  cover 45 "in-bounds" . has _WriteBitResult $ testCase
+  let (bs, ix, b) = getWriteBitArgs testCase
+  let expected = preview _WriteBitResult testCase
+  let bs' = mkConstant @ByteString () bs
+  let ix' = mkConstant @Integer () ix
+  let b' = mkConstant @Bool () b
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        mkIterApp () (builtin () WriteBitByteString) [bs', ix', b'],
+        ix'
+        ]
+  outcome <- cekEval comp
+  case (expected, outcome) of
+    (Nothing, EvaluationFailure)       -> success
+    (Just res, EvaluationSuccess res') -> mkConstant @Bool () res === res'
+    _                                  -> failure
+
+writeBitDouble :: PropertyT IO ()
+writeBitDouble = do
+  testCase <- forAllWith ppShow genWriteBitCase
+  cover 45 "out of bounds" . hasn't _WriteBitResult $ testCase
+  cover 45 "in-bounds" . has _WriteBitResult $ testCase
+  let (bs, ix, b) = getWriteBitArgs testCase
+  b' <- forAllWith ppShow Gen.enumBounded
+  let bs' = mkConstant @ByteString () bs
+  let ix' = mkConstant @Integer () ix
+  let writeTwice = mkIterApp () (builtin () WriteBitByteString) [
+        mkIterApp () (builtin () WriteBitByteString) [bs', ix', mkConstant @Bool () b],
+        ix',
+        mkConstant @Bool () b'
+        ]
+  let writeOnce = mkIterApp () (builtin () WriteBitByteString) [
+        bs',
+        ix',
+        mkConstant @Bool () b'
+        ]
+  outcome <- bitraverse cekEval cekEval (writeTwice, writeOnce)
+  case outcome of
+    (EvaluationFailure, EvaluationFailure)          -> success
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
+ffsSingleByte :: PropertyT IO ()
+ffsSingleByte = do
+  w8 <- forAllWith ppShow Gen.enumBounded
+  let bs = BS.singleton w8
+  let expected = case w8 of
+        0 -> (-1)
+        _ -> fromIntegral . countTrailingZeros $ w8
+  let comp = mkIterApp () (builtin () FindFirstSetByteString) [
+        mkConstant @ByteString () bs
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant @Integer () expected
+    _                     -> failure
+
 -- Helpers
+
+data WriteBitCase =
+  WriteBitOutOfBounds ByteString Integer Bool |
+  WriteBitInBounds ByteString Integer Bool
+  deriving stock (Eq, Show)
+
+_WriteBitResult :: Fold WriteBitCase Bool
+_WriteBitResult = folding $ \case
+  WriteBitInBounds _ _ b -> pure b
+  _                      -> Nothing
+
+getWriteBitArgs :: WriteBitCase -> (ByteString, Integer, Bool)
+getWriteBitArgs = \case
+  WriteBitOutOfBounds bs ix b -> (bs, ix, b)
+  WriteBitInBounds bs ix b    -> (bs, ix, b)
 
 data BitAppendCase =
   AppendOutOfBounds ByteString ByteString Integer |
@@ -626,10 +704,32 @@ genBitAppendCase = Gen.choice [oob, inBounds1, inBounds2]
       let len' = fromIntegral $ 8 * BS.length secondArg
       ix <- Gen.integral . indexRangeFor $ len'
       pure . AppendInBoundsSecond bs secondArg $ ix
-    tooLowIx :: Integer -> Gen Integer
-    tooLowIx i = Gen.integral . Range.linear (-1) . negate $ i
-    tooHighIx :: Integer -> Gen Integer
-    tooHighIx i = Gen.integral . Range.linear i $ i * 2
+
+genWriteBitCase :: Gen WriteBitCase
+genWriteBitCase = Gen.choice [oob, inBounds]
+  where
+    oob :: Gen WriteBitCase
+    oob = do
+      bs <- Gen.bytes byteBoundRange
+      let len = fromIntegral $ 8 * BS.length bs
+      b <- Gen.enumBounded
+      ix <- Gen.choice [tooLowIx len, tooHighIx len]
+      pure . WriteBitOutOfBounds bs ix $ b
+    inBounds :: Gen WriteBitCase
+    inBounds = do
+      bs <- Gen.bytes byteBoundRange
+      w8 <- Gen.enumBounded
+      let bs' = BS.cons w8 bs
+      let len = fromIntegral $ 8 * BS.length bs'
+      b <- Gen.enumBounded
+      ix <- Gen.integral . indexRangeFor $ len
+      pure . WriteBitInBounds bs' ix $ b
+
+tooLowIx :: Integer -> Gen Integer
+tooLowIx = Gen.integral . Range.linear (-1) . negate
+
+tooHighIx :: Integer -> Gen Integer
+tooHighIx i = Gen.integral . Range.linear i $ i * 2
 
 -- Ranges
 

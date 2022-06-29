@@ -34,8 +34,9 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
-                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, popCountAppend,
-                                    popCountSingleByte, testBitAppend, testBitEmpty, testBitSingleByte)
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsSingleByte,
+                                    popCountAppend, popCountSingleByte, testBitAppend, testBitEmpty, testBitSingleByte,
+                                    writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -604,7 +605,9 @@ testBitwise =
     testXorByteString,
     testComplementByteString,
     testPopCountByteString,
-    testTestBitByteString
+    testTestBitByteString,
+    testWriteBitByteString,
+    testFindFirstSetByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -662,6 +665,23 @@ testTestBitByteString = testGroup "TestBitByteString" [
   testPropertyNamed "any index on an empty ByteString fails" "any index on an empty ByteString fails" . property $ testBitEmpty,
   testPropertyNamed "indexing on singletons works correctly" "indexing on singletons works correctly" . property $ testBitSingleByte,
   testPropertyNamed "indexing appends agrees with components" "indexing appends agrees with components" . property $ testBitAppend
+  ]
+
+-- Tests for bit setting or clearing of a ByteString
+testWriteBitByteString :: TestTree
+testWriteBitByteString = testGroup "WriteBitByteString" [
+  testPropertyNamed "writing then reading gives back what you wrote" "writing then reading gives back what you wrote" . property $ writeBitRead,
+  testPropertyNamed "second write wins" "second write wins" . property $ writeBitDouble
+  ]
+
+-- Tests for finding first set bit of a ByteString
+testFindFirstSetByteString :: TestTree
+testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
+  testCase "find first set of empty Bytestring is -1" $ do
+    let arg = mkConstant @ByteString () ""
+    let comp = mkIterApp () (builtin () FindFirstSetByteString) [ arg ]
+    typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ (-1)),
+  testPropertyNamed "find first set on singletons works correctly" "find first set on singletons works correctly" . property $ ffsSingleByte
   ]
 
 test_definition :: TestTree
