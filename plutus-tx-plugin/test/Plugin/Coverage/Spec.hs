@@ -52,11 +52,11 @@ boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskel
 coverage :: TestNested
 coverage = testNested "Coverage"
   [ pure $ testGroup "Application heads and line coverage"
-         [ mkTests "noBool" noBool Set.empty [28]
-         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [31]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [34, 38, 39, 40]
-         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [46]
-         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
+         [ mkTests "noBool" noBool Set.empty [29]
+         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [32]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [35, 39, 40, 41]
+         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [47]
+         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [50]
          ]
  , goldenPir "coverageCode" boolOtherFunction ]
 
