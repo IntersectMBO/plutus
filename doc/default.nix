@@ -2,7 +2,7 @@
 , lib
 , pythonPackages
 , sphinxcontrib-domaintools
-, sphinxcontrib-haddoc
+, sphinxcontrib-haddock
 , sphinx-markdown-tables
 , sphinxemoji
 , combined-haddock
