@@ -16,4 +16,6 @@ indent_size = 2
 [*.hs]
 max_line_length = 100
 # Wildly inconsistent, we should decide on one
+# Especially it looks like we have lots of disagreement
+# over how much indentation to use for 'where' clauses
 #indent_size = 4
