@@ -35,8 +35,8 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
-                                    popCountAppend, popCountSingleByte, testBitAppend, testBitEmpty, testBitSingleByte,
-                                    writeBitDouble, writeBitRead)
+                                    popCountAppend, popCountSingleByte, rotateIdentity, testBitAppend, testBitEmpty,
+                                    testBitSingleByte, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -607,7 +607,8 @@ testBitwise =
     testPopCountByteString,
     testTestBitByteString,
     testWriteBitByteString,
-    testFindFirstSetByteString
+    testFindFirstSetByteString,
+    testRotateByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -683,6 +684,12 @@ testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
     typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ (-1)),
   testPropertyNamed "find first set on singletons works correctly" "find first set on singletons works correctly" . property $ ffsSingleByte,
   testPropertyNamed "find first set on appended ByteStrings works correctly" "find first set on appended ByteStrings works correctly" . property $ ffsAppend
+  ]
+
+-- Tests for ByteString rotations
+testRotateByteString :: TestTree
+testRotateByteString = testGroup "RotateByteString" [
+  testPropertyNamed "rotating by 0 does nothing" "rotating by 0 does nothing" . property $ rotateIdentity
   ]
 
 test_definition :: TestTree

@@ -31,6 +31,7 @@ module Evaluation.Builtins.Bitwise (
   writeBitDouble,
   ffsSingleByte,
   ffsAppend,
+  rotateIdentity,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -45,7 +46,7 @@ import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, TestBitByteString, WriteBitByteString, XorByteString),
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, TestBitByteString, WriteBitByteString, XorByteString),
                    DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -341,6 +342,18 @@ ffsAppend = do
   case outcome of
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
+
+rotateIdentity :: PropertyT IO ()
+rotateIdentity = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  let comp = mkIterApp () (builtin () RotateByteString) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () 0
+          ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant () bs
+    _                     -> failure
 
 -- Helpers
 

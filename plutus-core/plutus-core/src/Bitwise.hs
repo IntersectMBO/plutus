@@ -42,14 +42,16 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
 
 {-# NOINLINE rotateByteString #-}
 rotateByteString :: ByteString -> Integer -> ByteString
-rotateByteString bs i = case magnitude `rem` bitLength of
-  0 -> bs -- nothing to do irrespective of direction
-  actualMagnitude -> case signum i of
-    0 -> bs -- dummy case that never happens
-    (-1) ->
-      unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingRotation actualMagnitude
-    _ ->
-      unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingRotation actualMagnitude
+rotateByteString bs i
+  | BS.null bs = bs
+  | otherwise = case magnitude `rem` bitLength of
+      0 -> bs -- nothing to do irrespective of direction
+      actualMagnitude -> case signum i of
+        0 -> bs -- dummy case that never happens
+        (-1) ->
+          unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingRotation actualMagnitude
+        _ ->
+          unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingRotation actualMagnitude
   where
     magnitude :: Int
     magnitude = fromIntegral . abs $ i
