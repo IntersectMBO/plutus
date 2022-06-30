@@ -47,7 +47,6 @@ import PlutusCore.Evaluation.Machine.ExBudget
 
 import Barbies
 import Data.Aeson
-import Data.Default.Class
 import Data.Kind qualified as Kind
 import Data.Monoid
 import Deriving.Aeson

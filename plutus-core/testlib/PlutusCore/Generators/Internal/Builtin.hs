@@ -29,6 +29,7 @@ import Data.Int (Int64)
 import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
+import Data.Word (Word8)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -71,6 +72,7 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @()) = SomeGen $ pure ()
     | Just HRefl <- eqTypeRep tr (typeRep @Integer) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Int) = SomeGen genInteger
+    | Just HRefl <- eqTypeRep tr (typeRep @Word8) = SomeGen genInteger
     | Just HRefl <- eqTypeRep tr (typeRep @Bool) = SomeGen Gen.bool
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText

@@ -24,7 +24,7 @@ import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin.Meaning qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
@@ -152,14 +152,16 @@ type InliningConstraints tyname name uni fun =
     )
 
 
-data InlineInfo name a = InlineInfo
-    { _strictnessMap :: Deps.StrictnessMap
-    , _usages        :: Usages.Usages
-    , _hints         :: InlineHints name a
+data InlineInfo name fun a = InlineInfo
+    { _iiStrictnessMap :: Deps.StrictnessMap
+    , _iiUsages        :: Usages.Usages
+    , _iiHints         :: InlineHints name a
+    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
     }
+makeLenses ''InlineInfo
 
 -- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
-type InlineM tyname name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst tyname name uni fun a) Quote)
+type InlineM tyname name uni fun a = ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -209,14 +211,15 @@ inline
     :: forall tyname name uni fun a m
     . ExternalConstraints tyname name uni fun m
     => InlineHints name a
+    -> PLC.BuiltinVersion fun
     -> Term tyname name uni fun a
     -> m (Term tyname name uni fun a)
-inline hints t = let
-        inlineInfo :: InlineInfo name a
-        inlineInfo = InlineInfo (snd deps) usgs hints
+inline hints ver t = let
+        inlineInfo :: InlineInfo name fun a
+        inlineInfo = InlineInfo (snd deps) usgs hints ver
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
-        deps = Deps.runTermDeps t
+        deps = Deps.runTermDeps ver t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
@@ -320,7 +323,7 @@ maybeAddSubst body a s n rhs = do
     rhs' <- processTerm rhs
 
     -- Check whether we've been told specifically to inline this
-    hints <- asks _hints
+    hints <- view iiHints
     let hinted = shouldInline hints a n
 
     preUnconditional <- preInlineUnconditional rhs'
@@ -338,14 +341,14 @@ maybeAddSubst body a s n rhs = do
 
         checkPurity :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         checkPurity t = do
-            strctMap <- asks _strictnessMap
+            strctMap <- view iiStrictnessMap
+            builtinVer <- view iiBuiltinVer
             let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-                termIsPure = isPure strictnessFun t
-            pure termIsPure
+            pure $ isPure builtinVer strictnessFun t
 
         preInlineUnconditional :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         preInlineUnconditional t = do
-            usgs <- asks _usages
+            usgs <- view iiUsages
             -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
             let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
             -- See Note [Inlining and purity]
@@ -449,7 +452,7 @@ maybeAddTySubst
     -> Type tyname uni a
     -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
 maybeAddTySubst tn rhs = do
-    usgs <- asks _usages
+    usgs <- view iiUsages
     -- No need for multiple phases here
     let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
     if typeUsedAtMostOnce || trivialType rhs
