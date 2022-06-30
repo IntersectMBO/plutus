@@ -190,6 +190,22 @@ instance Eq Value where
     {-# INLINABLE (==) #-}
     (==) = eq
 
+instance Haskell.Ord Value where
+    (<) = lt
+    (<=) = leq
+    (>) = gt
+    (>=) = geq
+
+instance Ord Value where
+    {-# INLINABLE (<) #-}
+    (<) = lt
+    {-# INLINABLE (<=) #-}
+    (<=) = leq
+    {-# INLINABLE (>) #-}
+    (>) = gt
+    {-# INLINABLE (>=) #-}
+    (>=) = geq
+
 -- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 -- do the right thing in some cases.
 

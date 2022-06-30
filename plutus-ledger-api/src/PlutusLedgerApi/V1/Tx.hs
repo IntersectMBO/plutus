@@ -165,7 +165,7 @@ data TxOut = TxOut {
     txOutValue     :: Value,
     txOutDatumHash :: Maybe DatumHash
     }
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
 instance Pretty TxOut where

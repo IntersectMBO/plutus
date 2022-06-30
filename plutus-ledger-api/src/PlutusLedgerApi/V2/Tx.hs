@@ -59,7 +59,7 @@ import PlutusLedgerApi.V1.Value
 
 -- | The datum attached to an output: either nothing; a datum hash; or the datum itself (an "inline datum").
 data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
 instance PlutusTx.Eq OutputDatum where
@@ -82,7 +82,7 @@ data TxOut = TxOut {
     txOutDatum           :: OutputDatum,
     txOutReferenceScript :: Maybe ScriptHash
     }
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
 instance Pretty TxOut where
