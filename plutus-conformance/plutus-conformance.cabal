@@ -81,7 +81,7 @@ test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: haskell
+  hs-source-dirs: haskell test-cases
   other-modules:
   build-depends:
     , base                >=4.9 && <5
@@ -91,7 +91,7 @@ test-suite agda-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: agda
+  hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
     , base                >=4.9 && <5

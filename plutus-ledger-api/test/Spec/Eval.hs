@@ -3,7 +3,6 @@
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where
 
-import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc

@@ -151,5 +151,5 @@ runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
     -> IO ()
 runUplcEvalTests evaluator = do
-    tests <- discoverTests (\dir -> MkUplcEvaluationTest evaluator dir) "uplc/evaluation"
+    tests <- discoverTests (\dir -> MkUplcEvaluationTest evaluator dir) "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
