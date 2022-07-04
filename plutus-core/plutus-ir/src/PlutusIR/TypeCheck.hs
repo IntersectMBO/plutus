@@ -53,16 +53,18 @@ would be better written as `let (nonrec) x = 3 in`. In such cases we could signa
 -- | The default 'TypeCheckConfig'.
 getDefTypeCheckConfig
     :: (MonadKindCheck err term uni fun ann m, PLC.Typecheckable uni fun)
-    => ann -> m (PirTCConfig uni fun)
+    => ann -> m (PLC.KindCheckConfig (PirTCConfig uni fun))
 getDefTypeCheckConfig ann = do
     configPlc <- PLC.getDefTypeCheckConfig ann
-    pure $ PirTCConfig configPlc YesEscape
+    pure $ flip PirTCConfig YesEscape <$> configPlc
 
 -- | Infer the type of a term.
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferType
     :: MonadTypeCheckPir err uni fun ann m
-    => PirTCConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => PLC.KindCheckConfig (PirTCConfig uni fun)
+    -> Term TyName Name uni fun ann
+    -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.
@@ -71,7 +73,7 @@ inferType config = rename >=> runTypeCheckM config . inferTypeM
 -- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkType
     :: MonadTypeCheckPir err uni fun ann m
-    => PirTCConfig uni fun
+    => PLC.KindCheckConfig (PirTCConfig uni fun)
     -> ann
     -> Term TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
@@ -84,7 +86,9 @@ checkType config ann term ty = do
 -- Note: The "inferred type" can escape its scope if YesEscape config is passed, see [PIR vs Paper Escaping Types Difference]
 inferTypeOfProgram
     :: MonadTypeCheckPir err uni fun ann m
-    => PirTCConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => PLC.KindCheckConfig (PirTCConfig uni fun)
+    -> Program TyName Name uni fun ann
+    -> m (Normalized (Type TyName uni ()))
 inferTypeOfProgram config (Program _ term) = inferType config term
 
 -- | Check a program against a type.
@@ -93,7 +97,7 @@ inferTypeOfProgram config (Program _ term) = inferType config term
 -- Note: this may allow witnessing a type that escapes its scope, see [PIR vs Paper Escaping Types Difference]
 checkTypeOfProgram
     :: MonadTypeCheckPir err uni fun ann m
-    => PirTCConfig uni fun
+    => PLC.KindCheckConfig (PirTCConfig uni fun)
     -> ann
     -> Program TyName Name uni fun ann
     -> Normalized (Type TyName uni ())

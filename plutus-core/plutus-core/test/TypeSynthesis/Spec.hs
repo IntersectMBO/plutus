@@ -28,7 +28,7 @@ kindcheck
     :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
     => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind ty
+    _ <- runQuoteT $ inferKind (toDefKindCheckConfig ()) ty
     return ty
 
 typecheck

@@ -25,7 +25,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 genName :: PLC.AstGen Name
-genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
+genName = Gen.filterT (not . isPirKw . _nameText) PLC.genName where
     isPirKw name = name `elem`
         [ "vardecl", "typedecl"
         , "let"

@@ -95,7 +95,9 @@ compile opts pirT = do
     set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
-    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
+    defaultCompilationCtx
+        :: PLC.KindCheckConfig (PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun)
+        -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
       & set' PIR.coOptimize                     cOptimize
@@ -119,7 +121,7 @@ loadPirAndAnalyse aopts = do
                 pirT ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
         -- a helper lookup table of uniques to their textual representation
         nameTable :: IM.IntMap T.Text
-        nameTable = IM.fromList [(coerce $ nameUnique n , nameString n) | n <- names]
+        nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
         retentionMap = PIR.termRetentionMap pirT

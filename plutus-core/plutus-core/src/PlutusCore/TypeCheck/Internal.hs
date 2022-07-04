@@ -9,6 +9,8 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 
+{-# LANGUAGE StrictData             #-}
+
 module PlutusCore.TypeCheck.Internal
     ( -- export all because a lot are used by the pir-typechecker
       module PlutusCore.TypeCheck.Internal
@@ -87,8 +89,19 @@ newtype BuiltinTypes uni fun = BuiltinTypes
     { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
     }
 
-type TyVarKinds = UniqueMap TypeUnique (Kind ())
-type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni ())))
+type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
+type VarTypes uni = UniqueMap TermUnique (Named (Dupable (Normalized (Type TyName uni ()))))
+
+data HandleWrongNames
+    = DetectWrongNames
+    | IgnoreWrongNames
+    deriving stock (Show, Eq)
+
+data KindCheckConfig cfg = KindCheckConfig
+    { _kccIgnoreWrongNames :: HandleWrongNames
+    , _kccTypeCheckConfig  :: cfg
+    } deriving stock (Functor, Foldable, Traversable)
+makeLenses ''KindCheckConfig
 
 -- | Configuration of the type checker.
 newtype TypeCheckConfig uni fun = TypeCheckConfig
@@ -98,9 +111,9 @@ makeClassy ''TypeCheckConfig
 
 -- | The environment that the type checker runs in.
 data TypeCheckEnv uni fun cfg = TypeCheckEnv
-    { _tceTypeCheckConfig :: cfg
-    , _tceTyVarKinds      :: TyVarKinds
-    , _tceVarTypes        :: VarTypes uni
+    { _tceConfig     :: KindCheckConfig cfg
+    , _tceTyVarKinds :: TyVarKinds
+    , _tceVarTypes   :: VarTypes uni
     }
 makeLenses ''TypeCheckEnv
 
@@ -133,7 +146,6 @@ type MonadTypeCheckPlc err uni fun ann m =
 -- ## Auxiliary functions ##
 -- #########################
 
-
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
 --
 -- Used for both type and kind checking, because we need to do kind checking during type checking
@@ -141,12 +153,18 @@ type MonadTypeCheckPlc err uni fun ann m =
 -- while kind checking doesn't, hence we keep the kind checker fully polymorphic over the type of
 -- config, so that the kinder checker can be run with an empty config (such as @()@) and access to
 -- a 'TypeCheckConfig' is not needed.
-runTypeCheckM :: cfg -> TypeCheckT uni fun cfg m a -> m a
+runTypeCheckM :: KindCheckConfig cfg -> TypeCheckT uni fun cfg m a -> m a
 runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
+
+defaultKindCheckConfig :: cfg -> KindCheckConfig cfg
+defaultKindCheckConfig = KindCheckConfig DetectWrongNames
+
+tceTypeCheckConfig :: Lens' (TypeCheckEnv uni fun cfg) cfg
+tceTypeCheckConfig = tceConfig . kccTypeCheckConfig
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
 withTyVar :: TyName -> Kind () -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a
-withTyVar name = local . over tceTyVarKinds . insertByName name
+withTyVar name = local . over tceTyVarKinds . insertNamed name
 
 -- | Look up the type of a built-in function.
 lookupBuiltinM
@@ -166,27 +184,37 @@ withVar
     -> Normalized (Type TyName uni ())
     -> TypeCheckT uni fun cfg m a
     -> TypeCheckT uni fun cfg m a
-withVar name = local . over tceVarTypes . insertByName name . dupable
+withVar name = local . over tceVarTypes . insertNamed name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
     :: MonadKindCheck err term uni fun ann m
     => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
-    mayKind <- asks $ lookupName name . _tceTyVarKinds
-    case mayKind of
-        Nothing   -> throwing _TypeError $ FreeTypeVariableE ann name
-        Just kind -> pure kind
+    env <- ask
+    let handleWrongNames = env ^. tceConfig . kccIgnoreWrongNames
+    case lookupName name $ _tceTyVarKinds env of
+        Nothing                    -> throwing _TypeError $ FreeTypeVariableE ann name
+        Just (Named nameOrig kind) ->
+            if handleWrongNames == IgnoreWrongNames || view theText name == nameOrig
+                then pure kind
+                else throwing _TypeError $
+                        TyNameMismatch ann (TyName . Name nameOrig $ name ^. theUnique) name
 
 -- | Look up a term variable in the current context.
 lookupVarM
     :: MonadTypeCheck err term uni fun ann m
     => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
-    mayTy <- asks $ lookupName name . _tceVarTypes
-    case mayTy of
-        Nothing -> throwing _TypeError $ FreeVariableE ann name
-        Just ty -> liftDupable ty
+    env <- ask
+    let handleWrongNames = env ^. tceConfig . kccIgnoreWrongNames
+    case lookupName name $ _tceVarTypes env of
+        Nothing                  -> throwing _TypeError $ FreeVariableE ann name
+        Just (Named nameOrig ty) ->
+            if handleWrongNames == IgnoreWrongNames || view theText name == nameOrig
+                then liftDupable ty
+                else throwing _TypeError $
+                        NameMismatch ann (Name nameOrig $ name ^. theUnique) name
 
 -- #############
 -- ## Dummies ##

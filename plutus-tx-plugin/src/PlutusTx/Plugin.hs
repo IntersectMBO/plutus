@@ -353,7 +353,7 @@ runCompiler moduleName opts expr = do
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
-                      then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
+                      then Just $ flip PIR.PirTCConfig PIR.YesEscape <$> plcTcConfig
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
