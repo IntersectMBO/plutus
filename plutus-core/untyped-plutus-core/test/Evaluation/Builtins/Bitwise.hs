@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Werror #-}
@@ -37,6 +38,8 @@ module Evaluation.Builtins.Bitwise (
   rotateHomogenous,
   rotateSum,
   shiftIdentity,
+  shiftIndexMotion,
+  shiftHomogenous,
   shiftSum,
   ) where
 
@@ -427,6 +430,33 @@ rotateIndexMotion = do
     (EvaluationSuccess res, EvaluationSuccess actual) -> res === actual
     _                                                 -> failure
 
+shiftIndexMotion :: PropertyT IO ()
+shiftIndexMotion = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  w8 <- forAllWith ppShow Gen.enumBounded
+  let bs' = BS.cons w8 bs
+  let bitLen = fromIntegral $ BS.length bs' * 8
+  i <- forAllWith ppShow . Gen.integral . indexRangeOf $ bitLen
+  readIx <- forAllWith ppShow . Gen.integral . indexRangeFor $ bitLen
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        mkIterApp () (builtin () ShiftByteString) [
+          mkConstant @ByteString () bs',
+          mkConstant @Integer () i
+          ],
+        mkConstant @Integer () readIx
+        ]
+  let comp' = let expectedIx = readIx - i in
+        if | expectedIx < 0 -> mkConstant @Bool () False
+           | expectedIx >= bitLen -> mkConstant @Bool () False
+           | otherwise -> mkIterApp () (builtin () TestBitByteString) [
+                            mkConstant @ByteString () bs',
+                            mkConstant @Integer () expectedIx
+                            ]
+  outcome <- bitraverse cekEval cekEval (comp, comp')
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
 rotateHomogenous :: PropertyT IO ()
 rotateHomogenous = do
   w8 <- forAllWith ppShow . Gen.element $ [zeroBits, complement zeroBits]
@@ -438,6 +468,20 @@ rotateHomogenous = do
   let comp = mkIterApp () (builtin () RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () rotation
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant @ByteString () bs
+    _                     -> failure
+
+shiftHomogenous :: PropertyT IO ()
+shiftHomogenous = do
+  len <- forAllWith ppShow . Gen.integral $ byteBoundRange
+  i <- forAllWith ppShow . Gen.integral $ indexRange
+  let bs = BS.replicate len zeroBits
+  let comp = mkIterApp () (builtin () ShiftByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () i
         ]
   outcome <- cekEval comp
   case outcome of

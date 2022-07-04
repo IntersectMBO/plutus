@@ -127,49 +127,6 @@ shiftByteString bs i
            | dangerousRead bs possibleIx -> acc .|. (bit . fromIntegral $ offset)
            | otherwise                   -> acc
 
-{-
-shiftByteString :: ByteString -> Integer -> ByteString
-shiftByteString bs i
-  | magnitude >= bitLength = BS.replicate (BS.length bs) 0
-  | otherwise = case signum i of
-      0 -> bs
-      (-1) ->
-        unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingShift
-      _ ->
-        unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingShift
-  where
-    magnitude :: Int
-    magnitude = fromIntegral . abs $ i
-    bitLength :: Int
-    bitLength = BS.length bs * 8
-    decreasingShift :: (Ptr CChar, Int) -> IO ByteString
-    decreasingShift (src, len) = do
-      let (bigShift, smallShift) = magnitude `quotRem` 8
-      dst <- mallocBytes len
-      -- clear the first bigShift bytes
-      for_ [0 .. bigShift - 1] $ \j -> poke (plusPtr dst j) (0 :: CChar)
-      -- copy in the rest, offset by bigShift
-      void . memcpy (plusPtr dst bigShift) src . fromIntegral $ len - bigShift
-      -- correct any outstanding shifts
-      unless (smallShift == 0)
-             (foldM_ (decreasingFixUp smallShift dst) 0 [bigShift .. len - 1])
-      -- pack it all up and go
-      unsafePackMallocCStringLen (dst, len)
-    increasingShift :: (Ptr CChar, Int) -> IO ByteString
-    increasingShift (src, len) = do
-      let (bigShift, smallShift) = magnitude `quotRem` 8
-      dst <- mallocBytes len
-      -- copy in the last len - bigShift bytes, offset to start from 0
-      void . memcpy dst (plusPtr src bigShift) . fromIntegral $ len - bigShift
-      -- clear the rest
-      for_ [len - bigShift, len - bigShift + 1 .. len - 1] $ \j -> poke (plusPtr dst j) (0 :: CChar)
-      -- correct any outstanding shifts
-      unless (smallShift == 0)
-             (foldM_ (increasingFixUp smallShift dst) 0 [len - bigShift - 1, len - bigShift .. 0])
-      -- pack it all up and go
-      unsafePackMallocCStringLen (dst, len)
--}
-
 findFirstSetByteString :: ByteString -> Integer
 findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
   where
@@ -445,28 +402,6 @@ findPosition w8 = foldl' go 7 . fmap (\i -> (i, bit 0 `shiftL` i)) $ [0 .. 7]
     go acc (i, mask) = case mask .&. w8 of
       0 -> acc -- nothing to see here, move along
       _ -> min acc i
-
-{-
-decreasingFixUp :: Int -> Ptr CChar -> Word8 -> Int -> IO Word8
-decreasingFixUp smallShift dst mask ix = do
-  let ptr = plusPtr dst ix
-  byte :: Word8 <- peek ptr
-  let bitsWeCareAbout = byte `shiftR` smallShift
-  let mask' = byte `shiftL` (8 - smallShift)
-  let masked = bitsWeCareAbout .|. mask
-  poke ptr masked
-  pure mask'
-
-increasingFixUp :: Int -> Ptr CChar -> Word8 -> Int -> IO Word8
-increasingFixUp smallShift dst mask ix = do
-  let ptr = plusPtr dst ix
-  byte :: Word8 <- peek ptr
-  let bitsWeCareAbout = byte `shiftL` smallShift
-  let mask' = byte `shiftR` (8 - smallShift)
-  let masked = bitsWeCareAbout .|. mask
-  poke ptr masked
-  pure mask'
--}
 
 countBits :: forall (a :: Type) .
   (FiniteBits a, Storable a) =>

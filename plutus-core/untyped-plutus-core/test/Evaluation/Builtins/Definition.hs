@@ -36,8 +36,9 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
                                     popCountAppend, popCountSingleByte, rotateHomogenous, rotateIdentity,
-                                    rotateIndexMotion, rotateSum, shiftIdentity, shiftSum, testBitAppend, testBitEmpty,
-                                    testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
+                                    rotateIndexMotion, rotateSum, shiftHomogenous, shiftIdentity, shiftIndexMotion,
+                                    shiftSum, testBitAppend, testBitEmpty, testBitSingleByte, writeBitAgreement,
+                                    writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -702,6 +703,8 @@ testRotateByteString = testGroup "RotateByteString" [
 testShiftByteString :: TestTree
 testShiftByteString = testGroup "ShiftByteString" [
   testPropertyNamed "shifting by 0 does nothing" "shifting by 0 does nothing" . property $ shiftIdentity,
+  testPropertyNamed "shifting adjusts indices correctly" "shifting adjusts indices correctly" . property $ shiftIndexMotion,
+  testPropertyNamed "shifting all-zeroes does nothing" "shifting all-zeroes does nothing" . property $ shiftHomogenous,
   testPropertyNamed "shifting in two steps is the same as shifting in one" "shifting in two steps is the same as shifting in one" . property $ shiftSum
   ]
 
