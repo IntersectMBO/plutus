@@ -1,8 +1,11 @@
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE MultiWayIf         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# OPTIONS_GHC -Werror #-}
 
 module Bitwise (
   integerToByteString,
@@ -19,8 +22,7 @@ module Bitwise (
   rotateByteString,
   ) where
 
-import Control.Monad (foldM_, unless)
-import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shiftL, shiftR, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
@@ -43,7 +45,7 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
 {-# NOINLINE rotateByteString #-}
 rotateByteString :: ByteString -> Integer -> ByteString
 rotateByteString bs i
-  | BS.length bs == 0 = bs
+  | BS.null bs = bs
   | BS.maximum bs == zeroBits = bs
   | BS.minimum bs == complement zeroBits = bs
   | otherwise = case i `rem` bitLen of
@@ -85,6 +87,49 @@ rotateByteString bs i
 {-# NOINLINE shiftByteString #-}
 shiftByteString :: ByteString -> Integer -> ByteString
 shiftByteString bs i
+  | abs i >= bitLen = BS.replicate (BS.length bs) zeroBits
+  | BS.maximum bs == zeroBits = bs
+  | otherwise = overPtrLen bs $ \ptr len ->
+      go ptr len >>= packWithLen len
+  where
+    bitLen :: Integer
+    bitLen = fromIntegral $ BS.length bs * 8
+    go :: Ptr Word8 -> Int -> IO (Ptr Word8)
+    go src len = do
+      dst <- mallocBytes len
+      case len of
+        1 -> do
+          srcByte <- peek src
+          let srcByte' = srcByte `shift` fromIntegral i
+          poke dst srcByte'
+        _ -> case i `quotRem` 8 of
+          (bigMove, 0) -> do
+            let mainLen :: CSize = fromIntegral . abs $ bigMove
+            let restLen :: CSize = fromIntegral len - mainLen
+            case signum bigMove of
+              1 -> do
+                void . memcpy dst (plusPtr src . fromIntegral $ mainLen) $ restLen
+                for_ [fromIntegral restLen, fromIntegral $ restLen + 1 .. len - 1] $ \j ->
+                    poke @Word8 (plusPtr dst j) zeroBits
+              _ -> do
+                for_ [0 .. fromIntegral mainLen - 1] $ \j -> poke @Word8 (plusPtr dst j) zeroBits
+                void . memcpy (plusPtr dst . fromIntegral $ mainLen) src $ restLen
+          _ -> for_ [0 .. len - 1] $ \j -> do
+                let start = (len - 1 - j) * 8
+                let dstByte = foldl' (addBit start) zeroBits [0 .. 7]
+                poke (plusPtr dst j) dstByte
+      pure dst
+    addBit :: Int -> Word8 -> Integer -> Word8
+    addBit start acc offset =
+      let possibleIx = offset + fromIntegral start - i in
+        if | possibleIx < 0              -> acc
+           | possibleIx >= bitLen        -> acc
+           | dangerousRead bs possibleIx -> acc .|. (bit . fromIntegral $ offset)
+           | otherwise                   -> acc
+
+{-
+shiftByteString :: ByteString -> Integer -> ByteString
+shiftByteString bs i
   | magnitude >= bitLength = BS.replicate (BS.length bs) 0
   | otherwise = case signum i of
       0 -> bs
@@ -123,6 +168,7 @@ shiftByteString bs i
              (foldM_ (increasingFixUp smallShift dst) 0 [len - bigShift - 1, len - bigShift .. 0])
       -- pack it all up and go
       unsafePackMallocCStringLen (dst, len)
+-}
 
 findFirstSetByteString :: ByteString -> Integer
 findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
@@ -400,6 +446,7 @@ findPosition w8 = foldl' go 7 . fmap (\i -> (i, bit 0 `shiftL` i)) $ [0 .. 7]
       0 -> acc -- nothing to see here, move along
       _ -> min acc i
 
+{-
 decreasingFixUp :: Int -> Ptr CChar -> Word8 -> Int -> IO Word8
 decreasingFixUp smallShift dst mask ix = do
   let ptr = plusPtr dst ix
@@ -419,6 +466,7 @@ increasingFixUp smallShift dst mask ix = do
   let masked = bitsWeCareAbout .|. mask
   poke ptr masked
   pure mask'
+-}
 
 countBits :: forall (a :: Type) .
   (FiniteBits a, Storable a) =>

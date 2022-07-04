@@ -36,8 +36,8 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
                                     popCountAppend, popCountSingleByte, rotateHomogenous, rotateIdentity,
-                                    rotateIndexMotion, rotateSum, testBitAppend, testBitEmpty, testBitSingleByte,
-                                    writeBitAgreement, writeBitDouble, writeBitRead)
+                                    rotateIndexMotion, rotateSum, shiftIdentity, shiftSum, testBitAppend, testBitEmpty,
+                                    testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -609,7 +609,8 @@ testBitwise =
     testTestBitByteString,
     testWriteBitByteString,
     testFindFirstSetByteString,
-    testRotateByteString
+    testRotateByteString,
+    testShiftByteString
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -695,6 +696,13 @@ testRotateByteString = testGroup "RotateByteString" [
   testPropertyNamed "rotation adjusts indices correctly" "rotation adjusts indices correctly" . property $ rotateIndexMotion,
   testPropertyNamed "rotating all-zero or all-one changes nothing" "rotating all-zero or all-one changes nothing" . property $ rotateHomogenous,
   testPropertyNamed "rotating by i, then by j is the same as rotating by i + j" "rotating by i, then by j is the same as rotating by i + j" . property $ rotateSum
+  ]
+
+-- Tests for ByteString shifts
+testShiftByteString :: TestTree
+testShiftByteString = testGroup "ShiftByteString" [
+  testPropertyNamed "shifting by 0 does nothing" "shifting by 0 does nothing" . property $ shiftIdentity,
+  testPropertyNamed "shifting in two steps is the same as shifting in one" "shifting in two steps is the same as shifting in one" . property $ shiftSum
   ]
 
 test_definition :: TestTree

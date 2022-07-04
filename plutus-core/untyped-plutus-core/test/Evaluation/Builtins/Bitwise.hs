@@ -36,6 +36,8 @@ module Evaluation.Builtins.Bitwise (
   rotateIndexMotion,
   rotateHomogenous,
   rotateSum,
+  shiftIdentity,
+  shiftSum,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -50,7 +52,7 @@ import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, TestBitByteString, WriteBitByteString, XorByteString),
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
                    DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -381,6 +383,19 @@ rotateIdentity = do
     EvaluationSuccess res -> res === mkConstant () bs
     _                     -> failure
 
+shiftIdentity :: PropertyT IO ()
+shiftIdentity = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  let comp = mkIterApp () (builtin () ShiftByteString) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () 0
+          ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant () bs
+    _                     -> failure
+
+
 rotateIndexMotion :: PropertyT IO ()
 rotateIndexMotion = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
@@ -447,6 +462,27 @@ rotateSum = do
           mkConstant @Integer () i,
           mkConstant @Integer () j
           ]
+        ]
+  outcome <- bitraverse cekEval cekEval (comp1, comp2)
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
+shiftSum :: PropertyT IO ()
+shiftSum = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  ij <- forAllWith ppShow . Gen.integral $ indexRange
+  (i, j) <- forAllWith ppShow . genSplit $ ij
+  let comp1 = mkIterApp () (builtin () ShiftByteString) [
+        mkIterApp () (builtin () ShiftByteString) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () i
+          ],
+        mkConstant @Integer () j
+        ]
+  let comp2 = mkIterApp () (builtin () ShiftByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () ij
         ]
   outcome <- bitraverse cekEval cekEval (comp1, comp2)
   case outcome of
@@ -944,6 +980,12 @@ tooLowIx = Gen.integral . Range.linear (-1) . negate
 
 tooHighIx :: Integer -> Gen Integer
 tooHighIx i = Gen.integral . Range.linear i $ i * 2
+
+genSplit :: Integer -> Gen (Integer, Integer)
+genSplit ij = Gen.element $ case signum ij of
+  1 -> [(i, j) | i <- [0 .. ij], j <- [0 .. ij], i + j == ij]
+  0 -> [(0, 0)]
+  _ -> [(i, j) | i <- [0, (-1) .. ij], j <- [0, (-1) .. ij], i + j == ij]
 
 -- Ranges
 
