@@ -29,9 +29,13 @@ module Evaluation.Builtins.Bitwise (
   testBitAppend,
   writeBitRead,
   writeBitDouble,
+  writeBitAgreement,
   ffsSingleByte,
   ffsAppend,
   rotateIdentity,
+  rotateIndexMotion,
+  rotateHomogenous,
+  rotateSum,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -297,6 +301,28 @@ writeBitDouble = do
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
 
+writeBitAgreement :: PropertyT IO ()
+writeBitAgreement = do
+  testCase <- forAllWith ppShow genWriteBitAgreementCase
+  let (bs, writeIx, readIx) = getWriteBitAgreementArgs testCase
+  cover 45 "read known zero" $ writeIx /= readIx
+  cover 45 "read known one" $ writeIx == readIx
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+          mkIterApp () (builtin () WriteBitByteString) [
+            mkConstant @ByteString () bs,
+            mkConstant @Integer () writeIx,
+            mkConstant @Bool () True
+            ],
+          mkConstant @Integer () readIx
+          ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res ->
+      if writeIx == readIx
+      then res === mkConstant @Bool () True
+      else res === mkConstant @Bool () False
+    _ -> failure
+
 ffsSingleByte :: PropertyT IO ()
 ffsSingleByte = do
   w8 <- forAllWith ppShow Gen.enumBounded
@@ -355,7 +381,89 @@ rotateIdentity = do
     EvaluationSuccess res -> res === mkConstant () bs
     _                     -> failure
 
+rotateIndexMotion :: PropertyT IO ()
+rotateIndexMotion = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  w8 <- forAllWith ppShow Gen.enumBounded
+  let bs' = BS.cons w8 bs
+  let bitLen = fromIntegral $ BS.length bs' * 8
+  i <- forAllWith ppShow . Gen.integral . indexRangeOf $ bitLen
+  readIx <- forAllWith ppShow . Gen.integral . indexRangeFor $ bitLen
+  let expectedReadIx = case signum i of
+        1 -> let raw = readIx - i in
+              case signum raw of
+                (-1) -> bitLen + raw
+                _    -> raw
+        0 -> readIx
+        _ -> (readIx - i) `rem` bitLen
+  let comp = mkIterApp () (builtin () TestBitByteString) [
+        mkIterApp () (builtin () RotateByteString) [
+          mkConstant @ByteString () bs',
+          mkConstant @Integer () i
+          ],
+        mkConstant @Integer () readIx
+        ]
+  let expected = mkIterApp () (builtin () TestBitByteString) [
+        mkConstant @ByteString () bs',
+        mkConstant @Integer () expectedReadIx
+        ]
+  outcome <- bitraverse cekEval cekEval (expected, comp)
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess actual) -> res === actual
+    _                                                 -> failure
+
+rotateHomogenous :: PropertyT IO ()
+rotateHomogenous = do
+  w8 <- forAllWith ppShow . Gen.element $ [zeroBits, complement zeroBits]
+  cover 45 "all ones" $ w8 == complement zeroBits
+  cover 45 "all zeroes" $ w8 == zeroBits
+  len <- forAllWith ppShow . Gen.integral $ byteBoundRange
+  let bs = BS.replicate len w8
+  rotation <- forAllWith ppShow . Gen.integral $ indexRange
+  let comp = mkIterApp () (builtin () RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkConstant @Integer () rotation
+        ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant @ByteString () bs
+    _                     -> failure
+
+rotateSum :: PropertyT IO ()
+rotateSum = do
+  bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
+  i <- forAllWith ppShow . Gen.integral $ indexRange
+  j <- forAllWith ppShow . Gen.integral $ indexRange
+  let comp1 = mkIterApp () (builtin () RotateByteString) [
+        mkIterApp () (builtin () RotateByteString) [
+          mkConstant @ByteString () bs,
+          mkConstant @Integer () i
+          ],
+        mkConstant @Integer () j
+        ]
+  let comp2 = mkIterApp () (builtin () RotateByteString) [
+        mkConstant @ByteString () bs,
+        mkIterApp () (builtin () AddInteger) [
+          mkConstant @Integer () i,
+          mkConstant @Integer () j
+          ]
+        ]
+  outcome <- bitraverse cekEval cekEval (comp1, comp2)
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
 -- Helpers
+
+data WriteBitAgreementCase =
+  WriteBitReadSame Int Integer |
+  WriteBitReadDifferent Int Integer Integer
+  deriving stock (Eq, Show)
+
+getWriteBitAgreementArgs :: WriteBitAgreementCase -> (ByteString, Integer, Integer)
+getWriteBitAgreementArgs = \case
+  WriteBitReadSame len ix          -> (BS.replicate len zeroBits, ix, ix)
+  WriteBitReadDifferent len ix ix' -> (BS.replicate len zeroBits, ix, ix')
 
 data FFSAppendType = ZeroBoth | ZeroSecond | NotZeroSecond
   deriving stock (Eq)
@@ -664,6 +772,23 @@ cekEval ::
 cekEval = fmap fst . evalEither . typecheckEvaluateCek defaultCekParameters
 
 -- Generators
+
+genWriteBitAgreementCase :: Gen WriteBitAgreementCase
+genWriteBitAgreementCase = do
+  len <- Gen.integral . Range.linear 1 $ 64
+  Gen.choice [same len, different len]
+  where
+    same :: Int -> Gen WriteBitAgreementCase
+    same len = do
+      let bitLen = fromIntegral $ len * 8
+      ix <- Gen.integral . indexRangeFor $ bitLen
+      pure . WriteBitReadSame len $ ix
+    different :: Int -> Gen WriteBitAgreementCase
+    different len = do
+      let bitLen = fromIntegral $ len * 8
+      readIx <- Gen.integral . indexRangeFor $ bitLen
+      writeIx <- Gen.filter (readIx /=) . Gen.integral . indexRangeFor $ bitLen
+      pure . WriteBitReadDifferent len writeIx $ readIx
 
 genCommutativeCase :: (Word8 -> Word8 -> Word8) -> Gen CommutativeCase
 genCommutativeCase f = Gen.choice [mismatched, matched]

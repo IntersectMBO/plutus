@@ -20,7 +20,7 @@ module Bitwise (
   ) where
 
 import Control.Monad (foldM_, unless)
-import Data.Bits (FiniteBits, bit, complement, popCount, shiftL, shiftR, xor, (.&.), (.|.))
+import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shiftL, shiftR, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
@@ -30,7 +30,7 @@ import Data.Kind (Type)
 import Data.List.Split (chunksOf)
 import Data.Text (Text, pack)
 import Data.Word (Word64, Word8)
-import Foreign.C.Types (CChar)
+import Foreign.C.Types (CChar, CSize)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
@@ -43,47 +43,44 @@ import System.IO.Unsafe (unsafeDupablePerformIO)
 {-# NOINLINE rotateByteString #-}
 rotateByteString :: ByteString -> Integer -> ByteString
 rotateByteString bs i
-  | BS.null bs = bs
-  | otherwise = case magnitude `rem` bitLength of
-      0 -> bs -- nothing to do irrespective of direction
-      actualMagnitude -> case signum i of
-        0 -> bs -- dummy case that never happens
-        (-1) ->
-          unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ decreasingRotation actualMagnitude
-        _ ->
-          unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ increasingRotation actualMagnitude
+  | BS.length bs == 0 = bs
+  | BS.maximum bs == zeroBits = bs
+  | BS.minimum bs == complement zeroBits = bs
+  | otherwise = case i `rem` bitLen of
+            0 -> bs -- nothing to do irrespective of direction
+            magnitude -> overPtrLen bs $ \ptr len ->
+              go ptr len magnitude >>= packWithLen len
   where
-    magnitude :: Int
-    magnitude = fromIntegral . abs $ i
-    bitLength :: Int
-    bitLength = BS.length bs * 8
-    decreasingRotation :: Int -> (Ptr CChar, Int) -> IO ByteString
-    decreasingRotation actualMagnitude (src, len) = do
-      let (bigShift, smallShift) = actualMagnitude `quotRem` 8
+    go :: Ptr Word8 -> Int -> Integer -> IO (Ptr Word8)
+    go src len displacement = do
       dst <- mallocBytes len
-      -- rotate over bytes
-      for_ [0 .. len - 1] $ \srcIx -> do
-        byte :: Word8 <- peek . plusPtr src $ srcIx
-        let dstIx = (srcIx + bigShift) `mod` len
-        poke (plusPtr dst dstIx) byte
-      endByte :: Word8 <- peek . plusPtr src $ len - 1
-      let mask = endByte `shiftL` (8 - smallShift)
-      unless (smallShift == 0)
-             (foldM_ (decreasingFixUp smallShift dst) mask [0 .. len - 1])
-      unsafePackMallocCStringLen (dst, len)
-    increasingRotation :: Int -> (Ptr CChar, Int) -> IO ByteString
-    increasingRotation actualMagnitude (src, len) = do
-      let (bigShift, smallShift) = actualMagnitude `quotRem` 8
-      dst <- mallocBytes len
-      for_ [0 .. len - 1] $ \srcIx -> do
-        byte :: Word8 <- peek . plusPtr src $ srcIx
-        let dstIx = (srcIx + len - bigShift) `mod` len
-        poke (plusPtr dst dstIx) byte
-      startByte :: Word8 <- peek . castPtr $ src
-      let mask = startByte `shiftR` smallShift
-      unless (smallShift == 0)
-             (foldM_ (increasingFixUp smallShift dst) mask [len - 1, len - 2 .. 0])
-      unsafePackMallocCStringLen (dst, len)
+      case len of
+        1 -> do
+          srcByte <- peek src
+          let srcByte' = srcByte `rotate` fromIntegral displacement
+          poke dst srcByte'
+        _ -> case displacement `quotRem` 8 of
+          (bigMove, 0) -> do
+            let mainLen :: CSize = fromIntegral . abs $ bigMove
+            let restLen :: CSize = fromIntegral len - mainLen
+            void $ case signum bigMove of
+              1 -> memcpy (plusPtr dst . fromIntegral $ restLen) src mainLen >>
+                   memcpy dst (plusPtr src . fromIntegral $ mainLen) restLen
+              _ -> memcpy (plusPtr dst . fromIntegral $ mainLen) src restLen >>
+                   memcpy dst (plusPtr src . fromIntegral $ restLen) mainLen
+          _ -> for_ [0 .. len - 1] $ \j -> do
+                let start = (len - 1 - j) * 8
+                let dstByte = foldl' (addBit start displacement) zeroBits [0 .. 7]
+                poke (plusPtr dst j) dstByte
+      pure dst
+    bitLen :: Integer
+    bitLen = fromIntegral $ BS.length bs * 8
+    addBit :: Int -> Integer -> Word8 -> Integer -> Word8
+    addBit start displacement acc offset =
+      let oldIx = (offset + fromIntegral start + bitLen - displacement) `rem` bitLen in
+        if dangerousRead bs oldIx
+        then acc .|. (bit . fromIntegral $ offset)
+        else acc
 
 {-# NOINLINE shiftByteString #-}
 shiftByteString :: ByteString -> Integer -> ByteString
@@ -142,18 +139,10 @@ findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
 testBitByteString :: ByteString -> Integer -> Emitter (EvaluationResult Bool)
 testBitByteString bs i
   | i < 0 || i >= bitLen = indexOutOfBoundsError "testBitByteString" bitLen i
-  | otherwise = do
-      let (bigOffset, smallOffset) = i `quotRem` 8
-      let bigIx = fromIntegral $ byteLen - bigOffset - 1
-      let mask = bit 0 `shiftL` fromIntegral smallOffset
-      pure . pure $ case mask .&. BS.index bs bigIx of
-        0 -> False
-        _ -> True
+  | otherwise = pure . pure . dangerousRead bs $ i
   where
-    byteLen :: Integer
-    byteLen = fromIntegral . BS.length $ bs
     bitLen :: Integer
-    bitLen = byteLen * 8
+    bitLen = fromIntegral $ BS.length bs * 8
 
 {-# NOINLINE writeBitByteString #-}
 writeBitByteString :: ByteString -> Integer -> Bool -> Emitter (EvaluationResult ByteString)
@@ -253,6 +242,23 @@ complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(
           go dst src (offset + 1) lim
 
 -- Helpers
+
+dangerousRead :: ByteString -> Integer -> Bool
+dangerousRead bs i =
+  let (bigOffset, smallOffset) = i `quotRem` 8
+      bigIx = BS.length bs - fromIntegral bigOffset - 1
+      mask = bit (fromIntegral smallOffset) in
+    case mask .&. BS.index bs bigIx of
+      0 -> False
+      _ -> True
+
+packWithLen :: Int -> Ptr Word8 -> IO ByteString
+packWithLen len p = unsafePackMallocCStringLen (castPtr p, len)
+
+overPtrLen :: forall (a :: Type) .
+  ByteString -> (Ptr Word8 -> Int -> IO a) -> a
+overPtrLen bs f =
+  unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> f (castPtr ptr) len
 
 toBitSequence :: Integer -> [Bool]
 toBitSequence i = go 0 (separateBit i) []

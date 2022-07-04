@@ -35,8 +35,9 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
-                                    popCountAppend, popCountSingleByte, rotateIdentity, testBitAppend, testBitEmpty,
-                                    testBitSingleByte, writeBitDouble, writeBitRead)
+                                    popCountAppend, popCountSingleByte, rotateHomogenous, rotateIdentity,
+                                    rotateIndexMotion, rotateSum, testBitAppend, testBitEmpty, testBitSingleByte,
+                                    writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -672,7 +673,8 @@ testTestBitByteString = testGroup "TestBitByteString" [
 testWriteBitByteString :: TestTree
 testWriteBitByteString = testGroup "WriteBitByteString" [
   testPropertyNamed "writing then reading gives back what you wrote" "writing then reading gives back what you wrote" . property $ writeBitRead,
-  testPropertyNamed "second write wins" "second write wins" . property $ writeBitDouble
+  testPropertyNamed "second write wins" "second write wins" . property $ writeBitDouble,
+  testPropertyNamed "single write to zeroes gives right reads" "single write to zeroes gives right reads" . property $ writeBitAgreement
   ]
 
 -- Tests for finding first set bit of a ByteString
@@ -689,7 +691,10 @@ testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
 -- Tests for ByteString rotations
 testRotateByteString :: TestTree
 testRotateByteString = testGroup "RotateByteString" [
-  testPropertyNamed "rotating by 0 does nothing" "rotating by 0 does nothing" . property $ rotateIdentity
+  testPropertyNamed "rotating by 0 does nothing" "rotating by 0 does nothing" . property $ rotateIdentity,
+  testPropertyNamed "rotation adjusts indices correctly" "rotation adjusts indices correctly" . property $ rotateIndexMotion,
+  testPropertyNamed "rotating all-zero or all-one changes nothing" "rotating all-zero or all-one changes nothing" . property $ rotateHomogenous,
+  testPropertyNamed "rotating by i, then by j is the same as rotating by i + j" "rotating by i, then by j is the same as rotating by i + j" . property $ rotateSum
   ]
 
 test_definition :: TestTree
