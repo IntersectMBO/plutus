@@ -39,6 +39,9 @@ data PirTCConfig uni fun = PirTCConfig {
 makeLenses ''PirTCConfig
 
 -- pir config has inside a plc config so it can act like it
+instance PLC.HasKindCheckConfig (PirTCConfig uni fun) where
+    kindCheckConfig = pirConfigTCConfig . PLC.kindCheckConfig
+
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
@@ -76,16 +79,15 @@ data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts              :: CompilationOpts a
     , _ccEnclosing       :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig :: Maybe (PLC.KindCheckConfig (PirTCConfig uni fun))
+    , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)
     }
 
 makeLenses ''CompilationCtx
 
-toDefaultCompilationCtx
-    :: PLC.KindCheckConfig (PLC.TypeCheckConfig uni fun) -> CompilationCtx uni fun a
+toDefaultCompilationCtx :: PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc =
     CompilationCtx defaultCompilationOpts noProvenance $
-        Just (flip PirTCConfig YesEscape <$> configPlc)
+        Just (PirTCConfig configPlc YesEscape)
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing

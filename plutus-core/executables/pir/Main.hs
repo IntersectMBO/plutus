@@ -95,9 +95,7 @@ compile opts pirT = do
     set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
-    defaultCompilationCtx
-        :: PLC.KindCheckConfig (PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun)
-        -> PIRCompilationCtx a
+    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
       & set' PIR.coOptimize                     cOptimize

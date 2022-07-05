@@ -365,7 +365,7 @@ withNoEscapingTypes = local $ set (tceTypeCheckConfig.pirConfigAllowEscape) NoEs
 
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
 -- Differs from its PLC version in that is passes an extra env flag 'YesEscape'.
-runTypeCheckM :: KindCheckConfig (PirTCConfig uni fun) -> PirTCEnv uni fun m a -> m a
+runTypeCheckM :: PirTCConfig uni fun -> PirTCEnv uni fun m a -> m a
 runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
 
 -- Helpers

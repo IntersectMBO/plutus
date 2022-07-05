@@ -97,25 +97,50 @@ data HandleWrongNames
     | IgnoreWrongNames
     deriving stock (Show, Eq)
 
-data KindCheckConfig cfg = KindCheckConfig
+newtype KindCheckConfig = KindCheckConfig
     { _kccIgnoreWrongNames :: HandleWrongNames
-    , _kccTypeCheckConfig  :: cfg
-    } deriving stock (Functor, Foldable, Traversable)
-makeLenses ''KindCheckConfig
+    }
 
 -- | Configuration of the type checker.
-newtype TypeCheckConfig uni fun = TypeCheckConfig
-    { _tccBuiltinTypes :: BuiltinTypes uni fun
+data TypeCheckConfig uni fun = TypeCheckConfig
+    { _tccKindCheckConfig :: KindCheckConfig
+    , _tccBuiltinTypes    :: BuiltinTypes uni fun
     }
-makeClassy ''TypeCheckConfig
 
 -- | The environment that the type checker runs in.
 data TypeCheckEnv uni fun cfg = TypeCheckEnv
-    { _tceConfig     :: KindCheckConfig cfg
-    , _tceTyVarKinds :: TyVarKinds
-    , _tceVarTypes   :: VarTypes uni
+    { _tceTypeCheckConfig :: cfg
+    , _tceTyVarKinds      :: TyVarKinds
+    , _tceVarTypes        :: VarTypes uni
     }
 makeLenses ''TypeCheckEnv
+
+class HasKindCheckConfig cfg where
+    kindCheckConfig :: Lens' cfg KindCheckConfig
+
+    kccIgnoreWrongNames :: Lens' cfg HandleWrongNames
+    kccIgnoreWrongNames =
+        kindCheckConfig . lens _kccIgnoreWrongNames (\s b -> s { _kccIgnoreWrongNames = b })
+
+instance HasKindCheckConfig KindCheckConfig where
+    kindCheckConfig = id
+
+class HasKindCheckConfig cfg => HasTypeCheckConfig cfg uni fun | cfg -> uni fun where
+    typeCheckConfig :: Lens' cfg (TypeCheckConfig uni fun)
+
+    tccKindCheckConfig :: Lens' cfg KindCheckConfig
+    tccKindCheckConfig =
+        typeCheckConfig . lens _tccKindCheckConfig (\s b -> s { _tccKindCheckConfig = b })
+
+    tccBuiltinTypes :: Lens' cfg (BuiltinTypes uni fun)
+    tccBuiltinTypes =
+        typeCheckConfig . lens _tccBuiltinTypes (\s b -> s { _tccBuiltinTypes = b })
+
+instance HasKindCheckConfig (TypeCheckConfig uni fun) where
+    kindCheckConfig = tccKindCheckConfig
+
+instance HasTypeCheckConfig (TypeCheckConfig uni fun) uni fun where
+    typeCheckConfig = id
 
 -- | The type checking monad that the type checker runs in.
 -- In contains a 'TypeCheckEnv' and allows to throw 'TypeError's.
@@ -153,14 +178,8 @@ type MonadTypeCheckPlc err uni fun ann m =
 -- while kind checking doesn't, hence we keep the kind checker fully polymorphic over the type of
 -- config, so that the kinder checker can be run with an empty config (such as @()@) and access to
 -- a 'TypeCheckConfig' is not needed.
-runTypeCheckM :: KindCheckConfig cfg -> TypeCheckT uni fun cfg m a -> m a
+runTypeCheckM :: cfg -> TypeCheckT uni fun cfg m a -> m a
 runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
-
-defaultKindCheckConfig :: cfg -> KindCheckConfig cfg
-defaultKindCheckConfig = KindCheckConfig DetectWrongNames
-
-tceTypeCheckConfig :: Lens' (TypeCheckEnv uni fun cfg) cfg
-tceTypeCheckConfig = tceConfig . kccTypeCheckConfig
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
 withTyVar :: TyName -> Kind () -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a
@@ -188,11 +207,11 @@ withVar name = local . over tceVarTypes . insertNamed name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
     env <- ask
-    let handleWrongNames = env ^. tceConfig . kccIgnoreWrongNames
+    let handleWrongNames = env ^. tceTypeCheckConfig . kccIgnoreWrongNames
     case lookupName name $ _tceTyVarKinds env of
         Nothing                    -> throwing _TypeError $ FreeTypeVariableE ann name
         Just (Named nameOrig kind) ->
@@ -203,11 +222,11 @@ lookupTyVarM ann name = do
 
 -- | Look up a term variable in the current context.
 lookupVarM
-    :: MonadTypeCheck err term uni fun ann m
+    :: (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
     env <- ask
-    let handleWrongNames = env ^. tceConfig . kccIgnoreWrongNames
+    let handleWrongNames = env ^. tceTypeCheckConfig . tccKindCheckConfig . kccIgnoreWrongNames
     case lookupName name $ _tceVarTypes env of
         Nothing                  -> throwing _TypeError $ FreeVariableE ann name
         Just (Named nameOrig ty) ->
@@ -258,7 +277,7 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => Type TyName uni ann -> TypeCheckT uni fun cfg m (Kind ())
 
 -- b :: k
@@ -316,7 +335,7 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> Type TyName uni ann -> Kind () -> TypeCheckT uni fun cfg m ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
@@ -328,7 +347,7 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.
