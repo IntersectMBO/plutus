@@ -34,11 +34,11 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
-                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, ffsAppend, ffsSingleByte,
-                                    popCountAppend, popCountSingleByte, rotateHomogenous, rotateIdentity,
-                                    rotateIndexMotion, rotateSum, shiftHomogenous, shiftIdentity, shiftIndexMotion,
-                                    shiftSum, testBitAppend, testBitEmpty, testBitSingleByte, writeBitAgreement,
-                                    writeBitDouble, writeBitRead)
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, bsToIHomogenous,
+                                    bsToITrailing, ffsAppend, ffsSingleByte, popCountAppend, popCountSingleByte,
+                                    rotateHomogenous, rotateIdentity, rotateIndexMotion, rotateSum, shiftHomogenous,
+                                    shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend, testBitEmpty,
+                                    testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -611,7 +611,8 @@ testBitwise =
     testWriteBitByteString,
     testFindFirstSetByteString,
     testRotateByteString,
-    testShiftByteString
+    testShiftByteString,
+    testByteStringToInteger
   ]
 
 -- Tests for bitwise AND on ByteStrings
@@ -706,6 +707,13 @@ testShiftByteString = testGroup "ShiftByteString" [
   testPropertyNamed "shifting adjusts indices correctly" "shifting adjusts indices correctly" . property $ shiftIndexMotion,
   testPropertyNamed "shifting all-zeroes does nothing" "shifting all-zeroes does nothing" . property $ shiftHomogenous,
   testPropertyNamed "shifting in two steps is the same as shifting in one" "shifting in two steps is the same as shifting in one" . property $ shiftSum
+  ]
+
+-- Tests for conversion into Integer from ByteString
+testByteStringToInteger :: TestTree
+testByteStringToInteger = testGroup "ByteStringToInteger" [
+  testPropertyNamed "all zeroes give 0, all ones give -1" "all zeroes give 0, all ones give -1" . property $ bsToIHomogenous,
+  testPropertyNamed "trailing ones ignored for negative, trailing zeroes for positive" "trailing ones ignored for negative, trailing zeroes for positive" . property $ bsToITrailing
   ]
 
 test_definition :: TestTree

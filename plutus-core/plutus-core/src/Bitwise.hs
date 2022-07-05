@@ -22,6 +22,8 @@ module Bitwise (
   rotateByteString,
   ) where
 
+import Control.Monad (foldM, when)
+import Control.Monad.State.Strict (State, evalState, get, modify, put)
 import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
@@ -29,14 +31,14 @@ import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, u
 import Data.Foldable (foldl', for_)
 import Data.Functor (void)
 import Data.Kind (Type)
-import Data.List.Split (chunksOf)
+-- import Data.List.Split (chunksOf)
 import Data.Text (Text, pack)
 import Data.Word (Word64, Word8)
 import Foreign.C.Types (CChar, CSize)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
-import GHC.Exts (fromList)
+import GHC.Exts (fromList, fromListN)
 import GHC.IO.Handle.Text (memcpy)
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
@@ -172,9 +174,53 @@ writeBitByteString bs i b
 
 integerToByteString :: Integer -> ByteString
 integerToByteString i = case signum i of
+  0    -> BS.singleton zeroBits
+  (-1) -> twosCompToNegative . fromList . go . abs $ i
+  _    -> fromList . go $ i
+  where
+    go :: Integer -> [Word8]
+    go = \case
+      0 -> []
+      pos -> case pos `quotRem` 256 of
+        (d, r) -> go d <> [fromIntegral r]
+
+byteStringToInteger :: ByteString -> Integer
+byteStringToInteger bs = case BS.uncons bs of
+  Nothing -> 0
+  Just (w8, bs') ->
+    let len = BS.length bs
+        f x = evalState (foldM (go x) 0 [len - 1, len - 2 .. 0]) 1 in
+      if | isPositivePowerOf2 w8 bs' -> f bs
+         | bit 7 .&. w8 == zeroBits  -> f bs
+         | otherwise                 -> negate . f . twosCompToPositive $ bs
+  where
+    go :: ByteString -> Integer -> Int -> State Integer Integer
+    go bs' acc i = do
+      mult <- get
+      let byte = BS.index bs' i
+      modify (256 *)
+      pure $ acc + (fromIntegral byte * mult)
+
+{-
+integerToByteString :: Integer -> ByteString
+integerToByteString i = case signum i of
   0    -> BS.singleton 0
   (-1) -> twosComplement . integerToByteString . abs $ i
   _    -> fromList . intoBytes . toBitSequence $ i
+
+byteStringToInteger :: ByteString -> Integer
+byteStringToInteger bs = case BS.uncons bs of
+  Nothing -> 0
+  Just (w8, bs') ->
+    if | isPositivePowerOf2 w8 bs' -> go bs
+       | bit 7 .&. w8 == zeroBits -> go bs
+       | otherwise -> negate . go . twosComplement $ bs
+  where
+    go :: ByteString -> Integer
+    go bs' = let len = BS.length bs' in
+      snd . foldl' go2 (1, 0) $ [len - 1, len -2 .. 0]
+    go2 :: (Integer, Integer) -> Int -> (Integer, Integer)
+    go2 (e, acc) ix = (e * 256, acc + e * (fromIntegral . BS.index bs $ ix))
 
 byteStringToInteger :: ByteString -> Integer
 byteStringToInteger bs = let len = BS.length bs in
@@ -182,6 +228,7 @@ byteStringToInteger bs = let len = BS.length bs in
   where
     go :: (Integer, Integer) -> Int -> (Integer, Integer)
     go (e, acc) ix = (e * 256, acc + e * (fromIntegral . BS.index bs $ ix))
+-}
 
 {-# NOINLINE popCountByteString #-}
 popCountByteString :: ByteString -> Integer
@@ -246,6 +293,9 @@ complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(
 
 -- Helpers
 
+isPositivePowerOf2 :: Word8 -> ByteString -> Bool
+isPositivePowerOf2 w8 bs = w8 == 0x80 && BS.all (== zeroBits) bs
+
 dangerousRead :: ByteString -> Integer -> Bool
 dangerousRead bs i =
   let (bigOffset, smallOffset) = i `quotRem` 8
@@ -263,6 +313,7 @@ overPtrLen :: forall (a :: Type) .
 overPtrLen bs f =
   unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> f (castPtr ptr) len
 
+{-
 toBitSequence :: Integer -> [Bool]
 toBitSequence i = go 0 (separateBit i) []
   where
@@ -299,7 +350,34 @@ intoBytes = fmap go . chunksOf 8
             b7Val = if b7 then 128 else 0 in
           b0Val + b1Val + b2Val + b3Val + b4Val + b5Val + b6Val + b7Val
       _ -> 0 -- should never happen
+-}
 
+-- When we complement a power of two, we have to ensure we pad with ones
+--
+-- Thus, we have two versions of this function: one that performs this padding,
+-- and one which doesn't
+twosCompToNegative :: ByteString -> ByteString
+twosCompToNegative bs = case twosComp bs of
+  bs' -> if bs == bs'
+         then BS.cons (complement zeroBits) bs'
+         else bs'
+
+twosCompToPositive :: ByteString -> ByteString
+twosCompToPositive = twosComp
+
+twosComp :: ByteString -> ByteString
+twosComp bs = let len = BS.length bs in
+  evalState (fromListN len <$> foldM go [] [len - 1, len - 2 .. 0]) False
+  where
+    go :: [Word8] -> Int -> State Bool [Word8]
+    go acc i = do
+      let byte = BS.index bs i
+      added <- get
+      let byte' = if added then complement byte else complement byte + 1
+      when (byte /= byte') (put True)
+      pure $ byte' : acc
+
+{-
 twosComplement :: ByteString -> ByteString
 twosComplement bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> do
   dst <- mallocBytes len
@@ -336,6 +414,7 @@ computeAddByte = \case
           else case r of
             0 -> go (step + 1) acc dr'
             _ -> go (step + 1) (True, w8 .|. mask) dr'
+-}
 
 mismatchedLengthError :: forall (a :: Type) .
   Text ->

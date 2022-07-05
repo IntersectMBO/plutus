@@ -41,6 +41,9 @@ module Evaluation.Builtins.Bitwise (
   shiftIndexMotion,
   shiftHomogenous,
   shiftSum,
+  -- iToBSRoundtrip,
+  bsToITrailing,
+  bsToIHomogenous,
   ) where
 
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
@@ -49,14 +52,15 @@ import Data.Bitraversable (bitraverse)
 import Data.Bits (bit, complement, countTrailingZeros, popCount, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.Text (Text)
 import Data.Word (Word8)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
-                   DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ByteStringToInteger, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
+                   DefaultUni, Error, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import Text.Show.Pretty (ppShow)
@@ -533,7 +537,85 @@ shiftSum = do
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
 
+{-
+iToBSRoundtrip :: PropertyT IO ()
+iToBSRoundtrip = do
+  i <- forAllWith ppShow . Gen.integral $ indexRange
+  tripping (mkConstant @Integer () i) toBits fromBits
+  where
+    toBits ::
+      Term Untyped.TyName Name DefaultUni DefaultFun () ->
+      Either (Error DefaultUni DefaultFun ())
+             (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
+    toBits i = let comp = mkIterApp () (builtin () IntegerToByteString) [i] in
+      fst <$> cekEval' comp
+    fromBits ::
+      Either (Error DefaultUni DefaultFun ())
+             (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ())) ->
+      Maybe (Term Untyped.TyName Name DefaultUni DefaultFun ())
+    fromBits = \case
+      Right (EvaluationSuccess res) -> do
+        let comp = mkIterApp () (builtin () ByteStringToInteger) [res]
+        case fst <$> cekEval' comp of
+          Right (EvaluationSuccess res') -> pure res'
+          _ -> Nothing
+      _ -> Nothing
+-}
+
+bsToITrailing :: PropertyT IO ()
+bsToITrailing = do
+  testCase <- forAllWith ppShow genBsToITrailingCase
+  cover 45 "negative representation" . isNegativeCase $ testCase
+  cover 45 "non-negative representation" . not . isNegativeCase $ testCase
+  let (extension, bs) = getBsToITrailingArgs testCase
+  let comp = mkIterApp () (builtin () ByteStringToInteger) [
+              mkIterApp () (builtin () AppendByteString) [
+                mkConstant @ByteString () extension,
+                mkConstant @ByteString () bs
+                ]
+              ]
+  let comp' = mkIterApp () (builtin () ByteStringToInteger) [
+                mkConstant @ByteString () bs
+                ]
+  outcome <- bitraverse cekEval cekEval (comp, comp')
+  case outcome of
+    (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
+    _                                               -> failure
+
+bsToIHomogenous :: PropertyT IO ()
+bsToIHomogenous = do
+  w8 <- forAllWith ppShow . Gen.element $ [zeroBits, complement zeroBits]
+  len <- forAllWith ppShow . Gen.integral $ integerRange
+  cover 45 "all zeroes" $ w8 == zeroBits
+  cover 45 "all ones" $ w8 == complement zeroBits
+  let bs = BS.replicate len w8
+  let comp = mkIterApp () (builtin () ByteStringToInteger) [
+              mkConstant @ByteString () bs
+              ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res ->
+      res === (mkConstant @Integer () $ if | len == 0       -> 0
+                                           | w8 == zeroBits -> 0
+                                           | otherwise      -> (-1))
+    _ -> failure
+
 -- Helpers
+
+data BsToITrailingCase =
+  BsToINonNegative ByteString ByteString |
+  BsToINegative ByteString ByteString
+  deriving stock (Eq, Show)
+
+isNegativeCase :: BsToITrailingCase -> Bool
+isNegativeCase = \case
+  BsToINegative{} -> True
+  _               -> False
+
+getBsToITrailingArgs :: BsToITrailingCase -> (ByteString, ByteString)
+getBsToITrailingArgs = \case
+  BsToINegative bs bs'    -> (bs, bs')
+  BsToINonNegative bs bs' -> (bs, bs')
 
 data WriteBitAgreementCase =
   WriteBitReadSame Int Integer |
@@ -849,9 +931,42 @@ commutatively fun leftArg rightArg = do
 cekEval ::
   Term Untyped.TyName Name DefaultUni DefaultFun () ->
   PropertyT IO (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
-cekEval = fmap fst . evalEither . typecheckEvaluateCek defaultCekParameters
+cekEval = fmap fst . evalEither . cekEval'
+
+cekEval' ::
+  Term Untyped.TyName Name DefaultUni DefaultFun () ->
+  Either (Error DefaultUni DefaultFun ())
+         (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()), [Text])
+cekEval' = typecheckEvaluateCek defaultCekParameters
 
 -- Generators
+
+genBsToITrailingCase :: Gen BsToITrailingCase
+genBsToITrailingCase = Gen.choice [negative, nonNegative]
+  where
+    negative :: Gen BsToITrailingCase
+    negative = do
+      len <- Gen.integral byteBoundRange
+      extLen <- Gen.integral byteBoundRange
+      w8 <- Gen.element [129 :: Word8 .. 255]
+      bs <- Gen.bytes . Range.singleton $ len
+      pure .
+        BsToINegative (BS.replicate extLen . complement $ zeroBits) .
+        BS.cons w8 $ bs
+    nonNegative :: Gen BsToITrailingCase
+    nonNegative = do
+      len <- Gen.integral byteBoundRange
+      extLen <- Gen.integral byteBoundRange
+      BsToINonNegative (BS.replicate extLen zeroBits) <$>
+        case len of
+          0 -> pure BS.empty
+          _ -> Gen.choice [pure . powerOf2 $ len, notPowerOf2 len]
+    powerOf2 :: Int -> ByteString
+    powerOf2 len = BS.cons 128 . BS.replicate (len - 1) $ zeroBits
+    notPowerOf2 :: Int -> Gen ByteString
+    notPowerOf2 len =
+      BS.cons <$> Gen.element [0 :: Word8 .. 127] <*>
+                  (Gen.bytes . Range.singleton $ len - 1)
 
 genWriteBitAgreementCase :: Gen WriteBitAgreementCase
 genWriteBitAgreementCase = do
@@ -1048,3 +1163,6 @@ indexRangeOf lim = Range.constantFrom 0 (negate lim) (lim - 1)
 
 indexRangeFor :: Integer -> Range Integer
 indexRangeFor i = Range.constant 0 (i - 1)
+
+integerRange :: Range Int
+integerRange = Range.linear 0 8
