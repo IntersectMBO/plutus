@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TemplateHaskell #-}
 module UntypedPlutusCore.Simplify ( simplifyTerm, simplifyProgram, SimplifyOpts (..), soMaxSimplifierIterations, soInlineHints, defaultSimplifyOpts, InlineHints (..) ) where
 

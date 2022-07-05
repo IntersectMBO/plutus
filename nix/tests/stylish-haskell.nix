@@ -9,7 +9,8 @@ let
         (
           (type == "regular" && hasSuffix ".hs" baseName) ||
           (type == "regular" && hasSuffix ".yaml" baseName) ||
-          (type == "directory" && (baseName != "dist-newstyle" && baseName != "dist" && baseName != ".stack-work"))
+          (type == "directory" &&
+          (baseName != "dist-newstyle" && baseName != "dist" && baseName != ".stack-work"))
         );
   };
 in
@@ -25,7 +26,7 @@ runCommand "stylish-check"
   fix-stylish-haskell
   EXIT_CODE=$?
   if [[ $EXIT_CODE != 0 ]]
-  then 
+  then
     echo "*** stylish-haskell failed to format some files"
     exit $EXIT_CODE
   fi

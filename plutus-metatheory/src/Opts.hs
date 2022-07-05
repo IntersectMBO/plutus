@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Opts where
 
 import Data.Semigroup ((<>))

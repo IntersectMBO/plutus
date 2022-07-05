@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 module PlutusLedgerApi.Common.Versions
     ( module PlutusLedgerApi.Common.ProtocolVersions

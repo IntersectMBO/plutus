@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Main where
 
 import PlutusLedgerApi.Common.Versions

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where

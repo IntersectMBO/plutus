@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- GHC doesn't like the definition of 'TrySpecializeAsVar'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 

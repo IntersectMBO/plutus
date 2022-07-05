@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The CEK machine.
 -- The CEK machine relies on variables having non-equal 'Unique's whenever they have non-equal
 -- string names. I.e. 'Unique's are used instead of string names. This is for efficiency reasons.

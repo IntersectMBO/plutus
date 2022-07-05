@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 {-# LANGUAGE OverloadedStrings #-}

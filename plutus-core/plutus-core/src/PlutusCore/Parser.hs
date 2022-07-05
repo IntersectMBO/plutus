@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Parsers for PLC terms in DefaultUni.

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE RankNTypes #-}
 
 module PlutusCore.Core.Plated

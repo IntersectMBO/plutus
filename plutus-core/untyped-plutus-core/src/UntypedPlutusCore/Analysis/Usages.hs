@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
 -- | Functions for computing variable usage inside terms.
 module UntypedPlutusCore.Analysis.Usages (runTermUsages, Usages, getUsageCount, allUsed) where

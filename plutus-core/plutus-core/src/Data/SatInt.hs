@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- |
 Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max or min bounds) instead of throwing on overflow.
 

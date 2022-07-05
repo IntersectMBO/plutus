@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines generators for PIR syntax trees for testing purposes.
 -- It should only contain those generators that can't be reused from PLC
 -- (PIR-exclusive constructs, Term, and Program)

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-| Description: PLC Syntax, typechecker,semantics property based testing.
 
 This file contains

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 

@@ -19,7 +19,8 @@ let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject' ({ pkgs, ... }: {
     inherit compiler-nix-name;
-    # This is incredibly difficult to get right, almost everything goes wrong, see https://github.com/input-output-hk/haskell.nix/issues/496
+    # This is incredibly difficult to get right, almost everything goes wrong,
+    # see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
       haskell-nix.haskellLib.cleanSourceWith {
         filter = gitignore-nix.gitignoreFilter root;
@@ -29,11 +30,11 @@ let
         name = "plutus";
       };
     sha256map = {
-      "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
-      "https://github.com/input-output-hk/cardano-base"."1587462ac8b2e50af2691f5ad93d3c2aa4674ed1" = "sha256-jrSDD2fXgHf4wo5THzfK/6tolvt8y9rNuJWYfBooqaQ=";
-      "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
-      "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
-      "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
+      "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm"; # editorconfig-checker-disable-line
+      "https://github.com/input-output-hk/cardano-base"."1587462ac8b2e50af2691f5ad93d3c2aa4674ed1" = "sha256-jrSDD2fXgHf4wo5THzfK/6tolvt8y9rNuJWYfBooqaQ="; # editorconfig-checker-disable-line
+      "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3"; # editorconfig-checker-disable-line
+      "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6"; # editorconfig-checker-disable-line
+      "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx"; # editorconfig-checker-disable-line
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
@@ -69,9 +70,15 @@ let
           # of the components with we are going to run.
           # We should try to find a way to automate this will in haskell.nix.
           symlinkDlls = ''
-            ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libgcc_s_seh-1.dll $out/bin/libgcc_s_seh-1.dll
-            ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libstdc++-6.dll $out/bin/libstdc++-6.dll
-            ln -s ${pkgs.windows.mcfgthreads}/bin/mcfgthread-12.dll $out/bin/mcfgthread-12.dll
+            ln -s \
+              ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libgcc_s_seh-1.dll \
+              $out/bin/libgcc_s_seh-1.dll
+            ln -s \
+              ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libstdc++-6.dll \
+              $out/bin/libstdc++-6.dll
+            ln -s \
+              ${pkgs.windows.mcfgthreads}/bin/mcfgthread-12.dll \
+              $out/bin/mcfgthread-12.dll
           '';
         in
         lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
@@ -82,11 +89,15 @@ let
             plutus-core.components.tests.untyped-plutus-core-test.postInstall = symlinkDlls;
             plutus-ledger-api.components.tests.plutus-ledger-api-test.postInstall = symlinkDlls;
 
-            # These three tests try to use `diff` and the following could be used to make the
-            # linux version of diff available.  Unfortunately the paths passed to it are windows style.
-            # plutus-core.components.tests.plutus-core-test.build-tools = [ pkgs.buildPackages.diffutils ];
-            # plutus-core.components.tests.plutus-ir-test.build-tools = [ pkgs.buildPackages.diffutils ];
-            # plutus-core.components.tests.untyped-plutus-core-test.build-tools = [ pkgs.buildPackages.diffutils ];
+            # These three tests try to use `diff` and the following could be used to make
+            # the linux version of diff available.  Unfortunately the paths passed to it
+            # are windows style.
+            # plutus-core.components.tests.plutus-core-test.build-tools =
+            #   [ pkgs.buildPackages.diffutils ];
+            # plutus-core.components.tests.plutus-ir-test.build-tools =
+            #   [ pkgs.buildPackages.diffutils ];
+            # plutus-core.components.tests.untyped-plutus-core-test.build-tools =
+            #   [ pkgs.buildPackages.diffutils ];
             plutus-core.components.tests.plutus-core-test.buildable = lib.mkForce false;
             plutus-core.components.tests.plutus-ir-test.buildable = lib.mkForce false;
             plutus-core.components.tests.untyped-plutus-core-test.buildable = lib.mkForce false;
@@ -110,16 +121,21 @@ let
           # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
           plutus-tx-plugin.doHaddock = false;
 
-          # In this case we can just propagate the native dependencies for the build of the test executable,
-          # which are actually set up right (we have a build-tool-depends on the executable we need)
+          # In this case we can just propagate the native dependencies for the build of
+          # the test executable, which are actually set up right (we have a
+          # build-tool-depends on the executable we need)
           # I'm slightly surprised this works, hooray for laziness!
-          plutus-metatheory.components.tests.test1.preCheck = ''
-            PATH=${lib.makeBinPath project.hsPkgs.plutus-metatheory.components.tests.test1.executableToolDepends }:$PATH
-          '';
+          plutus-metatheory.components.tests.test1.preCheck =
+            let
+              cmp = project.hsPkgs.plutus-metatheory.components.tests.test1;
+              deps = cmp.executableToolDepends;
+            in
+            ''PATH=${lib.makeBinPath deps }:$PATH'';
           # FIXME: Somehow this is broken even with setting the path up as above
           plutus-metatheory.components.tests.test2.doCheck = false;
           # plutus-metatheory needs agda with the stdlib around for the custom setup
-          # I can't figure out a way to apply this as a blanket change for all the components in the package, oh well
+          # I can't figure out a way to apply this as a blanket change for all the
+          # components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
@@ -127,7 +143,8 @@ let
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
-          prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
+          prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable =
+            lib.mkForce false;
 
           plutus-core.components.benchmarks.update-cost-model = {
             build-tools = r-packages;
@@ -141,7 +158,8 @@ let
             platforms = lib.platforms.linux;
           };
 
-          # Werror everything. This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
+          # Werror everything. This is a pain, see
+          # https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
           # FIXME: has warnings in generated code
           #plutus-metatheory.package.ghcOptions = "-Werror";

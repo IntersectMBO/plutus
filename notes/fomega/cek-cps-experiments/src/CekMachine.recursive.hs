@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 
 -- This file contains a version of the CEK machine in

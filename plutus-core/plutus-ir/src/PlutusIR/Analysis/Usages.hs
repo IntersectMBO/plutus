@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
 -- | Functions for computing variable usage inside terms and types.
 module PlutusIR.Analysis.Usages (runTermUsages, runTypeUsages, Usages, getUsageCount, allUsed) where
