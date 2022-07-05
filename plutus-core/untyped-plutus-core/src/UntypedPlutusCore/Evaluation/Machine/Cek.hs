@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The API to the CEK machine.
 
 {-# LANGUAGE DataKinds        #-}

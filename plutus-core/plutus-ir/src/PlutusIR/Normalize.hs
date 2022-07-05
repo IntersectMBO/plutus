@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
 -- | PlutusIR versions of the functions in PlutusCore.Normalize
 module PlutusIR.Normalize

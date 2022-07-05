@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Benchmarks.Lists (makeBenchmarks) where
 
 import Common

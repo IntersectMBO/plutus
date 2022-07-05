@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | @tuple@s of various sizes and related functions.
 
 {-# LANGUAGE GADTs             #-}

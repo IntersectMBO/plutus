@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The exceptions that an abstract machine can throw.
 
 -- appears in the generated instances

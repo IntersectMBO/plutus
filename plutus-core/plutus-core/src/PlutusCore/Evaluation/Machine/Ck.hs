@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The CK machine.
 
 {-# LANGUAGE DeriveAnyClass            #-}

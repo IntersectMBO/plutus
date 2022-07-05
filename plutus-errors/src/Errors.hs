@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_HADDOCK hide #-}
 -- | The catalogue of all Plutus errors, obsolete or not.

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE ConstraintKinds       #-}
