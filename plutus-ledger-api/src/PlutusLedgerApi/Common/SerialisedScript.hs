@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
     , scriptCBORDecoder

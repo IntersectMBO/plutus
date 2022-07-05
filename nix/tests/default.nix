@@ -29,6 +29,11 @@ pkgs.recurseIntoAttrs {
     inherit fixCabalFmt;
   };
 
+  editorconfig-checker = pkgs.callPackage ./editorconfig-checker.nix {
+    src = cleanSrc;
+    inherit (pkgs) editorconfig-checker;
+  };
+
   pngOptimization = pkgs.callPackage ./png-optimization.nix {
     src = cleanSrc;
     inherit fixPngOptimization;

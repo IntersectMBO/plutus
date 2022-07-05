@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 

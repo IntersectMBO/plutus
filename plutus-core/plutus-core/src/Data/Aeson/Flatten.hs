@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 module Data.Aeson.Flatten
     ( flattenObject

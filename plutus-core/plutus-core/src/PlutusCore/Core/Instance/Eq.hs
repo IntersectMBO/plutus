@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | 'Eq' instances for core data types.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | An internal module that defines functions for deciding equality of values of data types
 -- that encode things with binders.
 

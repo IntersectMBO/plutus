@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusIR.Mark
     ( markNonFreshTerm
     , markNonFreshType

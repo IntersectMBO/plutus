@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-% nofib/spectral/constraints converted to Plutus.
     Renamed to avoid conflict with existing package. %-}
 {-# LANGUAGE DataKinds             #-}

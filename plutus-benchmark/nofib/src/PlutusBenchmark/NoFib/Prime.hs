@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-% Primality testing functions taken from nofib/spectral/primetest.
   Most of the literate Haskell stuff has been removed and everything's
   been put into one file for simplicity. %-}

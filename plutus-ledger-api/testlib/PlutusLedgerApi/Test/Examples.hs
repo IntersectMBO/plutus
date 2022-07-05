@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 -- | This module contains example values to be used for testing. These should NOT be used in non-test code!
 module PlutusLedgerApi.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailingNAryFunction, summingFunction, saltFunction) where

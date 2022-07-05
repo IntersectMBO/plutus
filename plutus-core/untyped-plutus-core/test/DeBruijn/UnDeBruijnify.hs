@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 
