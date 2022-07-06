@@ -307,7 +307,6 @@ library
     , semigroups                  >=0.19.1
     , serialise
     , some                        <1.0.3
-    , split
     , template-haskell
     , text
     , th-compat

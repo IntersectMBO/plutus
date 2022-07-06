@@ -80,7 +80,7 @@ test_Factorial =
 -- a const defined in PLC itself.
 test_Const :: TestTree
 test_Const =
-    testPropertyNamed "Const" "Const" . property $ do
+    testProperty "Const" . property $ do
         c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
@@ -590,11 +590,9 @@ testSECP256k1 :: TestTree
 testSECP256k1 =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signatures on the SECP256k1 curve" $ [
-    testPropertyNamed "ECDSA verification behaves correctly on all inputs"
-                      "ECDSA verification behaves correctly on all inputs" .
+    testProperty "ECDSA verification behaves correctly on all inputs" .
       property $ ecdsaSecp256k1Prop,
-    testPropertyNamed "Schnorr verification behaves correctly on all inputs"
-                      "Schnorr verification behaves correctly on all inputs" .
+    testProperty "Schnorr verification behaves correctly on all inputs" .
       property $ schnorrSecp256k1Prop
     ]
 
@@ -619,39 +617,39 @@ testBitwise =
 -- Tests for bitwise AND on ByteStrings
 testAndByteString :: TestTree
 testAndByteString = testGroup "AndByteString" [
-  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseAndCommutes,
-  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseAndAssociates,
-  testPropertyNamed "All-1s is an identity" "All-1s is an identity" . property $ bitwiseAndIdentity,
-  testPropertyNamed "All-0s is absorbing" "All-0s is absorbing" . property $ bitwiseAndAbsorbing,
-  testPropertyNamed "AND with yourself does nothing" "AND with yourself does nothing" . property $ bitwiseAndSelf,
-  testPropertyNamed "De Morgan's law" "De Morgan's law" . property $ bitwiseAndDeMorgan
+  testProperty "Commutativity" . property $ bitwiseAndCommutes,
+  testProperty "Associativity" . property $ bitwiseAndAssociates,
+  testProperty "All-1s is an identity" . property $ bitwiseAndIdentity,
+  testProperty "All-0s is absorbing" . property $ bitwiseAndAbsorbing,
+  testProperty "AND with yourself does nothing" . property $ bitwiseAndSelf,
+  testProperty "De Morgan's law" . property $ bitwiseAndDeMorgan
   ]
 
 -- Tests for bitwise IOR on ByteStrings
 testIorByteString :: TestTree
 testIorByteString = testGroup "IorByteString" [
-  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseIorCommutes,
-  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseIorAssociates,
-  testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseIorIdentity,
-  testPropertyNamed "All-1s is absorbing" "All-0s is absorbing" . property $ bitwiseIorAbsorbing,
-  testPropertyNamed "IOR with yourself does nothing" "IOR with yourself does nothing" . property $ bitwiseIorSelf,
-  testPropertyNamed "De Morgan's law" "De Morgan's law" . property $ bitwiseIorDeMorgan
+  testProperty "Commutativity" . property $ bitwiseIorCommutes,
+  testProperty "Associativity" . property $ bitwiseIorAssociates,
+  testProperty "All-0s is an identity" . property $ bitwiseIorIdentity,
+  testProperty "All-0s is absorbing" . property $ bitwiseIorAbsorbing,
+  testProperty "IOR with yourself does nothing" . property $ bitwiseIorSelf,
+  testProperty "De Morgan's law" . property $ bitwiseIorDeMorgan
   ]
 
 -- Tests for bitwise XOR on ByteStrings
 testXorByteString :: TestTree
 testXorByteString = testGroup "XorByteString" [
-  testPropertyNamed "Commutativity" "Commutativity" . property $ bitwiseXorCommutes,
-  testPropertyNamed "Associativity" "Associativity" . property $ bitwiseXorAssociates,
-  testPropertyNamed "All-0s is an identity" "All-0s is an identity" . property $ bitwiseXorIdentity,
-  testPropertyNamed "XOR with all-1s is complement" "XOR with all 1s is complement" . property $ bitwiseXorComplement,
-  testPropertyNamed "XOR with yourself gives all-0" "XOR with yourself gives all-0" . property $ bitwiseXorSelf
+  testProperty "Commutativity" . property $ bitwiseXorCommutes,
+  testProperty "Associativity" . property $ bitwiseXorAssociates,
+  testProperty "All-0s is an identity" . property $ bitwiseXorIdentity,
+  testProperty "XOR with all 1s is complement" . property $ bitwiseXorComplement,
+  testProperty "XOR with yourself gives all-0" . property $ bitwiseXorSelf
   ]
 
 -- Tests for bitwise complement on ByteStrings
 testComplementByteString :: TestTree
 testComplementByteString = testGroup "ComplementByteString" [
-  testPropertyNamed "Self-inversion" "Self-inversion" . property $ bitwiseComplementSelfInverts
+  testProperty "Self-inversion" . property $ bitwiseComplementSelfInverts
   ]
 
 -- Tests for population count on ByteStrings
@@ -661,24 +659,24 @@ testPopCountByteString = testGroup "PopCountByteString" [
     let arg = mkConstant @ByteString () ""
     let comp = mkIterApp () (builtin () PopCountByteString) [ arg ]
     typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ 0),
-  testPropertyNamed "popcount of singleton ByteString is correct" "popcount of singleton ByteString is correct" . property $ popCountSingleByte,
-  testPropertyNamed "popcount of append is sum of popcounts" "popcount of append is sum of popcounts" . property $ popCountAppend
+  testProperty "popcount of singleton ByteString is correct" . property $ popCountSingleByte,
+  testProperty "popcount of append is sum of popcounts" . property $ popCountAppend
   ]
 
 -- Tests for bit indexing into a ByteString
 testTestBitByteString :: TestTree
 testTestBitByteString = testGroup "TestBitByteString" [
-  testPropertyNamed "any index on an empty ByteString fails" "any index on an empty ByteString fails" . property $ testBitEmpty,
-  testPropertyNamed "indexing on singletons works correctly" "indexing on singletons works correctly" . property $ testBitSingleByte,
-  testPropertyNamed "indexing appends agrees with components" "indexing appends agrees with components" . property $ testBitAppend
+  testProperty "any index on an empty ByteString fails" . property $ testBitEmpty,
+  testProperty "indexing on singletons works correctly" . property $ testBitSingleByte,
+  testProperty "indexing appends agrees with components" . property $ testBitAppend
   ]
 
 -- Tests for bit setting or clearing of a ByteString
 testWriteBitByteString :: TestTree
 testWriteBitByteString = testGroup "WriteBitByteString" [
-  testPropertyNamed "writing then reading gives back what you wrote" "writing then reading gives back what you wrote" . property $ writeBitRead,
-  testPropertyNamed "second write wins" "second write wins" . property $ writeBitDouble,
-  testPropertyNamed "single write to zeroes gives right reads" "single write to zeroes gives right reads" . property $ writeBitAgreement
+  testProperty "writing then reading gives back what you wrote" . property $ writeBitRead,
+  testProperty "second write wins" . property $ writeBitDouble,
+  testProperty "single write to zeroes gives right reads" . property $ writeBitAgreement
   ]
 
 -- Tests for finding first set bit of a ByteString
@@ -688,33 +686,33 @@ testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
     let arg = mkConstant @ByteString () ""
     let comp = mkIterApp () (builtin () FindFirstSetByteString) [ arg ]
     typecheckEvaluateCekNoEmit defaultCekParameters comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ (-1)),
-  testPropertyNamed "find first set on singletons works correctly" "find first set on singletons works correctly" . property $ ffsSingleByte,
-  testPropertyNamed "find first set on appended ByteStrings works correctly" "find first set on appended ByteStrings works correctly" . property $ ffsAppend
+  testProperty "find first set on singletons works correctly" . property $ ffsSingleByte,
+  testProperty "find first set on appended ByteStrings works correctly" . property $ ffsAppend
   ]
 
 -- Tests for ByteString rotations
 testRotateByteString :: TestTree
 testRotateByteString = testGroup "RotateByteString" [
-  testPropertyNamed "rotating by 0 does nothing" "rotating by 0 does nothing" . property $ rotateIdentity,
-  testPropertyNamed "rotation adjusts indices correctly" "rotation adjusts indices correctly" . property $ rotateIndexMotion,
-  testPropertyNamed "rotating all-zero or all-one changes nothing" "rotating all-zero or all-one changes nothing" . property $ rotateHomogenous,
-  testPropertyNamed "rotating by i, then by j is the same as rotating by i + j" "rotating by i, then by j is the same as rotating by i + j" . property $ rotateSum
+  testProperty "rotating by 0 does nothing" . property $ rotateIdentity,
+  testProperty "rotation adjusts indices correctly" . property $ rotateIndexMotion,
+  testProperty "rotating all-zero or all-one changes nothing" . property $ rotateHomogenous,
+  testProperty "rotating by i, then by j is the same as rotating by i + j" . property $ rotateSum
   ]
 
 -- Tests for ByteString shifts
 testShiftByteString :: TestTree
 testShiftByteString = testGroup "ShiftByteString" [
-  testPropertyNamed "shifting by 0 does nothing" "shifting by 0 does nothing" . property $ shiftIdentity,
-  testPropertyNamed "shifting adjusts indices correctly" "shifting adjusts indices correctly" . property $ shiftIndexMotion,
-  testPropertyNamed "shifting all-zeroes does nothing" "shifting all-zeroes does nothing" . property $ shiftHomogenous,
-  testPropertyNamed "shifting in two steps is the same as shifting in one" "shifting in two steps is the same as shifting in one" . property $ shiftSum
+  testProperty "shifting by 0 does nothing" . property $ shiftIdentity,
+  testProperty "shifting adjusts indices correctly" . property $ shiftIndexMotion,
+  testProperty "shifting all-zeroes does nothing" . property $ shiftHomogenous,
+  testProperty "shifting in two steps is the same as shifting in one" . property $ shiftSum
   ]
 
 -- Tests for conversion into Integer from ByteString
 testByteStringToInteger :: TestTree
 testByteStringToInteger = testGroup "ByteStringToInteger" [
-  testPropertyNamed "all zeroes give 0, all ones give -1" "all zeroes give 0, all ones give -1" . property $ bsToIHomogenous,
-  testPropertyNamed "trailing ones ignored for negative, trailing zeroes for positive" "trailing ones ignored for negative, trailing zeroes for positive" . property $ bsToITrailing
+  testProperty "all zeroes give 0, all ones give -1" . property $ bsToIHomogenous,
+  testProperty "trailing ones ignored for negative, trailing zeroes for positive" . property $ bsToITrailing
   ]
 
 test_definition :: TestTree

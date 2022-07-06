@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
@@ -31,7 +32,6 @@ import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, u
 import Data.Foldable (foldl', for_)
 import Data.Functor (void)
 import Data.Kind (Type)
--- import Data.List.Split (chunksOf)
 import Data.Text (Text, pack)
 import Data.Word (Word64, Word8)
 import Foreign.C.Types (CChar, CSize)
