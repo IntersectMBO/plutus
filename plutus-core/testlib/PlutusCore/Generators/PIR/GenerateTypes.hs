@@ -156,19 +156,23 @@ genAtomicType k = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
   -- TODO: probably should be 'frequencyTm'?
-  oneof $ map pure (atoms ++ builtins) ++ [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
+  oneof $ concat
+    [ map pure atoms
+    , [elements builtins | not $ null builtins]
+    , [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
+    ]
 
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = checkInvariants $ onSize (min 10) $
   ifSizeZero (genAtomicType k) $
     frequency $
-      [ (1, genAtomicType k) ] ++
-      [ (2, genFun) | k == Star ] ++
-      [ (1, genForall) | k == Star ] ++
+      [ (5, genAtomicType k) ] ++
+      [ (10, genFun) | k == Star ] ++
+      [ (5, genForall) | k == Star ] ++
       [ (1, genIFix) | k == Star ] ++
-      [ (1, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
-      [ (1, genApp) ]
+      [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
+      [ (5, genApp) ]
   where
 
     checkInvariants gen = do

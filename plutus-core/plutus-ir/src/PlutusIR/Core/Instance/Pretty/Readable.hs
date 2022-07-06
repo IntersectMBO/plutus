@@ -30,9 +30,8 @@ type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 -- | Pretty-print something with the Pir prettyprinter settings.
 prettyPirReadable :: PrettyPir a => a -> Doc ann
 prettyPirReadable = prettyBy prettyConfigReadable
-  -- Note, for now this is just a simple default setting. We may want to add more complicated
-  -- settings in the future.
-  where prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
+  -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
+  where prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
 
 -- | Split an application into its (possible) head and arguments (either types or term)
 viewApp :: Term tyname name uni fun ann

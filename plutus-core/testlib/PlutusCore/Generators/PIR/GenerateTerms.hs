@@ -411,6 +411,13 @@ genTerm mty = checkInvariants $ do
         [] -> (ty,) <$> inhabitType ty
         gs -> (ty,) <$> oneof gs
 
+-- | Like 'liftOf' except each of the elements is generated with a proportionally smaller size.
+scaledListOf :: GenTm a -> GenTm [a]
+scaledListOf g = do
+  sz <- asks geSize
+  n  <- choose (0, sz `div` 3)
+  onSize (`div` n) $ replicateM n g
+
 genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni DefaultFun () -> GenTm a) -> GenTm a
 genDatatypeLet rec cont = do
     k <- liftGen arbitrary
@@ -424,7 +431,10 @@ genDatatypeLet rec cont = do
         bty d = if rec
                 then bindTyName d k
                 else registerTyName d
-    conArgss <- bty d $ bindTyNames (zip xs ks) $ onSize (`div` n) $ replicateM n $ listOf (genType Star)
+    conArgss <- bty d $ bindTyNames (zip xs ks) $
+                  -- Using 'listOf' instead if 'scaledListOf' makes the code slower by several
+                  -- times (didn't check how exactly it affects the generated types).
+                  onSize (`div` n) $ replicateM n $ scaledListOf (genType Star)
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
                        | (c, _conArgs) <- zip cs conArgss
