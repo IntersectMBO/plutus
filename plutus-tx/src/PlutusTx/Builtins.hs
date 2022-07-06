@@ -72,6 +72,19 @@ module PlutusTx.Builtins (
                                 -- * Conversions
                                 , fromBuiltin
                                 , toBuiltin
+                                -- * Bitwise builtins
+                                , integerToByteString
+                                , byteStringToInteger
+                                , andByteString
+                                , iorByteString
+                                , xorByteString
+                                , complementByteString
+                                , shiftByteString
+                                , rotateByteString
+                                , popCountByteString
+                                , testBitByteString
+                                , writeBitByteString
+                                , findFirstSetByteString
                                 ) where
 
 import PlutusTx.Base (const, uncurry)
@@ -201,6 +214,276 @@ verifySchnorrSecp256k1Signature
   -> Bool
 verifySchnorrSecp256k1Signature vk msg sig =
   fromBuiltin (BI.verifySchnorrSecp256k1Signature vk msg sig)
+
+-- | Converts an 'Integer' into its 'BuiltinByteString' representation.
+--
+-- = Notes
+--
+-- Throughout, let @maxInteger@ be the maximum function for 'Integer's,
+-- and @absInteger@ be the absolute value function for 'Integer's.
+-- We define @zeroes :: 'Integer' -> 'BuiltinByteString'@ be the
+-- function which, given input @i@, produces a 'BuiltinByteString' @bs@ such
+-- that:
+--
+-- * @'lengthByteString' bs@ @=@ @'maxInteger' 0 i@; and
+-- * For all @j :: 'Integer'@ such that @'greaterThanEqualsInteger' j 0@,
+-- @'indexByteString' bs j = 0@;
+--
+-- We define @ones :: 'Integer' -> 'BuiltinByteString'@ identically to @zeroes@,
+-- except that @'indexByteString' bs j = 255@ instead.
+--
+-- == Laws
+--
+-- 'integerToByteString' must roundtrip via 'byteStringToInteger'. Specifically,
+-- for all @i :: 'Integer'@, we must have:
+--
+-- @'byteStringToInteger '.' 'integerToByteString' '$' i@ @=@ @i@
+--
+-- Furthermore, the length of any result of 'integerToByteString' must be
+-- strictly positive:
+--
+-- @'greaterThanInteger' ('lengthByteString' '.' 'integerToByteString' i) 0@ @=@
+-- @True@
+--
+-- Lastly, the result /must/ be encoded as defined in the Encoding section
+-- below.
+--
+-- == Encoding
+--
+-- 'integerToByteString' follows the encoding we describe below; let @i ::
+-- 'Integer'@. If @i@ is zero, @'integerToByteString' i@ @=@ @zeroes 1@;
+-- we call this the /zero representation/. If @i@ is non-zero, the encoding
+-- depends on the sign of @i@.
+--
+-- If @i@ is positive, @'integerToByteString' i@ @=@ @bs@ such that the
+-- following hold:
+--
+-- * @'greaterThanInteger' ('byteStringLength' bs) 0@ @=@ @True@;
+-- * Let @polyQuotientInteger :: 'Integer' -> 'Integer' ->
+-- 'Integer' -> 'Integer'@ be defined such that
+-- @polyQuotientInteger i j reps@ be a repeat application of 'quotientInteger'
+-- with @j@ as its second argument @'maxInteger' 0 reps@ times to @i@. Let
+-- @ix :: 'BuiltinInteger'@ such that @'greaterThanEqualsInteger' ix 0@ and
+-- @'lessThanInteger' ix k@. Then, @'indexByteString' bs ix@ @=@
+-- @'remainderInteger' (polyQuotientInteger i 256 ('subtractInteger' ('subtractInteger' k 1) ix)) 256@
+--
+-- We call this a /positive representation/.
+--
+-- If @i@ is negative, there are two cases:
+--
+-- * If the absolute value of @i@ is /not/ an exact power of 256, then
+-- @'integerToByteString' i@ is the [two's
+-- complement](https://en.wikipedia.org/wiki/Two%27s_complement) of the positive
+-- representation of @'absInteger' i@.
+-- * Otherwise, let @bs@ be the two's complement of the positive representation
+-- of @'absInteger' i@. Then, @'integerToByteString' i@ is @'appendByteString'
+-- (ones 1) bs@.
+--
+-- We call this a /negative representation/. We need to introduce the special
+-- second case (with the \'ones padding\') for negative representations as exact
+-- powers of 256 are their own two's complement: thus, we have to distinguish
+-- positive cases from negative ones. We choose to do this by \'padding\', as
+-- this makes the decode direction easier.
+{-# INLINEABLE integerToByteString #-}
+integerToByteString :: Integer -> BuiltinByteString
+integerToByteString i = BI.integerToByteString (toBuiltin i)
+
+-- | Converts a 'BuiltinByteString' into its 'Integer' representation.
+--
+-- = Notes
+--
+-- We inherit all definitions described for 'integerToByteString'.
+--
+-- == Laws
+--
+-- In addition to the roundtrip requirements specified by the laws of
+-- 'integerToByteString', we also add the following requirements. Throughout,
+-- let @i :: Integer@ and @j :: Integer@ such that @'greaterThanInteger' j 0@.
+--
+-- * /Padding/: If @bs@ is a zero representation or
+-- a positive representation, then @'byteStringToInteger' bs@ @=@
+-- @'byteStringToInteger' ('appendByteString' (zeroes i) bs)@; otherwise,
+-- @'byteStringToInteger' bs@ @=@ @'byteStringToInteger' ('appendByteString'
+-- (ones i) bs)@.
+-- * /Zero homogeneity/: @'byteStringToInteger' (zeroes i)@ @=@ @0@.
+-- * /One homogeneity/: @'byteStringToInteger' (ones j)@ @=@ @(-1)@.
+--
+-- A theorem of zero homogeneity is that @'byteStringToInteger' ""@ @=@ @0@.
+--
+-- == Redundant encodings
+--
+-- Unfortunately, the padding, zero homogeneity and one homogeneity laws mean
+-- that the combination of 'byteStringToInteger' and 'integerToByteString'
+-- cannot be an isomorphism. This is unavoidable: we either have to make
+-- 'byteStringToInteger' partial, or allow redundant encodings. We chose the
+-- second option as it is harmless, and as long as 'integerToByteString'
+-- produces non-redundant encodings, shouldn't cause issues.
+{-# INLINEABLE byteStringToInteger #-}
+byteStringToInteger :: BuiltinByteString -> Integer
+byteStringToInteger bs = fromBuiltin (BI.byteStringToInteger bs)
+
+-- | If given arguments of identical length, constructs their bitwise logical
+-- AND, erroring otherwise.
+--
+-- = Notes
+--
+-- We inherit all definitions described for 'integerToByteString'.
+--
+-- == Laws
+--
+-- 'andByteString' follows these laws:
+--
+-- * /Commutativity/: @'andByteString' bs1 bs2@ @=@ @'andByteString' bs2 bs1@
+-- * /Associativity/: @'andByteString' bs1 ('andByteString' bs2 bs3)@ @=@
+-- @'andByteString' ('andByteString' bs1 bs2) bs3@
+-- * /Identity/: @'andByteString' bs (ones '.' 'lengthByteString' '$' bs)@ @=@
+-- @bs@
+-- * /Absorbtion/: @'andByteString' bs (zeroes '.' 'lengthByteString' '$' bs)@
+-- @=@ @zeroes '.' 'lengthByteString' '$' bs@
+-- * /De Morgan's law for AND/: @'complementByteString' ('andByteString' bs1
+-- bs2)@ @=@ @'iorByteString' ('complementByteString' bs1)
+-- ('complementByteString' bs2)@
+-- * /Idempotence/: @'andByteString' bs bs@ @=@ @bs@
+{-# INLINEABLE andByteString #-}
+andByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+andByteString = BI.andByteString
+
+-- | If given arguments of identical length, constructs their bitwise logical
+-- IOR, erroring otherwise.
+--
+-- = Notes
+--
+-- We inherit all definitions described for 'integerToByteString'.
+--
+-- == Laws
+--
+-- 'iorByteString' follows these laws:
+--
+-- * /Commutativity/: @'iorByteString' bs1 bs2@ @=@ @'iorByteString' bs2 bs1@
+-- * /Associativity/: @'iorByteString' bs1 ('iorByteString' bs2 bs3)@ @=@
+-- @'iorByteString' ('iorByteString' bs1 bs2) bs3@
+-- * /Identity/: @'iorByteString' bs (zeroes '.' 'lengthByteString' '$' bs)@ @=@
+-- @bs@
+-- * /Absorbtion/: @'iorByteString' bs (ones '.' 'lengthByteString' '$' bs)@
+-- @=@ @ones '.' 'lengthByteString' '$' bs@
+-- * /De Morgan's law for IOR/: @'complementByteString' ('iorByteString' bs1
+-- bs2)@ @=@ @'andByteString' ('complementByteString' bs1)
+-- ('complementByteString' bs2)@
+-- * /Idempotence/: @'iorByteString' bs bs@ @=@ @bs@
+{-# INLINEABLE iorByteString #-}
+iorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+iorByteString = BI.iorByteString
+
+-- | If given arguments of identical length, constructs their bitwise logical
+-- XOR, erroring otherwise.
+--
+-- = Notes
+--
+-- We inherit all definitions described for 'integerToByteString'.
+--
+-- == Laws
+--
+-- 'xorByteString' follows these laws:
+--
+-- * /Commutativity/: @'xorByteString' bs1 bs2@ @=@ @'xorByteString' bs2 bs1@
+-- * /Associativity/: @'xorByteString' bs1 ('xorByteString' bs2 bs3)@ @=@
+-- @'xorByteString' ('xorByteString' bs1 bs2) bs3@
+-- * /Identity/: @'xorByteString' bs (zeroes '.' 'lengthByteString' '$' bs)@ @=@
+-- @bs@
+-- * /Complementarity/: @'xorByteString' bs (ones '.' 'lengthByteString' '$'
+-- bs)@ @=@ @'complementByteString' bs@
+-- * /Self-absorbtion/: @'xorByteString' bs bs@ @=@ @zeroes '.'
+-- 'lengthByteString' '$' bs@
+{-# INLINEABLE xorByteString #-}
+xorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+xorByteString = BI.xorByteString
+
+-- | Constructs the [one's complement](https://en.wikipedia.org/wiki/Ones%27_complement)
+-- of its argument.
+--
+-- = Laws
+--
+-- `complementByteString` is self-inverting: specifically, we have
+-- @'complementByteString' '.' 'complementByteString' '$' bs@ @=@ @bs@.
+{-# INLINEABLE complementByteString #-}
+complementByteString :: BuiltinByteString -> BuiltinByteString
+complementByteString = BI.complementByteString
+
+-- | Shifts the 'BuiltinByteString' argument. More precisely, constructs a new
+-- 'BuiltinByteString' by \'adjusting\' the bit indexes of the
+-- 'BuiltinByteString' argument by the 'Integer' argument; if this would cause
+-- an \'out-of-bounds\', that bit is 0 instead.
+--
+-- = Notes
+--
+-- We inherit all definitions described for 'integerToByteString'.
+--
+-- == Laws
+--
+-- 'shiftByteString' follows these laws:
+--
+-- * /Identity/: @'shiftByteString' bs 0@ @=@ @bs@
+-- * /Decomposition/: Let @i, j :: 'Integer'@ such that either at least one of
+-- @i@, @j@ is zero or @i@ and @j@ have the same sign. Then @'shiftByteString'
+-- bs ('addInteger' i j)@ @=@ @'shiftByteString' ('shiftByteString' bs i) j@
+-- * /Erasure/: If @greaterThanEqualsInteger ('absInteger' i) '.' 'lengthByteString' '$' bs@,
+-- then @'shiftByteString' bs i@ @=@ @zeroes '.' 'lengthByteString' '$' bs@
+{-# INLINEABLE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+shiftByteString bs i = BI.shiftByteString bs (toBuiltin i)
+
+-- | Rotates the 'BuiltinByteString' argument. More precisely, constructs a new
+-- 'BuiltinByteString' by \'adjusting\' the bit indexes of the
+-- 'BuiltinByteString' argument by the 'Integer' argument; if this would cause
+-- an \'out-of-bounds\', we \'wrap around\'.
+--
+-- = Laws
+--
+-- 'rotateByteString' follows these laws:
+--
+-- * /Identity/: @'rotateByteString' bs 0@ @=@ @bs@
+-- * /Decomposition/: @'rotateByteString' bs ('addInteger' i j)@ @=@
+-- @'rotateByteString' ('rotateByteString' bs i) j@
+-- * /Wraparound/: Let @i :: Integer@ be nonzero. Then @'rotateByteString' bs i@
+-- @=@ @'rotateByteString' bs ('remainderInteger' i ('timesInteger' 8 '.'
+-- 'lengthByteString' '$' bs))@
+{-# INLINEABLE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+rotateByteString bs i = BI.rotateByteString bs (toBuiltin i)
+
+-- | Counts the number of 1 bits in the argument.
+--
+-- = Laws
+--
+-- 'popCountByteString' follows these laws:
+--
+-- * @'popCountByteString' ""@ @=@ @0@
+-- * @'popCountByteString' ('appendByteString' bs1 bs2)@ @=@
+-- @'addInteger' ('popCountByteString' bs1) ('popCountByteString' bs2)@
+{-# INLINEABLE popCountByteString #-}
+popCountByteString :: BuiltinByteString -> Integer
+popCountByteString bs = fromBuiltin (BI.popCountByteString bs)
+
+-- | Bitwise indexing operation. Errors when given an index that's not
+-- in-bounds: specifically, indexes that are either negative or greater than or
+-- equal to the number of bits in the 'BuiltinByteString' argument.
+{-# INLINEABLE testBitByteString #-}
+testBitByteString :: BuiltinByteString -> Integer -> Bool
+testBitByteString bs i = fromBuiltin (BI.testBitByteString bs (toBuiltin i))
+
+-- | Bitwise modification at an index. Errors when given an index that's not
+-- in-bounds: specifically, indexes that are either negative or greater than
+-- or equal to the number of bits in the 'BuiltinByteString' argument.
+{-# INLINEABLE writeBitByteString #-}
+writeBitByteString :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString
+writeBitByteString bs i b = BI.writeBitByteString bs (toBuiltin i) (toBuiltin b)
+
+-- | Finds the lowest bit index such that 'testBitByteString' at that index is
+-- 'True'. Returns @-1@ if no such index exists: that is, the
+-- 'BuiltinByteString' argument has only zero bytes in it, or is empty.
+{-# INLINEABLE findFirstSetByteString #-}
+findFirstSetByteString :: BuiltinByteString -> Integer
+findFirstSetByteString bs = fromBuiltin (BI.findFirstSetByteString bs)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.

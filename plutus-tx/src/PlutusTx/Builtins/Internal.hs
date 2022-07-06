@@ -15,6 +15,7 @@
 -- Most users should not use this module directly, but rather use 'PlutusTx.Builtins'.
 module PlutusTx.Builtins.Internal where
 
+import Bitwise qualified
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
@@ -289,6 +290,86 @@ lessThanEqualsByteString (BuiltinByteString b1) (BuiltinByteString b2) = Builtin
 {-# NOINLINE decodeUtf8 #-}
 decodeUtf8 :: BuiltinByteString -> BuiltinString
 decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
+
+{-# NOINLINE integerToByteString #-}
+integerToByteString :: BuiltinInteger -> BuiltinByteString
+integerToByteString = BuiltinByteString . Bitwise.integerToByteString
+
+{-# NOINLINE byteStringToInteger #-}
+byteStringToInteger :: BuiltinByteString -> BuiltinInteger
+byteStringToInteger (BuiltinByteString bs) = Bitwise.byteStringToInteger bs
+
+{-# NOINLINE andByteString #-}
+andByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+andByteString (BuiltinByteString bs) (BuiltinByteString bs') =
+  case Bitwise.andByteString bs bs' of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure      -> mustBeReplaced "Bitwise AND errored."
+        EvaluationSuccess bs'' -> BuiltinByteString bs''
+
+{-# NOINLINE iorByteString #-}
+iorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+iorByteString (BuiltinByteString bs) (BuiltinByteString bs') =
+  case Bitwise.iorByteString bs bs' of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure      -> mustBeReplaced "Bitwise IOR errored."
+        EvaluationSuccess bs'' -> BuiltinByteString bs''
+
+{-# NOINLINE xorByteString #-}
+xorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+xorByteString (BuiltinByteString bs) (BuiltinByteString bs') =
+  case Bitwise.xorByteString bs bs' of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure      -> mustBeReplaced "Bitwise XOR errored."
+        EvaluationSuccess bs'' -> BuiltinByteString bs''
+
+{-# NOINLINE complementByteString #-}
+complementByteString :: BuiltinByteString -> BuiltinByteString
+complementByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.complementByteString $ bs
+
+{-# NOINLINE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinByteString
+shiftByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.shiftByteString bs
+
+{-# NOINLINE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinByteString
+rotateByteString (BuiltinByteString bs) =
+  BuiltinByteString . Bitwise.rotateByteString bs
+
+{-# NOINLINE popCountByteString #-}
+popCountByteString :: BuiltinByteString -> BuiltinInteger
+popCountByteString (BuiltinByteString bs) = Bitwise.popCountByteString bs
+
+{-# NOINLINE testBitByteString #-}
+testBitByteString :: BuiltinByteString -> BuiltinInteger -> BuiltinBool
+testBitByteString (BuiltinByteString bs) i =
+  case Bitwise.testBitByteString bs i of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "Bitwise indexing errored."
+        EvaluationSuccess b -> BuiltinBool b
+
+{-# NOINLINE writeBitByteString #-}
+writeBitByteString ::
+  BuiltinByteString ->
+  BuiltinInteger ->
+  BuiltinBool ->
+  BuiltinByteString
+writeBitByteString (BuiltinByteString bs) i (BuiltinBool b) =
+  case Bitwise.writeBitByteString bs i b of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure     -> mustBeReplaced "Bitwise indexed write errored."
+        EvaluationSuccess bs' -> BuiltinByteString bs'
+
+{-# NOINLINE findFirstSetByteString #-}
+findFirstSetByteString :: BuiltinByteString -> BuiltinInteger
+findFirstSetByteString (BuiltinByteString bs) = Bitwise.popCountByteString bs
 
 {-
 STRING
