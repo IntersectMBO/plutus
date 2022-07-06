@@ -42,7 +42,7 @@ module Evaluation.Builtins.Bitwise (
   shiftIndexMotion,
   shiftHomogenous,
   shiftSum,
-  -- iToBSRoundtrip,
+  iToBsRoundtrip,
   bsToITrailing,
   bsToIHomogenous,
   ) where
@@ -60,7 +60,7 @@ import GHC.Exts (fromListN, toList)
 import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ByteStringToInteger, ComplementByteString, FindFirstSetByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
+import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ByteStringToInteger, ComplementByteString, FindFirstSetByteString, IntegerToByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
                    DefaultUni, Error, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -538,30 +538,18 @@ shiftSum = do
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
 
-{-
-iToBSRoundtrip :: PropertyT IO ()
-iToBSRoundtrip = do
+iToBsRoundtrip :: PropertyT IO ()
+iToBsRoundtrip = do
   i <- forAllWith ppShow . Gen.integral $ indexRange
-  tripping (mkConstant @Integer () i) toBits fromBits
-  where
-    toBits ::
-      Term Untyped.TyName Name DefaultUni DefaultFun () ->
-      Either (Error DefaultUni DefaultFun ())
-             (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
-    toBits i = let comp = mkIterApp () (builtin () IntegerToByteString) [i] in
-      fst <$> cekEval' comp
-    fromBits ::
-      Either (Error DefaultUni DefaultFun ())
-             (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ())) ->
-      Maybe (Term Untyped.TyName Name DefaultUni DefaultFun ())
-    fromBits = \case
-      Right (EvaluationSuccess res) -> do
-        let comp = mkIterApp () (builtin () ByteStringToInteger) [res]
-        case fst <$> cekEval' comp of
-          Right (EvaluationSuccess res') -> pure res'
-          _ -> Nothing
-      _ -> Nothing
--}
+  let comp = mkIterApp () (builtin () ByteStringToInteger) [
+              mkIterApp () (builtin () IntegerToByteString) [
+                mkConstant @Integer () i
+                ]
+              ]
+  outcome <- cekEval comp
+  case outcome of
+    EvaluationSuccess res -> res === mkConstant @Integer () i
+    _                     -> failure
 
 bsToITrailing :: PropertyT IO ()
 bsToITrailing = do

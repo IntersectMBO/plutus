@@ -36,10 +36,10 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
                                     bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, bsToIHomogenous,
-                                    bsToITrailing, ffsAppend, ffsSingleByte, popCountAppend, popCountSingleByte,
-                                    rotateHomogenous, rotateIdentity, rotateIndexMotion, rotateSum, shiftHomogenous,
-                                    shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend, testBitEmpty,
-                                    testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
+                                    bsToITrailing, ffsAppend, ffsSingleByte, iToBsRoundtrip, popCountAppend,
+                                    popCountSingleByte, rotateHomogenous, rotateIdentity, rotateIndexMotion, rotateSum,
+                                    shiftHomogenous, shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend,
+                                    testBitEmpty, testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
 
@@ -611,6 +611,7 @@ testBitwise =
     testFindFirstSetByteString,
     testRotateByteString,
     testShiftByteString,
+    testIntegerToByteString,
     testByteStringToInteger
   ]
 
@@ -706,6 +707,12 @@ testShiftByteString = testGroup "ShiftByteString" [
   testProperty "shifting adjusts indices correctly" . property $ shiftIndexMotion,
   testProperty "shifting all-zeroes does nothing" . property $ shiftHomogenous,
   testProperty "shifting in two steps is the same as shifting in one" . property $ shiftSum
+  ]
+
+-- Tests for conversion into ByteString from Integer
+testIntegerToByteString :: TestTree
+testIntegerToByteString = testGroup "IntegerToByteString" [
+  testProperty "Round trip" . property $ iToBsRoundtrip
   ]
 
 -- Tests for conversion into Integer from ByteString
