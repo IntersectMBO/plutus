@@ -4,18 +4,18 @@ module UntypedPlutusCore.Mark
     , markNonFreshProgram
     ) where
 
+import Data.Set.Lens (setOf)
 import PlutusCore.Core (HasUniques)
 import PlutusCore.Name
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Subst
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.
 markNonFreshTerm
     :: (HasUniques (Term name uni fun ann), MonadQuote m)
     => Term name uni fun ann -> m ()
-markNonFreshTerm = markNonFreshMax . uniquesTerm
+markNonFreshTerm = markNonFreshMax . setOf termUniquesDeep
 
 -- | Marks all the 'Unique's in a program as used, so they will not be generated in future. Useful if you
 -- have a program which was not generated in 'Quote'.

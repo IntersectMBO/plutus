@@ -10,19 +10,16 @@ module UntypedPlutusCore.Subst
     , termSubstFreeNames
     , termMapNames
     , programMapNames
-    , uniquesTerm
     , vTerm
     ) where
 
 import PlutusPrelude
 
-import PlutusCore.Core (HasUniques)
 import PlutusCore.Name
 import UntypedPlutusCore.Core
 
 import Control.Lens
 import Data.Set as Set
-import Data.Set.Lens (setOf)
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
@@ -114,12 +111,7 @@ programMapNames
     -> Program name' uni fun ann
 programMapNames f (Program a v term) = Program a v (termMapNames f term)
 
+-- TODO: this could be a Traversal
 -- | Get all the term variables in a term.
-vTerm :: Ord name => Term name uni fun ann -> Set name
-vTerm = setOf $ termSubtermsDeep . termVars
-
--- All uniques
-
--- | Get all the uniques in a term
-uniquesTerm :: HasUniques (Term name uni fun ann) => Term name uni fun ann -> Set Unique
-uniquesTerm = setOf termUniquesDeep
+vTerm :: Fold (Term name uni fun ann) name
+vTerm = termSubtermsDeep . termVars
