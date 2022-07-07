@@ -13,12 +13,12 @@ import Test.QuickCheck
 -- | Check that the types we generate are kind-correct
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and see the utility tests below when this property fails.
-prop_genKindCorrect :: Property
-prop_genKindCorrect =
+prop_genKindCorrect :: Bool -> Property
+prop_genKindCorrect debug =
   -- Context minimality doesn't help readability, so no shrinking here
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   -- Note, no shrinking here because shrinking relies on well-kindedness.
-  forAllDoc "k,ty" (genKindAndTypeDebug) (const []) $ \ (k, ty) ->
+  forAllDoc "k,ty" (if debug then genKindAndTypeDebug else genKindAndType) (const []) $ \ (k, ty) ->
   checkKind ctx ty k
 
 -- | Check that shrinking types maintains kinds

@@ -28,12 +28,12 @@ import Test.QuickCheck
 -- Note, the counterexamples from this property are not shrunk (see why below).
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and the utility properties below when this property fails.
-prop_genTypeCorrect :: Property
-prop_genTypeCorrect =
+prop_genTypeCorrect :: Bool -> Property
+prop_genTypeCorrect debug =
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
+  forAllDoc "ty,tm" (if debug then genTypeAndTermDebug_ else genTypeAndTerm_) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
 
 -- | Test that when we generate a fully applied term we end up
 -- with a well-typed term.

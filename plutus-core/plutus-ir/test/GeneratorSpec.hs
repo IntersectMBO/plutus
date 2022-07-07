@@ -11,9 +11,9 @@ import GeneratorSpec.Types
 
 generators :: TestNested
 generators = return $ testGroup "generators"
-  [ testProperty "prop_genKindCorrect"  $ withMaxSuccess 1000 prop_genKindCorrect
+  [ testProperty "prop_genKindCorrect"  $ withMaxSuccess 1000000 (prop_genKindCorrect False)
   , testProperty "prop_shrinkTypeSound" $ prop_shrinkTypeSound
-  , testProperty "prop_genTypeCorrect"  $ withMaxSuccess 1000000 prop_genTypeCorrect
+  , testProperty "prop_genTypeCorrect"  $ withMaxSuccess 1000000 (prop_genTypeCorrect False)
   , testProperty "prop_shrinkTermSound" $ withMaxSuccess 20 prop_shrinkTermSound
   , testProperty "prop_substType"       $ withMaxSuccess 10000 prop_substType
   , testProperty "prop_unify"           $ withMaxSuccess 10000 prop_unify
