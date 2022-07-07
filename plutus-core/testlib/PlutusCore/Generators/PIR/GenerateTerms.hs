@@ -186,14 +186,19 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     tryCon d ty (con, conTy)
       | Set.member d (fvArgs conTy) = mzero   -- <- This is ok, since no mutual recursion
       | otherwise = do
-          tyctx <- lift $ asks geTypes
-          insts <- liftEither $ findInstantiation tyctx (typeArity conTy) ty conTy
-          let go tm [] = return tm
-              go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
-              go tm (InstArg ty : insts) = do
-                arg <- findTm ty
-                go (Apply () tm arg) insts
-          go (Var () con) insts
+          -- Check that we haven't banned this constructor
+          tmctx <- lift $ asks geTerms
+          if Map.lookup con tmctx == Just conTy
+          then do
+            tyctx <- lift $ asks geTypes
+            insts <- liftEither $ findInstantiation tyctx (typeArity conTy) ty conTy
+            let go tm [] = return tm
+                go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
+                go tm (InstArg ty : insts) = do
+                  arg <- findTm ty
+                  go (Apply () tm arg) insts
+            go (Var () con) insts
+          else mzero
 
     -- CODE REVIEW: wouldn't it be neat if this existed somewhere?
     viewApp args (TyApp _ f x) = viewApp (x : args) f
