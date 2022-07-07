@@ -43,7 +43,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , transform
     , types
     , typeErrors
-    , generators
+    , generators 1
     ]
 
 prettyprinting :: TestNested
