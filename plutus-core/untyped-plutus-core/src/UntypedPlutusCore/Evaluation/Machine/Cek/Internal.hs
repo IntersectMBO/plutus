@@ -737,7 +737,7 @@ enterComputeCek = computeCek (toWordArray 0) where
                     -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
                     -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
                     -- Maybe we could fuse the two?
-                    let runtime' = BuiltinRuntime schB y . exF $ toExMemory arg
+                    let runtime' = BuiltinRuntime schB y $ exF arg
                     res <- evalBuiltinApp fun term' runtime'
                     returnCek unbudgetedSteps ctx res
             _ ->

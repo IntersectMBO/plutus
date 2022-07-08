@@ -137,6 +137,7 @@ possible to adjust them at runtime.
 
 module PlutusCore.Evaluation.Machine.ExBudget
     ( ExBudget(..)
+    , Budgeting (..)
     , minusExBudget
     , ExBudgetBuiltin(..)
     , ExRestrictingBudget(..)
@@ -146,6 +147,7 @@ module PlutusCore.Evaluation.Machine.ExBudget
 where
 
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
@@ -180,6 +182,11 @@ data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
+
+data Budgeting a
+    = BudgetingFailure KnownTypeError
+    | BudgetingSuccess ExBudget ~a
+    deriving stock (Functor)
 
 -- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget

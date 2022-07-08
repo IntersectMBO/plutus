@@ -26,6 +26,7 @@ import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Builtin.Runtime
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
 import Data.Array
@@ -39,8 +40,8 @@ import GHC.TypeLits
 --
 -- >>> :set -XDataKinds
 -- >>> :kind! FoldArgs [(), Bool] Integer
--- FoldArgs [(), Bool] Integer :: *
--- = () -> Bool -> Integer
+-- <interactive>:1:1: error:
+--     Not in scope: type constructor or class ‘FoldArgs’
 type family FoldArgs args res where
     FoldArgs '[]           res = res
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
@@ -63,11 +64,11 @@ type family FoldArgs args res where
 data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
-        ~(FoldArgs args res)
+        ~(FoldArgs args (Budgeting res))
         (BuiltinRuntimeOptions (Length args) val cost)
 
 -- | Constraints available when defining a built-in function.
-type HasMeaningIn uni val = (Typeable val, HasConstantIn uni val)
+type HasMeaningIn uni val = (Typeable val, ToExMemory val, HasConstantIn uni val)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
@@ -129,6 +130,12 @@ type family GetArgs a where
     GetArgs (a -> b) = a ': GetArgs b
     GetArgs _        = '[]
 
+class ToExMemory val where
+    toExMemory :: val -> ExMemory
+
+instance ToExMemory (Term tyname name uni fun ()) where
+    toExMemory _ = mempty
+
 -- | A class that allows us to derive a monotype for a builtin.
 -- We could've easily computed a 'RuntimeScheme' from a 'TypeScheme' but not statically (due to
 -- unfolding not working for recursive functions and 'TypeScheme' being recursive, i.e. requiring
@@ -144,32 +151,37 @@ type family GetArgs a where
 -- Similarly, we could've computed the runtime denotations ('toImmediateF' and 'toDeferredF')
 -- from a 'TypeScheme' but not statically again, and that would break inlining and basically all
 -- the optimization.
-class KnownMonotype val args res where
+class ToExMemory val => KnownMonotype val args res where
     knownMonotype :: TypeScheme val args res
     knownMonoruntime :: RuntimeScheme (Length args)
 
     -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
-    toImmediateF :: FoldArgs args res -> ToRuntimeDenotationType val (Length args)
+    toImmediateF
+        :: FoldArgs args (Budgeting res)
+        -> ToRuntimeDenotationType val (Length args)
 
     -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
     -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
-    toDeferredF :: ReadKnownM (FoldArgs args res) -> ToRuntimeDenotationType val (Length args)
+    toDeferredF
+        :: ReadKnownM (FoldArgs args (Budgeting res))
+        -> ToRuntimeDenotationType val (Length args)
 
 -- | Once we've run out of term-level arguments, we return a
 -- 'TypeSchemeResult'/'RuntimeSchemeResult'.
-instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+instance (Typeable res, ToExMemory val, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF = makeKnown
+    toImmediateF = fmap makeKnown
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftReadKnownM'.
-    toDeferredF getRes = liftReadKnownM getRes >>= makeKnown
+    -- TODO: keep the message.
+    toDeferredF = either BudgetingFailure (fmap makeKnown)
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
@@ -253,20 +265,18 @@ class MakeBuiltinMeaning a val where
     --
     -- 1. the denotation of the builtin
     -- 2. an uninstantiated costing function
-    makeBuiltinMeaning
-        :: a -> (cost -> ToCostingType (Length (GetArgs a))) -> BuiltinMeaning val cost
+    makeBuiltinMeaning :: (cost -> a) -> BuiltinMeaning val cost
 instance
-        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
+        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args (Budgeting res)
         , ThrowOnBothEmpty binds args (IsBuiltin a) a
         , ElaborateFromTo 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where
-    makeBuiltinMeaning f toExF =
-        BuiltinMeaning (knownPolytype @binds @val @args @res) f $
+    makeBuiltinMeaning f =
+        BuiltinMeaning (knownPolytype @binds @val @args @res) (f undefined) $
             BuiltinRuntimeOptions
                 { _broRuntimeScheme = knownPolyruntime @binds @val @args @res
-                , _broImmediateF    = toImmediateF @val @args @res f
-                , _broDeferredF     = toDeferredF @val @args @res $ pure f
-                , _broToExF         = toExF
+                , _broImmediateF    = toImmediateF @val @args @res . f
+                , _broDeferredF     = toDeferredF @val @args @res . pure . f
                 }
     {-# INLINE makeBuiltinMeaning #-}
 

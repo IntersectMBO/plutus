@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 
 {-# LANGUAGE StrictData               #-}
@@ -9,8 +10,7 @@
 module PlutusCore.Builtin.Runtime where
 
 import PlutusCore.Builtin.KnownType
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -57,18 +57,18 @@ instance NoThunks (RuntimeScheme n) where
 -- argument of the denotation and calling 'makeKnown' over its result.
 type ToRuntimeDenotationType :: GHC.Type -> Peano -> GHC.Type
 type family ToRuntimeDenotationType val n where
-    ToRuntimeDenotationType val 'Z     = MakeKnownM val
+    ToRuntimeDenotationType val 'Z     = Budgeting (MakeKnownM val)
     -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
     -- the price (about 1-2% of total evaluation time) for now.
     ToRuntimeDenotationType val ('S n) = val -> ReadKnownM (ToRuntimeDenotationType val n)
 
--- | Compute the costing type for a builtin given the number of arguments that the builtin takes.
-type ToCostingType :: Peano -> GHC.Type
-type family ToCostingType n where
-    ToCostingType 'Z     = ExBudget
-    ToCostingType ('S n) = ExMemory -> ToCostingType n
+-- -- | Compute the costing type for a builtin given the number of arguments that the builtin takes.
+-- type ToCostingType :: Peano -> GHC.Type
+-- type family ToCostingType n where
+--     ToCostingType 'Z     = ExBudget
+--     ToCostingType ('S n) = ExMemory -> ToCostingType n
 
 -- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
 -- 'BuiltinRuntime's.
@@ -93,33 +93,18 @@ data BuiltinRuntime val =
         ~(ToRuntimeDenotationType val n)  -- Must be lazy, because we don't want to compute the
                                           -- denotation when it's fully saturated before figuring
                                           -- out what it's going to cost.
-        (ToCostingType n)
 
 instance NoThunks (BuiltinRuntime val) where
     -- Skipping `_denot` in `allNoThunks` check, since it is supposed to be lazy and
     -- is allowed to contain thunks.
-    wNoThunks ctx (BuiltinRuntime sch _denot costing) =
+    wNoThunks ctx (BuiltinRuntime sch _denot) =
         allNoThunks
             [ -- The order here is important: we must first check that `sch` doesn't have
               -- thunks, before inspecting it in `noThunksInCosting`.
               noThunks ctx sch
-            , noThunksInCosting ctx costing sch
             ]
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
-
--- | Check whether the given `ToCostingType n` contains thunks. The `RuntimeScheme n` is used to
--- refine `n`.
-noThunksInCosting :: NoThunks.Context -> ToCostingType n -> RuntimeScheme n -> IO (Maybe ThunkInfo)
-noThunksInCosting ctx costing = \case
-    -- @n ~ 'Z@, and @ToCostingType n ~ ExBudget@, which should not be a thunk or contain
-    -- nested thunks.
-    RuntimeSchemeResult ->
-        noThunks ctx costing
-    RuntimeSchemeArrow _ ->
-        noThunks ctx costing
-    RuntimeSchemeAll sch ->
-        noThunksInCosting ctx costing sch
 
 -- | Determines how to unlift arguments. The difference is that with 'UnliftingImmediate' unlifting
 -- is performed immediately after a builtin gets the argument and so can fail immediately too, while
@@ -140,24 +125,22 @@ data UnliftingMode
 -- doesn't survive optimization.
 data BuiltinRuntimeOptions n val cost = BuiltinRuntimeOptions
     { _broRuntimeScheme :: RuntimeScheme n
-    , _broImmediateF    :: ~(ToRuntimeDenotationType val n)
-    , _broDeferredF     :: ~(ToRuntimeDenotationType val n)
-    , _broToExF         :: cost -> ToCostingType n
+    , _broImmediateF    :: ~(cost -> ToRuntimeDenotationType val n)
+    , _broDeferredF     :: ~(cost -> ToRuntimeDenotationType val n)
     }
 
 -- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost
 -- model.
 fromBuiltinRuntimeOptions
     :: UnliftingMode -> cost -> BuiltinRuntimeOptions n val cost -> BuiltinRuntime val
-fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions sch immF defF toExF) =
-    BuiltinRuntime sch f $ toExF cost where
-        f = case unlMode of
-                UnliftingImmediate -> immF
-                UnliftingDeferred  -> defF
+fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions sch immF defF) =
+    BuiltinRuntime sch $ case unlMode of
+        UnliftingImmediate -> immF cost
+        UnliftingDeferred  -> defF cost
 {-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where
-    rnf (BuiltinRuntime rs f exF) = rnf rs `seq` f `seq` rwhnf exF
+    rnf (BuiltinRuntime rs f) = rnf rs `seq` rwhnf f
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun val = BuiltinsRuntime
