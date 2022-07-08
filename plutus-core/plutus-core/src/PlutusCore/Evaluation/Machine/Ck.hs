@@ -30,6 +30,8 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
@@ -66,12 +68,18 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
-    RuntimeSchemeResult -> case getX of
-        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess x              -> pure x
-        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
-    _ -> pure $ VBuiltin term runtime
+evalBuiltinApp term runtime@(BuiltinRuntime sch budgeting) =
+    case sch of
+        RuntimeSchemeResult -> case budgeting of
+            BudgetingFailure err    -> throwKnownTypeErrorWithCause term err
+            BudgetingSuccess _ getX ->
+                case getX of
+                    MakeKnownFailure logs err       -> do
+                        emitCkM logs
+                        throwKnownTypeErrorWithCause term err
+                    MakeKnownSuccess x              -> pure x
+                    MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
+        _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -136,6 +144,9 @@ data Frame uni fun
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni fun = [Frame uni fun]
+
+instance ExMemoryUsage (CkValue uni fun) where
+    memoryUsage = error "not supposed to be forced"
 
 runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)
@@ -272,14 +283,14 @@ instantiateEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> substTyInTerm tn ty body -- No kind check - too expensive at run time.
-instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
+instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f)) = do
     let term' = TyInst () term ty
     case sch of
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
         RuntimeSchemeAll schK -> do
-            let runtime' = BuiltinRuntime schK f exF
+            let runtime' = BuiltinRuntime schK f
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -298,7 +309,7 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
+applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f)) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
     case sch of
@@ -309,7 +320,7 @@ applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
             Right y  -> do
                 -- The CK machine does not support costing, so we just apply the costing function
                 -- to 'mempty'.
-                let runtime' = BuiltinRuntime schB y (exF mempty)
+                let runtime' = BuiltinRuntime schB y
                 res <- evalBuiltinApp term' runtime'
                 stack <| res
         _ ->

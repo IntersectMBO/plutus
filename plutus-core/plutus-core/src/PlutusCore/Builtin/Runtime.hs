@@ -2,7 +2,6 @@
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 
 {-# LANGUAGE StrictData               #-}
@@ -10,7 +9,7 @@
 module PlutusCore.Builtin.Runtime where
 
 import PlutusCore.Builtin.KnownType
-import PlutusCore.Builtin.KnownTypeAst
+import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
@@ -63,12 +62,6 @@ type family ToRuntimeDenotationType val n where
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
     -- the price (about 1-2% of total evaluation time) for now.
     ToRuntimeDenotationType val ('S n) = val -> ReadKnownM (ToRuntimeDenotationType val n)
-
--- -- | Compute the costing type for a builtin given the number of arguments that the builtin takes.
--- type ToCostingType :: Peano -> GHC.Type
--- type family ToCostingType n where
---     ToCostingType 'Z     = ExBudget
---     ToCostingType ('S n) = ExMemory -> ToCostingType n
 
 -- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
 -- 'BuiltinRuntime's.
@@ -125,8 +118,8 @@ data UnliftingMode
 -- doesn't survive optimization.
 data BuiltinRuntimeOptions n val cost = BuiltinRuntimeOptions
     { _broRuntimeScheme :: RuntimeScheme n
-    , _broImmediateF    :: ~(cost -> ToRuntimeDenotationType val n)
-    , _broDeferredF     :: ~(cost -> ToRuntimeDenotationType val n)
+    , _broImmediateF    :: cost -> ToRuntimeDenotationType val n
+    , _broDeferredF     :: cost -> ToRuntimeDenotationType val n
     }
 
 -- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost

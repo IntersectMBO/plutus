@@ -13,7 +13,6 @@ import PlutusCore qualified as TPLC
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase qualified as TPLC
 import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
 
@@ -36,7 +35,7 @@ typecheckAnd action runtime term = TPLC.runQuoteT $ do
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , PrettyUni uni fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
@@ -46,7 +45,7 @@ typecheckEvaluateCek = typecheckAnd $ unsafeEvaluateCek logEmitter
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , PrettyUni uni fun
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
@@ -56,7 +55,7 @@ typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , PrettyUni uni fun
        , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => MachineParameters CekMachineCosts CekValue uni fun
