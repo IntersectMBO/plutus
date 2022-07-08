@@ -1,8 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns   #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
-{-# LANGUAGE StrictData     #-}
+{-# LANGUAGE StrictData            #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , ModelAddedSizes(..)
@@ -38,6 +42,18 @@ import Data.Hashable
 import Deriving.Aeson
 import GHC.Exts
 import Language.Haskell.TH.Syntax hiding (Name, newName)
+
+class OnMemoryUsages c a where
+    onMemoryUsages :: c -> a
+
+instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
+        OnMemoryUsages (ExMemory -> c) ab where
+    onMemoryUsages f = onMemoryUsages . f . inline memoryUsage
+    {-# INLINE onMemoryUsages #-}
+
+instance ab ~ ExBudget => OnMemoryUsages ExBudget ab where
+    onMemoryUsages = id
+    {-# INLINE onMemoryUsages #-}
 
 data CostingFun model = CostingFun
     { costingFunCpu    :: model
@@ -97,12 +113,13 @@ These optimizations gave us a ~3.2% speedup at the time this Note was written.
 -}
 
 runCostingFunOneArgument
-    :: CostingFun ModelOneArgument
-    -> ExMemory
+    :: ExMemoryUsage a1
+    => CostingFun ModelOneArgument
+    -> a1
     -> ExBudget
 runCostingFunOneArgument (CostingFun cpu mem) =
     case (runOneArgumentModel cpu, runOneArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 ->
             ExBudget (ExCPU    $ runCpu mem1)
                      (ExMemory $ runMem mem1)
 {-# INLINE runCostingFunOneArgument #-}
@@ -195,13 +212,16 @@ instance Default ModelTwoArguments where
     def = ModelTwoArgumentsConstantCost 0
 
 runCostingFunTwoArguments
-    :: CostingFun ModelTwoArguments
-    -> ExMemory
-    -> ExMemory
+    :: ( ExMemoryUsage a1
+       , ExMemoryUsage a2
+       )
+    => CostingFun ModelTwoArguments
+    -> a1
+    -> a2
     -> ExBudget
 runCostingFunTwoArguments (CostingFun cpu mem) =
     case (runTwoArgumentModel cpu, runTwoArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 mem2 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 ->
             ExBudget (ExCPU    $ runCpu mem1 mem2)
                      (ExMemory $ runMem mem1 mem2)
 {-# INLINE runCostingFunTwoArguments #-}
@@ -288,14 +308,18 @@ runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept s
 {-# NOINLINE runThreeArgumentModel #-}
 
 runCostingFunThreeArguments
-    :: CostingFun ModelThreeArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
+    :: ( ExMemoryUsage a1
+       , ExMemoryUsage a2
+       , ExMemoryUsage a3
+       )
+    => CostingFun ModelThreeArguments
+    -> a1
+    -> a2
+    -> a3
     -> ExBudget
 runCostingFunThreeArguments (CostingFun cpu mem) =
     case (runThreeArgumentModel cpu, runThreeArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 mem2 mem3 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 ->
             ExBudget (ExCPU    $ runCpu mem1 mem2 mem3)
                      (ExMemory $ runMem mem1 mem2 mem3)
 {-# INLINE runCostingFunThreeArguments #-}
@@ -322,15 +346,20 @@ runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> c
 {-# NOINLINE runFourArgumentModel #-}
 
 runCostingFunFourArguments
-    :: CostingFun ModelFourArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
+    :: ( ExMemoryUsage a1
+       , ExMemoryUsage a2
+       , ExMemoryUsage a3
+       , ExMemoryUsage a4
+       )
+    => CostingFun ModelFourArguments
+    -> a1
+    -> a2
+    -> a3
+    -> a4
     -> ExBudget
 runCostingFunFourArguments (CostingFun cpu mem) =
     case (runFourArgumentModel cpu, runFourArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 mem2 mem3 mem4 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 ->
             ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4)
                      (ExMemory $ runMem mem1 mem2 mem3 mem4)
 {-# INLINE runCostingFunFourArguments #-}
@@ -358,16 +387,22 @@ runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> c
 {-# NOINLINE runFiveArgumentModel #-}
 
 runCostingFunFiveArguments
-    :: CostingFun ModelFiveArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
+    :: ( ExMemoryUsage a1
+       , ExMemoryUsage a2
+       , ExMemoryUsage a3
+       , ExMemoryUsage a4
+       , ExMemoryUsage a5
+       )
+    => CostingFun ModelFiveArguments
+    -> a1
+    -> a2
+    -> a3
+    -> a4
+    -> a5
     -> ExBudget
 runCostingFunFiveArguments (CostingFun cpu mem) =
     case (runFiveArgumentModel cpu, runFiveArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 mem2 mem3 mem4 mem5 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 ->
             ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5)
                      (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5)
 {-# INLINE runCostingFunFiveArguments #-}
@@ -395,17 +430,24 @@ runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> c
 {-# NOINLINE runSixArgumentModel #-}
 
 runCostingFunSixArguments
-    :: CostingFun ModelSixArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
+    :: ( ExMemoryUsage a1
+       , ExMemoryUsage a2
+       , ExMemoryUsage a3
+       , ExMemoryUsage a4
+       , ExMemoryUsage a5
+       , ExMemoryUsage a6
+       )
+    => CostingFun ModelSixArguments
+    -> a1
+    -> a2
+    -> a3
+    -> a4
+    -> a5
+    -> a6
     -> ExBudget
 runCostingFunSixArguments (CostingFun cpu mem) =
     case (runSixArgumentModel cpu, runSixArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 mem2 mem3 mem4 mem5 mem6 ->
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 ->
             ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5 mem6)
                      (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5 mem6)
 {-# INLINE runCostingFunSixArguments #-}

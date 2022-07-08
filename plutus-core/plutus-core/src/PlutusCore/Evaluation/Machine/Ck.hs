@@ -30,6 +30,7 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
@@ -48,7 +49,7 @@ import Universe
 infix 4 |>, <|
 
 -- See Note [Show instance for BuiltinRuntime] in the CEK machine.
-instance Show (BuiltinRuntime (CkValue uni fun)) where
+instance Show (BuiltinRuntime fun (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
 
 data CkValue uni fun =
@@ -56,7 +57,7 @@ data CkValue uni fun =
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
-  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
+  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime fun (CkValue uni fun))
     deriving stock (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -64,14 +65,18 @@ data CkValue uni fun =
 -- fully saturated or not.
 evalBuiltinApp
     :: Term TyName Name uni fun ()
-    -> BuiltinRuntime (CkValue uni fun)
+    -> BuiltinRuntime fun (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime@(BuiltinRuntime sch getX _) = case sch of
-    RuntimeSchemeResult -> case getX of
-        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess x              -> pure x
-        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
-    _ -> pure $ VBuiltin term runtime
+evalBuiltinApp term runtime =
+    case runtime of
+        BuiltinResult _ _ getX ->
+            case getX of
+                MakeKnownFailure logs err       -> do
+                    emitCkM logs
+                    throwKnownTypeErrorWithCause term err
+                MakeKnownSuccess x              -> pure x
+                MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
+        _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
@@ -136,6 +141,9 @@ data Frame uni fun
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
 
 type Context uni fun = [Frame uni fun]
+
+instance ExMemoryUsage (CkValue uni fun) where
+    memoryUsage = error "not supposed to be forced"
 
 runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)
@@ -272,14 +280,13 @@ instantiateEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> substTyInTerm tn ty body -- No kind check - too expensive at run time.
-instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
+instantiateEvaluate stack ty (VBuiltin term runtime) = do
     let term' = TyInst () term ty
-    case sch of
+    case runtime of
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        RuntimeSchemeAll schK -> do
-            let runtime' = BuiltinRuntime schK f exF
+        BuiltinAll runtime' -> do
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -298,18 +305,15 @@ applyEvaluate
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
 applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
-applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
+applyEvaluate stack (VBuiltin term runtime) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
-    case sch of
+    case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        RuntimeSchemeArrow schB -> case f arg of
-            Left err -> throwKnownTypeErrorWithCause argTerm err
-            Right y  -> do
-                -- The CK machine does not support costing, so we just apply the costing function
-                -- to 'mempty'.
-                let runtime' = BuiltinRuntime schB y (exF mempty)
+        BuiltinArrow f -> case f arg of
+            Left err       -> throwKnownTypeErrorWithCause argTerm err
+            Right runtime' -> do
                 res <- evalBuiltinApp term' runtime'
                 stack <| res
         _ ->
