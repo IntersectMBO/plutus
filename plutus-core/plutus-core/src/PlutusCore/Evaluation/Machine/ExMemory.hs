@@ -134,14 +134,17 @@ class ExMemoryUsage a where
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
+    {-# INLINE memoryUsage #-}
 instance ExMemoryUsage SatInt where
     memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
+    {-# INLINE memoryUsage #-}
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+  {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
@@ -150,12 +153,14 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
 
 instance ExMemoryUsage () where
   memoryUsage () = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Integer where
   memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0 (but in practice returns -1)
   memoryUsage i = ExMemory $ fromIntegral $ (I# n) + 1
                                where n = (integerLog2# (abs i) `quotInt#` integerToInt 64) :: Int#
                                -- Assume 64-bit size for Integer
+  {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
@@ -165,6 +170,7 @@ instance ExMemoryUsage Integer where
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
   -- This is slow and inaccurate, but matches the version that was originally deployed.
@@ -173,12 +179,15 @@ instance ExMemoryUsage T.Text where
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
 -- Memory usage for lists: let's just go for a naive traversal for now.
 instance ExMemoryUsage a => ExMemoryUsage [a] where

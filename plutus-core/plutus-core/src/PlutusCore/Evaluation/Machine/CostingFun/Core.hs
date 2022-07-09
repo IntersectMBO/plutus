@@ -1,13 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns           #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
-{-# LANGUAGE StrictData             #-}
+{-# LANGUAGE StrictData            #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , ModelAddedSizes(..)
@@ -49,10 +48,12 @@ class OnMemoryUsages c a where
 
 instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
         OnMemoryUsages (ExMemory -> c) ab where
-    onMemoryUsages f = onMemoryUsages . f . memoryUsage
+    onMemoryUsages f = onMemoryUsages . f . inline memoryUsage
+    {-# INLINE onMemoryUsages #-}
 
 instance ab ~ CostingInteger => OnMemoryUsages CostingInteger ab where
     onMemoryUsages = id
+    {-# INLINE onMemoryUsages #-}
 
 data CostingFun model = CostingFun
     { costingFunCpu    :: model
@@ -118,9 +119,9 @@ runCostingFunOneArgument
     -> ExBudget
 runCostingFunOneArgument (CostingFun cpu mem) =
     case (runOneArgumentModel cpu, runOneArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1)
-                     (ExMemory $ onMemoryUsages runMem mem1)
+        (!runCpu, !runMem) -> \x1 ->
+            ExBudget (ExCPU    $ onMemoryUsages runCpu x1)
+                     (ExMemory $ onMemoryUsages runMem x1)
 {-# INLINE runCostingFunOneArgument #-}
 
 runOneArgumentModel

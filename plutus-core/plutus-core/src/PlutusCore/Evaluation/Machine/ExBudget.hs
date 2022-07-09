@@ -185,6 +185,8 @@ data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
 
 data Budgeting a
     = BudgetingFailure KnownTypeError
+    -- Must be lazy, because we don't want to compute the denotation when it's fully saturated
+    -- before figuring out what it's going to cost.
     | BudgetingSuccess ExBudget ~a
     deriving stock (Functor)
 
