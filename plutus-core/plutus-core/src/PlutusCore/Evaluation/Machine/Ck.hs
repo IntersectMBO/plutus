@@ -71,8 +71,7 @@ evalBuiltinApp
 evalBuiltinApp term runtime@(BuiltinRuntime sch budgeting) =
     case sch of
         RuntimeSchemeResult -> case budgeting of
-            BudgetingFailure err    -> throwKnownTypeErrorWithCause term err
-            BudgetingSuccess _ getX ->
+            Budgeting _ getX ->
                 case getX of
                     MakeKnownFailure logs err       -> do
                         emitCkM logs

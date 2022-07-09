@@ -147,7 +147,6 @@ module PlutusCore.Evaluation.Machine.ExBudget
 where
 
 import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
@@ -184,10 +183,9 @@ data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
 data Budgeting a
-    = BudgetingFailure KnownTypeError
     -- Must be lazy, because we don't want to compute the denotation when it's fully saturated
     -- before figuring out what it's going to cost.
-    | BudgetingSuccess ExBudget ~a
+    = Budgeting ExBudget ~a
     deriving stock (Functor)
 
 -- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.

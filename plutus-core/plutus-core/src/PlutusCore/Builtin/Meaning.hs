@@ -170,12 +170,15 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
     knownMonotype = TypeSchemeResult
     knownMonoruntime = RuntimeSchemeResult
 
-    toImmediateF (x, cost) = BudgetingSuccess cost $ makeKnown x
+    toImmediateF (x, cost) = Budgeting cost $ makeKnown x
     {-# INLINE toImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftReadKnownM'.
-    toDeferredF = either BudgetingFailure $ \(x, cost) -> BudgetingSuccess cost $ makeKnown x
+    toDeferredF =
+        either
+            (Budgeting mempty . MakeKnownFailure mempty)
+            (\(x, cost) -> Budgeting cost $ makeKnown x)
     {-# INLINE toDeferredF #-}
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
