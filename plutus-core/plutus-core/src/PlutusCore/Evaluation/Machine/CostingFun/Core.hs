@@ -51,7 +51,7 @@ instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
     onMemoryUsages f = onMemoryUsages . f . inline memoryUsage
     {-# INLINE onMemoryUsages #-}
 
-instance ab ~ CostingInteger => OnMemoryUsages CostingInteger ab where
+instance ab ~ ExBudget => OnMemoryUsages ExBudget ab where
     onMemoryUsages = id
     {-# INLINE onMemoryUsages #-}
 
@@ -119,9 +119,9 @@ runCostingFunOneArgument
     -> ExBudget
 runCostingFunOneArgument (CostingFun cpu mem) =
     case (runOneArgumentModel cpu, runOneArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1)
-                     (ExMemory $ onMemoryUsages runMem mem1)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 ->
+            ExBudget (ExCPU    $ runCpu mem1)
+                     (ExMemory $ runMem mem1)
 {-# INLINE runCostingFunOneArgument #-}
 
 runOneArgumentModel
@@ -221,9 +221,9 @@ runCostingFunTwoArguments
     -> ExBudget
 runCostingFunTwoArguments (CostingFun cpu mem) =
     case (runTwoArgumentModel cpu, runTwoArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 x2 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1 x2)
-                     (ExMemory $ onMemoryUsages runMem mem1 x2)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 ->
+            ExBudget (ExCPU    $ runCpu mem1 mem2)
+                     (ExMemory $ runMem mem1 mem2)
 {-# INLINE runCostingFunTwoArguments #-}
 
 runTwoArgumentModel
@@ -319,9 +319,9 @@ runCostingFunThreeArguments
     -> ExBudget
 runCostingFunThreeArguments (CostingFun cpu mem) =
     case (runThreeArgumentModel cpu, runThreeArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 x2 x3 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1 x2 x3)
-                     (ExMemory $ onMemoryUsages runMem mem1 x2 x3)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 ->
+            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3)
+                     (ExMemory $ runMem mem1 mem2 mem3)
 {-# INLINE runCostingFunThreeArguments #-}
 
 
@@ -359,9 +359,9 @@ runCostingFunFourArguments
     -> ExBudget
 runCostingFunFourArguments (CostingFun cpu mem) =
     case (runFourArgumentModel cpu, runFourArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 x2 x3 x4 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1 x2 x3 x4)
-                     (ExMemory $ onMemoryUsages runMem mem1 x2 x3 x4)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 ->
+            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4)
+                     (ExMemory $ runMem mem1 mem2 mem3 mem4)
 {-# INLINE runCostingFunFourArguments #-}
 
 
@@ -402,9 +402,9 @@ runCostingFunFiveArguments
     -> ExBudget
 runCostingFunFiveArguments (CostingFun cpu mem) =
     case (runFiveArgumentModel cpu, runFiveArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 x2 x3 x4 x5 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1 x2 x3 x4 x5)
-                     (ExMemory $ onMemoryUsages runMem mem1 x2 x3 x4 x5)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 ->
+            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5)
+                     (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5)
 {-# INLINE runCostingFunFiveArguments #-}
 
 ---------------- Six-argument costing functions ----------------
@@ -447,7 +447,7 @@ runCostingFunSixArguments
     -> ExBudget
 runCostingFunSixArguments (CostingFun cpu mem) =
     case (runSixArgumentModel cpu, runSixArgumentModel mem) of
-        (!runCpu, !runMem) -> \mem1 x2 x3 x4 x5 x6 ->
-            ExBudget (ExCPU    $ onMemoryUsages runCpu mem1 x2 x3 x4 x5 x6)
-                     (ExMemory $ onMemoryUsages runMem mem1 x2 x3 x4 x5 x6)
+        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 ->
+            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5 mem6)
+                     (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5 mem6)
 {-# INLINE runCostingFunSixArguments #-}
