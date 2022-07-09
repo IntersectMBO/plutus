@@ -191,7 +191,7 @@ instance
 
     -- Unlift, then recurse.
     toImmediateF (f, exF) =
-        fmap (\x -> toImmediateF @val @args @res (f x, exF x)) . readKnown
+        fmap (\x -> toImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
@@ -208,7 +208,7 @@ instance
         --
         -- 'pure' signifies that no failure can occur at this point.
         pure . toDeferredF @val @args @res $!
-            (\(f, exF) x -> (f x, exF x)) <$> getBoth <*> readKnown arg
+            (\(f, exF) x -> (,) (f x) $! exF x) <$> getBoth <*> readKnown arg
     {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
