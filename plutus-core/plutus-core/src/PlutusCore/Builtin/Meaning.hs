@@ -34,7 +34,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline)
+import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
@@ -191,11 +191,11 @@ instance
 
     -- Unlift, then recurse.
     toImmediateF (f, exF) =
-        fmap (\x -> toImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
+        oneShot $ fmap (\x -> toImmediateF @val @args @res (f x, exF x)) . readKnown
     {-# INLINE toImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
-    toDeferredF getBoth = \arg ->
+    toDeferredF getBoth = oneShot $ \arg ->
         -- The bang is very important: without it GHC thinks that the argument may not be needed in
         -- the end and so creates a thunk for it, which is not only unnecessary allocation, but also
         -- prevents things from being unboxed. So ironically computing the unlifted value strictly
@@ -208,7 +208,7 @@ instance
         --
         -- 'pure' signifies that no failure can occur at this point.
         pure . toDeferredF @val @args @res $!
-            (\(f, exF) x -> (,) (f x) $! exF x) <$> getBoth <*> readKnown arg
+            (\(f, exF) x -> (f x, exF x)) <$> getBoth <*> readKnown arg
     {-# INLINE toDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
