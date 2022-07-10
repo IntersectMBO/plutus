@@ -21,7 +21,9 @@ import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as M
 import Data.Semigroup.Foldable
 import Data.Set qualified as S
+import Data.Set.Lens (setOf)
 import PlutusIR.MkPir (mkLet)
+import PlutusPrelude ((<^>))
 
 {- Note [LetRec splitting pass]
 
@@ -127,13 +129,12 @@ buildLocalDepGraph bs =
       bindingSubGraph :: Binding tyname name uni fun a -> AM.AdjacencyMap PLC.Unique
       bindingSubGraph b =
           -- the free uniques (variables or tyvariables) that occur inside this binding
-          let freeUniques = S.map (^.PLC.theUnique) (fvBinding b)
-                            -- Special case for datatype bindings:
-                            -- To find out if the binding is self-recursive,
-                            -- we treat it like it was originally belonging to a let-nonrec (`ftvBinding NonRec`).
-                            -- Then, if it the datatype is indeed self-recursive, the call to `ftvBinding NonRec` will return
-                            -- its typeconstructor as free.
-                            <> S.map (^.PLC.theUnique) (ftvBinding NonRec b)
+          -- Special case for datatype bindings:
+          -- To find out if the binding is self-recursive,
+          -- we treat it like it was originally belonging to a let-nonrec (`ftvBinding NonRec`).
+          -- Then, if it the datatype is indeed self-recursive, the call to `ftvBinding NonRec` will return
+          -- its typeconstructor as free.
+          let freeUniques = setOf (fvBinding . PLC.theUnique <^> ftvBinding NonRec . PLC.theUnique) b
               -- the "local" dependencies
               occursIds = M.keysSet idTable `S.intersection` freeUniques
               -- maps the ids of the "local" dependencies to their principal uniques.
