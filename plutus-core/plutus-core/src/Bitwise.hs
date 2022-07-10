@@ -51,9 +51,8 @@ rotateByteString bs i
   | BS.maximum bs == zeroBits = bs
   | BS.minimum bs == complement zeroBits = bs
   | otherwise = case i `rem` bitLen of
-            0 -> bs -- nothing to do irrespective of direction
-            magnitude -> overPtrLen bs $ \ptr len ->
-              go ptr len magnitude >>= packWithLen len
+            0         -> bs -- nothing to do irrespective of direction
+            magnitude -> overPtrLen bs $ \ptr len -> go ptr len magnitude
   where
     go :: Ptr Word8 -> Int -> Integer -> IO (Ptr Word8)
     go src len displacement = do
@@ -91,8 +90,7 @@ shiftByteString :: ByteString -> Integer -> ByteString
 shiftByteString bs i
   | abs i >= bitLen = BS.replicate (BS.length bs) zeroBits
   | BS.maximum bs == zeroBits = bs
-  | otherwise = overPtrLen bs $ \ptr len ->
-      go ptr len >>= packWithLen len
+  | otherwise = overPtrLen bs go
   where
     bitLen :: Integer
     bitLen = fromIntegral $ BS.length bs * 8
@@ -201,35 +199,6 @@ byteStringToInteger bs = case BS.uncons bs of
       modify (256 *)
       pure $ acc + (fromIntegral byte * mult)
 
-{-
-integerToByteString :: Integer -> ByteString
-integerToByteString i = case signum i of
-  0    -> BS.singleton 0
-  (-1) -> twosComplement . integerToByteString . abs $ i
-  _    -> fromList . intoBytes . toBitSequence $ i
-
-byteStringToInteger :: ByteString -> Integer
-byteStringToInteger bs = case BS.uncons bs of
-  Nothing -> 0
-  Just (w8, bs') ->
-    if | isPositivePowerOf2 w8 bs' -> go bs
-       | bit 7 .&. w8 == zeroBits -> go bs
-       | otherwise -> negate . go . twosComplement $ bs
-  where
-    go :: ByteString -> Integer
-    go bs' = let len = BS.length bs' in
-      snd . foldl' go2 (1, 0) $ [len - 1, len -2 .. 0]
-    go2 :: (Integer, Integer) -> Int -> (Integer, Integer)
-    go2 (e, acc) ix = (e * 256, acc + e * (fromIntegral . BS.index bs $ ix))
-
-byteStringToInteger :: ByteString -> Integer
-byteStringToInteger bs = let len = BS.length bs in
-  snd . foldl' go (1, 0) $ [len - 1, len - 2 .. 0]
-  where
-    go :: (Integer, Integer) -> Int -> (Integer, Integer)
-    go (e, acc) ix = (e * 256, acc + e * (fromIntegral . BS.index bs $ ix))
--}
-
 {-# NOINLINE popCountByteString #-}
 popCountByteString :: ByteString -> Integer
 popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
@@ -305,52 +274,19 @@ dangerousRead bs i =
       0 -> False
       _ -> True
 
-packWithLen :: Int -> Ptr Word8 -> IO ByteString
-packWithLen len p = unsafePackMallocCStringLen (castPtr p, len)
-
-overPtrLen :: forall (a :: Type) .
-  ByteString -> (Ptr Word8 -> Int -> IO a) -> a
-overPtrLen bs f =
-  unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> f (castPtr ptr) len
-
-{-
-toBitSequence :: Integer -> [Bool]
-toBitSequence i = go 0 (separateBit i) []
-  where
-    go :: Int -> Maybe (Integer, Bool) -> [Bool] -> [Bool]
-    go len curr acc = case curr of
-      Nothing -> case len `rem` 8 of
-        0 -> acc
-        _ -> go (len + 1) Nothing (False : acc)
-      Just (d, b) -> go (len + 1) (separateBit d) (b : acc)
-
-separateBit :: Integer -> Maybe (Integer, Bool)
-separateBit i = case i of
-  0 -> Nothing
-  _ -> Just . fmap go $ i `quotRem` 2
-    where
-      go :: Integer -> Bool
-      go = \case
-        0 -> False
-        _ -> True
-
-intoBytes :: [Bool] -> [Word8]
-intoBytes = fmap go . chunksOf 8
-  where
-    go :: [Bool] -> Word8
-    go = \case
-      [b7, b6, b5, b4, b3, b2, b1, b0] ->
-        let b0Val = if b0 then 1 else 0
-            b1Val = if b1 then 2 else 0
-            b2Val = if b2 then 4 else 0
-            b3Val = if b3 then 8 else 0
-            b4Val = if b4 then 16 else 0
-            b5Val = if b5 then 32 else 0
-            b6Val = if b6 then 64 else 0
-            b7Val = if b7 then 128 else 0 in
-          b0Val + b1Val + b2Val + b3Val + b4Val + b5Val + b6Val + b7Val
-      _ -> 0 -- should never happen
--}
+-- Important note: this function is only safe under the following conditions:
+--
+-- * The IO used in the function argument only performs memory allocations using
+-- malloc, as well as reads and writes via the Storable interface;
+-- * The pointer argument is only read from, not written to;
+-- * The result of the function argument points to freshly-allocated, malloced
+-- memory; and
+-- * The result of the function argument points to memory whose length matches
+-- that of the input ByteString (in bytes)
+overPtrLen :: ByteString -> (Ptr Word8 -> Int -> IO (Ptr Word8)) -> ByteString
+overPtrLen bs f = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $
+  \(ptr, len) -> f (castPtr ptr) len >>= \p ->
+    unsafePackMallocCStringLen (castPtr p, len)
 
 -- When we complement a power of two, we have to ensure we pad with ones
 --
@@ -376,45 +312,6 @@ twosComp bs = let len = BS.length bs in
       let byte' = if added then complement byte else complement byte + 1
       when (byte /= byte') (put True)
       pure $ byte' : acc
-
-{-
-twosComplement :: ByteString -> ByteString
-twosComplement bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> do
-  dst <- mallocBytes len
-  let src :: Ptr Word8 = castPtr ptr
-  go dst src 1 len False
-  unsafePackMallocCStringLen (castPtr dst, len)
-  where
-    go :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> Bool -> IO ()
-    go dst src offset len added
-      | offset > len = pure ()
-      | otherwise = do
-          w8 :: Word8 <- peek . plusPtr src $ len - offset
-          if added
-          then do
-            poke (plusPtr dst $ len - offset) (complement w8)
-            go dst src (offset + 1) len added
-          else do
-            let (added', w8') = computeAddByte w8
-            poke (plusPtr dst $ len - offset) w8'
-            go dst src (offset + 1) len added'
-
-computeAddByte :: Word8 -> (Bool, Word8)
-computeAddByte = \case
-  0  -> (False, 0)
-  w8 -> go 0 (False, 0) $ w8 `quotRem` 2
-  where
-    go :: Int -> (Bool, Word8) -> (Word8, Word8) -> (Bool, Word8)
-    go step acc@(added, w8) (d, r)
-      | step == 8 = acc
-      | otherwise = let mask = bit 0 `shiftL` step
-                        dr' = d `quotRem` 2 in
-          if added
-          then go (step + 1) (added, w8 `xor` mask) dr'
-          else case r of
-            0 -> go (step + 1) acc dr'
-            _ -> go (step + 1) (True, w8 .|. mask) dr'
--}
 
 mismatchedLengthError :: forall (a :: Type) .
   Text ->
