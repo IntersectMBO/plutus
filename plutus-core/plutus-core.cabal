@@ -53,6 +53,7 @@ library
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
+    Data.MultiSet.Lens
     Data.SatInt
     ErrorCode
     PlutusCore
@@ -296,6 +297,7 @@ library
     , mmorph
     , monoidal-containers
     , mtl
+    , multiset
     , nothunks
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
