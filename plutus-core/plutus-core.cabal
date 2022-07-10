@@ -258,7 +258,6 @@ library
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
-  ghc-options:     -fsimpl-tick-factor=200
   build-depends:
     , aeson
     , algebraic-graphs            >=0.3
