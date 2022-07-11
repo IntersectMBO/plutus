@@ -320,6 +320,16 @@ library
     , witherable
     , word-array
 
+  -- When compiling PlutusCore.Evaluation.Machine.MachineParameters.Default, you
+  -- can occasionally hit a 'Simplifier ticks exhausted' error. This is because
+  -- the default tick factor of 100 isn't always enough on a full rebuild. This
+  -- happens often when we need to rebuild tests due to a change in
+  -- plutus-core-the-library.
+  --
+  -- Doubling this gives us more headroom to ensure we don't have spurious
+  -- failures in compilation.
+  ghc-options:     -fsimpl-tick-factor=200
+
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
   import:          lang
