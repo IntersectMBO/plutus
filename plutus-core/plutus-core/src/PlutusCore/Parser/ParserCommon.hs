@@ -30,10 +30,6 @@ sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'ta
 topSourcePos :: SourcePos
 topSourcePos = initialPos "top"
 
--- | The opposite of @optional :: Alternative f => f a -> f (Maybe a)@.
-required :: MonadPlus m => m (Maybe a) -> m a
-required a = a >>= maybe mzero pure
-
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 

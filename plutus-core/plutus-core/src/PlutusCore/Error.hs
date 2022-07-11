@@ -103,6 +103,9 @@ data ParserErrorBundle
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
+instance Pretty ParserErrorBundle where
+    pretty (ParseErrorB err) = pretty $ errorBundlePretty err
+
 data Error uni fun ann
     = ParseErrorE ParserErrorBundle
     | UniqueCoherencyErrorE (UniqueError ann)
@@ -185,11 +188,11 @@ instance
         , Pretty fun
         , Pretty ann
         ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
-    prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
-    prettyBy config (TypeErrorE e)                = prettyBy config e
-    prettyBy config (NormCheckErrorE e)           = prettyBy config e
-    prettyBy _      (FreeVariableErrorE e)        = pretty e
+    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
+    prettyBy config (TypeErrorE e)            = prettyBy config e
+    prettyBy config (NormCheckErrorE e)       = prettyBy config e
+    prettyBy _      (FreeVariableErrorE e)    = pretty e
 
 instance HasErrorCode ParserError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10

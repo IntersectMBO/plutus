@@ -95,7 +95,8 @@ constant :: Parser (Some (ValueOf DefaultUni))
 constant = do
     -- Parse the type tag.
     SomeTypeIn (Kinded uni) <- defaultUni
-    -- Check it's of kind @*@.
+    -- Check it's of kind @*@, because a constant that we're about to parse can only be of type of
+    -- kind @*@.
     Refl <- reoption $ checkStar uni
     -- Parse the constant of the type represented by the type tag.
     someValueOf uni <$> constantOf uni

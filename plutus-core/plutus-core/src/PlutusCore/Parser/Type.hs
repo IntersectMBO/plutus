@@ -93,11 +93,15 @@ defaultUniApplication = do
 -- >>> :set -XOverloadedStrings
 -- >>> import PlutusCore.Error
 -- >>> import PlutusCore.Quote
--- >>> let runP = either show display . runQuoteT . parseGen @ParserErrorBundle defaultUni
+-- >>> let runP = putStrLn . either display display . runQuoteT . parseGen @ParserErrorBundle defaultUni
 -- >>> runP "(list integer)"
--- "(list integer)"
+-- (list integer)
 -- >>> runP "(bool integer)"
--- "ParseErrorB (ParseErrorBundle {bundleErrors = TrivialError 13 Nothing (fromList [Tokens ('(' :| \"\"),Tokens ('b' :| \"ool\"),Tokens ('b' :| \"ytestring\"),Tokens ('d' :| \"ata\"),Tokens ('i' :| \"nteger\"),Tokens ('l' :| \"ist\"),Tokens ('p' :| \"air\"),Tokens ('s' :| \"tring\"),Tokens ('u' :| \"nit\")]) :| [], bundlePosState = PosState {pstateInput = \"(bool integer)\", pstateOffset = 0, pstateSourcePos = SourcePos {sourceName = \"test\", sourceLine = Pos 1, sourceColumn = Pos 1}, pstateTabWidth = Pos 8, pstateLinePrefix = \"\"}})"
+-- test:1:14:
+--   |
+-- 1 | (bool integer)
+--   |              ^
+-- expecting "bool", "bytestring", "data", "integer", "list", "pair", "string", "unit", or '('
 --
 -- This is to be fixed.
 --

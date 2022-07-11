@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators    #-}
 
+-- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
 import PlutusPrelude
@@ -80,7 +81,7 @@ propUnit = testCase "Unit" $ fold
     ]
     where
         pTerm
-            = either (error . show) display
+            = either (error . display) display
             . runQuoteT
             . parseTerm @_ @(QuoteT (Either ParserErrorBundle))
             . T.pack
@@ -97,7 +98,7 @@ propDefaultUni = testCase "DefaultUni" $ fold
     ]
     where
         pDefaultUni
-            = either (error . show) display
+            = either (error . display) display
             . runQuoteT
             . parseGen @_ @(QuoteT (Either ParserErrorBundle)) defaultUni
             . T.pack
