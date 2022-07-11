@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# OPTIONS_GHC -Werror #-}
 
 module PlutusCore.Default.Builtins where
 

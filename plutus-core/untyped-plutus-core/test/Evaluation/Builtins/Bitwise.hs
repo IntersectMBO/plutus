@@ -3,7 +3,6 @@
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Werror #-}
 
 module Evaluation.Builtins.Bitwise (
   bitwiseAndCommutes,

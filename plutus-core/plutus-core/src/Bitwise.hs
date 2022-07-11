@@ -6,7 +6,6 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE TypeApplications   #-}
-{-# OPTIONS_GHC -Werror #-}
 
 module Bitwise (
   integerToByteString,
