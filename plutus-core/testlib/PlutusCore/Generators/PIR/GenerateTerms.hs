@@ -444,11 +444,9 @@ genDatatypeLet rec cont = do
                   onSize (`div` n) $ replicateM n $ scaledListOf (genType Star)
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
-                       | (c, _conArgs) <- zip cs conArgss
-                       -- Perform a positivity check to make sure we don't generate negative datatypes
-                       -- TODO: we should maybe have an option to allow you to generate negative
-                       -- datatypes if you really want to.
-                       , let conArgs = filter (Set.notMember d . negativeVars) _conArgs]
+                       | (c, conArgs) <- zip cs conArgss ]
+                       -- TODO: it might make sense to do a negativity test here -
+                       -- but not clear how important that is.
     bindDat dat $ cont dat
 
 -- | Generate up to 5 datatypes and bind them in a generator.
@@ -795,7 +793,7 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
                                  | ty' <- shrinkType ctx' ty
                                  , let ty'' = setTarget (getTarget ty) ty'
                                  , ty'' /= ty
-                                 , d `Set.notMember` positiveVars (setTarget (mkTyBuiltin @_ @() ()) ty') ]
+                                 , d `Set.notMember` ftvTy (setTarget (mkTyBuiltin @_ @() ()) ty') ]
       where
         getTarget (TyFun _ _ b) = getTarget b
         getTarget b             = b
