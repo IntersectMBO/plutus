@@ -15,9 +15,6 @@ import UntypedPlutusCore.DeBruijn
 agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
 agdaEvalUplcProg (UPLC.Program () version tmU) =
     let
-        -- progVersion = UPLC.progVer p
-        -- turn a UPLC program to a UPLC term
-        -- tmU = UPLC.progTerm p
         -- turn it into an untyped de Bruijn term
         tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
         tmUDB = deBruijnTerm tmU
@@ -30,8 +27,11 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
             case runUAgda tmUDBSuccess of
                 Left _ -> Nothing
                 Right tmEvaluated ->
+                    let tmNamed = runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                    in
                     -- turn it back into a named term
-                    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
+                    case tmNamed of
                         Left _          -> Nothing
                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
