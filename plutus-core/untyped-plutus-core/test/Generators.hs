@@ -28,7 +28,9 @@ import Test.Tasty.Hedgehog
 import Flat qualified
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program Name DefaultUni DefaultFun a } deriving stock Show
+newtype TextualProgram a = TextualProgram
+    { unTextualProgram :: Program Name DefaultUni DefaultFun a
+    } deriving stock Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
@@ -68,16 +70,22 @@ propParser = testProperty "Parser" $ property $ do
     tripping prog (displayPlcDef . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
-        parseProg :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
+        parseProg
+            :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
         parseProg p = runQuoteT $ parseProgram p
 
 propUnit :: TestTree
 propUnit = testCase "Unit" $ fold
-    [ pTerm "(con bool True)" @?= "(con bool True)"
-    , pTerm "(con (list bool) [True, False])" @?= "(con (list bool) [True,False])"
-    , pTerm "(con (pair unit (list integer)) ((),[1,2,3]))" @?= "(con (pair unit (list integer)) ((), [1,2,3]))"
-    , pTerm "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])" @?= "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])"
-    , pTerm "(con string \"abc\")" @?= "(con string \"abc\")"
+    [ pTerm "(con bool True)"
+        @?= "(con bool True)"
+    , pTerm "(con (list bool) [True, False])"
+        @?= "(con (list bool) [True,False])"
+    , pTerm "(con (pair unit (list integer)) ((),[1,2,3]))"
+        @?= "(con (pair unit (list integer)) ((), [1,2,3]))"
+    , pTerm "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])"
+        @?= "(con (list (pair string bool)) [(\"abc\", True), (\"def\", False)])"
+    , pTerm "(con string \"abc\")"
+        @?= "(con string \"abc\")"
     ]
     where
         pTerm
