@@ -56,17 +56,25 @@ instance IsOption AcceptTests where
 -- | Checks an expected file against actual computed contents.
 checkExpected :: AcceptTests -> FilePath -> T.Text -> IO Result
 checkExpected (AcceptTests accept) expectedFile actual = do
-    expected <- T.readFile expectedFile
-    if actual == expected
-    -- matched
-    then pure (testPassed "")
-    else
-        -- didn't match
-        if accept
+    expectedExists <- doesFileExist expectedFile
+    if expectedExists
+    then do
+        expected <- T.readFile expectedFile
+        if actual == expected
+        -- matched
+        then pure (testPassed "")
+        else
+            -- didn't match
+            if accept
+            then do
+                T.writeFile expectedFile actual
+                pure $ testPassed "Unexpected output, accepted it"
+            else pure $ testFailed $ "Unexpected output:" ++ show actual
+    else if accept
         then do
             T.writeFile expectedFile actual
-            pure $ testPassed "Unexpected output, accepted it"
-        else pure $ testFailed $ "Unexpected output:" ++ show actual
+            pure $ testPassed "Expected file did not exist, created it"
+        else pure $ testFailed $ "Expected file did not exist:" ++ show expectedFile
 
 -- Tells 'tasty' that 'UplcEvaluationTest' "is" a test that can be run,
 -- by specifying how to run it and what custom options it might expect.

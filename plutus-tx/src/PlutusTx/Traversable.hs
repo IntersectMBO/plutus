@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Traversable (Traversable(..), sequenceA, mapM, sequence, for, fmapDefault, foldMapDefault) where

@@ -14,7 +14,8 @@ data ProtocolVersion = ProtocolVersion { pvMajor :: Int, pvMinor :: Int }
 
 instance Ord ProtocolVersion where
     -- same as deriving Ord, just for having it explicitly
-    compare (ProtocolVersion major minor) (ProtocolVersion major' minor') = compare major major' <> compare minor minor'
+    compare (ProtocolVersion major minor) (ProtocolVersion major' minor') =
+        compare major major' <> compare minor minor'
 
 instance Pretty ProtocolVersion where
     pretty (ProtocolVersion major minor) = pretty major <> "." <> pretty minor

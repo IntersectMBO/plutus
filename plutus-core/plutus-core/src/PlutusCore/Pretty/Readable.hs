@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# LANGUAGE ConstraintKinds   #-}

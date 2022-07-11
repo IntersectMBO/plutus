@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeOperators #-}
 
 -- See CostModelGeneration.md

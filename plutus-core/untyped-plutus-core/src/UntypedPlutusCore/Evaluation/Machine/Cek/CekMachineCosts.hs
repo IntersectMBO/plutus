@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,6 +17,7 @@ import Control.DeepSeq
 import Data.Text qualified as Text
 import Deriving.Aeson
 import Language.Haskell.TH.Syntax (Lift)
+import NoThunks.Class
 
 -- | The prefix of the field names in the CekMachineCosts type, used for
 -- extracting the CekMachineCosts component of the ledger's cost model
@@ -40,7 +42,7 @@ data CekMachineCosts =
     -- happen if calling 'Error' caused the budget to be exceeded?
     }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] CekMachineCosts
 
 -- Charge a unit CPU cost for AST nodes: this allows us to count the number of

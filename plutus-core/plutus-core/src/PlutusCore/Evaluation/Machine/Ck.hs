@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The CK machine.
 
 {-# LANGUAGE DeriveAnyClass            #-}
@@ -7,7 +8,6 @@
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}

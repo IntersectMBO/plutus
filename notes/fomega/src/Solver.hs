@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Solver where
 
 import AlgTypes

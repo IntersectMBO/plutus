@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- | Benchmarks for string builtins.  Remember that "strings" are actually Text. -}
 
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where

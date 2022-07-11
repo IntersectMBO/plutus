@@ -1,5 +1,5 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE OverloadedStrings #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 
 -- This file contains a version of the CEK machine in
 -- implemented as a simple recursie evaluator, with

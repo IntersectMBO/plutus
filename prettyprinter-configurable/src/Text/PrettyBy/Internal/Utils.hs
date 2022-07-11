@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Utils used internally.
 
 module Text.PrettyBy.Internal.Utils

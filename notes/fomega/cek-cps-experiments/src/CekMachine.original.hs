@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The CEK machine.
 -- Rules are the same as for the CK machine from "PlutusCore.Evaluation.CkMachine",
 -- except we do not use substitution and use environments instead.

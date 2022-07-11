@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module UntypedPlutusCore.MkUPlc (UVarDecl (..), uvarDeclName, uvarDeclAnn, mkVar, mkIterApp, mkIterLamAbs, Def(..), UTermDef) where
 
 import Data.List

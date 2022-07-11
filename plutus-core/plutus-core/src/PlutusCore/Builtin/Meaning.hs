@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes       #-}
 {-# LANGUAGE ConstraintKinds           #-}
 {-# LANGUAGE DataKinds                 #-}
@@ -282,5 +283,7 @@ toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
-    BuiltinsRuntime . tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
+    let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
+     in -- Force array elements to WHNF
+        foldr seq (BuiltinsRuntime arr) arr
 {-# INLINE toBuiltinsRuntime #-}

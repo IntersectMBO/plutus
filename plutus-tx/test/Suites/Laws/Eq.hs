@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Suites.Laws.Eq (eqLaws) where
 
 import Hedgehog (Property, PropertyT, property, success, (===))

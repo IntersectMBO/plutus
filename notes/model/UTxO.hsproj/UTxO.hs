@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE PackageImports  #-}
 {-# LANGUAGE TemplateHaskell #-}

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
