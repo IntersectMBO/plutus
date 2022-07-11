@@ -1,7 +1,5 @@
 {-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module PlutusCore.Parser.Type where
