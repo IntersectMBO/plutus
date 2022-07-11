@@ -84,7 +84,7 @@ functions that cannot fail look like this:
 -- ## Type definitions ##
 -- ######################
 
--- | Mapping from 'Builtin's to their 'Type's.
+-- | Mapping from 'Builtin's to their 'Normalized' 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
     { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
     }
@@ -92,14 +92,58 @@ newtype BuiltinTypes uni fun = BuiltinTypes
 type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
 type VarTypes uni = UniqueMap TermUnique (Named (Dupable (Normalized (Type TyName uni ()))))
 
-data HandleWrongNames
-    = DetectWrongNames
-    | IgnoreWrongNames
+-- | Decides what to do upon encountering a varible whose names doesn't match the name of the
+-- variable with the same unique that is currently in the scope. Consider for example this type:
+--
+--     \(a_0 :: *) (b_0 :: *) -> a_0
+--
+-- here @b_0@ shadows @a_0@ and so any variable having the @0@th unique within the body of the
+-- lambda references @b_0@, but we have @a_0@ there and so there's a name mismatch. Technically,
+-- it's not a type error to have a name mismatch, because uniques are the single source of truth,
+-- however a name mismatch is deeply suspicious and is likely to be caused by a bug somewhere.
+--
+-- We perform the same check for term-level variables too.
+data HandleNameMismatches
+    = DetectNameMismatches  -- ^ Throw upon encountering such a name.
+    | IgnoreNameMismatches  -- ^ Ignore it.
     deriving stock (Show, Eq)
 
+{- Note [Alignment of kind and type checker configs]
+Kind checking is performed as a part of type checking meaning we always need a kind checking config
+whenever a type checking one is required. There are three ways we can align the two sorts of config:
+
+1. store them separately and require the caller to provide both
+2. put the type checking config into the kind checking config
+3. put the kind checking config into the type checking config
+
+1 is straightforward, but makes the caller provide one config for kind checking and two configs for
+type checking, which is inconsistent boilerplate and so it's not really a good option.
+
+2 is better: it makes the caller provide only one config: the type checking config stored in the
+kind checking config. However that makes the type signatures unwieldy:
+
+    KindCheckConfig (TypeCheckConfig uni fun) => <...>
+
+plus it's kinda weird to put the type checking config inside the kind checking one.
+
+3 is what we choose. It makes the caller only worry about the type checking config when doing type
+checking, hence no syntactical or semantical overhead, plus it makes the type signatures symmetric:
+
+    (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg) => <...>
+
+vs
+
+    (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun) => <...>
+
+This approach does require a bit of boilerplate at the definition site (see 'HasTypeCheckConfig'),
+but it's not much and it doesn't proliferate into user space unlike with the other approaches.
+-}
+
+-- | Configuration of the kind checker.
 newtype KindCheckConfig = KindCheckConfig
-    { _kccIgnoreWrongNames :: HandleWrongNames
+    { _kccHandleNameMismatches :: HandleNameMismatches
     }
+makeClassy ''KindCheckConfig
 
 -- | Configuration of the type checker.
 data TypeCheckConfig uni fun = TypeCheckConfig
@@ -107,24 +151,9 @@ data TypeCheckConfig uni fun = TypeCheckConfig
     , _tccBuiltinTypes    :: BuiltinTypes uni fun
     }
 
--- | The environment that the type checker runs in.
-data TypeCheckEnv uni fun cfg = TypeCheckEnv
-    { _tceTypeCheckConfig :: cfg
-    , _tceTyVarKinds      :: TyVarKinds
-    , _tceVarTypes        :: VarTypes uni
-    }
-makeLenses ''TypeCheckEnv
-
-class HasKindCheckConfig cfg where
-    kindCheckConfig :: Lens' cfg KindCheckConfig
-
-    kccIgnoreWrongNames :: Lens' cfg HandleWrongNames
-    kccIgnoreWrongNames =
-        kindCheckConfig . lens _kccIgnoreWrongNames (\s b -> s { _kccIgnoreWrongNames = b })
-
-instance HasKindCheckConfig KindCheckConfig where
-    kindCheckConfig = id
-
+-- | We want 'HasKindCheckConfig' to be a superclass of 'HasTypeCheckConfig' for being able to
+-- seamlessly call the kind checker from the type checker, hence we're rolling out our own
+-- 'makeClassy' here just to add the constraint.
 class HasKindCheckConfig cfg => HasTypeCheckConfig cfg uni fun | cfg -> uni fun where
     typeCheckConfig :: Lens' cfg (TypeCheckConfig uni fun)
 
@@ -141,6 +170,14 @@ instance HasKindCheckConfig (TypeCheckConfig uni fun) where
 
 instance HasTypeCheckConfig (TypeCheckConfig uni fun) uni fun where
     typeCheckConfig = id
+
+-- | The environment that the type checker runs in.
+data TypeCheckEnv uni fun cfg = TypeCheckEnv
+    { _tceTypeCheckConfig :: cfg
+    , _tceTyVarKinds      :: TyVarKinds
+    , _tceVarTypes        :: VarTypes uni
+    }
+makeLenses ''TypeCheckEnv
 
 -- | The type checking monad that the type checker runs in.
 -- In contains a 'TypeCheckEnv' and allows to throw 'TypeError's.
@@ -211,11 +248,11 @@ lookupTyVarM
     => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
     env <- ask
-    let handleWrongNames = env ^. tceTypeCheckConfig . kccIgnoreWrongNames
+    let handleNameMismatches = env ^. tceTypeCheckConfig . kccHandleNameMismatches
     case lookupName name $ _tceTyVarKinds env of
         Nothing                    -> throwing _TypeError $ FreeTypeVariableE ann name
         Just (Named nameOrig kind) ->
-            if handleWrongNames == IgnoreWrongNames || view theText name == nameOrig
+            if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
                 then pure kind
                 else throwing _TypeError $
                         TyNameMismatch ann (TyName . Name nameOrig $ name ^. theUnique) name
@@ -226,11 +263,12 @@ lookupVarM
     => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
     env <- ask
-    let handleWrongNames = env ^. tceTypeCheckConfig . tccKindCheckConfig . kccIgnoreWrongNames
+    let handleNameMismatches =
+            env ^. tceTypeCheckConfig . tccKindCheckConfig . kccHandleNameMismatches
     case lookupName name $ _tceVarTypes env of
         Nothing                  -> throwing _TypeError $ FreeVariableE ann name
         Just (Named nameOrig ty) ->
-            if handleWrongNames == IgnoreWrongNames || view theText name == nameOrig
+            if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
                 then liftDupable ty
                 else throwing _TypeError $
                         NameMismatch ann (Name nameOrig $ name ^. theUnique) name

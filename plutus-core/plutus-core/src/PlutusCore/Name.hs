@@ -105,6 +105,7 @@ mapNameString = over nameText
 mapTyNameString :: (T.Text -> T.Text) -> TyName -> TyName
 mapTyNameString = coerce mapNameString
 
+-- | Types which have a textual name attached to them.
 class HasText a where
     theText :: Lens' a Text
 
@@ -148,14 +149,7 @@ insertByUnique uniq = coerce . IM.insert (coerce uniq)
 insertByName :: HasUnique name unique => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
 
--- | Insert a value by the index of the unique of a name.
--- Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
--- so you can for example insert by a type-level name in a map from term-level uniques.
-insertByNameIndex
-    :: (HasUnique name unique1, Coercible unique2 Unique)
-    => name -> a -> UniqueMap unique2 a -> UniqueMap unique2 a
-insertByNameIndex = insertByUnique . coerce . view unique
-
+-- | Insert a named value by the index of the unique of the name.
 insertNamed
     :: (HasText name, HasUnique name unique)
     => name
@@ -163,6 +157,14 @@ insertNamed
     -> UniqueMap unique (Named a)
     -> UniqueMap unique (Named a)
 insertNamed name = insertByName name . Named (name ^. theText)
+
+-- | Insert a value by the index of the unique of a name.
+-- Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
+-- so you can for example insert by a type-level name in a map from term-level uniques.
+insertByNameIndex
+    :: (HasUnique name unique1, Coercible unique2 Unique)
+    => name -> a -> UniqueMap unique2 a -> UniqueMap unique2 a
+insertByNameIndex = insertByUnique . coerce . view unique
 
 -- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.
 fromFoldable

@@ -46,8 +46,9 @@ import Universe
 -- argument to the worker of the type checker.
 type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
 
+-- | The default kind checking config.
 defKindCheckConfig :: KindCheckConfig
-defKindCheckConfig = KindCheckConfig DetectWrongNames
+defKindCheckConfig = KindCheckConfig DetectNameMismatches
 
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.
