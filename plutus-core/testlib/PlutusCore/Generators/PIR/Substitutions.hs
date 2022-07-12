@@ -198,6 +198,10 @@ genSubst ctx = do
   xks <- sublistOf <=< shuffle $ Map.toList ctx
   go ctx Map.empty xks
   where
+    -- Counts is used to balance the ratio between the number
+    -- of times a variable `x` appears in the substitution and
+    -- the size of the type it maps to - the more times `x` appears
+    -- the smaller the type it maps to needs to be to avoid blowup.
     go _ _ [] = return mempty
     go ctx counts ((x, k) : xs) = do
       let ctx' = Map.delete x ctx
