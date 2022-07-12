@@ -264,7 +264,19 @@ builtinKind (SomeTypeIn t) = kindOfBuiltinType t
 
 -- * Shrinking types and kinds
 
--- | Shriking-order on kinds
+-- | Shriking-order on kinds.
+--
+-- A kind `k1 = foldr (->) * ks1` is less than or equal to a kind `k2 = foldr (->) * ks2`
+-- when `ks1` can be constructed by dropping and shrinking kinds in `ks2`.
+--
+-- This shrinking order means that `* -> (* -> * -> * -> *) -> *` can shrink to
+-- `* -> *` or `* -> (* -> *) -> *` but not to `* -> * -> * -> *`. Not allowing
+-- this final shrink is important as we are guaranteed to only ever reduce the
+-- number of type arguments we need to provide when shrinking - thus allowing us
+-- to guarantee that e.g. generated datatypes never increase their number of
+-- parameters. This restriction is important because once the number of parameters
+-- starts to grow during shrinking it is difficult to ensure that the size of
+-- generated types and terms doesn't baloon and cause a shrink-loop.
 leKind :: Kind () -> Kind () -> Bool
 leKind k1 k2 = go (reverse $ argsKind k1) (reverse $ argsKind k2)
   where
