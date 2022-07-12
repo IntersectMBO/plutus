@@ -143,7 +143,7 @@ BUILTIN appendByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-
 BUILTIN lessThanByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
 BUILTIN lessThanEqualsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) = 
-  con (bool (B> b b'))
+  con (bool (B<= b b'))
 BUILTIN sha2-256 (step _ (base refl) (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
 BUILTIN sha3-256 (step _ (base refl) (V-con (bytestring b))) =
