@@ -19,6 +19,7 @@ import PlutusPrelude
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
 import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty.ExpectedFailure
 import Test.Tasty.Options
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
@@ -31,8 +32,12 @@ import Witherable
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
-discoverTests :: IsTest t => (FilePath -> t) -> FilePath -> IO TestTree
-discoverTests tester dir = do
+discoverTests :: IsTest t =>
+    (FilePath -> t)
+    -> [String] -- ^ The list of tests that are to be labelled as `ExpectedFailure`.
+    -> FilePath -- ^ The directory to search for tests.
+    -> IO TestTree
+discoverTests tester expectedFailTests dir = do
     let name = takeBaseName dir
     children <- listDirectory dir
     subdirs <- flip wither children $ \child -> do
@@ -41,9 +46,14 @@ discoverTests tester dir = do
         pure $ if isDir then Just fullPath else Nothing
     if null subdirs
     -- no children, this is a test case directory
-    then pure $ singleTest name $ tester dir
+    then
+        -- if the test is one that is expected to fail, mark it so.
+        if elem name expectedFailTests then
+            pure $ expectFail $ singleTest name $ tester dir
+        -- the test is not one that is expected to fail, make the test tree as usual.
+        else pure $ singleTest name $ tester dir
     -- has children, so it's a grouping directory
-    else testGroup name <$> traverse (discoverTests tester) subdirs
+    else testGroup name <$> traverse (discoverTests tester expectedFailTests) subdirs
 
 -- | A test `option` to accept the test results as the expected results.
 -- This is basically the same option as 'tasty-golden' uses, but it's not
@@ -149,7 +159,12 @@ parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 -- | Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC programs.
 runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
+    -> [String] -- ^ The list of tests that are to be labelled as `ExpectedFailure`.
     -> IO ()
-runUplcEvalTests evaluator = do
-    tests <- discoverTests (\dir -> MkUplcEvaluationTest evaluator dir) "test-cases/uplc/evaluation"
+runUplcEvalTests evaluator expectedFailTests = do
+    tests <-
+        discoverTests
+            (\dir -> MkUplcEvaluationTest evaluator dir)
+            expectedFailTests
+            "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]

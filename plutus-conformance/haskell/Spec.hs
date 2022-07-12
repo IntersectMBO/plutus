@@ -7,5 +7,5 @@ import PlutusConformance.Common
 main :: IO ()
 main =
     -- UPLC evaluation tests
-    runUplcEvalTests evalUplcProg
+    runUplcEvalTests evalUplcProg []
 

@@ -53,6 +53,7 @@ library
     , megaparsec
     , plutus-core
     , tasty
+    , tasty-expected-failure
     , text
     , witherable
 
