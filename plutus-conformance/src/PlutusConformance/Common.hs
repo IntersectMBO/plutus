@@ -94,7 +94,7 @@ checkExpected (AcceptTests accept) expectedFile actual = do
 
 {- | The default shown text when a parse error occurs.
 We don't want to show the detailed parse errors so that
-users of the test suite can produce this expected outputs more easily. -}
+users of the test suite can produce the expected output more easily. -}
 shownParseError :: T.Text
 shownParseError = "parse error"
 
