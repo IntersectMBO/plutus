@@ -30,6 +30,7 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniList
     , pattern DefaultUniPair
     , module Export  -- Re-exporting universes infrastructure for convenience.
+    , noMoreTypeFunctions
     ) where
 
 import PlutusCore.Builtin
@@ -122,6 +123,8 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
+    uniApply = DefaultUniApply
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
@@ -139,8 +142,14 @@ instance HasRenderContext config => PrettyBy config (DefaultUni a) where
         DefaultUniProtoPair       -> "pair"
         DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
         DefaultUniData            -> "data"
+
+-- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
+-- doesn't pretty-print them otherwise (e.g. @integer@).
+-- This is so we can have a single instance that is safe to use with both the classic and the
+-- readable pretty-printers, even though for the latter it may result in redundant parens being
+-- shown. We are planning to change the classic syntax to remove this silliness.
 instance Pretty (DefaultUni a) where
-    pretty = prettyBy botRenderContext
+    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
 instance Pretty (SomeTypeIn DefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 
