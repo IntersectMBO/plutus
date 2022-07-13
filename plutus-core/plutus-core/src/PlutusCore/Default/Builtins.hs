@@ -25,7 +25,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+import Crypto (verifyEd25519Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -69,8 +69,9 @@ data DefaultFun
     | Sha3_256
     | Blake2b_256
     | VerifyEd25519Signature  -- formerly verifySignature
-    | VerifyEcdsaSecp256k1Signature
-    | VerifySchnorrSecp256k1Signature
+    -- FIXME: Re-enable secp256k1 integration
+    -- | VerifyEcdsaSecp256k1Signature
+    -- | VerifySchnorrSecp256k1Signature
     -- Strings
     | AppendString
     | EqualsString
@@ -1101,6 +1102,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (verifyEd25519Signature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+    {- FIXME: Re-enable secp256k1 integration
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
        fact two valid values of s, one effectively the negative of the other.
@@ -1125,6 +1127,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             verifySchnorrSecp256k1Signature
             (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
+    -}
     -- Strings
     toBuiltinMeaning AppendString =
         makeBuiltinMeaning
@@ -1377,8 +1380,10 @@ instance Flat DefaultFun where
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
               VerifyEd25519Signature          -> 21
+              {- FIXME: Re-enable secp256k1 integration
               VerifyEcdsaSecp256k1Signature   -> 52
               VerifySchnorrSecp256k1Signature -> 53
+              -}
 
               AppendString                    -> 22
               EqualsString                    -> 23
@@ -1470,8 +1475,10 @@ instance Flat DefaultFun where
               go 49 = pure MkNilData
               go 50 = pure MkNilPairData
               go 51 = pure SerialiseData
+              {- FIXME: Re-enable secp256k1 integration
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              -}
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

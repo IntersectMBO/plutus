@@ -172,8 +172,10 @@ builtinNames = [
     , 'Builtins.emptyByteString
     , 'Builtins.decodeUtf8
     , 'Builtins.stringToBuiltinByteString
+    {- FIXME: Re-enable secp256k1 integration
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature
+    -}
 
     , 'Builtins.verifyEd25519Signature
 
@@ -286,8 +288,10 @@ defineBuiltinTerms = do
     defineBuiltinTerm AnnOther 'Builtins.lessThanEqualsByteString $ mkBuiltin PLC.LessThanEqualsByteString
     defineBuiltinTerm AnnOther 'Builtins.emptyByteString $ PIR.mkConstant AnnOther BS.empty
     defineBuiltinTerm AnnOther 'Builtins.decodeUtf8 $ mkBuiltin PLC.DecodeUtf8
+    {- FIXME: Re-enable secp256k1 integration
     defineBuiltinTerm AnnOther 'Builtins.verifyEcdsaSecp256k1Signature $ mkBuiltin PLC.VerifyEcdsaSecp256k1Signature
     defineBuiltinTerm AnnOther 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
+    -}
 
     -- Crypto
     defineBuiltinTerm AnnOther 'Builtins.verifyEd25519Signature $ mkBuiltin PLC.VerifyEd25519Signature
