@@ -34,10 +34,12 @@ import Witherable
 -- and test cases for directories without.
 discoverTests :: IsTest t =>
     (FilePath -> t)
-    -> [String] -- ^ The list of tests that are to be labelled as `ExpectedFailure`.
+    -> (String -> Bool)
+    -- ^ A function that takes a test name and returns
+    -- whether it should labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
     -> IO TestTree
-discoverTests tester expectedFailTests dir = do
+discoverTests tester expectedFailureFn dir = do
     let name = takeBaseName dir
     children <- listDirectory dir
     subdirs <- flip wither children $ \child -> do
@@ -48,12 +50,12 @@ discoverTests tester expectedFailTests dir = do
     -- no children, this is a test case directory
     then
         -- if the test is one that is expected to fail, mark it so.
-        if elem name expectedFailTests then
+        if expectedFailureFn name then
             pure $ expectFail $ singleTest name $ tester dir
         -- the test is not one that is expected to fail, make the test tree as usual.
         else pure $ singleTest name $ tester dir
     -- has children, so it's a grouping directory
-    else testGroup name <$> traverse (discoverTests tester expectedFailTests) subdirs
+    else testGroup name <$> traverse (discoverTests tester expectedFailureFn) subdirs
 
 -- | A test `option` to accept the test results as the expected results.
 -- This is basically the same option as 'tasty-golden' uses, but it's not
@@ -165,6 +167,6 @@ runUplcEvalTests evaluator expectedFailTests = do
     tests <-
         discoverTests
             (\dir -> MkUplcEvaluationTest evaluator dir)
-            expectedFailTests
+            (flip elem expectedFailTests)
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
