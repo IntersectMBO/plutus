@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs       #-}
 {-# LANGUAGE QuasiQuotes #-}
 module Examples where

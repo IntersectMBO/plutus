@@ -1,11 +1,16 @@
 {
-  # 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when you're evaluting
-  # on a machine with e.g. no way to build the Darwin IFDs you need!
+  # 'supportedSystems' restricts the set of systems that we will evaluate for. Useful when
+  # you're evaluting on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , rootsOnly ? false
 }:
 let
-  inherit (import ./nix/lib/ci.nix) dimension platformFilterGeneric filterAttrsOnlyRecursive filterSystems;
+  inherit
+    (import ./nix/lib/ci.nix)
+    dimension
+    platformFilterGeneric
+    filterAttrsOnlyRecursive
+    filterSystems;
   # limit supportedSystems to what the CI can actually build
   # currently that is linux and darwin.
   systems = filterSystems supportedSystems;
@@ -70,8 +75,8 @@ let
             };
         in
         filterAttrsOnlyRecursive (_: drv: isBuildable drv) ({
-          # The haskell.nix IFD roots for the Haskell project. We include these so they won't be GCd and will be in the
-          # cache for users
+          # The haskell.nix IFD roots for the Haskell project. We include these so they won't
+          # be GCd and will be in the # cache for users
           inherit (plutus.haskell.project) roots;
         } // pkgs.lib.optionalAttrs (!rootsOnly) (filterCross {
           # build relevant top level attributes from default.nix

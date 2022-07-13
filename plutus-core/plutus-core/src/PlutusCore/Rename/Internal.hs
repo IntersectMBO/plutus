@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The internal module of the renamer that defines the actual algorithms,
 -- but not the user-facing API.
 

@@ -15,9 +15,9 @@ The tests currently covers or will cover:
 - Costing conformance 
 - Coverage test
 
-There is also an executable `add-test-output` for easy addition of test cases. Run 
+There is also an executable `add-test-output` for easy addition/alteration of test cases. Run
 
-`cabal run add-test-output -- -h` 
+`cabal run add-test-output -- -h`
 
 for the manual.
 

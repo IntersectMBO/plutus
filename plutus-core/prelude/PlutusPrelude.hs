@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude
@@ -54,6 +55,7 @@ module PlutusPrelude
     , set
     , (%~)
     , over
+    , (<^>)
     -- * Debugging
     , traceShowId
     , trace
@@ -84,8 +86,6 @@ module PlutusPrelude
     , printPretty
     -- * Text
     , showText
-    -- * safe zip
-    , zipWith3Exact
     ) where
 
 import Control.Applicative (Alternative (..), liftA2)
@@ -120,6 +120,7 @@ import Text.PrettyBy.Internal
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
+infixr 6 <^>
 
 -- | A newtype wrapper around @a@ whose point is to provide a 'Show' instance
 -- for anything that has a 'Pretty' instance.
@@ -217,7 +218,6 @@ printPretty = print . pretty
 showText :: Show a => a -> T.Text
 showText = T.pack . show
 
-zipWith3Exact :: (a -> b -> c -> d) -> [a] -> [b] -> [c]-> Maybe [d]
-zipWith3Exact _ [] [] []             = Just []
-zipWith3Exact f (a:as) (b:bs) (c:cs) = (:) (f a b c) <$> zipWith3Exact f as bs cs
-zipWith3Exact _ _ _ _                = Nothing
+-- | Compose two folds to make them run in parallel. The results are concatenated.
+(<^>) :: Fold s a -> Fold s a -> Fold s a
+(f1 <^> f2) g s = f1 g s *> f2 g s

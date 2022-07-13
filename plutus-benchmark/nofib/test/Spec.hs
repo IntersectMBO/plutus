@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- | Tests for the Plutus nofib benchmarks, mostly comparing the result of Plutus
 evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to

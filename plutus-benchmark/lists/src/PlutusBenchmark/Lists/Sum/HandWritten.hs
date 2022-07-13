@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 
 module PlutusBenchmark.Lists.Sum.HandWritten where

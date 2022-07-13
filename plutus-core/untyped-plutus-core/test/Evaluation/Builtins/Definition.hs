@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
 {-# LANGUAGE OverloadedStrings     #-}

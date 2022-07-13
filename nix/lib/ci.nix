@@ -4,7 +4,7 @@ let
   lib = pkgs.lib;
 in
 rec {
-  # Borrowed from https://github.com/cachix/ghcide-nix/pull/4/files#diff-70bfff902f4dec33e545cac10ee5844d
+  # Borrowed from https://github.com/cachix/ghcide-nix/pull/4/files#diff-70bfff902f4dec33e545cac10ee5844d # editorconfig-checker-disable-line
   # Tweaked to use builtins.mapAttrs instead of needing the one from nixpkgs lib
   /*
     dimension: name -> attrs -> function -> attrs
@@ -12,7 +12,7 @@ rec {
       function: keyText -> value -> attrsOf package
 
     WARNING: Attribute names must not contain periods (".").
-             See https://github.com/NixOS/nix/issues/3088
+    See https://github.com/NixOS/nix/issues/3088
 
     NOTE: The dimension name will be picked up by agent and web ui soon.
 
@@ -164,18 +164,21 @@ rec {
     else true;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  stripAttrsForHydra = filterAttrsOnlyRecursive (n: _: n != "recurseForDerivations" && n != "dimension");
+  stripAttrsForHydra =
+    filterAttrsOnlyRecursive (n: _: n != "recurseForDerivations" && n != "dimension");
 
-  # Keep derivations and attrsets with 'recurseForDerivations'. This ensures that we match the
-  # derivations that Hercules will see, and prevents Hydra from trying to pick up all sorts of bad stuff
-  # (like attrsets that contain themselves!).
-  filterDerivations = filterAttrsOnlyRecursive (n: attrs: lib.isDerivation attrs || attrs.recurseForDerivations or false);
+  # Keep derivations and attrsets with 'recurseForDerivations'. This ensures that we match
+  # the derivations that Hercules will see, and prevents Hydra from trying to pick up all
+  # sorts of bad stuff (like attrsets that contain themselves!).
+  filterDerivations =
+    filterAttrsOnlyRecursive
+      (n: attrs: lib.isDerivation attrs || attrs.recurseForDerivations or false);
 
-  # A version of 'filterAttrsRecursive' that doesn't recurse into derivations. This prevents us from going into an infinite
-  # loop with the 'out' attribute on derivations.
-  # TODO: Surely this shouldn't be necessary. I think normal 'filterAttrsRecursive' will effectively cause infinite loops
-  # if you keep derivations and your predicate forces the value of the attribute, as this then triggers a loop on the
-  # 'out' attribute. Weird.
+  # A version of 'filterAttrsRecursive' that doesn't recurse into derivations.
+  # This prevents us from going into an infinite # loop with the 'out' attribute on derivations.
+  # TODO: Surely this shouldn't be necessary. I think normal 'filterAttrsRecursive'
+  # will effectively cause infinite loops if you keep derivations and your predicate forces
+  # the value of the attribute, as this then triggers a loop on the 'out' attribute. Weird.
   filterAttrsOnlyRecursive = pred: set:
     lib.listToAttrs (
       lib.concatMap

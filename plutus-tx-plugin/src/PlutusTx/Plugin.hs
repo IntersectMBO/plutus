@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -176,7 +177,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
 type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun Ann) GHC.CoreM)
 
 -- | Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.
-runPluginM :: (PLC.GShow uni, PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
+runPluginM :: (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
            => PluginCtx -> PluginM uni fun a -> GHC.CoreM a
 runPluginM pctx act = do
     res <- runExceptT $ runReaderT act pctx
@@ -261,7 +262,7 @@ compileMarkedExprOrDefer locStr codeTy origE = do
       else compileAct
 
 -- | Given an expected Haskell type 'a', it generates Haskell code which throws a GHC runtime error "as" 'CompiledCode a'.
-emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
+emitRuntimeError :: (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
                  => GHC.Type -> CompileError uni fun Ann -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts

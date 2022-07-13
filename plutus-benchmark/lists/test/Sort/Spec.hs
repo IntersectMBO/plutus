@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module Sort.Spec (tests) where
 
 import Test.Tasty

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Precedence-general machinery for deciding whether an expression needs to be wrapped in
 -- parentheses or not. Source code has comments on the approach used and how it compares to some
 -- other known approaches.

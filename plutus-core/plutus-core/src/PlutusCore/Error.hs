@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -42,7 +43,7 @@ import Data.Text qualified as T
 import ErrorCode
 import Prettyprinter (hardline, indent, squotes, (<+>))
 import Text.Megaparsec as M
-import Universe (Closed (Everywhere), GEq, GShow)
+import Universe
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.
 throwingEither :: MonadError e m => AReview e t -> Either t a -> m a
@@ -148,8 +149,13 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pretty fun, Pretty term) =>
-            PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
+instance
+        ( Pretty term
+        , Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst
+        , Pretty fun
+        , Pretty ann
+        ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config e@(KindMismatch ann ty k k')          =
         pretty (errorCode e) <> ":" <+>
         "Kind mismatch at" <+> pretty ann <+>
@@ -174,8 +180,12 @@ instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst,  Pretty ann, Pret
     prettyBy _ (UnknownBuiltinFunctionE ann fun) =
         "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
 
-instance (GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun, Pretty ann) =>
-            PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance
+        ( Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst
+        , Pretty fun
+        , Pretty ann
+        ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
     prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
     prettyBy config (TypeErrorE e)                = prettyBy config e

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -254,9 +255,8 @@ calcFreeVars (BindingGrp _ r bs) = foldMap1 calcBinding bs
     -- given a binding return all its free term *AND* free type variables
     calcBinding :: Binding tyname name uni fun a -> S.Set PLC.Unique
     calcBinding b =
-        -- OPTIMIZE: safe to change to S.mapMonotonic?
-        S.map (^.PLC.theUnique) (fvBinding b)
-        <> S.map (^.PLC.theUnique) (ftvBinding r b)
+        setOf (fvBinding . PLC.theUnique) b
+        <> setOf (ftvBinding r . PLC.theUnique) b
 
 -- | The second pass of cleaning the term of the floatable lets, and placing them in a separate map
 -- OPTIMIZE: use State for building the FloatTable, and for reducing the Marks

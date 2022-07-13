@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines types and functions related to "type-eval checking".
 
 {-# LANGUAGE DataKinds              #-}

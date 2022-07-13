@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-| Description : Property based testing for Plutus Core
 
 This file contains the tests and some associated machinery but not the

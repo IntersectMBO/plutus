@@ -1,0 +1,2 @@
+- ignore: { }
+- warn: {name: Unused LANGUAGE pragma, within: [PlutusCore.**] }
