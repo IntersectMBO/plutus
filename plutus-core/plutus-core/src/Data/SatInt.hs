@@ -6,6 +6,7 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
@@ -24,12 +25,14 @@ import GHC.Integer (smallInteger)
 import GHC.Num
 import GHC.Real
 import Language.Haskell.TH.Syntax (Lift)
+import NoThunks.Class
 
 newtype SatInt = SI { unSatInt :: Int }
     deriving newtype (NFData, Bits, FiniteBits, Prim)
     deriving stock (Lift, Generic)
     deriving (FromJSON, ToJSON) via Int
     deriving FromField via Int  -- For reading cost model data from CSV input
+    deriving anyclass NoThunks
 
 instance Show SatInt where
   showsPrec p x = showsPrec p (unSatInt x)

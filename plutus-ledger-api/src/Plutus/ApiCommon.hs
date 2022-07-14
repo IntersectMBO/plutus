@@ -2,6 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
+{-# LANGUAGE StrictData        #-}
+
 -- GHC is asked to do quite a lot of optimization in this module, so we're increasing the amount of
 -- ticks for the simplifier not to run out of them.
 {-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
@@ -38,6 +40,7 @@ import Data.Text
 import Data.Tuple
 import GHC.Exts (inline)
 import GHC.Generics
+import NoThunks.Class
 import PlutusCore.Pretty
 import PlutusPrelude (through)
 import Prettyprinter
@@ -261,7 +264,7 @@ data EvaluationContext = EvaluationContext
     , machineParametersDeferred  :: DefaultMachineParameters
     }
     deriving stock Generic
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 {-|  Build the 'EvaluationContext'.
 
