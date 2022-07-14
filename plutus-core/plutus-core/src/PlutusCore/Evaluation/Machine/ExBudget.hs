@@ -145,13 +145,14 @@ module PlutusCore.Evaluation.Machine.ExBudget
     )
 where
 
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
 
 import Data.Char (toLower)
 import Data.Semigroup
 import Deriving.Aeson
 import Language.Haskell.TH.Lift (Lift)
-import PlutusCore.Evaluation.Machine.ExMemory
+import NoThunks.Class
 import Prettyprinter
 
 
@@ -175,7 +176,7 @@ instance ExBudgetBuiltin fun () where
 
 data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving anyclass (PrettyBy config, NFData)
+    deriving anyclass (PrettyBy config, NFData, NoThunks)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 

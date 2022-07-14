@@ -40,6 +40,7 @@ import Data.Text
 import Data.Tuple
 import GHC.Exts (inline)
 import GHC.Generics
+import NoThunks.Class
 import PlutusCore.Pretty
 import PlutusPrelude (through)
 import Prettyprinter
@@ -263,7 +264,7 @@ data EvaluationContext = EvaluationContext
     , machineParametersDeferred  :: DefaultMachineParameters
     }
     deriving stock Generic
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 {-|  Build the 'EvaluationContext'.
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
@@ -10,6 +11,7 @@ module PlutusCore.Builtin.Runtime where
 
 import PlutusPrelude
 
+import PlutusCore.Builtin.KnownType
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
@@ -19,7 +21,7 @@ import Control.Lens (ix, (^?))
 import Control.Monad.Except
 import Data.Array
 import Data.Kind qualified as GHC (Type)
-import PlutusCore.Builtin.KnownType
+import NoThunks.Class as NoThunks
 
 -- | Peano numbers. Normally called @Nat@, but that is already reserved by @base@.
 data Peano
@@ -42,6 +44,13 @@ instance NFData (RuntimeScheme n) where
         RuntimeSchemeResult    -> rwhnf r
         RuntimeSchemeArrow arg -> rnf arg
         RuntimeSchemeAll arg   -> rnf arg
+
+instance NoThunks (RuntimeScheme n) where
+    wNoThunks ctx = \case
+        RuntimeSchemeResult  -> pure Nothing
+        RuntimeSchemeArrow s -> noThunks ctx s
+        RuntimeSchemeAll s   -> noThunks ctx s
+    showTypeOf = const "PlutusCore.Builtin.Runtime.RuntimeScheme"
 
 -- | Compute the runtime denotation type of a builtin given the type of values and the number of
 -- arguments that the builtin takes. A \"runtime denotation type\" is different from a regular
@@ -89,6 +98,32 @@ data BuiltinRuntime val =
                                           -- out what it's going to cost.
         (ToCostingType n)
 
+instance NoThunks (BuiltinRuntime val) where
+    -- Skipping `_denot` in `allNoThunks` check, since it is supposed to be lazy and
+    -- is allowed to contain thunks.
+    wNoThunks ctx (BuiltinRuntime sch _denot costing) =
+        allNoThunks
+            [ -- The order here is important: we must first check that `sch` doesn't have
+              -- thunks, before inspecting it in `noThunksInCosting`.
+              noThunks ctx sch
+            , noThunksInCosting ctx costing sch
+            ]
+
+    showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
+
+-- | Check whether the given `ToCostingType n` contains thunks. The `RuntimeScheme n` is used to
+-- refine `n`.
+noThunksInCosting :: NoThunks.Context -> ToCostingType n -> RuntimeScheme n -> IO (Maybe ThunkInfo)
+noThunksInCosting ctx costing = \case
+    -- @n ~ 'Z@, and @ToCostingType n ~ ExBudget@, which should not be a thunk or contain
+    -- nested thunks.
+    RuntimeSchemeResult ->
+        noThunks ctx costing
+    RuntimeSchemeArrow _ ->
+        noThunks ctx costing
+    RuntimeSchemeAll sch ->
+        noThunksInCosting ctx costing sch
+
 -- | Determines how to unlift arguments. The difference is that with 'UnliftingImmediate' unlifting
 -- is performed immediately after a builtin gets the argument and so can fail immediately too, while
 -- with deferred unlifting all arguments are unlifted upon full saturation, hence no failure can
@@ -129,6 +164,10 @@ newtype BuiltinsRuntime fun val = BuiltinsRuntime
     }
 
 deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
+
+instance NoThunks (BuiltinsRuntime fun val) where
+    wNoThunks ctx (BuiltinsRuntime arr) = allNoThunks (noThunks ctx <$> elems arr)
+    showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin

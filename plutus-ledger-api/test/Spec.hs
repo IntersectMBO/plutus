@@ -14,6 +14,7 @@ import Plutus.V1.Ledger.ProtocolVersions
 import Spec.Builtins qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
+import Spec.NoThunks qualified
 
 main :: IO ()
 main = defaultMain tests
@@ -90,4 +91,5 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.Interval.tests
     , Spec.Eval.tests
     , Spec.Builtins.tests
+    , Spec.NoThunks.tests
     ]
