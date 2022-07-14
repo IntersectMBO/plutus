@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
 
@@ -6,11 +7,10 @@ module Main (main) where
 import Common
 import Parsers
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty qualified as PP
-
-import UntypedPlutusCore qualified as UPLC (eraseProgram)
 
 import Data.Functor (void)
 import Data.Text.IO qualified as T
@@ -150,7 +150,7 @@ runPlcPrintExample = runPrintExample getPlcExamples
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
   typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
-  let untypedProg = () <$ UPLC.eraseProgram typedProg
+  let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg

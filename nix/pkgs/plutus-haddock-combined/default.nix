@@ -1,3 +1,4 @@
+# editorconfig-checker-disable-file
 { haddock-combine, haskell, haskell-nix, writeTextFile }:
 let
   toHaddock = haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackagesAllHaddock;
@@ -15,7 +16,7 @@ haddock-combine {
         * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
         * "Plutus.Contract": Writing Plutus apps (off-chain code).
         * "Ledger.Constraints": Constructing and validating Plutus
-           transactions. Built on "PlutusTx" and 
+           transactions. Built on "PlutusTx" and
            "Plutus.Contract".
         * "Ledger.Typed.Scripts": A type-safe interface for spending and
            producing script outputs. Built on "PlutusTx".

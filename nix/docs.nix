@@ -10,7 +10,8 @@ let
       files = lib.sourceFilesBySuffices src [ ".adoc" ".png" ".PNG" ".gif" ".ico" ".css" ];
       outFile = (lib.strings.removeSuffix ".adoc" file) + ".html";
     in
-    pkgs.runCommand "build-asciidoc-html" { buildInputs = [ pkgs.python2 pkgs.asciidoctor ] ++ deps; } ''
+    pkgs.runCommand "build-asciidoc-html"
+      { buildInputs = [ pkgs.python2 pkgs.asciidoctor ] ++ deps; } ''
       mkdir -p $out
       asciidoctor --failure-level ERROR ${files}/${file} -o $out/${outFile}
       cp -aR ${files}/images $out || true
@@ -54,7 +55,8 @@ pkgs.recurseIntoAttrs {
     eutxoma = import ../papers/eutxoma { inherit buildLatexDoc; };
     # This paper cannot be built via `buildLatexDoc` as the others because it features
     # a somewhat more complex setup including some additional artifact that has to be compiled.
-    unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix { agda = agdaWithStdlib; inherit latex; };
+    unraveling-recursion = pkgs.callPackage ../papers/unraveling-recursion/default.nix
+      { agda = agdaWithStdlib; inherit latex; };
   };
 
   plutus-core-spec = import ../plutus-core-spec { inherit buildLatexDoc; };

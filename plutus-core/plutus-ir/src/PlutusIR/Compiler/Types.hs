@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -39,6 +40,9 @@ data PirTCConfig uni fun = PirTCConfig {
 makeLenses ''PirTCConfig
 
 -- pir config has inside a plc config so it can act like it
+instance PLC.HasKindCheckConfig (PirTCConfig uni fun) where
+    kindCheckConfig = pirConfigTCConfig . PLC.kindCheckConfig
+
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
@@ -82,7 +86,9 @@ data CompilationCtx uni fun a = CompilationCtx {
 makeLenses ''CompilationCtx
 
 toDefaultCompilationCtx :: PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
-toDefaultCompilationCtx configPlc = CompilationCtx defaultCompilationOpts noProvenance $ Just (PirTCConfig configPlc YesEscape)
+toDefaultCompilationCtx configPlc =
+    CompilationCtx defaultCompilationOpts noProvenance $
+        Just (PirTCConfig configPlc YesEscape)
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -145,7 +151,7 @@ type Compiling m e uni fun a =
     -- Pretty printing instances
     , PLC.Pretty fun
     , PLC.Closed uni
-    , PLC.GShow uni
+    , PLC.Pretty (PLC.SomeTypeIn uni)
     , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )

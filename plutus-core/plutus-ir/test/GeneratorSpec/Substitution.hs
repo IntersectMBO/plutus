@@ -15,6 +15,7 @@ import Control.Monad
 import Data.Either
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import Data.Set.Lens (setOf)
 import Data.String
 
 import Test.QuickCheck hiding (choose, vectorOf)
@@ -49,7 +50,7 @@ prop_unify =
   letCE "sty2" (substType sub ty2) $ \ sty2 ->
   letCE "nsty1" (normalizeTy sty1) $ \ nsty1 ->
   letCE "nsty2" (normalizeTy sty2) $ \ nsty2 ->
-  tabulate "sizes" [show $ min (Set.size $ ftvTy ty1) (Set.size $ ftvTy ty2)] $
+  tabulate "sizes" [show $ min (Set.size $ setOf ftvTy ty1) (Set.size $ setOf ftvTy ty2)] $
   foldr (.&&.) (property $ nsty1 == nsty2) (map checkSub (Map.toList sub))
   where
     allTheVarsCalledX = [ TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..] ]
@@ -71,5 +72,5 @@ prop_substType =
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
   letCE "res" (substType sub ty) $ \ res -> do
     -- TODO: be more precise.
-    unless (fvTypeR sub ty == ftvTy res) $ Left "free type variables mismatch"
+    unless (fvTypeR sub ty == setOf ftvTy res) $ Left "free type variables mismatch"
     checkKind ctx res Star

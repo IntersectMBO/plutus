@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -98,7 +99,8 @@ test_alwaysThrows =
 
 prop_builtinEvaluation ::
     forall uni fun.
-    (ToBuiltinMeaning uni fun, Pretty fun, Closed uni, GShow uni, uni `Everywhere` PrettyConst) =>
+    (ToBuiltinMeaning uni fun, Pretty (SomeTypeIn uni),
+        Pretty fun, Closed uni, uni `Everywhere` PrettyConst) =>
     fun ->
     -- | A function making a generator for @fun@'s arguments.
     (fun -> Gen [Term uni fun]) ->

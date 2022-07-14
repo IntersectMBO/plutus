@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
@@ -44,6 +45,9 @@ import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import GHC.Exts (inline, oneShot)
+import Text.Pretty
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -119,24 +123,35 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
+    uniApply = DefaultUniApply
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
+deriving stock instance Show (DefaultUni a)
 instance GShow DefaultUni where gshowsPrec = showsPrec
-instance Show (DefaultUni a) where
-    show DefaultUniInteger             = "integer"
-    show DefaultUniByteString          = "bytestring"
-    show DefaultUniString              = "string"
-    show DefaultUniUnit                = "unit"
-    show DefaultUniBool                = "bool"
-    show DefaultUniProtoList           = "list"
-    show DefaultUniProtoPair           = "pair"
-    show (uniF `DefaultUniApply` uniB) = case uniF of
-        DefaultUniProtoList                          -> concat ["list (", show uniB, ")"]
-        DefaultUniProtoPair                          -> concat ["pair (", show uniB, ")"]
-        DefaultUniProtoPair `DefaultUniApply` uniA   -> concat ["pair (", show uniA, ") (", show uniB, ")"]
-        uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
-    show DefaultUniData = "data"
+
+instance HasRenderContext config => PrettyBy config (DefaultUni a) where
+    prettyBy = inContextM $ \case
+        DefaultUniInteger         -> "integer"
+        DefaultUniByteString      -> "bytestring"
+        DefaultUniString          -> "string"
+        DefaultUniUnit            -> "unit"
+        DefaultUniBool            -> "bool"
+        DefaultUniProtoList       -> "list"
+        DefaultUniProtoPair       -> "pair"
+        DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
+        DefaultUniData            -> "data"
+
+-- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
+-- doesn't pretty-print them otherwise (e.g. @integer@).
+-- This is so we can have a single instance that is safe to use with both the classic and the
+-- readable pretty-printers, even though for the latter it may result in redundant parens being
+-- shown. We are planning to change the classic syntax to remove this silliness.
+instance Pretty (DefaultUni a) where
+    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
+instance Pretty (SomeTypeIn DefaultUni) where
+    pretty (SomeTypeIn uni) = pretty uni
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString

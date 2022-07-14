@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
     , scriptCBORDecoder
@@ -17,6 +18,7 @@ import Data.ByteString.Short
 import Data.Coerce
 import Data.Either
 import Data.Set as Set
+import Prettyprinter
 
 {- Note [Size checking of constants in PLC programs]
 We impose a 64-byte *on-the-wire* limit on the constants inside PLC programs. This prevents people from inserting
@@ -43,10 +45,10 @@ scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s Sc
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
-        -- See Note [Size checking of constants in PLC programs]
-        sizeLimit = if lv < PlutusV2 then UPLC.NoLimit else UPLC.Limit 64
+        flatDecoder = UPLC.decodeProgram checkBuiltin
         -- TODO: optimize this by using a better datastructure e.g. 'IntSet'
-        flatDecoder = UPLC.decodeProgram sizeLimit (\f -> f `Set.member` availableBuiltins)
+        checkBuiltin f | f `Set.member` availableBuiltins = Nothing
+        checkBuiltin f = Just $ "Builtin function " ++ show f ++ " is not available in language " ++ show (pretty lv) ++ " at and protocol version " ++ show (pretty pv)
     in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder

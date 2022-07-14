@@ -2,12 +2,20 @@ root = true
 
 [*]
 indent_style = space
-indent_size = 2
-end_of_line = lf
+
+[*.{nix, hs, lagda, agda}]
 charset = utf-8
+max_line_length = 100
+end_of_line = lf
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+[*.nix]
+indent_size = 2
+
 [*.hs]
-indent_size = 4
-max_line_length = 120
+max_line_length = 100
+# Wildly inconsistent, we should decide on one
+# Especially it looks like we have lots of disagreement
+# over how much indentation to use for 'where' clauses
+#indent_size = 4

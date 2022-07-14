@@ -6,42 +6,80 @@ This package aims to provide an official and comprehensive test suite that check
 
 ## Specification
 
-The tests currently covers or will cover:
+The tests currently cover or will cover the Haskell and Agda implementation of:
 
-- An evaluation test suite for UPLC (`uplc-eval-test`)
-- A typechecking test suite for TPLC, including checking of alpha equivalence. (`tplc-typecheck-test`)
-- An evaluation test suite for TPLC (`tplc-eval-test`)
-- A TPLC to UPLC erasure test suite
-- Costing conformance 
+- UPLC evaluation
+- Typechecking for TPLC, including checking of alpha equivalence. (`tplc-typecheck-test`)
+- TPLC evaluation
+- Erasure of TPLC to UPLC
 - Coverage test
+<!-- - Costing conformance? -->
 
-There is also an executable `add-test-output` for easy addition of test cases. Run 
+## Adding/updating test outputs
 
-`cabal run add-test-output -- -h` for the manual.
+To update test outputs, use the accept test option of the tests. E.g., to have the test results overwriting the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
 
-<!-- ## Testing alternative implementation
+`cabal test haskell-conformance --test-options=--accept`
 
-We provide a function  -->
-<!-- 
-## Untyped Plutus Core Evaluation
+There is also an executable (`add-test-output`) for adding test output with more refined options:
 
-The `uplc-eval-test` test suite ensures that the input untyped plutus core programs evaluate to the expected output. The expected output is obtained by evaluating the programs using the CEK machine.
+E.g., run
 
-### The CEK machine
+`cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing`
 
-We have an executable, `uplc`, that can call the CEK machine to evaluate untyped plutus core programs. Run 
+to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
 
-`cabal run uplc evaluate -- -h` 
+Or, to update and add outputs to all files in the /uplc directory, run
 
-for a full list of options.
+cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all
 
-The CEK machine returns an `EvaluationResult` which is either a successfully computed `Term` or a failure:
+For the manual, run:
+
+`cabal run add-test-output -- -h`
+
+## Executable for Haskell implementation
+
+(WIP) `haskell-implementation` is an executable for Haskell implementation CLI testing/usage. 
+
+## The Plutus Conformance Test Suite Library
+
+The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See an explanation [here](https://www.fpcomplete.com/blog/2017/02/typed-process/) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
+
+## Untyped Plutus Core Program Evaluation
+
+The UPLC evaluation tests ensure conformance of evaluation of untyped plutus core programs. The expected output may contain:
+
+1. "parse error"
+
+The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
+
+2. "evaluation error"
+
+If evaluation fails with an error, the expected output will show "evaluation error".
+
+3. An untyped plutus core program
+
+This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
+
+### Testing alternative implementation
+
+In the library We provide a function named `runUplcEvalTests` with the following signature:
 
 ```haskell
-data EvaluationResult a
-    = EvaluationSuccess a
-    | EvaluationFailure
-``` -->
+import UntypedPlutusCore.Core.Type qualified as UPLC
+
+type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
+
+runUplcEvalTests :: (UplcProg -> Maybe UplcProg) -> IO ()
+```
+
+Users can call this function with their own `runners` with the signature:
+
+```haskell
+runner :: (UplcProg -> Maybe UplcProg)
+```
+
+The runner should evaluate a UPLC program and return a `Maybe UplcProg`. Given a UPLC program, the runner should return the evaluated program. In case of evaluation failure, the runner should return `Nothing`.
 
 <!-- 
 ### Type checker

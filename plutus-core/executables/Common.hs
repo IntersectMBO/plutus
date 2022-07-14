@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -14,6 +15,7 @@ import PlutusPrelude (through)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
+import PlutusCore.Compiler.Erase qualified as PLC
 import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -494,7 +496,7 @@ getUplcExamples =
                 \case
                   SomeTypeExample _ -> Nothing
                   SomeTypedTermExample (TypedTermExample _ e) ->
-                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ UPLC.erase e
+                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ PLC.eraseTerm e
             mapMaybeSnd _ []     = []
             mapMaybeSnd f ((a,b):r) =
                 case f b of

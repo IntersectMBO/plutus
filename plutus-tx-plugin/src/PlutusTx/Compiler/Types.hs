@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -16,7 +17,6 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 import PlutusTx.Annotation
@@ -162,14 +162,11 @@ stableModuleCmp m1 m2 =
 
 -- See Note [Scopes]
 type Compiling uni fun m ann =
-    ( Monad m
-    , MonadError (CompileError uni fun ann) m
+    ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
     , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
-    , PLC.GShow uni, PLC.GEq uni
-    , PLC.ToBuiltinMeaning uni fun
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | This compiles several list-sorting algorithms to Plutus Core and runs them on

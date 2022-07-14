@@ -1,63 +1,78 @@
-cabal-version:       3.0
-name:                plutus-metatheory
-version:             0.1.0.0
-synopsis:            Command line tool for running plutus core programs
-homepage:            https://github.com/input-output-hk/plutus
-license: Apache-2.0
+cabal-version:      3.0
+name:               plutus-metatheory
+version:            0.1.0.0
+synopsis:           Command line tool for running plutus core programs
+homepage:           https://github.com/input-output-hk/plutus
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
-author:              James Chapman
-maintainer:          james.chapman@iohk.io
-category:            Development
+
+author:             James Chapman
+maintainer:         james.chapman@iohk.io
+category:           Development
 extra-source-files:
-  README.md,
-  Plutus.agda-lib,
-  -- This makes cabal rebuild if any of these files change, which allow the
-  -- custom setup to fire and rebuild the Haskell sources
-  src/**/*.lagda,
+  Plutus.agda-lib
+  README.md
+  src/**/*.lagda
   src/**/*.lagda.md
-build-type:          Custom
+
+-- This makes cabal rebuild if any of these files change, which allow the
+-- custom setup to fire and rebuild the Haskell sources
+build-type:         Custom
 
 custom-setup
-  setup-depends:  base -any
-                , Cabal -any
-                , process -any
-                , turtle -any
+  setup-depends:
+    , base
+    , Cabal
+    , process
+    , turtle
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
 
+  ghc-options:
+    -fwarn-incomplete-patterns -fno-warn-overlapping-patterns
 
 library
-  import: lang
-  hs-source-dirs: src
-  build-depends: base -any,
-                 bytestring -any,
-                 cryptonite -any,
-                 extra -any,
-                 ieee754 -any,
-                 memory -any,
-                 plutus-core,
-                 process -any,
-                 optparse-applicative -any,
-                 text -any,
-                 transformers -any,
-                 megaparsec -any
+  import:          lang
+  hs-source-dirs:  src
+  build-depends:
+    , base
+    , bytestring
+    , cryptonite
+    , extra
+    , ieee754
+    , megaparsec
+    , memory
+    , optparse-applicative
+    , plutus-core
+    , process
+    , text
+    , transformers
+
   exposed-modules:
-    MAlonzo.Code.Main
     MAlonzo.Code.Agda.Builtin.Bool
     MAlonzo.Code.Agda.Builtin.Char
     MAlonzo.Code.Agda.Builtin.Equality
-    MAlonzo.Code.Agda.Builtin.IO
     MAlonzo.Code.Agda.Builtin.Int
+    MAlonzo.Code.Agda.Builtin.IO
     MAlonzo.Code.Agda.Builtin.List
+    MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Sigma
     MAlonzo.Code.Agda.Builtin.String
@@ -67,7 +82,12 @@ library
     MAlonzo.Code.Algebra.Consequences.Base
     MAlonzo.Code.Algebra.Consequences.Setoid
     MAlonzo.Code.Algebra.Construct.LiftedChoice
+    MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
+    MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
+    MAlonzo.Code.Algebra.Construct.NaturalChoice.MaxOp
     MAlonzo.Code.Algebra.Construct.NaturalChoice.Min
+    MAlonzo.Code.Algebra.Construct.NaturalChoice.MinMaxOp
+    MAlonzo.Code.Algebra.Construct.NaturalChoice.MinOp
     MAlonzo.Code.Algebra.Morphism
     MAlonzo.Code.Algebra.Properties.BooleanAlgebra
     MAlonzo.Code.Algebra.Properties.DistributiveLattice
@@ -76,18 +96,20 @@ library
     MAlonzo.Code.Algebra.Structures
     MAlonzo.Code.Algebra.Structures.Biased
     MAlonzo.Code.Algorithmic
-    MAlonzo.Code.Algorithmic.Properties
-    MAlonzo.Code.Algorithmic.CEKV
-    MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.CC
+    MAlonzo.Code.Algorithmic.CEKV
     MAlonzo.Code.Algorithmic.CK
+    MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Evaluation
+    MAlonzo.Code.Algorithmic.Properties
     MAlonzo.Code.Algorithmic.Reduction
+    MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Category.Applicative.Indexed
+    MAlonzo.Code.Category.Comonad
     MAlonzo.Code.Category.Functor
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
@@ -114,12 +136,15 @@ library
     MAlonzo.Code.Data.List.Membership.Setoid
     MAlonzo.Code.Data.List.Membership.Setoid.Properties
     MAlonzo.Code.Data.List.NonEmpty
+    MAlonzo.Code.Data.List.NonEmpty.Base
     MAlonzo.Code.Data.List.Properties
     MAlonzo.Code.Data.List.Relation.Binary.Equality.Propositional
     MAlonzo.Code.Data.List.Relation.Binary.Equality.Setoid
+    MAlonzo.Code.Data.List.Relation.Binary.Lex
     MAlonzo.Code.Data.List.Relation.Binary.Lex.Core
     MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise
+    MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
     MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties
     MAlonzo.Code.Data.List.Relation.Unary.All
     MAlonzo.Code.Data.List.Relation.Unary.All.Properties
@@ -127,12 +152,13 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
+    MAlonzo.Code.Data.Maybe.Categorical
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
     MAlonzo.Code.Data.Nat.Base
+    MAlonzo.Code.Data.Nat.Divisibility.Core
     MAlonzo.Code.Data.Nat.DivMod
     MAlonzo.Code.Data.Nat.DivMod.Core
-    MAlonzo.Code.Data.Nat.Divisibility.Core
     MAlonzo.Code.Data.Nat.Properties
     MAlonzo.Code.Data.Nat.Properties.Core
     MAlonzo.Code.Data.Nat.Show
@@ -152,13 +178,15 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Declarative
     MAlonzo.Code.Debug.Trace
+    MAlonzo.Code.Declarative
+    MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
     MAlonzo.Code.Function.Equality
     MAlonzo.Code.Function.Equivalence
     MAlonzo.Code.Function.HalfAdjointEquivalence
+    MAlonzo.Code.Function.Identity.Categorical
     MAlonzo.Code.Function.Injection
     MAlonzo.Code.Function.Inverse
     MAlonzo.Code.Function.LeftInverse
@@ -168,18 +196,22 @@ library
     MAlonzo.Code.Function.Related.TypeIsomorphisms
     MAlonzo.Code.Function.Structures
     MAlonzo.Code.Function.Surjection
-    MAlonzo.Code.IO.Primitive
     MAlonzo.Code.Induction
     MAlonzo.Code.Induction.WellFounded
+    MAlonzo.Code.IO.Primitive
     MAlonzo.Code.Level
+    MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
+    MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
+    MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
     MAlonzo.Code.Relation.Binary.Construct.Converse
     MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left
     MAlonzo.Code.Relation.Binary.Construct.NonStrictToStrict
     MAlonzo.Code.Relation.Binary.Construct.On
     MAlonzo.Code.Relation.Binary.Definitions
+    MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core
     MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Bundles
     MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Construct.Trivial
     MAlonzo.Code.Relation.Binary.Indexed.Heterogeneous.Structures
@@ -190,14 +222,16 @@ library
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Algebra
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Core
     MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties
-    MAlonzo.Code.Relation.Binary.HeterogeneousEquality.Core
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Double
+    MAlonzo.Code.Relation.Binary.Reasoning.Base.Single
     MAlonzo.Code.Relation.Binary.Reasoning.Base.Triple
+    MAlonzo.Code.Relation.Binary.Reasoning.Setoid
     MAlonzo.Code.Relation.Binary.Structures
     MAlonzo.Code.Relation.Nullary
     MAlonzo.Code.Relation.Nullary.Decidable
     MAlonzo.Code.Relation.Nullary.Decidable.Core
     MAlonzo.Code.Relation.Nullary.Negation
+    MAlonzo.Code.Relation.Nullary.Negation.Core
     MAlonzo.Code.Relation.Nullary.Product
     MAlonzo.Code.Relation.Nullary.Reflects
     MAlonzo.Code.Relation.Nullary.Sum
@@ -212,30 +246,11 @@ library
     MAlonzo.Code.Type.BetaNormal
     MAlonzo.Code.Type.Equality
     MAlonzo.Code.Type.RenamingSubstitution
+    MAlonzo.Code.Untyped
+    MAlonzo.Code.Untyped.CEK
+    MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.RTE
-    MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Untyped
-    MAlonzo.Code.Untyped.RenamingSubstitution
-    MAlonzo.Code.Untyped.CEK
-    MAlonzo.Code.Agda.Builtin.Maybe
-    MAlonzo.Code.Algebra.Construct.NaturalChoice.Base
-    MAlonzo.Code.Algebra.Construct.NaturalChoice.Max
-    MAlonzo.Code.Algebra.Construct.NaturalChoice.MaxOp
-    MAlonzo.Code.Algebra.Construct.NaturalChoice.MinMaxOp
-    MAlonzo.Code.Algebra.Construct.NaturalChoice.MinOp
-    MAlonzo.Code.Category.Comonad
-    MAlonzo.Code.Data.List.NonEmpty.Base
-    MAlonzo.Code.Data.List.Relation.Binary.Lex
-    MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base
-    MAlonzo.Code.Data.Maybe.Categorical
-    MAlonzo.Code.Function.Base
-    MAlonzo.Code.Function.Identity.Categorical
-    MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
-    MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
-    MAlonzo.Code.Relation.Binary.Reasoning.Base.Single
-    MAlonzo.Code.Relation.Binary.Reasoning.Setoid
-    MAlonzo.Code.Relation.Nullary.Negation.Core
     Opts
     Raw
     Scoped
@@ -429,58 +444,60 @@ library
     MAlonzo.Code.Relation.Nullary.Negation.Core
 
 executable plc-agda
-  import: lang
+  import:         lang
   hs-source-dirs: exe
-  main-is: Main.hs
+  main-is:        Main.hs
   build-depends:
-    base -any,
-    plutus-metatheory
+    , base
+    , plutus-metatheory
 
 test-suite test1
-  import: lang
+  import:             lang
   build-tool-depends:
-    plutus-core:plc,
-    plutus-core:uplc
-  hs-source-dirs: test
+    , plutus-core:plc
+    , plutus-core:uplc
+
+  hs-source-dirs:     test
   build-depends:
-    base -any,
-    plutus-metatheory,
-    process -any,
-    extra -any
-  type:  exitcode-stdio-1.0
-  main-is: TestSimple.hs
+    , base
+    , extra
+    , plutus-metatheory
+    , process
+
+  type:               exitcode-stdio-1.0
+  main-is:            TestSimple.hs
 
 test-suite test2
-  import: lang
+  import:             lang
   build-tool-depends:
-    plutus-core:plc,
-    plutus-core:uplc
-  hs-source-dirs: test
-  type: detailed-0.9
-  test-module: TestDetailed
+    , plutus-core:plc
+    , plutus-core:uplc
+
+  hs-source-dirs:     test
+  type:               detailed-0.9
+  test-module:        TestDetailed
   build-depends:
-    base -any,
-    bytestring -any,
-    Cabal -any,
-    directory -any,
-    plutus-metatheory,
-    process -any,
-    text -any,
-    extra -any
+    , base
+    , bytestring
+    , Cabal
+    , directory
+    , extra
+    , plutus-metatheory
+    , process
+    , text
 
 test-suite test3
-  import: lang
+  import:         lang
   hs-source-dirs: test
-  type: exitcode-stdio-1.0
-  main-is: TestNEAT.hs
+  type:           exitcode-stdio-1.0
+  main-is:        TestNEAT.hs
   build-depends:
-    base -any,
-    lazy-search -any,
-    mtl -any,
-    plutus-metatheory,
-    plutus-core,
-    plutus-core:plutus-core-testlib,
-    size-based -any,
-    Stream -any,
-    tasty -any,
-    tasty-hunit -any
+    , base
+    , lazy-search
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}
+    , plutus-metatheory
+    , size-based
+    , Stream
+    , tasty
+    , tasty-hunit

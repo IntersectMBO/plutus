@@ -1,4 +1,6 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -11,7 +13,9 @@ import PlutusPrelude
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Error
 import PlutusCore.FsTree
+import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
 import PlutusCore.Examples.Builtins
@@ -28,7 +32,7 @@ kindcheck
     :: (uni ~ DefaultUni, fun ~ DefaultFun, MonadError (Error uni fun ()) m)
     => Type TyName uni () -> m (Type TyName uni ())
 kindcheck ty = do
-    _ <- runQuoteT $ inferKind ty
+    _ <- runQuoteT $ inferKind defKindCheckConfig ty
     return ty
 
 typecheck
@@ -55,10 +59,16 @@ assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
-assertIllTyped :: HasCallStack => Term TyName Name DefaultUni DefaultFun () -> Assertion
-assertIllTyped term = case runExcept . runQuoteT $ typecheck term of
+assertIllTyped
+    :: HasCallStack
+    => Term TyName Name DefaultUni DefaultFun ()
+    -> (Error DefaultUni DefaultFun () -> Bool)
+    -> Assertion
+assertIllTyped term isExpected = case runExcept . runQuoteT $ typecheck term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
-    Left  _  -> return ()
+    Left err -> do
+        unless (isExpected err) $
+            assertFailure $ "Got an unexpected error: " ++ displayPlcCondensedErrorClassic err
 
 foldAssertWell
     :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
@@ -90,11 +100,38 @@ selfApply = runQuote $ do
         . Apply () (Var () x)
         $ Var () x
 
+-- | For checking that attempting to reference a type variable whose name got shadowed results in a
+-- type error.
+mismatchTyName :: Term TyName Name uni fun ()
+mismatchTyName =
+    let toTyName txt = TyName (Name txt (Unique 0)) in
+        Error ()
+      . TyLam () (toTyName "x") (Type ())
+      . TyLam () (toTyName "y") (Type ())
+      $ TyVar () (toTyName "x")
+
+-- | For checking that attempting to reference a variable whose name got shadowed results in a
+-- type error.
+mismatchName :: Term TyName Name DefaultUni fun ()
+mismatchName =
+    let toName txt = Name txt (Unique 0) in
+        LamAbs () (toName "x") (mkTyBuiltin @_ @Integer ())
+      . LamAbs () (toName "y") (mkTyBuiltin @_ @Integer ())
+      $ Var () (toName "x")
+
 test_typecheckIllTyped :: TestTree
 test_typecheckIllTyped =
     testCase "ill-typed" $
-        foldMap assertIllTyped
-            [ selfApply
+        foldMap (uncurry assertIllTyped)
+            [ (,) selfApply $ \case
+                TypeErrorE (TypeMismatch {}) -> True
+                _                            -> False
+            , (,) mismatchTyName $ \case
+                TypeErrorE (TyNameMismatch {}) -> True
+                _                              -> False
+            , (,) mismatchName $ \case
+                TypeErrorE (NameMismatch {}) -> True
+                _                            -> False
             ]
 
 test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => fun -> TestTree

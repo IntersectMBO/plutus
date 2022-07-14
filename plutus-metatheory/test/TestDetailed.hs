@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 module TestDetailed where
 import Control.Exception

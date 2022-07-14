@@ -1,4 +1,6 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE CPP                   #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -32,6 +34,7 @@ import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Prim
 import Language.Haskell.TH.Syntax (Lift)
+import NoThunks.Class
 import Universe
 
 {-
@@ -106,6 +109,7 @@ newtype ExMemory = ExMemory CostingInteger
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
+  deriving anyclass NoThunks
 instance Pretty ExMemory where
     pretty (ExMemory i) = pretty (toInteger i)
 instance PrettyBy config ExMemory where
@@ -119,6 +123,7 @@ newtype ExCPU = ExCPU CostingInteger
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
+  deriving anyclass NoThunks
 instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where

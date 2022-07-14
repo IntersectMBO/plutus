@@ -35,6 +35,7 @@ import Data.Bifunctor
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import Data.Set.Lens (setOf)
 import Data.String
 import GHC.Stack
 import Test.QuickCheck (shuffle)
@@ -48,6 +49,7 @@ import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Pretty
 import PlutusCore.Quote (runQuote)
+import PlutusCore.TypeCheck (defKindCheckConfig)
 import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -348,8 +350,8 @@ shrinkKindAndType ctx (k, ty) =
     -- doing simple stuff like shrinking the function and body separately when we can.
     -- The slightly tricky case is the concat trace. See comment below.
     TyApp _ f a       -> [(ka, a) | ka `leKind` k] ++
-                         [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (ftvTy b)] ++
-                         [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (ftvTy a)] ++
+                         [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (setOf ftvTy b)] ++
+                         [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (setOf ftvTy a)] ++
                          -- Here we try to shrink the function f, if we get something whose kind
                          -- is small enough we can return the new function f', otherwise we
                          -- apply f' to `fixKind ctx a ka'` - which takes `a` and tries to rewrite it
@@ -369,7 +371,7 @@ shrinkKindAndType ctx (k, ty) =
                          [ (KindArrow () ka kb', TyLam () x ka b)
                          | (kb', b) <- shrinkKindAndType (Map.insert x ka ctx) (kb, b)]
       where KindArrow _ _ kb = k
-    TyForall _ x ka b -> [ (k, b) | not $ Set.member x (ftvTy b) ] ++
+    TyForall _ x ka b -> [ (k, b) | not $ Set.member x (setOf ftvTy b) ] ++
                          -- (above) If the bound variable doesn't matter we get rid of the binding
                          [ (k, TyForall () x ka' $ substClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
@@ -396,7 +398,7 @@ shrinkKindAndType ctx (k, ty) =
 -- | Infer the kind of a type in a given kind context
 inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Either String (Kind ())
 inferKind ctx ty =
-    first display . runTypeCheckM () $
+    first display . runTypeCheckM defKindCheckConfig $
         foldr
             (uncurry withTyVar)
             (inferKindM @(Error DefaultUni DefaultFun ()) ty)

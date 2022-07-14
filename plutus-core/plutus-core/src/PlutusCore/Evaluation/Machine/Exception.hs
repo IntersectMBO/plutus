@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The exceptions that an abstract machine can throw.
 
 -- appears in the generated instances
@@ -182,7 +183,7 @@ unsafeExtractEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
-        [ "Could not unlift a builtin:", hardline
+        [ "Could not unlift a value:", hardline
         , pretty err
         ]
 

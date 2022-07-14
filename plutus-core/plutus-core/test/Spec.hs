@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -58,7 +59,7 @@ main = do
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name -> Name -> Bool
-compareName = (==) `on` nameString
+compareName = (==) `on` _nameText
 
 compareTyName :: TyName -> TyName -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'

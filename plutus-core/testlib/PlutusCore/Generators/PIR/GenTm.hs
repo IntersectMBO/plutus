@@ -43,6 +43,7 @@ import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Set.Lens (setOf)
 import Data.String
 import Test.QuickCheck (Arbitrary (..), Gen)
 import Test.QuickCheck qualified as QC
@@ -175,11 +176,11 @@ sizeSplit a b ga gb = do
 getUniques :: GenTm (Set Unique)
 getUniques = do
   GenEnv{geDatas = dts, geTypes = tys, geTerms = tms, geUnboundUsedTyNames = used} <- ask
-  return $ Set.mapMonotonic (nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys <> used) <>
-           Set.mapMonotonic nameUnique (Map.keysSet tms) <>
+  return $ Set.mapMonotonic (_nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys <> used) <>
+           Set.mapMonotonic _nameUnique (Map.keysSet tms) <>
            Set.unions [ names d | d <- Map.elems dts ]
   where
-    names (Datatype _ _ _ m cs) = Set.fromList $ nameUnique m : [ nameUnique c | VarDecl _ c _ <- cs ]
+    names (Datatype _ _ _ m cs) = Set.fromList $ _nameUnique m : [ _nameUnique c | VarDecl _ c _ <- cs ]
 
 {- Note [Warning about generating fresh names]: because `GenTm` is a *reader* monad
    names are not immediately put into any state when generated. There is *no guarantee*
@@ -246,10 +247,11 @@ genMaybeFreshTyName s = TyName <$> genMaybeFreshName s
 
 -- | Bind a type name to a kind and avoid capturing free type variables.
 bindTyName :: TyName -> Kind () -> GenTm a -> GenTm a
-bindTyName x k = local $ \ e -> e { geTypes = Map.insert x k (geTypes e)
-                                  , geTerms = Map.filter (\ty -> not $ x `Set.member` ftvTy ty) (geTerms e)
-                                  , geDatas = Map.delete x (geDatas e)
-                                  }
+bindTyName x k = local $ \ e -> e
+    { geTypes = Map.insert x k (geTypes e)
+    , geTerms = Map.filter (\ty -> not $ x `Set.member` setOf ftvTy ty) (geTerms e)
+    , geDatas = Map.delete x (geDatas e)
+    }
 
 -- | Bind type names
 bindTyNames :: [(TyName, Kind ())] -> GenTm a -> GenTm a

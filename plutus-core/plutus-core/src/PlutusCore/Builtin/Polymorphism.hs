@@ -1,6 +1,6 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -30,90 +30,40 @@ import Universe
 We need to support polymorphism for built-in functions for these reasons:
 
 1. @ifThenElse@ for 'Bool' (being a built-in type rather than a Scott-encoded one) has to be
-   polymorphic as its type signature is
+polymorphic as its type signature is
 
-       ifThenElse : all a. Bool -> a -> a -> a
+    ifThenElse : all a. Bool -> a -> a -> a
 
-   Previously we had 'Bool' as a Scott-encoded type, but this required plenty of supporting machinery,
-   because unlifting (aka Scott-decoding) a PLC 'Bool' into a Haskell 'Bool' is quite a non-trivial
-   thing, see https://github.com/input-output-hk/plutus/blob/e222466e6d46bbca9f76243bb496b3c88ed02ca1/language-plutus-core/src/PlutusCore.Builtin/Typed.hs#L165-L252
+Previously we had 'Bool' as a Scott-encoded type, but this required plenty of supporting machinery,
+because unlifting (aka Scott-decoding) a PLC 'Bool' to a Haskell 'Bool' is quite a non-trivial
+thing. We got rid of it and now we have to pay for that by supporting polymorphic built-in functions
+(but we added that support long ago anyway, 'cause it was easy to do).
 
-   Now that we got rid of all this complexity we have to pay for that by supporting polymorphic
-   built-in functions (but we added that support long ago anyway, 'cause it was easy to do).
-
-2. we may want to add efficient polymorphic built-in types like @IntMap@ or @Vector@ and most functions
-   defined over them are polymorphic as well
+2. we have polymorphic built-in types such as lists and pairs and we need polymorphic built-in
+functions to handle them
 -}
 
--- See Note [Motivation for polymorphic built-in functions].
--- See Note [Implementation of polymorphic built-in functions].
--- See Note [Pattern matching on built-in types].
--- | The denotation of a term whose PLC type is encoded in @rep@ (for example a type variable or
--- an application of a type variable). I.e. the denotation of such a term is the term itself.
--- This is because we have parametricity in Haskell, so we can't inspect a value whose
--- type is, say, a bound variable, so we never need to convert such a term from Plutus Core to
--- Haskell and back and instead can keep it intact.
-newtype Opaque val (rep :: GHC.Type) = Opaque
-    { unOpaque :: val
-    } deriving newtype (HasConstant)
--- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
--- kind of type errors.
-
-type instance UniOf (Opaque val rep) = UniOf val
-
--- | For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
--- built-in type
---
--- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
--- @Opaque val rep@).
-newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
-    { unSomeConstant :: Some (ValueOf uni)
-    }
-
-type instance UniOf (SomeConstant uni rep) = uni
-
-instance HasConstant (SomeConstant uni rep) where
-    asConstant   = coerceArg pure
-    fromConstant = coerce
-
 {- Note [Implementation of polymorphic built-in functions]
-Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in Haskell.
-It's not impossible, see "Embedding F", Sam Lindley: http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
-But we'd rather avoid such heavy techniques.
+Encoding polymorphism in an AST in an intrinsically-typed manner is not a pleasant thing to do in
+Haskell. It's not impossible, see "Embedding F", Sam Lindley:
 
-Fortunately, there is a simple trick: we have parametricity in Haskell, so a function that is
-polymorphic in its argument can't inspect that argument in any way and so we never actually need to
-convert such an argument from PLC to Haskell just to convert it back later without ever inspecting
-the value. Instead we can keep the argument intact and apply the Haskell function directly to
-the PLC AST representing some value.
+    http://homepages.inf.ed.ac.uk/slindley/papers/embedding-f.pdf
 
-E.g. Having a built-in function with the following signature:
-(TODO: we can't have that, figure out a way to make this example actually work while being as
-clear as it currently is)
+but it's extremely heavy and we don't need it, hence we avoid it.
 
-    reverse : all a. [a] -> [a]
+Instead, we pass type tags at runtime and ensure that a built-in function can be applied to an
+argument by checking equality of the type tag that we get by looking at the signature of the
+denotation of the builtin and the type tag that we get at runtime as a part of the argument.
 
-that maps to Haskell's
+But we don't need to check equality of type tags when the denotation of the builtin is polymorphic
+over the type of its argument, because then we can simply pass the AST directly through the builtin
+without ever extracting anything from it.
 
-    reverse :: forall a. [a] -> [a]
+We do still need to type check such a builtin in Plutus though, hence we introduce a @newtype@
+wrapper for attaching a Plutus type to the argument, so that the Plutus type checker can pick it up.
 
-evaluation of
-
-    PLC.reverse {bool} (cons true (cons false nil))
-
-proceeds as follows:
-
-      PLC.reverse {bool} (cons true (cons false nil))
-    ~ makeKnown (Haskell.reverse (readKnown (cons true (cons false nil))))
-    ~ makeKnown (Haskell.reverse [Opaque true, Opaque false])
-    ~ makeKnown [Opaque false, Opaque true]
-    ~ EvaluationSuccess (cons false (cons true nil))
-
-Note how we use the 'Opaque' wrapper in order to unlift a PLC term as an opaque Haskell value
-using 'readKnown' and then lift the term back using 'makeKnown' without ever inspecting the term.
-
-An opaque PLC @term@ whose type is a PLC type variable `a_0` has the following type on the Haskell
-side:
+In particular, an opaque value whose type is a PLC type variable `a_0` has the following type on
+the Haskell side:
 
     Opaque val (TyVarRep ('TyNameRep "a" 0))
 
@@ -121,13 +71,13 @@ where that last argument is a direct counterpart of the term-level
 
     TyVar () (TyName (Name "a" 0))
 
-@Opaque val rep@ can be used for passing any @term@ through the builtin application machinery,
+@Opaque val rep@ can be used for passing any @val@ through the builtin application machinery,
 not just one whose type is a bound variable. For example, you can define a new data type
 
     data NatRep
 
-provide a 'KnownTypeAst' instance for it (mapping a @Proxy NatRep@ to the actual type of natural
-numbers in PLC) and define a (rather pointless) builtin like @idNat : nat -> nat@.
+provide a 'KnownTypeAst' instance for it and define a (rather pointless) builtin like
+@idNat : nat -> nat@.
 
 It's also possible to bind a type variable of a higher-kind, say, @f :: * -> *@ and make a builtin
 with the following signature:
@@ -160,22 +110,52 @@ in doing so as GHC can infer all the kinds itself
 3. ... apart from cases where they're inherently ambiguous, like in the case above. If we don't
 specify the kind of the @a_1@ type variable, then there's no way GHC could infer it as the variable
 is passed as an argument to another variable with an unspecified kind (@f_0@)
-4. finally, an opaque term can only be of a type of kind @*@. You can't construct a term whose type
-is of some other kind. That's why we don't need to annotate the @f_0@ type variable: the domain is
-inferred from the kind of the argument (where it's explicitly specified via @TyNameRep *@) and the
-codomain is inferred from the fact that the whole type is passed to 'Opaque' and so it has to be
+4. finally, an opaque value can only be of a type of kind @*@. You can't construct a value whose
+type is of some other kind. That's why we don't need to annotate the @f_0@ type variable: the domain
+is inferred from the kind of the argument (where it's explicitly specified via @TyNameRep *@) and
+the codomain is inferred from the fact that the whole type is passed to 'Opaque' and so it has to be
 of kind @*@
 
 It would be nice if we didn't need to define that @*Rep@ stuff at the type level just to demote it
 to the term level via a type class, but this hasn't been investigated yet. A plausible way would be
-to ditch 'KnownTypeAst' (but keep 'KnownType') and provide PLC types manually. But that doesn't seem
-to give rise to a terribly nice API. And we'd lose all the static guarantees, which is not a big
-deal, but losing the automatic inference of type schemes would suck, given that it's quite handy.
+to ditch 'KnownTypeAst' (but keep 'ReadKnownIn' and 'MakeKnownIn') and provide PLC types
+manually. But that doesn't seem to give rise to a terribly nice API. And we'd lose all the static
+guarantees, which is not a big deal, but losing the automatic inference of type schemes would suck,
+given that it's quite handy.
 
 Representing contructors as poly-kinded data families and handling those with open type families
 and/or type classes is a way of solving the expression problem for indexed data types at the type
 level, if you are into these things.
+
+See Note [Elaboration of polymorphism] for how this machinery is used in practice.
 -}
+
+-- See Note [Motivation for polymorphic built-in functions].
+-- See Note [Implementation of polymorphic built-in functions].
+-- | The AST of a value with a Plutus type attached to it. The type is for the Plutus type checker
+-- to look at. 'Opaque' can appear in the type of the denotation of a builtin.
+newtype Opaque val (rep :: GHC.Type) = Opaque
+    { unOpaque :: val
+    } deriving newtype (HasConstant)
+-- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
+-- kind of type errors.
+
+type instance UniOf (Opaque val rep) = UniOf val
+
+-- | For unlifting from the 'Constant' constructor when the stored value is of a monomorphic
+-- built-in type
+--
+-- The @rep@ parameter specifies how the type looks on the PLC side (i.e. just like with
+-- @Opaque val rep@).
+newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
+    { unSomeConstant :: Some (ValueOf uni)
+    }
+
+type instance UniOf (SomeConstant uni rep) = uni
+
+instance HasConstant (SomeConstant uni rep) where
+    asConstant   = coerceArg pure
+    fromConstant = coerce
 
 -- | Representation of a type variable: its name and unique and an implicit kind.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat
@@ -190,14 +170,6 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
 
 -- Custom type errors to guide the programmer adding a new built-in function.
--- We cover a lot of cases here, but some are missing, for example we do not attempt to detect
--- higher-kinded type variables, which means that if your function returns an @m a@ we can neither
--- instantiate @m@ (which is impossible anyway: it could be 'EvaluationResult' or 'Emitter'
--- or else), nor report that higher-kinded type variables are not allowed and suggest
--- to instantiate such variables manually. In general, we do not attempt to look inside type
--- applications (as it's a rather hard thing to do) and so a type variable inside, say, a list
--- does not get instantiated, hence the custom type error does not get triggered (as it's only
--- triggered for instantiated type variables) and the user gets a standard unhelpful GHC error.
 
 -- We don't have @Unsatisfiable@ yet (https://github.com/ghc-proposals/ghc-proposals/pull/433).
 -- | To be used when there's a 'TypeError' in the context. The condition is not checked as there's

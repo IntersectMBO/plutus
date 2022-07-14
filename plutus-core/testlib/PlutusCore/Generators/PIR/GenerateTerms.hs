@@ -42,6 +42,7 @@ import Data.Map qualified as Map
 import Data.Maybe
 import Data.Proxy
 import Data.Set qualified as Set
+import Data.Set.Lens (setOf)
 import Data.String
 import GHC.Stack
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -107,7 +108,7 @@ findInstantiation ctx n target ty = do
       doSubI (InstArg t) = InstArg (doSub t)
   pure $ map doSubI insts
   where
-    fvs = ftvTy target <> ftvTy ty <> Map.keysSet ctx
+    fvs = setOf ftvTy target <> setOf ftvTy ty <> Map.keysSet ctx
     (ctx', flex, insts, b) = view Map.empty Set.empty [] n fvs ty
 
     -- TODO: documentation!
@@ -201,7 +202,7 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
 
     -- Get the free variables that appear in arguments of a mixed arrow-forall type
     fvArgs (TyForall _ x _ b) = Set.delete x (fvArgs b)
-    fvArgs (TyFun _ a b)      = ftvTy a <> fvArgs b
+    fvArgs (TyFun _ a b)      = setOf ftvTy a <> fvArgs b
     fvArgs _                  = mempty
 
 -- CODE REVIEW: does this exist anywhere?
@@ -348,7 +349,7 @@ genTerm mty = checkInvariants $ do
 
     genForall x k a = do
       -- TODO: this freshenTyName here might be a bit paranoid
-      y <- freshenTyName (ftvTy a) <$> genFreshTyName "a"
+      y <- freshenTyName (setOf ftvTy a) <$> genFreshTyName "a"
       let ty = TyForall () y k $ renameType x y a
       (ty,) . TyAbs () y k <$> (noEscape . bindTyName y k . genTermOfType $ renameType x y a)
 
@@ -463,7 +464,7 @@ shrinkClosedTypedTerm = shrinkTypedTerm mempty mempty
 scopeCheckTyVars :: Map TyName (Kind ())
                  -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                  -> Bool
-scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (ftvTy ty)
+scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (setOf ftvTy ty)
   where
     inscope = Map.keysSet tyctx <> Set.fromList (map fst $ datatypes tm)
 
@@ -536,7 +537,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           | TyFun _ _ b <- [ty] ] ++
           [ (b, body)
           | TyFun _ _ b <- [ty]
-          , x `Set.notMember` fvTerm body ]
+          , x `Set.notMember` setOf fvTerm body ]
 
         Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
           -- Drop substerms
@@ -645,7 +646,7 @@ inferTypeInContext tyctx ctx tm = first display
   -- Infer the type of `tm` by adding the contexts as (type and term) lambdas
   Normalized _ty' <- inferType cfg tm'
   -- Substitute the free variables and escaping datatypes to get back to the un-renamed type.
-  let ty' = substEscape (Map.keysSet esc <> foldr (<>) (ftvTy _ty') (ftvTy <$> esc)) esc _ty' -- yuck
+  let ty' = substEscape (Map.keysSet esc <> foldr (<>) (setOf ftvTy _ty') (setOf ftvTy <$> esc)) esc _ty' -- yuck
   -- Get rid of the stuff we had to add for the context.
   return $ stripFuns tms $ stripForalls mempty tys ty'
   where

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where

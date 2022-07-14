@@ -34,6 +34,7 @@ import Data.Map qualified as Map
 import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Set.Lens
 import GHC.Stack
 import Test.QuickCheck
 
@@ -157,7 +158,7 @@ substType' :: HasCallStack
            -> Type TyName DefaultUni ()
 substType' nested sub ty0 = go fvs Set.empty sub ty0
   where
-    fvs = Set.unions $ Map.keysSet sub : map ftvTy (Map.elems sub)
+    fvs = Set.unions $ Map.keysSet sub : map (setOf ftvTy) (Map.elems sub)
 
     go :: HasCallStack => _
     go fvs seen sub ty = case ty of
@@ -171,11 +172,11 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
       TyLam _ x k b
         | Set.member x fvs -> TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
         | otherwise        -> TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> ftvTy b) x
+        where x' = freshenTyName (fvs <> setOf ftvTy b) x
       TyForall _ x k b
         | Set.member x fvs -> TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
         | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> ftvTy b) x
+        where x' = freshenTyName (fvs <> setOf ftvTy b) x
       TyBuiltin{}      -> ty
       TyIFix _ a b     -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
 
@@ -185,7 +186,7 @@ substType' nested sub ty0 = go fvs Set.empty sub ty0
 fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
 fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (Set.toList freeButInSub)
       where
-          fvs = ftvTy a
+          fvs = setOf ftvTy a
           subDom = Map.keysSet sub
           freeButInSub = Set.intersection subDom fvs
           freeAndNotInSub = Set.difference fvs subDom
@@ -216,4 +217,4 @@ shrinkSubst ctx = map Map.fromList . liftShrink shrinkTy . Map.toList
     shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx ty) k ty
       where k = fromMaybe (error $ "internal error: " ++ show x ++ " not found") $ Map.lookup x ctx
     pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
-      where fvs = ftvTy ty
+      where fvs = setOf ftvTy ty

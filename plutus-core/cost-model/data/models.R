@@ -461,7 +461,7 @@ modelFun <- function(path) {
     lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
 
 
-    ###### Cryptography and hashes #####
+    ###### Hashing functions #####
 
     sha2_256Model <- {
         fname <- "Sha2_256"
@@ -490,11 +490,12 @@ modelFun <- function(path) {
       adjustModel(m,fname)
     }
 
+
+    ###### Signature verification #####
+
     ## VerifyEd25519Signature in fact takes three arguments, but the first and
-    ## third are of fixed size, so we only gather benchmarking data for
-    ## different sizes of the second argument (the "message" being signed).
-    ## This can be very large, but the time appears to be kind of random, even
-    ## up to size 120000.
+    ## third are of fixed size so we only gather benchmarking data for
+    ## different sizes of the second argument (the message being signed).
     verifyEd25519SignatureModel <- {
         fname <- "VerifyEd25519Signature"
         filtered <- data %>%
@@ -504,25 +505,7 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    ## The verifyEcdsaSecp256k1Signature function returns quickly for 50% of
-    ## randomly-generated signatures because the Bitcoin implementation that
-    ## underlies it enforces a requirement that the lower of the two possible
-    ## values of the s component of the signature is used, returning immediately
-    ## if that's not the case: see Note [ECDSA secp256k1 signature verification]
-    ## in Builtins.hs.  This gives us bencharking results where the times fall
-    ## into two distinct bands.  To get a good upper bound for realistic cases
-    ## we eliminate the lower band by discarding results less than the mean and
-    ## then fit a constant model to the remaining data.
-    verifyEcdsaSecp256k1SignatureModel <- {
-        fname <-"VerifyEcdsaSecp256k1Signature"
-        filtered <- data %>%
-            filter.and.check.nonempty (fname) %>%
-            filter(t > mean(t)) %>%
-            discard.overhead ()
-        m <- lm(t ~ 1, filtered)
-        adjustModel (m,fname)
-    }
-    
+    ## Similar to VerifyEd25519Signature.
     verifySchnorrSecp256k1SignatureModel <- {
         fname <- "VerifySchnorrSecp256k1Signature"
         filtered <- data %>%
@@ -531,8 +514,13 @@ modelFun <- function(path) {
         m <- lm(t ~ y_mem, filtered)
         adjustModel(m,fname)
     }
-    
 
+    ## All of the arguments of VerifyEcdsaSecp256k1Signature are of fixed size.
+    ## The "message" (usually a hash of the real message) is always 32 bytes
+    ## long.
+    verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
+
+    
     ##### Strings #####
 
     appendStringModel <- {
@@ -546,7 +534,6 @@ modelFun <- function(path) {
     }
 
     equalsStringModel <- {
-
         fname <- "EqualsString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%

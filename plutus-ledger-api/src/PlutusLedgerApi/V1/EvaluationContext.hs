@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V1.EvaluationContext
     ( EvaluationContext

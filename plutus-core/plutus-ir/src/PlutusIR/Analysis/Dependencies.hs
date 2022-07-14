@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -242,5 +243,5 @@ typeDeps
 typeDeps ty =
     -- The dependency graph of a type is very simple since it doesn't have any internal let-bindings. So we just
     -- need to find all the used variables and mark them as dependencies of the current node.
-    let used = Usages.allUsed $ Usages.runTypeUsages ty
+    let used = Usages.allUsed $ Usages.typeUsages ty
     in currentDependsOn (Set.toList used)

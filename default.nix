@@ -16,7 +16,9 @@
       hackage = sources.hackage-nix;
     };
   }
-, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix enableHaskellProfiling; }
+, packages ? import ./nix {
+    inherit system sources crossSystem config sourcesOverride haskellNix enableHaskellProfiling;
+  }
   # Whether to build our Haskell packages (and their dependencies) with profiling enabled.
 , enableHaskellProfiling ? false
 }:
@@ -30,7 +32,7 @@ rec {
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
-    inherit (plutus) fixStylishHaskell fixPngOptimization;
+    inherit (plutus) fixStylishHaskell fixPngOptimization fixCabalFmt;
     src = ./.;
   };
 

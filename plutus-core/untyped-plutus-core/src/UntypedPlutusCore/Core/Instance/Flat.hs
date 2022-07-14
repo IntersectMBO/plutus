@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds            #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE KindSignatures       #-}
@@ -12,17 +13,12 @@ module UntypedPlutusCore.Core.Instance.Flat where
 import UntypedPlutusCore.Core.Type
 
 import PlutusCore.Flat
-import PlutusCore.Pretty
 
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
-import Flat.Decoder.Types
 import Flat.Encoder
 import Universe
-
-import Data.Primitive (Ptr)
-import Foreign (minusPtr)
 
 {-
 The definitions in this file rely on some Flat instances defined for typed plutus core.
@@ -79,12 +75,12 @@ By default, Flat does not use any space to serialise `()`.
 -}
 
 {- Note [Deserialization size limits]
-In order to prevent people encoding copyright or otherwise illegal data on the chain, we restrict the
-amount of space which can be used for a leaf serialized node to 64 bytes, and we enforce this during
-deserialization.
-
-We do this by asking Flat how far through the input it is before and after parsing a constant. That way
-we can tell generically how much data was used to parse a constant.
+In order to prevent people encoding copyright or otherwise illegal data on the chain, we would like to
+restrict the amount of data that can be controlled in an unrestricted fashion by the user. Fortunately,
+most of the encoding does no allow much leeway for a user to control its content (when accounting for the
+structure of the format itself). The main thing to worry about is bytestrings, but even there, the flat
+encoding of bytestrings is a a sequence of 255-byte chunks. This is okay, since user-controlled data will
+be broken up by the chunk metadata.
 -}
 
 -- | Using 4 bits to encode term tags.
@@ -101,7 +97,6 @@ encodeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -119,46 +114,25 @@ encodeTerm = \case
     Error    ann      -> encodeTermTag 6 <> encode ann
     Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
 
-data SizeLimit = NoLimit | Limit Integer
-
 decodeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
     , Flat (Binder name)
     )
-    => SizeLimit
-    -> (fun -> Bool)
+    => (fun -> Maybe String)
     -> Get (Term name uni fun ann)
-decodeTerm sizeLimit builtinPred = go
+decodeTerm builtinPred = go
     where
         go = handleTerm =<< decodeTermTag
         handleTerm 0 = Var      <$> decode <*> decode
         handleTerm 1 = Delay    <$> decode <*> go
         handleTerm 2 = LamAbs   <$> decode <*> (unBinder <$> decode) <*> go
         handleTerm 3 = Apply    <$> decode <*> go <*> go
-        handleTerm 4 = do
-            ann <- decode
-
-            -- See Note [Deserialization size limits]
-            posPre <- getCurPtr
-            con <- decode
-            posPost <- getCurPtr
-            let usedBytes = posPost `minusPtr` posPre
-
-            let t :: Term name uni fun ann
-                t = Constant ann con
-            case sizeLimit of
-                Limit n | fromIntegral usedBytes > n -> fail $ "Used more than " ++ show n ++ " bytes decoding the constant: " ++ show (prettyPlcDef t)
-                _ -> pure t
-            where
-                -- Get the pointer where flat is currently decoding from. Requires digging into the innards of flat a bit.
-                getCurPtr :: Get (Ptr Word8)
-                getCurPtr = Get $ \_ s@S{currPtr} -> pure $ GetResult s currPtr
+        handleTerm 4 = Constant <$> decode <*> decode
         handleTerm 5 = Force    <$> decode <*> go
         handleTerm 6 = Error    <$> decode
         handleTerm 7 = do
@@ -166,16 +140,15 @@ decodeTerm sizeLimit builtinPred = go
             fun <- decode
             let t :: Term name uni fun ann
                 t = Builtin ann fun
-            if builtinPred fun
-            then pure t
-            else fail $ "Forbidden builtin function: " ++ show (prettyPlcDef t)
+            case builtinPred fun of
+                Nothing -> pure t
+                Just e  -> fail e
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
@@ -198,16 +171,14 @@ decodeProgram
     :: forall name uni fun ann
     . ( Closed uni
     , uni `Everywhere` Flat
-    , PrettyPlc (Term name uni fun ann)
     , Flat fun
     , Flat ann
     , Flat name
     , Flat (Binder name)
     )
-    => SizeLimit
-    -> (fun -> Bool)
+    => (fun -> Maybe String)
     -> Get (Program name uni fun ann)
-decodeProgram sizeLimit builtinPred = Program <$> decode <*> decode <*> decodeTerm sizeLimit builtinPred
+decodeProgram builtinPred = Program <$> decode <*> decode <*> decodeTerm builtinPred
 
 {- Note [Deserialization on the chain]
 As discussed in Note [Deserialization size limits], we want to limit how big constants are when deserializing.
@@ -220,20 +191,18 @@ the expected behaviour.
 
 instance ( Closed uni
          , uni `Everywhere` Flat
-         , PrettyPlc (Term name uni fun ann)
          , Flat fun
          , Flat ann
          , Flat name
          , Flat (Binder name)
          ) => Flat (Term name uni fun ann) where
     encode = encodeTerm
-    decode = decodeTerm NoLimit (const True)
+    decode = decodeTerm (const Nothing)
     size = sizeTerm
 
 -- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
 instance ( Closed uni
          , uni `Everywhere` Flat
-         , PrettyPlc (Term name uni fun ann)
          , Flat fun
          , Flat ann
          , Flat name

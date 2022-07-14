@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
@@ -128,7 +129,7 @@ measureBudget compiledCode =
 -- Compilation testing
 
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PLC.GShow uni, Pretty fun, Flat fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
@@ -143,7 +144,7 @@ goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 <$> (r
 
 -- Helpers
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, uni `PLC.Everywhere` PrettyConst, PLC.GShow uni, Pretty fun, Flat fun) =>
+instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
     toUPlc v = do
         v' <- catchAll $ getPlc v

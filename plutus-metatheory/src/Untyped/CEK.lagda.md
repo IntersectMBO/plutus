@@ -130,7 +130,7 @@ BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (in
 BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
 BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
 BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B> b b')))
+BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
 BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₂ (V-con
   (bytestring (SHA2-256 b)))
 BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =

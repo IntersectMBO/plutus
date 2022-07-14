@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -39,7 +40,6 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable
 
@@ -109,8 +109,8 @@ inline
 inline hints t = let
         inlineInfo :: InlineInfo name a
         inlineInfo = InlineInfo usgs hints
-        usgs :: Map.Map Unique Int
-        usgs = Usages.runTermUsages t
+        usgs :: Usages.Usages
+        usgs = Usages.termUsages t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 -- See Note [Differences from PIR inliner] 3

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -97,7 +98,7 @@ unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni fun
 unveilDatatype dty (Datatype _ tn _ _ _) = typeSubstTyNames (\n -> if n == _tyVarDeclName tn then Just dty else Nothing)
 
 resultTypeName :: MonadQuote m => Datatype TyName Name uni fun a -> m TyName
-resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (nameString $ unTyName $ _tyVarDeclName tn)
+resultTypeName (Datatype _ tn _ _ _) = liftQuote $ freshTyName $ "out_" <> (_nameText $ unTyName $ _tyVarDeclName tn)
 
 -- Datatypes
 

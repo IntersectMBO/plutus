@@ -1,6 +1,0 @@
-plutus-conformance/uplc//evaluation/builtin/chooseDataByteString/chooseDataByteString.uplc:3:7:
-  |
-3 |  (con data {ByteString #001A})]
-  |       ^^^^^^^^^^
-unexpected "data {Byte"
-expecting "bool", "bytestring", "integer", "string", "unit", or '('

@@ -69,7 +69,7 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     sed -i -r "s,^\#search-results \{,\#search-results \{ max-height:80%;overflow-y:scroll;," "$f"
   done
 
-  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87
+  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87 # editorconfig-checker-disable-line
   # Assemble a toplevel `doc-index.json` from package level ones.
   shopt -s globstar
   echo "[]" > "doc-index.json"

@@ -37,6 +37,7 @@ import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Set.Lens (setOf)
 import Data.String
 import Test.QuickCheck
 
@@ -125,7 +126,7 @@ positiveVars ty = case ty of
 freshenTyName :: Set TyName -> TyName -> TyName
 freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
   where i  = succ $ Set.findMax is
-        is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (nameUnique . unTyName) fvs
+        is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (_nameUnique . unTyName) fvs
 
 -- | Get the names and types of the constructors of a datatype.
 constrTypes :: Datatype TyName Name DefaultUni DefaultFun () -> [(Name, Type TyName DefaultUni ())]
@@ -138,7 +139,7 @@ matchType :: Datatype TyName Name DefaultUni DefaultFun () -> (Name, Type TyName
 matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
-          mconcat [ftvTy ty | VarDecl _ _ ty <- cs]
+          mconcat [setOf ftvTy ty | VarDecl _ _ ty <- cs]
     pars = [TyVar () x | TyVarDecl _ x _ <- xs]
     dtyp = foldl (TyApp ()) (TyVar () a) pars
     matchType = abstr $ dtyp ->> TyForall () r Star (foldr ((->>) . conArg) (TyVar () r) cs)

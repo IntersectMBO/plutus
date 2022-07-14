@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 module Spec.Builtins where
 
@@ -18,7 +19,6 @@ import Data.ByteString.Short
 import Data.Foldable (fold, for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import PlutusCore.MkPlc qualified as UPLC
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -28,13 +28,6 @@ serialiseDataExScript = toShort . toStrict $ serialise serialiseDataEx
       serialiseDataEx :: Script
       serialiseDataEx = Script $ UPLC.Program () (PLC.defaultVersion ()) $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
-
-bigConstant :: SerialisedScript
-bigConstant = toShort . toStrict $ serialise bigConstantS
-    where
-      -- A big constant, with a bit of term in the way just to make sure we're actually checking the whole tree
-      bigConstantS :: Script
-      bigConstantS = Script $ UPLC.Program () (PLC.defaultVersion ()) $ UPLC.Delay () $ UPLC.mkConstant @Integer () (2^((64::Integer)*8))
 
 tests :: TestTree
 tests =
@@ -52,8 +45,4 @@ tests =
          assertBool "in l3,Alonzo" $ not $ V3.isScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "not in l2,Vasil" $ V2.isScriptWellFormed vasilPV serialiseDataExScript
          assertBool "not in l3,Chang" $ V3.isScriptWellFormed changPV serialiseDataExScript
-    , testCase "size check" $ do
-         assertBool "not in l1" $ V1.isScriptWellFormed vasilPV bigConstant
-         assertBool "in l2" $ not $ V2.isScriptWellFormed vasilPV bigConstant
-         assertBool "in l3" $ not $ V3.isScriptWellFormed changPV bigConstant
     ]
