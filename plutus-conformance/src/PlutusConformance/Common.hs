@@ -71,23 +71,47 @@ instance IsOption AcceptTests where
   optionHelp = return "Accept current results of tests"
   optionCLParser = flagCLParser Nothing (AcceptTests True)
 
+-- | Turn the expected file content in text to a `UplcProg` unless the expected result
+-- is a parse or evaluation error.
+expectedToProg :: T.Text -> Either T.Text UplcProg
+expectedToProg txt
+  | txt == shownEvaluationFailure =
+    Left txt
+  | txt == shownParseError =
+    Left txt
+  | otherwise =
+    case parseTxt txt of
+        Left _     -> Left shownParseError
+        Right prog -> Right $ () <$ prog
+
+-- |
+debruijnActual :: a
+debruijnActual = undefined
+
 -- | Checks an expected file against actual computed contents.
 checkExpected :: AcceptTests -> FilePath -> T.Text -> IO Result
 checkExpected (AcceptTests accept) expectedFile actual = do
     expectedExists <- doesFileExist expectedFile
     if expectedExists
     then do
+        let -- didn't match
+            notMatched =
+                if accept
+                then do
+                    T.writeFile expectedFile actual
+                    pure $ testPassed "Unexpected output, accepted it"
+                else pure $ testFailed $ "Unexpected output:" ++ show actual
         expected <- T.readFile expectedFile
-        if actual == expected
-        -- matched
-        then pure (testPassed "")
-        else
-            -- didn't match
-            if accept
-            then do
-                T.writeFile expectedFile actual
-                pure $ testPassed "Unexpected output, accepted it"
-            else pure $ testFailed $ "Unexpected output:" ++ show actual
+        case expectedToProg expected of
+            Left txt ->
+                if actual == txt
+                -- matched
+                then pure (testPassed "")
+                else notMatched
+            Right (UPLC.Program () version tm) ->
+                if debruijnActual actual == tm
+                then pure (testPassed "")
+                else notMatched
     else if accept
         then do
             T.writeFile expectedFile actual
@@ -147,8 +171,8 @@ instance IsTest UplcEvaluationTest where
             Left _ -> check shownParseError
             Right p -> do
                case evaluator (void p) of
-                   Nothing -> check shownEvaluationFailure
-                   Just p' -> check (display p')
+                   Nothing                           -> check shownEvaluationFailure
+                   Just (UPLC.Program () version tm) -> check (display p')
 
     testOptions = pure [Option (Proxy :: Proxy AcceptTests)]
 
