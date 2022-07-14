@@ -120,7 +120,7 @@ loadPirAndAnalyse aopts = do
                 pirT ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
         -- a helper lookup table of uniques to their textual representation
         nameTable :: IM.IntMap T.Text
-        nameTable = IM.fromList [(coerce $ nameUnique n , nameString n) | n <- names]
+        nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
         retentionMap = PIR.termRetentionMap pirT

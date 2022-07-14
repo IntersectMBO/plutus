@@ -10,6 +10,8 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeOperators          #-}
 
+{-# LANGUAGE StrictData             #-}
+
 module PlutusCore.TypeCheck.Internal
     ( -- export all because a lot are used by the pir-typechecker
       module PlutusCore.TypeCheck.Internal
@@ -83,19 +85,92 @@ functions that cannot fail look like this:
 -- ## Type definitions ##
 -- ######################
 
--- | Mapping from 'Builtin's to their 'Type's.
+-- | Mapping from 'Builtin's to their 'Normalized' 'Type's.
 newtype BuiltinTypes uni fun = BuiltinTypes
     { unBuiltinTypes :: Array fun (Dupable (Normalized (Type TyName uni ())))
     }
 
-type TyVarKinds = UniqueMap TypeUnique (Kind ())
-type VarTypes uni = UniqueMap TermUnique (Dupable (Normalized (Type TyName uni ())))
+type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
+type VarTypes uni = UniqueMap TermUnique (Named (Dupable (Normalized (Type TyName uni ()))))
+
+-- | Decides what to do upon encountering a varible whose names doesn't match the name of the
+-- variable with the same unique that is currently in the scope. Consider for example this type:
+--
+--     \(a_0 :: *) (b_0 :: *) -> a_0
+--
+-- here @b_0@ shadows @a_0@ and so any variable having the @0@th unique within the body of the
+-- lambda references @b_0@, but we have @a_0@ there and so there's a name mismatch. Technically,
+-- it's not a type error to have a name mismatch, because uniques are the single source of truth,
+-- however a name mismatch is deeply suspicious and is likely to be caused by a bug somewhere.
+--
+-- We perform the same check for term-level variables too.
+data HandleNameMismatches
+    = DetectNameMismatches  -- ^ Throw upon encountering such a name.
+    | IgnoreNameMismatches  -- ^ Ignore it.
+    deriving stock (Show, Eq)
+
+{- Note [Alignment of kind and type checker configs]
+Kind checking is performed as a part of type checking meaning we always need a kind checking config
+whenever a type checking one is required. There are three ways we can align the two sorts of config:
+
+1. store them separately and require the caller to provide both
+2. put the type checking config into the kind checking config
+3. put the kind checking config into the type checking config
+
+1 is straightforward, but makes the caller provide one config for kind checking and two configs for
+type checking, which is inconsistent boilerplate and so it's not really a good option.
+
+2 is better: it makes the caller provide only one config: the type checking config stored in the
+kind checking config. However that makes the type signatures unwieldy:
+
+    KindCheckConfig (TypeCheckConfig uni fun) => <...>
+
+plus it's kinda weird to put the type checking config inside the kind checking one.
+
+3 is what we choose. It makes the caller only worry about the type checking config when doing type
+checking, hence no syntactical or semantical overhead, plus it makes the type signatures symmetric:
+
+    (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg) => <...>
+
+vs
+
+    (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun) => <...>
+
+This approach does require a bit of boilerplate at the definition site (see 'HasTypeCheckConfig'),
+but it's not much and it doesn't proliferate into user space unlike with the other approaches.
+-}
+
+-- | Configuration of the kind checker.
+newtype KindCheckConfig = KindCheckConfig
+    { _kccHandleNameMismatches :: HandleNameMismatches
+    }
+makeClassy ''KindCheckConfig
 
 -- | Configuration of the type checker.
-newtype TypeCheckConfig uni fun = TypeCheckConfig
-    { _tccBuiltinTypes :: BuiltinTypes uni fun
+data TypeCheckConfig uni fun = TypeCheckConfig
+    { _tccKindCheckConfig :: KindCheckConfig
+    , _tccBuiltinTypes    :: BuiltinTypes uni fun
     }
-makeClassy ''TypeCheckConfig
+
+-- | We want 'HasKindCheckConfig' to be a superclass of 'HasTypeCheckConfig' for being able to
+-- seamlessly call the kind checker from the type checker, hence we're rolling out our own
+-- 'makeClassy' here just to add the constraint.
+class HasKindCheckConfig cfg => HasTypeCheckConfig cfg uni fun | cfg -> uni fun where
+    typeCheckConfig :: Lens' cfg (TypeCheckConfig uni fun)
+
+    tccKindCheckConfig :: Lens' cfg KindCheckConfig
+    tccKindCheckConfig =
+        typeCheckConfig . lens _tccKindCheckConfig (\s b -> s { _tccKindCheckConfig = b })
+
+    tccBuiltinTypes :: Lens' cfg (BuiltinTypes uni fun)
+    tccBuiltinTypes =
+        typeCheckConfig . lens _tccBuiltinTypes (\s b -> s { _tccBuiltinTypes = b })
+
+instance HasKindCheckConfig (TypeCheckConfig uni fun) where
+    kindCheckConfig = tccKindCheckConfig
+
+instance HasTypeCheckConfig (TypeCheckConfig uni fun) uni fun where
+    typeCheckConfig = id
 
 -- | The environment that the type checker runs in.
 data TypeCheckEnv uni fun cfg = TypeCheckEnv
@@ -134,7 +209,6 @@ type MonadTypeCheckPlc err uni fun ann m =
 -- ## Auxiliary functions ##
 -- #########################
 
-
 -- | Run a 'TypeCheckM' computation by supplying a 'TypeCheckConfig' to it.
 --
 -- Used for both type and kind checking, because we need to do kind checking during type checking
@@ -147,7 +221,7 @@ runTypeCheckM config a = runReaderT a $ TypeCheckEnv config mempty mempty
 
 -- | Extend the context of a 'TypeCheckM' computation with a kinded variable.
 withTyVar :: TyName -> Kind () -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a
-withTyVar name = local . over tceTyVarKinds . insertByName name
+withTyVar name = local . over tceTyVarKinds . insertNamed name
 
 -- | Look up the type of a built-in function.
 lookupBuiltinM
@@ -167,27 +241,38 @@ withVar
     -> Normalized (Type TyName uni ())
     -> TypeCheckT uni fun cfg m a
     -> TypeCheckT uni fun cfg m a
-withVar name = local . over tceVarTypes . insertByName name . dupable
+withVar name = local . over tceVarTypes . insertNamed name . dupable
 
 -- | Look up a type variable in the current context.
 lookupTyVarM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> TyName -> TypeCheckT uni fun cfg m (Kind ())
 lookupTyVarM ann name = do
-    mayKind <- asks $ lookupName name . _tceTyVarKinds
-    case mayKind of
-        Nothing   -> throwing _TypeError $ FreeTypeVariableE ann name
-        Just kind -> pure kind
+    env <- ask
+    let handleNameMismatches = env ^. tceTypeCheckConfig . kccHandleNameMismatches
+    case lookupName name $ _tceTyVarKinds env of
+        Nothing                    -> throwing _TypeError $ FreeTypeVariableE ann name
+        Just (Named nameOrig kind) ->
+            if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
+                then pure kind
+                else throwing _TypeError $
+                        TyNameMismatch ann (TyName . Name nameOrig $ name ^. theUnique) name
 
 -- | Look up a term variable in the current context.
 lookupVarM
-    :: MonadTypeCheck err term uni fun ann m
+    :: (MonadTypeCheck err term uni fun ann m, HasTypeCheckConfig cfg uni fun)
     => ann -> Name -> TypeCheckT uni fun cfg m (Normalized (Type TyName uni ()))
 lookupVarM ann name = do
-    mayTy <- asks $ lookupName name . _tceVarTypes
-    case mayTy of
-        Nothing -> throwing _TypeError $ FreeVariableE ann name
-        Just ty -> liftDupable ty
+    env <- ask
+    let handleNameMismatches =
+            env ^. tceTypeCheckConfig . tccKindCheckConfig . kccHandleNameMismatches
+    case lookupName name $ _tceVarTypes env of
+        Nothing                  -> throwing _TypeError $ FreeVariableE ann name
+        Just (Named nameOrig ty) ->
+            if handleNameMismatches == IgnoreNameMismatches || view theText name == nameOrig
+                then liftDupable ty
+                else throwing _TypeError $
+                        NameMismatch ann (Name nameOrig $ name ^. theUnique) name
 
 -- #############
 -- ## Dummies ##
@@ -231,7 +316,7 @@ substNormalizeTypeM ty name body = Norm.runNormalizeTypeT $ Norm.substNormalizeT
 
 -- | Infer the kind of a type.
 inferKindM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => Type TyName uni ann -> TypeCheckT uni fun cfg m (Kind ())
 
 -- b :: k
@@ -289,7 +374,7 @@ inferKindM (TyIFix ann pat arg)    = do
 
 -- | Check a 'Type' against a 'Kind'.
 checkKindM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann -> Type TyName uni ann -> Kind () -> TypeCheckT uni fun cfg m ()
 
 -- [infer| G !- ty : tyK]    tyK ~ k
@@ -301,7 +386,7 @@ checkKindM ann ty k = do
 
 -- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
 checkKindOfPatternFunctorM
-    :: MonadKindCheck err term uni fun ann m
+    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
     => ann
     -> Type TyName uni ann  -- ^ A pattern functor.
     -> Kind ()              -- ^ @k@.

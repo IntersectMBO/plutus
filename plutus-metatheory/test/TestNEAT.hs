@@ -57,7 +57,7 @@ prop_Type k tyG = do
   k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
   -- infer kind using production kind inferer:
-  k2 <- withExceptT TypeError $ inferKind ty
+  k2 <- withExceptT TypeError $ inferKind defKindCheckConfig ty
 
   -- 2. check that production and Agda kind inferer agree:
   unless (k1 == k2) $
