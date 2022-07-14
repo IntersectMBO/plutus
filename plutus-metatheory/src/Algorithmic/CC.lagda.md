@@ -491,8 +491,7 @@ lemV ((ibuiltin verifyEd25519Signature · t) · u) (V-I⇒ verifyEd25519Signatur
 lemV M (V-I⇒ verifyEd25519Signature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
 ... | _ ,, () ,, _
 lemV .(ibuiltin verifyEcdsaSecp256k1Signature) (V-I⇒ verifyEcdsaSecp256k1Signature (start .(Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
-lemV (ibuiltin verifyEcdsaSecp256k1Signature · t) (V-I⇒ verify
-EcdsaSecp256k1Signature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
+lemV (ibuiltin verifyEcdsaSecp256k1Signature · t) (V-I⇒ verifyEcdsaSecp256k1Signature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
 lemV ((ibuiltin verifyEcdsaSecp256k1Signature · t) · u) (V-I⇒ verifyEcdsaSecp256k1Signature (bubble (bubble (start .(Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt) vu)) E = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-· u)) (-· t))) (step** (lemV t vt (extEC (extEC E (-· u)) (_ ·-))) (step* (cong (stepV vt) (dissect-lemma (extEC E (-· u)) (_ ·-)) ) (step* (cong (stepV _) (dissect-lemma E (-· u))) (step** (lemV u vu (extEC E (_ ·-))) (step* (cong (stepV vu) (dissect-lemma E (_ ·-))) base))))))))
 lemV M (V-I⇒ verifyEcdsaSecp256k1Signature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
 ... | _ ,, () ,, _
