@@ -53,14 +53,14 @@ library
     , megaparsec
     , plutus-core
     , tasty
+    , tasty-expected-failure
     , text
     , witherable
 
 executable add-test-output
   import:         lang
-  type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: add-test-output/
+  hs-source-dirs: executables/add-test-output/
   other-modules:
   build-depends:
     , base                  >=4.9 && <5
@@ -71,34 +71,32 @@ executable add-test-output
     , tasty-golden
     , text
 
-test-suite uplc-eval-test
+executable haskell-implementation
+  import:         lang
+  main-is:        Spec.hs
+  hs-source-dirs: executables/haskell-implementation
+  other-modules:
+  build-depends:  base >=4.9 && <5
+
+test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: uplc/evaluation
+  hs-source-dirs: haskell test-cases
   other-modules:
   build-depends:
     , base                >=4.9 && <5
     , plutus-conformance
 
-test-suite tplc-eval-test
+test-suite agda-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: tplc/evaluation
+  hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
-    , base          >=4.9 && <5
-    , tasty-golden
-    , text
-
-test-suite tplc-typecheck-test
-  import:         lang
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: tplc/typecheck
-  other-modules:
-  build-depends:
-    , base          >=4.9 && <5
-    , tasty-golden
-    , text
+    , base                >=4.9 && <5
+    , plutus-conformance
+    , plutus-core
+    , plutus-metatheory
+    , transformers

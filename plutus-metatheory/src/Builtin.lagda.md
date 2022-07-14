@@ -152,7 +152,7 @@ postulate
   cons  : Int → ByteString → ByteString
   slice     : Int → Int → ByteString → ByteString
   B<        : ByteString -> ByteString -> Bool
-  B>        : ByteString -> ByteString -> Bool
+  B<=        : ByteString -> ByteString -> Bool
   SHA2-256  : ByteString → ByteString
   SHA3-256  : ByteString → ByteString
   BLAKE2B-256  : ByteString → ByteString
@@ -197,7 +197,7 @@ postulate
 {-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b_256 #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
-{-# COMPILE GHC B> = (>) #-}
+{-# COMPILE GHC B<= = (<=) #-}
 {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
