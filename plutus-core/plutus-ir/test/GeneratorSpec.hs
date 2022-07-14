@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module GeneratorSpec where
 
 import Test.QuickCheck

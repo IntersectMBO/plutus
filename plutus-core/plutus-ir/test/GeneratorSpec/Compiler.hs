@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module GeneratorSpec.Compiler where
 
 -- CODE REVIEW: The property below checks that when we run a generated PIR term through the compiler
