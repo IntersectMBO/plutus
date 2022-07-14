@@ -6,7 +6,7 @@ module Generators where
 
 import PlutusPrelude
 
-import PlutusCore (Name, nameString)
+import PlutusCore (Name, _nameText)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Default
 import PlutusCore.Error (ParserErrorBundle)
@@ -36,7 +36,7 @@ instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
 
 compareName :: Name -> Name -> Bool
-compareName = (==) `on` nameString
+compareName = (==) `on` _nameText
 
 compareTerm
     :: (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq a)
