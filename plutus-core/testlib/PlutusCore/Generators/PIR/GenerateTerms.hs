@@ -187,14 +187,19 @@ inhabitType ty = local (\ e -> e { geTerms = mempty }) $ do
     tryCon d ty (con, conTy)
       | Set.member d (fvArgs conTy) = mzero   -- <- This is ok, since no mutual recursion
       | otherwise = do
-          tyctx <- lift $ asks geTypes
-          insts <- liftEither $ findInstantiation tyctx (typeArity conTy) ty conTy
-          let go tm [] = return tm
-              go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
-              go tm (InstArg ty : insts) = do
-                arg <- findTm ty
-                go (Apply () tm arg) insts
-          go (Var () con) insts
+          -- Check that we haven't banned this constructor
+          tmctx <- lift $ asks geTerms
+          if Map.lookup con tmctx == Just conTy
+          then do
+            tyctx <- lift $ asks geTypes
+            insts <- liftEither $ findInstantiation tyctx (typeArity conTy) ty conTy
+            let go tm [] = return tm
+                go tm (InstApp ty : insts) = go (TyInst () tm ty) insts
+                go tm (InstArg ty : insts) = do
+                  arg <- findTm ty
+                  go (Apply () tm arg) insts
+            go (Var () con) insts
+          else mzero
 
     -- CODE REVIEW: wouldn't it be neat if this existed somewhere?
     viewApp args (TyApp _ f x) = viewApp (x : args) f
@@ -440,11 +445,9 @@ genDatatypeLet rec cont = do
                   onSize (`div` n) $ replicateM n $ scaledListOf (genType Star)
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (->>) dTy conArgs)
-                       | (c, _conArgs) <- zip cs conArgss
-                       -- Perform a positivity check to make sure we don't generate negative datatypes
-                       -- TODO: we should maybe have an option to allow you to generate negative
-                       -- datatypes if you really want to.
-                       , let conArgs = filter (Set.notMember d . negativeVars) _conArgs]
+                       | (c, conArgs) <- zip cs conArgss ]
+                       -- TODO: it might make sense to do a negativity test here -
+                       -- but not clear how important that is.
     bindDat dat $ cont dat
 
 -- | Generate up to 5 datatypes and bind them in a generator.
@@ -791,7 +794,7 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
                                  | ty' <- shrinkType ctx' ty
                                  , let ty'' = setTarget (getTarget ty) ty'
                                  , ty'' /= ty
-                                 , d `Set.notMember` positiveVars (setTarget (mkTyBuiltin @_ @() ()) ty') ]
+                                 , d `Set.notMember` ftvTy (setTarget (mkTyBuiltin @_ @() ()) ty') ]
       where
         getTarget (TyFun _ _ b) = getTarget b
         getTarget b             = b

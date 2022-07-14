@@ -9,14 +9,14 @@ import GeneratorSpec.Substitution
 import GeneratorSpec.Terms
 import GeneratorSpec.Types
 
-generators :: TestNested
-generators = return $ testGroup "generators"
-  [ testProperty "prop_genKindCorrect"  $ withMaxSuccess 1000 prop_genKindCorrect
+generators :: Int -> TestNested
+generators factor = return $ testGroup "generators"
+  [ testProperty "prop_genKindCorrect"  $ withMaxSuccess (factor*1000000) (prop_genKindCorrect False)
   , testProperty "prop_shrinkTypeSound" $ prop_shrinkTypeSound
-  , testProperty "prop_genTypeCorrect"  $ withMaxSuccess 1000000 prop_genTypeCorrect
-  , testProperty "prop_shrinkTermSound" $ withMaxSuccess 20 prop_shrinkTermSound
-  , testProperty "prop_substType"       $ withMaxSuccess 10000 prop_substType
-  , testProperty "prop_unify"           $ withMaxSuccess 10000 prop_unify
+  , testProperty "prop_genTypeCorrect"  $ withMaxSuccess (factor*100000) (prop_genTypeCorrect False)
+  , testProperty "prop_shrinkTermSound" $ withMaxSuccess (factor*20) prop_shrinkTermSound
+  , testProperty "prop_substType"       $ withMaxSuccess (factor*10000) prop_substType
+  , testProperty "prop_unify"           $ withMaxSuccess (factor*10000) prop_unify
   -- TODO: make this work.
   -- , testProperty "prop_compile" prop_compile
   ]
