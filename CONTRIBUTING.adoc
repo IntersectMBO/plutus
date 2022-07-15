@@ -438,6 +438,8 @@ The documentation site is built on ReadTheDocs.
 It will build a preview for each PR which is linked from the PR status.
 It's useful to take a look if you're changing any of the documentation.
 
+Run `build-and-serve-docs` in nix-shell to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
+
 ==== Github Actions
 
 These perform some of the same checks as Hydra, but Github Actions is often more available, so they return faster and act as a "smoke check".
