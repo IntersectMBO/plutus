@@ -32,9 +32,8 @@ import Witherable
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
-discoverTests :: IsTest t =>
-    (FilePath -> t)
-    -> (String -> Bool)
+discoverTests :: (FilePath -> TestTree)
+    -> (FilePath -> Bool)
     -- ^ A function that takes a test name and returns
     -- whether it should labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
@@ -50,7 +49,7 @@ discoverTests tester expectedFailureFn dir = do
     -- no children, this is a test case directory
     then
         -- if the test is one that is expected to fail, mark it so.
-        if expectedFailureFn name then
+        if expectedFailureFn dir then
             pure $ expectFail $ singleTest name $ tester dir
         -- the test is not one that is expected to fail, make the test tree as usual.
         else pure $ singleTest name $ tester dir
@@ -185,12 +184,12 @@ parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 -- | Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC programs.
 runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
-    -> [String] -- ^ The list of tests that are to be labelled as `ExpectedFailure`.
+    -> (FilePath -> Bool)
     -> IO ()
 runUplcEvalTests evaluator expectedFailTests = do
     tests <-
         discoverTests
             (\dir -> MkUplcEvaluationTest evaluator dir)
-            (flip elem expectedFailTests)
+            expectedFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]

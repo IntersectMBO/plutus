@@ -37,8 +37,8 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
-failingTests :: [String]
-failingTests = [
+failingTests :: [FilePath]
+failingTests = [ --TODO
     "mkNilPairData"
     , "chooseUnit"
     , "mkNilData"
@@ -57,5 +57,5 @@ failingTests = [
 main :: IO ()
 main =
     -- UPLC evaluation tests
-    runUplcEvalTests agdaEvalUplcProg failingTests
+    runUplcEvalTests agdaEvalUplcProg (\dir -> elem (takeBaseName dir) failingTests)
 
