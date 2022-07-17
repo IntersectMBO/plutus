@@ -11,30 +11,33 @@ module Crypto (
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
-import Control.Applicative (Alternative (empty))
 import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
-import Crypto.Error (maybeCryptoError)
+import Crypto.Error (CryptoFailable (..))
 import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.
 verifyEd25519Signature
-    :: Alternative f
-    => BS.ByteString  -- ^ Public Key (32 bytes)
+    :: BS.ByteString  -- ^ Public Key (32 bytes)
     -> BS.ByteString  -- ^ Message    (arbitrary length)
     -> BS.ByteString  -- ^ Signature  (64 bytes)
-    -> f Bool
+    -> Emitter (EvaluationResult Bool)
 verifyEd25519Signature pubKey msg sig =
-    maybe empty pure . maybeCryptoError $
-        verify
-            <$> publicKey pubKey
-            <*> pure msg
-            <*> signature sig
+    case verify
+             <$> publicKey pubKey
+             <*> pure msg
+             <*> signature sig
+    of CryptoPassed r   -> pure $ pure r
+       CryptoFailed err -> failWithMessage loc $ pack (show err)
+  where
+    loc :: Text
+    loc = "Ed25519 signature verification"
+
 
 -- | Verify an ECDSA signature made using the SECP256k1 curve.
 --
