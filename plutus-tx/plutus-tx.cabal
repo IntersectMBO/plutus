@@ -33,7 +33,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags: 
+  -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -76,6 +76,8 @@ library
     PlutusTx.Prelude
     PlutusTx.Ratio
     PlutusTx.Semigroup
+    PlutusTx.Show
+    PlutusTx.Show.TH
     PlutusTx.Sqrt
     PlutusTx.TH
     PlutusTx.These

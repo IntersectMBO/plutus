@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -33,8 +33,9 @@ import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Pretty (Pretty (..), PrettyConst, displayConst)
 import PlutusTx.Utils (mustBeReplaced)
-import Prettyprinter (Pretty (..), viaShow)
+import Prettyprinter (viaShow)
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -318,6 +319,10 @@ emptyString = BuiltinString Text.empty
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
 equalsString (BuiltinString s1) (BuiltinString s2) = BuiltinBool $ s1 == s2
+
+{-# NOINLINE displayConstant #-}
+displayConstant :: PrettyConst a => a -> BuiltinString
+displayConstant = BuiltinString . displayConst
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> a -> a

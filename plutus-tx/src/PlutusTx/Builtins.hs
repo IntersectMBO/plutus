@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -68,12 +69,14 @@ module PlutusTx.Builtins (
                                 -- * Lists
                                 , matchList
                                 -- * Tracing
+                                , displayConstant
                                 , trace
                                 -- * Conversions
                                 , fromBuiltin
                                 , toBuiltin
                                 ) where
 
+import PlutusCore.Pretty
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
@@ -281,6 +284,10 @@ emptyString = BI.emptyString
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
+
+{-# INLINABLE displayConstant #-}
+displayConstant :: PrettyConst a => a -> BuiltinString
+displayConstant = BI.displayConstant
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
