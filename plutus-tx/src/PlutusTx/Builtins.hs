@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
@@ -69,20 +68,21 @@ module PlutusTx.Builtins (
                                 -- * Lists
                                 , matchList
                                 -- * Tracing
-                                , displayConstant
+                                , showConstant
                                 , trace
                                 -- * Conversions
                                 , fromBuiltin
                                 , toBuiltin
                                 ) where
 
-import PlutusCore.Pretty
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
+
+import GHC.Show qualified
 
 {-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.
@@ -285,9 +285,9 @@ emptyString = BI.emptyString
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
 
-{-# INLINABLE displayConstant #-}
-displayConstant :: PrettyConst a => a -> BuiltinString
-displayConstant = BI.displayConstant
+{-# INLINABLE showConstant #-}
+showConstant :: GHC.Show.Show a => a -> BuiltinString
+showConstant = BI.showConstant
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.

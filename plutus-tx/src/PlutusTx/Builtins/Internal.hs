@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -28,12 +27,12 @@ import Data.Data
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
-import Data.Text as Text (Text, empty)
+import Data.Text as Text (Text, empty, pack)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Pretty (Pretty (..), PrettyConst, displayConst)
+import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
 
@@ -320,9 +319,9 @@ emptyString = BuiltinString Text.empty
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
 equalsString (BuiltinString s1) (BuiltinString s2) = BuiltinBool $ s1 == s2
 
-{-# NOINLINE displayConstant #-}
-displayConstant :: PrettyConst a => a -> BuiltinString
-displayConstant = BuiltinString . displayConst
+{-# NOINLINE showConstant #-}
+showConstant :: Show a => a -> BuiltinString
+showConstant = BuiltinString . Text.pack . show
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> a -> a

@@ -16,31 +16,31 @@ import PlutusTx.Show.TH (Show (..), ShowS, showString)
 
 instance Show Integer where
     {-# INLINEABLE show #-}
-    show = displayConstant
+    show = showConstant
 
 instance Show BuiltinByteString where
     {-# INLINEABLE show #-}
-    show x = displayConstant (fromBuiltin x)
+    show x = showConstant (fromBuiltin x)
 
 instance Show BuiltinData where
     {-# INLINEABLE show #-}
-    show (PlutusTx.Builtins.Internal.BuiltinData x) = displayConstant x
+    show (PlutusTx.Builtins.Internal.BuiltinData x) = showConstant x
 
 instance Show BuiltinString where
     {-# INLINEABLE show #-}
-    show x = displayConstant (fromBuiltin x)
+    show x = showConstant (fromBuiltin x)
 
 instance Show Bool where
     {-# INLINEABLE show #-}
-    show x = displayConstant x
+    show x = showConstant x
 
 instance Show () where
     {-# INLINEABLE show #-}
-    show () = displayConstant ()
+    show () = showConstant ()
 
 -- It is possible to make it so that when `a` is a builtin type, `show (xs :: [a])`
--- is compiled into a single `displayConstant` call, rathern than `length xs` calls.
--- To do so the plugin would need to try to solve the `PrettyConst [a]` constraint,
+-- is compiled into a single `showConstant` call, rathern than `length xs` calls.
+-- To do so the plugin would need to try to solve the @uni `Contains` [a]@ constraint,
 -- and branch based on whether it is solvable. But the complexity doesn't seem to
 -- be worth it: the saving in budget is likely small, and on mainnet the trace messages
 -- are often erased anyway.
