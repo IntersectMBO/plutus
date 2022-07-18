@@ -669,8 +669,8 @@
     "verifyEd25519Signature": {
         "cpu": {
             "arguments": {
-                "intercept": 41047009,
-                "slope": 18816
+                "intercept": 57996947,
+                "slope": 18975
             },
             "type": "linear_in_z"
         },

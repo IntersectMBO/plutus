@@ -41,7 +41,7 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     shiftHomogenous, shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend,
                                     testBitEmpty, testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.SECP256k1 (ecdsaSecp256k1Prop, schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519Prop, schnorrSecp256k1Prop)
 
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
@@ -586,16 +586,19 @@ fails b args =
         typecheckEvaluateCekNoEmit defaultCekParameters actualExp
 
 -- Test that the SECP256k1 builtins are behaving correctly
-testSECP256k1 :: TestTree
-testSECP256k1 =
+-- Test that the SECP256k1 builtins are behaving correctly
+test_SignatureVerification :: TestTree
+test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
-  testGroup "Signatures on the SECP256k1 curve" $ [
-    testProperty "ECDSA verification behaves correctly on all inputs" .
-      property $ ecdsaSecp256k1Prop,
-    testProperty "Schnorr verification behaves correctly on all inputs" .
-      property $ schnorrSecp256k1Prop
-    ]
-
+  testGroup "Signature verification" $ [
+                 testGroup "Ed25519 signatures" $ [
+                                testProperty "Ed25519 verification behaves correctly on all inputs" . property $ ed25519Prop
+                               ],
+                 testGroup "Signatures on the SECP256k1 curve" $ [
+                                testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
+                                testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
+                               ]
+                ]
 -- Test the bitwise builtins are behaving correctly
 testBitwise :: TestTree
 testBitwise =
@@ -745,7 +748,7 @@ test_definition =
         , test_List
         , test_Data
         , test_Crypto
-        , testSECP256k1
         , testBitwise
+        , test_SignatureVerification
         , test_Other
         ]

@@ -113,7 +113,7 @@ shiftByteString bs i
   | abs i >= bitLen = BS.replicate (BS.length bs) zeroBits
   -- Shifting an all-zero ByteString will not change it, regardless of
   -- direction.
-  | allZeroes bs = bs
+  | isAllZero bs = bs
   | otherwise = overPtrLen bs go
   where
     bitLen :: Integer
@@ -248,9 +248,9 @@ byteStringToInteger bs = case BS.uncons bs of
   Just (w8, bs') ->
     let len = BS.length bs
         f x = evalState (foldM (go x) 0 [len - 1, len - 2 .. 0]) 1 in
-      if | isPositivePowerOf2 w8 bs' -> f bs
-         | bit 7 .&. w8 == zeroBits  -> f bs
-         | otherwise                 -> negate . f . twosCompToPositive $ bs
+      if | isPositivePowerOf256 w8 bs' -> f bs
+         | bit 7 .&. w8 == zeroBits    -> f bs
+         | otherwise                   -> negate . f . twosCompToPositive $ bs
   where
     -- This is essentially the opposite to encoding. However, because
     -- ByteStrings can be indexed from the end in constant time, we don't need

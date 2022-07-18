@@ -1,20 +1,24 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module Evaluation.Builtins.SECP256k1 (
+module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
+  ed25519Prop,
   schnorrSecp256k1Prop,
   ) where
+
 
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
                                    rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
                                    rawSerialiseVerKeyDSIGN, signDSIGN)
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN, VerKeyDSIGN)
+import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 import Control.Lens.Extras (is)
@@ -29,7 +33,7 @@ import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import Hedgehog (Gen, PropertyT, annotateShow, cover, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature),
+import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
                    EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 
@@ -56,6 +60,16 @@ schnorrSecp256k1Prop = do
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith testCase id VerifySchnorrSecp256k1Signature
+
+ed25519Prop :: PropertyT IO ()
+ed25519Prop = do
+  testCase <- forAllWith ppShow genEd25519Case
+  cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
+  cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
+  cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
+  cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
+  cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
+  runTestDataWith testCase id VerifyEd25519Signature
 
 -- Helpers
 
@@ -269,6 +283,25 @@ genSchnorrErrorCase = Gen.choice [
                                   (Gen.bytes . Range.linear 0 $ 64) <*>
                                   genBadSig @SchnorrSecp256k1DSIGN
 
+genEd25519ErrorCase :: Gen (ErrorCase Ed25519DSIGN ByteString)
+genEd25519ErrorCase = Gen.choice [
+  review _BadVerKey <$> mkBadVerKeyBits,
+  review _BadSignature <$> mkBadSignatureBits
+  ]
+  where
+    mkBadVerKeyBits :: Gen (ByteString,
+                            ByteString,
+                            SigDSIGN Ed25519DSIGN)
+    mkBadVerKeyBits = (,,) <$> genBadVerKey @Ed25519DSIGN <*>
+                              (Gen.bytes . Range.linear 0 $ 64) <*>
+                              genEd25519Sig
+    mkBadSignatureBits :: Gen (VerKeyDSIGN Ed25519DSIGN,
+                               ByteString,
+                               ByteString)
+    mkBadSignatureBits = (,,) <$> genVerKey <*>
+                                  (Gen.bytes . Range.linear 0 $ 64) <*>
+                                  genBadSig @Ed25519DSIGN
+
 genEcdsaNoErrorCase :: Gen (NoErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
 genEcdsaNoErrorCase = do
   sk <- genSignKey
@@ -313,6 +346,28 @@ genSchnorrNoErrorCase = do
       msgBad <- Gen.filter (/= msg) (Gen.bytes . Range.linear 0 $ 64)
       pure (vk, msg, signDSIGN () msgBad sk)
 
+genEd25519NoErrorCase :: Gen (NoErrorCase Ed25519DSIGN ByteString)
+genEd25519NoErrorCase = do
+  sk <- genSignKey
+  let vk = deriveVerKeyDSIGN sk
+  msg <- Gen.bytes . Range.linear 0 $ 64
+  Gen.choice [
+    review _WrongVerKey <$> mkWrongKeyBits sk vk msg,
+    review _WrongSignature <$> mkWrongSignatureBits sk vk msg,
+    pure . review _AllGood $ (vk, msg, signDSIGN () msg sk)
+    ]
+  where
+    mkWrongSignatureBits ::
+      SignKeyDSIGN Ed25519DSIGN ->
+      VerKeyDSIGN Ed25519DSIGN ->
+      ByteString ->
+      Gen (VerKeyDSIGN Ed25519DSIGN,
+           ByteString,
+           SigDSIGN Ed25519DSIGN)
+    mkWrongSignatureBits sk vk msg = do
+      msgBad <- Gen.filter (/= msg) (Gen.bytes . Range.linear 0 $ 64)
+      pure (vk, msg, signDSIGN () msgBad sk)
+
 genEcdsaCase :: Gen (Case EcdsaSecp256k1DSIGN SECP.Msg)
 genEcdsaCase = Gen.prune . Gen.choice $ [
   review _Shouldn'tError <$> genEcdsaNoErrorCase,
@@ -323,6 +378,12 @@ genSchnorrCase :: Gen (Case SchnorrSecp256k1DSIGN ByteString)
 genSchnorrCase = Gen.prune . Gen.frequency $ [
   (6, review _Shouldn'tError <$> genSchnorrNoErrorCase),
   (4, review _ShouldError <$> genSchnorrErrorCase)
+  ]
+
+genEd25519Case :: Gen (Case Ed25519DSIGN ByteString)
+genEd25519Case = Gen.prune . Gen.frequency $ [
+  (6, review _Shouldn'tError <$> genEd25519NoErrorCase),
+  (4, review _ShouldError <$> genEd25519ErrorCase)
   ]
 
 mkWrongKeyBits :: forall (a :: Type) (msg :: Type) .
@@ -355,6 +416,12 @@ genSchnorrSig = do
   msg <- Gen.bytes . Range.linear 0 $ 64
   pure . signDSIGN () msg $ sk
 
+genEd25519Sig :: Gen (SigDSIGN Ed25519DSIGN)
+genEd25519Sig = do
+  sk <- genSignKey
+  msg <- Gen.bytes . Range.linear 0 $ 64
+  pure . signDSIGN () msg $ sk
+
 genVerKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (VerKeyDSIGN a)
 genVerKey = deriveVerKeyDSIGN <$> genSignKey
 
@@ -369,3 +436,5 @@ genSignKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (SignKeyDSIGN a)
 genSignKey = do
   seed <- mkSeedFromBytes <$> (Gen.bytes . Range.linear 64 $ 128)
   pure . genKeyDSIGN $ seed
+
+
