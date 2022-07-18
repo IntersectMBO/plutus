@@ -1,17 +1,3 @@
-Up to date
-** WARNING: a negative coefficient -0.018465 for (Intercept) occurred in the model for AppendByteString. This has been adjusted to 0.001.
-* NOTE: mean time for LengthOfByteString was less than overhead (0.676 ms < 0.691 ms): adjusted time set to 1.0 ns
-** WARNING: a negative coefficient -20.799740 for (Intercept) occurred in the model for AppendString. This has been adjusted to 0.001.
-** WARNING: a negative coefficient -46.896012 for (Intercept) occurred in the model for EqualsString. This has been adjusted to 0.001.
-** WARNING: a negative coefficient -20.051978 for (Intercept) occurred in the model for EncodeUtf8. This has been adjusted to 0.001.
-* NOTE: mean time for IData was less than overhead (0.690 ms < 0.691 ms): adjusted time set to 1.0 ns
-* NOTE: mean time for BData was less than overhead (0.689 ms < 0.691 ms): adjusted time set to 1.0 ns
-# INFO [EqualsData]: 1 model iteration
-# INFO [EqualsData]: 9.8% of predictions are underestimates. Observation exceeds prediction by a maximum factor of 1.70x (mean 1.12x).
-# INFO [EqualsData]: 90.2% of predictions are overestimates. Prediction exceeds observation by a maximum factor of 8.72x (mean 1.65x).
-# INFO [SerialiseData]: 2 model iterations
-# INFO [SerialiseData]: 9.0% of predictions are underestimates. Observation exceeds prediction by a maximum factor of 2.79x (mean 1.76x).
-# INFO [SerialiseData]: 91.0% of predictions are overestimates. Prediction exceeds observation by a maximum factor of 25.29x (mean 4.69x).
 {
     "addInteger": {
         "cpu": {
