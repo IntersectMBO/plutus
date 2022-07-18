@@ -47,6 +47,7 @@ instance Show () where
 --
 -- Same for the `Show (a, b)` instance.
 instance Show a => Show [a] where
+    {-# INLINEABLE showsPrec #-}
     showsPrec _ = \case
         [] -> showString "[]"
         x : xs ->

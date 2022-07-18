@@ -10,11 +10,11 @@ import PlutusTx.List
 class Show a where
     {-# MINIMAL showsPrec | show #-}
 
-    {-# INLINE showsPrec #-}
+    {-# INLINABLE showsPrec #-}
     showsPrec :: Integer -> a -> ShowS
     showsPrec _ x ss = show x : ss
 
-    {-# INLINE show #-}
+    {-# INLINABLE show #-}
     show :: a -> BuiltinString
     show x = concatBuiltinStrings (showsPrec 0 x [])
 
@@ -30,11 +30,11 @@ class Show a where
 -}
 type ShowS = [BuiltinString] -> [BuiltinString]
 
-{-# INLINE showString #-}
+{-# INLINABLE showString #-}
 showString :: BuiltinString -> ShowS
 showString = (:)
 
-{-# INLINE concatBuiltinStrings #-}
+{-# INLINABLE concatBuiltinStrings #-}
 concatBuiltinStrings :: [BuiltinString] -> BuiltinString
 concatBuiltinStrings = \case
     [] -> ""
