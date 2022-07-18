@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -7,7 +6,6 @@
 module PlutusConformance.Common where
 
 import Control.Lens (traverseOf)
-import Data.Proxy (Proxy (Proxy))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Default (DefaultFun, DefaultUni)
@@ -20,10 +18,12 @@ import System.Directory
 import System.FilePath (takeBaseName, (</>))
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.ExpectedFailure
-import Test.Tasty.Options
+import Test.Tasty.Golden
+import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable
@@ -32,13 +32,13 @@ import Witherable
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
-discoverTests :: (FilePath -> TestTree)
+discoverTests :: UplcEvaluator
     -> (FilePath -> Bool)
     -- ^ A function that takes a test name and returns
     -- whether it should labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
     -> IO TestTree
-discoverTests tester expectedFailureFn dir = do
+discoverTests eval expectedFailureFn dir = do
     let name = takeBaseName dir
     children <- listDirectory dir
     subdirs <- flip wither children $ \child -> do
@@ -47,32 +47,69 @@ discoverTests tester expectedFailureFn dir = do
         pure $ if isDir then Just fullPath else Nothing
     if null subdirs
     -- no children, this is a test case directory
-    then
-        -- if the test is one that is expected to fail, mark it so.
-        if expectedFailureFn dir then
-            pure $ expectFail $ singleTest name $ tester dir
-        -- the test is not one that is expected to fail, make the test tree as usual.
-        else pure $ singleTest name $ tester dir
+    then do
+        goldenFile <- findByExtension [".expected"] dir
+        case goldenFile of
+            [] -> error $ "Golden file missing in " <> dir
+            _:_:_ -> error $ "More than 1 golden files in " <> dir
+            _ -> do
+                let mkGoldenTest =
+                            goldenTest
+                                name -- test name
+                                -- get the golden test value
+                                (fmap expectedToProg $ T.readFile $ head goldenFile)
+                                -- get the tested value
+                                (getTestedValue eval dir)
+                                compareAlphaEq -- comparison function
+                                (const $ pure ()) -- update the golden file (we don't need to do this)
+                -- if the test is one that is expected to fail, mark it so.
+                if expectedFailureFn dir
+                then pure $ expectFail mkGoldenTest
+                -- the test is not one that is expected to fail, make the test tree as usual.
+                else pure mkGoldenTest
     -- has children, so it's a grouping directory
-    else testGroup name <$> traverse (discoverTests tester expectedFailureFn) subdirs
+    else testGroup name <$> traverse (discoverTests eval expectedFailureFn) subdirs
 
--- | A test `option` to accept the test results as the expected results.
--- This is basically the same option as 'tasty-golden' uses, but it's not
--- worth a dependency just to reuse the tiny datatype.
--- Set like other tasty options with --test-options, e.g.
--- cabal test plutus-conformance --test-options=--accept
-newtype AcceptTests = AcceptTests Bool
-  deriving stock (Eq, Ord, Typeable)
-instance IsOption AcceptTests where
-  defaultValue = AcceptTests False
-  parseValue = fmap AcceptTests . safeReadBool
-  optionName = return "accept"
-  optionHelp = return "Accept current results of tests"
-  optionCLParser = flagCLParser Nothing (AcceptTests True)
+-- | The comparison function used for the golden test.
+-- This function checks alpha-equivalence of programs.
+compareAlphaEq ::
+    Either T.Text (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()) -- ^ golden value
+    -> Either T.Text (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()) -- ^ tested value
+    -> IO (Maybe String)
+    -- ^ If two values are the same, it returns `Nothing`.
+    -- If they are different, it returns an error that will be printed to the user.
+compareAlphaEq (Left expectedTxt) (Left actualTxt) =
+    if actualTxt == expectedTxt
+    then pure Nothing
+    else pure $ Just ""
+compareAlphaEq (Right expectedDebruijnTm) (Right actualDebruijnTm) =
+    if actualDebruijnTm == expectedDebruijnTm
+    then pure Nothing
+    else pure $ Just ""
+compareAlphaEq _ _ = pure $ Just ""
 
--- | Turn the expected file content in text to a `UplcProg` unless the expected result
+-- | Get the tested value.
+getTestedValue ::  UplcEvaluator -> FilePath -> IO (Either T.Text (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()))
+getTestedValue eval dir = do
+    inputFile <- findByExtension [".uplc"] dir
+    case inputFile of
+        [] -> error $ "Input file missing in " <> dir
+        _:_:_ -> error $ "More than 1 input files in " <> dir
+        _ -> do
+            input <- T.readFile $ head inputFile
+            case parseTxt input of
+                Left _ -> pure $ Left shownParseError
+                Right p -> do
+                    case eval (void p) of
+                        Nothing                           -> pure $ Left shownEvaluationFailure
+                        Just (UPLC.Program () _version tm) -> do
+                            case UPLC.deBruijnTerm tm of
+                                Left (_ :: UPLC.FreeVariableError) -> pure $ Left shownEvaluationFailure
+                                Right dbTm                         -> pure $ Right dbTm
+
+-- | Turn the expected file content in text to a `UplcProg` in Debruijn unless the expected result
 -- is a parse or evaluation error.
-expectedToProg :: T.Text -> Either T.Text UplcProg
+expectedToProg :: T.Text -> Either T.Text (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
 expectedToProg txt
   | txt == shownEvaluationFailure =
     Left txt
@@ -81,41 +118,10 @@ expectedToProg txt
   | otherwise =
     case parseTxt txt of
         Left _     -> Left shownParseError
-        Right prog -> Right $ () <$ prog
-
--- |
-debruijnActual :: a
-debruijnActual = undefined
-
--- | Checks an expected file against actual computed contents.
-checkExpected :: AcceptTests -> FilePath -> T.Text -> IO Result
-checkExpected (AcceptTests accept) expectedFile actual = do
-    expectedExists <- doesFileExist expectedFile
-    if expectedExists
-    then do
-        let -- didn't match
-            notMatched =
-                if accept
-                then do
-                    T.writeFile expectedFile actual
-                    pure $ testPassed "Unexpected output, accepted it"
-                else pure $ testFailed $ "Unexpected output:" ++ show actual
-        expected <- T.readFile expectedFile
-        case expectedToProg expected of
-            Left txt ->
-                if actual == txt
-                -- matched
-                then pure (testPassed "")
-                else notMatched
-            Right (UPLC.Program () version tm) ->
-                if debruijnActual actual == tm
-                then pure (testPassed "")
-                else notMatched
-    else if accept
-        then do
-            T.writeFile expectedFile actual
-            pure $ testPassed "Expected file did not exist, created it"
-        else pure $ testFailed $ "Expected file did not exist:" ++ show expectedFile
+        Right p -> -- The evaluator throws if the term has free variables
+            case UPLC.deBruijnTerm (UPLC._progTerm (void p)) of
+                Left (_ :: UPLC.FreeVariableError) -> Left shownEvaluationFailure
+                Right dbTm                         -> Right dbTm
 
 {- | The default shown text when a parse error occurs.
 We don't want to show the detailed parse errors so that
@@ -155,26 +161,6 @@ evalUplcProg = traverseOf UPLC.progTerm eval
             Left _     -> Nothing
             Right prog -> Just prog
 
--- Tells 'tasty' that 'UplcEvaluationTest' "is" a test that can be run,
--- by specifying how to run it and what custom options it might expect.
-instance IsTest UplcEvaluationTest where
-    run opts MkUplcEvaluationTest{testDir,evaluator} _ = do
-        let name = takeBaseName testDir
-            expectedFile = testDir </> name <> ".uplc.expected"
-            check = checkExpected (lookupOption opts) expectedFile
-
-        input <- T.readFile $ testDir </> name <> ".uplc"
-        let parsed = parseTxt input
-
-        case parsed of
-            Left _ -> check shownParseError
-            Right p -> do
-               case evaluator (void p) of
-                   Nothing                           -> check shownEvaluationFailure
-                   Just (UPLC.Program () version tm) -> check (display p')
-
-    testOptions = pure [Option (Proxy :: Proxy AcceptTests)]
-
 -- | The default parser to parse the UPLC program inputs.
 parseTxt ::
     T.Text
@@ -186,10 +172,10 @@ runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
     -> (FilePath -> Bool)
     -> IO ()
-runUplcEvalTests evaluator expectedFailTests = do
+runUplcEvalTests eval expectedFailTests = do
     tests <-
         discoverTests
-            (\dir -> MkUplcEvaluationTest evaluator dir)
+            eval
             expectedFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
