@@ -7,6 +7,9 @@ import PlutusTx.Builtins
 import PlutusTx.Foldable
 import PlutusTx.List
 
+{- | Conversion of values to `BuiltinString`s. Unlike @GHC.Show.Show@, there is no
+ @showList@ method, because there is no `Show` instance for `Data.String.String`.
+-}
 class Show a where
     {-# MINIMAL showsPrec | show #-}
 
