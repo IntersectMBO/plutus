@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
 -- editorconfig-checker-disable-file
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
