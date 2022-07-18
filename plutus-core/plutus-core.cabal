@@ -475,16 +475,18 @@ test-suite untyped-plutus-core-test
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
-    Evaluation.Builtins.SECP256k1
+    Evaluation.Builtins.SignatureVerification
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
+    Generators
     Transform.Simplify
 
   build-depends:
     , base                  >=4.9 && <5
     , bytestring
     , cardano-crypto-class
+    , flat
     , hedgehog
     , index-envs
     , lens

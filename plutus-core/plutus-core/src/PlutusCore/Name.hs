@@ -4,14 +4,18 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeApplications       #-}
 
 module PlutusCore.Name
     ( -- * Types
       Name (..)
     , TyName (..)
+    , Named (..)
     , Unique (..)
     , TypeUnique (..)
     , TermUnique (..)
+    , HasText (..)
     , HasUnique (..)
     , theUnique
     , UniqueMap (..)
@@ -19,6 +23,7 @@ module PlutusCore.Name
     , insertByUnique
     , insertByName
     , insertByNameIndex
+    , insertNamed
     , fromFoldable
     , fromUniques
     , fromNames
@@ -37,14 +42,15 @@ import PlutusCore.Pretty.ConfigName
 import Control.Lens
 import Data.Hashable
 import Data.IntMap.Strict qualified as IM
+import Data.Text (Text)
 import Data.Text qualified as T
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name
-    { nameString :: T.Text -- ^ The identifier name, for use in error messages.
-    , nameUnique :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+    { _nameText   :: T.Text -- ^ The identifier name, for use in error messages.
+    , _nameUnique :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
     }
     deriving stock (Show, Generic, Lift)
     deriving anyclass (NFData, Hashable)
@@ -56,25 +62,22 @@ newtype TyName = TyName { unTyName :: Name }
     deriving newtype (Eq, Ord, NFData, Hashable, PrettyBy config)
 instance Wrapped TyName
 
+data Named a = Named
+    { _namedString :: Text
+    , _namedValue  :: a
+    } deriving stock (Functor, Foldable, Traversable)
+
 instance HasPrettyConfigName config => PrettyBy config Name where
     prettyBy config (Name txt (Unique uniq))
         | showsUnique = pretty txt <> "_" <> pretty uniq
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
--- | Apply a function to the string representation of a 'Name'.
-mapNameString :: (T.Text -> T.Text) -> Name -> Name
-mapNameString f name = name { nameString = f $ nameString name }
-
--- | Apply a function to the string representation of a 'TyName'.
-mapTyNameString :: (T.Text -> T.Text) -> TyName -> TyName
-mapTyNameString f (TyName name) = TyName $ mapNameString f name
-
 instance Eq Name where
-    (==) = (==) `on` nameUnique
+    (==) = (==) `on` _nameUnique
 
 instance Ord Name where
-    (<=) = (<=) `on` nameUnique
+    (<=) = (<=) `on` _nameUnique
 
 -- | A unique identifier
 newtype Unique = Unique { unUnique :: Int }
@@ -93,6 +96,26 @@ newtype TermUnique = TermUnique
     } deriving stock (Eq, Ord)
     deriving newtype Hashable
 
+makeLenses 'Name
+
+-- | Apply a function to the string representation of a 'Name'.
+mapNameString :: (T.Text -> T.Text) -> Name -> Name
+mapNameString = over nameText
+
+-- | Apply a function to the string representation of a 'TyName'.
+mapTyNameString :: (T.Text -> T.Text) -> TyName -> TyName
+mapTyNameString = coerce mapNameString
+
+-- | Types which have a textual name attached to them.
+class HasText a where
+    theText :: Lens' a Text
+
+instance HasText Name where
+    theText = nameText
+
+instance HasText TyName where
+    theText = coerced . theText @Name
+
 -- | Types which have a 'Unique' attached to them, mostly names.
 class Coercible unique Unique => HasUnique a unique | a -> unique where
     unique :: Lens' a unique
@@ -106,9 +129,7 @@ instance HasUnique Unique Unique where
     unique = id
 
 instance HasUnique Name TermUnique where
-    unique = lens g s where
-        g = TermUnique . nameUnique
-        s n (TermUnique u) = n{nameUnique=u}
+    unique = nameUnique . coerced
 
 instance HasUnique TyName TypeUnique
 
@@ -128,6 +149,15 @@ insertByUnique uniq = coerce . IM.insert (coerce uniq)
 -- | Insert a value by the unique of a name.
 insertByName :: HasUnique name unique => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
+
+-- | Insert a named value by the index of the unique of the name.
+insertNamed
+    :: (HasText name, HasUnique name unique)
+    => name
+    -> a
+    -> UniqueMap unique (Named a)
+    -> UniqueMap unique (Named a)
+insertNamed name = insertByName name . Named (name ^. theText)
 
 -- | Insert a value by the index of the unique of a name.
 -- Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,

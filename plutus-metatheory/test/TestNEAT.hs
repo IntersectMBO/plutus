@@ -57,7 +57,7 @@ prop_Type k tyG = do
   k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
   -- infer kind using production kind inferer:
-  k2 <- withExceptT TypeError $ inferKind ty
+  k2 <- withExceptT TypeError $ inferKind defKindCheckConfig ty
 
   -- 2. check that production and Agda kind inferer agree:
   unless (k1 == k2) $
@@ -123,13 +123,13 @@ prop_Term tyG tmG = do
 
   -- erase original named term
   let tmU = eraseTerm tm
-  -- turn it into an untyped de Bruij term
+  -- turn it into an untyped de Bruijn term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
   tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))) $ liftEither $ runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
-  -- reduce the orignal de Bruijn typed term
+  -- reduce the original de Bruijn typed term
   tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG))) $
     liftEither $ runTCEKAgda tmDB
   -- turn it back into a named term
