@@ -242,7 +242,7 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.verifyEd25519Signature vk msg sig of
+  case Crypto.verifyEd25519Signature_V1 vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
