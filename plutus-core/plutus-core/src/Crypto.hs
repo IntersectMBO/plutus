@@ -43,7 +43,8 @@ verifyEd25519Signature_V1 pubKey msg sig =
 
 -- | Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.
--- This version uses the cardano-crypto-class implementation of the verification function (using libsodium).
+-- This version uses the cardano-crypto-class implementation of the verification
+-- function (using libsodium).
 verifyEd25519Signature_V2
     :: BS.ByteString  -- ^ Public Key (32 bytes)
     -> BS.ByteString  -- ^ Message    (arbitrary length)
