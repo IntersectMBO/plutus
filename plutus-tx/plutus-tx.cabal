@@ -97,6 +97,8 @@ library
     , bytestring
     , containers
     , deepseq
+    , deriving-compat
+    , extra
     , flat
     , ghc-prim
     , hashable
@@ -140,6 +142,7 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    Show.Spec
     Suites.Laws
     Suites.Laws.Additive
     Suites.Laws.Construction
@@ -156,15 +159,17 @@ test-suite plutus-tx-test
   build-tool-depends: doctest:doctest
   build-depends:
     , aeson
-    , base            >=4.9 && <5
+    , base                                            >=4.9 && <5
     , bytestring
     , cborg
+    , filepath
     , hedgehog
     , hedgehog-fn
-    , plutus-core     ^>=1.0
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
     , plutus-tx
     , pretty-show
     , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , transformers
