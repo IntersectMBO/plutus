@@ -9,34 +9,33 @@ module PlutusTx.Show (
 
 import PlutusTx.Base
 import PlutusTx.Bool
-import PlutusTx.Builtins
-import PlutusTx.Builtins.Internal qualified
+import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Foldable (foldl)
 import PlutusTx.Show.TH (Show (..), ShowS, showString)
 
-instance Show Integer where
+instance Show Builtins.Integer where
     {-# INLINEABLE show #-}
-    show = showConstant
+    show = Builtins.showInteger
 
-instance Show BuiltinByteString where
+instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE show #-}
-    show x = showConstant (fromBuiltin x)
+    show = Builtins.showByteString
 
-instance Show BuiltinData where
+instance Show Builtins.BuiltinData where
     {-# INLINEABLE show #-}
-    show (PlutusTx.Builtins.Internal.BuiltinData x) = showConstant x
+    show = Builtins.showData
 
-instance Show BuiltinString where
+instance Show Builtins.BuiltinString where
     {-# INLINEABLE show #-}
-    show x = showConstant (fromBuiltin x)
+    show = Builtins.showString
 
 instance Show Bool where
     {-# INLINEABLE show #-}
-    show x = showConstant x
+    show = Builtins.showBool
 
 instance Show () where
     {-# INLINEABLE show #-}
-    show () = showConstant ()
+    show () = "()"
 
 -- It is possible to make it so that when `a` is a builtin type, `show (xs :: [a])`
 -- is compiled into a single `showConstant` call, rathern than `length xs` calls.

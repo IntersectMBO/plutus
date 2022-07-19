@@ -68,7 +68,11 @@ module PlutusTx.Builtins (
                                 -- * Lists
                                 , matchList
                                 -- * Tracing
-                                , showConstant
+                                , showInteger
+                                , showBool
+                                , showString
+                                , showByteString
+                                , showData
                                 , trace
                                 -- * Conversions
                                 , fromBuiltin
@@ -81,8 +85,6 @@ import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
-
-import GHC.Show qualified
 
 {-# INLINABLE appendByteString #-}
 -- | Concatenates two 'ByteString's.
@@ -285,9 +287,25 @@ emptyString = BI.emptyString
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
 
-{-# INLINABLE showConstant #-}
-showConstant :: GHC.Show.Show a => a -> BuiltinString
-showConstant = BI.showConstant
+{-# INLINABLE showInteger #-}
+showInteger :: Integer -> BuiltinString
+showInteger = BI.showInteger
+
+{-# INLINABLE showBool #-}
+showBool :: Bool -> BuiltinString
+showBool = BI.showBool
+
+{-# INLINABLE showString #-}
+showString :: BuiltinString -> BuiltinString
+showString = BI.showString
+
+{-# INLINABLE showByteString #-}
+showByteString :: BuiltinByteString -> BuiltinString
+showByteString = BI.showByteString
+
+{-# INLINABLE showData #-}
+showData :: BuiltinData -> BuiltinString
+showData = BI.showData
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
