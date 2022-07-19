@@ -785,3 +785,22 @@ test-suite index-envs-test
     , quickcheck-instances
     , tasty
     , tasty-quickcheck
+
+benchmark bitwise
+  import:           lang
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   plutus-core/bench/bitwise
+  default-language: Haskell2010
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , deepseq
+    , plutus-core
+    , random
+    , tasty-bench
+    , text
+    , transformers
+    , vector
+
+  ghc-options:      -O2 -rtsopts "-with-rtsopts=-A32m --nonmoving-gc -T"
