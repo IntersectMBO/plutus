@@ -1443,11 +1443,11 @@ instance Flat DefaultFun where
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
 
-              ShowBool                        -> 52
-              ShowInteger                     -> 53
-              ShowString                      -> 54
-              ShowByteString                  -> 55
-              ShowData                        -> 56
+              ShowBool                        -> 54
+              ShowInteger                     -> 55
+              ShowString                      -> 56
+              ShowByteString                  -> 57
+              ShowData                        -> 58
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1504,6 +1504,11 @@ instance Flat DefaultFun where
               go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure ShowBool
+              go 55 = pure ShowInteger
+              go 56 = pure ShowString
+              go 57 = pure ShowByteString
+              go 58 = pure ShowData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
