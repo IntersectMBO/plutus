@@ -48,6 +48,7 @@ where
 
 import PlutusPrelude
 
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
 import Control.Lens
@@ -90,6 +91,9 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+
+instance ExMemoryUsage (Term tyname name uni fun ann) where
+    memoryUsage = error "not supposed to be forced"
 
 {- |
 The version of Plutus Core used by this program.
