@@ -54,13 +54,11 @@ import Prelude qualified as Haskell
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data
-import Data.List qualified (sortBy)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
-import GHC.Show (showList__)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusLedgerApi.V1.Scripts
 import PlutusTx qualified as PlutusTx
