@@ -98,15 +98,15 @@ compareAlphaEq (Right expected) (Right actual) =
         <> "The output program is: "
         <> (display $ raw actual)
         <> "The output program, in Debruijn indexes is:"
-        <> (display $ inDebruijnTerm actual)
+        <> (show $ inDebruijnTerm actual)
         -- the user can look at the .expected file, but they can't see it in Debruijn term
         <> ". But the expected result in Debruijn indexes is: "
-        <> (display $ inDebruijnTerm expected)
+        <> (show $ inDebruijnTerm expected)
 compareAlphaEq (Right expected) (Left actualTxt) =
     pure $ Just $ "Test failed, the output is: "
         <> T.unpack actualTxt
         <> ". But the expected result in Debruijn indexes is: "
-        <> (display $ inDebruijnTerm expected)
+        <> (show $ inDebruijnTerm expected)
 compareAlphaEq (Left txt) (Right actual) =
     if txt == raw actual then pure Nothing
     else
