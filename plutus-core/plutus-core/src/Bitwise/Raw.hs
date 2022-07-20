@@ -1,7 +1,6 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -ddump-simpl -dsuppress-all #-}
 
 module Bitwise.Raw (
   rawBitwiseBinary
@@ -50,10 +49,14 @@ bigStepSmallStep ::
   IO ()
 bigStepSmallStep f len dstPtr srcPtr srcPtr' = do
   let bigStepSize = sizeOf @Word256 undefined
-  let (bigSteps, smallSteps) = len `quotRem` bigStepSize
+  let smallerStepSize = sizeOf @Word64 undefined
+  let (bigSteps, rest) = len `quotRem` bigStepSize
+  let (smallerSteps, smallSteps) = rest `quotRem` smallerStepSize
   let bigPtrs = (castPtr dstPtr, castPtr srcPtr, castPtr srcPtr')
   (mDstPtr, mSrcPtr, mSrcPtr') <- foldM (go @Word256 bigStepSize) bigPtrs . replicate bigSteps $ ()
-  let smallPtrs = (castPtr mDstPtr, castPtr mSrcPtr, castPtr mSrcPtr')
+  let smallerPtrs = (castPtr mDstPtr, castPtr mSrcPtr, castPtr mSrcPtr')
+  (m2DstPtr, m2SrcPtr, m2SrcPtr') <- foldM (go @Word64 smallerStepSize) smallerPtrs . replicate smallerSteps $ ()
+  let smallPtrs = (castPtr m2DstPtr, castPtr m2SrcPtr, castPtr m2SrcPtr')
   foldM_ (go @Word8 1) smallPtrs . replicate smallSteps $ ()
   where
     go :: forall (a :: Type) .

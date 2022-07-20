@@ -96,15 +96,25 @@ naiveBitwiseBinary f bs bs'
 -- that the differences in implementation strategies would probably be fairly
 -- minimal.
 --
+-- In order to make this comparison as fair as possible, we will make the
+-- 'optimized' versions do as much work as possible. To do this, we need to give
+-- them inputs whose lengths are one less than a power of 2: the reason for this
+-- has to do with how big-little stepping loops operate. If we give a power of 2
+-- exactly, especially a large one, we never have to take any little steps at
+-- all: in this setting, big-little stepping loops will have a huge advantage
+-- due to processing more data per step. However, when given a length just one
+-- less than this, they have to do the largest amount of work possible, as they
+-- have maximally-long 'tails', which have to be done a byte at a time.
+--
 -- On the basis of the above, we generate test data pairs of the following
 -- byte lengths (for each element of each pair):
 --
--- * 64
--- * 128
--- * 256
--- * 512
--- * 1024
--- * 2048
+-- * 63
+-- * 127
+-- * 255
+-- * 511
+-- * 1023
+-- * 2047
 
 sampleData :: Vector (Int, ByteString, ByteString)
 sampleData =
@@ -115,7 +125,7 @@ sampleData =
       Int ->
       StateT StdGen (ST s) (Int, ByteString, ByteString)
     go gen ix = do
-      let len = 64 * (2 ^ ix)
+      let len = (64 * (2 ^ ix)) - 1
       leftRes <- fromListN len <$> replicateM len (randomM gen)
       rightRes <- fromListN len <$> replicateM len (randomM gen)
       pure (len, leftRes, rightRes)
