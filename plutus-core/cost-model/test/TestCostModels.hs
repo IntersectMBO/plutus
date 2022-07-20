@@ -36,6 +36,8 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
+import Prelude hiding (showString)
+
 {- | This module is supposed to test that the R cost models for built-in functions
    defined in models.R (using the CSV output from 'cost-model-budgeting-bench;))
    produce the same results as the Haskell versions. However there are a couple
@@ -353,5 +355,11 @@ main =
                     , $(genTest 2 "mkPairData") Everywhere
                     , $(genTest 1 "mkNilData")
                     , $(genTest 1 "mkNilPairData")
-                    ]
 
+                    -- Show
+                    , $(genTest 1 "showBool")
+                    , $(genTest 1 "showInteger")
+                    , $(genTest 1 "showString")
+                    , $(genTest 1 "showByteString")
+                    , $(genTest 1 "showData")
+                    ]

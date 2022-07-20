@@ -173,4 +173,10 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramMkNilData                       = unitCostOneArgument
     , paramMkNilPairData                   = unitCostOneArgument
     , paramSerialiseData                   = unitCostOneArgument
+    -- Show
+    , paramShowBool = unitCostOneArgument
+    , paramShowInteger = unitCostOneArgument
+    , paramShowString = unitCostOneArgument
+    , paramShowByteString = unitCostOneArgument
+    , paramShowData = unitCostOneArgument
     }

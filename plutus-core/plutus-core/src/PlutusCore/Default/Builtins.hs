@@ -31,7 +31,7 @@ import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
 import Data.Char
 import Data.Ix
-import Data.Text (Text)
+import Data.Text as Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
@@ -116,6 +116,12 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
+    -- Show
+    | ShowBool
+    | ShowInteger
+    | ShowString
+    | ShowByteString
+    | ShowData
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1334,6 +1340,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
+    toBuiltinMeaning ShowBool =
+        makeBuiltinMeaning
+            (Text.pack . show @Bool)
+            (runCostingFunOneArgument . paramShowBool)
+    toBuiltinMeaning ShowInteger =
+        makeBuiltinMeaning
+            (Text.pack . show @Integer)
+            (runCostingFunOneArgument . paramShowInteger)
+    toBuiltinMeaning ShowString =
+        makeBuiltinMeaning
+            (Text.pack . show @Text)
+            (runCostingFunOneArgument . paramShowString)
+    toBuiltinMeaning ShowByteString =
+        makeBuiltinMeaning
+            (Text.pack . show @BS.ByteString)
+            (runCostingFunOneArgument . paramShowByteString)
+    toBuiltinMeaning ShowData =
+        makeBuiltinMeaning
+            (Text.pack . show @Data)
+            (runCostingFunOneArgument . paramShowData)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1416,6 +1442,12 @@ instance Flat DefaultFun where
               MkNilData                       -> 49
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
+
+              ShowBool                        -> 52
+              ShowInteger                     -> 53
+              ShowString                      -> 54
+              ShowByteString                  -> 55
+              ShowData                        -> 56
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger

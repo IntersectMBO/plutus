@@ -30,6 +30,7 @@ import GHC.Generics (Generic)
 import H.Prelude (MonadR, Region)
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
+import Prelude hiding (showString)
 
 -- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
@@ -99,6 +100,11 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkNilData                       = "mkNilDataModel"
   , paramMkNilPairData                   = "mkNilPairDataModel"
   , paramSerialiseData                   = "serialiseDataModel"
+  , paramShowBool                        = "showBoolModel"
+  , paramShowInteger                     = "showIntegerModel"
+  , paramShowString                      = "showStringModel"
+  , paramShowByteString                  = "showByteStringModel"
+  , paramShowData                        = "showDataModel"
   }
 
 
@@ -188,7 +194,12 @@ createBuiltinCostModel bmfile rfile = do
     paramMkPairData                      <- getParams mkPairData     paramMkPairData
     paramMkNilData                       <- getParams mkNilData      paramMkNilData
     paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
-
+    -- Show
+    paramShowBool                        <- getParams showBool paramShowBool
+    paramShowInteger                     <- getParams showInteger paramShowInteger
+    paramShowString                      <- getParams showString paramShowString
+    paramShowByteString                  <- getParams showByteString paramShowByteString
+    paramShowData                        <- getParams showData paramShowData
     pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
@@ -542,7 +553,7 @@ trace :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 trace cpuModelR = do
   cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelTwoArgumentsConstantCost 32
-  pure $ CostingFun  cpuModel memModel
+  pure $ CostingFun cpuModel memModel
 
 ---------------- Pairs ----------------
 
@@ -726,3 +737,45 @@ mkNilPairData cpuModelR = do
   let memModel = ModelOneArgumentConstantCost 32
   pure $ CostingFun cpuModel memModel
 -- () -> [] :: [(Data,Data)]
+
+---------------- Misc constructors ----------------
+
+showBool :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+showBool cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel =
+        -- length "False" = 5
+        ModelOneArgumentLinearCost $ ModelLinearSize 5 0
+  pure $ CostingFun cpuModel memModel
+
+showInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+showInteger cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel =
+        -- A 64-bit Integer has up to 21 characters when shown (-(2^64-1))
+        ModelOneArgumentLinearCost $ ModelLinearSize 0 21
+  pure $ CostingFun cpuModel memModel
+
+showString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+showString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel =
+        -- Showing a string means adding quotes
+        ModelOneArgumentLinearCost $ ModelLinearSize 2 1
+  pure $ CostingFun cpuModel memModel
+
+showByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+showByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel =
+        -- A ByteString of length 8 has 10 characters when shown (one per element, plus quotes)
+        ModelOneArgumentLinearCost $ ModelLinearSize 0 10
+  pure $ CostingFun cpuModel memModel
+
+showData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+showData cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel =
+        -- Taking the maximum of the above cases...
+        ModelOneArgumentLinearCost $ ModelLinearSize 5 21
+  pure $ CostingFun cpuModel memModel

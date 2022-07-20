@@ -106,7 +106,12 @@ arity <- function(name) {
         "EqualsData" = 2,
         "MkPairData" = 2,
         "MkNilData" = 1,
-        "MkNilPairData" = 1
+        "MkNilPairData" = 1,
+        "ShowBool" = 1,
+        "ShowInteger" = 1,
+        "ShowString" = 1,
+        "ShowByteString" = 1,
+        "ShowData" = 1
         )
 }
 
@@ -520,7 +525,7 @@ modelFun <- function(path) {
     ## long.
     verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
 
-    
+
     ##### Strings #####
 
     appendStringModel <- {
@@ -650,6 +655,58 @@ modelFun <- function(path) {
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
+    ##### Show #####
+
+    showBoolModel <- {
+        fname <- "ShowBool"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+    }
+
+    showIntegerModel <- {
+        fname <- "ShowInteger"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+    }
+
+    showStringModel <- {
+        fname <- "ShowString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+    }
+
+    showByteStringModel <- {
+        fname <- "ShowByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+    }
+
+    showDataModel <- {
+        fname <- "ShowData"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter(x_mem == y_mem) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+    }
+
     list(
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
@@ -704,6 +761,11 @@ modelFun <- function(path) {
         mkPairDataModel                      = mkPairDataModel,
         mkNilDataModel                       = mkNilDataModel,
         mkNilPairDataModel                   = mkNilPairDataModel,
-        serialiseDataModel                   = serialiseDataModel
+        serialiseDataModel                   = serialiseDataModel,
+        showBoolModel                        = showBoolModel,
+        showIntegerModel                     = showIntegerModel,
+        showStringModel                      = showStringModel,
+        showByteStringModel                  = showByteStringModel,
+        showDataModel                        = showDataModel
     )
 }

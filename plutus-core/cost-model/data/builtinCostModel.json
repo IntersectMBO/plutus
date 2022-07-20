@@ -691,5 +691,85 @@
             "arguments": 10,
             "type": "constant_cost"
         }
+    },
+    "showBool": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
+    },
+    "showInteger": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
+    },
+    "showString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
+    },
+    "showByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
+    },
+    "showData": {
+        "cpu": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 0
+            },
+            "type": "linear_cost"
+        }
     }
 }
