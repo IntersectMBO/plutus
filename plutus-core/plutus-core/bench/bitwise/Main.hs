@@ -1,13 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
--- Needed for tasty-bench
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main (main) where
 
-import Bitwise (andByteString, iorByteString, xorByteString)
-import Control.DeepSeq (NFData (rnf))
+import Bitwise.Raw (rawBitwiseBinary)
 import Control.Monad (replicateM)
 import Control.Monad.ST (ST)
 import Control.Monad.Trans.State.Strict (StateT)
@@ -15,13 +12,11 @@ import Data.Bits (xor, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
-import Data.Text (pack)
 import Data.Vector (Vector)
 import Data.Vector qualified as Vector
+import Data.Word (Word8)
 import GHC.Exts (fromListN, toList)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
-import PlutusCore.Builtin.Emitter (Emitter, emit, runEmitter)
-import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import System.Random.Stateful (StateGenM, StdGen, mkStdGen, randomM, runStateGenST_)
 import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, defaultMain, nf)
 
@@ -45,8 +40,8 @@ bandBenches = toList sampleData >>= go
           label' = "optimized, length " <> show len
           matchLabel = "$NF == \"" <> label' <> "\" && $(NF -1) == \"Bitwise AND\"" in
       [
-        bench label' . nf (andByteString bs) $ bs',
-        bcompare matchLabel . bench label . nf (naiveAnd bs) $ bs'
+        bench label' . nf (rawBitwiseBinary (.&.) bs) $ bs',
+        bcompare matchLabel . bench label . nf (naiveBitwiseBinary (.&.) bs) $ bs'
       ]
 
 biorBenches :: [Benchmark]
@@ -58,8 +53,8 @@ biorBenches = toList sampleData >>= go
           label' = "optimized, length " <> show len
           matchLabel = "$NF == \"" <> label' <> "\" && $(NF -1) == \"Bitwise IOR\"" in
       [
-        bench label' . nf (iorByteString bs) $ bs',
-        bcompare matchLabel . bench label . nf (naiveIor bs) $ bs'
+        bench label' . nf (rawBitwiseBinary (.|.) bs) $ bs',
+        bcompare matchLabel . bench label . nf (naiveBitwiseBinary (.|.) bs) $ bs'
       ]
 
 bxorBenches :: [Benchmark]
@@ -71,48 +66,23 @@ bxorBenches = toList sampleData >>= go
           label' = "optimized, length " <> show len
           matchLabel = "$NF == \"" <> label' <> "\" && $(NF -1) == \"Bitwise XOR\"" in
       [
-        bench label' . nf (xorByteString bs) $ bs',
-        bcompare matchLabel . bench label . nf (naiveXor bs) $ bs'
+        bench label' . nf (rawBitwiseBinary xor bs) $ bs',
+        bcompare matchLabel . bench label . nf (naiveBitwiseBinary xor bs) $ bs'
       ]
-
 
 -- Naive implementations for comparison
 
-naiveAnd :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
-naiveAnd bs bs'
-  | BS.length bs /= BS.length bs' = do
-      emit "andByteString failed"
-      emit "Reason: mismatched argument lengths"
-      emit $ "Length of first argument: " <> (pack . show . BS.length $ bs)
-      emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
-      pure EvaluationFailure
-  | otherwise = do
-      let len = BS.length bs
-      pure . pure . fromListN len . BS.zipWith (.&.) bs $ bs'
-
-naiveIor :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
-naiveIor bs bs'
-  | BS.length bs /= BS.length bs' = do
-      emit "iorByteString failed"
-      emit "Reason: mismatched argument lengths"
-      emit $ "Length of first argument: " <> (pack . show . BS.length $ bs)
-      emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
-      pure EvaluationFailure
-  | otherwise = do
-      let len = BS.length bs
-      pure . pure . fromListN len . BS.zipWith (.|.) bs $ bs'
-
-naiveXor :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
-naiveXor bs bs'
-  | BS.length bs /= BS.length bs' = do
-      emit "xorByteString failed"
-      emit "Reason: mismatched argument lengths"
-      emit $ "Length of first argument: " <> (pack . show . BS.length $ bs)
-      emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
-      pure EvaluationFailure
-  | otherwise = do
-      let len = BS.length bs
-      pure . pure . fromListN len . BS.zipWith xor bs $ bs'
+naiveBitwiseBinary ::
+  (Word8 -> Word8 -> Word8) ->
+  ByteString ->
+  ByteString ->
+  Maybe ByteString
+naiveBitwiseBinary f bs bs'
+  | len /= BS.length bs' = Nothing
+  | otherwise = pure . fromListN len . BS.zipWith f bs $ bs'
+  where
+    len :: Int
+    len = BS.length bs
 
 -- Data
 
@@ -149,10 +119,3 @@ sampleData =
       leftRes <- fromListN len <$> replicateM len (randomM gen)
       rightRes <- fromListN len <$> replicateM len (randomM gen)
       pure (len, leftRes, rightRes)
-
--- We unfortunately need this orphan or tasty-bench won't do much for us
-instance NFData (Emitter (EvaluationResult ByteString)) where
-  rnf x = case runEmitter x of
-    (res, logs) -> case res of
-      EvaluationFailure   -> rnf logs
-      EvaluationSuccess y -> seq y . rnf $ logs

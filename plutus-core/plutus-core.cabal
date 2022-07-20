@@ -50,6 +50,7 @@ library
   import:          lang
   exposed-modules:
     Bitwise
+    Bitwise.Raw
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -317,6 +318,7 @@ library
     , time
     , transformers
     , unordered-containers
+    , wide-word
     , witherable
     , word-array
 
@@ -795,11 +797,9 @@ benchmark bitwise
   build-depends:
     , base
     , bytestring
-    , deepseq
     , plutus-core
     , random
     , tasty-bench
-    , text
     , transformers
     , vector
 
