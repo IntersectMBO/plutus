@@ -54,13 +54,11 @@ import Prelude qualified as Haskell
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data
-import Data.List qualified (sortBy)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
-import GHC.Show (showList__)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusLedgerApi.V1.Scripts
 import PlutusTx qualified as PlutusTx
@@ -163,26 +161,10 @@ assetClass s t = AssetClass (s, t)
 --
 -- See note [Currencies] for more details.
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
-    deriving stock (Generic, Data)
+    deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving Pretty via (PrettyShow Value)
-
-instance Haskell.Show Value where
-    showsPrec d v =
-        Haskell.showParen (d Haskell.== 11) $
-            Haskell.showString "Value " . (Haskell.showParen True (showsMap (showPair (showsMap Haskell.shows)) rep))
-        where Value rep = normalizeValue v
-              showsMap sh m = Haskell.showString "Map " . showList__ sh (Map.toList m)
-              showPair s (x,y) = Haskell.showParen True $ Haskell.shows x . Haskell.showString "," . s y
-
-normalizeValue :: Value -> Value
-normalizeValue = Value . Map.fromList . sort . filterRange (/=Map.empty)
-               . mapRange normalizeTokenMap . Map.toList . getValue
-  where normalizeTokenMap = Map.fromList . sort . filterRange (/=0) . Map.toList
-        filterRange p kvs = [(k,v) | (k,v) <- kvs, p v]
-        mapRange f xys = [(x,f y) | (x,y) <- xys]
-        sort xs = Data.List.sortBy compare xs
 
 instance Haskell.Eq Value where
     (==) = eq
