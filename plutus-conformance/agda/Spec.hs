@@ -24,19 +24,16 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
         Left _ -> Nothing
         -- evaluate the untyped term with CEK
         Right tmUDBSuccess ->
-            -- case runUAgda tmUDBSuccess of
-            --     Left _ -> Nothing
-            --     Right tmEvaluated ->
-            --         let tmNamed = runQuote $ runExceptT $
-            --                 withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
-            --         in
-            --         -- turn it back into a named term
-                    -- case tmNamed of
-                    --     Left _          -> Nothing
-                    --     Right namedTerm -> Just $ UPLC.Program () version namedTerm
-            case runQuote $ runExceptT $ withExceptT FreeVariableErrorE $ unDeBruijnTerm tmUDBSuccess of
-                Left _      -> Nothing
-                Right named -> Just $ UPLC.Program () version named
+            case runUAgda tmUDBSuccess of
+                Left _ -> Nothing
+                Right tmEvaluated ->
+                    let tmNamed = runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                    in
+                    -- turn it back into a named term
+                    case tmNamed of
+                        Left _          -> Nothing
+                        Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
