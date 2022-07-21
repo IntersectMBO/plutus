@@ -170,7 +170,7 @@ deriveMatchForCon p = \case
                         mappendArgs = Haskell.foldr1 alg showArgExps
                           where
                             alg :: TH.ExpQ -> TH.ExpQ -> TH.ExpQ
-                            alg argExp acc = [|$argExp . $(TH.varE 'showSpace) . $acc|]
+                            alg argExp acc = [|$argExp . showSpace . $acc|]
                         namedArgs =
                             [|
                                 showString
