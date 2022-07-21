@@ -173,7 +173,7 @@ deriveMatchForCon p = \case
                             alg argExp acc = [|$argExp . $(TH.varE 'showSpace) . $acc|]
                         namedArgs =
                             [|
-                                $(TH.varE 'showString)
+                                showString
                                     $(TH.stringE (parenInfixConName conName <> " "))
                                     . $mappendArgs
                                 |]
