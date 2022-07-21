@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -20,6 +21,7 @@ import Data.Word (Word64, Word8)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
+import GHC.Exts (Proxy#, proxy#)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 
 {-# NOINLINE rawBitwiseBinary #-}
@@ -39,38 +41,40 @@ rawBitwiseBinary f bs bs'
       unsafeUseAsCStringLen bs $ \(srcPtr, _) ->
         unsafeUseAsCStringLen bs' $ \(srcPtr', _) -> do
           dstPtr :: Ptr Word8 <- mallocBytes len
-          bigStepSmallStep f len dstPtr (castPtr srcPtr) (castPtr srcPtr')
+          ptrs <- MultiPtr <$> do
+            arr <- newPrimArray 3
+            writePrimArray arr 0 dstPtr
+            writePrimArray arr 1 . castPtr $ srcPtr
+            writePrimArray arr 2 . castPtr $ srcPtr'
+            pure arr
+          loop step ptrs len
           unsafePackMallocCStringLen (castPtr dstPtr, len)
+    step :: forall (a :: Type) .
+      (FiniteBits a, Storable a) =>
+      Proxy# a ->
+      MultiPtr ->
+      IO ()
+    step _ mp = do
+      srcBlock <- readAndStep @a 1 mp
+      srcBlock' <- readAndStep @a 2 mp
+      writeAndStep 0 (f srcBlock srcBlock') mp
 
-{-# INLINE bigStepSmallStep #-}
-bigStepSmallStep ::
-  (forall (a :: Type) . (FiniteBits a, Storable a) => a -> a -> a) ->
+{-# INLINE loop #-}
+loop ::
+  (forall (a :: Type) .
+    (FiniteBits a, Storable a) =>
+    Proxy# a ->
+    MultiPtr ->
+    IO ()) ->
+  MultiPtr ->
   Int ->
-  Ptr Word8 ->
-  Ptr Word8 ->
-  Ptr Word8 ->
   IO ()
-bigStepSmallStep f len dstPtr srcPtr srcPtr' = do
+loop step mp len = do
   let bigStepSize = sizeOf @Word256 undefined
   let smallerStepSize = sizeOf @Word64 undefined
   let (bigSteps, rest) = len `quotRem` bigStepSize
-  let (smallerSteps, smallSteps) = rest `quotRem` smallerStepSize
-  ptrs <- MultiPtr <$> do
-    arr <- newPrimArray 3
-    writePrimArray arr 0 dstPtr
-    writePrimArray arr 1 srcPtr
-    writePrimArray arr 2 srcPtr'
-    pure arr
-  runRefIO ptrs $ do
-    replicateM_ bigSteps $ go @Word256
-    replicateM_ smallerSteps $ go @Word64
-    replicateM_ smallSteps $ go @Word8
-  where
-    go ::
-      forall (a :: Type) .
-      (Storable a, FiniteBits a) =>
-      RefIO ()
-    go = do
-      srcBlock <- liftRefIO (readAndStep @a 1)
-      srcBlock' <- liftRefIO (readAndStep @a 2)
-      liftRefIO (writeAndStep 0 (f srcBlock srcBlock'))
+  let (smallerSteps, smallestSteps) = rest `quotRem` smallerStepSize
+  runRefIO mp $ do
+    replicateM_ bigSteps . liftRefIO $ step (proxy# @Word256)
+    replicateM_ smallerSteps . liftRefIO $ step (proxy# @Word64)
+    replicateM_ smallestSteps . liftRefIO $ step (proxy# @Word8)
