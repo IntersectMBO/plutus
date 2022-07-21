@@ -21,8 +21,11 @@ goldenShow name x = do
     let fp = foldr (</>) (name ++ ".show.golden") path
     pure $ goldenVsText name fp . fromBuiltin $ show x
 
-data ProductTypeD = ProductTypeC Integer [Bool]
-deriveShow ''ProductTypeD
+data ProductD = ProductC Integer [Bool]
+deriveShow ''ProductD
+
+data ProductD2 = (:-:) [Integer] Bool
+deriveShow ''ProductD2
 
 data SumD = SumC1 | SumC2 (Integer, BuiltinString, BuiltinByteString)
 deriveShow ''SumD
@@ -32,6 +35,9 @@ deriveShow ''RecordD
 
 data InfixD = (Integer, Bool) :+: [BuiltinString]
 deriveShow ''InfixD
+
+data InfixD2 = (Integer, Bool) `InfixC` BuiltinString
+deriveShow ''InfixD2
 
 data PolyD a b = PolyC (a, b) [(a, b)]
 deriveShow ''PolyD
@@ -44,11 +50,13 @@ tests :: TestNested
 tests =
     testNested
         "Show"
-        [ goldenShow "product-type" (ProductTypeC 3 [True, False])
+        [ goldenShow "product-type" (ProductC 3 [True, False])
+        , goldenShow "product-type-2" ((:-:) [3] False)
         , goldenShow "sum-type-1" SumC1
         , goldenShow "sum-type-2" (SumC2 (1, "string", "bytestring"))
         , goldenShow "record-type" (RecordC "string" ([1, 2, 3], True))
         , goldenShow "infix-type" ((42, True) :+: ["foo", "bar"])
+        , goldenShow "infix-type-2" ((42, True) `InfixC` "foo")
         , goldenShow "gadt" (GadtC 42 "string")
         , goldenShow "poly" (PolyC (42 :: Integer, False) [])
         ]

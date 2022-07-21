@@ -243,14 +243,14 @@ deriveMatchForCon p = \case
                         braceCommaArgExps
                 namedArgs =
                     [|
-                        $(TH.varE 'showString) $(TH.stringE (parenInfixConName conName <> " "))
+                        showString $(TH.stringE (parenInfixConName conName <> " "))
                             . $mappendArgs
                         |]
                 pats = TH.conP conName (TH.varP <$> args)
                 body =
                     TH.normalB
                         [|
-                            $(TH.varE 'showParen)
+                            showParen
                                 ($(TH.varE p) `greaterThanInteger` $(TH.litE (TH.integerL appPrec)))
                                 $namedArgs
                             |]
@@ -283,7 +283,7 @@ deriveMatchForCon p = \case
                 body =
                     TH.normalB
                         [|
-                            $(TH.varE 'showParen)
+                            showParen
                                 ($(TH.varE p) `greaterThanInteger` $(TH.litE (TH.integerL conPrec)))
                                 ($showArgLExp . $infixOpE . $showArgRExp)
                             |]
