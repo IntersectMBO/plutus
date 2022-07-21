@@ -135,7 +135,7 @@ deriveMatchForCon p = \case
         } ->
             TH.match
                 (TH.conP conName [])
-                (TH.normalB [|$(TH.varE 'showString) $(TH.stringE (parenInfixConName conName))|])
+                (TH.normalB [| showString  $(TH.stringE (parenInfixConName conName))|])
                 []
     TH.ConstructorInfo
         { TH.constructorName = conName
