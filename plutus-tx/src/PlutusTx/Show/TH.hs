@@ -143,9 +143,8 @@ deriveMatchForCon p = \case
         , TH.constructorFields = argTys@(_ : _)
         } -> do
             args <-
-                Haskell.traverse
-                    (\i -> TH.newName ("arg" <> Haskell.show i))
-                    [1 .. length argTys]
+                Haskell.for [1 .. length argTys] $ \i -> 
+                   TH.newName ("arg" <> Haskell.show i)         
 
             if isNonUnitTuple conName
                 then do
