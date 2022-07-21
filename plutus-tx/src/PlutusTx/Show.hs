@@ -1,17 +1,27 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusTx.Show (
     Show (..),
+    ShowS,
+    showString,
+    showSpace,
+    showCommaSpace,
+    showParen,
+    appPrec,
+    appPrec1,
+    deriveShow,
 ) where
 
 import PlutusTx.Base
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Either
 import PlutusTx.Foldable (foldl)
-import PlutusTx.Show.TH (Show (..), ShowS, showString)
+import PlutusTx.Maybe
+import PlutusTx.Show.TH
 
 instance Show Builtins.Integer where
     {-# INLINEABLE show #-}
@@ -58,5 +68,31 @@ instance Show a => Show [a] where
             alg :: ShowS -> a -> ShowS
             alg acc a = acc . showString "," . showsPrec 0 a
 
------------------------------------------------------------
--- TODO: derive instances for tuples, Maybe, Either and other common types here.
+deriveShow ''(,)
+deriveShow ''(,,)
+deriveShow ''(,,,)
+deriveShow ''(,,,,)
+deriveShow ''(,,,,,)
+deriveShow ''(,,,,,,)
+deriveShow ''(,,,,,,,)
+deriveShow ''(,,,,,,,,)
+deriveShow ''(,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''(,,,,,,,,,,,,,,,,,,,,,,,,,,)
+deriveShow ''Maybe
+deriveShow ''Either
