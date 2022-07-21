@@ -117,19 +117,11 @@ deriveShowsPrecBody cons = do
         body = TH.caseE (TH.varE value) (deriveMatchForCon p <$> cons)
     TH.lamE pats body
 
-{- | Derive `showsPrec` body for a single data constructor.
-
- Example: given `C Integer Bool`, this generates
-
- @
-    case _value of C arg1 arg2 ->
-        showParen
-            (_p `greaterThanInteger` 10)
-            (showString "C " . showsPrec 11 arg1 . showSpace . showsPrec 11 arg2)
- @
--}
+-- | Derive `showsPrec` body for a single data constructor.
 deriveMatchForCon :: TH.Name -> TH.ConstructorInfo -> TH.Q TH.Match
 deriveMatchForCon p = \case
+    -- Need a special case for nullary constructors, because
+    -- @showParen (_p `greaterThanInteger` 10)@ is not needed for nullary constructors.
     TH.ConstructorInfo
         { TH.constructorName = conName
         , TH.constructorFields = []
@@ -142,52 +134,82 @@ deriveMatchForCon p = \case
         { TH.constructorName = conName
         , TH.constructorVariant = TH.NormalConstructor
         , TH.constructorFields = argTys@(_ : _)
-        } -> do
+        } | isNonUnitTuple conName -> do
+            {- Derive `showsPrec` body for a tuple constructor.
+               Example: (,,)
+               Output:
+                 case _value of (,,) arg1 arg2 arg3 ->
+                   showString "("
+                   . showsPrec 0 arg1 . showString ","
+                   . showsPrec 0 arg2 . showString ","
+                   . showsPrec 0 arg3 . showString ")"
+            -}
             args <-
                 for [1 .. length argTys] $ \i ->
                    TH.newName ("arg" <> Haskell.show i)
 
-            if isNonUnitTuple conName
-                then do
-                    let showArgExps :: [TH.Q TH.Exp]
-                        showArgExps = deriveShowExpForArg 0 <$> args
-                        parenCommaArgExps =
-                            (TH.varE 'showString `TH.appE` TH.stringE "(") :
-                            intersperse (TH.varE 'showString `TH.appE` TH.stringE ",") showArgExps
-                        mappendArgs =
-                            Haskell.foldr
-                                (`TH.infixApp` TH.varE '(Haskell..))
-                                (TH.varE 'showString `TH.appE` TH.stringE ")")
-                                parenCommaArgExps
-                        pats = TH.conP conName (TH.varP <$> args)
-                        body = TH.normalB mappendArgs
-                    TH.match pats body []
-                else do
-                    let showArgExps :: [TH.Q TH.Exp]
-                        showArgExps = deriveShowExpForArg appPrec1 <$> args
+            let showArgExps :: [TH.Q TH.Exp]
+                showArgExps = deriveShowExpForArg 0 <$> args
+                parenCommaArgExps =
+                    (TH.varE 'showString `TH.appE` TH.stringE "(") :
+                    intersperse (TH.varE 'showString `TH.appE` TH.stringE ",") showArgExps
+                mappendArgs =
+                    Haskell.foldr
+                        (`TH.infixApp` TH.varE '(Haskell..))
+                        (TH.varE 'showString `TH.appE` TH.stringE ")")
+                        parenCommaArgExps
+                pats = TH.conP conName (TH.varP <$> args)
+                body = TH.normalB mappendArgs
+            TH.match pats body []
+          | otherwise -> do
+            {- Derive `showsPrec` body for a non-tuple constructor.
+               Example: C a b
+               Output:
+                 case _value of C arg1 arg2 ->
+                   showParen
+                     (_p `greaterThanInteger` 10)
+                     (showString "C " . showsPrec 11 arg1 . showSpace . showsPrec 11 arg2)
+            -}
+            args <-
+                for [1 .. length argTys] $ \i ->
+                   TH.newName ("arg" <> Haskell.show i)
+            let showArgExps :: [TH.Q TH.Exp]
+                showArgExps = deriveShowExpForArg appPrec1 <$> args
 
-                        mappendArgs, namedArgs :: TH.Q TH.Exp
-                        mappendArgs = Haskell.foldr1 alg showArgExps
-                          where
-                            alg :: TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
-                            alg argExp acc = [|$argExp . showSpace . $acc|]
-                        namedArgs =
-                            [|
-                                showString
-                                    $(TH.stringE (parenInfixConName conName <> " "))
-                                    . $mappendArgs
-                                |]
-                    let pats = TH.conP conName (TH.varP <$> args)
-                        body =
-                            TH.normalB
-                                [|
-                                    $(TH.varE 'showParen)
-                                        ( $(TH.varE p)
-                                            `greaterThanInteger` $(TH.litE (TH.integerL appPrec))
-                                        )
-                                        $namedArgs
-                                    |]
-                    TH.match pats body []
+                mappendArgs, namedArgs :: TH.Q TH.Exp
+                mappendArgs = Haskell.foldr1 alg showArgExps
+                    where
+                    alg :: TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
+                    alg argExp acc = [|$argExp . showSpace . $acc|]
+                namedArgs =
+                    [|
+                        showString
+                            $(TH.stringE (parenInfixConName conName <> " "))
+                            . $mappendArgs
+                        |]
+            let pats = TH.conP conName (TH.varP <$> args)
+                body =
+                    TH.normalB
+                        [|
+                            $(TH.varE 'showParen)
+                                ( $(TH.varE p)
+                                    `greaterThanInteger` $(TH.litE (TH.integerL appPrec))
+                                )
+                                $namedArgs
+                            |]
+            TH.match pats body []
+    {- Derive `showsPrec` body for a tuple constructor.
+       Example: C {c1 ;: a, c2 :: b}
+       Output:
+         case _value of C arg1 arg2 ->
+           showParen
+             (_p `greaterThanInteger` 10)
+             (showString "C " . showString "{"
+                . showString "c1 = " . showsPrec 0 arg1
+                . showCommaSpace
+                . showString "c2 = " . showsPrec 0 arg2
+                . showString "}")
+    -}
     TH.ConstructorInfo
         { TH.constructorName = conName
         , TH.constructorVariant = TH.RecordConstructor argNames
@@ -233,6 +255,14 @@ deriveMatchForCon p = \case
                                 $namedArgs
                             |]
             TH.match pats body []
+    {- Derive `showsPrec` body for an infix constructor.
+       Example: a :+: b, where (:+:) has fixity 9
+       Output:
+         case _value of argL :+: argR ->
+           showParen
+             (_p `greaterThanInteger` 9)
+             (showsPrec 10 argL . showString " :+: " . showsPrec 10 argR)
+    -}
     TH.ConstructorInfo
         { TH.constructorName = conName
         , TH.constructorVariant = TH.InfixConstructor
@@ -259,6 +289,7 @@ deriveMatchForCon p = \case
                             |]
             TH.match pats body []
 
+-- | Derive the `showsPrec` expression for showing a single constructor argument.
 deriveShowExpForArg :: Integer -> TH.Name -> TH.Q TH.Exp
 deriveShowExpForArg p tyExpName =
     [| showsPrec p $(TH.varE tyExpName)|]
