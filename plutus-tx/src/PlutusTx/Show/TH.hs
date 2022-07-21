@@ -13,6 +13,7 @@ import PlutusTx.List
 import Data.Deriving.Internal (isInfixDataCon, isNonUnitTuple, isSym, varTToName)
 import Data.List.Extra (dropEnd, foldl', intersperse)
 import Data.Maybe
+import Data.Traversable (for)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Prelude (pure, (+), (<$>), (<>))
@@ -78,7 +79,7 @@ concatBuiltinStrings = \case
          in concatBuiltinStrings ys `appendString` concatBuiltinStrings zs
 
 -- | Derive `Show` instance. Adapted from @Text.Show.Deriving.deriveShow@.
-deriveShow :: TH.Name -> TH.DecsQ
+deriveShow :: TH.Name -> TH.Q [TH.Dec]
 deriveShow name = do
     TH.DatatypeInfo
         { TH.datatypeName = tyConName
@@ -98,7 +99,7 @@ deriveShow name = do
     pure <$> TH.instanceD (pure instanceCxt) (pure instanceType) showsPrecDecs
 
 -- | Derive `showsPrec` definition for each data constructor.
-deriveShowsPrec :: [TH.ConstructorInfo] -> [TH.DecQ]
+deriveShowsPrec :: [TH.ConstructorInfo] -> [TH.Q TH.Dec]
 deriveShowsPrec cons =
     [ TH.funD 'showsPrec [clause]
     , -- `showsPrec` must be inlinable for the plugin to inline it
@@ -108,7 +109,7 @@ deriveShowsPrec cons =
     clause = TH.clause [] body []
     body = TH.normalB $ deriveShowsPrecBody cons
 
-deriveShowsPrecBody :: [TH.ConstructorInfo] -> TH.ExpQ
+deriveShowsPrecBody :: [TH.ConstructorInfo] -> TH.Q TH.Exp
 deriveShowsPrecBody cons = do
     p <- TH.newName "_p" -- The precedence argument. It is not always used, hence the leading `_`.
     value <- TH.newName "_value" -- The value to be shown
@@ -127,7 +128,7 @@ deriveShowsPrecBody cons = do
             (showString "C " . showsPrec 11 arg1 . showSpace . showsPrec 11 arg2)
  @
 -}
-deriveMatchForCon :: TH.Name -> TH.ConstructorInfo -> TH.MatchQ
+deriveMatchForCon :: TH.Name -> TH.ConstructorInfo -> TH.Q TH.Match
 deriveMatchForCon p = \case
     TH.ConstructorInfo
         { TH.constructorName = conName
@@ -143,12 +144,12 @@ deriveMatchForCon p = \case
         , TH.constructorFields = argTys@(_ : _)
         } -> do
             args <-
-                Haskell.for [1 .. length argTys] $ \i -> 
-                   TH.newName ("arg" <> Haskell.show i)         
+                for [1 .. length argTys] $ \i ->
+                   TH.newName ("arg" <> Haskell.show i)
 
             if isNonUnitTuple conName
                 then do
-                    let showArgExps :: [TH.ExpQ]
+                    let showArgExps :: [TH.Q TH.Exp]
                         showArgExps = deriveShowExpForArg 0 <$> args
                         parenCommaArgExps =
                             (TH.varE 'showString `TH.appE` TH.stringE "(") :
@@ -162,13 +163,13 @@ deriveMatchForCon p = \case
                         body = TH.normalB mappendArgs
                     TH.match pats body []
                 else do
-                    let showArgExps :: [TH.ExpQ]
+                    let showArgExps :: [TH.Q TH.Exp]
                         showArgExps = deriveShowExpForArg appPrec1 <$> args
 
-                        mappendArgs, namedArgs :: TH.ExpQ
+                        mappendArgs, namedArgs :: TH.Q TH.Exp
                         mappendArgs = Haskell.foldr1 alg showArgExps
                           where
-                            alg :: TH.ExpQ -> TH.ExpQ -> TH.ExpQ
+                            alg :: TH.Q TH.Exp -> TH.Q TH.Exp -> TH.Q TH.Exp
                             alg argExp acc = [|$argExp . showSpace . $acc|]
                         namedArgs =
                             [|
@@ -196,11 +197,11 @@ deriveMatchForCon p = \case
                 Haskell.traverse
                     (\i -> TH.newName ("arg" <> Haskell.show i))
                     [1 .. length argTys]
-            let showArgExps :: [TH.ExpQ]
+            let showArgExps :: [TH.Q TH.Exp]
                 -- The `dropEnd` drops the last comma
                 showArgExps = dropEnd 1 $ Haskell.foldMap (uncurry f) (Haskell.zip argNames args)
                   where
-                    f :: TH.Name -> TH.Name -> [TH.ExpQ]
+                    f :: TH.Name -> TH.Name -> [TH.Q TH.Exp]
                     f argName arg =
                         let argNameBase = TH.nameBase argName
                             infixRec =
@@ -258,7 +259,7 @@ deriveMatchForCon p = \case
                             |]
             TH.match pats body []
 
-deriveShowExpForArg :: Integer -> TH.Name -> TH.ExpQ
+deriveShowExpForArg :: Integer -> TH.Name -> TH.Q TH.Exp
 deriveShowExpForArg p tyExpName =
     [| showsPrec p $(TH.varE tyExpName)|]
 
