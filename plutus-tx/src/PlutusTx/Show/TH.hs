@@ -260,7 +260,7 @@ deriveMatchForCon p = \case
 
 deriveShowExpForArg :: Integer -> TH.Name -> TH.ExpQ
 deriveShowExpForArg p tyExpName =
-    [|$(TH.varE 'showsPrec) $(TH.litE (TH.integerL p)) $(TH.varE tyExpName)|]
+    [| showsPrec p $(TH.varE tyExpName)|]
 
 -- | Add parens if it is an infix data constructor.
 parenInfixConName :: TH.Name -> Haskell.String
