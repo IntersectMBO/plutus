@@ -1,17 +1,20 @@
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Bitwise.Raw (
   rawBitwiseBinary
   ) where
 
-import Control.Monad (foldM, foldM_)
+import Bitwise.RefIO (MultiPtr (MultiPtr), RefIO, liftRefIO, readAndStep, runRefIO, writeAndStep)
+import Control.Monad (replicateM_)
 import Data.Bits (FiniteBits)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
 import Data.Kind (Type)
+import Data.Primitive.PrimArray (newPrimArray, writePrimArray)
 import Data.WideWord.Word256 (Word256)
 import Data.Word (Word64, Word8)
 import Foreign.Marshal.Alloc (mallocBytes)
@@ -52,21 +55,22 @@ bigStepSmallStep f len dstPtr srcPtr srcPtr' = do
   let smallerStepSize = sizeOf @Word64 undefined
   let (bigSteps, rest) = len `quotRem` bigStepSize
   let (smallerSteps, smallSteps) = rest `quotRem` smallerStepSize
-  let bigPtrs = (castPtr dstPtr, castPtr srcPtr, castPtr srcPtr')
-  (mDstPtr, mSrcPtr, mSrcPtr') <- foldM (go @Word256 bigStepSize) bigPtrs . replicate bigSteps $ ()
-  let smallerPtrs = (castPtr mDstPtr, castPtr mSrcPtr, castPtr mSrcPtr')
-  (m2DstPtr, m2SrcPtr, m2SrcPtr') <- foldM (go @Word64 smallerStepSize) smallerPtrs . replicate smallerSteps $ ()
-  let smallPtrs = (castPtr m2DstPtr, castPtr m2SrcPtr, castPtr m2SrcPtr')
-  foldM_ (go @Word8 1) smallPtrs . replicate smallSteps $ ()
+  ptrs <- MultiPtr <$> do
+    arr <- newPrimArray 3
+    writePrimArray arr 0 dstPtr
+    writePrimArray arr 1 srcPtr
+    writePrimArray arr 2 srcPtr'
+    pure arr
+  runRefIO ptrs $ do
+    replicateM_ bigSteps $ go @Word256
+    replicateM_ smallerSteps $ go @Word64
+    replicateM_ smallSteps $ go @Word8
   where
-    go :: forall (a :: Type) .
-      (FiniteBits a, Storable a) =>
-      Int ->
-      (Ptr a, Ptr a, Ptr a) ->
-      () ->
-      IO (Ptr a, Ptr a, Ptr a)
-    go stepSize (dst, src, src') _ = do
-      srcBlock <- peek src
-      srcBlock' <- peek src'
-      poke dst (f srcBlock srcBlock')
-      pure (plusPtr dst stepSize, plusPtr src stepSize, plusPtr src' stepSize)
+    go ::
+      forall (a :: Type) .
+      (Storable a, FiniteBits a) =>
+      RefIO ()
+    go = do
+      srcBlock <- liftRefIO (readAndStep @a 1)
+      srcBlock' <- liftRefIO (readAndStep @a 2)
+      liftRefIO (writeAndStep 0 (f srcBlock srcBlock'))
