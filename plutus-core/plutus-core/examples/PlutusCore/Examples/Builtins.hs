@@ -133,12 +133,10 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
 
     toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
         BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF $
-                BuiltinRuntimeOptions (\self -> immF self . fst) (\self -> defF self . fst)
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . fst) (defF . fst))
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
         BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF $
-                BuiltinRuntimeOptions (\self -> immF self . snd) (\self -> defF self . snd)
+            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . snd) (defF . snd))
 
 defBuiltinsRuntimeExt
     :: HasMeaningIn DefaultUni term

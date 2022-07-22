@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RankNTypes #-}
 
 {-# LANGUAGE StrictData #-}
 
@@ -32,18 +31,18 @@ import NoThunks.Class
 --
 -- All the three are in sync in terms of partial instantiatedness due to 'RuntimeScheme' being a
 -- GADT and 'ToRuntimeDenotationType' and 'ToCostingType' operating on the index of that GADT.
-data BuiltinRuntime fun val
-    = BuiltinResult fun ExBudget ~(MakeKnownM val)
-    | BuiltinArrow (val -> ReadKnownM (BuiltinRuntime fun val))
-    | BuiltinAll (BuiltinRuntime fun val)
+data BuiltinRuntime val
+    = BuiltinResult ExBudget ~(MakeKnownM val)
+    | BuiltinArrow (val -> ReadKnownM (BuiltinRuntime val))
+    | BuiltinAll (BuiltinRuntime val)
 
-instance NoThunks (BuiltinRuntime fun val) where
+instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
-        BuiltinResult _ _ _ -> pure . Just $ ThunkInfo ctx
-        BuiltinArrow f      -> noThunks ctx f
-        BuiltinAll runtime  -> noThunks ctx runtime
+        BuiltinResult _ _  -> pure . Just $ ThunkInfo ctx
+        BuiltinArrow f     -> noThunks ctx f
+        BuiltinAll runtime -> noThunks ctx runtime
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
 
@@ -65,26 +64,26 @@ data UnliftingMode
 -- (happens in tests). The production path is not affected by that, since 'BuiltinRuntimeOptions'
 -- doesn't survive optimization.
 data BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions
-    { _broImmediateF :: forall fun. fun -> cost -> BuiltinRuntime fun val
-    , _broDeferredF  :: forall fun. fun -> cost -> BuiltinRuntime fun val
+    { _broImmediateF :: cost -> BuiltinRuntime val
+    , _broDeferredF  :: cost -> BuiltinRuntime val
     }
 
 -- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost
 -- model.
 fromBuiltinRuntimeOptions
-    :: UnliftingMode -> fun -> cost -> BuiltinRuntimeOptions val cost -> BuiltinRuntime fun val
-fromBuiltinRuntimeOptions unlMode fun cost (BuiltinRuntimeOptions immF defF) =
+    :: UnliftingMode -> cost -> BuiltinRuntimeOptions val cost -> BuiltinRuntime val
+fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions immF defF) =
     case unlMode of
-        UnliftingImmediate -> immF fun cost
-        UnliftingDeferred  -> defF fun cost
+        UnliftingImmediate -> immF cost
+        UnliftingDeferred  -> defF cost
 {-# INLINE fromBuiltinRuntimeOptions #-}
 
-instance NFData (BuiltinRuntime fun val) where
+instance NFData (BuiltinRuntime val) where
     rnf = rwhnf
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.
 newtype BuiltinsRuntime fun val = BuiltinsRuntime
-    { unBuiltinRuntime :: Array fun (BuiltinRuntime fun val)
+    { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
 
 deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
@@ -96,7 +95,7 @@ instance NoThunks (BuiltinsRuntime fun val) where
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin
     :: (MonadError (ErrorWithCause err cause) m, AsMachineError err fun, Ix fun)
-    => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime fun val)
+    => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
     Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing

@@ -49,7 +49,7 @@ import Universe
 infix 4 |>, <|
 
 -- See Note [Show instance for BuiltinRuntime] in the CEK machine.
-instance Show (BuiltinRuntime fun (CkValue uni fun)) where
+instance Show (BuiltinRuntime (CkValue uni fun)) where
     show _ = "<builtin_runtime>"
 
 data CkValue uni fun =
@@ -57,7 +57,7 @@ data CkValue uni fun =
   | VTyAbs TyName (Kind ()) (Term TyName Name uni fun ())
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
-  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime fun (CkValue uni fun))
+  | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving stock (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -65,11 +65,11 @@ data CkValue uni fun =
 -- fully saturated or not.
 evalBuiltinApp
     :: Term TyName Name uni fun ()
-    -> BuiltinRuntime fun (CkValue uni fun)
+    -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
 evalBuiltinApp term runtime =
     case runtime of
-        BuiltinResult _ _ getX ->
+        BuiltinResult _ getX ->
             case getX of
                 MakeKnownFailure logs err       -> do
                     emitCkM logs

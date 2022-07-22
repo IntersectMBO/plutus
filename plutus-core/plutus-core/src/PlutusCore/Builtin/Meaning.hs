@@ -146,18 +146,16 @@ class KnownMonotype val args res where
 
     -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
     toMonoImmediateF
-        :: fun
-        -> (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime fun val
+        :: (FoldArgs args res, FoldArgs args ExBudget)
+        -> BuiltinRuntime val
 
     -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
     -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toMonoDeferredF
-        :: fun
-        -> ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime fun val
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+        -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a
 -- 'TypeSchemeResult'/'RuntimeSchemeResult'.
@@ -165,15 +163,15 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    toMonoImmediateF fun (x, cost) = BuiltinResult fun cost $ makeKnown x
+    toMonoImmediateF (x, cost) = BuiltinResult cost $ makeKnown x
     {-# INLINE toMonoImmediateF #-}
 
     -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftReadKnownM'.
-    toMonoDeferredF fun =
+    toMonoDeferredF =
         either
-            (BuiltinResult fun mempty . MakeKnownFailure mempty)
-            (\(x, cost) -> BuiltinResult fun cost $ makeKnown x)
+            (BuiltinResult mempty . MakeKnownFailure mempty)
+            (\(x, cost) -> BuiltinResult cost $ makeKnown x)
     {-# INLINE toMonoDeferredF #-}
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
@@ -184,12 +182,12 @@ instance
     knownMonotype = TypeSchemeArrow knownMonotype
 
     -- Unlift, then recurse.
-    toMonoImmediateF fun (f, exF) = BuiltinArrow . oneShot $
-        fmap (\x -> toMonoImmediateF @val @args @res fun . (,) (f x) $! exF x) . readKnown
+    toMonoImmediateF (f, exF) = BuiltinArrow . oneShot $
+        fmap (\x -> toMonoImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
     {-# INLINE toMonoImmediateF #-}
 
     -- Grow the builtin application within the received action and recurse on the result.
-    toMonoDeferredF fun getBoth = BuiltinArrow . oneShot $ \arg ->
+    toMonoDeferredF getBoth = BuiltinArrow . oneShot $ \arg ->
         -- The bang is very important: without it GHC thinks that the argument may not be needed in
         -- the end and so creates a thunk for it, which is not only unnecessary allocation, but also
         -- prevents things from being unboxed. So ironically computing the unlifted value strictly
@@ -201,29 +199,26 @@ instance
         -- regardless of how unlifting is aligned.
         --
         -- 'pure' signifies that no failure can occur at this point.
-        pure . toMonoDeferredF @val @args @res fun $!
+        pure . toMonoDeferredF @val @args @res $!
             (\(f, exF) x -> (,) (f x) $! exF x) <$> getBoth <*> readKnown arg
     {-# INLINE toMonoDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
-class KnownMonotype val args res =>
-            KnownPolytype (binds :: [Some TyNameRep]) val args res where
+class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) val args res where
     knownPolytype :: TypeScheme val args res
 
     -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
     toPolyImmediateF
-        :: fun
-        -> (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime fun val
+        :: (FoldArgs args res, FoldArgs args ExBudget)
+        -> BuiltinRuntime val
 
     -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
     -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toPolyDeferredF
-        :: fun
-        -> ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime fun val
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+        -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res => KnownPolytype '[] val args res where
@@ -244,10 +239,9 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
 
-    toPolyImmediateF fun = BuiltinAll . toPolyImmediateF @binds @val @args @res fun
+    toPolyImmediateF = BuiltinAll . toPolyImmediateF @binds @val @args @res
     {-# INLINE toPolyImmediateF #-}
-
-    toPolyDeferredF fun = BuiltinAll . toPolyDeferredF @binds @val @args @res fun
+    toPolyDeferredF = BuiltinAll . toPolyDeferredF @binds @val @args @res
     {-# INLINE toPolyDeferredF #-}
 
 -- | Ensure a built-in function is not nullary and throw a nice error otherwise.
@@ -293,19 +287,18 @@ instance
         BuiltinMeaning (knownPolytype @binds @val @args @res) f $
             BuiltinRuntimeOptions
                 { _broImmediateF =
-                    \fun cost -> case toExF cost of
-                        !exF -> toPolyImmediateF @binds @val @args @res fun (f, exF)
+                    \cost -> case toExF cost of
+                        !exF -> toPolyImmediateF @binds @val @args @res (f, exF)
                 , _broDeferredF  =
-                    \fun cost -> case toExF cost of
-                        !exF -> toPolyDeferredF @binds @val @args @res fun $ pure (f, exF)
+                    \cost -> case toExF cost of
+                        !exF -> toPolyDeferredF @binds @val @args @res $ pure (f, exF)
                 }
     {-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost model.
-toBuiltinRuntime
-    :: UnliftingMode -> fun -> cost -> BuiltinMeaning val cost -> BuiltinRuntime fun val
-toBuiltinRuntime unlMode fun cost (BuiltinMeaning _ _ runtimeOpts) =
-    fromBuiltinRuntimeOptions unlMode fun cost runtimeOpts
+toBuiltinRuntime :: UnliftingMode -> cost -> BuiltinMeaning val cost -> BuiltinRuntime val
+toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
+    fromBuiltinRuntimeOptions unlMode cost runtimeOpts
 {-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].
@@ -315,8 +308,7 @@ toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
-    let arr = tabulateArray $ \fun ->
-                toBuiltinRuntime unlMode fun cost $ inline toBuiltinMeaning fun
+    let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning
      in -- Force array elements to WHNF
         foldr seq (BuiltinsRuntime arr) arr
 {-# INLINE toBuiltinsRuntime #-}
