@@ -100,11 +100,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkNilData                       = "mkNilDataModel"
   , paramMkNilPairData                   = "mkNilPairDataModel"
   , paramSerialiseData                   = "serialiseDataModel"
-  , paramShowBool                        = "showBoolModel"
   , paramShowInteger                     = "showIntegerModel"
-  , paramShowString                      = "showStringModel"
   , paramShowByteString                  = "showByteStringModel"
-  , paramShowData                        = "showDataModel"
   }
 
 
@@ -195,11 +192,8 @@ createBuiltinCostModel bmfile rfile = do
     paramMkNilData                       <- getParams mkNilData      paramMkNilData
     paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
     -- Show
-    paramShowBool                        <- getParams showBool paramShowBool
     paramShowInteger                     <- getParams showInteger paramShowInteger
-    paramShowString                      <- getParams showString paramShowString
     paramShowByteString                  <- getParams showByteString paramShowByteString
-    paramShowData                        <- getParams showData paramShowData
     pure $ BuiltinCostModelBase {..}
 
 -- The output of `tidy(model)` on the R side.
@@ -740,14 +734,6 @@ mkNilPairData cpuModelR = do
 
 ---------------- Misc constructors ----------------
 
-showBool :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-showBool cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel =
-        -- length "False" = 5
-        ModelOneArgumentLinearCost $ ModelLinearSize 5 0
-  pure $ CostingFun cpuModel memModel
-
 showInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 showInteger cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
@@ -756,26 +742,10 @@ showInteger cpuModelR = do
         ModelOneArgumentLinearCost $ ModelLinearSize 0 21
   pure $ CostingFun cpuModel memModel
 
-showString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-showString cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel =
-        -- Showing a string means adding quotes
-        ModelOneArgumentLinearCost $ ModelLinearSize 2 1
-  pure $ CostingFun cpuModel memModel
-
 showByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 showByteString cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
   let memModel =
         -- A ByteString of length 8 has 10 characters when shown (one per element, plus quotes)
         ModelOneArgumentLinearCost $ ModelLinearSize 0 10
-  pure $ CostingFun cpuModel memModel
-
-showData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-showData cpuModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel =
-        -- Taking the maximum of the above cases...
-        ModelOneArgumentLinearCost $ ModelLinearSize 5 21
   pure $ CostingFun cpuModel memModel

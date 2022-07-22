@@ -24,6 +24,10 @@ makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31] -- 16 entries
 makeLargeIntegerArgs :: StdGen -> ([Integer], StdGen)
 makeLargeIntegerArgs gen = makeSizedIntegers gen [1, 70..1000] -- 15 entries
 
+benchOneInteger :: StdGen -> DefaultFun -> Benchmark
+benchOneInteger gen builtinName = createOneTermBuiltinBench builtinName [] inputs
+   where
+      (inputs, _) = makeBiggerIntegerArgs gen
 
 benchTwoIntegers :: StdGen -> (StdGen -> ([Integer], StdGen)) -> DefaultFun -> Benchmark
 benchTwoIntegers gen makeArgs builtinName =
@@ -56,3 +60,4 @@ makeBenchmarks gen =
                                      , LessThanInteger
                                      , LessThanEqualsInteger
                                      ])
+    <> [benchOneInteger gen ShowInteger]

@@ -135,11 +135,8 @@ data BuiltinCostModelBase f =
     , paramMkNilPairData                   :: f ModelOneArgument
     , paramSerialiseData                   :: f ModelOneArgument
     -- Show
-    , paramShowBool                        :: f ModelOneArgument
     , paramShowInteger                     :: f ModelOneArgument
-    , paramShowString                      :: f ModelOneArgument
     , paramShowByteString                  :: f ModelOneArgument
-    , paramShowData                        :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

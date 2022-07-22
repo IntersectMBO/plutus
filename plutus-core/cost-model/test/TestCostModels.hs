@@ -357,9 +357,6 @@ main =
                     , $(genTest 1 "mkNilPairData")
 
                     -- Show
-                    , $(genTest 1 "showBool")
                     , $(genTest 1 "showInteger")
-                    , $(genTest 1 "showString")
                     , $(genTest 1 "showByteString")
-                    , $(genTest 1 "showData")
                     ]

@@ -31,17 +31,13 @@ instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE show #-}
     show = Builtins.showByteString
 
-instance Show Builtins.BuiltinData where
-    {-# INLINEABLE show #-}
-    show = Builtins.showData
-
 instance Show Builtins.BuiltinString where
-    {-# INLINEABLE show #-}
-    show = Builtins.showString
+    {-# INLINEABLE showsPrec #-}
+    showsPrec _ s = showString "\"" . showsPrec 0 s . showString "\""
 
 instance Show Bool where
     {-# INLINEABLE show #-}
-    show = Builtins.showBool
+    show b = if b then "True" else "False"
 
 instance Show () where
     {-# INLINEABLE show #-}

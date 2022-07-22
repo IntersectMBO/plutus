@@ -323,21 +323,9 @@ equalsString (BuiltinString s1) (BuiltinString s2) = BuiltinBool $ s1 == s2
 showInteger :: Integer -> BuiltinString
 showInteger = BuiltinString . Text.pack . show
 
-{-# NOINLINE showBool #-}
-showBool :: Bool -> BuiltinString
-showBool = BuiltinString . Text.pack . show
-
-{-# NOINLINE showString #-}
-showString :: BuiltinString -> BuiltinString
-showString (BuiltinString s) = BuiltinString . Text.pack $ show s
-
 {-# NOINLINE showByteString #-}
 showByteString :: BuiltinByteString -> BuiltinString
 showByteString (BuiltinByteString s) = BuiltinString . Text.pack $ show s
-
-{-# NOINLINE showData #-}
-showData :: BuiltinData -> BuiltinString
-showData (BuiltinData d) = BuiltinString . Text.pack $ show d
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> a -> a

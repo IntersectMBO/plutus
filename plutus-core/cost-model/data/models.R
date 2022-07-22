@@ -107,11 +107,8 @@ arity <- function(name) {
         "MkPairData" = 2,
         "MkNilData" = 1,
         "MkNilPairData" = 1,
-        "ShowBool" = 1,
         "ShowInteger" = 1,
-        "ShowString" = 1,
-        "ShowByteString" = 1,
-        "ShowData" = 1
+        "ShowByteString" = 1
         )
 }
 
@@ -657,31 +654,10 @@ modelFun <- function(path) {
 
     ##### Show #####
 
-    showBoolModel <- {
-        fname <- "ShowBool"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
     showIntegerModel <- {
         fname <- "ShowInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    showStringModel <- {
-        fname <- "ShowString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
         adjustModel(m,fname)
@@ -691,17 +667,6 @@ modelFun <- function(path) {
         fname <- "ShowByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    showDataModel <- {
-        fname <- "ShowData"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
         adjustModel(m,fname)
@@ -762,10 +727,7 @@ modelFun <- function(path) {
         mkNilDataModel                       = mkNilDataModel,
         mkNilPairDataModel                   = mkNilPairDataModel,
         serialiseDataModel                   = serialiseDataModel,
-        showBoolModel                        = showBoolModel,
         showIntegerModel                     = showIntegerModel,
-        showStringModel                      = showStringModel,
-        showByteStringModel                  = showByteStringModel,
-        showDataModel                        = showDataModel
+        showByteStringModel                  = showByteStringModel
     )
 }
