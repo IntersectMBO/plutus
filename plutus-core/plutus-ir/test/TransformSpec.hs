@@ -138,6 +138,8 @@ inline =
     , "transitive"
     , "tyvar"
     , "single"
+    , "immediateVar"
+    , "immediateApp"
     ]
 
 

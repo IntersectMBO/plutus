@@ -1,48 +1,43 @@
 (program
   1.0.0
   [
-    (lam factorial_144 [ factorial_144 (con integer 5) ])
     [
-      (lam arg_0_145 arg_0_145)
-      [
-        (lam s_146 [ s_146 s_146 ])
+      (lam s_181 [ s_181 s_181 ])
+      (lam
+        s_182
         (lam
-          s_147
-          (lam
-            x_148
-            [
-              (lam
-                factorial_149
+          x_183
+          [
+            (lam
+              factorial_184
+              [
                 [
                   [
                     [
-                      [
-                        (force (builtin ifThenElse))
-                        [ [ (builtin equalsInteger) x_148 ] (con integer 0) ]
-                      ]
-                      (lam u_150 (con integer 1))
+                      (force (builtin ifThenElse))
+                      [ [ (builtin equalsInteger) x_183 ] (con integer 0) ]
                     ]
-                    (lam
-                      u_151
-                      [
-                        [ (builtin multiplyInteger) x_148 ]
-                        [
-                          factorial_149
-                          [
-                            [ (builtin subtractInteger) x_148 ] (con integer 1)
-                          ]
-                        ]
-                      ]
-                    )
+                    (lam u_185 (con integer 1))
                   ]
-                  (con unit ())
+                  (lam
+                    u_186
+                    [
+                      [ (builtin multiplyInteger) x_183 ]
+                      [
+                        factorial_184
+                        [ [ (builtin subtractInteger) x_183 ] (con integer 1) ]
+                      ]
+                    ]
+                  )
                 ]
-              )
-              [ s_147 s_147 ]
-            ]
-          )
+                (con unit ())
+              ]
+            )
+            [ s_182 s_182 ]
+          ]
         )
-      ]
+      )
     ]
+    (con integer 5)
   ]
 )
