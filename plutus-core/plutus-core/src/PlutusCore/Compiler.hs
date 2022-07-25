@@ -32,6 +32,7 @@ compileTerm
     :: (ToBuiltinMeaning uni fun
     , MonadQuote m
     , HasUnique name TermUnique
+    , Eq name
     , MonadReader (CompilationOpts name a) m)
     => Term tyname name uni fun a
     -> m (UPLC.Term name uni fun a)
@@ -46,6 +47,7 @@ compileProgram
     :: (ToBuiltinMeaning uni fun
     , MonadQuote m
     , HasUnique name TermUnique
+    , Eq name
     , MonadReader (CompilationOpts name a) m)
     => Program tyname name uni fun a
     -> m (UPLC.Program name uni fun a)

@@ -27,7 +27,7 @@ defaultSimplifyOpts = SimplifyOpts
 
 simplifyProgram
     :: forall name uni fun m a
-    . (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique)
+    . (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique, Eq name)
     => SimplifyOpts name a
     -> Program name uni fun a
     -> m (Program name uni fun a)
@@ -35,7 +35,7 @@ simplifyProgram opts (Program a v t) = Program a v <$> simplifyTerm opts t
 
 simplifyTerm
     :: forall name uni fun m a
-    . (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique)
+    . (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique, Eq name)
     => SimplifyOpts name a
     -> Term name uni fun a
     -> m (Term name uni fun a)
