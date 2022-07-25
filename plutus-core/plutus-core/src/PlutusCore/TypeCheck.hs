@@ -11,8 +11,10 @@ module PlutusCore.TypeCheck
     , Typecheckable
     -- * Configuration.
     , BuiltinTypes (..)
+    , KindCheckConfig (..)
     , TypeCheckConfig (..)
     , tccBuiltinTypes
+    , defKindCheckConfig
     , builtinMeaningsToTypes
     , getDefTypeCheckConfig
     -- * Kind/type inference/checking.
@@ -45,6 +47,10 @@ import Universe
 -- argument to the worker of the type checker.
 type Typecheckable uni fun = (ToKind uni, HasUniApply uni, ToBuiltinMeaning uni fun)
 
+-- | The default kind checking config.
+defKindCheckConfig :: KindCheckConfig
+defKindCheckConfig = KindCheckConfig DetectNameMismatches
+
 -- | Extract the 'TypeScheme' from a 'BuiltinMeaning' and convert it to the
 -- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
@@ -53,33 +59,36 @@ builtinMeaningsToTypes
 builtinMeaningsToTypes ann =
     runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
         let ty = typeOfBuiltinFunction fun
-        _ <- inferKind $ ann <$ ty
+        _ <- inferKind defKindCheckConfig $ ann <$ ty
         dupable <$> normalizeType ty
 
 -- | Get the default type checking config.
 getDefTypeCheckConfig
     :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
     => ann -> m (TypeCheckConfig uni fun)
-getDefTypeCheckConfig ann = TypeCheckConfig <$> builtinMeaningsToTypes ann
+getDefTypeCheckConfig ann =
+    TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ann
 
 -- | Infer the kind of a type.
 inferKind
     :: MonadKindCheck err term uni fun ann m
-    => Type TyName uni ann -> m (Kind ())
-inferKind = runTypeCheckM () . inferKindM
+    => KindCheckConfig -> Type TyName uni ann -> m (Kind ())
+inferKind config = runTypeCheckM config . inferKindM
 
 -- | Check a type against a kind.
 -- Infers the kind of the type and checks that it's equal to the given kind
 -- throwing a 'TypeError' (annotated with the value of the @ann@ argument) otherwise.
 checkKind
     :: MonadKindCheck err term uni fun ann m
-    => ann -> Type TyName uni ann -> Kind () -> m ()
-checkKind ann ty = runTypeCheckM () . checkKindM ann ty
+    => KindCheckConfig -> ann -> Type TyName uni ann -> Kind () -> m ()
+checkKind config ann ty = runTypeCheckM config . checkKindM ann ty
 
 -- | Infer the type of a term.
 inferType
     :: MonadTypeCheckPlc err uni fun ann m
-    => TypeCheckConfig uni fun -> Term TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
+    => TypeCheckConfig uni fun
+    -> Term TyName Name uni fun ann
+    -> m (Normalized (Type TyName uni ()))
 inferType config = rename >=> runTypeCheckM config . inferTypeM
 
 -- | Check a term against a type.

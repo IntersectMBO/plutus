@@ -143,7 +143,7 @@ BUILTIN appendByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-
 BUILTIN lessThanByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
 BUILTIN lessThanEqualsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) = 
-  con (bool (B> b b'))
+  con (bool (B<= b b'))
 BUILTIN sha2-256 (step _ (base refl) (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
 BUILTIN sha3-256 (step _ (base refl) (V-con (bytestring b))) =
@@ -152,6 +152,14 @@ BUILTIN blake2b-256 (step _ (base refl) (V-con (bytestring b))) =
   con (bytestring (BLAKE2B-256 b))
 BUILTIN verifyEd25519Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifyEd25519Sig k d c
+... | just b = con (bool b)
+... | nothing = error _
+BUILTIN verifyEcdsaSecp256k1Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+  with verifyEcdsaSecp256k1Sig k d c
+... | just b = con (bool b)
+... | nothing = error _
+BUILTIN verifySchnorrSecp256k1Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+  with verifySchnorrSecp256k1Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
 BUILTIN equalsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
@@ -473,6 +481,26 @@ bappTermLem verifyEd25519Signature
             (bubble (bubble (start _)))
             (step _ (step _ (base refl) _) _)
             | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem verifyEcdsaSecp256k1Signature _ (start _) (base refl) = _ ,, _ ,, refl
+bappTermLem verifyEcdsaSecp256k1Signature _ (bubble (start _)) (step (start _) (base refl) _) =
+  _ ,, _ ,, refl
+bappTermLem verifyEcdsaSecp256k1Signature {as = as} _ (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] :< Term) :< Term) :< Term) as p refl
+bappTermLem verifyEcdsaSecp256k1Signature
+            _
+            (bubble (bubble (start _)))
+            (step _ (step _ (base refl) _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem verifySchnorrSecp256k1Signature _ (start _) (base refl) = _ ,, _ ,, refl
+bappTermLem verifySchnorrSecp256k1Signature _ (bubble (start _)) (step (start _) (base refl) _) =
+  _ ,, _ ,, refl
+bappTermLem verifySchnorrSecp256k1Signature {as = as} _ (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] :< Term) :< Term) :< Term) as p refl
+bappTermLem verifySchnorrSecp256k1Signature
+            _
+            (bubble (bubble (start _)))
+            (step _ (step _ (base refl) _) _)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
 bappTermLem equalsByteString _ (start _) (base refl) = _ ,, _ ,, refl
 bappTermLem equalsByteString {as = as} _ (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
@@ -734,6 +762,12 @@ bappTypeLem sha3-256 {az = az} _ p _
 bappTypeLem verifyEd25519Signature _ (bubble (bubble {as = az} p)) _
   with <>>-cancel-both' az _ ([] <>< arity verifyEd25519Signature) _ p refl
 ... | refl ,, refl ,, ()
+bappTypeLem verifyEcdsaSecp256k1Signature _ (bubble (bubble {as = az} p)) _
+  with <>>-cancel-both' az _ ([] <>< arity verifyEcdsaSecp256k1Signature) _ p refl
+... | refl ,, refl ,, ()
+bappTypeLem verifySchnorrSecp256k1Signature _ (bubble (bubble {as = az} p)) _
+  with <>>-cancel-both' az _ ([] <>< arity verifySchnorrSecp256k1Signature) _ p refl
+... | refl ,, refl ,, ()
 bappTypeLem equalsByteString _ (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
 ... | refl ,, refl ,, ()
@@ -897,6 +931,8 @@ ival lessThanByteString = V-I⇒ lessThanByteString (start _) (base refl)
 ival sha2-256 = V-I⇒ sha2-256 (start _) (base refl) 
 ival sha3-256 = V-I⇒ sha3-256 (start _) (base refl) 
 ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature (start _) (base refl) 
+ival verifyEcdsaSecp256k1Signature = V-I⇒ verifyEcdsaSecp256k1Signature (start _) (base refl) 
+ival verifySchnorrSecp256k1Signature = V-I⇒ verifySchnorrSecp256k1Signature (start _) (base refl) 
 ival equalsByteString = V-I⇒ equalsByteString (start _) (base refl) 
 ival ifThenElse = V-IΠ ifThenElse (start _) (base refl) 
 ival trace = V-IΠ trace (start _) (base refl) 

@@ -62,6 +62,8 @@ let
           # These need R
           plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
           plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
+          # This contains support for doing testing, so we're not interested in cross-compiling it
+          plutus-conformance.package.buildable = false;
         };
       })
       ({ pkgs, ... }:
@@ -101,7 +103,6 @@ let
             plutus-core.components.tests.plutus-core-test.buildable = lib.mkForce false;
             plutus-core.components.tests.plutus-ir-test.buildable = lib.mkForce false;
             plutus-core.components.tests.untyped-plutus-core-test.buildable = lib.mkForce false;
-            plutus-conformance.components.tests.uplc-eval-test.buildable = lib.mkForce false;
           };
         }
       )

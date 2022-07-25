@@ -41,7 +41,7 @@ import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Data.Text qualified as T
 import ErrorCode
-import Prettyprinter (hardline, indent, squotes, (<+>))
+import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe
 
@@ -91,6 +91,8 @@ data TypeError term uni fun ann
         -- ^ Expected type
         (Normalized (Type TyName uni ()))
         -- ^ Actual type
+    | TyNameMismatch ann TyName TyName
+    | NameMismatch ann Name Name
     | FreeTypeVariableE ann TyName
     | FreeVariableE ann Name
     | UnknownBuiltinFunctionE ann fun
@@ -103,6 +105,9 @@ data ParserErrorBundle
     = ParseErrorB (ParseErrorBundle T.Text ParserError)
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
+
+instance Pretty ParserErrorBundle where
+    pretty (ParseErrorB err) = pretty $ errorBundlePretty err
 
 data Error uni fun ann
     = ParseErrorE ParserErrorBundle
@@ -179,6 +184,26 @@ instance
         "Free variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy _ (UnknownBuiltinFunctionE ann fun) =
         "An unknown built-in function at" <+> pretty ann <> ":" <+> pretty fun
+    prettyBy _ (TyNameMismatch ann name1 name2) = hsep
+        [ "Type-level name mismatch at"
+        , pretty ann <> ":"
+        , pretty $ name1 ^. theText
+        , "is in scope, but"
+        , pretty $ name2 ^. theText
+        , "having the same Unique"
+        , pretty $ name1 ^. theUnique
+        , "is attempted to be referenced"
+        ]
+    prettyBy _ (NameMismatch ann name1 name2) = hsep
+        [ "Term-level name mismatch at"
+        , pretty ann <> ":"
+        , pretty $ name1 ^. theText
+        , "is in scope, but"
+        , pretty $ name2 ^. theText
+        , "having the same Unique"
+        , pretty $ name1 ^. theUnique
+        , "is attempted to be referenced"
+        ]
 
 instance
         ( Pretty (SomeTypeIn uni)
@@ -186,11 +211,11 @@ instance
         , Pretty fun
         , Pretty ann
         ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
-    prettyBy _      (ParseErrorE (ParseErrorB e)) = pretty $ errorBundlePretty e
-    prettyBy _      (UniqueCoherencyErrorE e)     = pretty e
-    prettyBy config (TypeErrorE e)                = prettyBy config e
-    prettyBy config (NormCheckErrorE e)           = prettyBy config e
-    prettyBy _      (FreeVariableErrorE e)        = pretty e
+    prettyBy _      (ParseErrorE e)           = pretty e
+    prettyBy _      (UniqueCoherencyErrorE e) = pretty e
+    prettyBy config (TypeErrorE e)            = prettyBy config e
+    prettyBy config (NormCheckErrorE e)       = prettyBy config e
+    prettyBy _      (FreeVariableErrorE e)    = pretty e
 
 instance HasErrorCode ParserError where
     errorCode InvalidBuiltinConstant {} = ErrorCode 10
@@ -216,6 +241,8 @@ instance HasErrorCode (TypeError _a _b _c _d) where
     errorCode TypeMismatch {}            = ErrorCode 16
     errorCode KindMismatch {}            = ErrorCode 15
     errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
+    errorCode TyNameMismatch {}          = ErrorCode 53
+    errorCode NameMismatch {}            = ErrorCode 54
 
 instance HasErrorCode (Error _a _b _c) where
     errorCode (ParseErrorE e)           = errorCode e
