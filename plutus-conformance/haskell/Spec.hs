@@ -11,4 +11,3 @@ main :: IO ()
 main =
     -- UPLC evaluation tests
     runUplcEvalTests evalUplcProg (\dir -> elem dir failingTests)
-

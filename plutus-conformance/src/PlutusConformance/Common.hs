@@ -80,7 +80,7 @@ discoverTests eval expectedFailureFn dir = do
                             (expectedToProg <$> T.readFile goldenFilePath)
                             -- get the tested value
                             (getTestedValue eval dir)
-                            compareAlphaEq -- comparison function
+                            (\ x y -> pure $ compareAlphaEq x y) -- comparison function
                             (updateGoldenFile goldenFilePath) -- update the golden file
             -- if the test is expected to fail, mark it so.
             if expectedFailureFn dir
@@ -135,19 +135,19 @@ getTestedValue eval dir = do
 compareAlphaEq ::
     Either T.Text UplcProg -- ^ golden value
     -> Either T.Text UplcProg -- ^ tested value
-    -> IO (Maybe String)
+    -> Maybe String
     -- ^ If two values are the same, it returns `Nothing`.
     -- If they are different, it returns an error that will be printed to the user.
 compareAlphaEq (Left expectedTxt) (Left actualTxt) =
     if actualTxt == expectedTxt
-    then pure Nothing
-    else pure $ Just $
+    then Nothing
+    else Just $
         "Test failed, the output failed to parse or evaluate: \n"
         <> T.unpack actualTxt
 compareAlphaEq (Right expected) (Right actual) =
     if actual == expected
-    then pure Nothing
-    else pure $ Just $
+    then Nothing
+    else Just $
         "Test failed, the output was successfully parsed and evaluated, but it isn't as expected. "
         <> "The output program is: \n"
         <> display actual
@@ -158,7 +158,7 @@ compareAlphaEq (Right expected) (Right actual) =
         <> "\n But the expected result, with the unique names shown is: \n"
         <> show expected
 compareAlphaEq (Right expected) (Left actualTxt) =
-    pure $ Just $ "Test failed, the output failed to parse or evaluate: \n"
+    pure $ "Test failed, the output failed to parse or evaluate: \n"
         <> T.unpack actualTxt
         <> "\n But the expected result, with the unique names shown is: \n"
         <> show expected
@@ -166,8 +166,8 @@ compareAlphaEq (Left txt) (Right actual) =
     {- this is the case when the expected program failed to parse because
     our parser doesn't support `data` atm. In these cases, if the textual program is the same
     as the actual, the tests succeed. -}
-    if txt == display actual then pure Nothing
-    else pure $ Just $
+    if txt == display actual then Nothing
+    else Just $
         "Test failed, the output was successfully parsed and evaluated, but it isn't as expected. "
         <> "The output program is: "
         <> display actual
