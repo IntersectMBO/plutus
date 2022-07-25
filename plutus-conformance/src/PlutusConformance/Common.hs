@@ -13,20 +13,19 @@ import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
-import PlutusPrelude
+import PlutusPrelude (display, void)
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
 import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.ExpectedFailure
-import Test.Tasty.Golden
+import Test.Tasty.ExpectedFailure (expectFail)
+import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
-import Test.Tasty.Providers
+import Test.Tasty.Providers (TestTree)
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
-import Witherable
+import Witherable (Witherable (wither))
 
 -- Common functions for all tests
 
@@ -55,17 +54,6 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 -- or `Nothing` if not.
 type UplcEvaluator = UplcProg -> Maybe UplcProg
 
--- | The type the tests are comparing.
-data RawTxtOrDebruijnTerm
-    = MkRawTxtOrDebruijnTerm {
-        raw              :: T.Text
-        -- ^ Either parse or evaluation error or, for the expected value, the raw text.
-        -- We can't parse `data` currently so we need to keep the raw text of some of the
-        -- expected values for comparison to not have parse errors.
-        , inDebruijnTerm :: UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()
-        -- ^ The program in the form of DeBruijn term. This is to facilitate checking of alpha-eq.
-    }
-
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
 discoverTests :: UplcEvaluator -- ^ The evaluator to be tested.
@@ -89,7 +77,7 @@ discoverTests eval expectedFailureFn dir = do
                         goldenTest
                             name -- test name
                             -- get the golden test value
-                            (fmap expectedToProg $ T.readFile goldenFilePath)
+                            (expectedToProg <$> T.readFile goldenFilePath)
                             -- get the tested value
                             (getTestedValue eval dir)
                             compareAlphaEq -- comparison function
@@ -104,7 +92,7 @@ discoverTests eval expectedFailureFn dir = do
 
 -- | Turn the expected file content in text to a `UplcProg` in Debruijn unless the expected result
 -- is a parse or evaluation error.
-expectedToProg :: T.Text -> Either T.Text RawTxtOrDebruijnTerm
+expectedToProg :: T.Text -> Either T.Text UplcProg
 expectedToProg txt
   | txt == shownEvaluationFailure =
     Left txt
@@ -116,14 +104,13 @@ expectedToProg txt
         Right p -> -- The evaluator throws if the term has free variables
             case UPLC.deBruijnTerm (UPLC._progTerm (void p)) of
                 Left (_ :: UPLC.FreeVariableError) -> Left shownEvaluationFailure
-                Right dbTm                         ->
-                    Right $ MkRawTxtOrDebruijnTerm txt dbTm
+                Right _                            -> Right $ void p
 
--- | Get the tested value (in `Either T.Text RawTxtOrDebruijnTerm`).
+-- | Get the tested value (in `Either T.Text UplcProg`).
 getTestedValue ::
     UplcEvaluator
     -> FilePath
-    -> IO (Either T.Text RawTxtOrDebruijnTerm)
+    -> IO (Either T.Text UplcProg)
 getTestedValue eval dir = do
     inputFile <- findByExtension [".uplc"] dir
     case inputFile of
@@ -140,14 +127,14 @@ getTestedValue eval dir = do
                             case UPLC.deBruijnTerm tm of
                                 Left (_ :: UPLC.FreeVariableError) ->
                                     pure $ Left shownEvaluationFailure
-                                Right dbTm                         ->
-                                    pure $ Right $ MkRawTxtOrDebruijnTerm (display prog) dbTm
+                                Right _                         ->
+                                    pure $ Right prog
 
 -- | The comparison function used for the golden test.
 -- This function checks alpha-equivalence of programs when the output is a program.
 compareAlphaEq ::
-    Either T.Text RawTxtOrDebruijnTerm -- ^ golden value
-    -> Either T.Text RawTxtOrDebruijnTerm -- ^ tested value
+    Either T.Text UplcProg -- ^ golden value
+    -> Either T.Text UplcProg -- ^ tested value
     -> IO (Maybe String)
     -- ^ If two values are the same, it returns `Nothing`.
     -- If they are different, it returns an error that will be printed to the user.
@@ -158,37 +145,41 @@ compareAlphaEq (Left expectedTxt) (Left actualTxt) =
         "Test failed, the output failed to parse or evaluate: \n"
         <> T.unpack actualTxt
 compareAlphaEq (Right expected) (Right actual) =
-    if inDebruijnTerm actual == inDebruijnTerm expected
+    if actual == expected
     then pure Nothing
     else pure $ Just $
         "Test failed, the output was successfully parsed and evaluated, but it isn't as expected. "
         <> "The output program is: \n"
-        <> (display $ raw actual)
-        <> "\n The output program, in Debruijn indexes is: \n"
-        <> (show $ inDebruijnTerm actual)
-        -- the user can look at the .expected file, but they can't see it in Debruijn term
-        <> "\n But the expected result in Debruijn indexes is: \n"
-        <> (show $ inDebruijnTerm expected)
+        <> display actual
+        <> "\n The output program, with the unique names shown is: \n"
+        -- using `show` here so that the unique names will show
+        <> show actual
+        -- the user can look at the .expected file, but they can't see the unique names
+        <> "\n But the expected result, with the unique names shown is: \n"
+        <> show expected
 compareAlphaEq (Right expected) (Left actualTxt) =
     pure $ Just $ "Test failed, the output failed to parse or evaluate: \n"
         <> T.unpack actualTxt
-        <> "\n But the expected result in Debruijn indexes is: \n"
-        <> (show $ inDebruijnTerm expected)
+        <> "\n But the expected result, with the unique names shown is: \n"
+        <> show expected
 compareAlphaEq (Left txt) (Right actual) =
-    if txt == raw actual then pure Nothing
+    {- this is the case when the expected program failed to parse because
+    our parser doesn't support `data` atm. In these cases, if the textual program is the same
+    as the actual, the tests succeed. -}
+    if txt == display actual then pure Nothing
     else pure $ Just $
         "Test failed, the output was successfully parsed and evaluated, but it isn't as expected. "
         <> "The output program is: "
-        <> (display $ raw actual)
+        <> display actual
         <> ". But the expected result is: "
         <> T.unpack txt
 
 -- | Update the golden file with the tested value. TODO abstract out for other tests.
 updateGoldenFile ::
     FilePath -- ^ the path to write the golden file to
-    -> Either T.Text RawTxtOrDebruijnTerm -> IO ()
+    -> Either T.Text UplcProg -> IO ()
 updateGoldenFile goldenPath (Left txt) = T.writeFile goldenPath txt
-updateGoldenFile goldenPath (Right p)  = T.writeFile goldenPath (raw p)
+updateGoldenFile goldenPath (Right p)  = T.writeFile goldenPath (display p)
 
 -- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
 evalUplcProg :: UplcEvaluator
