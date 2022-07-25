@@ -50,8 +50,7 @@ library
   import:          lang
   exposed-modules:
     Bitwise
-    Bitwise.Raw
-    Bitwise.RefIO
+    Bitwise.PackZipWith
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -319,7 +318,6 @@ library
     , time
     , transformers
     , unordered-containers
-    , wide-word
     , witherable
     , word-array
 
@@ -800,8 +798,7 @@ benchmark bitwise
     , bytestring
     , plutus-core
     , random
+    , tasty
     , tasty-bench
-    , transformers
-    , vector
 
   ghc-options:      -O2 -rtsopts "-with-rtsopts=-A32m --nonmoving-gc -T"

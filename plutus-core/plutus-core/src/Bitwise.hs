@@ -23,7 +23,6 @@ module Bitwise (
   rotateByteString,
   ) where
 
-import Bitwise.Raw (rawBitwiseBinary)
 import Control.Monad (foldM, when)
 import Control.Monad.State.Strict (State, evalState, get, modify, put)
 import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
@@ -321,11 +320,6 @@ popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
 -- only option was to 'zip out' into a list, then rebuild. This is not only
 -- inefficient (as you can't do a 'big step, little step' approach to this in
 -- general), it also copies too much.
-andByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
-andByteString bs bs' = case rawBitwiseBinary (.&.) bs bs' of
-  Nothing     -> mismatchedLengthError "andByteString" bs bs'
-  Just result -> pure . pure $ result
-{-
 {-# NOINLINE andByteString #-}
 andByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 andByteString bs bs'
@@ -333,7 +327,6 @@ andByteString bs bs'
   | otherwise = pure . pure . unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) ->
       unsafeUseAsCString bs' $ \ptr' ->
         zipBuild (.&.) ptr ptr' len >>= (unsafePackMallocCStringLen . (,len))
--}
 
 {-# NOINLINE iorByteString #-}
 iorByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
