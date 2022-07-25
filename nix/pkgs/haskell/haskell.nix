@@ -9,6 +9,7 @@
 , z3
 , R
 , libsodium-vrf
+, secp256k1
 , compiler-nix-name
 , enableHaskellProfiling
   # Whether to set the `defer-plugin-errors` flag on those packages that need
@@ -31,7 +32,7 @@ let
       };
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm"; # editorconfig-checker-disable-line
-      "https://github.com/input-output-hk/cardano-base"."1587462ac8b2e50af2691f5ad93d3c2aa4674ed1" = "sha256-jrSDD2fXgHf4wo5THzfK/6tolvt8y9rNuJWYfBooqaQ="; # editorconfig-checker-disable-line
+      "https://github.com/input-output-hk/cardano-base"."c16a1ebf60a27051303ec4ea76495311e3d2c4b1" = "sha256-sDjdU4LLxJAfl54rTi5e4WiOWa9mFDRF7yDu2UiDt48="; # editorconfig-checker-disable-line
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3"; # editorconfig-checker-disable-line
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6"; # editorconfig-checker-disable-line
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx"; # editorconfig-checker-disable-line
@@ -182,7 +183,7 @@ let
 
           # See https://github.com/input-output-hk/iohk-nix/pull/488
           cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
-          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
+          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf secp256k1 ] ];
         };
       })
     ] ++ lib.optional enableHaskellProfiling {
