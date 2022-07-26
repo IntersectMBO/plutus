@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 
 module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
