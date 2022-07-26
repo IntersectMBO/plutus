@@ -7,7 +7,7 @@ module Main (main) where
 
 import Bitwise.PackZipWith (packZipWithBinary)
 import Control.Monad (replicateM)
-import Data.Bits ((.&.))
+import Data.Bits (xor, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
@@ -22,23 +22,39 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain [
-    bgroup "Bitwise AND" . fmap bitwiseAndBench $ [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
+    bgroup bandLabel . fmap (binaryOpBench bandLabel (.&.)) $ sizes,
+    bgroup biorLabel . fmap (binaryOpBench biorLabel (.|.)) $ sizes,
+    bgroup bxorLabel . fmap (binaryOpBench bxorLabel xor) $ sizes
     ]
+  where
+    sizes :: [Int]
+    sizes = [1, 3, 7, 15, 23, 27, 31, 63, 127, 255, 511, 1023, 2047]
+    bandLabel :: String
+    bandLabel = "Bitwise AND"
+    biorLabel :: String
+    biorLabel = "Bitwise IOR"
+    bxorLabel :: String
+    bxorLabel = "Bitwise XOR"
 
 -- Benchmarks
 
-bitwiseAndBench :: Int -> Benchmark
-bitwiseAndBench len = withResource (mkBinaryArgs len) noCleanup $ \xs ->
-  let label = "zipWith"
-      label' = "packZipWith"
-      label'' = "hybrid"
-      testLabel = "Bitwise AND, length " <> show len
-      matchLabel = "$NF == \"" <> label <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-    bgroup testLabel [
-      bench label . nfIO $ uncurry (zipWithBinary (.&.)) <$> xs,
-      bcompare matchLabel . bench label' . nfIO $ uncurry (packZipWithBinary (.&.)) <$> xs,
-      bcompare matchLabel . bench label'' . nfIO $ uncurry (hybridBinary (.&.)) <$> xs
-      ]
+binaryOpBench ::
+  String ->
+  (Word8 -> Word8 -> Word8) ->
+  Int ->
+  Benchmark
+binaryOpBench mainLabel f len =
+  withResource (mkBinaryArgs len) noCleanup $ \xs ->
+    let zwLabel = "zipWith"
+        pzwLabel = "packZipWith"
+        hLabel = "hybrid"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> zwLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench zwLabel . nfIO $ uncurry (zipWithBinary f) <$> xs,
+        bcompare matchLabel . bench pzwLabel . nfIO $ uncurry (packZipWithBinary f) <$> xs,
+        bcompare matchLabel . bench hLabel . nfIO $ uncurry (hybridBinary f) <$> xs
+        ]
 
 -- Generators
 
@@ -72,5 +88,5 @@ hybridBinary ::
   ByteString ->
   Maybe ByteString
 hybridBinary f bs bs'
-  | max (BS.length bs) (BS.length bs') < 16 = zipWithBinary f bs bs'
+  | max (BS.length bs) (BS.length bs') < 24 = zipWithBinary f bs bs'
   | otherwise = packZipWithBinary f bs bs'
