@@ -37,25 +37,25 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
-failingTests :: [String]
+failingTests :: [FilePath]
 failingTests = [
-    "mkNilPairData"
-    , "chooseUnit"
-    , "mkNilData"
-    , "churchZero"
-    , "force-lam"
-    , "succInteger"
-    , "DivideByZero"
-    , "DivideByZeroDrop"
-    , "churchSucc"
-    , "lam"
-    , "delay-lam"
-    , "error"
-    , "ifThenElse-no-force"
+    "test-cases/uplc/evaluation/builtin/mkNilPairData"
+    , "test-cases/uplc/evaluation/builtin/chooseUnit"
+    , "test-cases/uplc/evaluation/builtin/mkNilData"
+    , "test-cases/uplc/evaluation/example/churchZero"
+    , "test-cases/uplc/evaluation/example/force-lam"
+    , "test-cases/uplc/evaluation/example/succInteger"
+    , "test-cases/uplc/evaluation/example/DivideByZero"
+    , "test-cases/uplc/evaluation/example/DivideByZeroDrop"
+    , "test-cases/uplc/evaluation/example/churchSucc"
+    , "test-cases/uplc/evaluation/term/lam"
+    , "test-cases/uplc/evaluation/term/delay-lam"
+    , "test-cases/uplc/evaluation/term/error"
+    , "test-cases/uplc/evaluation/failure/ifThenElse-no-force"
     ]
 
 main :: IO ()
 main =
     -- UPLC evaluation tests
-    runUplcEvalTests agdaEvalUplcProg failingTests
+    runUplcEvalTests agdaEvalUplcProg (\dir -> elem dir failingTests)
 
