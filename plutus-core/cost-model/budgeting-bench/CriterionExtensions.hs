@@ -80,7 +80,7 @@ criterionMainWith writeHeader defCfg bs =
                 time <- liftIO getCurrentTime
                 liftIO $ appendFile file $ "# Plutus Core cost model benchmark results\n"
                 liftIO $ appendFile file $ "# Started at " ++ show time ++ "\n"
-                writeCsv ("Benchmark","t","t.mean.lb","t.mean.ub","t.sd","t.sd.lb", "t.sd.ub")
+                writeCsv ("benchmark","t","t.mean.lb","t.mean.ub","t.sd","t.sd.lb", "t.sd.ub")
               else return ()
               liftIO initializeTime
               runAndAnalyse shouldRun bsgroup
