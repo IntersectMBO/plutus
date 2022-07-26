@@ -59,7 +59,7 @@ type UplcEvaluator = UplcProg -> Maybe UplcProg
 discoverTests :: UplcEvaluator -- ^ The evaluator to be tested.
     -> (FilePath -> Bool)
     -- ^ A function that takes a test name and returns
-    -- whether it should labelled as `ExpectedFailure`.
+    -- whether it should be labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
     -> IO TestTree
 discoverTests eval expectedFailureFn dir = do
@@ -90,7 +90,7 @@ discoverTests eval expectedFailureFn dir = do
     -- has children, so it's a grouping directory
     else testGroup name <$> traverse (discoverTests eval expectedFailureFn) subdirs
 
--- | Turn the expected file content in text to a `UplcProg` in Debruijn unless the expected result
+-- | Turn the expected file content in text to a `UplcProg` unless the expected result
 -- is a parse or evaluation error.
 expectedToProg :: T.Text -> Either T.Text UplcProg
 expectedToProg txt
@@ -100,13 +100,11 @@ expectedToProg txt
     Left txt
   | otherwise =
     case parseTxt txt of
-        Left _     -> Left txt
-        Right p -> -- The evaluator throws if the term has free variables
-            case UPLC.deBruijnTerm (UPLC._progTerm (void p)) of
-                Left (_ :: UPLC.FreeVariableError) -> Left shownEvaluationFailure
-                Right _                            -> Right $ void p
+        Left _  -> Left txt
+        Right p -> Right $ void p
 
--- | Get the tested value (in `Either T.Text UplcProg`).
+-- | Get the tested value. The tested value is either the shown parse or evaluation error,
+-- or a `UplcProg`.
 getTestedValue ::
     UplcEvaluator
     -> FilePath
@@ -122,13 +120,8 @@ getTestedValue eval dir = do
                 Left _ -> pure $ Left shownParseError
                 Right p -> do
                     case eval (void p) of
-                        Nothing                           -> pure $ Left shownEvaluationFailure
-                        Just prog@(UPLC.Program () _version tm) -> do
-                            case UPLC.deBruijnTerm tm of
-                                Left (_ :: UPLC.FreeVariableError) ->
-                                    pure $ Left shownEvaluationFailure
-                                Right _                         ->
-                                    pure $ Right prog
+                        Nothing   -> pure $ Left shownEvaluationFailure
+                        Just prog -> pure $ Right prog
 
 -- | The comparison function used for the golden test.
 -- This function checks alpha-equivalence of programs when the output is a program.
@@ -163,9 +156,9 @@ compareAlphaEq (Right expected) (Left actualTxt) =
         <> "\n But the expected result, with the unique names shown is: \n"
         <> show expected
 compareAlphaEq (Left txt) (Right actual) =
-    {- this is the case when the expected program failed to parse because
-    our parser doesn't support `data` atm. In these cases, if the textual program is the same
-    as the actual, the tests succeed. -}
+    {- this is to catch the case when the expected program failed to parse because
+    our parser doesn't support `data` atm. In this case, if the textual program is the same
+    as the actual, the test succeeds. -}
     if txt == display actual then Nothing
     else Just $
         "Test failed, the output was successfully parsed and evaluated, but it isn't as expected. "
