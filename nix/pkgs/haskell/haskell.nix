@@ -183,7 +183,9 @@ let
 
           # See https://github.com/input-output-hk/iohk-nix/pull/488
           cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
-          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf secp256k1 ] ];
+          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [
+            [ libsodium-vrf secp256k1 ]
+          ];
         };
       })
     ] ++ lib.optional enableHaskellProfiling {
