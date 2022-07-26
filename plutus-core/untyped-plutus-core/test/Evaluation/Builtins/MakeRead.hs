@@ -65,7 +65,7 @@ builtinRoundtrip genX = property $ do
 
 test_textRoundtrip :: TestTree
 test_textRoundtrip =
-    testProperty "textRoundtrip" . builtinRoundtrip $
+    testPropertyNamed "textRoundtrip" "textRoundtrip" . builtinRoundtrip $
         Gen.text (Range.linear 0 20) Gen.unicode
 
 -- | Generate a bunch of 'text's, put each of them into a 'Term', apply a builtin over
@@ -78,7 +78,7 @@ test_textRoundtrip =
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
 -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
 test_collectText :: TestTree
-test_collectText = testProperty "collectText" . property $ do
+test_collectText = testPropertyNamed "collectText" "collectText" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
     let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
             [ mkConstant @Text @DefaultUni () arg

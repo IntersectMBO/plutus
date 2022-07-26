@@ -110,7 +110,7 @@ verifyEcdsaSecp256k1Signature pk msg sig =
 -- = Note
 --
 -- There are additional well-formation requirements for the arguments beyond
--- their length:
+-- their length. Throughout, we refer to co-ordinates of the point @R@.
 --
 -- * The bytes of the public key must correspond to the /x/ coordinate, as a
 -- big-endian integer, as specified in BIP-340.

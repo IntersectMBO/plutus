@@ -24,6 +24,7 @@ import Data.Ix
 import Data.Kind qualified as GHC
 import Data.List.Extra qualified as List
 import Evaluation.Machines (test_machines)
+import GHC.Exts (fromString)
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty
@@ -48,7 +49,7 @@ test_builtinsDon'tThrow =
         "Builtins don't throw"
         $ fmap
             ( \fun ->
-                testProperty (display fun) $
+                testPropertyNamed (display fun) (fromString . display $ fun) $
                     prop_builtinEvaluation @_ @DefaultFun fun gen f
             )
             List.enumerate
@@ -85,7 +86,7 @@ test_alwaysThrows :: TestTree
 test_alwaysThrows =
     testGroup
         "Builtins throwing exceptions should cause tests to fail"
-        [ testProperty (display AlwaysThrows) $
+        [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
             prop_builtinEvaluation @_ @AlwaysThrows AlwaysThrows genArgsWellTyped f
         ]
   where

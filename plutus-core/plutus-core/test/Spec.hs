@@ -259,10 +259,10 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
   testGroup "all tests"
     [ tests
     , testCase "lexing constants from small types" testLexConstant
-    , testProperty "lexing constants" propLexConstant
-    , testProperty "parser round-trip" propParser
-    , testProperty "serialization round-trip (Flat)" propFlat
-    , testProperty "nat/word serialization test" natWordSerializationProp
+    , testPropertyNamed "lexing constants" "propLexConstant" propLexConstant
+    , testPropertyNamed "parser round-trip" "propParser" propParser
+    , testPropertyNamed "serialization round-trip (Flat)" "propFlat" propFlat
+    , testPropertyNamed "nat/word serialization test" "natWordSerializationProp" natWordSerializationProp
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles

@@ -223,7 +223,7 @@ verifyEcdsaSecp256k1Signature vk msg sig =
 -- = Note
 --
 -- There are additional well-formation requirements for the arguments beyond
--- their length:
+-- their length. Throughout, we refer to co-ordinates of the point @R@.
 --
 -- * The bytes of the public key must correspond to the /x/ coordinate, as a
 -- big-endian integer, as specified in BIP-340.
@@ -238,6 +238,9 @@ verifyEcdsaSecp256k1Signature vk msg sig =
 -- *
 -- [@secp256k1_xonly_pubkey_serialize@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_extrakeys.h#L61);
 -- this implements the format for the verification key that we accept.
+-- *
+-- [@secp256k1_schnorrsig_sign@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_schnorrsig.h#L129);
+-- this implements the signing logic for signatures this builtin can verify.
 verifySchnorrSecp256k1Signature
   :: BuiltinByteString -- ^ Verification key (32 bytes)
   -> BuiltinByteString -- ^ Message (arbitrary length)
