@@ -478,6 +478,7 @@ test-suite untyped-plutus-core-test
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
+    Evaluation.Regressions
     Generators
     Transform.Simplify
 
@@ -494,6 +495,7 @@ test-suite untyped-plutus-core-test
     , plutus-core-testlib
     , pretty-show
     , prettyprinter
+    , split
     , tasty
     , tasty-golden
     , tasty-hedgehog
