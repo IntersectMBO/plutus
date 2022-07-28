@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -9,7 +10,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Core.Instance.Pretty.Readable () where
+module PlutusCore.Core.Instance.Pretty.Readable (typeBinderDocM) where
 
 import PlutusPrelude
 
@@ -34,6 +35,9 @@ typeBinderDocM k = do
     withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         let prettyBind name kind = case showKinds of
                 ShowKindsYes -> parens $ prettyBot name <+> "::" <+> prettyBot kind
+                ShowKindsNonType -> case kind of
+                  Type{} -> prettyBot name
+                  _      -> parens $ prettyBot name <+> "::" <+> prettyBot kind
                 ShowKindsNo  -> prettyBot name
         encloseM binderFixity $ k prettyBind prettyBot
 
@@ -42,8 +46,10 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
         Type{}          -> "*"
         KindArrow _ k l -> k `arrowPrettyM` l
 
-instance (PrettyReadableBy configName tyname, GShow uni) =>
-        PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
+instance
+        ( PrettyReadableBy configName tyname
+        , Pretty (SomeTypeIn uni)
+        ) => PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
         TyApp _ fun arg           -> fun `juxtPrettyM` arg
         TyVar _ name              -> prettyM name
@@ -62,7 +68,9 @@ instance (PrettyReadableBy configName tyname, GShow uni) =>
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst
+        , Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ con         -> unitDocM $ pretty con

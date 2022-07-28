@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -23,9 +24,9 @@ module PlutusCore.Quote
     , markNonFreshMax
     ) where
 
-import PlutusPrelude
+import PlutusPrelude (fromMaybe)
 
-import PlutusCore.Name
+import PlutusCore.Name (Name (Name), TyName (TyName), Unique (..))
 
 import Control.Monad.Except
 import Control.Monad.Morph as MM
@@ -48,7 +49,7 @@ emptyFreshState = Unique 0
 -- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC terms using quasiquotation,
 -- fresh-name generation, and parsing.
 newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadIO, MonadWriter w)
+    deriving newtype (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadIO, MonadWriter w)
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (QuoteT m) where

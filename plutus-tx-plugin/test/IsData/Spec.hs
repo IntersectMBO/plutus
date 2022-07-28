@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -8,19 +9,22 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+
 module IsData.Spec where
 
-import Common
-import Lib
-import PlcTestUtils
+import Test.Tasty.Extras
+
 import Plugin.Data.Spec
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

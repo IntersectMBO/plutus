@@ -36,7 +36,7 @@ data Tx
     , mintTX    :: Value
     , feeTX     :: Value
     }
-    deriving (Show)
+    deriving stock (Show)
 
 data TxStripped
   = TxStripped
@@ -45,7 +45,7 @@ data TxStripped
     , mintTXS    :: Value
     , feeTXS     :: Value
     }
-    deriving (Show)
+    deriving stock (Show)
 
 stripTx :: Tx -> TxStripped
 stripTx Tx{..}
@@ -77,7 +77,7 @@ data TxOutRef
     { idTOR    :: TxId
     , indexTOR :: Int
     }
-    deriving (Show, Eq, Ord)
+    deriving stock (Show, Eq, Ord)
 
 -- |A single transaction input
 --
@@ -86,7 +86,7 @@ data TxIn
     { refTI     :: TxOutRef
     , witnessTI :: Witness
     }
-    deriving (Show)
+    deriving stock (Show)
 
 -- |Convenience constructor for inputs.
 --
@@ -113,7 +113,7 @@ data TxOut
     { addressTO :: Address
     , valueTO   :: Value
     }
-    deriving (Eq, Show)
+    deriving stock (Eq, Show)
 
 instance BA.ByteArrayAccess Tx where
   length        = BA.length . BS.pack . show            -- FIXME: we should serialise properly

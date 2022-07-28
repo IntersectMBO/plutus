@@ -6,8 +6,9 @@ module Evaluation.Builtins.MakeRead
     ) where
 
 import PlutusCore qualified as TPLC
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc hiding (error)
@@ -30,12 +31,12 @@ import Data.Text (Text)
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) b
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnownOrFail @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+    xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
     case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
@@ -44,15 +45,15 @@ readMakeHetero x = do
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
 readMake
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        )
     => a -> EvaluationResult a
 readMake = readMakeHetero
 
 builtinRoundtrip
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        , Show a, Eq a
        )
     => Gen a -> Property

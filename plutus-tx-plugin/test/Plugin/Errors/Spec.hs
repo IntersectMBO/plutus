@@ -1,21 +1,25 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Errors.Spec where
 
-import Common
-import Lib ()
-import PlcTestUtils
+import Test.Tasty.Extras
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
+import PlutusTx.Test ()
 
 import Data.Proxy
 import Data.String

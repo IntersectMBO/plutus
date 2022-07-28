@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusTx.Utils where
 
 -- We do not use qualified import because the whole module contains off-chain code

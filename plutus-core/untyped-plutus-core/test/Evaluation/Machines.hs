@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 
@@ -9,12 +10,13 @@ module Evaluation.Machines
     ) where
 
 import UntypedPlutusCore
-import UntypedPlutusCore.Evaluation.HOAS
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import PlutusCore qualified as Plc
-import PlutusCore.Constant
+import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plc
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.FsTree
@@ -27,12 +29,12 @@ import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
-import Common
 import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
 import Prettyprinter
 import Prettyprinter.Render.Text
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -45,8 +47,8 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testProperty name . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = erase <$> makeKnownOrFail @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
-            case extractEvaluationResult . eval $ erase term of
+            let resExp = eraseTerm <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            case extractEvaluationResult . eval $ eraseTerm term of
                 Left err     -> fail $ show err
                 Right resAct -> resAct === resExp
 
@@ -54,7 +56,6 @@ test_machines :: TestTree
 test_machines =
     testGroup "machines"
         [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
-        , testMachine "HOAS" $ evaluateHoas Plc.defaultBuiltinsRuntime
         ]
 
 testBudget
@@ -115,7 +116,7 @@ test_budget
     . testNested "Budget"
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime ()) bunchOfIdNats
+        , folder (toBuiltinsRuntime Plc.defaultUnliftingMode ()) bunchOfIdNats
         , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where
@@ -123,7 +124,7 @@ test_budget
         foldPlcFolderContents
             testNested
             (\name _ -> pure $ testGroup name [])
-            (\name -> testBudget runtime name . erase)
+            (\name -> testBudget runtime name . eraseTerm)
 
 testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
@@ -138,5 +139,5 @@ test_tallying =
         .  testNested "Tallying"
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])
-                                 (\name -> testTallying name . erase)
+                                 (\name -> testTallying name . eraseTerm)
         $ bunchOfFibs

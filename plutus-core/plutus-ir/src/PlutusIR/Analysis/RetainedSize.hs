@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
@@ -15,7 +16,7 @@ import PlutusIR.Analysis.Size
 import PlutusIR.Core
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (ToBuiltinMeaning)
+import PlutusCore.Builtin (ToBuiltinMeaning)
 import PlutusCore.Name
 
 import Algebra.Graph qualified as C
@@ -96,7 +97,7 @@ we know there's a bug somewhere and if it doesn't, we don't care about it.
 data RetainedSize
     = Retains Size
     | NotARetainer
-    deriving (Show)
+    deriving stock (Show)
 
 instance Pretty RetainedSize where
     pretty (Retains size) = "$" <> pretty size <> "$"

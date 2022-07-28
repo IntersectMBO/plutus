@@ -113,7 +113,9 @@ sig lessThanEqualsByteString =
   ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
 sig sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
 sig sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-sig verifySignature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifyEd25519Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifyEcdsaSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifySchnorrSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
 sig equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
 sig appendString = ∅ ,, ∅ , con string , con string ,, con string
 sig trace = ∅ ,, ∅ , con string ,, con unit

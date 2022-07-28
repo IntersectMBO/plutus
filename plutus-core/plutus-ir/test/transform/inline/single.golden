@@ -1,5 +1,6 @@
 (let
   (nonrec)
+  (termbind (strict) (vardecl x (con integer)) (con integer 42))
   (termbind
     (strict)
     (vardecl simple (con integer))
@@ -7,12 +8,7 @@
   )
   (termbind
     (strict)
-    (vardecl insideLambda (fun (con integer) (con integer)))
-    (lam y (con integer) [ (lam y (con integer) y) y ])
-  )
-  (termbind
-    (strict)
-    (vardecl noInline (con integer))
+    (vardecl trivialLambda (con integer))
     (let
       (nonrec)
       (termbind
@@ -26,7 +22,7 @@
   (termbind
     (strict)
     (vardecl variableCapture (con integer))
-    [ (lam y (con integer) (con integer 42)) (con integer 24) ]
+    [ (lam y (con integer) x) (con integer 24) ]
   )
-  (con integer 42)
+  x
 )

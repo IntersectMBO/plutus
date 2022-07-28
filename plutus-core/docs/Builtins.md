@@ -313,7 +313,7 @@ eval $ AppBuiltinFunction EqInteger
     ]
 ```
 
-expands to `hsToPlc (1 == 2)`, which reduces to `hsToPlc True` and this is where we need to lift a Haskell `Bool` into a Plutus Core `bool`. Previousy we would just wrap the result with `ConstantInteger`, but now we need to write an actual conversion function on the Haskell side:
+expands to `hsToPlc (1 == 2)`, which reduces to `hsToPlc False` and this is where we need to lift a Haskell `Bool` into a Plutus Core `bool`. Previousy we would just wrap the result with `ConstantInteger`, but now we need to write an actual conversion function on the Haskell side:
 
 ```haskell
 liftBool :: Bool -> Term

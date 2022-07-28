@@ -1,23 +1,28 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Data.Spec where
 
-import Common
-import Lib
-import PlcTestUtils
+import Test.Tasty.Extras
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 import Data.Proxy
 
@@ -37,6 +42,7 @@ monoData = testNested "monomorphic" [
   , goldenPir "monoConstructor" monoConstructor
   , goldenPir "monoConstructed" monoConstructed
   , goldenPir "monoCase" monoCase
+  , goldenPir "monoCaseStrict" monoCaseStrict
   , goldenUEval "monoConstDest" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "defaultCase" defaultCase
   , goldenPir "irrefutableMatch" irrefutableMatch
@@ -44,8 +50,10 @@ monoData = testNested "monomorphic" [
   , goldenUEval "monoConstDestDefault" [ toUPlc monoCase, toUPlc monoConstructed ]
   , goldenPir "monoRecord" monoRecord
   , goldenPir "recordNewtype" recordNewtype
+  , goldenPir "recordWithStrictField" recordWithStrictField
+  , goldenPir "unusedWrapper" unusedWrapper
   , goldenPir "nonValueCase" nonValueCase
-  , goldenPir "strictPattern" strictPattern
+  , goldenPir "strictDataMatch" strictDataMatch
   , goldenPir "synonym" synonym
   ]
 
@@ -55,7 +63,7 @@ basicEnum :: CompiledCode MyEnum
 basicEnum = plc (Proxy @"basicEnum") Enum1
 
 data MyMonoData = Mono1 Integer Integer | Mono2 Integer | Mono3 Integer
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance P.Eq MyMonoData where
     {-# INLINABLE (==) #-}
@@ -64,8 +72,9 @@ instance P.Eq MyMonoData where
     (Mono3 i1) == (Mono3 i2)       = i1 P.== i2
     _ == _                         = False
 
-monoDataType :: CompiledCode (MyMonoData -> MyMonoData)
-monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> x)
+-- pattern match to avoid type getting simplified away
+monoDataType :: CompiledCode (MyMonoData -> Integer)
+monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
 monoConstructor = plc (Proxy @"monConstructor") Mono1
@@ -75,6 +84,10 @@ monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)
 
 monoCase :: CompiledCode (MyMonoData -> Integer)
 monoCase = plc (Proxy @"monoCase") (\(x :: MyMonoData) -> case x of { Mono1 _ b -> b;  Mono2 a -> a; Mono3 a -> a })
+
+-- Bang patterns on pattern-matches do nothing: it's already strict
+monoCaseStrict :: CompiledCode (MyMonoData -> Integer)
+monoCaseStrict = plc (Proxy @"monoCase") (\(x :: MyMonoData) -> case x of { Mono1 _ !b -> b;  Mono2 a -> a; Mono3 !a -> a })
 
 defaultCase :: CompiledCode (MyMonoData -> Integer)
 defaultCase = plc (Proxy @"defaultCase") (\(x :: MyMonoData) -> case x of { Mono3 a -> a ; _ -> 2; })
@@ -86,28 +99,46 @@ atPattern :: CompiledCode ((Integer, Integer) -> Integer)
 atPattern = plc (Proxy @"atPattern") (\t@(_::Integer, y::Integer) -> let fst (a, _) = a in Builtins.addInteger y (fst t))
 
 data MyMonoRecord = MyMonoRecord { mrA :: Integer , mrB :: Integer}
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance P.Eq MyMonoRecord where
     {-# INLINABLE (==) #-}
     (MyMonoRecord i1 j1) == (MyMonoRecord i2 j2) = i1 P.== i2 && j1 P.== j2
 
-monoRecord :: CompiledCode (MyMonoRecord -> MyMonoRecord)
-monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> x)
+-- pattern match to avoid type getting simplified away
+monoRecord :: CompiledCode (MyMonoRecord -> Integer)
+monoRecord = plc (Proxy @"monoRecord") (\(x :: MyMonoRecord) -> case x of { MyMonoRecord i _ -> i; })
 
 data RecordNewtype = RecordNewtype { newtypeField :: MyNewtype }
 
-recordNewtype :: CompiledCode (RecordNewtype -> RecordNewtype)
-recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> x)
+-- pattern match to avoid type getting simplified away
+recordNewtype :: CompiledCode (RecordNewtype -> Integer)
+recordNewtype = plc (Proxy @"recordNewtype") (\(x :: RecordNewtype) -> case x of { RecordNewtype (MyNewtype i) -> i; })
+
+data RecordWithStrictField = RecordWithStrictField { strictField1 :: !MyMonoRecord, strictField2 :: !RecordNewtype }
+
+-- checks that the type of 'strictField2' is replaced with 'Integer', see Note [On data constructor workers and wrappers]
+recordWithStrictField :: CompiledCode (RecordWithStrictField -> RecordNewtype)
+recordWithStrictField = plc (Proxy @"recordWithStrictField") (\(x :: RecordWithStrictField) -> strictField2 x)
+
+data T = MkT !(Integer,Integer)
+
+mkT :: (Integer, Integer) -> T
+mkT = MkT
+
+-- checks that the 'wrapper' is compiled but unused, see Note [On data constructor workers and wrappers]
+unusedWrapper :: CompiledCode T
+unusedWrapper = plc (Proxy @"unusedWrapper") ((\x (y, z) -> x (z, y)) mkT (1, 2))
 
 -- must be compiled with a lazy case
 nonValueCase :: CompiledCode (MyEnum -> Integer)
 nonValueCase = plc (Proxy @"nonValueCase") (\(x :: MyEnum) -> case x of { Enum1 -> 1::Integer ; Enum2 -> Builtins.error (); })
 
-data StrictPattern a = StrictPattern !a !a
+-- Bang patterns on data types do nothing: fields are already strict
+data StrictTy a = StrictTy !a !a
 
-strictPattern :: CompiledCode (StrictPattern Integer)
-strictPattern = plc (Proxy @"strictPattern") (StrictPattern 1 2)
+strictDataMatch :: CompiledCode (StrictTy Integer)
+strictDataMatch = plc (Proxy @"strictDataMatch") (StrictTy 1 2)
 
 type Synonym = Integer
 
@@ -129,8 +160,9 @@ instance (P.Eq a, P.Eq b) => P.Eq (MyPolyData a b) where
     (Poly2 a1) == (Poly2 a2)       = a1 P.== a2
     _ == _                         = False
 
-polyDataType :: CompiledCode (MyPolyData Integer Integer -> MyPolyData Integer Integer)
-polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> x)
+-- pattern match to avoid type getting simplified away
+polyDataType :: CompiledCode (MyPolyData Integer Integer -> Integer)
+polyDataType = plc (Proxy @"polyDataType") (\(x:: MyPolyData Integer Integer) -> case x of { Poly2 i -> i; _ -> 1; })
 
 polyConstructed :: CompiledCode (MyPolyData Integer Integer)
 polyConstructed = plc (Proxy @"polyConstructed") (Poly1 (1::Integer) (2::Integer))
@@ -151,7 +183,7 @@ newtypes = testNested "newtypes" [
    ]
 
 newtype MyNewtype = MyNewtype Integer
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 newtype MyNewtype2 = MyNewtype2 MyNewtype
 
@@ -175,8 +207,9 @@ nestedNewtypeMatch = plc (Proxy @"nestedNewtypeMatch") (\(MyNewtype2 (MyNewtype 
 
 newtype ParamNewtype a = ParamNewtype (Maybe a)
 
-paramNewtype :: CompiledCode (ParamNewtype Integer -> ParamNewtype Integer)
-paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> x)
+-- pattern match to avoid type getting simplified away
+paramNewtype :: CompiledCode (ParamNewtype Integer -> Integer)
+paramNewtype = plc (Proxy @"paramNewtype") (\(x ::ParamNewtype Integer) -> case x of { ParamNewtype (Just i) -> i; _ -> 1 })
 
 recursiveTypes :: TestNested
 recursiveTypes = testNested "recursive" [

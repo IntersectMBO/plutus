@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# LANGUAGE ConstraintKinds   #-}
@@ -19,10 +20,16 @@ import Control.Lens
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 
+import Data.Default.Class
+
 data ShowKinds
     = ShowKindsYes
+    | ShowKindsNonType
     | ShowKindsNo
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
+
+instance Default ShowKinds where
+  def = ShowKindsNonType
 
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable

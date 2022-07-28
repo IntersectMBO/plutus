@@ -10,9 +10,7 @@
       )
     )
     (termbind
-      (strict)
-      (vardecl fail (fun (all a (type) a) Bool))
-      (lam ds (all a (type) a) False)
+      (strict) (vardecl fail (fun (con unit) Bool)) (lam ds (con unit) False)
     )
     (termbind
       (strict)
@@ -62,13 +60,13 @@
                       }
                       (abs dead (type) True)
                     ]
-                    (abs dead (type) [ fail (abs e (type) (error e)) ])
+                    (abs dead (type) [ fail (con unit ()) ])
                   ]
                   (all dead (type) dead)
                 }
               )
             ]
-            (abs dead (type) [ fail (abs e (type) (error e)) ])
+            (abs dead (type) [ fail (con unit ()) ])
           ]
           (all dead (type) dead)
         }

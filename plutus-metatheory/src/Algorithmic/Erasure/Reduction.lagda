@@ -64,7 +64,9 @@ erase-arity-lem lessThanByteString refl refl = refl
 erase-arity-lem lessThanEqualsByteString refl refl = refl
 erase-arity-lem sha2-256 refl refl = refl
 erase-arity-lem sha3-256 refl refl = refl
-erase-arity-lem verifySignature refl refl = refl
+erase-arity-lem verifyEd25519Signature refl refl = refl
+erase-arity-lem verifyEcdsaSecp256k1Signature refl refl = refl
+erase-arity-lem verifySchnorrSecp256k1Signature refl refl = refl
 erase-arity-lem equalsByteString refl refl = refl
 erase-arity-lem ifThenElse refl refl = refl
 erase-arity-lem appendString refl refl = refl
@@ -175,7 +177,13 @@ erase-BUILTIN lessThanByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,,
 erase-BUILTIN lessThanEqualsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl
 erase-BUILTIN sha2-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
 erase-BUILTIN sha3-256 σ (tt ,, _ ,, A.V-con (bytestring b)) = refl
-erase-BUILTIN verifySignature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifySig b b' b''
+erase-BUILTIN verifyEd25519Signature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifyEd25519Sig b b' b''
+... | Util.just _ = refl
+... | Util.nothing = refl
+erase-BUILTIN verifyEcdsaSecp256k1Signature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifySchnorrSecp256k1Sig b b' b''
+... | Util.just _ = refl
+... | Util.nothing = refl
+erase-BUILTIN verifySchnorrSecp256k1Signature σ (((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) ,, _ ,, A.V-con (bytestring b'')) with verifySchnorrSecp256k1Sig b b' b''
 ... | Util.just _ = refl
 ... | Util.nothing = refl
 erase-BUILTIN equalsByteString σ ((tt ,, _ ,, A.V-con (bytestring b)) ,, _ ,, A.V-con (bytestring b')) = refl

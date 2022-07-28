@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -12,7 +13,7 @@ module Evaluation.ApplyBuiltinName
 import PlutusCore (defaultBuiltinCostModel)
 import UntypedPlutusCore
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Generators
@@ -48,7 +49,7 @@ type AppErr =
 newtype AppM a = AppM
     { unAppM :: Either AppErr a
     } deriving newtype (Functor, Applicative, Monad, MonadError AppErr)
-      deriving (MonadEmitter) via (NoEmitterT AppM)
+    deriving (MonadEmitter) via (NoEmitterT AppM)
 
 -- | This shows that the builtin application machinery accepts untyped terms.
 test_applyBuiltinFunction :: DefaultFun -> TestTree

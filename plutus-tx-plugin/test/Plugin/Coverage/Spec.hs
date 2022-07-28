@@ -1,15 +1,14 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:coverage-all #-}
-{-# OPTIONS_GHC -g #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 
 module Plugin.Coverage.Spec (coverage) where
 
-import Common
-import Lib
-
 import Control.Lens
+
 
 import Data.Map qualified as Map
 import Data.Proxy
@@ -19,9 +18,11 @@ import PlutusTx.Code
 import PlutusTx.Coverage
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 import Prelude as Haskell
 
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.HUnit
 
 noBool :: CompiledCode (() -> ())
@@ -51,11 +52,11 @@ boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskel
 coverage :: TestNested
 coverage = testNested "Coverage"
   [ pure $ testGroup "Application heads and line coverage"
-         [ mkTests "noBool" noBool Set.empty [28]
-         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [31]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "==", "otherFun"]) [34, 38, 39, 40]
-         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [46]
-         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [49]
+         [ mkTests "noBool" noBool Set.empty [29]
+         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [32]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [35, 39, 40, 41]
+         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [47]
+         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [50]
          ]
  , goldenPir "coverageCode" boolOtherFunction ]
 

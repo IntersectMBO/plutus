@@ -21,8 +21,8 @@
         runHook preBuild
         mkdir -p ${buildDir}
         # The bibtex_fudge setting is because our version of latexmk has an issue with bibtex
-        # and explicit output directories, which should be fixed in v4.70b: 
-        # https://tex.stackexchange.com/questions/564626/latexmk-4-70a-doesnt-compile-document-with-bibtex-citation
+        # and explicit output directories, which should be fixed in v4.70b:
+        # https://tex.stackexchange.com/questions/564626/latexmk-4-70a-doesnt-compile-document-with-bibtex-citation # editorconfig-checker-disable-line
         latexmk \
           -e '$bibtex_fudge=1' \
           -outdir=${buildDir} \
@@ -42,6 +42,8 @@
         runHook postInstall
       '';
     });
-  # A typical good filter for latex sources. This also includes files for cases where agda sources are being compiled
-  filterLatex = src: lib.sourceFilesBySuffices src [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
+  # A typical good filter for latex sources. This also includes files for cases where
+  # agda sources are being compiled
+  filterLatex = src: lib.sourceFilesBySuffices src
+    [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 }

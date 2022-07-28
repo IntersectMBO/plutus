@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -31,7 +32,7 @@ tests = testGroup "checks"
     , normalTypesCheck
     ]
 
-data Tag = Tag Int | Ignore deriving (Show, Eq, Ord)
+data Tag = Tag Int | Ignore deriving stock (Show, Eq, Ord)
 
 checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkTermUniques = Uniques.checkTerm (\case FreeVariable{} -> False; _ -> True)
@@ -82,7 +83,7 @@ incoherentUse =
 
 propRenameCheck :: Property
 propRenameCheck = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
+    prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
     renamed <- runQuoteT $ rename prog
     annotateShow $ ShowPretty renamed
     Hedgehog.evalExceptT $ checkUniques renamed

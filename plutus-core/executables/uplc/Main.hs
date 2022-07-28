@@ -1,9 +1,8 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE PartialTypeSignatures     #-}
-{-# LANGUAGE RankNTypes                #-}
 
 module Main (main) where
 
@@ -11,21 +10,20 @@ import Common
 import Parsers
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import Data.Aeson qualified as Aeson
-import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (asum)
 import Data.Functor (void)
 import Data.List (nub)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromJust)
+import Data.Text qualified as T
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Text qualified as T
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
@@ -52,6 +50,7 @@ data Command = Apply     ApplyOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
              | DumpModel
+             | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
 
@@ -147,6 +146,9 @@ plutusOpts = hsubparser (
     <> command "dump-model"
            (info (pure DumpModel)
             (progDesc "Dump the cost model parameters"))
+    <> command "print-builtin-signatures"
+           (info (pure PrintBuiltinSignatures)
+            (progDesc "Print the signatures of the built-in functions"))
   )
 
 
@@ -155,9 +157,9 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.AlexPosn)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
-        case map (\case p -> () <$ p) scripts of
+        case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
           progAndargs -> foldl1 UPLC.applyProgram progAndargs
   writeProgram outp ofmt mode appliedScript
@@ -167,7 +169,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
     prog <- getProgram ifmt inp
-    let term = void . UPLC.toTerm $ prog
+    let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
                     Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
@@ -213,28 +215,27 @@ runUplcPrintExample = runPrintExample getUplcExamples
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (UplcProg PLC.AlexPosn)) >>= print . getPrintMethod mode
+    (parseInput inp :: IO (UplcProg PLC.SourcePos)) >>= print . getPrintMethod mode
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (UplcProg PLC.AlexPosn))
+    program <- (getProgram ifmt inp :: IO (UplcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
 
-runDumpModel :: IO ()
-runDumpModel = do
-    let params = fromJust PLC.defaultCostModelParams
-    BSL.putStr $ Aeson.encode params
+
+---------------- Driver ----------------
 
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts -> runApply        opts
-        Eval      opts -> runEval         opts
-        Example   opts -> runUplcPrintExample opts
-        Print     opts -> runPrint        opts
-        Convert   opts -> runConvert      opts
-        DumpModel      -> runDumpModel
+        Apply     opts         -> runApply        opts
+        Eval      opts         -> runEval         opts
+        Example   opts         -> runUplcPrintExample opts
+        Print     opts         -> runPrint        opts
+        Convert   opts         -> runConvert      opts
+        DumpModel              -> runDumpModel
+        PrintBuiltinSignatures -> runPrintBuiltinSignatures

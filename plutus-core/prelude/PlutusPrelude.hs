@@ -1,10 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusPrelude
@@ -34,6 +33,9 @@ module PlutusPrelude
     , void
     , through
     , coerce
+    , coerceVia
+    , coerceArg
+    , coerceRes
     , Generic
     , NFData
     , Natural
@@ -53,6 +55,7 @@ module PlutusPrelude
     , set
     , (%~)
     , over
+    , (<^>)
     -- * Debugging
     , traceShowId
     , trace
@@ -64,7 +67,7 @@ module PlutusPrelude
     , mtraverse
     , foldMapM
     , reoption
-    , enumeration
+    , enumerate
     , tabulateArray
     , (?)
     , ensure
@@ -85,7 +88,7 @@ module PlutusPrelude
     , showText
     ) where
 
-import Control.Applicative (Alternative (..))
+import Control.Applicative (Alternative (..), liftA2)
 import Control.Arrow ((&&&))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
@@ -100,8 +103,8 @@ import Data.Either (fromRight, isRight)
 import Data.Foldable (fold, toList)
 import Data.Function (on)
 import Data.Functor (($>))
-import Data.Functor.Compose
 import Data.List (foldl')
+import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text qualified as T
@@ -117,12 +120,13 @@ import Text.PrettyBy.Internal
 
 infixr 2 ?
 infixl 4 <<$>>, <<*>>
+infixr 6 <^>
 
 -- | A newtype wrapper around @a@ whose point is to provide a 'Show' instance
 -- for anything that has a 'Pretty' instance.
 newtype ShowPretty a = ShowPretty
     { unShowPretty :: a
-    } deriving (Eq)
+    } deriving stock (Eq)
 
 instance Pretty a => Show (ShowPretty a) where
     show = display . unShowPretty
@@ -139,11 +143,29 @@ instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (Eithe
 deriving via PrettyCommon (Either a b)
     instance PrettyDefaultBy config (Either a b) => PrettyBy config (Either a b)
 
+-- | Coerce the second argument to the result type of the first one. The motivation for this
+-- function is that it's often more annoying to explicitly specify a target type for 'coerce' than
+-- to construct an explicit coercion function, so this combinator can be used in cases like that.
+-- Plus the code reads better, as it becomes clear what and where gets wrapped/unwrapped.
+coerceVia :: Coercible a b => (a -> b) -> a -> b
+coerceVia _ = coerce
+{-# INLINE coerceVia #-}
+
+-- | Same as @\f -> f . coerce@, but does not create any closures and so is completely free.
+coerceArg :: Coercible a b => (a -> s) -> b -> s
+coerceArg = coerce
+{-# INLINE coerceArg #-}
+
+-- | Same as @\f -> coerce . f@, but does not create any closures and so is completely free.
+coerceRes :: Coercible s t => (a -> s) -> a -> t
+coerceRes = coerce
+{-# INLINE coerceRes #-}
+
 (<<$>>) :: (Functor f1, Functor f2) => (a -> b) -> f1 (f2 a) -> f1 (f2 b)
-(<<$>>) f = getCompose . fmap f . Compose
+(<<$>>) = fmap . fmap
 
 (<<*>>) :: (Applicative f1, Applicative f2) => f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
-f <<*>> a = getCompose $ Compose f <*> Compose a
+(<<*>>) = liftA2 (<*>)
 
 -- | Makes an effectful function ignore its result value and return its input value.
 through :: Functor f => (a -> f b) -> (a -> f a)
@@ -162,14 +184,11 @@ foldMapM f xs = foldr step return xs mempty where
 reoption :: (Foldable f, Alternative g) => f a -> g a
 reoption = foldr (const . pure) empty
 
-enumeration :: (Bounded a, Enum a) => [a]
-enumeration = [minBound .. maxBound]
-
 -- | Basically a @Data.Functor.Representable@ instance for 'Array'.
 -- We can't provide an actual instance because of the @Distributive@ superclass: @Array i@ is not
 -- @Distributive@ unless we assume that indices in an array range over the entirety of @i@.
 tabulateArray :: (Bounded i, Enum i, Ix i) => (i -> a) -> Array i a
-tabulateArray f = listArray (minBound, maxBound) $ map f enumeration
+tabulateArray f = listArray (minBound, maxBound) $ map f enumerate
 
 newtype PairT b f a = PairT
     { unPairT :: f (b, a)
@@ -198,3 +217,7 @@ printPretty = print . pretty
 
 showText :: Show a => a -> T.Text
 showText = T.pack . show
+
+-- | Compose two folds to make them run in parallel. The results are concatenated.
+(<^>) :: Fold s a -> Fold s a -> Fold s a
+(f1 <^> f2) g s = f1 g s *> f2 g s

@@ -1,3 +1,5 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE FlexibleInstances        #-}
@@ -21,10 +23,13 @@ module Universe.Core
     , SomeTypeIn (..)
     , Kinded (..)
     , ValueOf (..)
-    , someValueOf
-    , someValue
     , Contains (..)
     , Includes
+    , knownUniOf
+    , someType
+    , someValueOf
+    , someValue
+    , someValueType
     , DecodeUniM (..)
     , Closed (..)
     , decodeKindedUni
@@ -35,7 +40,7 @@ module Universe.Core
     , HasUniApply (..)
     , checkStar
     , withApplicable
-    , knownUniOf
+    , tryUniApply
     , GShow (..)
     , gshow
     , GEq (..)
@@ -52,7 +57,6 @@ import Data.GADT.Compare
 import Data.GADT.Compare.TH
 import Data.GADT.DeepSeq
 import Data.GADT.Show
-import Data.Hashable
 import Data.Kind
 import Data.Proxy
 import Data.Some.Newtype
@@ -399,6 +403,10 @@ at the use site, so instead we define 'Includes' as a type alias of one argument
 has to be immediately applied only to a @uni@ at the use site).
 -}
 
+-- | A @Kinded uni@ contains an @a :: k@ whenever @uni@ contains it and @k@ is 'Typeable'.
+instance (Typeable k, uni `Contains` a) => Kinded uni `Contains` (a :: k) where
+    knownUni = Kinded knownUni
+
 -- See Note [The definition of Includes].
 -- | @uni `Includes` a@ reads as \"@a@ is in the @uni@\". @a@ can be of a higher-kind,
 -- see the docs of 'Contains' on why you might want that.
@@ -409,6 +417,10 @@ type Includes uni = Permits (Contains uni)
 knownUniOf :: uni `Contains` a => proxy a -> uni (Esc a)
 knownUniOf _ = knownUni
 
+-- | Wrap a type into @SomeTypeIn@, provided it's in the universe.
+someType :: forall k (a :: k) uni. uni `Contains` a => SomeTypeIn uni
+someType = SomeTypeIn $ knownUni @k @uni @a
+
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
 someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
@@ -416,6 +428,9 @@ someValueOf uni = Some . ValueOf uni
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
 someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
+
+someValueType :: Some (ValueOf uni) -> SomeTypeIn uni
+someValueType (Some (ValueOf tag _)) = SomeTypeIn tag
 
 -- | A monad to decode types from a universe in.
 -- We use a monad for decoding, because parsing arguments of polymorphic built-in types can peel off
@@ -548,6 +563,9 @@ type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
+    -- | Apply a type constructor to an argument.
+    uniApply :: forall k l (f :: k -> l) a. uni (Esc f) -> uni (Esc a) -> uni (Esc (f a))
+
     -- | Deconstruct a type application into the function and the argument and feed them to the
     -- continuation. If the type is not an application, then return the default value.
     matchUniApply
@@ -592,6 +610,14 @@ withApplicable _ _ k =
             withTypeable repB k
         _ -> mzero
 
+-- | Apply a type constructor to an argument, provided kinds match.
+tryUniApply
+    :: (MonadPlus m, HasUniApply uni)
+    => SomeTypeIn (Kinded uni) -> SomeTypeIn (Kinded uni) -> m (SomeTypeIn (Kinded uni))
+tryUniApply (SomeTypeIn (Kinded uniF)) (SomeTypeIn (Kinded uniA)) =
+    withApplicable uniF uniA $
+        pure . SomeTypeIn . Kinded $ uniF `uniApply` uniA
+
 {- Note [The G, the Tag and the Auto]
 Providing instances for
 
@@ -605,7 +631,7 @@ Take for example @Show (Some f)@, we could implement it as
     instance (forall a. Show (f a)) => Show (Some f) where
         show (Some a) = "Some " ++ show a
 
-(with `-XQuantifiedConstraints`). Unfortunately, that breaks @deriving (Show)@ for every data type
+(with `-XQuantifiedConstraints`). Unfortunately, that breaks @deriving stock (Show)@ for every data type
 that has @Some f@ somewhere inside it and forces you to use a standalone deriving declaration for
 each such data type, which is rather annoying, because instance contexts tend to get huge,
 so it takes time to come up with them or to remember where to copy them from and they also occupy
@@ -764,15 +790,3 @@ instance Closed uni => NFData (SomeTypeIn uni) where
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
     rnf = grnf
-
--------------------- 'Hashable'
-
-instance Closed uni => Hashable (SomeTypeIn uni) where
-    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (ValueOf uni a) where
-    hashWithSalt salt (ValueOf uni x) =
-        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
-
-instance (Closed uni, uni `Everywhere` Hashable) => Hashable (Some (ValueOf uni)) where
-    hashWithSalt salt (Some s) = hashWithSalt salt s

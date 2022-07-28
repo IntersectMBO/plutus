@@ -5,7 +5,6 @@
 , haskell-nix
 , buildPackages
 , writeShellScript
-, checkMaterialization
 , gitignore-nix
 , R
 , libsodium-vrf
@@ -28,17 +27,15 @@ let
     in
     parseIndexState (builtins.readFile ../../../cabal.project);
 
-  # The compiler that we are using. We are using a patched version so we need to specify it explicitly.
-  # This version has the experimental core interface files patch, and a fix for unboxed tuples in
-  # GHCi, which helps with HLS.
-  compiler-nix-name = "ghc810420210212";
+  # The compiler that we are using.
+  compiler-nix-name = "ghc8107";
 
   # The haskell project created by haskell-nix.stackProject'
   baseProject =
     { deferPluginErrors }:
     import ./haskell.nix {
       inherit lib haskell-nix R libsodium-vrf rPackages z3;
-      inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+      inherit agdaWithStdlib compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
     };
@@ -56,11 +53,12 @@ let
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
-    inherit index-state checkMaterialization compiler-nix-name;
+    inherit index-state compiler-nix-name;
   };
 
 in
 rec {
-  inherit index-state compiler-nix-name project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
+  inherit index-state compiler-nix-name;
+  inherit project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
   inherit extraPackages;
 }

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- | Plutus benchmarks for some simple list algortihms.  See README.md for more information. -}
 
 module Main (main) where

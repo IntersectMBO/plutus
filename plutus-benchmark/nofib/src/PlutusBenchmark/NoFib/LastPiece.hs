@@ -48,7 +48,7 @@ data Piece = P PieceId
 data Solution = Soln Board
               | Choose [Solution]       -- Non-empty
               | Fail  -- Board Square
-                deriving (Haskell.Show)
+                deriving stock (Haskell.Show)
 
 data Sex = Male | Female
 

@@ -34,7 +34,7 @@ data FsTree a
 -- tests (pretty-printing, type synthesis, etc) against simple and compound modules uniformly.
 newtype FolderContents a = FolderContents
     { unFolderContents :: [FsTree a]
-    } deriving (Semigroup, Monoid)
+    } deriving newtype (Semigroup, Monoid)
 
 -- | A 'PlcEntity' is either a 'Type' or a 'Term'.
 data PlcEntity uni fun

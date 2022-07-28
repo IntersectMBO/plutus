@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
@@ -19,7 +20,9 @@ module PlutusTx.Builtins (
                                 , sha2_256
                                 , sha3_256
                                 , blake2b_256
-                                , verifySignature
+                                , verifyEd25519Signature
+                                , verifyEcdsaSecp256k1Signature
+                                , verifySchnorrSecp256k1Signature
                                 , decodeUtf8
                                 -- * Integer builtins
                                 , Integer
@@ -43,6 +46,7 @@ module PlutusTx.Builtins (
                                 , matchData
                                 , matchData'
                                 , equalsData
+                                , serialiseData
                                 , mkConstr
                                 , mkMap
                                 , mkList
@@ -64,6 +68,11 @@ module PlutusTx.Builtins (
                                 -- * Lists
                                 , matchList
                                 -- * Tracing
+                                , showInteger
+                                , showBool
+                                , showString
+                                , showByteString
+                                , showData
                                 , trace
                                 -- * Conversions
                                 , fromBuiltin
@@ -122,10 +131,16 @@ sha3_256 = BI.sha3_256
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 = BI.blake2b_256
 
-{-# INLINABLE verifySignature #-}
--- | Verify that the signature is a signature of the message by the public key.
-verifySignature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> Bool
-verifySignature pubKey message signature = fromBuiltin (BI.verifySignature pubKey message signature)
+{-# INLINABLE verifyEd25519Signature #-}
+-- | Ed25519 signature verification. Verify that the signature is a signature of
+-- the message by the public key. This will fail if key or the signature are not
+-- of the expected length.
+verifyEd25519Signature
+    :: BuiltinByteString  -- ^ Public Key (32 bytes)
+    -> BuiltinByteString  -- ^ Message    (arbirtary length)
+    -> BuiltinByteString  -- ^ Signature  (64 bytes)
+    -> Bool
+verifyEd25519Signature pubKey message signature = fromBuiltin (BI.verifyEd25519Signature pubKey message signature)
 
 {-# INLINABLE equalsByteString #-}
 -- | Check if two 'ByteString's are equal.
@@ -156,6 +171,41 @@ greaterThanEqualsByteString x y = BI.ifThenElse (BI.lessThanByteString x y) Fals
 -- | Converts a ByteString to a String.
 decodeUtf8 :: BuiltinByteString -> BuiltinString
 decodeUtf8 = BI.decodeUtf8
+
+{-# INLINEABLE verifyEcdsaSecp256k1Signature #-}
+-- | Given an ECDSA SECP256k1 verification key, an ECDSA SECP256k1 signature,
+-- and an ECDSA SECP256k1 message hash (all as 'BuiltinByteString's), verify the
+-- hash with that key and signature.
+--
+-- = Important note
+--
+-- The verification key, the signature, and the message hash must all be of
+-- appropriate form and length. This function will error if any of
+-- these are not the case.
+verifyEcdsaSecp256k1Signature
+  :: BuiltinByteString -- ^ Verification key (64 bytes)
+  -> BuiltinByteString -- ^ Message hash (32 bytes)
+  -> BuiltinByteString -- ^ Signature (64 bytes)
+  -> Bool
+verifyEcdsaSecp256k1Signature vk msg sig =
+  fromBuiltin (BI.verifyEcdsaSecp256k1Signature vk msg sig)
+
+{-# INLINEABLE verifySchnorrSecp256k1Signature #-}
+-- | Given a Schnorr SECP256k1 verification key, a Schnorr SECP256k1 signature,
+-- and a message (all as 'BuiltinByteString's), verify the message with that key
+-- and signature.
+--
+-- = Important note
+--
+-- The verification key and signature must all be of appropriate form and
+-- length. This function will error if this is not the case.
+verifySchnorrSecp256k1Signature
+  :: BuiltinByteString -- ^ Verification key (64 bytes)
+  -> BuiltinByteString -- ^ Message
+  -> BuiltinByteString -- ^ Signature (64 bytes)
+  -> Bool
+verifySchnorrSecp256k1Signature vk msg sig =
+  fromBuiltin (BI.verifySchnorrSecp256k1Signature vk msg sig)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.
@@ -237,6 +287,26 @@ emptyString = BI.emptyString
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
 
+{-# INLINABLE showInteger #-}
+showInteger :: Integer -> BuiltinString
+showInteger = BI.showInteger
+
+{-# INLINABLE showBool #-}
+showBool :: Bool -> BuiltinString
+showBool = BI.showBool
+
+{-# INLINABLE showString #-}
+showString :: BuiltinString -> BuiltinString
+showString = BI.showString
+
+{-# INLINABLE showByteString #-}
+showByteString :: BuiltinByteString -> BuiltinString
+showByteString = BI.showByteString
+
+{-# INLINABLE showData #-}
+showData :: BuiltinData -> BuiltinString
+showData = BI.showData
+
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
 trace :: BuiltinString -> a -> a
@@ -255,6 +325,11 @@ matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (
 -- one depending on which corresponds to the actual constructor of the given value.
 chooseData :: forall a . BuiltinData -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
+
+{-# INLINABLE serialiseData #-}
+-- | Convert a String into a ByteString.
+serialiseData :: BuiltinData -> BuiltinByteString
+serialiseData = BI.serialiseData
 
 {-# INLINABLE mkConstr #-}
 -- | Constructs a 'BuiltinData' value with the @Constr@ constructor.

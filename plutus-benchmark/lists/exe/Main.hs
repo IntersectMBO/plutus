@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | This compiles several list-sorting algorithms to Plutus Core and runs them on
@@ -13,18 +14,19 @@ import PlutusBenchmark.Lists.Sort
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =
-    case Cek.runCekNoEmit PLC.defaultCekParameters Cek.counting term of
+    case (\ (fstT,sndT,_) -> (fstT,sndT) ) $ Cek.runCekDeBruijn PLC.defaultCekParameters Cek.counting Cek.noEmitter term of
       (Left _, _)                 -> Nothing
       (Right _, Cek.CountingSt c) -> let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral cpu
 
 getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
-    case Cek.runCekNoEmit PLC.unitCekParameters Cek.tallying term of
+    case (\ (fstT,sndT,_) -> (fstT,sndT) ) $ Cek.runCekDeBruijn PLC.unitCekParameters Cek.tallying Cek.noEmitter term of
       (Left _, _)                   -> Nothing
       (Right _, Cek.TallyingSt (Cek.CekExTally counts) _) ->
           let getCount k =

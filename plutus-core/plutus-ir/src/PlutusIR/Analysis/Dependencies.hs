@@ -1,14 +1,14 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeOperators    #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
 module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 
 import PlutusIR
@@ -35,7 +35,7 @@ type DepState = StrictnessMap
 -- node indicating the root of the graph. We need the root node because when computing the
 -- dependency graph of, say, a term, there will not be a binding for the term itself which
 -- we can use to represent it in the graph.
-data Node = Variable PLC.Unique | Root deriving (Show, Eq, Ord)
+data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
 -- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from it), whose
 -- vertices are 'Node's.
@@ -115,6 +115,34 @@ From the point of view of our algorithm, we handle the dependency by treating it
 reference to the newly bound variable alongside the binding, but only in the cases where it matters.
 -}
 
+{- Note [Dependencies for datatype bindings, and pruning them]
+At face value, all the names introduced by datatype bindings should depend on each other.
+Given our meaning of "A depends on B", since we cannot remove any part of the datatype binding without
+removing the whole thing, they all depend on each other
+
+However, there are some circumstances in which we *can* prune datatype bindings.
+
+In particular, if the datatype is only used at the type-level (i.e. all the term-level parts
+(constructors and destructor) are dead), then we are free to completely replace the binding
+with one for a trivial type with the same kind.
+
+This is because there are *no* term-level effects, and types are erased in the end, so
+in this case rest of the datatype binding really is superfluous.
+
+But how do we represent this in the dependency graph? We still need to have proper dependencies
+so that we don't make the wrong decisions wrt transitively used values, e.g.
+
+let U :: * = ...
+let datatype T = T1 | T2 U
+in T1
+
+Here we need to not delete U, even though T2 is "dead"!
+
+The solution is to focus on the meaning of "dependency": with the pruning that we can do, we *can*
+remove all the term level bits en masse, but only en-mass. So we need to make *them* into a clique,
+so that this is visible to the dependency analysis.
+-}
+
 bindingDeps
     :: (DepGraph g, MonadReader (DepCtx term) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun)
@@ -137,16 +165,22 @@ bindingDeps b = case b of
         tDeps <- withCurrent n $ typeDeps rhs
         pure $ G.overlay vDeps tDeps
     DatatypeBind _ (Datatype _ d tvs destr constrs) -> do
+        -- See Note [Dependencies for datatype bindings, and pruning them]
         vDeps <- tyVarDeclDeps d
         tvDeps <- traverse tyVarDeclDeps tvs
         cstrDeps <- traverse varDeclDeps constrs
-        -- All the datatype bindings depend on each other since they can't be used separately. Consider
-        -- the identity function on a datatype type - it only uses the type variable, but the whole definition
-        -- will therefore be kept, and so we must consider any uses in e.g. the constructors as live.
-        let tyus = fmap (view PLC.theUnique) $ _tyVarDeclName d : fmap _tyVarDeclName tvs
-        let tus = fmap (view PLC.theUnique) $ destr : fmap _varDeclName constrs
-        let localDeps = G.clique (fmap Variable $ tyus ++ tus)
-        pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [localDeps]
+        -- Destructors depend on the datatype and the argument types of all the constructors, because e.g. a destructor for Maybe looks like:
+        -- forall a . Maybe a -> (a -> r) -> r -> r
+        -- i.e. the argument type of the Just constructor appears as the argument to the branch.
+        --
+        -- We can get the effect of that by having it depend on all the constructor types (which also include the datatype).
+        -- This is more diligent than currently necessary since we're going to make all the term-level
+        -- parts depend on each other later, but it's good practice and will be useful if we ever stop doing that.
+        destrDeps <- G.overlays <$> (withCurrent destr $ traverse (typeDeps . _varDeclType) constrs)
+        let tus = fmap (view PLC.theUnique) (destr : fmap _varDeclName constrs)
+        -- See Note [Dependencies for datatype bindings, and pruning them]
+        let nonDatatypeClique = G.clique (fmap Variable tus)
+        pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeClique]
 
 bindingStrictness
     :: (MonadState DepState m, PLC.HasUnique name PLC.TermUnique)
@@ -194,7 +228,7 @@ termDeps = \case
         modify (Map.insert (n ^. PLC.theUnique) Strict)
         tds <- termDeps t
         tyds <- typeDeps ty
-        pure $ G.overlays $ [tds, tyds]
+        pure $ G.overlays [tds, tyds]
     x -> do
         tds <- traverse termDeps (x ^.. termSubterms)
         tyds <- traverse typeDeps (x ^.. termSubtypes)
@@ -209,5 +243,5 @@ typeDeps
 typeDeps ty =
     -- The dependency graph of a type is very simple since it doesn't have any internal let-bindings. So we just
     -- need to find all the used variables and mark them as dependencies of the current node.
-    let used = Usages.allUsed $ Usages.runTypeUsages ty
+    let used = Usages.allUsed $ Usages.typeUsages ty
     in currentDependsOn (Set.toList used)

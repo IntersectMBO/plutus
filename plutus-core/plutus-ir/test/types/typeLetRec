@@ -1,0 +1,13 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl y (con integer))
+    [ (let
+        (rec)
+        (typebind (tyvardecl a (type)) (con integer))
+        (lam x a x)
+      )
+      (con integer 1)
+    ]
+  )
+  y
+)

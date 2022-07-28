@@ -1,5 +1,4 @@
 { pkgs
-, checkMaterialization
 , system ? builtins.currentSystem
 , config ? { }
 , sources
@@ -13,7 +12,7 @@ let
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
     inherit gitignore-nix sources;
-    inherit agdaWithStdlib checkMaterialization enableHaskellProfiling;
+    inherit agdaWithStdlib enableHaskellProfiling;
 
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
@@ -27,9 +26,13 @@ let
   cabal-install = haskell.extraPackages.cabal-install.components.exes.cabal;
   cardano-repo-tool = exeFromExtras "cardano-repo-tool";
   stylish-haskell = exeFromExtras "stylish-haskell";
+  cabal-fmt = exeFromExtras "cabal-fmt";
   hlint = exeFromExtras "hlint";
   haskell-language-server = exeFromExtras "haskell-language-server";
-  haskell-language-server-wrapper = pkgs.writeShellScriptBin "haskell-language-server-wrapper" ''${haskell-language-server}/bin/haskell-language-server "$@"'';
+  haskell-language-server-wrapper =
+    pkgs.writeShellScriptBin
+      "haskell-language-server-wrapper"
+      ''${haskell-language-server}/bin/haskell-language-server "$@"'';
   hie-bios = exeFromExtras "hie-bios";
   haskellNixAgda = haskell.extraPackages.Agda;
 
@@ -57,7 +60,12 @@ let
           haskellNixAgda.components.exes.agda-mode
         ];
       }) // { version = haskellNixAgda.identifier.version; };
-      frankenPkgs = pkgs // { haskellPackages = pkgs.haskellPackages // { ghcWithPackages = haskell.project.ghcWithPackages; }; };
+      frankenPkgs =
+        pkgs //
+        {
+          haskellPackages = pkgs.haskellPackages //
+          { ghcWithPackages = haskell.project.ghcWithPackages; };
+        };
     in
     pkgs.agdaPackages.override { Agda = frankenAgda; pkgs = frankenPkgs; };
 
@@ -71,10 +79,11 @@ let
         rev = "v${version}";
         sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
       };
-      # This is preConfigure is copied from more recent nixpkgs that also uses version 1.7 of standard-library
-      # Old nixpkgs (that used 1.4) had a preConfigure step that worked with 1.7
-      # Less old nixpkgs (that used 1.6) had a preConfigure step that attempts to `rm` files that are now in the
-      # .gitignore list for 1.7
+      # This is preConfigure is copied from more recent nixpkgs that also
+      # uses version 1.7 of standard-library. Old nixpkgs (that used 1.4)
+      # had a preConfigure step that worked with 1.7. Less old nixpkgs
+      # (that used 1.6) had a preConfigure step that attempts to `rm`
+      # files that are now in the .gitignore list for 1.
       preConfigure = ''
         runhaskell GenerateEverything.hs
         # We will only build/consider Everything.agda, in particular we don't want Everything*.agda
@@ -90,20 +99,7 @@ let
   #
   fixStylishHaskell = pkgs.callPackage ./fix-stylish-haskell { inherit stylish-haskell; };
   fixPngOptimization = pkgs.callPackage ./fix-png-optimization { };
-  updateMaterialized = pkgs.writeShellScriptBin "updateMaterialized" ''
-    # This runs the 'updateMaterialize' script in all platform combinations we care about.
-    # See the comment in ./haskell/haskell.nix
-
-    # Update the linux files (will do for all unixes atm).
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system x86_64-darwin)
-    $(nix-build default.nix -A plutus.haskell.project.plan-nix.passthru.updateMaterialized --argstr system windows)
-    $(nix-build default.nix -A plutus.haskell.project.projectCross.mingwW64.plan-nix.passthru.updateMaterialized --argstr system x86_64-linux)
-
-    # This updates the sha files for the extra packages
-    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-linux)
-    $(nix-build default.nix -A plutus.haskell.extraPackages.updateAllShaFiles --argstr system x86_64-darwin)
-  '';
+  fixCabalFmt = pkgs.callPackage ./fix-cabal-fmt { inherit cabal-fmt; };
 
   #
   # sphinx python packages
@@ -120,7 +116,8 @@ let
   });
 
   # sphinx haddock support
-  sphinxcontrib-haddock = pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
+  sphinxcontrib-haddock =
+    pkgs.callPackage (sources.sphinxcontrib-haddock) { pythonPackages = pkgs.python3Packages; };
 
   # combined haddock documentation for all public plutus libraries
   plutus-haddock-combined =
@@ -138,7 +135,8 @@ let
   # Collect everything to be exported under `plutus.lib`: builders/functions/utils
   lib = rec {
     inherit gitignore-nix;
-    haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
+    haddock-combine =
+      pkgs.callPackage ../lib/haddock-combine.nix { inherit sphinxcontrib-haddock; };
     latex = pkgs.callPackage ../lib/latex.nix { };
   };
 
@@ -146,8 +144,10 @@ in
 {
   inherit sphinx-markdown-tables sphinxemoji sphinxcontrib-haddock;
   inherit nix-pre-commit-hooks;
-  inherit haskell agdaPackages cabal-install cardano-repo-tool stylish-haskell hlint haskell-language-server haskell-language-server-wrapper hie-bios;
-  inherit fixStylishHaskell fixPngOptimization updateMaterialized;
+  inherit haskell agdaPackages cabal-install cardano-repo-tool;
+  inherit stylish-haskell hlint cabal-fmt;
+  inherit haskell-language-server haskell-language-server-wrapper hie-bios;
+  inherit fixStylishHaskell fixPngOptimization fixCabalFmt;
   inherit plutus-haddock-combined;
   inherit agdaWithStdlib;
   inherit lib;

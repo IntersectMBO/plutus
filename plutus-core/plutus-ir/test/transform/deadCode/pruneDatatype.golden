@@ -1,0 +1,9 @@
+(let
+  (nonrec)
+  (typebind (tyvardecl unit (type)) (all a (type) (fun a a)))
+  (let
+    (nonrec)
+    (typebind (tyvardecl SomeType (type)) (all a (type) (fun a a)))
+    (lam arg SomeType (error unit))
+  )
+)

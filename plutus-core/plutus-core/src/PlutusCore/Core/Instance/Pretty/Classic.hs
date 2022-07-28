@@ -7,7 +7,6 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -33,7 +32,7 @@ instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) wher
             sexp "fun" (consAnnIf config ann
                 [prettyBy config k, prettyBy config k'])
 
-instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
+instance (PrettyClassicBy configName tyname, Pretty (SomeTypeIn uni), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann) where
     prettyBy config = \case
         TyApp ann t t'     ->
@@ -60,7 +59,9 @@ instance (PrettyClassicBy configName tyname, GShow uni, Pretty ann) =>
 instance
         ( PrettyClassicBy configName tyname
         , PrettyClassicBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst
+        , Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann) where
     prettyBy config = \case
@@ -90,7 +91,7 @@ instance
         Unwrap ann t ->
             sexp "unwrap" (consAnnIf config ann [prettyBy config t])
       where
-        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
+        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann) =>

@@ -1,4 +1,15 @@
-module Main(main) where
+-- editorconfig-checker-disable-file
+module Main where
+
+import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
+import PlutusLedgerApi.Test.Examples
+import PlutusLedgerApi.V1
+import Spec.Builtins qualified
+import Spec.CostModelParams qualified
+import Spec.Eval qualified
+import Spec.Interval qualified
+import Spec.NoThunks qualified
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -6,31 +17,36 @@ import Test.Tasty.QuickCheck
 
 import Control.Monad (void)
 import Data.Either
-import Data.Maybe
 import Data.Word (Word8)
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Examples
-import Spec.Interval qualified
-import Spec.Time qualified
 
 main :: IO ()
 main = defaultMain tests
 
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
-    let (_, res) = evaluateScriptCounting Quiet (fromJust defaultCostModelParams) (alwaysSucceedingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
     in assertBool "succeeds" (isRight res)
 
 alwaysFalse :: TestTree
 alwaysFalse = testCase "always false script returns false" $
-    let (_, res) = evaluateScriptCounting Quiet (fromJust defaultCostModelParams) (alwaysFailingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
     in assertBool "fails" (isLeft res)
+
+unavailableBuiltins :: TestTree
+unavailableBuiltins = testCase "builtins are unavailable before Alonzo" $
+    let (_, res) = evaluateScriptCounting maryPV Quiet evalCtxForTesting summingFunction []
+    in assertBool "fails" (isLeft res)
+
+availableBuiltins :: TestTree
+availableBuiltins = testCase "builtins are available after Alonzo" $
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting summingFunction []
+    in assertBool "succeeds" (isRight res)
 
 saltedFunction :: TestTree
 saltedFunction =
     let evaluate f f' args =
-            ( evaluateScriptCounting Quiet (fromJust defaultCostModelParams) f args
-            , evaluateScriptCounting Quiet (fromJust defaultCostModelParams) f' args
+            ( evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f args
+            , evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f' args
             )
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->
@@ -68,9 +84,16 @@ saltedFunction =
 
 tests :: TestTree
 tests = testGroup "plutus-ledger-api" [
-    alwaysTrue
-    , alwaysFalse
-    , saltedFunction
+    testGroup "basic evaluation tests" [
+        alwaysTrue
+        , alwaysFalse
+        , saltedFunction
+        , unavailableBuiltins
+        , availableBuiltins
+    ]
     , Spec.Interval.tests
-    , Spec.Time.tests
+    , Spec.Eval.tests
+    , Spec.Builtins.tests
+    , Spec.CostModelParams.tests
+    , Spec.NoThunks.tests
     ]

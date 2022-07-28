@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -33,12 +34,12 @@ import Prettyprinter qualified as PP
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
 -- the priority of the context when displaying it. Lower numbers are more prioritised.
 data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
-    deriving Functor
+    deriving stock Functor
 makeClassyPrisms ''WithContext
 
-type CompileError uni fun = WithContext T.Text (Error uni fun ())
+type CompileError uni fun ann = WithContext T.Text (Error uni fun ann)
 
-instance HasErrorCode (CompileError _a _b) where
+instance HasErrorCode (CompileError _a _b _c) where
     errorCode (NoContext e)        = errorCode e
     errorCode (WithContextC _ _ w) = errorCode w
 
@@ -67,13 +68,14 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             "Context:" PP.<+> (PP.align $ PP.pretty c)
             ]
 
-data Error uni fun a = PLCError (PLC.Error uni fun a)
-                 | PIRError (PIR.Error uni fun (PIR.Provenance a))
-                 | CompilationError T.Text
-                 | UnsupportedError T.Text
-                 | FreeVariableError T.Text
-                 | InvalidMarkerError String
-                 | CoreNameLookupError TH.Name
+data Error uni fun a
+    = PLCError (PLC.Error uni fun a)
+    | PIRError (PIR.Error uni fun (PIR.Provenance a))
+    | CompilationError T.Text
+    | UnsupportedError T.Text
+    | FreeVariableError T.Text
+    | InvalidMarkerError String
+    | CoreNameLookupError TH.Name
 makeClassyPrisms ''Error
 
 instance HasErrorCode (Error _a _b _c) where
@@ -85,27 +87,38 @@ instance HasErrorCode (Error _a _b _c) where
       errorCode (PLCError e)           = errorCode e
       errorCode (PIRError e)           = errorCode e
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
+instance (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where
     pretty = PLC.prettyPlcClassicDebug
 
-instance uni1 ~ uni2 => PLC.AsTypeError (CompileError uni1 fun) (PIR.Term PIR.TyName PIR.Name uni2 fun ()) uni2 fun (PIR.Provenance ()) where
+instance
+    (uni1 ~ uni2, b ~ PIR.Provenance a) =>
+    PLC.AsTypeError (CompileError uni1 fun a) (PIR.Term PIR.TyName PIR.Name uni2 fun ()) uni2 fun b
+    where
     _TypeError = _NoContext . _PIRError . PIR._TypeError
 
-instance uni1 ~ uni2 => PIR.AsTypeErrorExt (CompileError uni1 fun) uni2 (PIR.Provenance ()) where
+instance
+    (uni1 ~ uni2, b ~ PIR.Provenance a) =>
+    PIR.AsTypeErrorExt (CompileError uni1 fun a) uni2 b
+    where
     _TypeErrorExt = _NoContext . _PIRError . PIR._TypeErrorExt
 
-instance uni1 ~ uni2 => PLC.AsNormCheckError (CompileError uni1 fun) PLC.TyName PLC.Name uni2 fun () where
+instance uni1 ~ uni2 => PLC.AsNormCheckError (CompileError uni1 fun a) PLC.TyName PLC.Name uni2 fun a where
     _NormCheckError = _NoContext . _PLCError . PLC._NormCheckError
 
-instance PLC.AsUniqueError (CompileError uni fun) () where
+instance PLC.AsUniqueError (CompileError uni fun a) a where
     _UniqueError = _NoContext . _PLCError . PLC._UniqueError
 
-instance uni1 ~ uni2 => PIR.AsError (CompileError uni1 fun) uni2 fun (PIR.Provenance ()) where
+instance
+    (uni1 ~ uni2, b ~ PIR.Provenance a) =>
+    PIR.AsError (CompileError uni1 fun a) uni2 fun b
+    where
     _Error = _NoContext . _PIRError
 
-instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
-            PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a) where
+instance
+    (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
+    PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a)
+    where
     prettyBy config = \case
         PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ]

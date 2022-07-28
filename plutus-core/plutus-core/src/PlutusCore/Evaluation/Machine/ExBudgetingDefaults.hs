@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -8,6 +9,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
+    , defaultUnliftingMode
     , defaultBuiltinCostModel
     , unitCekMachineCosts
     , unitCekParameters
@@ -15,7 +17,7 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
@@ -43,16 +45,16 @@ defaultBuiltinCostModel =
    the previous version.  When this happens, uncomment the three lines below (and
    comment out the three above) then rerun
 
-      cabal bench plutus-core:update-cost-model
+      cabal run plutus-core:generate-cost-model
 
    (You may also need to add 'data-default' to the 'build-depends' for the
    library in plutus-core.cabal). This will generate a new JSON file filled with
    default values.  After that, restore this file to its previous state and then
-   run "update-cost-model" again to fill in the JSON file with the correct
+   run "generate-cost-model" again to fill in the JSON file with the correct
    values (assuming that suitable benchmarking data is in benching.csv and that
    models.R contains R code to generate cost models for any new functions).
 
-   Alternatively, modify builtinCostModelFile by hand so that it matches the new
+   Alternatively, modify 'builtinCostModel.json' by hand so that it matches the new
    format.
  -}
 
@@ -74,14 +76,19 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
+defaultUnliftingMode :: UnliftingMode
+defaultUnliftingMode = UnliftingImmediate
+
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = toMachineParameters defaultCekCostModel
+defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-unitCekParameters = toMachineParameters (CostModel unitCekMachineCosts unitCostBuiltinCostModel)
+unitCekParameters =
+    mkMachineParameters defaultUnliftingMode $
+        CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
-defaultBuiltinsRuntime :: HasConstantIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime defaultBuiltinCostModel
+defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called
@@ -102,65 +109,68 @@ unitCostBuiltinCostModel :: BuiltinCostModel
 unitCostBuiltinCostModel = BuiltinCostModelBase
     {
      -- Integers
-      paramAddInteger               = unitCostTwoArguments
-    , paramSubtractInteger          = unitCostTwoArguments
-    , paramMultiplyInteger          = unitCostTwoArguments
-    , paramDivideInteger            = unitCostTwoArguments
-    , paramQuotientInteger          = unitCostTwoArguments
-    , paramRemainderInteger         = unitCostTwoArguments
-    , paramModInteger               = unitCostTwoArguments
-    , paramEqualsInteger            = unitCostTwoArguments
-    , paramLessThanInteger          = unitCostTwoArguments
-    , paramLessThanEqualsInteger    = unitCostTwoArguments
+      paramAddInteger                      = unitCostTwoArguments
+    , paramSubtractInteger                 = unitCostTwoArguments
+    , paramMultiplyInteger                 = unitCostTwoArguments
+    , paramDivideInteger                   = unitCostTwoArguments
+    , paramQuotientInteger                 = unitCostTwoArguments
+    , paramRemainderInteger                = unitCostTwoArguments
+    , paramModInteger                      = unitCostTwoArguments
+    , paramEqualsInteger                   = unitCostTwoArguments
+    , paramLessThanInteger                 = unitCostTwoArguments
+    , paramLessThanEqualsInteger           = unitCostTwoArguments
     -- Bytestrings
-    , paramAppendByteString         = unitCostTwoArguments
-    , paramConsByteString           = unitCostTwoArguments
-    , paramSliceByteString          = unitCostThreeArguments
-    , paramLengthOfByteString       = unitCostOneArgument
-    , paramIndexByteString          = unitCostTwoArguments
-    , paramEqualsByteString         = unitCostTwoArguments
-    , paramLessThanByteString       = unitCostTwoArguments
-    , paramLessThanEqualsByteString = unitCostTwoArguments
+    , paramAppendByteString                = unitCostTwoArguments
+    , paramConsByteString                  = unitCostTwoArguments
+    , paramSliceByteString                 = unitCostThreeArguments
+    , paramLengthOfByteString              = unitCostOneArgument
+    , paramIndexByteString                 = unitCostTwoArguments
+    , paramEqualsByteString                = unitCostTwoArguments
+    , paramLessThanByteString              = unitCostTwoArguments
+    , paramLessThanEqualsByteString        = unitCostTwoArguments
     -- Cryptography and hashes
-    , paramSha2_256                 = unitCostOneArgument
-    , paramSha3_256                 = unitCostOneArgument
-    , paramBlake2b                  = unitCostOneArgument
-    , paramVerifySignature          = unitCostThreeArguments
+    , paramSha2_256                        = unitCostOneArgument
+    , paramSha3_256                        = unitCostOneArgument
+    , paramBlake2b_256                     = unitCostOneArgument
+    , paramVerifyEd25519Signature          = unitCostThreeArguments
+    , paramVerifyEcdsaSecp256k1Signature   = unitCostThreeArguments
+    , paramVerifySchnorrSecp256k1Signature = unitCostThreeArguments
     -- Strings
-    , paramAppendString             = unitCostTwoArguments
-    , paramEqualsString             = unitCostTwoArguments
-    , paramEncodeUtf8               = unitCostOneArgument
-    , paramDecodeUtf8               = unitCostOneArgument
+    , paramAppendString                    = unitCostTwoArguments
+    , paramEqualsString                    = unitCostTwoArguments
+    , paramEncodeUtf8                      = unitCostOneArgument
+    , paramDecodeUtf8                      = unitCostOneArgument
     -- Bool
-    , paramIfThenElse               = unitCostThreeArguments
+    , paramIfThenElse                      = unitCostThreeArguments
     -- Unit
-    , paramChooseUnit               = unitCostTwoArguments
+    , paramChooseUnit                      = unitCostTwoArguments
     -- Tracing
-    , paramTrace                    = unitCostTwoArguments
+    , paramTrace                           = unitCostTwoArguments
     -- Pairs
-    , paramFstPair                  = unitCostOneArgument
-    , paramSndPair                  = unitCostOneArgument
+    , paramFstPair                         = unitCostOneArgument
+    , paramSndPair                         = unitCostOneArgument
     -- Lists
-    , paramChooseList               = unitCostThreeArguments
-    , paramMkCons                   = unitCostTwoArguments
-    , paramHeadList                 = unitCostOneArgument
-    , paramTailList                 = unitCostOneArgument
-    , paramNullList                 = unitCostOneArgument
+    , paramChooseList                      = unitCostThreeArguments
+    , paramMkCons                          = unitCostTwoArguments
+    , paramHeadList                        = unitCostOneArgument
+    , paramTailList                        = unitCostOneArgument
+    , paramNullList                        = unitCostOneArgument
     -- Data
-    , paramChooseData               = unitCostSixArguments
-    , paramConstrData               = unitCostTwoArguments
-    , paramMapData                  = unitCostOneArgument
-    , paramListData                 = unitCostOneArgument
-    , paramIData                    = unitCostOneArgument
-    , paramBData                    = unitCostOneArgument
-    , paramUnConstrData             = unitCostOneArgument
-    , paramUnMapData                = unitCostOneArgument
-    , paramUnListData               = unitCostOneArgument
-    , paramUnIData                  = unitCostOneArgument
-    , paramUnBData                  = unitCostOneArgument
-    , paramEqualsData               = unitCostTwoArguments
+    , paramChooseData                      = unitCostSixArguments
+    , paramConstrData                      = unitCostTwoArguments
+    , paramMapData                         = unitCostOneArgument
+    , paramListData                        = unitCostOneArgument
+    , paramIData                           = unitCostOneArgument
+    , paramBData                           = unitCostOneArgument
+    , paramUnConstrData                    = unitCostOneArgument
+    , paramUnMapData                       = unitCostOneArgument
+    , paramUnListData                      = unitCostOneArgument
+    , paramUnIData                         = unitCostOneArgument
+    , paramUnBData                         = unitCostOneArgument
+    , paramEqualsData                      = unitCostTwoArguments
     -- Misc constructors
-    , paramMkPairData               = unitCostTwoArguments
-    , paramMkNilData                = unitCostOneArgument
-    , paramMkNilPairData            = unitCostOneArgument
+    , paramMkPairData                      = unitCostTwoArguments
+    , paramMkNilData                       = unitCostOneArgument
+    , paramMkNilPairData                   = unitCostOneArgument
+    , paramSerialiseData                   = unitCostOneArgument
     }

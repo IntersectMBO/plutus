@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ViewPatterns     #-}
 -- | Implements naive substitution functions for replacing type and term variables.

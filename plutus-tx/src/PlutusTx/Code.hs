@@ -1,9 +1,12 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RoleAnnotations       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -16,7 +19,6 @@ import PlutusTx.Lift.Instances ()
 import PlutusIR qualified as PIR
 
 import PlutusCore qualified as PLC
-import PlutusCore.Pretty qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
@@ -29,6 +31,12 @@ import ErrorCode
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
+-- The final type parameter is inferred to be phantom, but we give it a nominal
+-- role, since it corresponds to the Haskell type of the program that was compiled into
+-- this 'CompiledCodeIn'. It could be okay to give it a representational role, since
+-- we compile newtypes the same as their underlying types, but people probably just
+-- shouldn't coerce the final parameter regardless, so we play it safe with a nominal role.
+type role CompiledCodeIn representational representational nominal
 -- NOTE: any changes to this type must be paralleled by changes
 -- in the plugin code that generates values of this type. That is
 -- done by code generation so it's not typechecked normally.
@@ -49,15 +57,15 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
 -- | Apply a compiled function to a compiled argument.
 applyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg)) (PIR.applyProgram <$> getPir fun <*> getPir arg) (getCovIdx fun <> getCovIdx arg)
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
-sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun) => CompiledCodeIn uni fun a -> Integer
+sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
+instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => Flat (CompiledCodeIn uni fun a) where
     encode c = encode (getPlc c)
 
@@ -82,7 +90,7 @@ instance HasErrorCode ImpossibleDeserialisationFailure where
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun, uni `PLC.Everywhere` PLC.PrettyConst, PLC.GShow uni, PLC.Pretty fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
 getPlc wrapper = case wrapper of
     SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of

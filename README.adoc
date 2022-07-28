@@ -63,6 +63,45 @@ The main documentation is located https://plutus.readthedocs.io/en/latest/[here]
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxo/latest/download-by-type/doc-pdf/eutxo[The Extended UTXO Model]: a full presentation of the EUTXO ledger extension (https://doi.org/10.1007/978-3-030-54455-3_37[published version]).
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.utxoma/latest/download-by-type/doc-pdf/utxoma[UTXOma: UTXO with Multi-Asset Support]: a full presentation of the multi-asset ledger extension (https://doi.org/10.1007/978-3-030-61467-6_8[published version]).
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
+- https://arxiv.org/abs/2201.04919[Translation Certification for Smart Contracts]:  a certifier of Plutus IR compiler passes written in Coq.
+
+== Versioning and releases
+
+=== Versioning
+
+The core `plutus` packages are versioned as follows:
+
+* Package versioning follows the https://pvp.haskell.org/[PVP] on a best-effort basis (i.e. we will generally try to but we won't guarantee it).
+** The first-major-version component indicates the "era" which for our purposes means which major version of the *Cardano node* is being targeted.
+** The second-major-version component is used for releases which are major versions according to the PVP, but which are still compatible with the current "era".
+** The minor-version and below are used as normal.
+* Packages which are used downstream should all have the same version.
+* Other packages which are not used downstream (e.g. `plutus-benchmark`) can remain unversioned.
+
+In principle we could just have a single major version, but using two makes it easier to avoid mistakes.
+
+=== Branching and tagging
+
+The following branching and tagging rules are followed:
+
+* Version `X` is tagged as `vX`.
+* `master` is always targeting the next first-major-version.
+* First-major-version releases also have a release branch, `release/X`.
+** Changes will be backported from master to the release branch
+** Subsequent lesser releases will be made from that branch but do not create new branches.
+
+=== Version ranges
+
+Packages which depend on `plutus` packages should use version ranges to control which version of those packages they build against.
+
+* Packages in `plutus` which are used downstream should pin the major-version of each other (e.g. `plutus-tx-1.0.1` should depend on `plutus-core ^>= 1.0`).
+* Downstream packages should pin at least the first-major-version of `plutus` packages.
+** Upgrading to a new second-major-version should always be safe, with at most code breakage (following the PVP). Users may of course want to pin this version as well to avoid such breakage.
+* Downstream packages pulling in `plutus` packages via `source-repository-package` stanzas should always take tagged commits, or potentially commits from a release branch.
+
+=== Releases
+
+Currently there is no release process beyond bumping the package versions and making a tag/branch as appropriate.
 
 == Working with the project
 
@@ -114,7 +153,6 @@ You can build some of the Haskell packages without Nix, but this is not recommen
 If you use Nix, these tools are provided for you via `shell.nix`, and you do *not* need to install them yourself.
 
 * If you want to build our Haskell packages with https://www.haskell.org/cabal/[`cabal`], then install it.
-* If you want to build our Haskell packages with https://haskellstack.org/[`stack`], then install it.
 * If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
 
 [[building-with-nix]]
@@ -164,7 +202,7 @@ trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
 [NOTE]
 ====
 If you don't have an `/etc/nix/nix.conf` or don't want to edit it, you may add the `nix.conf` lines to `~/.config/nix/nix.conf` instead.
-You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this.
+You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this. If this file doesn't exist, go ahead and create it.
 ====
 . On NixOS, set the following NixOS options:
 +
@@ -176,18 +214,6 @@ nix = {
 ----
 
 Note: after changing /etc/nix/nix.conf you must restart the nix-daemon on non-NixOS for the changes to take effect!
-
-=== Nix on macOS
-
-Nix on macOS can be a bit tricky. In particular, sandboxing is disabled by default, which can lead to strange failures.
-
-These days it should be safe to turn on sandboxing on macOS with a few exceptions. Consider setting the following Nix settings, in the same way as in xref:iohk-binary-cache[previous section]:
-
-----
-sandbox = true
-extra-sandbox-paths = /System/Library/Frameworks /System/Library/PrivateFrameworks /usr/lib /private/tmp /private/var/tmp /usr/bin/env
-----
-
 
 [[nix-build-attributes]]
 === Which attributes to use to build different artifacts

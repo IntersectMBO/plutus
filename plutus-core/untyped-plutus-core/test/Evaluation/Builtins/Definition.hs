@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
 {-# LANGUAGE OverloadedStrings     #-}
@@ -12,8 +13,9 @@ module Evaluation.Builtins.Definition
     ) where
 
 import PlutusCore
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Interesting
 import PlutusCore.MkPlc hiding (error)
@@ -30,6 +32,7 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.Common
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519Prop, schnorrSecp256k1Prop)
 
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
@@ -48,7 +51,8 @@ import Test.Tasty.Hedgehog
 defaultCekParametersExt
     :: MachineParameters CekMachineCosts CekValue DefaultUni (Either DefaultFun ExtensionFun)
 defaultCekParametersExt =
-    toMachineParameters $ CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
+    mkMachineParameters defaultUnliftingMode $
+        CostModel defaultCekMachineCosts (defaultBuiltinCostModel, ())
 
 -- | Check that 'Factorial' from the above computes to the same thing as
 -- a factorial defined in PLC itself.
@@ -477,6 +481,7 @@ test_Data = testCase "Data" $ do
     evals @[(Data, Data)] [(B "", I 3)] UnMapData [cons $ Map [(B "", I 3)]]
     evals @[Data] [] UnListData [cons $ List []]
     evals @[Data] [I 3, I 4, B ""] UnListData [cons $ List [I 3, I 4, B ""]]
+    evals @ByteString "\162\ETX@Ehello8c" SerialiseData [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
     -- ChooseData
     let actualExp = mkIterApp ()
@@ -509,7 +514,7 @@ test_Data = testCase "Data" $ do
 -- | Test all cryptography-related builtins
 test_Crypto :: TestTree
 test_Crypto = testCase "Crypto" $ do
-    evals True VerifySignature
+    evals True VerifyEd25519Signature
         [ -- pubkey
           cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
           -- message
@@ -518,7 +523,7 @@ test_Crypto = testCase "Crypto" $ do
         , cons @ByteString "\a'\198\r\226\SYN;\bX\254\228\129n\131\177\193\DC3-k\249RriY\221wIL\240\144\r\145\195\191\196]\227\169U(\ETX\171\SI\199\163\138\160\128R\DC4\246n\142[g\SI\169\SUB\178\245\166\&0\243\b"
         ]
 
-    evals False VerifySignature
+    evals False VerifyEd25519Signature
         [ -- pubkey
           cons @ByteString "Y\218\215\204>\STX\233\152\251\243\158'm\130\&0\197\DEL\STXd\214`\147\243y(\234\167=kTj\164"
           -- message
@@ -538,7 +543,6 @@ test_Crypto = testCase "Crypto" $ do
     -- b2sum -l 256 hex output: 256c83b297114d201b30179f3f0ef0cace9783622da5974326b436178aeef610
     evals @ByteString "%l\131\178\151\DC1M \ESC0\ETB\159?\SO\240\202\206\151\131b-\165\151C&\180\&6\ETB\138\238\246\DLE"
         Blake2b_256 [cons @ByteString "hello world"]
-
 
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree
@@ -572,6 +576,20 @@ fails b args =
         @=?
         typecheckEvaluateCekNoEmit defaultCekParameters actualExp
 
+-- Test that the SECP256k1 builtins are behaving correctly
+-- Test that the SECP256k1 builtins are behaving correctly
+test_SignatureVerification :: TestTree
+test_SignatureVerification =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  testGroup "Signature verification" $ [
+                 testGroup "Ed25519 signatures" $ [
+                                testProperty "Ed25519 verification behaves correctly on all inputs" . property $ ed25519Prop
+                               ],
+                 testGroup "Signatures on the SECP256k1 curve" $ [
+                                testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
+                                testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
+                               ]
+                ]
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -595,5 +613,6 @@ test_definition =
         , test_List
         , test_Data
         , test_Crypto
+        , test_SignatureVerification
         , test_Other
         ]

@@ -1,5 +1,5 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies     #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE TypeFamilies #-}
 
 module Evaluation.Machines
     ( test_machines
@@ -8,6 +8,7 @@ where
 
 import PlutusCore
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Generators.Interesting
 import PlutusCore.Generators.Test

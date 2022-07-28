@@ -1,5 +1,7 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
 
 -- | Functions for compiling GHC names into Plutus Core names.
 module PlutusTx.Compiler.Names where
@@ -19,6 +21,7 @@ import PlutusCore.Quote
 import PlutusIR.Compiler.Names
 
 import Data.Char
+import Data.Functor
 import Data.List
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -50,11 +53,11 @@ getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: Compiling uni fun m => GHC.Var -> m (PLCVar uni fun)
-compileVarFresh v = do
+compileVarFresh :: CompilingDefault uni fun m ann => Ann -> GHC.Var -> m (PLCVar uni fun)
+compileVarFresh ann v = do
     t' <- compileTypeNorm $ GHC.varType v
     n' <- compileNameFresh $ GHC.getName v
-    pure $ PLC.VarDecl () n' t'
+    pure $ PLC.VarDecl ann n' t'
 
 lookupTyName :: Scope uni fun -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
@@ -62,17 +65,17 @@ lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
 compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
-compileTyVarFresh :: Compiling uni fun m => GHC.TyVar -> m PLCTyVar
+compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
-    pure $ PLC.TyVarDecl () t' k'
+    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
 
-compileTcTyVarFresh :: Compiling uni fun m => GHC.TyCon -> m PLCTyVar
+compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
-    pure $ PLC.TyVarDecl () t' k'
+    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
 
 pushName :: GHC.Name -> PLCVar uni fun-> ScopeStack uni fun -> ScopeStack uni fun
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack

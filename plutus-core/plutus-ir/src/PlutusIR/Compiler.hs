@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,6 +13,7 @@ module PlutusIR.Compiler (
     AsTypeError (..),
     AsTypeErrorExt (..),
     Provenance (..),
+    DatatypeComponent (..),
     noProvenance,
     CompilationOpts,
     coOptimize,
@@ -22,6 +24,7 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
+    coInlineHints,
     coProfile,
     defaultCompilationOpts,
     CompilationCtx,
@@ -64,10 +67,10 @@ import PlutusPrelude
 data Pass uni fun =
   Pass { _name      :: String
        , _shouldRun :: forall m e a.   Compiling m e uni fun a => m Bool
-       , _pass      :: forall m e a b. Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+       , _pass      :: forall m e a. Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (Term TyName Name uni fun (Provenance a))
        }
 
-onOption :: Compiling m e uni fun a => Lens' CompilationOpts Bool -> m Bool
+onOption :: Compiling m e uni fun a => Lens' (CompilationOpts a) Bool -> m Bool
 onOption coOpt = view (ccOpts . coOpt)
 
 isVerbose :: Compiling m e uni fun a => m Bool
@@ -95,7 +98,7 @@ availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
+    , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do { hints <- asks (view (ccOpts . coInlineHints)); Inline.inline hints t })
     ]
 
 -- | Actual simplifier
@@ -108,7 +111,7 @@ simplify = foldl' (>=>) pure (map applyPass availablePasses)
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ simplify'
+simplifyTerm = runIfOpts simplify'
     -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -176,6 +179,8 @@ compileReadableToPlc =
     >=> through check
     >=> (<$ logVerbose "  !!! thunkRecursions")
     >=> (pure . ThunkRec.thunkRecursions)
+    -- Thunking recursions breaks global uniqueness
+    >=> PLC.rename
     >=> through check
     -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
     -- See Note [Using unit versus force/delay]

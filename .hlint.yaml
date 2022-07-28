@@ -23,3 +23,5 @@
 - fixity: infixr 3 ***
 - fixity: infixr 3 &&&
 - fixity: infixr 1 <=<
+# first is too lazy, see:  https://github.com/input-output-hk/plutus/issues/3876
+- ignore: {name: Use first, within: [UntypedPlutusCore.Evaluation.Machine.Cek]}

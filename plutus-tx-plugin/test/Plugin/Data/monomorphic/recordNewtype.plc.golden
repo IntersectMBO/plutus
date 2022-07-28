@@ -9,6 +9,10 @@
         (vardecl RecordNewtype (fun (con integer) RecordNewtype))
       )
     )
-    (lam ds RecordNewtype ds)
+    (lam
+      ds
+      RecordNewtype
+      [ { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds) ]
+    )
   )
 )

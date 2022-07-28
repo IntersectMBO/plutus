@@ -1,15 +1,15 @@
 (let
   (nonrec)
-  (typebind (tyvardecl $7$ unit (type)) (all a (type) (fun a a)))
+  (typebind (tyvardecl $0$ unit (type)) (all a (type) (fun a a)))
   (let
     (nonrec)
     (datatypebind
       (datatype
-        $1$
-        (tyvardecl $14$ SomeType (type))
+        $0$
+        (tyvardecl $2$ SomeType (type))
 
         match_SomeType
-        (vardecl $11$ Constr (fun unit SomeType))
+        (vardecl $0$ Constr (fun unit SomeType))
       )
     )
     (lam arg SomeType arg)

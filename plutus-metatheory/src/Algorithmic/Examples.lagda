@@ -68,7 +68,7 @@ module Scott where
     → (A : Φ ⊢Nf⋆ * ⇒ *)
     → Γ ⊢ μ0 ·Nf A
     → Γ ⊢ A ·Nf (μ0 ·Nf A)
-  unwrap0 A X rewrite stability A = unwrap X
+  unwrap0 A X rewrite stability A = unwrap X refl
   
   G : ∀{Γ} → Γ ,⋆  * ⊢Nf⋆ *
   G = Π (ne (` Z) ⇒ (ne (` (S Z)) ⇒ ne (` Z)) ⇒ ne (` Z))
@@ -99,7 +99,7 @@ module Scott where
   Four = Succ · Three
 
   case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ ne (` Z) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
+  case = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ ne (` Z) / refl) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
 
 {-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
@@ -110,14 +110,14 @@ module Scott where
   Z-comb = Λ (Λ (ƛ (ƛ (` (S Z) · ƛ (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ (` (S Z) · ƛ (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
   OnePlus :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N / refl) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   OnePlusOne : ∅ ⊢ N
-  OnePlusOne = (Z-comb ·⋆ N) ·⋆ N · OnePlus · One
+  OnePlusOne = ((Z-comb ·⋆ N / refl) ·⋆ N / refl) · OnePlus · One
 
  -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ (((Z-comb ·⋆ N / refl) ·⋆ N / refl) · (ƛ (ƛ ((((case · ` Z) ·⋆ N / refl) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
@@ -176,10 +176,10 @@ module Church where
   Zero = Λ (ƛ (ƛ (` (S Z))))
 
   Succ : ∅ ⊢ N ⇒ N
-  Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (ne (` Z)) · (` (S Z)) · (` Z))))))
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · (((` (S (S (T Z)))) ·⋆ (ne (` Z)) / refl) · (` (S Z)) · (` Z))))))
   
   Iter : ∅ ⊢ Π (ne (` Z) ⇒ (ne (` Z) ⇒ ne (` Z)) ⇒ N ⇒ ne (` Z))
-  Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ ne (` Z) · (` (S (S Z))) · (` (S Z))))))
+  Iter = Λ (ƛ (ƛ (ƛ (((` Z) ·⋆ ne (` Z) / refl) · (` (S (S Z))) · (` (S Z))))))
 
   -- two plus two
   One : ∅ ⊢ N
@@ -195,12 +195,12 @@ module Church where
   Four = Succ · Three
 
   Plus : ∅ ⊢ N → ∅ ⊢ N → ∅ ⊢ N
-  Plus x y = Iter ·⋆ N · x · Succ · y -- by induction on the second y
+  Plus x y = (Iter ·⋆ N / refl) · x · Succ · y -- by induction on the second y
 
   TwoPlusTwo = Plus Two Two
 
   TwoPlusTwo' : ∅ ⊢ N
-  TwoPlusTwo' = Two ·⋆ N · Two · Succ
+  TwoPlusTwo' = (Two ·⋆ N / refl) · Two · Succ
 
 open Church public
 \end{code}

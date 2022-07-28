@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -5,18 +6,19 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
 
 module Plugin.Primitives.Spec where
 
-import Common
-import Lib
-import PlcTestUtils
+import Test.Tasty.Extras
 
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Lift
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 import Data.Proxy
 
@@ -58,6 +60,8 @@ primitives = testNested "Primitives" [
   , goldenPir "stringLiteral" stringLiteral
   , goldenUEval "equalsString" [ getPlc stringEquals, liftProgram ("hello" :: Builtins.BuiltinString), liftProgram ("hello" :: Builtins.BuiltinString)]
   , goldenPir "encodeUtf8" stringEncode
+  , goldenPir "serialiseData" dataEncode
+  , goldenUEval "serialiseDataApply" [ toUPlc dataEncode, toUPlc constructData1 ]
   , goldenUEval "constructData1" [ constructData1 ]
   -- It's interesting to look at one of these to make sure all the specialisation is working out nicely and for
   -- debugging when it isn't
@@ -144,7 +148,7 @@ bsDecode :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinString)
 bsDecode = plc (Proxy @"bsDecode") (\(x :: Builtins.BuiltinByteString) -> Builtins.decodeUtf8 x)
 
 verify :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Builtins.BuiltinByteString -> Bool)
-verify = plc (Proxy @"verify") (\(x::Builtins.BuiltinByteString) (y::Builtins.BuiltinByteString) (z::Builtins.BuiltinByteString) -> Builtins.verifySignature x y z)
+verify = plc (Proxy @"verify") (\(x::Builtins.BuiltinByteString) (y::Builtins.BuiltinByteString) (z::Builtins.BuiltinByteString) -> Builtins.verifyEd25519Signature x y z)
 
 trace :: CompiledCode (Builtins.BuiltinString -> ())
 trace = plc (Proxy @"trace") (\(x :: Builtins.BuiltinString) -> Builtins.trace x ())
@@ -160,6 +164,9 @@ stringEquals = plc (Proxy @"string32Equals") (\(x :: Builtins.BuiltinString) (y 
 
 stringEncode :: CompiledCode (Builtins.BuiltinByteString)
 stringEncode = plc (Proxy @"stringEncode") (Builtins.encodeUtf8 "abc")
+
+dataEncode :: CompiledCode (Builtins.BuiltinData -> Builtins.BuiltinByteString)
+dataEncode = plc (Proxy @"dataEncode") Builtins.serialiseData
 
 constructData1 :: CompiledCode (Builtins.BuiltinData)
 constructData1 = plc (Proxy @"constructData1") (Builtins.mkI 1)

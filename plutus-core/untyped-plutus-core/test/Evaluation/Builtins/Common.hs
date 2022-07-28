@@ -10,7 +10,8 @@ module Evaluation.Builtins.Common
     ) where
 
 import PlutusCore qualified as TPLC
-import PlutusCore.Constant
+import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase qualified as TPLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -30,7 +31,7 @@ typecheckAnd
 typecheckAnd action runtime term = TPLC.runQuoteT $ do
     tcConfig <- TPLC.getDefTypeCheckConfig ()
     _ <- TPLC.inferType tcConfig term
-    return . action runtime $ UPLC.erase term
+    return . action runtime $ TPLC.eraseTerm term
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
@@ -56,9 +57,9 @@ typecheckEvaluateCekNoEmit = typecheckAnd unsafeEvaluateCekNoEmit
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
        , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
-       , KnownType (UPLC.Term Name uni fun ()) a
+       , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => MachineParameters CekMachineCosts CekValue uni fun
     -> TPLC.Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException uni fun) a)
+    -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek = typecheckAnd readKnownCek

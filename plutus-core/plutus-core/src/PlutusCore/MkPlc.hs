@@ -1,9 +1,9 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
@@ -134,7 +134,7 @@ mkTyVar ann = TyVar ann . _tyVarDeclName
 data Def var val = Def
     { defVar :: var
     , defVal :: val
-    } deriving (Show, Eq, Ord, Generic)
+    } deriving stock (Show, Eq, Ord, Generic)
 
 -- | A term definition as a variable.
 type TermDef term tyname name uni fun ann = Def (VarDecl tyname name uni fun ann) (term ann)

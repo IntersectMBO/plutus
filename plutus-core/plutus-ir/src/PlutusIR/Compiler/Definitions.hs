@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleContexts       #-}
@@ -12,21 +13,25 @@
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module PlutusIR.Compiler.Definitions (DefT
-                                     , MonadDefs (..)
-                                     , TermDefWithStrictness
-                                     , runDefT
-                                     , defineTerm
-                                     , defineType
-                                     , defineDatatype
-                                     , recordAlias
-                                     , lookupTerm
-                                     , lookupOrDefineTerm
-                                     , lookupType
-                                     , lookupOrDefineType
-                                     , lookupConstructors
-                                     , lookupDestructor) where
+                                              , MonadDefs (..)
+                                              , TermDefWithStrictness
+                                              , runDefT
+                                              , defineTerm
+                                              , modifyTermDef
+                                              , defineType
+                                              , modifyTypeDef
+                                              , defineDatatype
+                                              , modifyDatatypeDef
+                                              , modifyDeps
+                                              , recordAlias
+                                              , lookupTerm
+                                              , lookupOrDefineTerm
+                                              , lookupType
+                                              , lookupOrDefineType
+                                              , lookupConstructors
+                                              , lookupDestructor) where
 
-import PlutusIR
+import PlutusIR as PIR
 import PlutusIR.MkPir hiding (error)
 
 import PlutusCore.MkPlc qualified as PLC
@@ -44,16 +49,28 @@ import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM
 import Algebra.Graph.NonEmpty.AdjacencyMap qualified as NAM
 import Algebra.Graph.ToGraph qualified as Graph
 
+import Data.Bifunctor (first, second)
 import Data.Foldable
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Set qualified as Set
 
+{- Note [Annotations on Bindings]
+
+When constructing Bindings (including TermBind, TypeBind and DatatypeBind) from definitions
+in `runDefT`, we use the annotation on the VarDecl and TyVarDecl as the annotation of the
+Binding itself. The reason is that the simplifier looks at the annotation of a Binding as
+one of the factors to determine whether to inline the Binding. When we define a term that
+should be inlined, we put the corresponding annotation in the VarDecl or TyVarDecl (note
+that there's no need to annotate the term itself), and that annotation needs to be copied
+to the Binding when creating the Binding.
+-}
+
 -- | A map from keys to pairs of bindings and their dependencies (as a list of keys).
 type DefMap key def = Map.Map key (def, Set.Set key)
 
 mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
-mapDefs f = Map.map (\(def, deps) -> (f def, deps))
+mapDefs f = Map.map (first f)
 
 type TermDefWithStrictness uni fun ann =
     PLC.Def (VarDecl TyName Name uni fun ann) (Term TyName Name uni fun ann, Strictness)
@@ -67,7 +84,7 @@ data DefState key uni fun ann = DefState {
 makeLenses ''DefState
 
 newtype DefT key uni fun ann m a = DefT { unDefT :: StateT (DefState key uni fun ann) m a }
-    deriving (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote, MonadWriter w)
+    deriving newtype (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadQuote, MonadWriter w)
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (DefT key uni fun ann m) where
@@ -75,7 +92,6 @@ instance MonadState s m => MonadState s (DefT key uni fun ann m) where
     put = lift . put
     state = lift . state
 
--- TODO: provenances
 runDefT :: (Monad m, Ord key) => ann -> DefT key uni fun ann m (Term TyName Name uni fun ann) -> m (Term TyName Name uni fun ann)
 runDefT x act = do
     (term, s) <- runStateT (unDefT act) (DefState mempty mempty mempty mempty)
@@ -83,9 +99,10 @@ runDefT x act = do
         where
             bindingDefs defs =
                 let
-                    terms = mapDefs (\d -> TermBind x (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
-                    types = mapDefs (\d -> TypeBind x (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
-                    datatypes = mapDefs (\d -> DatatypeBind x (PLC.defVal d)) (_datatypeDefs defs)
+                    -- See Note [Annotations on Bindings]
+                    terms = mapDefs (\d -> TermBind (_varDeclAnn (defVar d)) (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
+                    types = mapDefs (\d -> TypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
+                    datatypes = mapDefs (\d -> DatatypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVal d)) (_datatypeDefs defs)
                 in terms `Map.union` types `Map.union` datatypes
 
 -- | Given the definitions in the program, create a topologically ordered list of the
@@ -130,13 +147,31 @@ instance MonadDefs key uni fun ann m => MonadDefs key uni fun ann (ReaderT r m)
 defineTerm :: MonadDefs key uni fun ann m => key -> TermDefWithStrictness uni fun ann -> Set.Set key -> m ()
 defineTerm name def deps = liftDef $ DefT $ modify $ over termDefs $ Map.insert name (def, deps)
 
+modifyTermDef :: MonadDefs key uni fun ann m => key -> (TermDefWithStrictness uni fun ann -> TermDefWithStrictness uni fun ann)-> m ()
+modifyTermDef name f = liftDef $ DefT $ modify $ over termDefs $ Map.adjust (first f) name
+
 defineType :: MonadDefs key uni fun ann m => key -> TypeDef TyName uni ann -> Set.Set key -> m ()
 defineType name def deps = liftDef $ DefT $ modify $ over typeDefs $ Map.insert name (def, deps)
+
+modifyTypeDef :: MonadDefs key uni fun ann m => key -> (TypeDef TyName uni ann -> TypeDef TyName uni ann)-> m ()
+modifyTypeDef name f = liftDef $ DefT $ modify $ over typeDefs $ Map.adjust (first f) name
 
 defineDatatype
     :: forall key uni fun ann m . MonadDefs key uni fun ann m
     => key -> DatatypeDef TyName Name uni fun ann -> Set.Set key -> m ()
 defineDatatype name def deps = liftDef $ DefT $ modify $ over datatypeDefs $ Map.insert name (def, deps)
+
+modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni fun ann -> DatatypeDef TyName Name uni fun ann)-> m ()
+modifyDatatypeDef name f = liftDef $ DefT $ modify $ over datatypeDefs $ Map.adjust (first f) name
+
+-- | Modifies the dependency set of a key.
+modifyDeps :: MonadDefs key uni fun ann m => key -> (Set.Set key -> Set.Set key)-> m ()
+modifyDeps name f = liftDef $ DefT $ do
+    -- This is a little crude: we expect most keys will appear in only one map, so we just modify the
+    -- dependencies in all of them! That lets us just have one function.
+    modify $ over termDefs $ Map.adjust (second f) name
+    modify $ over typeDefs $ Map.adjust (second f) name
+    modify $ over datatypeDefs $ Map.adjust (second f) name
 
 recordAlias :: forall key uni fun ann m . MonadDefs key uni fun ann m => key -> m ()
 recordAlias name = liftDef @key @uni @fun @ann $ DefT $ modify $ over aliases (Set.insert name)

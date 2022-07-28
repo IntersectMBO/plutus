@@ -14,14 +14,11 @@
     pkgs = import sources.nixpkgs { inherit system; };
     sourcesOverride = {
       hackage = sources.hackage-nix;
-      stackage = sources.stackage-nix;
     };
   }
-, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling; }
-  # An explicit git rev to use, passed when we are in Hydra
-  # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
-  # false, generally, since it does more work, but we set it to true in the CI
-, checkMaterialization ? false
+, packages ? import ./nix {
+    inherit system sources crossSystem config sourcesOverride haskellNix enableHaskellProfiling;
+  }
   # Whether to build our Haskell packages (and their dependencies) with profiling enabled.
 , enableHaskellProfiling ? false
 }:
@@ -35,7 +32,7 @@ rec {
   tests = import ./nix/tests/default.nix {
     inherit pkgs docs;
     inherit (plutus.lib) gitignore-nix;
-    inherit (plutus) fixStylishHaskell fixPngOptimization;
+    inherit (plutus) fixStylishHaskell fixPngOptimization fixCabalFmt;
     src = ./.;
   };
 

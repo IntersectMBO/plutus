@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-% Primality testing functions taken from nofib/spectral/primetest.
   Most of the literate Haskell stuff has been removed and everything's
   been put into one file for simplicity. %-}
@@ -29,8 +30,7 @@ import Prelude qualified as Haskell
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins (divideInteger, modInteger)
-import PlutusTx.Prelude as Tx hiding (divMod, even)
-import PlutusTx.Ratio (divMod)
+import PlutusTx.Prelude as Tx hiding (even)
 
 ---------------- Extras ----------------
 
@@ -229,7 +229,7 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 ---------------- Main ----------------
 
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
-     deriving (Haskell.Read, Haskell.Show)
+     deriving stock (Haskell.Read, Haskell.Show)
 
 {- Some prime numbers.  The larger ones are taken from
    https://primes.utm.edu/lists/small/small.html and
@@ -268,7 +268,8 @@ numTests :: Integer
 numTests = 100
 
 data Result = Composite | Prime
-    deriving (Haskell.Show, Haskell.Eq, Generic, NFData)
+    deriving stock (Haskell.Show, Haskell.Eq, Generic)
+    deriving anyclass (NFData)
 -- Haskell.Eq needed for comparing Haskell results in tests.
 
 -- % The @processList@ function takes a list of input numbers
@@ -305,13 +306,17 @@ mkPrimalityTestTerm n =
 runFixedPrimalityTest :: PrimeID -> Result
 runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 
+
+mkPrimalityCode :: PrimeID -> Tx.CompiledCode Result
+mkPrimalityCode pid =
+    $$(Tx.compile [|| runFixedPrimalityTest ||])
+          `Tx.applyCode` Tx.liftCode pid
+
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).
 mkPrimalityBenchTerm :: PrimeID -> Term
 mkPrimalityBenchTerm pid =
-    compiledCodeToTerm $
-        $$(Tx.compile [|| runFixedPrimalityTest ||])
-        `Tx.applyCode` Tx.liftCode pid
+    compiledCodeToTerm $ mkPrimalityCode pid
 
 Tx.makeLift ''PrimeID
 Tx.makeLift ''Result

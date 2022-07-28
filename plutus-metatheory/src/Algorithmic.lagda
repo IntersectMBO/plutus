@@ -108,7 +108,9 @@ sig lessThanByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
 sig lessThanEqualsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
 sig sha2-256 = _ ,, ∅ , con bytestring ,, con bytestring
 sig sha3-256 = _ ,, ∅ , con bytestring ,, con bytestring
-sig verifySignature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifyEd25519Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifyEcdsaSecp256k1Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
+sig verifySchnorrSecp256k1Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
 sig equalsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
 sig appendString = _ ,, ∅ , con string , con string ,, con string
 sig trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
@@ -140,6 +142,7 @@ sig unListData = _ ,, ∅ , con Data ,, con (list (con Data))
 sig unIData = _ ,, ∅ , con Data ,, con integer
 sig unBData = _ ,, ∅ , con Data ,, con bytestring
 sig equalsData = _ ,, ∅ , con Data , con Data ,, con bool
+sig serialiseData = _ ,, ∅ , con Data ,, con bytestring
 sig chooseData =
   _
   ,,
@@ -171,59 +174,70 @@ btype b = let Φ ,, Γ ,, C = sig b in subNf (λ()) (sig2type Φ Γ C)
 postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
 postulate btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
 
-infixl 7 _·⋆_
+infixl 7 _·⋆_/_
 
 data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
   ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
-      ------
+      -----
     → Γ ⊢ A
 
   ƛ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ , A ⊢ B
-      -----------
+      ---------
     → Γ ⊢ A ⇒ B
 
   _·_ : ∀ {A B : Φ ⊢Nf⋆ *}
     → Γ ⊢ A ⇒ B
     → Γ ⊢ A
-      -----------
+      ---------
     → Γ ⊢ B
 
   Λ : ∀ {K}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ,⋆ K ⊢ B
-      ----------
+      -------------------
     → Γ ⊢ Π B
 
-  _·⋆_ : ∀ {K}
+  _·⋆_/_ : ∀ {K C}
     → {B : Φ ,⋆ K ⊢Nf⋆ *}
     → Γ ⊢ Π B
     → (A : Φ ⊢Nf⋆ K)
-      ---------------
-    → Γ ⊢ B [ A ]
+    → C ≡ B [ A ]
+      --------------
+    → Γ ⊢ C
 
   wrap : ∀{K}
    → (A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
    → (B : Φ ⊢Nf⋆ K)
    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
+     -------------------------------------------------------------
    → Γ ⊢ μ A B
 
-  unwrap : ∀{K}
+  unwrap : ∀{K C}
     → {A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}
     → {B : Φ ⊢Nf⋆ K}
     → Γ ⊢ μ A B
-    → Γ ⊢ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
+    → C ≡ nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)
+      -------------------------------------------------------------
+    → Γ ⊢ C
 
   con : ∀{tcn}
     → TermCon {Φ} (con tcn)
-      -------------------
+      ---------------------
     → Γ ⊢ con tcn
 
-  builtin : (b :  Builtin) → Γ ⊢ btype b
+  builtin_/_ : ∀{C}
+    → (b :  Builtin)
+    → C ≡ btype b
+      --------------
+    → Γ ⊢ C
 
-  error : (A : Φ ⊢Nf⋆ *) → Γ ⊢ A
+  error :
+      (A : Φ ⊢Nf⋆ *)
+      --------------
+    → Γ ⊢ A
 \end{code}
 
 Utility functions

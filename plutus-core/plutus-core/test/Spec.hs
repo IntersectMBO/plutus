@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -11,6 +12,7 @@ module Main
 
 import PlutusPrelude
 
+import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import Evaluation.Spec (test_evaluation)
@@ -21,6 +23,9 @@ import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
+import PlutusCore.Check.Uniques qualified as Uniques
+import PlutusCore.DeBruijn
+import PlutusCore.Error
 import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
@@ -29,13 +34,17 @@ import PlutusCore.Pretty
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
+import Data.Either (isLeft)
+import Data.Foldable (for_)
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
-import Flat (flat)
-import Flat qualified
+import Data.Text.IO (readFile)
+import Data.Word (Word64)
+import Flat (flat, unflat)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.HUnit
@@ -50,7 +59,7 @@ main = do
     defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
 
 compareName :: Name -> Name -> Bool
-compareName = (==) `on` nameString
+compareName = (==) `on` _nameText
 
 compareTyName :: TyName -> TyName -> Bool
 compareTyName (TyName n) (TyName n') = compareName n n'
@@ -89,50 +98,54 @@ compareProgram
 compareProgram (Program _ v t) (Program _ v' t') = v == v' && compareTerm t t'
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
-newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving Show
+newtype TextualProgram a = TextualProgram { unTextualProgram :: Program TyName Name DefaultUni DefaultFun a } deriving stock Show
 
 instance Eq a => Eq (TextualProgram a) where
     (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
 
 propFlat :: Property
 propFlat = property $ do
-    prog <- forAllPretty $ runAstGen genProgram
+    prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
     Hedgehog.tripping prog Flat.flat Flat.unflat
 
-{- The lexer contains some quite complex regular expressions for literal
-  constants, allowing escape sequences inside quoted strings among other
-  things.  The lexer returns 'TkLiteralConst' tokens and then individual
-  built-in types interpret these using their own parsing functions via the
-  'Parsable' class.  The following tests check that (A) the lexer/parser can
+-- | Asserts that an index serialized as a 'Natural' will deserialize as 'Word64'
+-- iff it is in bounds.
+natWordSerializationProp :: Property
+natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
+    let maxWord :: Natural = fromIntegral (maxBound :: Word64)
+    (n :: Natural) <- forAll $ Gen.integral (Range.linear 0 (maxWord*2))
+    let res = unflat @Index (flat n)
+    if n <= maxWord
+    then res === Right (fromIntegral n)
+    else Hedgehog.assert (isLeft res)
+
+{- The following tests check that (A) the parser can
   handle the output of the prettyprinter on constants from types in the default
   universe, and (B) that parsing is left inverse to printing for both constants
   and programs.  We have unit tests for the unit and boolean types, and property
   tests for the full set of types in the default universe. -}
 
-type DefaultTerm  a = Term TyName Name DefaultUni DefaultFun a
-type DefaultError a = Error DefaultUni DefaultFun a
+type DefaultError = Error DefaultUni DefaultFun SourcePos
 
-parseTm :: BSL.ByteString -> Either (DefaultError AlexPosn) (DefaultTerm AlexPosn)
-parseTm = runQuote . runExceptT . parseTerm @(DefaultError AlexPosn)
-
-reprint :: PrettyPlc a => a -> BSL.ByteString
-reprint = BSL.fromStrict . encodeUtf8 . displayPlcDef
-
-{-| Test that the lexer/parser can successfully consume the output from the
+{-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here
-   because there are only three possiblities (@()@, @false@, and @true@). -}
+   because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
-    mapM_ (\t -> (fmap void . parseTm . reprint $ t) @?= Right t) smallConsts
+    for_ smallConsts $ \t -> do
+            let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+                res = runQuoteT $ parseTerm $ displayPlcDef t
+            -- using `void` here to get rid of `SourcePos`
+            fmap void res @?= Right t
         where
-          smallConsts :: [DefaultTerm ()]
+          smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
           smallConsts =
               [ mkConstant () ()
               , mkConstant () False
               , mkConstant () True
               ]
 
-{- Generate constant terms for each type in the default universe. The lexer should
+{- Generate constant terms for each type in the default universe. The parser should
   be able to consume escape sequences in characters and strings, both standard
   ASCII escape sequences and Unicode ones.  Hedgehog has generators for both of
   these, but the Unicode one essentially never generates anything readable: all
@@ -140,10 +153,7 @@ testLexConstant =
   possible formats we have generators for Unicode characters and ASCII
   characters, and also Latin-1 ones (characters 0-255, including standard ASCII
   from 0-127); there is also a generator for UTF8-encoded Unicode. -}
--- TODO: replace PlutusCore.Generators.AST.genConstant with this.  We
--- can't do that at the moment because genConstant is used by the tests for the
--- plutus-ir parser, and that can't handle the full range of constants at the
--- moment.
+-- TODO: replace PlutusCore.Generators.AST.genConstant with this
 genConstantForTest :: AstGen (Some (ValueOf DefaultUni))
 genConstantForTest = Gen.frequency
     [ (3,  someValue <$> pure ())
@@ -166,32 +176,63 @@ genConstantForTest = Gen.frequency
 propLexConstant :: Property
 propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
-    Hedgehog.tripping term reprint (fmap void . parseTm)
+    Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
+    where
+        parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+        parseTm tm = runQuoteT $ parseTerm tm
+
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
-    Hedgehog.tripping prog (reprint . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) $ runQuote $ runExceptT $ parseProgram @(DefaultError AlexPosn) p)
+    Hedgehog.tripping prog (displayPlcDef . unTextualProgram)
+                (\p -> fmap (TextualProgram . void) (parseProg p))
+    where
+        parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
+        parseProg p = runQuoteT $ parseProgram p
 
-type TestFunction a = BSL.ByteString -> Either (DefaultError a) T.Text
+type TestFunction = T.Text -> Either DefaultError T.Text
 
-asIO :: Pretty a => TestFunction a -> FilePath -> IO BSL.ByteString
-asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . BSL.readFile
+asIO :: TestFunction -> FilePath -> IO BSL.ByteString
+asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
 errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
-asGolden :: Pretty a => TestFunction a -> TestName -> TestTree
+asGolden :: TestFunction -> TestName -> TestTree
 asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
+-- | Parse and rewrite so that names are globally unique, not just unique within
+-- their scope.
+-- don't require there to be no free variables at this point, we might be parsing an open term
+parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
+        MonadError e m, MonadQuote m) =>
+    T.Text
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+-- don't require there to be no free variables at this point, we might be parsing an open term
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
+
+printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
+        MonadError e m)
+    => T.Text
+    -> m T.Text
+printType txt = runQuoteT $ T.pack . show . pretty <$> do
+    scoped <- parseScoped txt
+    config <- getDefTypeCheckConfig topSourcePos
+    inferTypeOfProgram config scoped
+
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
+
+format
+    :: (AsParserErrorBundle e, MonadError e m)
+    => PrettyConfigPlc -> T.Text -> m T.Text
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden
@@ -207,10 +248,9 @@ tests :: TestTree
 tests = testCase "example programs" $ fold
     [ fmt "(program 0.1.0 [(builtin addInteger) x y])" @?= Right "(program 0.1.0 [ [ (builtin addInteger) x ] y ])"
     , fmt "(program 0.1.0 doesn't)" @?= Right "(program 0.1.0 doesn't)"
-    , fmt "{- program " @?= Left (LexErr "Error in nested comment at line 1, column 12")
     ]
     where
-        fmt :: BSL.ByteString -> Either (ParseError AlexPosn) T.Text
+        fmt :: T.Text -> Either ParserErrorBundle T.Text
         fmt = format cfg
         cfg = defPrettyConfigPlcClassic defPrettyConfigPlcOptions
 
@@ -222,6 +262,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testProperty "lexing constants" propLexConstant
     , testProperty "parser round-trip" propParser
     , testProperty "serialization round-trip (Flat)" propFlat
+    , testProperty "nat/word serialization test" natWordSerializationProp
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
@@ -233,6 +274,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_evaluation
     , test_normalizationCheck
     , test_costModelInterface
+    , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests NEAT.defaultGenOptions
     ]
