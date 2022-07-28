@@ -7,14 +7,24 @@
 let
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in
-runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
-  # Merge all the docs from the packages. We don't use symlinkJoin because:
+runCommand "haddock-join"
+{
+  buildInputs = [ hsdocs ];
+  exportReferencesGraph = lib.concatLists
+    (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
+} ''
+  hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
+  # Merge all the docs from the packages and their doc dependencies.
+  # We don't use symlinkJoin because:
   # - We are going to want to redistribute this, so we don't want any symlinks.
   # - We want to be selective about what we copy (we don't need the hydra
   #   tarballs from the other packages, for example.
   mkdir -p "$out/share/doc"
-  for pkg in ${lib.concatStringsSep " " hsdocs}; do
-    cp -R $pkg/share/doc/* "$out/share/doc"
+  for pkg in $hsdocsRec; do
+    files=($pkg/share/doc/*)
+    if [ ''${#files[@]} -gt 0 ]; then
+      cp -R ''${files[@]} "$out/share/doc"
+    fi
   done
   # We're going to sed all the files so they'd better be writable!
   chmod -R +w $out/share/doc
@@ -30,7 +40,7 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
     # Also, it's not a a file:// link now because it's a relative URL instead
     # of an absolute one.
     relpath=$(realpath --relative-to=$(dirname $f) --no-symlinks $root)
-    pkgsRegex="${"file://(" + (lib.concatStringsSep "|" hsdocs) + ")/share/doc"}"
+    pkgsRegex="${"file:///nix/store/[^/]*/share/doc"}"
     sed -i -r "s,$pkgsRegex,$relpath,g" "$f"
     # Now also replace the index/contents links so they point to (what will be)
     # the combined ones instead.
@@ -43,16 +53,22 @@ runCommand "haddock-join" { buildInputs = [ hsdocs ]; } ''
   # Move to the docdir. We do this so that we can give relative docpaths to
   # Haddock so it will generate relative (relocatable) links in the index.
   cd $out/share/doc
-  # Collect all the interface files and their docpaths (in this case
-  # we can just use the enclosing directory).
+  # Non-recursively collect all the interface files and their docpaths
+  # (in this case we can just use the enclosing directory).
   interfaceOpts=()
-  for interfaceFile in $(find . -name "*.haddock"); do
-    # this is '$PACKAGE/html'
-    docdir=$(dirname $interfaceFile)
-    interfaceOpts+=("--read-interface=$docdir,$interfaceFile")
+  for pkg in ${lib.concatStringsSep " " hsdocs}; do
+    pushd $pkg/share/doc
+    for interfaceFile in $(find . -name "*.haddock"); do
+      # this is '$PACKAGE/html'
+      docdir=$(dirname $interfaceFile)
+      interfaceOpts+=("--read-interface=$docdir,$interfaceFile")
 
-    # Jam this in here for now
-    ${sphinxcontrib-haddock}/bin/haddock_inventory $docdir
+      # Jam this in here for now
+      pushd $out/share/doc
+      ${sphinxcontrib-haddock}/bin/haddock_inventory $docdir
+      popd
+    done
+    popd
   done
 
   # Generate the contents and index
