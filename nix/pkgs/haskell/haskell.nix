@@ -144,10 +144,6 @@ let
           plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
-          # Relies on cabal-doctest, just turn it off in the Nix build
-          prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable =
-            lib.mkForce false;
-
           plutus-core.components.benchmarks.update-cost-model = {
             build-tools = r-packages;
             # Seems to be broken on darwin for some reason
