@@ -68,30 +68,8 @@ let
         };
       })
       ({ pkgs, ... }:
-        let
-          # Add symlinks to the DLLs used by executable code to the `bin` directory
-          # of the components with we are going to run.
-          # We should try to find a way to automate this will in haskell.nix.
-          symlinkDlls = ''
-            ln -s \
-              ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libgcc_s_seh-1.dll \
-              $out/bin/libgcc_s_seh-1.dll
-            ln -s \
-              ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libstdc++-6.dll \
-              $out/bin/libstdc++-6.dll
-            ln -s \
-              ${pkgs.windows.mcfgthreads}/bin/mcfgthread-12.dll \
-              $out/bin/mcfgthread-12.dll
-          '';
-        in
         lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
           packages = {
-            # Add dll symlinks to the compoents we want to run.
-            plutus-core.components.tests.plutus-core-test.postInstall = symlinkDlls;
-            plutus-core.components.tests.plutus-ir-test.postInstall = symlinkDlls;
-            plutus-core.components.tests.untyped-plutus-core-test.postInstall = symlinkDlls;
-            plutus-ledger-api.components.tests.plutus-ledger-api-test.postInstall = symlinkDlls;
-
             # These three tests try to use `diff` and the following could be used to make
             # the linux version of diff available.  Unfortunately the paths passed to it
             # are windows style.
@@ -166,7 +144,12 @@ let
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-          prettyprinter-configurable.ghcOptions = [ "-Werror" ];
+          # This package's tests require doctest, which generates Haskell source
+          # code. However, it does not add derivation strategies in said code,
+          # which will fail the build with -Werror. Furthermore, barring an
+          # upstream fix, there's nothing we can do about it other than
+          # disabling -Werror on it.
+          # prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           word-array.ghcOptions = [ "-Werror" ];
 
           # External package settings
