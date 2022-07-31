@@ -69,7 +69,11 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   -- Vasil is protocolversion=7.0
   ((PlutusV2, vasilPV), Set.fromList [
-          SerialiseData, VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
+          SerialiseData
+          ]),
+  -- Chang is protocolversion=8.0
+  ((PlutusV2, changPV), Set.fromList [
+          VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
 
