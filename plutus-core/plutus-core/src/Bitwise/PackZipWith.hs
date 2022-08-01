@@ -13,8 +13,7 @@ import Foreign.Storable (peekElemOff, pokeElemOff)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 
 -- Replicate packZipWith from newer bytestring
--- the INLINE is their idea
-{-# INLINE packZipWithBinary #-}
+{-# NOINLINE packZipWithBinary #-}
 packZipWithBinary ::
   (Word8 -> Word8 -> Word8) ->
   ByteString ->
