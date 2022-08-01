@@ -319,6 +319,7 @@ library
     , time
     , transformers
     , unordered-containers
+    , wide-word
     , witherable
     , word-array
 
@@ -801,5 +802,6 @@ benchmark bitwise
     , random
     , tasty
     , tasty-bench
+    , wide-word
 
   ghc-options:      -O2 -rtsopts "-with-rtsopts=-A32m --nonmoving-gc -T"
