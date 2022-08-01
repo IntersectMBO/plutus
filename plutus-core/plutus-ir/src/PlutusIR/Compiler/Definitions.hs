@@ -73,12 +73,12 @@ mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
 mapDefs f = Map.map (first f)
 
 type TermDefWithStrictness uni fun ann =
-    PLC.Def (VarDecl TyName Name uni fun ann) (Term TyName Name uni fun ann, Strictness)
+    PLC.Def (VarDecl TyName Name uni ann) (Term TyName Name uni fun ann, Strictness)
 
 data DefState key uni fun ann = DefState {
     _termDefs     :: DefMap key (TermDefWithStrictness uni fun ann),
     _typeDefs     :: DefMap key (TypeDef TyName uni ann),
-    _datatypeDefs :: DefMap key (DatatypeDef TyName Name uni fun ann),
+    _datatypeDefs :: DefMap key (DatatypeDef TyName Name uni ann),
     _aliases      :: Set.Set key
     }
 makeLenses ''DefState
@@ -158,10 +158,10 @@ modifyTypeDef name f = liftDef $ DefT $ modify $ over typeDefs $ Map.adjust (fir
 
 defineDatatype
     :: forall key uni fun ann m . MonadDefs key uni fun ann m
-    => key -> DatatypeDef TyName Name uni fun ann -> Set.Set key -> m ()
+    => key -> DatatypeDef TyName Name uni ann -> Set.Set key -> m ()
 defineDatatype name def deps = liftDef $ DefT $ modify $ over datatypeDefs $ Map.insert name (def, deps)
 
-modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni fun ann -> DatatypeDef TyName Name uni fun ann)-> m ()
+modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni ann -> DatatypeDef TyName Name uni ann)-> m ()
 modifyDatatypeDef name f = liftDef $ DefT $ modify $ over datatypeDefs $ Map.adjust (first f) name
 
 -- | Modifies the dependency set of a key.

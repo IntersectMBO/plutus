@@ -33,7 +33,7 @@ variable *last* (so it is on the outside, so will be first when applying).
 withVarScoped ::
     CompilingDefault uni fun m ann =>
     GHC.Var ->
-    (PIR.VarDecl PIR.TyName PIR.Name uni fun Ann -> m a) ->
+    (PIR.VarDecl PIR.TyName PIR.Name uni Ann -> m a) ->
     m a
 withVarScoped v k = do
     let ghcName = GHC.getName v
@@ -43,7 +43,7 @@ withVarScoped v k = do
 withVarsScoped ::
     CompilingDefault uni fun m ann =>
     [GHC.Var] ->
-    ([PIR.VarDecl PIR.TyName PIR.Name uni fun Ann] -> m a) ->
+    ([PIR.VarDecl PIR.TyName PIR.Name uni Ann] -> m a) ->
     m a
 withVarsScoped vs k = do
     vars <- for vs $ \v -> do

@@ -45,12 +45,12 @@ data CompileOptions = CompileOptions {
     , coRemoveTrace :: Bool
     }
 
-data CompileContext uni fun = CompileContext {
+data CompileContext uni = CompileContext {
     ccOpts        :: CompileOptions,
     ccFlags       :: GHC.DynFlags,
     ccFamInstEnvs :: GHC.FamInstEnvs,
     ccNameInfo    :: NameInfo,
-    ccScopes      :: ScopeStack uni fun,
+    ccScopes      :: ScopeStack uni,
     ccBlackholed  :: Set.Set GHC.Name,
     ccCurDef      :: Maybe LexName,
     ccModBreaks   :: Maybe GHC.ModBreaks
@@ -164,7 +164,7 @@ stableModuleCmp m1 m2 =
 type Compiling uni fun m ann =
     ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
-    , MonadReader (CompileContext uni fun) m
+    , MonadReader (CompileContext uni) m
     , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
     )
@@ -179,10 +179,10 @@ type CompilingDefault uni fun m ann =
     , Compiling uni fun m ann
     )
 
-blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
+blackhole :: MonadReader (CompileContext uni) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
 
-blackholed :: MonadReader (CompileContext uni fun) m => GHC.Name -> m Bool
+blackholed :: MonadReader (CompileContext uni) m => GHC.Name -> m Bool
 blackholed name = do
     CompileContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh
@@ -196,10 +196,10 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope uni fun = Scope (Map.Map GHC.Name (PLCVar uni fun)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
+data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
+type ScopeStack uni = NE.NonEmpty (Scope uni)
 
-initialScopeStack :: ScopeStack uni fun
+initialScopeStack :: ScopeStack uni
 initialScopeStack = pure $ Scope Map.empty Map.empty
 
 withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a

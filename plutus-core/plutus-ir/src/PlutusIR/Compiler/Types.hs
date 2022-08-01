@@ -156,7 +156,7 @@ type Compiling m e uni fun a =
     , PLC.Pretty a
     )
 
-type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)
+type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
 
 -- | We generate some shared definitions compilation, this datatype
 -- defines the "keys" for those definitions.

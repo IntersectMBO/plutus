@@ -397,7 +397,7 @@ withVarsOfBinding r (DatatypeBind _ dt) k = do
     foldr normRenameScope k structorDecls
     where
       -- normalize, then introduce the vardecl to scope
-      normRenameScope :: VarDecl TyName Name uni fun (Provenance ann)
+      normRenameScope :: VarDecl TyName Name uni (Provenance ann)
                       -> TypeCheckT uni fun cfg m a -> TypeCheckT uni fun cfg m a
       normRenameScope v acc = do
           normRenamedTy <- normalizeTypeM $ _varDeclType v

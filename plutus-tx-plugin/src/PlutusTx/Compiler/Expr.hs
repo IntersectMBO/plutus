@@ -468,7 +468,7 @@ hoistExpr var t = do
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar AnnOther var'
 
-maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
     let ty = PLC._varDeclType var

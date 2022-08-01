@@ -326,7 +326,7 @@ runCompiler ::
     forall uni fun m.
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
-    , MonadReader (CompileContext uni fun) m
+    , MonadReader (CompileContext uni) m
     , MonadWriter CoverageIndex m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m

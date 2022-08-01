@@ -55,7 +55,7 @@ bindingSubterms f = \case
 
 {-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
-datatypeSubtypes :: Traversal' (Datatype tyname name uni fun a) (Type tyname uni a)
+datatypeSubtypes :: Traversal' (Datatype tyname name uni a) (Type tyname uni a)
 datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
 
 {-# INLINE bindingSubtypes #-}
@@ -68,7 +68,7 @@ bindingSubtypes f = \case
 
 {-# INLINE datatypeSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Datatype'.
-datatypeSubkinds :: Traversal' (Datatype tyname name uni fun a) (Kind a)
+datatypeSubkinds :: Traversal' (Datatype tyname name uni a) (Kind a)
 datatypeSubkinds f (Datatype a n vs m cs) = do
     n' <- tyVarDeclSubkinds f n
     vs' <- traverse (tyVarDeclSubkinds f) vs
@@ -76,7 +76,7 @@ datatypeSubkinds f (Datatype a n vs m cs) = do
 
 {-# INLINE datatypeTyNames #-}
 -- | Get all the type-names introduces by a datatype
-datatypeTyNames :: Traversal' (Datatype tyname name uni fun a) tyname
+datatypeTyNames :: Traversal' (Datatype tyname name uni a) tyname
 datatypeTyNames f (Datatype a2 tvdecl tvdecls n vdecls) =
     Datatype a2
         <$> PLC.tyVarDeclName f tvdecl

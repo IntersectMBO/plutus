@@ -44,13 +44,13 @@ genRecursivity = Gen.element [Rec, NonRec]
 genStrictness :: MonadGen m => m Strictness
 genStrictness = Gen.element [Strict, NonStrict]
 
-genVarDecl :: PLC.AstGen (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun ())
+genVarDecl :: PLC.AstGen (VarDecl TyName Name PLC.DefaultUni ())
 genVarDecl = VarDecl () <$> genName <*> genType
 
 genTyVarDecl :: PLC.AstGen (TyVarDecl TyName ())
 genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
-genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni PLC.DefaultFun ())
+genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
     where listOf = Gen.list (Range.linear 0 10)
 

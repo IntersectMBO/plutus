@@ -65,7 +65,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
-    termLet  :: ann -> TermDef term tyname name uni fun ann -> term ann -> term ann
+    termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
 
     termLet = mkImmediateLamAbs
@@ -123,7 +123,7 @@ embed = \case
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
-mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni fun ann -> term ann
+mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann
 mkVar ann = var ann . _varDeclName
 
 -- | Make a 'TyVar' referencing the given 'TyVarDecl'.
@@ -137,7 +137,7 @@ data Def var val = Def
     } deriving stock (Show, Eq, Ord, Generic)
 
 -- | A term definition as a variable.
-type TermDef term tyname name uni fun ann = Def (VarDecl tyname name uni fun ann) (term ann)
+type TermDef term tyname name uni ann = Def (VarDecl tyname name uni ann) (term ann)
 -- | A type definition as a type variable.
 type TypeDef tyname uni ann = Def (TyVarDecl tyname ann) (Type tyname uni ann)
 
@@ -168,7 +168,7 @@ functionDefToType :: FunctionDef term tyname name uni fun ann -> Type tyname uni
 functionDefToType (FunctionDef _ _ funTy _) = functionTypeToType funTy
 
 -- | Convert a 'FunctionDef' to a 'VarDecl'. I.e. ignore the actual term.
-functionDefVarDecl :: FunctionDef term tyname name uni fun ann -> VarDecl tyname name uni fun ann
+functionDefVarDecl :: FunctionDef term tyname name uni fun ann -> VarDecl tyname name uni ann
 functionDefVarDecl (FunctionDef ann name funTy _) = VarDecl ann name $ functionTypeToType funTy
 
 -- | Make a 'FunctionDef'. Return 'Nothing' if the provided type is not functional.
@@ -186,7 +186,7 @@ mkFunctionDef _       _    _                     _    = Nothing
 mkImmediateLamAbs
     :: TermLike term tyname name uni fun
     => ann
-    -> TermDef term tyname name uni fun ann
+    -> TermDef term tyname name uni ann
     -> term ann -- ^ The body of the let, possibly referencing the name.
     -> term ann
 mkImmediateLamAbs ann1 (Def (VarDecl ann2 name ty) bind) body =
@@ -223,7 +223,7 @@ mkIterInst ann = foldl' (tyInst ann)
 -- | Lambda abstract a list of names.
 mkIterLamAbs
     :: TermLike term tyname name uni fun
-    => [VarDecl tyname name uni fun ann]
+    => [VarDecl tyname name uni ann]
     -> term ann
     -> term ann
 mkIterLamAbs args body =

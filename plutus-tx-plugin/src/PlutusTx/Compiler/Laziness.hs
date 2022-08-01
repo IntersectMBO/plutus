@@ -31,7 +31,7 @@ delay body = PIR.TyAbs AnnOther <$> liftQuote (freshTyName "dead") <*> pure (PIR
 delayType :: Compiling uni fun m ann => PIRType uni -> m (PIRType uni)
 delayType orig = PIR.TyForall AnnOther <$> liftQuote (freshTyName "dead") <*> pure (PIR.Type AnnOther) <*> pure orig
 
-delayVar :: Compiling uni fun m ann => PIRVar uni fun -> m (PIRVar uni fun)
+delayVar :: Compiling uni fun m ann => PIRVar uni -> m (PIRVar uni)
 delayVar (PIR.VarDecl ann n ty) = do
     ty' <- delayType ty
     pure $ PIR.VarDecl ann n ty'
@@ -47,7 +47,7 @@ force thunk = do
 maybeDelay :: Compiling uni fun m ann => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t
 
-maybeDelayVar :: Compiling uni fun m ann => Bool -> PIRVar uni fun -> m (PIRVar uni fun)
+maybeDelayVar :: Compiling uni fun m ann => Bool -> PIRVar uni -> m (PIRVar uni)
 maybeDelayVar yes v = if yes then delayVar v else pure v
 
 maybeDelayType :: Compiling uni fun m ann => Bool -> PIRType uni -> m (PIRType uni)

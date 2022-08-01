@@ -15,7 +15,7 @@ import Data.List.NonEmpty qualified as NE
 
 
 -- | A datatype definition as a type variable.
-type DatatypeDef tyname name uni fun a = Def (TyVarDecl tyname a) (Datatype tyname name uni fun a)
+type DatatypeDef tyname name uni a = Def (TyVarDecl tyname a) (Datatype tyname name uni a)
 
 -- | Make a let binding, unless the list of bindings is empty, in which case just
 -- return the underlying term.
