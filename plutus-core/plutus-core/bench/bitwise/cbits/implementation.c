@@ -83,3 +83,26 @@ void c_and_implementation(unsigned char *dst, unsigned char const *src1,
     }
   }
 }
+
+void c_complement_implementation(unsigned char *dst, unsigned char const *src,
+                                 size_t const len) {
+  size_t const big_step_size = sizeof(unsigned long long);
+  size_t const big_steps = len / big_step_size;
+  size_t const small_steps = len % big_step_size;
+  unsigned long long *big_src = (unsigned long long *)src;
+  unsigned long long *big_dst = (unsigned long long *)dst;
+  for (size_t i = 0; i < big_steps; i++) {
+    unsigned long long const x = *big_src;
+    *big_dst = ~x;
+    big_src++;
+    big_dst++;
+  }
+  unsigned char *small_src = (unsigned char *)big_src;
+  unsigned char *small_dst = (unsigned char *)big_dst;
+  for (size_t i = 0; i < small_steps; i++) {
+    unsigned char const x = *small_src;
+    *small_dst = ~x;
+    small_src++;
+    small_dst++;
+  }
+}

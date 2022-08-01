@@ -50,8 +50,7 @@ library
   import:          lang
   exposed-modules:
     Bitwise
-    Bitwise.ChunkZipWith
-    Bitwise.PackZipWith
+    Bitwise.Internal
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -805,6 +804,5 @@ benchmark bitwise
     , random
     , tasty
     , tasty-bench
-    , wide-word
 
   ghc-options:      -O2 -rtsopts "-with-rtsopts=-A32m --nonmoving-gc -T"

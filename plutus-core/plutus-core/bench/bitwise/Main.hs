@@ -5,16 +5,14 @@
 
 module Main (main) where
 
-import Bitwise.ChunkZipWith (chunkZipWith2, chunkZipWith3)
-import Bitwise.PackZipWith (packZipWithBinary)
+import Bitwise.Internal (chunkMap2, chunkZipWith2, chunkZipWith3, packZipWithBinary)
 import Control.Monad (replicateM)
-import Data.Bits (xor, (.&.), (.|.))
+import Data.Bits (complement, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
 import Data.Kind (Type)
-import Data.WideWord.Word256 (Word256)
-import Data.Word (Word64, Word8)
+import Data.Word (Word8)
 import Foreign.C.Types (CSize (CSize), CUChar)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr)
@@ -29,21 +27,35 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain [
-    bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
-    bgroup biorLabel . fmap (binaryOpBench biorLabel (.|.) (.|.) (.|.)) $ sizes,
-    bgroup bxorLabel . fmap (binaryOpBench bxorLabel xor xor xor) $ sizes
+    bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
+    bgroup bandLabel . fmap (andBench bandLabel) $ sizes
     ]
   where
     sizes :: [Int]
     sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
     bandLabel :: String
     bandLabel = "Bitwise AND"
-    biorLabel :: String
-    biorLabel = "Bitwise IOR"
-    bxorLabel :: String
-    bxorLabel = "Bitwise XOR"
+    bcompLabel :: String
+    bcompLabel = "Bitwise complement"
 
 -- Benchmarks
+
+complementBench ::
+  String ->
+  Int ->
+  Benchmark
+complementBench mainLabel len =
+  withResource (mkUnaryArg len) noCleanup $ \xs ->
+    let mLabel = "map"
+        cmLabel2 = "chunkedMap (2 blocks)"
+        cmLabel2' = "chunkedMap (2 blocks, C)"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> mLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench mLabel . nfIO $ BS.map complement <$> xs,
+        bcompare matchLabel . bench cmLabel2 . nfIO $ chunkMap2 complement complement <$> xs,
+        bcompare matchLabel . bench cmLabel2' . nfIO $ ccomplement <$> xs
+        ]
 
 andBench ::
   String ->
@@ -68,29 +80,11 @@ andBench mainLabel len =
         bcompare matchLabel . bench czwLabel3' . nfIO $ uncurry candBinary3 <$> xs
         ]
 
-binaryOpBench ::
-  String ->
-  (Word8 -> Word8 -> Word8) ->
-  (Word64 -> Word64 -> Word64) ->
-  (Word256 -> Word256 -> Word256) ->
-  Int ->
-  Benchmark
-binaryOpBench mainLabel f f' f'' len =
-  withResource (mkBinaryArgs len) noCleanup $ \xs ->
-    let zwLabel = "zipWith"
-        pzwLabel = "packZipWith"
-        czwLabel = "chunkedZipWith (2 blocks)"
-        czwLabel' = "chunkedZipWith (3 blocks)"
-        testLabel = mainLabel <> ", length " <> show len
-        matchLabel = "$NF == \"" <> zwLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-      bgroup testLabel [
-        bench zwLabel . nfIO $ uncurry (zipWithBinary f) <$> xs,
-        bcompare matchLabel . bench pzwLabel . nfIO $ uncurry (packZipWithBinary f) <$> xs,
-        bcompare matchLabel . bench czwLabel . nfIO $ uncurry (chunkZipWith2 f f') <$> xs,
-        bcompare matchLabel . bench czwLabel' . nfIO $ uncurry (chunkZipWith3 f f' f'') <$> xs
-        ]
-
 -- Generators
+
+mkUnaryArg :: Int -> IO ByteString
+mkUnaryArg len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
+  fromListN len <$> replicateM len (randomM gen)
 
 mkBinaryArgs :: Int -> IO (ByteString, ByteString)
 mkBinaryArgs len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
@@ -137,6 +131,13 @@ candBinary3 bs bs'
         candImplementation3 dst (castPtr src) (castPtr src') (fromIntegral len)
         unsafePackMallocCStringLen (castPtr dst, len)
 
+-- Wrapper for raw C bitwise complement
+ccomplement :: ByteString -> ByteString
+ccomplement bs = unsafeDupablePerformIO .
+  unsafeUseAsCStringLen bs $ \(src, len) -> do
+    dst <- mallocBytes len
+    ccomplementImplementation dst (castPtr src) (fromIntegral len)
+    unsafePackMallocCStringLen (castPtr dst, len)
 
 foreign import ccall unsafe "cbits.h c_and_implementation"
   candImplementation2 ::
@@ -149,6 +150,13 @@ foreign import ccall unsafe "cbits.h c_and_implementation"
 foreign import ccall unsafe "cbits.h c_and_implementation_3"
   candImplementation3 ::
     Ptr CUChar ->
+    Ptr CUChar ->
+    Ptr CUChar ->
+    CSize ->
+    IO ()
+
+foreign import ccall unsafe "cbits.h c_complement_implementation"
+  ccomplementImplementation ::
     Ptr CUChar ->
     Ptr CUChar ->
     CSize ->

@@ -1,8 +1,11 @@
+{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Bitwise.ChunkZipWith (
+module Bitwise.Internal (
   chunkZipWith2,
-  chunkZipWith3
+  chunkMap2,
+  chunkZipWith3,
+  packZipWithBinary
   ) where
 
 import Data.ByteString (ByteString)
@@ -16,10 +19,72 @@ import Foreign.Ptr (Ptr, castPtr)
 import Foreign.Storable (peekElemOff, pokeElemOff, sizeOf)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 
--- We must ensure that both function arguments behave identically on their
--- respective inputs. Essentially, the two function arguments should be the same
--- function.
-{-# NOINLINE chunkZipWith2 #-}
+-- Replicate packZipWith from newer bytestring
+{-# INLINE packZipWithBinary #-}
+packZipWithBinary ::
+  (Word8 -> Word8 -> Word8) ->
+  ByteString ->
+  ByteString ->
+  Maybe ByteString
+packZipWithBinary f bs bs'
+  | BS.length bs /= BS.length bs' = Nothing
+  | otherwise = pure go
+  where
+    go :: ByteString
+    go = unsafeDupablePerformIO $
+      unsafeUseAsCStringLen bs $ \(srcPtr, len) ->
+        unsafeUseAsCStringLen bs' $ \(srcPtr', _) -> do
+          dstPtr <- castPtr <$> mallocBytes len
+          traverse_ (step (castPtr srcPtr) (castPtr srcPtr') dstPtr) [0 .. len - 1]
+          unsafePackMallocCStringLen (castPtr dstPtr, len)
+    step ::
+      Ptr Word8 ->
+      Ptr Word8 ->
+      Ptr Word8 ->
+      Int ->
+      IO ()
+    step src src' dst offset = do
+      res <- f <$> peekElemOff src offset <*>
+                   peekElemOff src' offset
+      pokeElemOff dst offset res
+
+-- For all the functionality below, all the function arguments must behave
+-- identically on their respective inputs; essentially, the function arguments
+-- should be the same function, modulo polymorphism.
+
+{-# INLINE chunkMap2 #-}
+chunkMap2 ::
+  (Word8 -> Word8) ->
+  (Word64 -> Word64) ->
+  ByteString ->
+  ByteString
+chunkMap2 smallF bigF bs =
+  unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(src, len) -> do
+    dst <- mallocBytes len
+    let bigStepSize = sizeOf @Word64 undefined
+    let (bigSteps, smallSteps) = len `quotRem` bigStepSize
+    traverse_ (bigStep (castPtr src) (castPtr dst)) [0 .. bigSteps - 1]
+    let firstSmallPosition = bigSteps * bigStepSize
+    traverse_ (smallStep (castPtr src) (castPtr dst))
+              [firstSmallPosition, firstSmallPosition + 1 .. firstSmallPosition + smallSteps - 1]
+    unsafePackMallocCStringLen (dst, len)
+  where
+    bigStep ::
+      Ptr Word64 ->
+      Ptr Word64 ->
+      Int ->
+      IO ()
+    bigStep src dst offset =
+      peekElemOff src offset >>= pokeElemOff dst offset . bigF
+    smallStep ::
+      Ptr Word8 ->
+      Ptr Word8 ->
+      Int ->
+      IO ()
+    smallStep src dst offset =
+      peekElemOff src offset >>= pokeElemOff dst offset . smallF
+
+{-# INLINE chunkZipWith2 #-}
 chunkZipWith2 ::
   (Word8 -> Word8 -> Word8) ->
   (Word64 -> Word64 -> Word64) ->
@@ -64,8 +129,7 @@ chunkZipWith2 smallF bigF bs bs'
                         peekElemOff src' offset
       pokeElemOff dst offset res
 
--- Same as above
-{-# NOINLINE chunkZipWith3 #-}
+{-# INLINE chunkZipWith3 #-}
 chunkZipWith3 ::
   (Word8 -> Word8 -> Word8) ->
   (Word64 -> Word64 -> Word64) ->
@@ -129,5 +193,4 @@ chunkZipWith3 smallF bigF biggestF bs bs'
       res <- smallF <$> peekElemOff src offset <*>
                         peekElemOff src' offset
       pokeElemOff dst offset res
-
 
