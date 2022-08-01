@@ -5,13 +5,14 @@
 
 module Main (main) where
 
+import Bitwise.ChunkZipWith (chunkZipWith2)
 import Bitwise.PackZipWith (packZipWithBinary)
 import Control.Monad (replicateM)
 import Data.Bits (xor, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
-import Data.Word (Word8)
+import Data.Word (Word64, Word8)
 import GHC.Exts (fromListN)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import System.Random.Stateful (mkStdGen, randomM, runStateGen_)
@@ -22,13 +23,13 @@ main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain [
-    bgroup bandLabel . fmap (binaryOpBench bandLabel (.&.)) $ sizes,
-    bgroup biorLabel . fmap (binaryOpBench biorLabel (.|.)) $ sizes,
-    bgroup bxorLabel . fmap (binaryOpBench bxorLabel xor) $ sizes
+    bgroup bandLabel . fmap (binaryOpBench bandLabel (.&.) (.&.)) $ sizes,
+    bgroup biorLabel . fmap (binaryOpBench biorLabel (.|.) (.|.)) $ sizes,
+    bgroup bxorLabel . fmap (binaryOpBench bxorLabel xor xor) $ sizes
     ]
   where
     sizes :: [Int]
-    sizes = [1, 3, 7, 15, 23, 27, 31, 63, 127, 255, 511, 1023, 2047]
+    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
     bandLabel :: String
     bandLabel = "Bitwise AND"
     biorLabel :: String
@@ -41,19 +42,20 @@ main = do
 binaryOpBench ::
   String ->
   (Word8 -> Word8 -> Word8) ->
+  (Word64 -> Word64 -> Word64) ->
   Int ->
   Benchmark
-binaryOpBench mainLabel f len =
+binaryOpBench mainLabel f f' len =
   withResource (mkBinaryArgs len) noCleanup $ \xs ->
     let zwLabel = "zipWith"
         pzwLabel = "packZipWith"
-        hLabel = "hybrid"
+        czwLabel = "chunkedZipWith (2 blocks)"
         testLabel = mainLabel <> ", length " <> show len
         matchLabel = "$NF == \"" <> zwLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench zwLabel . nfIO $ uncurry (zipWithBinary f) <$> xs,
         bcompare matchLabel . bench pzwLabel . nfIO $ uncurry (packZipWithBinary f) <$> xs,
-        bcompare matchLabel . bench hLabel . nfIO $ uncurry (hybridBinary f) <$> xs
+        bcompare matchLabel . bench czwLabel . nfIO $ uncurry (chunkZipWith2 f f') <$> xs
         ]
 
 -- Generators
@@ -80,13 +82,3 @@ zipWithBinary f bs bs'
   where
     len :: Int
     len = BS.length bs
-
--- Hybrid to try and get the best of both
-hybridBinary ::
-  (Word8 -> Word8 -> Word8) ->
-  ByteString ->
-  ByteString ->
-  Maybe ByteString
-hybridBinary f bs bs'
-  | max (BS.length bs) (BS.length bs') < 24 = zipWithBinary f bs bs'
-  | otherwise = packZipWithBinary f bs bs'

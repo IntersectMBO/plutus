@@ -50,6 +50,7 @@ library
   import:          lang
   exposed-modules:
     Bitwise
+    Bitwise.ChunkZipWith
     Bitwise.PackZipWith
     Crypto
     Data.ByteString.Hash
