@@ -71,7 +71,7 @@ test_Factorial =
 -- a const defined in PLC itself.
 test_Const :: TestTree
 test_Const =
-    testProperty "Const" . property $ do
+    testPropertyNamed "Const" "Const" . property $ do
         c <- forAll $ Gen.text (Range.linear 0 100) Gen.unicode
         b <- forAll Gen.bool
         let tC = mkConstant () c
@@ -583,11 +583,11 @@ test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
                  testGroup "Ed25519 signatures" $ [
-                                testProperty "Ed25519 verification behaves correctly on all inputs" . property $ ed25519Prop
+                                testPropertyNamed "Ed25519 verification behaves correctly on all inputs" "ed25519_correct" . property $ ed25519Prop
                                ],
                  testGroup "Signatures on the SECP256k1 curve" $ [
-                                testProperty "ECDSA verification behaves correctly on all inputs" . property $ ecdsaSecp256k1Prop,
-                                testProperty "Schnorr verification behaves correctly on all inputs" . property $ schnorrSecp256k1Prop
+                                testPropertyNamed "ECDSA verification behaves correctly on all inputs" "ecdsa_correct" . property $ ecdsaSecp256k1Prop,
+                                testPropertyNamed "Schnorr verification behaves correctly on all inputs" "schnorr_correct" . property $ schnorrSecp256k1Prop
                                ]
                 ]
 test_definition :: TestTree

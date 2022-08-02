@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -18,6 +19,7 @@ import PlutusCore.Generators
 import PlutusCore.Generators.AST as AST
 import PlutusCore.Generators.Interesting
 
+import GHC.Exts (fromString)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty
@@ -38,10 +40,10 @@ prop_DeBruijn gen = property . generalizeT $ do
 test_DeBruijnInteresting :: TestTree
 test_DeBruijnInteresting =
     testGroup "de Bruijn transformation round-trip" $
-        fromInterestingTermGens $ \name -> testProperty name . prop_DeBruijn
+        fromInterestingTermGens $ \name -> testPropertyNamed name (fromString name) . prop_DeBruijn
 
 test_mangle :: TestTree
-test_mangle = testProperty "equality does not survive mangling" . property $ do
+test_mangle = testPropertyNamed "equality does not survive mangling" "equality_mangling" . property $ do
     (term, termMangled) <- forAll . Gen.just . runAstGen $ do
         term <- AST.genTerm
         mayTermMang <- mangleNames term
@@ -61,7 +63,7 @@ prop_equalityFor ren = property $ do
 
 test_equalityRename :: TestTree
 test_equalityRename =
-    testProperty "equality survives renaming" $
+    testPropertyNamed "equality survives renaming" "equality_renaming" $
         prop_equalityFor rename
 
 test_equalityBrokenRename :: TestTree

@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Multiplicative (multiplicativeLaws) where
 
 import Hedgehog (Property, property)
@@ -5,13 +7,13 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genRational, normalAndEquivalentTo)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 multiplicativeLaws :: [TestTree]
 multiplicativeLaws = [
-  testProperty "* associates" propTimesAssoc,
-  testProperty "one is a left identity" propOneLeftId,
-  testProperty "one is a right identity" propOneRightId
+  testPropertyNamed "* associates" "propTimesAssoc" propTimesAssoc,
+  testPropertyNamed "one is a left identity" "propOneLeftId" propOneLeftId,
+  testPropertyNamed "one is a right identity" "propOneRightId" propOneRightId
   ]
 
 -- Helpers

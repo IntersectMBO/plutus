@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Module (moduleLaws) where
 
 import Hedgehog (Property, property)
@@ -5,14 +7,14 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genInteger, genRational, normalAndEquivalentTo)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 moduleLaws :: [TestTree]
 moduleLaws = [
-  testProperty "scale 0 = 0" propScaleZero,
-  testProperty "scale 1 = id" propScaleOne,
-  testProperty "scale distributes over +" propScaleDistPlus,
-  testProperty "scale x (scale y r) = scale (x * y) r" propScaleTimes
+  testPropertyNamed "scale 0 = 0" "propScaleZero" propScaleZero,
+  testPropertyNamed "scale 1 = id" "propScaleOne" propScaleOne,
+  testPropertyNamed "scale distributes over +" "propScaleDistPlus" propScaleDistPlus,
+  testPropertyNamed "scale x (scale y r) = scale (x * y) r" "propScaleTimes" propScaleTimes
   ]
 
 propScaleZero :: Property

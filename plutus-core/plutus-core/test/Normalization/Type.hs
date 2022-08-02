@@ -39,5 +39,8 @@ test_typeNormalization :: TestTree
 test_typeNormalization =
     testGroup "typeNormalization"
         [ testCase     "appAppLamLam"               test_appAppLamLam
-        , testProperty "normalizeTypesInIdempotent" test_normalizeTypesInIdempotent
+        , testPropertyNamed
+            "normalizeTypesInIdempotent"
+            "normalizeTypesInIdempotent"
+            test_normalizeTypesInIdempotent
         ]

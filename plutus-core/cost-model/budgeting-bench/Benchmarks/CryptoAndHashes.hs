@@ -11,13 +11,12 @@ import PlutusCore
 
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
                                    rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN, signDSIGN)
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
 import Criterion.Main (Benchmark, bgroup)
-import Crypto.Secp256k1 qualified (msg)
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H (Seed)
 import System.Random (StdGen)
@@ -97,7 +96,7 @@ benchVerifyEcdsaSecp256k1Signature =
         inputs = mkBmInputs @EcdsaSecp256k1DSIGN toMsg (Fixed 32)
     in createThreeTermBuiltinBenchElementwise name [] inputs
         where toMsg b =
-                  case Crypto.Secp256k1.msg b of
+                  case toMessageHash b of
                     Just m  -> m
                     Nothing -> error "Invalid EcdsaSecp256k1DSIGN message"
                     -- This should only happen if we give it a message which isn't

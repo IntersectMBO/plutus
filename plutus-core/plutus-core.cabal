@@ -302,7 +302,6 @@ library
     , prettyprinter-configurable
     , primitive
     , recursion-schemes
-    , secp256k1-haskell
     , semigroupoids
     , semigroups                  >=0.19.1
     , serialise
@@ -479,6 +478,7 @@ test-suite untyped-plutus-core-test
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
+    Evaluation.Regressions
     Generators
     Transform.Simplify
 
@@ -495,7 +495,7 @@ test-suite untyped-plutus-core-test
     , plutus-core-testlib
     , pretty-show
     , prettyprinter
-    , secp256k1-haskell
+    , split
     , tasty
     , tasty-golden
     , tasty-hedgehog
@@ -651,7 +651,6 @@ executable cost-model-budgeting-bench
     , QuickCheck
     , quickcheck-instances
     , random
-    , secp256k1-haskell
     , text
     , time
 

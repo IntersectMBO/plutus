@@ -29,6 +29,7 @@ import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
+import GHC.Exts (fromString)
 import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
 import Prettyprinter
@@ -45,7 +46,7 @@ testMachine
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
-        testProperty name . withTests 200 . property $ do
+        testPropertyNamed name (fromString name) . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
             let resExp = eraseTerm <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ eraseTerm term of
