@@ -5,9 +5,13 @@ module Bitwise.Internal (
   chunkZipWith2,
   chunkMap2,
   chunkZipWith3,
-  packZipWithBinary
+  packZipWithBinary,
+  chunkPopCount2,
+  chunkPopCount3,
   ) where
 
+import Control.Monad (foldM)
+import Data.Bits (popCount)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
@@ -18,6 +22,48 @@ import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr)
 import Foreign.Storable (peekElemOff, pokeElemOff, sizeOf)
 import System.IO.Unsafe (unsafeDupablePerformIO)
+
+{-# INLINE chunkPopCount2 #-}
+chunkPopCount2 :: ByteString -> Int
+chunkPopCount2 bs = unsafeDupablePerformIO $ unsafeUseAsCStringLen bs $ \(src, len) -> do
+  let bigStepSize = sizeOf @Word64 undefined
+  let (bigSteps, smallSteps) = len `quotRem` bigStepSize
+  !bigCount <- foldM (bigStep (castPtr src)) 0 [0 .. bigSteps - 1]
+  let firstSmallPosition = bigSteps * bigStepSize
+  foldM (smallStep (castPtr src)) bigCount [firstSmallPosition .. firstSmallPosition + smallSteps - 1]
+  where
+    bigStep :: Ptr Word64 -> Int -> Int -> IO Int
+    bigStep src !acc offset = (acc +) . popCount <$> peekElemOff src offset
+    smallStep :: Ptr Word8 -> Int -> Int -> IO Int
+    smallStep src !acc offset = (acc +) . popCount <$> peekElemOff src offset
+
+{-# INLINE chunkPopCount3 #-}
+chunkPopCount3 :: ByteString -> Int
+chunkPopCount3 bs = unsafeDupablePerformIO $ unsafeUseAsCStringLen bs $ \(src, len) -> do
+  let bigStepSize = sizeOf @Word64 undefined
+  let biggestStepSize = sizeOf @Word256 undefined
+  let (biggestSteps, rest) = len `quotRem` biggestStepSize
+  let (bigSteps, smallSteps) = rest `quotRem` bigStepSize
+  !biggestCount <- foldM (biggestStep (castPtr src)) 0 [0 .. biggestSteps - 1]
+  -- We now have to compute a Word64 offset corresponding to
+  -- biggestSteps. This will be four times larger, as Word64 is
+  -- one-quarter the width of a Word256.
+  let firstBigPosition = biggestSteps * 4
+  !bigCount <- foldM (bigStep (castPtr src))
+                     biggestCount
+                     [firstBigPosition .. firstBigPosition + bigSteps - 1]
+  -- Same again, but now we have to multiply by 8 for similar reasons
+  let firstSmallPosition = (firstBigPosition + bigSteps) * 8
+  foldM (smallStep (castPtr src))
+        bigCount
+        [firstSmallPosition .. firstSmallPosition + smallSteps - 1]
+  where
+    biggestStep :: Ptr Word256 -> Int -> Int -> IO Int
+    biggestStep src !acc offset = (acc +) . popCount <$> peekElemOff src offset
+    bigStep :: Ptr Word64 -> Int -> Int -> IO Int
+    bigStep src !acc offset = (acc +) . popCount <$> peekElemOff src offset
+    smallStep :: Ptr Word8 -> Int -> Int -> IO Int
+    smallStep src !acc offset = (acc +) . popCount <$> peekElemOff src offset
 
 -- Replicate packZipWith from newer bytestring
 {-# INLINE packZipWithBinary #-}

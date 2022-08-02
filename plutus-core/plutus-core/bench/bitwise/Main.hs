@@ -5,9 +5,9 @@
 
 module Main (main) where
 
-import Bitwise.Internal (chunkMap2, chunkZipWith2, chunkZipWith3, packZipWithBinary)
+import Bitwise.Internal (chunkMap2, chunkPopCount2, chunkPopCount3, chunkZipWith2, chunkZipWith3, packZipWithBinary)
 import Control.Monad (replicateM)
-import Data.Bits (complement, (.&.))
+import Data.Bits (complement, popCount, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
@@ -28,17 +28,37 @@ main = do
   setLocaleEncoding utf8
   defaultMain [
     bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
-    bgroup bandLabel . fmap (andBench bandLabel) $ sizes
+    bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
+    bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes
     ]
   where
     sizes :: [Int]
-    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
+    sizes = [1, 3, 7, 15, 29, 30, 31, 32, 33, 63, 127, 255, 511, 1023, 2047]
     bandLabel :: String
     bandLabel = "Bitwise AND"
     bcompLabel :: String
     bcompLabel = "Bitwise complement"
+    popCountLabel :: String
+    popCountLabel = "Popcount"
 
 -- Benchmarks
+
+popCountBench ::
+  String ->
+  Int ->
+  Benchmark
+popCountBench mainLabel len =
+  withResource (mkUnaryArg len) noCleanup $ \xs ->
+    let fLabel = "foldl'"
+        cpLabel2 = "chunkPopCount2"
+        cpLabel3 = "chunkPopCount3"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> fLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench fLabel . nfIO $ BS.foldl' (\acc w8 -> acc + popCount w8) 0 <$> xs,
+        bcompare matchLabel . bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
+        bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
+        ]
 
 complementBench ::
   String ->
