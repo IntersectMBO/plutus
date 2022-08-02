@@ -143,7 +143,7 @@ data Frame uni fun
 type Context uni fun = [Frame uni fun]
 
 instance ExMemoryUsage (CkValue uni fun) where
-    memoryUsage = error "not supposed to be forced"
+    memoryUsage = error "The CK machine does not support costing"
 
 runCkM
     :: BuiltinsRuntime fun (CkValue uni fun)

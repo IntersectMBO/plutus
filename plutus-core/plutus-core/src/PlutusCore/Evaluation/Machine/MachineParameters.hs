@@ -9,6 +9,7 @@ module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
 import PlutusCore.Builtin
+import PlutusCore.Evaluation.Machine.ExMemory
 
 import Control.DeepSeq
 import Control.Lens
@@ -47,14 +48,10 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-mkMachineParameters ::
-    ( -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
-      CostingPart uni fun ~ builtincosts
-    , HasMeaningIn uni (val uni fun)
-    , ToBuiltinMeaning uni fun
-    )
+mkMachineParameters
+    :: (ToBuiltinMeaning uni fun, HasMeaningIn uni (val uni fun), ExMemoryUsage (val uni fun))
     => UnliftingMode
-    -> CostModel machinecosts builtincosts
+    -> CostModel machinecosts (CostingPart uni fun)
     -> MachineParameters machinecosts val uni fun
 mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
     MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)

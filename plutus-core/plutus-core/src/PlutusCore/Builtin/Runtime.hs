@@ -14,25 +14,32 @@ import Control.Monad.Except
 import Data.Array
 import NoThunks.Class
 
--- We tried instantiating 'BuiltinMeaning' on the fly and that was slower than precaching
+-- We tried instantiating 'BuiltinMeaning' on the fly and that was much slower than precaching
 -- 'BuiltinRuntime's.
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
 -- builtin with no arguments) by instantiating (via 'fromBuiltinRuntimeOptions') a
 -- 'BuiltinRuntimeOptions'.
 --
--- A 'BuiltinRuntime' contains info that is used during evaluation:
+-- Applying or type-instantiating a builtin peels off the corresponding constructor from its
+-- 'BuiltinRuntime'.
 --
--- 1. the 'RuntimeScheme' of the uninstantiated part of the builtin. I.e. initially it's the runtime
---      scheme of the whole builtin, but applying or type-instantiating the builtin peels off
---      the corresponding constructor from the runtime scheme
--- 2. the (possibly partially instantiated) runtime denotation
--- 3. the (possibly partially instantiated) costing function
+-- 'BuiltinResult' contains the cost (an 'ExBudget') and the result (a @MakeKnownM val@) of the
+-- builtin application. The cost is stored strictly, since the evaluator is going to look at it
+-- and the result is stored lazily, since it's not supposed to be forced before accounting for the
+-- cost of the application. If the cost exceeds the available budget, the evaluator discards the
+-- the result of the builtin application without ever forcing it and terminates with evaluation
+-- failure. Allowing the user to compute something that they don't have the budget for would be a
+-- major bug.
 --
--- All the three are in sync in terms of partial instantiatedness due to 'RuntimeScheme' being a
--- GADT and 'ToRuntimeDenotationType' and 'ToCostingType' operating on the index of that GADT.
+-- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
+-- the result of the builtin application unconditionally.
 data BuiltinRuntime val
     = BuiltinResult ExBudget ~(MakeKnownM val)
+    -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
+    -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
+    -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
+    -- the price (about 1-2% of total evaluation time) for now.
     | BuiltinArrow (val -> ReadKnownM (BuiltinRuntime val))
     | BuiltinAll (BuiltinRuntime val)
 
@@ -41,6 +48,10 @@ instance NoThunks (BuiltinRuntime val) where
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
         BuiltinResult _ _  -> pure . Just $ ThunkInfo ctx
+        -- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'
+        -- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do
+        -- better, since the final 'BuiltinResult' contains a thunk for the result of the builtin
+        -- application anyway.
         BuiltinArrow f     -> noThunks ctx f
         BuiltinAll runtime -> noThunks ctx runtime
 
@@ -56,13 +67,9 @@ data UnliftingMode
     | UnliftingDeferred
 
 -- | A 'BuiltinRuntimeOptions' is a precursor to 'BuiltinRuntime'. One gets the latter from the
--- former by choosing the runtime denotation of the builtin (either '_broImmediateF' for immediate
--- unlifting or '_broDeferredF' for deferred unlifting, see 'UnliftingMode' for details) and by
--- instantiating '_broToExF' with a cost model to get the costing function for the builtin.
---
--- The runtime denotations are lazy, so that we don't need to worry about a builtin being bottom
--- (happens in tests). The production path is not affected by that, since 'BuiltinRuntimeOptions'
--- doesn't survive optimization.
+-- former by applying a function returning the runtime denotation of the builtin (either
+-- '_broImmediateF' for immediate unlifting or '_broDeferredF' for deferred unlifting, see
+-- 'UnliftingMode' for details) to a cost model.
 data BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions
     { _broImmediateF :: cost -> BuiltinRuntime val
     , _broDeferredF  :: cost -> BuiltinRuntime val
@@ -79,6 +86,8 @@ fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions immF defF) =
 {-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where
+    -- 'BuiltinRuntime' is strict (verified by the 'NoThunks' tests), hence we only need to force
+    -- this to WHNF to get it forced to NF.
     rnf = rwhnf
 
 -- | A 'BuiltinRuntime' for each builtin from a set of builtins.

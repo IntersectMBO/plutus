@@ -21,6 +21,7 @@ import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 
@@ -132,15 +133,17 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2) =>
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
     toBuiltinMeaning (Left  fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . fst) (defF . fst))
+        BuiltinMeaning tySch toF runtimeOpts ->
+            BuiltinMeaning tySch toF $ case runtimeOpts of
+                BuiltinRuntimeOptions immF defF -> BuiltinRuntimeOptions (immF . fst) (defF . fst)
     toBuiltinMeaning (Right fun) = case toBuiltinMeaning fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . snd) (defF . snd))
+        BuiltinMeaning tySch toF runtimeOpts ->
+            BuiltinMeaning tySch toF $ case runtimeOpts of
+                BuiltinRuntimeOptions immF defF -> BuiltinRuntimeOptions (immF . snd) (defF . snd)
 
 defBuiltinsRuntimeExt
-    :: HasMeaningIn DefaultUni term
-    => BuiltinsRuntime (Either DefaultFun ExtensionFun) term
+    :: (HasMeaningIn DefaultUni val, ExMemoryUsage val)
+    => BuiltinsRuntime (Either DefaultFun ExtensionFun) val
 defBuiltinsRuntimeExt = toBuiltinsRuntime defaultUnliftingMode (defaultBuiltinCostModel, ())
 
 data PlcListRep (a :: GHC.Type)
