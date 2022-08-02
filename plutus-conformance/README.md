@@ -17,11 +17,11 @@ The tests currently cover or will cover the Haskell and Agda implementation of:
 
 ## Adding/updating test outputs
 
-To update test outputs, use the accept test option of the tests. E.g., to have the test results overwriting the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
+To update or add test outputs, use the accept test option of the tests. E.g., to have the test results overwriting the `.expected` files in the Haskell implementation test suite (`haskell-conformance`) , run:
 
 `cabal test haskell-conformance --test-options=--accept`
 
-There is also an executable (`add-test-output`) for adding test output with more refined options:
+There is also an executable (`add-test-output`) for adding test output to a specific directory:
 
 E.g., run
 
@@ -39,7 +39,7 @@ For the manual, run:
 
 ## Executable for Haskell implementation
 
-(WIP) `haskell-implementation` is an executable for Haskell implementation CLI testing/usage. 
+(WIP) `haskell-implementation` is an executable for Haskell implementation CLI testing/usage.
 
 ## The Plutus Conformance Test Suite Library
 
@@ -47,17 +47,25 @@ The library provides functions that users can import and run conformance tests w
 
 ## Untyped Plutus Core Program Evaluation
 
-The UPLC evaluation tests ensure conformance of evaluation of untyped plutus core programs. The expected output may contain:
+The UPLC evaluation tests ensure conformance of evaluation of untyped plutus core programs.
 
-1. "parse error"
+### The CEK machine
+
+Currently we have tested the conformance of UPLC evaluation against our *Haskell* and *Agda* implementations of the CEK machine. Note that we are not testing conformance of a *reducer*. We are testing an *evaluator*. One noticeable difference between a reducer and an evaluator is that a reducer reduces an ill-defined term to an `error` term while an evaluator has a special *error state*. See section 6.1 of our specification for more details. <!--TODO add link to the spec when it's ready. -->
+
+### Expected outputs
+
+The expected output may contain:
+
+1."parse error"
 
 The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
 
-2. "evaluation error"
+2."evaluation error"
 
 If evaluation fails with an error, the expected output will show "evaluation error".
 
-3. An untyped plutus core program
+3.An untyped plutus core program
 
 This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
 
@@ -93,13 +101,12 @@ The `plc` executable can be used to type check programs. Run `cabal run plc type
 
 ## Contributing
 
-We welcome contributions and comments to this repository. Feel free to open an issue. 
+We welcome contributions and comments to this repository. Feel free to open an issue.
 
-If we add the tests you share, we will acknowledge your contribution and post a link back to your repository. 
+If we add the tests you share, we will acknowledge your contribution and post a link back to your repository.
 
 ## Acknowledgement
 
 We are grateful to these external partners for their contributions:
 
 - Runtime Verification Inc. ([runtimeverification/plutus-core-semantics](https://github.com/runtimeverification/plutus-core-semantics/tree/master/tests))
-
