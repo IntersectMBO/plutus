@@ -65,8 +65,8 @@ withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =
 -- This situation arises when we want to rename a bunch of mutually recursive bindings.
 withFreshenedVarDecl
     :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
-    => VarDecl tyname name uni fun ann
-    -> (m (VarDecl tyname name uni fun ann) -> m c)
+    => VarDecl tyname name uni ann
+    -> (m (VarDecl tyname name uni ann) -> m c)
     -> m c
 withFreshenedVarDecl (VarDecl ann name ty) cont =
     withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty

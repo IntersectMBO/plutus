@@ -196,7 +196,7 @@ bindingStrictness b = case b of
 
 varDeclDeps
     :: (DepGraph g, MonadReader (DepCtx term) m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-    => VarDecl tyname name uni fun a
+    => VarDecl tyname name uni a
     -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 

@@ -23,7 +23,7 @@ instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
          , PLC.Pretty (PLC.SomeTypeIn uni)
          , Pretty ann
-         ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni fun ann) where
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni ann) where
     prettyBy config (VarDecl ann n ty) =
         sexp "vardecl" (PLC.consAnnIf config ann [prettyBy config n, prettyBy config ty])
 
@@ -47,7 +47,7 @@ instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
          , PLC.Pretty (PLC.SomeTypeIn uni)
          , Pretty ann
-         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni fun ann) where
+         ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni ann) where
     prettyBy config (Datatype ann ty tyvars destr constrs) =
         sexp "datatype" (PLC.consAnnIf config ann
             [ prettyBy config ty
@@ -138,7 +138,7 @@ instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
          , PLC.Pretty (PLC.SomeTypeIn uni)
          , Pretty ann
-         ) => Pretty (VarDecl tyname name uni fun ann) where
+         ) => Pretty (VarDecl tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
@@ -146,7 +146,7 @@ instance ( PLC.PrettyClassic tyname
          , PLC.Pretty (PLC.SomeTypeIn uni)
          , uni `PLC.Everywhere` PLC.PrettyConst
          , Pretty ann
-         ) => Pretty (Datatype tyname name uni fun ann) where
+         ) => Pretty (Datatype tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname

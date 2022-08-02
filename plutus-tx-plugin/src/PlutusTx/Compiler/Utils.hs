@@ -28,13 +28,13 @@ getThing name = do
         Nothing    -> throwSd CompilationError $ "Missing name:" GHC.<+> (GHC.text $ show name)
         Just thing -> pure thing
 
-sdToTxt :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m T.Text
+sdToTxt :: MonadReader (CompileContext uni) m => GHC.SDoc -> m T.Text
 sdToTxt sd = do
   CompileContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDocForUser flags GHC.alwaysQualify sd
 
 throwSd ::
-    (MonadError (CompileError uni fun ann) m, MonadReader (CompileContext uni fun) m) =>
+    (MonadError (CompileError uni fun ann) m, MonadReader (CompileContext uni) m) =>
     (T.Text -> Error uni fun ann) ->
     GHC.SDoc ->
     m a

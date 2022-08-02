@@ -79,7 +79,7 @@ ftvBindingCtx r bound f = \case
     -- sound because the subterms and subtypes are disjoint
     b                -> ((bindingSubterms . ftvTermCtx bound) `Unsound.adjoin` (bindingSubtypes . ftvTyCtx bound)) f b
 
-ftvDatatypeCtx :: Ord tyname => Recursivity -> Set tyname -> Traversal' (Datatype tyname name uni fun ann) tyname
+ftvDatatypeCtx :: Ord tyname => Recursivity -> Set tyname -> Traversal' (Datatype tyname name uni ann) tyname
 ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
     let
         tyConstr = setOf PLC.tyVarDeclName tyconstr
