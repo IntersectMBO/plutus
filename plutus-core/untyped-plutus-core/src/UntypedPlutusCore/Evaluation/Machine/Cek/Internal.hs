@@ -528,6 +528,7 @@ data Context uni fun
     | NoFrame
     deriving stock (Show)
 
+-- TODO: document.
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun) where
     memoryUsage = \case
         VCon c      -> memoryUsage c

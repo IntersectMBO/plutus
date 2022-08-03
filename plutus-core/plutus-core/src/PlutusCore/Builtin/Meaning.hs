@@ -124,7 +124,7 @@ type family GetArgs a where
     GetArgs _        = '[]
 
 {- Note [Merging the denotation and the costing function]
-
+TODO
 -}
 
 -- | A class that allows us to derive a monotype for a builtin.
@@ -142,6 +142,8 @@ class KnownMonotype val args res where
     knownMonotype :: TypeScheme val args res
 
     -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
+    -- We use a tuple rather than two arguments for symmetry with 'toPolyDeferredF'. It all gets
+    -- inlined anyway.
     toMonoImmediateF
         :: (FoldArgs args res, FoldArgs args ExBudget)
         -> BuiltinRuntime val
@@ -216,7 +218,7 @@ instance
     knownMonotype = TypeSchemeArrow knownMonotype
 
     -- See Note [One-shotting runtime denotations].
-     -- Unlift, then recurse.
+    -- Unlift, then recurse.
     toMonoImmediateF (f, exF) = BuiltinLamAbs . oneShot $
         -- See Note [Strict application in runtime denotations].
         fmap (\x -> toMonoImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown

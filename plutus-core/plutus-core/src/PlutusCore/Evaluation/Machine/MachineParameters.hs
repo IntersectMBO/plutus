@@ -47,10 +47,14 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
-mkMachineParameters
-    :: (ToBuiltinMeaning uni fun, HasMeaningIn uni (val uni fun))
+mkMachineParameters ::
+    ( -- In Cek.Internal we have `type instance UniOf (CekValue uni fun) = uni`, but we don't know that here.
+      CostingPart uni fun ~ builtincosts
+    , HasMeaningIn uni (val uni fun)
+    , ToBuiltinMeaning uni fun
+    )
     => UnliftingMode
-    -> CostModel machinecosts (CostingPart uni fun)
+    -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
 mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
     MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)

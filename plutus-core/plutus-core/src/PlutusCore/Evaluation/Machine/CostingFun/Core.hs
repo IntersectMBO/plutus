@@ -43,6 +43,7 @@ import Deriving.Aeson
 import GHC.Exts
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
+-- TODO: document.
 class OnMemoryUsages c a where
     onMemoryUsages :: c -> a
 
