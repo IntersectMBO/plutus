@@ -40,20 +40,20 @@ data BuiltinRuntime val
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
     -- the price (about 1-2% of total evaluation time) for now.
-    | BuiltinArrow (val -> ReadKnownM (BuiltinRuntime val))
-    | BuiltinAll (BuiltinRuntime val)
+    | BuiltinLamAbs (val -> ReadKnownM (BuiltinRuntime val))
+    | BuiltinDelay (BuiltinRuntime val)
 
 instance NoThunks (BuiltinRuntime val) where
     wNoThunks ctx = \case
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
-        BuiltinResult _ _  -> pure . Just $ ThunkInfo ctx
+        BuiltinResult _ _    -> pure . Just $ ThunkInfo ctx
         -- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'
         -- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do
         -- better, since the final 'BuiltinResult' contains a thunk for the result of the builtin
         -- application anyway.
-        BuiltinArrow f     -> noThunks ctx f
-        BuiltinAll runtime -> noThunks ctx runtime
+        BuiltinLamAbs f      -> noThunks ctx f
+        BuiltinDelay runtime -> noThunks ctx runtime
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
 

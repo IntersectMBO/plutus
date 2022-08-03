@@ -217,14 +217,14 @@ instance
 
     -- See Note [One-shotting runtime denotations].
      -- Unlift, then recurse.
-    toMonoImmediateF (f, exF) = BuiltinArrow . oneShot $
+    toMonoImmediateF (f, exF) = BuiltinLamAbs . oneShot $
         -- See Note [Strict application in runtime denotations].
         fmap (\x -> toMonoImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
     {-# INLINE toMonoImmediateF #-}
 
     -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
-    toMonoDeferredF getBoth = BuiltinArrow . oneShot $ \arg ->
+    toMonoDeferredF getBoth = BuiltinLamAbs . oneShot $ \arg ->
         -- See Note [Strict application in runtime denotations].
         -- Ironically computing the unlifted value strictly is the best way of doing deferred
         -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
@@ -276,10 +276,10 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
 
-    toPolyImmediateF = BuiltinAll . toPolyImmediateF @binds @val @args @res
+    toPolyImmediateF = BuiltinDelay . toPolyImmediateF @binds @val @args @res
     {-# INLINE toPolyImmediateF #-}
 
-    toPolyDeferredF = BuiltinAll . toPolyDeferredF @binds @val @args @res
+    toPolyDeferredF = BuiltinDelay . toPolyDeferredF @binds @val @args @res
     {-# INLINE toPolyDeferredF #-}
 
 -- | Ensure a built-in function is not nullary and throw a nice error otherwise.
