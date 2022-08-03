@@ -7,7 +7,6 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE PolyKinds                 #-}
-{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE StandaloneKindSignatures  #-}
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
@@ -65,10 +64,10 @@ data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
         ~(FoldArgs args res)
-        (ExMemoryUsage val => BuiltinRuntimeOptions val cost)
+        (BuiltinRuntimeOptions val cost)
 
 -- | Constraints available when defining a built-in function.
-type HasMeaningIn uni val = (Typeable val, HasConstantIn uni val)
+type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
 class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun) => ToBuiltinMeaning uni fun where
@@ -217,7 +216,7 @@ instance
     knownMonotype = TypeSchemeArrow knownMonotype
 
     -- See Note [One-shotting runtime denotations].
-    -- Unlift, then recurse.
+     -- Unlift, then recurse.
     toMonoImmediateF (f, exF) = BuiltinArrow . oneShot $
         -- See Note [Strict application in runtime denotations].
         fmap (\x -> toMonoImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
@@ -316,10 +315,7 @@ class MakeBuiltinMeaning a val where
     --
     -- 1. the denotation of the builtin
     -- 2. an uninstantiated costing function
-    makeBuiltinMeaning
-        :: a
-        -> (ExMemoryUsage val => cost -> FoldArgs (GetArgs a) ExBudget)
-        -> BuiltinMeaning val cost
+    makeBuiltinMeaning :: a -> (cost -> FoldArgs (GetArgs a) ExBudget) -> BuiltinMeaning val cost
 instance
         ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
         , ThrowOnBothEmpty binds args (IsBuiltin a) a
@@ -339,9 +335,7 @@ instance
     {-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost model.
-toBuiltinRuntime
-    :: ExMemoryUsage val
-    => UnliftingMode -> cost -> BuiltinMeaning val cost -> BuiltinRuntime val
+toBuiltinRuntime :: UnliftingMode -> cost -> BuiltinMeaning val cost -> BuiltinRuntime val
 toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
     fromBuiltinRuntimeOptions unlMode cost runtimeOpts
 {-# INLINE toBuiltinRuntime #-}
@@ -350,9 +344,7 @@ toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
 -- | Calculate runtime info for all built-in functions given denotations of builtins,
 -- an 'UnliftingMode' and a cost model.
 toBuiltinsRuntime
-    :: ( cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun
-       , HasMeaningIn uni val, ExMemoryUsage val
-       )
+    :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => UnliftingMode -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime unlMode cost =
     let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning

@@ -23,7 +23,6 @@ import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
-import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
@@ -86,8 +85,7 @@ unitCekParameters =
     mkMachineParameters defaultUnliftingMode $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
-defaultBuiltinsRuntime
-    :: (HasMeaningIn DefaultUni val, ExMemoryUsage val) => BuiltinsRuntime DefaultFun val
+defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
 defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
 
 

@@ -33,6 +33,7 @@ import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
@@ -127,6 +128,10 @@ data Term tyname name uni fun a =
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
                         deriving stock (Functor, Show, Generic)
+
+instance ExMemoryUsage (Term tyname name uni fun ann) where
+    memoryUsage =
+        Prelude.error "Internal error: 'memoryUsage' for IR 'Term' is not supposed to be forced"
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 

@@ -9,7 +9,6 @@ module PlutusCore.Evaluation.Machine.MachineParameters
 where
 
 import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.ExMemory
 
 import Control.DeepSeq
 import Control.Lens
@@ -49,7 +48,7 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
 mkMachineParameters
-    :: (ToBuiltinMeaning uni fun, HasMeaningIn uni (val uni fun), ExMemoryUsage (val uni fun))
+    :: (ToBuiltinMeaning uni fun, HasMeaningIn uni (val uni fun))
     => UnliftingMode
     -> CostModel machinecosts (CostingPart uni fun)
     -> MachineParameters machinecosts val uni fun
