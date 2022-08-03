@@ -22,7 +22,6 @@ import GHC.Exts (inline)
 immediateMachineParameters
     :: MonadError CostModelApplyError m => CostModelParams -> m DefaultMachineParameters
 immediateMachineParameters = inline mkMachineParametersFor UnliftingImmediate
-{-# INLINE immediateMachineParameters #-}
 -- No need to mark this as 'INLINE', since a 'CostModelParams' comes in at runtime and so we can't
 -- get the builtins to optimize any further. We don't need to optimize the 'MonadError' part, since
 -- it's only computed when the parameters change, not multiple times (not even once) per contract
