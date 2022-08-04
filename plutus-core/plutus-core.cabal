@@ -50,7 +50,6 @@ library
   import:          lang
   exposed-modules:
     Bitwise
-    Bitwise.Internal
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -318,7 +317,6 @@ library
     , time
     , transformers
     , unordered-containers
-    , wide-word
     , witherable
     , word-array
 
@@ -794,15 +792,16 @@ benchmark bitwise
   hs-source-dirs:   plutus-core/bench/bitwise
   default-language: Haskell2010
   main-is:          Main.hs
+  other-modules:    Implementations
   include-dirs:     plutus-core/bench/bitwise/cbits
   c-sources:        plutus-core/bench/bitwise/cbits/implementation.c
-  cc-options:       -O2
+  cc-options:       -O3 -msse2
   build-depends:
     , base
     , bytestring
-    , plutus-core
     , random
     , tasty
     , tasty-bench
+    , wide-word
 
   ghc-options:      -O2 -rtsopts "-with-rtsopts=-A32m --nonmoving-gc -T"

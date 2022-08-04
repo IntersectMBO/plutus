@@ -5,9 +5,8 @@
 
 module Main (main) where
 
-import Bitwise.Internal (chunkMap2, chunkPopCount2, chunkPopCount3, chunkZipWith2, chunkZipWith3, packZipWithBinary)
 import Control.Monad (replicateM)
-import Data.Bits (complement, popCount, (.&.))
+import Data.Bits (complement, popCount, zeroBits, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
@@ -18,6 +17,8 @@ import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr)
 import GHC.Exts (fromListN)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
+import Implementations (chunkMap2, chunkMap3, chunkPopCount2, chunkPopCount3, chunkZipWith2, chunkZipWith3,
+                        packZipWithBinary, rotateBS, rotateBSFast)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 import System.Random.Stateful (mkStdGen, randomM, runStateGen_)
 import Test.Tasty (withResource)
@@ -29,19 +30,59 @@ main = do
   defaultMain [
     bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
-    bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes
+    bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes,
+    bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
+    bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes
     ]
   where
     sizes :: [Int]
-    sizes = [1, 3, 7, 15, 29, 30, 31, 32, 33, 63, 127, 255, 511, 1023, 2047]
+    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
     bandLabel :: String
     bandLabel = "Bitwise AND"
     bcompLabel :: String
     bcompLabel = "Bitwise complement"
     popCountLabel :: String
     popCountLabel = "Popcount"
+    rotateLabel :: String
+    rotateLabel = "Slow rotate versus prescan"
+    rotateLabel' :: String
+    rotateLabel' = "Bitwise rotate versus block rotate"
 
 -- Benchmarks
+
+rotateFastVsSlow ::
+  String ->
+  Int ->
+  Benchmark
+rotateFastVsSlow mainLabel len =
+  withResource (mkUnaryArg len) noCleanup $ \xs ->
+    let rLabel = "rotate (bit-by-bit)"
+        rLabel' = "rotate (block-optimized)"
+        -- Next highest multiple of 8 of half our length, rounded down
+        rotation = ((len `quot` 2) + 7) .&. negate 8
+        testLabel = mainLabel <> ", length " <> show len <> ", rotation by " <> show rotation
+        matchLabel = "$NF == \"" <> rLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench rLabel . nfIO $ rotateBS <$> xs <*> pure rotation,
+        bcompare matchLabel . bench rLabel' . nfIO $ rotateBSFast <$> xs <*> pure rotation
+        ]
+
+rotateVsPrescanBench ::
+  String ->
+  Int ->
+  Benchmark
+rotateVsPrescanBench mainLabel len =
+  withResource (mkUnaryArg len) noCleanup $ \xs ->
+    let rLabel = "rotate (bit-by-bit)"
+        pLabel = "prescan (naive)"
+        rotation = len `quot` 2
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> rLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench rLabel . nfIO $ rotateBS <$> xs <*> pure rotation,
+        bcompare matchLabel . bench pLabel . nfIO $ (||) <$> (BS.all (== zeroBits) <$> xs) <*>
+                                                             (BS.all (== complement zeroBits) <$> xs)
+        ]
 
 popCountBench ::
   String ->
@@ -69,12 +110,14 @@ complementBench mainLabel len =
     let mLabel = "map"
         cmLabel2 = "chunkedMap (2 blocks)"
         cmLabel2' = "chunkedMap (2 blocks, C)"
+        cmLabel3 = "chunkMap (3 blocks)"
         testLabel = mainLabel <> ", length " <> show len
         matchLabel = "$NF == \"" <> mLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench mLabel . nfIO $ BS.map complement <$> xs,
         bcompare matchLabel . bench cmLabel2 . nfIO $ chunkMap2 complement complement <$> xs,
-        bcompare matchLabel . bench cmLabel2' . nfIO $ ccomplement <$> xs
+        bcompare matchLabel . bench cmLabel2' . nfIO $ ccomplement <$> xs,
+        bcompare matchLabel . bench cmLabel3 . nfIO $ chunkMap3 complement complement complement <$> xs
         ]
 
 andBench ::
