@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
 
 module Main (main) where
 
@@ -32,15 +31,25 @@ main = do
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
     bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes,
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
-    bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes
+    bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes,
+    bgroup bandLabel' . fmap (packedAndBench bandLabel') $ largerSizes,
+    bgroup bcompLabel' . fmap (complementBench bcompLabel') $ probingSizes
     ]
   where
     sizes :: [Int]
     sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
+    largerSizes :: [Int]
+    largerSizes = [31, 63, 127, 255, 511, 1023, 2047]
+    probingSizes :: [Int]
+    probingSizes = [511, 767, 1023]
     bandLabel :: String
     bandLabel = "Bitwise AND"
+    bandLabel' :: String
+    bandLabel' = "Packed bitwise AND"
     bcompLabel :: String
     bcompLabel = "Bitwise complement"
+    bcompLabel' :: String
+    bcompLabel' = "Bitwise complement probe"
     popCountLabel :: String
     popCountLabel = "Popcount"
     rotateLabel :: String
@@ -49,6 +58,27 @@ main = do
     rotateLabel' = "Bitwise rotate versus block rotate"
 
 -- Benchmarks
+
+packedAndBench ::
+  String ->
+  Int ->
+  Benchmark
+packedAndBench mainLabel len =
+  withResource (mkBinaryArgs len) noCleanup $ \xs ->
+    let pzwLabel = "packZipWith"
+        czwLabel2 = "chunkedZipWith (2 blocks)"
+        czwLabel2' = "chunkedZipWith (2 blocks, C)"
+        czwLabel3 = "chunkedZipWith (3 blocks)"
+        czwLabel3' = "chunkedZipWith (3 blocks, C)"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> pzwLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench pzwLabel . nfIO $ uncurry (zipWithBinary (.&.)) <$> xs,
+        bcompare matchLabel . bench czwLabel2 . nfIO $ uncurry (chunkZipWith2 (.&.) (.&.)) <$> xs,
+        bcompare matchLabel . bench czwLabel2' . nfIO $ uncurry candBinary2 <$> xs,
+        bcompare matchLabel . bench czwLabel3 . nfIO $ uncurry (chunkZipWith3 (.&.) (.&.) (.&.)) <$> xs,
+        bcompare matchLabel . bench czwLabel3' . nfIO $ uncurry candBinary3 <$> xs
+        ]
 
 rotateFastVsSlow ::
   String ->
