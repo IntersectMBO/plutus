@@ -557,7 +557,9 @@ runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where      _    → inj₁ (runtimeError gasError)
+    where      
+    ◆ → inj₁ (runtimeError userError)
+    _ → inj₁ (runtimeError gasError)
   return (unconvTmU (U.extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}
