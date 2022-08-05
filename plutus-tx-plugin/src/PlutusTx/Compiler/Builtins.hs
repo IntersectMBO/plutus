@@ -8,7 +8,6 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE ViewPatterns      #-}
 
 -- | Functions for compiling Plutus Core builtins.
 module PlutusTx.Compiler.Builtins (
@@ -43,7 +42,7 @@ import GhcPlugins qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 
-import Control.Monad.Reader (MonadReader (ask))
+import Control.Monad.Reader (ask, asks)
 
 import Data.ByteString qualified as BS
 import Data.Functor
@@ -244,8 +243,9 @@ defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm
 defineBuiltinTerm ann name term = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ann ghcId
+    ver <- asks ccBuiltinVer
     -- See Note [Builtin terms and values]
-    let strictness = if PIR.isPure (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
+    let strictness = if PIR.isPure ver (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)
     PIR.defineTerm (LexName $ GHC.getName ghcId) def mempty
 

@@ -17,6 +17,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 import PlutusTx.Annotation
@@ -45,7 +46,7 @@ data CompileOptions = CompileOptions {
     , coRemoveTrace :: Bool
     }
 
-data CompileContext uni = CompileContext {
+data CompileContext uni fun = CompileContext {
     ccOpts        :: CompileOptions,
     ccFlags       :: GHC.DynFlags,
     ccFamInstEnvs :: GHC.FamInstEnvs,
@@ -53,7 +54,8 @@ data CompileContext uni = CompileContext {
     ccScopes      :: ScopeStack uni,
     ccBlackholed  :: Set.Set GHC.Name,
     ccCurDef      :: Maybe LexName,
-    ccModBreaks   :: Maybe GHC.ModBreaks
+    ccModBreaks   :: Maybe GHC.ModBreaks,
+    ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
@@ -164,7 +166,7 @@ stableModuleCmp m1 m2 =
 type Compiling uni fun m ann =
     ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
-    , MonadReader (CompileContext uni) m
+    , MonadReader (CompileContext uni fun) m
     , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
     )
@@ -179,10 +181,10 @@ type CompilingDefault uni fun m ann =
     , Compiling uni fun m ann
     )
 
-blackhole :: MonadReader (CompileContext uni) m => GHC.Name -> m a -> m a
+blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
 blackhole name = local (\cc -> cc {ccBlackholed=Set.insert name (ccBlackholed cc)})
 
-blackholed :: MonadReader (CompileContext uni) m => GHC.Name -> m Bool
+blackholed :: MonadReader (CompileContext uni fun) m => GHC.Name -> m Bool
 blackholed name = do
     CompileContext {ccBlackholed=bh} <- ask
     pure $ Set.member name bh

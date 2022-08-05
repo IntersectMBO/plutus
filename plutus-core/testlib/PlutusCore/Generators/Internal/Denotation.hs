@@ -21,6 +21,7 @@ import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Name
+import PlutusPrelude
 
 import Data.Dependent.Map (DMap)
 import Data.Dependent.Map qualified as DMap
@@ -109,7 +110,7 @@ insertBuiltin
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
     -> DenotationContext (Term TyName Name DefaultUni DefaultFun ())
 insertBuiltin fun =
-    case toBuiltinMeaning fun of
+    case toBuiltinMeaning def fun of
         BuiltinMeaning sch meta _ ->
             withTypeSchemeResult sch $ \tr ->
                 insertDenotation tr $ Denotation fun (Builtin ()) meta sch

@@ -24,14 +24,13 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
 import PlutusCore.Pretty
+import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Criterion.Main (Benchmark, bgroup)
 
-import Control.DeepSeq (NFData)
 import Data.Char (toLower)
 import Data.Ix (Ix)
-import GHC.Generics (Generic)
 import System.Random (StdGen)
 
 {- | A benchmark that just loads the unit constant, which is about the minimal
@@ -127,7 +126,7 @@ nopCostModel =
 
 nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun
 nopCostParameters =
-    mkMachineParameters defaultUnliftingMode $
+    mkMachineParameters def defaultUnliftingMode $
         CostModel defaultCekMachineCosts nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
@@ -156,130 +155,135 @@ n >: k =
 -}
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     type CostingPart uni NopFun = NopCostModel
+
+    data BuiltinVersion NopFun = NopFunV1
+
     -- Built-in Bools
     toBuiltinMeaning
         :: forall val . HasMeaningIn uni val
-           => NopFun -> BuiltinMeaning val NopCostModel
-    toBuiltinMeaning Nop1b =
+        => BuiltinVersion NopFun -> NopFun -> BuiltinMeaning val NopCostModel
+    toBuiltinMeaning _ver Nop1b =
         makeBuiltinMeaning
              @(Bool -> Bool)
              (\_ -> True)
              (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning Nop2b =
+    toBuiltinMeaning _ver Nop2b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool)
              (\_ _ -> True)
              (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning Nop3b =
+    toBuiltinMeaning _ver Nop3b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool)
              (\_ _ _ -> True)
              (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning Nop4b =
+    toBuiltinMeaning _ver Nop4b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ -> True)
              (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning Nop5b =
+    toBuiltinMeaning _ver Nop5b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ -> True)
              (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning Nop6b =
+    toBuiltinMeaning _ver Nop6b =
         makeBuiltinMeaning
              @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
              (\_ _ _ _ _ _ -> True)
              (runCostingFunSixArguments . paramNop6)
     -- Built-in Integers
-    toBuiltinMeaning Nop1i =
+    toBuiltinMeaning _ver Nop1i =
         makeBuiltinMeaning
              @(Integer -> Integer)
              (\_ -> 11)
              (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning Nop2i =
+    toBuiltinMeaning _ver Nop2i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer)
              (\_ _ -> 22)
              (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning Nop3i =
+    toBuiltinMeaning _ver Nop3i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer)
              (\_ _ _ -> 33)
              (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning Nop4i =
+    toBuiltinMeaning _ver Nop4i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ -> 44)
              (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning Nop5i =
+    toBuiltinMeaning _ver Nop5i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ -> 55)
              (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning Nop6i =
+    toBuiltinMeaning _ver Nop6i =
         makeBuiltinMeaning
              @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
              (\_ _ _ _ _ _ -> 66)
              (runCostingFunSixArguments . paramNop6)
     -- Integers unlifted via SomeConstant
-    toBuiltinMeaning Nop1c =
+    toBuiltinMeaning _ver Nop1c =
         makeBuiltinMeaning
              (\c1 -> c1 >: EvaluationSuccess 11)
              (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning Nop2c =
+    toBuiltinMeaning _ver Nop2c =
         makeBuiltinMeaning
              (\c1 c2 -> c1 >: c2 >: EvaluationSuccess 22)
              (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning Nop3c =
+    toBuiltinMeaning _ver Nop3c =
         makeBuiltinMeaning
              (\c1 c2 c3 -> c1 >: c2 >: c3 >: EvaluationSuccess 33)
              (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning Nop4c =
+    toBuiltinMeaning _ver Nop4c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 -> c1 >: c2 >: c3 >: c4 >: EvaluationSuccess 44)
              (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning Nop5c =
+    toBuiltinMeaning _ver Nop5c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 c5 -> c1 >: c2 >: c3 >: c4 >: c5 >: EvaluationSuccess 55)
              (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning Nop6c =
+    toBuiltinMeaning _ver Nop6c =
         makeBuiltinMeaning
              (\c1 c2 c3 c4 c5 c6 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: EvaluationSuccess 66)
              (runCostingFunSixArguments . paramNop6)
     -- Opaque Integers
-    toBuiltinMeaning Nop1o =
+    toBuiltinMeaning _ver Nop1o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer)
              (\_ -> fromValueOf DefaultUniInteger 11)
              (runCostingFunOneArgument . paramNop1)
-    toBuiltinMeaning Nop2o =
+    toBuiltinMeaning _ver Nop2o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer)
              (\_ _ -> fromValueOf DefaultUniInteger 22)
              (runCostingFunTwoArguments . paramNop2)
-    toBuiltinMeaning Nop3o =
+    toBuiltinMeaning _ver Nop3o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer)
              (\_ _ _ -> fromValueOf DefaultUniInteger 33)
              (runCostingFunThreeArguments . paramNop3)
-    toBuiltinMeaning Nop4o =
+    toBuiltinMeaning _ver Nop4o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
              (\_ _ _ _ -> fromValueOf DefaultUniInteger 44)
              (runCostingFunFourArguments . paramNop4)
-    toBuiltinMeaning Nop5o =
+    toBuiltinMeaning _ver Nop5o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
              (\_ _ _ _ _ -> fromValueOf DefaultUniInteger 55)
              (runCostingFunFiveArguments . paramNop5)
-    toBuiltinMeaning Nop6o =
+    toBuiltinMeaning _ver Nop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
                -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
+instance Default (BuiltinVersion NopFun) where
+    def = NopFunV1
 
 ---------------- Benchmarks ----------------
 

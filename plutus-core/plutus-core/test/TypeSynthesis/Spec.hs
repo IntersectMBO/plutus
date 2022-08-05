@@ -37,10 +37,10 @@ kindcheck ty = do
 
 typecheck
     :: (uni ~ DefaultUni, MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun)
-    => Term TyName Name uni fun () -> m ()
-typecheck term = do
+    => BuiltinVersion fun -> Term TyName Name uni fun () -> m ()
+typecheck ver term = do
     _ <- runQuoteT $ do
-        tcConfig <- getDefTypeCheckConfig ()
+        tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ver ()
         inferType tcConfig term
     return ()
 
@@ -53,18 +53,20 @@ assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
 -- | Assert a 'Term' is well-typed.
 assertWellTyped
     :: (HasCallStack, ToBuiltinMeaning DefaultUni fun, Pretty fun)
-    => Term TyName Name DefaultUni fun () -> Assertion
-assertWellTyped term = case runExcept . runQuoteT $ typecheck term of
+    => BuiltinVersion fun
+    -> Term TyName Name DefaultUni fun () -> Assertion
+assertWellTyped ver term = case runExcept . runQuoteT $ typecheck ver term of
     Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
     Right _   -> return ()
 
 -- | Assert a term is ill-typed.
 assertIllTyped
     :: HasCallStack
-    => Term TyName Name DefaultUni DefaultFun ()
+    => BuiltinVersion DefaultFun
+    -> Term TyName Name DefaultUni DefaultFun ()
     -> (Error DefaultUni DefaultFun () -> Bool)
     -> Assertion
-assertIllTyped term isExpected = case runExcept . runQuoteT $ typecheck term of
+assertIllTyped ver term isExpected = case runExcept . runQuoteT $ typecheck ver term of
     Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
     Left err -> do
         unless (isExpected err) $
@@ -72,19 +74,20 @@ assertIllTyped term isExpected = case runExcept . runQuoteT $ typecheck term of
 
 foldAssertWell
     :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
-    => PlcFolderContents DefaultUni fun -> [TestTree]
-foldAssertWell =
+    => BuiltinVersion fun
+    -> PlcFolderContents DefaultUni fun -> [TestTree]
+foldAssertWell ver =
     foldPlcFolderContents
         testGroup
         (\name -> testCase name . assertWellKinded)
-        (\name -> testCase name . assertWellTyped)
+        (\name -> testCase name . assertWellTyped ver)
 
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
     testGroup "Available"
-        [ testGroup "DefaultFun"   $ foldAssertWell stdLib
-        , testGroup "ExtensionFun" $ foldAssertWell builtins
-        , testGroup "Both"         $ foldAssertWell examples
+        [ testGroup "DefaultFun"   $ foldAssertWell def stdLib
+        , testGroup "ExtensionFun" $ foldAssertWell ExtensionFunV1 builtins
+        , testGroup "Both"         $ foldAssertWell def examples
         ]
 
 -- | Self-application. An example of ill-typed term.
@@ -122,7 +125,7 @@ mismatchName =
 test_typecheckIllTyped :: TestTree
 test_typecheckIllTyped =
     testCase "ill-typed" $
-        foldMap (uncurry assertIllTyped)
+        foldMap (uncurry $ assertIllTyped def)
             [ (,) selfApply $ \case
                 TypeErrorE (TypeMismatch {}) -> True
                 _                            -> False
@@ -134,22 +137,23 @@ test_typecheckIllTyped =
                 _                            -> False
             ]
 
-test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => fun -> TestTree
-test_typecheckFun name = goldenVsDoc testName path doc where
+test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => BuiltinVersion fun -> fun -> TestTree
+test_typecheckFun ver name = goldenVsDoc testName path doc where
     testName = show name
     path     = "plutus-core" </> "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni name
+    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni ver name
 
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
-    => String -> TestTree
-test_typecheckAllFun name = testGroup name . map test_typecheckFun $ enumerate @fun
+    => BuiltinVersion fun
+    -> String -> TestTree
+test_typecheckAllFun ver name = testGroup name . map (test_typecheckFun ver) $ enumerate @fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
     testGroup "builtins"
-        [ test_typecheckAllFun @DefaultFun "DefaultFun"
-        , test_typecheckAllFun @ExtensionFun "ExtensionFun"
+        [ test_typecheckAllFun @DefaultFun def "DefaultFun"
+        , test_typecheckAllFun @ExtensionFun def "ExtensionFun"
         ]
 
 test_typecheck :: TestTree

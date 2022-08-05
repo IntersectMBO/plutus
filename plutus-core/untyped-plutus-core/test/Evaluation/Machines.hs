@@ -23,6 +23,7 @@ import PlutusCore.FsTree
 import PlutusCore.Generators.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
+import PlutusPrelude
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.StdLib.Data.Nat qualified as Plc
@@ -117,7 +118,7 @@ test_budget
     . testNested "Budget"
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
-        , folder (toBuiltinsRuntime Plc.defaultUnliftingMode ()) bunchOfIdNats
+        , folder (toBuiltinsRuntime def Plc.defaultUnliftingMode ()) bunchOfIdNats
         , folder Plc.defaultBuiltinsRuntime bunchOfIfThenElseNats
         ]
   where

@@ -10,6 +10,7 @@ module PlutusLedgerApi.Common.Eval where
 import PlutusCore
 import PlutusCore as ScriptPlutus (Version, defaultVersion)
 import PlutusCore.Data as Plutus
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
@@ -110,11 +111,11 @@ data EvaluationContext = EvaluationContext
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
 -}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext newCMP =
+mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
+mkDynEvaluationContext ver newCMP =
     EvaluationContext
-        <$> immediateMachineParameters newCMP
-        <*> deferredMachineParameters newCMP
+        <$> immediateMachineParameters ver newCMP
+        <*> deferredMachineParameters ver newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

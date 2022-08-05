@@ -12,6 +12,7 @@
 module PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters where
 
 import PlutusCore.Builtin
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 
@@ -20,8 +21,10 @@ import GHC.Exts (inline)
 
 -- | Get a 'DefaultMachineParameters' with builtins doing deferred unlifting.
 deferredMachineParameters
-    :: MonadError CostModelApplyError m => CostModelParams -> m DefaultMachineParameters
-deferredMachineParameters = inline mkMachineParametersFor UnliftingDeferred
+    :: MonadError CostModelApplyError m
+    => BuiltinVersion DefaultFun
+    -> CostModelParams -> m DefaultMachineParameters
+deferredMachineParameters ver = inline mkMachineParametersFor ver UnliftingDeferred
 -- No need to mark this as 'INLINE', since a 'CostModelParams' comes in at runtime and so we can't
 -- get the builtins to optimize any further. We don't need to optimize the 'MonadError' part, since
 -- it's only computed when the parameters change, not multiple times (not even once) per contract
