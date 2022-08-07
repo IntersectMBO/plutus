@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Additive (additiveLaws) where
 
 import Hedgehog (Property, property)
@@ -5,15 +7,15 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genRational, normalAndEquivalentTo)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 additiveLaws :: [TestTree]
 additiveLaws = [
-  testProperty "+ commutes" propPlusComm,
-  testProperty "+ associates" propPlusAssoc,
-  testProperty "zero is an identity" propZeroId,
-  testProperty "x - x = zero" propMinusCancel,
-  testProperty "negate . negate = id" propDoubleNeg
+  testPropertyNamed "+ commutes" "propPlusComm" propPlusComm,
+  testPropertyNamed "+ associates" "propPlusAssoc" propPlusAssoc,
+  testPropertyNamed "zero is an identity" "propZeroId" propZeroId,
+  testPropertyNamed "x - x = zero" "propMinusCancel" propMinusCancel,
+  testPropertyNamed "negate . negate = id" "propDoubleNeg" propDoubleNeg
   ]
 
 -- Helpers

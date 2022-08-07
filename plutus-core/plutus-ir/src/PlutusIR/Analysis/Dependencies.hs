@@ -3,9 +3,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TemplateHaskell  #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
-module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps, runTypeDeps) where
+module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -27,7 +28,6 @@ import Data.List.NonEmpty qualified as NE
 
 import Data.Foldable
 
-type DepCtx term = Node
 type StrictnessMap = Map.Map PLC.Unique Strictness
 type DepState = StrictnessMap
 
@@ -36,6 +36,12 @@ type DepState = StrictnessMap
 -- dependency graph of, say, a term, there will not be a binding for the term itself which
 -- we can use to represent it in the graph.
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
+
+data DepCtx fun = DepCtx {
+   _depNode       :: Node
+ , _depBuiltinVer :: PLC.BuiltinVersion fun
+ }
+makeLenses ''DepCtx
 
 -- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from it), whose
 -- vertices are 'Node's.
@@ -60,42 +66,27 @@ varStrictnessFun = do
 runTermDeps
     :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun)
-    => Term tyname name uni fun a
+    => PLC.BuiltinVersion fun
+    -> Term tyname name uni fun a
     -> (g, StrictnessMap)
-runTermDeps t = flip runState mempty $ flip runReaderT Root $ termDeps t
-
--- | Compute the dependency graph of a 'Type'. The 'Root' node will correspond to the type itself.
---
--- This graph will always be simply a star from 'Root', since types have no internal let-bindings.
---
--- For example, the graph of @(all a (type) [f a])@ is:
--- @
---     ROOT -> f
---     ROOT -> a
--- @
---
-runTypeDeps
-    :: (DepGraph g, PLC.HasUnique tyname PLC.TypeUnique)
-    => Type tyname uni a
-    -> g
-runTypeDeps t = flip runReader Root $ typeDeps t
+runTermDeps ver = flip runState mempty . flip runReaderT (DepCtx Root ver)  . termDeps
 
 -- | Record some dependencies on the current node.
 currentDependsOn
-    :: (DepGraph g, MonadReader (DepCtx term) m)
+    :: (DepGraph g, MonadReader (DepCtx fun) m)
     => [PLC.Unique]
     -> m g
 currentDependsOn us = do
-    current <- ask
+    current <- view depNode
     pure $ G.connect (G.vertices [current]) (G.vertices (fmap Variable us))
 
 -- | Process the given action with the given name as the current node.
 withCurrent
-    :: (MonadReader (DepCtx term) m, PLC.HasUnique n u)
+    :: (MonadReader (DepCtx fun) m, PLC.HasUnique n u)
     => n
     -> m g
     -> m g
-withCurrent n = local $ \_ -> Variable $ n ^. PLC.theUnique
+withCurrent n = local $ set depNode $ Variable $ n ^. PLC.theUnique
 
 {- Note [Strict term bindings and dependencies]
 A node inside a strict let binding can incur a dependency on it even if the defined variable is unused.
@@ -144,7 +135,7 @@ so that this is visible to the dependency analysis.
 -}
 
 bindingDeps
-    :: (DepGraph g, MonadReader (DepCtx term) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
+    :: (DepGraph g, MonadReader (DepCtx fun) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun)
     => Binding tyname name uni fun a
     -> m g
@@ -153,11 +144,12 @@ bindingDeps b = case b of
         vDeps <- varDeclDeps d
         tDeps <- withCurrent n $ termDeps rhs
 
+        ver <- view depBuiltinVer
         -- See Note [Strict term bindings and dependencies]
         strictnessFun <- varStrictnessFun
         evalDeps <- case strictness of
-            Strict | not (isPure strictnessFun rhs) -> currentDependsOn [n ^. PLC.theUnique]
-            _                                       -> pure G.empty
+            Strict | not (isPure ver strictnessFun rhs) -> currentDependsOn [n ^. PLC.theUnique]
+            _                                           -> pure G.empty
 
         pure $ G.overlays [vDeps, tDeps, evalDeps]
     TypeBind _ d@(TyVarDecl _ n _) rhs -> do
@@ -195,14 +187,14 @@ bindingStrictness b = case b of
         modify (Map.insert (destr ^. PLC.theUnique) Strict)
 
 varDeclDeps
-    :: (DepGraph g, MonadReader (DepCtx term) m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
-    => VarDecl tyname name uni fun a
+    :: (DepGraph g, MonadReader (DepCtx fun) m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+    => VarDecl tyname name uni a
     -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
 -- Here for completeness, but doesn't do much
 tyVarDeclDeps
-    :: (G.Graph g, MonadReader (DepCtx term) m)
+    :: (G.Graph g, MonadReader (DepCtx fun) m)
     => TyVarDecl tyname a
     -> m g
 tyVarDeclDeps _ = pure G.empty
@@ -210,7 +202,7 @@ tyVarDeclDeps _ = pure G.empty
 -- | Compute the dependency graph of a term. Takes an initial 'Node' indicating what the term itself depends on
 -- (usually 'Root' if it is the real term you are interested in).
 termDeps
-    :: (DepGraph g, MonadReader (DepCtx term) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
+    :: (DepGraph g, MonadReader (DepCtx fun) m, MonadState DepState m, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun)
     => Term tyname name uni fun a
     -> m g
@@ -237,7 +229,7 @@ termDeps = \case
 -- | Compute the dependency graph of a type. Takes an initial 'Node' indicating what the type itself depends on
 -- (usually 'Root' if it is the real type you are interested in).
 typeDeps
-    :: (DepGraph g, MonadReader (DepCtx term) m, PLC.HasUnique tyname PLC.TypeUnique)
+    :: (DepGraph g, MonadReader (DepCtx fun) m, PLC.HasUnique tyname PLC.TypeUnique)
     => Type tyname uni a
     -> m g
 typeDeps ty =

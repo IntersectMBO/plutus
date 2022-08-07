@@ -46,6 +46,7 @@ module Evaluation.Builtins.Bitwise (
   bsToIHomogenous,
   ) where
 
+
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
 import Control.Monad (guard)
 import Data.Bitraversable (bitraverse)
@@ -61,8 +62,9 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ByteStringToInteger, ComplementByteString, FindFirstSetByteString, IntegerToByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
                    DefaultUni, Error, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusPrelude (def)
 import Text.Show.Pretty (ppShow)
 import UntypedPlutusCore qualified as Untyped
 
@@ -925,7 +927,7 @@ cekEval' ::
   Term Untyped.TyName Name DefaultUni DefaultFun () ->
   Either (Error DefaultUni DefaultFun ())
          (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()), [Text])
-cekEval' = typecheckEvaluateCek defaultCekParameters
+cekEval' = typecheckEvaluateCek def defaultBuiltinCostModel
 
 -- Generators
 

@@ -147,7 +147,7 @@ for different variants of this impredicative type. Which is annoying, but does w
 -- See Note [Impredicative function universe wrappers]
 newtype CompileType = CompileType { unCompileType :: forall fun . RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ()) }
 newtype CompileTypeScope = CompileTypeScope { unCompileTypeScope :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ()) }
-newtype CompileDeclFun = CompileDeclFun { unCompileDeclFun :: forall fun . Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni fun ()) }
+newtype CompileDeclFun = CompileDeclFun { unCompileDeclFun :: forall fun . Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni ()) }
 
 {- Note [Type variables]
 We handle types in almost exactly the same way when we are constructing Typeable
@@ -346,7 +346,7 @@ recordAlias' :: TH.Name -> RTCompileScope PLC.DefaultUni fun ()
 recordAlias' = recordAlias
 
 -- Just here so we can pin down the type variables without using TypeApplications in the generated code
-defineDatatype' :: TH.Name -> DatatypeDef TyName Name PLC.DefaultUni fun () -> Set.Set TH.Name -> RTCompileScope PLC.DefaultUni fun ()
+defineDatatype' :: TH.Name -> DatatypeDef TyName Name PLC.DefaultUni () -> Set.Set TH.Name -> RTCompileScope PLC.DefaultUni fun ()
 defineDatatype' = defineDatatype
 
 -- TODO: there is an unpleasant amount of duplication between this and the main compiler, but
@@ -411,7 +411,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                         withTyVars tvds $ do
                             -- The TH expressions are in fact all functions that take the result type, so
                             -- we need to apply them
-                            let constrActs :: RTCompileScope PLC.DefaultUni fun [VarDecl TyName Name PLC.DefaultUni fun ()]
+                            let constrActs :: RTCompileScope PLC.DefaultUni fun [VarDecl TyName Name PLC.DefaultUni ()]
                                 constrActs = sequence $ fmap (\x -> unCompileDeclFun x) constrExprs' <*> [resultType]
                             constrs <- constrActs
 

@@ -23,8 +23,6 @@ import PlutusPrelude
 import Prettyprinter
 import Prettyprinter.Custom
 
-import Data.Default.Class
-
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
 -- | Pretty-print something with the Pir prettyprinter settings.
@@ -51,7 +49,7 @@ viewTyAbs t@TyAbs{} = Just (go t)
 viewTyAbs _         = Nothing
 
 -- | Split a term abstraction into it's possible components.
-viewLam :: Term tyname name uni fun ann -> Maybe ([VarDecl tyname name uni fun ()], Term tyname name uni fun ann)
+viewLam :: Term tyname name uni fun ann -> Maybe ([VarDecl tyname name uni ()], Term tyname name uni fun ann)
 viewLam t@LamAbs{} = Just (go t)
   where go (LamAbs _ n t b) = first ((VarDecl () n (void t)):) $ go b
         go t                = ([], t)
@@ -64,15 +62,14 @@ viewLet t@Let{} = Just (go t)
         go t              = ([], t)
 viewLet _       = Nothing
 
-type PrettyConstraints configName tyname name uni fun =
+type PrettyConstraints configName tyname name uni =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
   , Pretty (SomeTypeIn uni)
   , Closed uni, uni `Everywhere` PrettyConst
-  , Pretty fun
   )
 
-instance PrettyConstraints configName tyname name uni fun
+instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ con -> unitDocM $ pretty con
@@ -141,7 +138,7 @@ instance PrettyConstraints configName tyname name uni fun
                               | (r, binds) <- lets ]) <+> prettyBot body
         Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
 
-instance PrettyConstraints configName tyname name uni fun
+instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where
   prettyBy = inContextM $ \case
     TermBind _ s vdec t ->
@@ -164,8 +161,8 @@ instance PrettyConstraints configName tyname name uni fun
         return $ prettyBot tydec <?> "=" <+> prettyBot a
     DatatypeBind _ dt -> prettyM dt
 
-instance PrettyConstraints configName tyname name uni fun
-          => PrettyBy (PrettyConfigReadable configName) (Datatype tyname name uni fun ann) where
+instance PrettyConstraints configName tyname name uni
+          => PrettyBy (PrettyConfigReadable configName) (Datatype tyname name uni ann) where
   prettyBy = inContextM $ \case
     Datatype _ tydec pars name cs -> do
       -- Layout datatypes as
@@ -190,8 +187,8 @@ instance PrettyReadableBy configName tyname
             _      -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
           ShowKindsNo -> return $ prettyBot x
 
-instance PrettyConstraints configName tyname name uni fun
-          => PrettyBy (PrettyConfigReadable configName) (VarDecl tyname name uni fun ann) where
+instance PrettyConstraints configName tyname name uni
+          => PrettyBy (PrettyConfigReadable configName) (VarDecl tyname name uni ann) where
   prettyBy = inContextM $ \case
     VarDecl _ x t -> do
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do

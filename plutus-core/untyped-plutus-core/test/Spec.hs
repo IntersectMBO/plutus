@@ -10,6 +10,7 @@ import Evaluation.Builtins (test_builtins)
 import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines
+import Evaluation.Regressions (schnorrVerifyRegressions)
 import Generators (test_parsing)
 import Transform.Simplify (test_simplify)
 
@@ -28,5 +29,6 @@ main = do
     , test_debruijn
     , test_freevars
     , test_parsing
+    , schnorrVerifyRegressions
     ]
 

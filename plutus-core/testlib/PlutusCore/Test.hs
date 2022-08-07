@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE UndecidableInstances   #-}
@@ -329,7 +330,7 @@ test_scopingGood
     -> (t NameAnn -> TPLC.Quote (t NameAnn))
     -> TestTree
 test_scopingGood gen ren =
-    testProperty "renamer does not destroy scoping" $
+    testPropertyNamed "renamer does not destroy scoping" "test_scopingGood" $
         prop_scopingFor gen ren
 
 -- | Test that a renaming machinery destroys scoping when a bad renamer is chosen.

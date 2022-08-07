@@ -85,11 +85,10 @@ benchSliceByteString =
 benchConsByteString :: Benchmark
 benchConsByteString =
     createTwoTermBuiltinBench ConsByteString [] [n] (smallerByteStrings150 seedA)
-        where n = 123456789 :: Integer
-        -- The precise numbers don't seem to matter here.  There'll be
-        -- some cost coercing them to Word8, but even with very large
-        -- numbers that seems to be negligible.
-
+        where n = 123 :: Integer
+        -- The precise numbers don't seem to matter here, as long as they are in
+        -- the range of [0..255] (Word8). Otherwise
+        -- we run the risk of costing also the (fast) failures of the builtin call.
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,

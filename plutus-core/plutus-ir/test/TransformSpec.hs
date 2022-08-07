@@ -12,6 +12,7 @@ import PlutusCore.Quote
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
+import PlutusPrelude
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
 import PlutusIR.Error as PIR
@@ -29,9 +30,7 @@ import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
 
-import Control.Monad
 import Text.Megaparsec.Pos
-
 
 transform :: TestNested
 transform = testNested "transform" [
@@ -49,7 +48,7 @@ transform = testNested "transform" [
 
 thunkRecursions :: TestNested
 thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir ThunkRec.thunkRecursions pTerm)
+    $ map (goldenPir (ThunkRec.thunkRecursions def) pTerm)
     [ "listFold"
     , "monoMap"
     , "errorBinding"
@@ -102,7 +101,7 @@ letFloat =
   ]
  where
    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-       let pirFloated = RecSplit.recSplit . LetFloat.floatTerm . runQuote $ PLC.rename pir
+       let pirFloated = RecSplit.recSplit . LetFloat.floatTerm def . runQuote $ PLC.rename pir
        -- make sure the floated result typechecks
        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
        -- letmerge is not necessary for floating, but is a nice visual transformation
@@ -131,7 +130,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (runQuote . (Inline.inline mempty <=< PLC.rename)) $ pTerm)
+    $ map (goldenPir (runQuote . (Inline.inline mempty def <=< PLC.rename)) $ pTerm)
     [ "var"
     , "builtin"
     , "constant"
@@ -166,7 +165,7 @@ unwrapCancel =
 deadCode :: TestNested
 deadCode =
     testNested "deadCode"
-    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings) pTerm)
+    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings def) pTerm)
     [ "typeLet"
     , "termLet"
     , "strictLet"
@@ -212,7 +211,7 @@ retainedSize =
         displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
         renameAndAnnotate
             = PLC.AttachPrettyConfig displayAnnsConfig
-            . RetainedSize.annotateWithRetainedSize
+            . RetainedSize.annotateWithRetainedSize def
             . runQuote
             . PLC.rename
 

@@ -11,18 +11,18 @@ import PlutusTx.Ratio qualified as Ratio
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, normalAndEquivalentToMaybe, testCoverProperty)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 constructionLaws :: [TestTree]
 constructionLaws = [
-  testProperty "ratio x 0 = Nothing" propZeroDenom,
-  testProperty "ratio x 1 = Just . fromInteger $ x" propOneDenom,
-  testProperty "ratio x x = Just 1 for x /= 0" propRatioSelf,
+  testPropertyNamed "ratio x 0 = Nothing" "propZeroDenom" propZeroDenom,
+  testPropertyNamed "ratio x 1 = Just . fromInteger $ x" "propOneDenom" propOneDenom,
+  testPropertyNamed "ratio x x = Just 1 for x /= 0" "propRatioSelf" propRatioSelf,
   testCoverProperty "sign of result depends on signs of arguments" propRatioSign,
-  testProperty "if ratio x y = Just r, then unsafeRatio x y = r" propConstructionAgreement,
-  testProperty "if r = fromInteger x, then numerator r = x" propFromIntegerNum,
-  testProperty "if r = fromInteger x, then denominator r = 1" propFromIntegerDen,
-  testProperty "ratio x y = ratio (x * z) (y * z) for z /= 0" propRatioScale
+  testPropertyNamed "if ratio x y = Just r, then unsafeRatio x y = r" "propConstructionAgreement" propConstructionAgreement,
+  testPropertyNamed "if r = fromInteger x, then numerator r = x" "propFromIntegerNum" propFromIntegerNum,
+  testPropertyNamed "if r = fromInteger x, then denominator r = 1" "propFromIntegerDen" propFromIntegerDen,
+  testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale
   ]
 
 -- Helpers

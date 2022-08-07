@@ -13,6 +13,7 @@ import PlutusLedgerApi.Common.ProtocolVersions
 import Data.Foldable
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import GHC.Generics
 import Prettyprinter
 
 {- Note [New builtins and protocol versions]
@@ -41,7 +42,7 @@ data LedgerPlutusVersion =
       PlutusV1
     | PlutusV2
     | PlutusV3
-   deriving stock (Eq, Ord, Show)
+   deriving stock (Eq, Ord, Show, Generic)
 
 instance Pretty LedgerPlutusVersion where
     pretty = viaShow

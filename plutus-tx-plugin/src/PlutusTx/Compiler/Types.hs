@@ -17,6 +17,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 import PlutusTx.Annotation
@@ -50,10 +51,11 @@ data CompileContext uni fun = CompileContext {
     ccFlags       :: GHC.DynFlags,
     ccFamInstEnvs :: GHC.FamInstEnvs,
     ccNameInfo    :: NameInfo,
-    ccScopes      :: ScopeStack uni fun,
+    ccScopes      :: ScopeStack uni,
     ccBlackholed  :: Set.Set GHC.Name,
     ccCurDef      :: Maybe LexName,
-    ccModBreaks   :: Maybe GHC.ModBreaks
+    ccModBreaks   :: Maybe GHC.ModBreaks,
+    ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
@@ -196,10 +198,10 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope uni fun = Scope (Map.Map GHC.Name (PLCVar uni fun)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
+data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
+type ScopeStack uni = NE.NonEmpty (Scope uni)
 
-initialScopeStack :: ScopeStack uni fun
+initialScopeStack :: ScopeStack uni
 initialScopeStack = pure $ Scope Map.empty Map.empty
 
 withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a

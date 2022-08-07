@@ -11,12 +11,11 @@ module Crypto (
   ) where
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
 import Crypto.Error (CryptoFailable (..))
-import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
 import Data.Text (Text, pack)
@@ -69,10 +68,26 @@ verifyEd25519Signature_V2 pk msg sig =
 --
 -- = Note
 --
--- This takes a message /hash/, rather than a general blob of bytes; thus, it is
--- limited in length.
+-- There are additional well-formation requirements for the arguments beyond
+-- their length:
+--
+-- * The first byte of the public key must correspond to the sign of the /y/
+-- coordinate: this is @0x02@ if /y/ is even, and @0x03@ otherwise.
+-- * The remaining bytes of the public key must correspond to the /x/
+-- coordinate, as a big-endian integer.
+-- * The first 32 bytes of the signature must correspond to the big-endian
+-- integer representation of _r_.
+-- * The last 32 bytes of the signature must correspond to the big-endian
+-- integer representation of _s_.
+--
+-- While this primitive /accepts/ a hash, any caller should only pass it hashes
+-- that they computed themselves: specifically, they should receive the
+-- /message/ from a sender and hash it, rather than receiving the /hash/ from
+-- said sender. Failure to do so can be
+-- [dangerous](https://bitcoin.stackexchange.com/a/81116/35586). Other than
+-- length, we make no requirements of what hash gets used.
 verifyEcdsaSecp256k1Signature
-  :: BS.ByteString -- ^ Public key   (64 bytes)
+  :: BS.ByteString -- ^ Public key   (33 bytes)
   -> BS.ByteString -- ^ Message hash (32 bytes)
   -> BS.ByteString -- ^ Signature    (64 bytes)
   -> Emitter (EvaluationResult Bool)
@@ -81,7 +96,7 @@ verifyEcdsaSecp256k1Signature pk msg sig =
     Nothing -> failWithMessage loc "Invalid verification key."
     Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN sig of
       Nothing -> failWithMessage loc "Invalid signature."
-      Just sig' -> case SECP.msg msg of
+      Just sig' -> case toMessageHash msg of
         Nothing -> failWithMessage loc "Invalid message hash."
         Just msg' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of
           Left _   -> False
@@ -94,10 +109,21 @@ verifyEcdsaSecp256k1Signature pk msg sig =
 --
 -- = Note
 --
--- Unlike 'verifyEcdsaSecp256k1Signature', this can accept messages of arbitrary
--- form and length.
+-- There are additional well-formation requirements for the arguments beyond
+-- their length. Throughout, we refer to co-ordinates of the point @R@.
+--
+-- * The bytes of the public key must correspond to the /x/ coordinate, as a
+-- big-endian integer, as specified in BIP-340.
+-- * The first 32 bytes of the signature must correspond to the /x/ coordinate,
+-- as a big-endian integer, as specified in BIP-340.
+-- * The last 32 bytes of the signature must correspond to the bytes of /s/, as
+-- a big-endian integer, as specified in BIP-340.
+--
+-- = See also
+--
+-- * [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
 verifySchnorrSecp256k1Signature
-  :: BS.ByteString -- ^ Public key (64 bytes)
+  :: BS.ByteString -- ^ Public key (32 bytes)
   -> BS.ByteString -- ^ Message    (arbitrary length)
   -> BS.ByteString -- ^ Signature  (64 bytes)
   -> Emitter (EvaluationResult Bool)

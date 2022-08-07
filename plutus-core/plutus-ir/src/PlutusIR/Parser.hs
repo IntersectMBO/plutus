@@ -37,13 +37,13 @@ recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> 
 strictness :: Parser Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
 
-varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni SourcePos)
 varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> pType
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
 
-datatype :: Parser (Datatype TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+datatype :: Parser (Datatype TyName Name PLC.DefaultUni SourcePos)
 datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl

@@ -14,6 +14,7 @@
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
+import PlutusPrelude
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -55,11 +56,8 @@ import Flat (Flat, flat, unflat)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
-import Data.Foldable (fold, toList)
-import Data.Functor
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import Data.Traversable (for)
 import ErrorCode (HasErrorCode (errorCode))
 import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
@@ -296,7 +294,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccScopes = initialScopeStack,
             ccBlackholed = mempty,
             ccCurDef = Nothing,
-            ccModBreaks = modBreaks
+            ccModBreaks = modBreaks,
+            ccBuiltinVer = def
             }
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE

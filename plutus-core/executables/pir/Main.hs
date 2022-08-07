@@ -26,7 +26,7 @@ import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Plated
-import Prettyprinter
+import PlutusPrelude
 
 data Command = Analyse AOpts
              | Compile COpts
@@ -123,7 +123,7 @@ loadPirAndAnalyse aopts = do
         nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
-        retentionMap = PIR.termRetentionMap pirT
+        retentionMap = PIR.termRetentionMap def pirT
         -- sort the map by decreasing retained size
         sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
 

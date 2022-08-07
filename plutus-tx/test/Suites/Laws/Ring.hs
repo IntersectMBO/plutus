@@ -1,3 +1,6 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Ring (ringLaws) where
 
 import Hedgehog (Property, property, (===))
@@ -5,14 +8,14 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genRational)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 ringLaws :: [TestTree]
 ringLaws = [
-  testProperty "zero is a left annihilator" propZeroLeftAnnih,
-  testProperty "zero is a right annihilator" propZeroRightAnnih,
-  testProperty "* left-distributes over +" propTimesLeftDistPlus,
-  testProperty "* right-distributes over +" propTimesRightDistPlus
+  testPropertyNamed "zero is a left annihilator" "propZeroLeftAnnih" propZeroLeftAnnih,
+  testPropertyNamed "zero is a right annihilator" "propZeroRightAnnih" propZeroRightAnnih,
+  testPropertyNamed "* left-distributes over +" "propTimesLeftDistPlus" propTimesLeftDistPlus,
+  testPropertyNamed "* right-distributes over +" "propTimesRightDistPlus" propTimesRightDistPlus
   ]
 
 -- Helpers
