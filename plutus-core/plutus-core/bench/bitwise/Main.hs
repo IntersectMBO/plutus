@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -30,6 +31,7 @@ main = do
     bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
     bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes,
+    bgroup popCountLabel' . fmap (popCountBlockBench popCountLabel') $ sizes,
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes,
     bgroup bandLabel' . fmap (packedAndBench bandLabel') $ largerSizes,
@@ -52,12 +54,29 @@ main = do
     bcompLabel' = "Bitwise complement probe"
     popCountLabel :: String
     popCountLabel = "Popcount"
+    popCountLabel' :: String
+    popCountLabel' = "Block popcount"
     rotateLabel :: String
     rotateLabel = "Slow rotate versus prescan"
     rotateLabel' :: String
     rotateLabel' = "Bitwise rotate versus block rotate"
 
 -- Benchmarks
+
+popCountBlockBench ::
+  String ->
+  Int ->
+  Benchmark
+popCountBlockBench mainLabel len =
+  withResource (mkUnaryArg len) noCleanup $ \xs ->
+    let cpLabel2 = "chunkPopCount2"
+        cpLabel3 = "chunkPopCount3"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> cpLabel2 <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
+        bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
+        ]
 
 packedAndBench ::
   String ->

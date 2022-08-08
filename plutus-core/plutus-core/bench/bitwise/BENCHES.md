@@ -21,6 +21,9 @@ rotation](https://en.wikipedia.org/wiki/Bitwise_operation#Circular_shift) isn't.
 This extends the definition of right-to-left computability defined in [Hacker's
 Delight](https://en.wikipedia.org/wiki/Hacker%27s_Delight), but is stricter.
 
+We use _population count_ to mean the number of 1 bits. We use this term with
+individual bytes, words, or sequences of either.
+
 ## Background
 
 Plutus Core, which is designed to be executed on-chain, has unusual limitations
@@ -148,6 +151,43 @@ modern CPUs. More specifically, the third approach works as follows:
    corresponding bytes of the input, writing them to the empty `ByteString` from
    1.
 
+### Population count
+
+A naive approach would involve a fold over the `Word8`s in the argument, summing
+the result of `popCount`. This forms our first approach, using the `foldl'`
+function provided by `bytestring`. This approach makes good use of spatial
+locality, but not particularly good use of temporal locality: each `Word8` we
+load into a register to population count still requires a memory transfer, but
+we only population count 8 bits, rather than the 64 bits that could fit into the
+register. Moreover, x86_64 platforms have efficient instructions dedicated to
+population counting, which can easily count a whole register's worth of bits.
+Thu, our second approach makes use of this capability by doing two 'phases' of
+counting: firstly, we count eight-byte chunks, then finish what remains one byte
+at a time. Specifically, we do the following:
+
+1. Initialize a counter to 0.
+2. While at least eight bytes of the input remains, population count an
+   eight-byte chunk, then add the result to the counter.
+3. While any bytes of the input remain, population count one byte, then add the
+   result to the counter.
+4. Return the counter.
+
+We also define a third approach which takes even larger chunks, using the
+`Word256` type from `wide-word`. This amounts to a four-way loop unroll, as
+there are no specialized instructions for population counting chunks larger than
+eight bytes on any current architectures supported by GHC. This can, in theory,
+still be beneficial, due to ILP being available on most modern CPUs. More
+specifically, the third approach works as follows:
+
+1. Initialize a counter to 0.
+2. While at least 32 bytes of input remains, population count a 32-byte chunk,
+   then add the result to the counter.
+3. While at least eight bytes of the input remains, population count an
+   eight-byte chunk, then add the result to the counter.
+4. While any bytes of the input remain, population count one byte, then add the
+   result to the counter.
+5. Return the counter.
+
 ## Methodology
 
 ### Bitwise binary operations
@@ -205,7 +245,25 @@ require them to do the most work in their last step.
 
 We compare all approaches to the first (that is, naive) one.
 
-### Bitwise complement
+### Population count
+
+We implement all three approaches. We use inputs of the following lengths:
+
+* 1
+* 3
+* 7
+* 15
+* 31
+* 63
+* 127
+* 255
+* 511
+* 1023
+* 2047
+
+We choose these values to disadvantage the second and third approaches as much
+as possible, as values that are one less than a power of 2 in length would
+require them to do the most work in their second-to-last step.
 
 ## Results
 
@@ -215,7 +273,7 @@ avoiding timeouts due to the increased time required to get accurate readings.
 
 ### Bitwise binary operations
 
-The results of our benchmarks given the methodology we describe are below.
+The results of our benchmarks given the methodology we described are below.
 Throughout, `zipWith` refers to the first approach, `packZipWith` to the second
 approach, `chunkedZipWith (2 blocks)` to the third approach, and `chunkedZipWith
 (3 blocks)` to the fourth approach. We also mark the C implementations of the
@@ -474,7 +532,7 @@ allocations.
 
 ### Bitwise complement
 
-The results of our benchmarks given the methodology we describe are below.
+The results of our benchmarks given the methodology we described are below.
 Throughout, `map` refers to the first approach, `chunkedMap (2 blocks)` refers
 to the second approach, and `chunkMap (3 blocks)` refers to the third approach.
 We also mark the C implementation of the second approach. All multipliers are
@@ -631,6 +689,172 @@ All
 We note that at 767 bytes (exactly mid-way), the 'phase transition' has already
 occurred.
 
+### Population count
+
+The results of our benchmark given the methodology we described are below.
+Throughout, `foldl'` refers to the first approach, `chunkPopCount2 to the second
+approach, and `chunkPopCount3` to the third approach. All multipliers are shown
+as multiples of the running time of the first approach on the same length of
+data.
+
+```
+All
+  Popcount
+    Popcount, length 1
+      foldl':         OK (49.30s)
+        22.9 ns ± 348 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (3.17s)
+        23.3 ns ± 456 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.02x
+      chunkPopCount3: OK (0.81s)
+        24.1 ns ± 330 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.05x
+    Popcount, length 3
+      foldl':         OK (0.92s)
+        27.1 ns ± 372 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (113.34s)
+        26.7 ns ±  64 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.98x
+      chunkPopCount3: OK (0.91s)
+        26.8 ns ± 372 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.99x
+    Popcount, length 7
+      foldl':         OK (4.05s)
+        30.3 ns ± 226 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (8.52s)
+        31.9 ns ±  40 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.05x
+      chunkPopCount3: OK (1.05s)
+        31.2 ns ± 322 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.03x
+    Popcount, length 15
+      foldl':         OK (0.69s)
+        40.4 ns ± 682 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (4.39s)
+        32.8 ns ± 100 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.81x
+      chunkPopCount3: OK (0.57s)
+        33.6 ns ± 638 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.83x
+    Popcount, length 31
+      foldl':         OK (2.08s)
+        61.9 ns ± 420 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (81.00s)
+        37.8 ns ± 222 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.61x
+      chunkPopCount3: OK (0.64s)
+        37.6 ns ± 688 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.61x
+    Popcount, length 63
+      foldl':         OK (0.83s)
+        99.5 ns ± 1.8 ns,  38 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (0.77s)
+        45.2 ns ± 778 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.45x
+      chunkPopCount3: OK (0.75s)
+        44.7 ns ± 666 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.45x
+    Popcount, length 127
+      foldl':         OK (0.68s)
+        161  ns ± 2.7 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (1.09s)
+        64.0 ns ± 650 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.40x
+      chunkPopCount3: OK (1.12s)
+        66.7 ns ± 696 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.41x
+    Popcount, length 255
+      foldl':         OK (0.60s)
+        287  ns ± 5.7 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (0.89s)
+        104  ns ± 1.7 ns,  38 B  allocated,   0 B  copied,  47 MB peak memory, 0.36x
+      chunkPopCount3: OK (0.86s)
+        101  ns ± 1.6 ns,  38 B  allocated,   0 B  copied,  47 MB peak memory, 0.35x
+    Popcount, length 511
+      foldl':         OK (0.58s)
+        538  ns ±  11 ns,   0 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (0.77s)
+        181  ns ± 2.9 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory, 0.34x
+      chunkPopCount3: OK (0.72s)
+        167  ns ± 2.8 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory, 0.31x
+    Popcount, length 1023
+      foldl':         OK (1.11s)
+        1.04 μs ±  11 ns,   0 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (0.73s)
+        341  ns ± 5.3 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory, 0.33x
+      chunkPopCount3: OK (1.28s)
+        301  ns ± 2.7 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory, 0.29x
+    Popcount, length 2047
+      foldl':         OK (1.09s)
+        2.05 μs ±  28 ns,   0 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount2: OK (0.69s)
+        649  ns ±  12 ns,   0 B  allocated,   0 B  copied,  47 MB peak memory, 0.32x
+      chunkPopCount3: OK (1.20s)
+        568  ns ± 6.7 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory, 0.28x
+```
+
+We observe that, even for short inputs, the time required by the second and
+third approach is not significantly worse than the first: the difference is at
+most 5%, which at the scale being measured is barely distinct from noise. Once
+the length reaches 15, there is about a 20% improvement in running time when
+using the second and third approaches relative the first, and for lengths larger
+than this, the increase only continues. Overall, the third approach does not
+appear significantly better than the second until the input size reaches 511,
+but isn't significantly worse at lengths above 15. To more clearly see the
+difference, we also ran the same inputs, but compared the second approach to the
+third:
+
+```
+All
+  Block popcount
+    Block popcount, length 1
+      chunkPopCount2: OK (0.74s)
+        20.5 ns ± 404 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (3.12s)
+        23.3 ns ± 312 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.14x
+    Block popcount, length 3
+      chunkPopCount2: OK (3.31s)
+        25.1 ns ± 134 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (1.70s)
+        25.4 ns ± 352 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.01x
+    Block popcount, length 7
+      chunkPopCount2: OK (1.02s)
+        30.2 ns ± 456 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (1.08s)
+        32.2 ns ± 432 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.07x
+    Block popcount, length 15
+      chunkPopCount2: OK (1.09s)
+        32.2 ns ± 366 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (1.06s)
+        31.1 ns ± 400 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.97x
+    Block popcount, length 31
+      chunkPopCount2: OK (0.60s)
+        35.2 ns ± 684 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (0.61s)
+        36.3 ns ± 642 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 1.03x
+    Block popcount, length 63
+      chunkPopCount2: OK (0.76s)
+        45.0 ns ± 772 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (2.96s)
+        44.1 ns ± 174 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.98x
+    Block popcount, length 127
+      chunkPopCount2: OK (1.05s)
+        62.0 ns ± 740 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (1.00s)
+        59.3 ns ± 986 ps,  39 B  allocated,   0 B  copied,  47 MB peak memory, 0.96x
+    Block popcount, length 255
+      chunkPopCount2: OK (0.85s)
+        100  ns ± 1.3 ns,  38 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (0.80s)
+        93.4 ns ± 1.3 ns,  38 B  allocated,   0 B  copied,  47 MB peak memory, 0.93x
+    Block popcount, length 511
+      chunkPopCount2: OK (0.75s)
+        175  ns ± 2.7 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (0.68s)
+        160  ns ± 2.7 ns,  31 B  allocated,   0 B  copied,  47 MB peak memory, 0.91x
+    Block popcount, length 1023
+      chunkPopCount2: OK (0.70s)
+        330  ns ± 5.2 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (0.63s)
+        294  ns ± 5.5 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory, 0.89x
+    Block popcount, length 2047
+      chunkPopCount2: OK (1.32s)
+        624  ns ± 5.6 ns,  25 B  allocated,   0 B  copied,  47 MB peak memory
+      chunkPopCount3: OK (0.60s)
+        562  ns ±  10 ns,   0 B  allocated,   0 B  copied,  47 MB peak memory, 0.90x
+```
+
+We can see that the benefits of the third approach versus the second amount to
+10% better performance at most, and even that only occurs at length 511 and
+higher. At the same time, for lengths below 15, there can be up to a 15% penalty
+for using the third approach over the second.
+
 ## Conclusion and recommendations
 
 We do not believe the use of the FFI and implementing any operations in
@@ -653,6 +877,13 @@ if we consider inputs of this length unlikely relative the extra code path,
 using the first approach in all cases is acceptable; however, we don't believe
 that the extra code represents significant maintenance or runtime overheads, and
 while inputs of this size would be unlikely, they're not impossible.
+
+Popcount should be implemented using the second (`Word64`-width bit-parallel)
+approach only. The first (naive) approach is not significantly better at any
+length, and the third (`Word256`-width bit parallel) approach only out-performs
+the second by a small margin for large inputs. While a 'hybrid' approach for
+this operation may be possible in theory, the benefits relative the extra code
+and its maintenance don't appear worthwhile.
 
 ## Future work
 
