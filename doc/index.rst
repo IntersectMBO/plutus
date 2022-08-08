@@ -14,6 +14,12 @@ To read more about the overall architecture of writing applications using Plutus
    troubleshooting
 
 .. toctree::
+   :caption: Architecture design records
+   :maxdepth: 1
+
+   adr/index
+
+.. toctree::
    :caption: Reference
    :maxdepth: 2
 
