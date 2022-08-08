@@ -45,13 +45,9 @@ failingTests = [
     , "test-cases/uplc/evaluation/example/churchZero"
     , "test-cases/uplc/evaluation/example/force-lam"
     , "test-cases/uplc/evaluation/example/succInteger"
-    , "test-cases/uplc/evaluation/example/DivideByZero"
-    , "test-cases/uplc/evaluation/example/DivideByZeroDrop"
     , "test-cases/uplc/evaluation/example/churchSucc"
     , "test-cases/uplc/evaluation/term/lam"
     , "test-cases/uplc/evaluation/term/delay-lam"
-    , "test-cases/uplc/evaluation/term/error"
-    , "test-cases/uplc/evaluation/failure/ifThenElse-no-force"
     ]
 
 main :: IO ()
