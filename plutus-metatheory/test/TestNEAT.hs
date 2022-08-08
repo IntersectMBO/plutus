@@ -126,11 +126,14 @@ prop_Term tyG tmG = do
   -- turn it into an untyped de Bruijn term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
-  tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))) $ liftEither $ runUAgda tmUDB
+  tmUDB' <- case runUAgda tmUDB of
+      Left (RuntimeError UserError) -> pure $ U.Error ()
+      _ -> withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))
+          $ liftEither $ runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
   -- reduce the original de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG))) $
+  tmDB'' <- withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
     liftEither $ runTCEKAgda tmDB
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
