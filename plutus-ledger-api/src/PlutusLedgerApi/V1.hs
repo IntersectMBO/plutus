@@ -6,7 +6,7 @@ module PlutusLedgerApi.V1 (
     , Script
     , fromCompiledCode
     -- * Validating scripts
-    , isScriptWellFormed
+    , assertScriptWellFormed
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -106,13 +106,16 @@ module PlutusLedgerApi.V1 (
     , EvaluationError (..)
     ) where
 
+import Codec.CBOR.Read qualified as CBOR (DeserialiseFailure)
+import Control.Monad.Except (MonadError)
 import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusLedgerApi.Common as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
-import PlutusLedgerApi.Common qualified as Common (evaluateScriptCounting, evaluateScriptRestricting,
-                                                   isScriptWellFormed)
+import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
+                                         evaluateScriptRestricting)
+import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
+                                                   evaluateScriptRestricting)
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Contexts
@@ -147,8 +150,11 @@ anything, we're just going to create new versions.
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-isScriptWellFormed :: ProtocolVersion -> SerialisedScript -> Bool
-isScriptWellFormed = Common.isScriptWellFormed PlutusV1
+assertScriptWellFormed :: MonadError CBOR.DeserialiseFailure m
+                       => ProtocolVersion
+                       -> SerialisedScript
+                       -> m ()
+assertScriptWellFormed = Common.assertScriptWellFormed PlutusV1
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to

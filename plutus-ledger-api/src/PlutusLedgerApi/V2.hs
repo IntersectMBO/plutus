@@ -6,7 +6,7 @@ module PlutusLedgerApi.V2 (
     , Script
     , fromCompiledCode
     -- * Validating scripts
-    , isScriptWellFormed
+    , assertScriptWellFormed
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -111,25 +111,32 @@ module PlutusLedgerApi.V2 (
     , EvaluationError (..)
     ) where
 
-import PlutusLedgerApi.Common as Common hiding (evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed)
-import PlutusLedgerApi.Common qualified as Common (evaluateScriptCounting, evaluateScriptRestricting,
-                                                   isScriptWellFormed)
+import Codec.CBOR.Read qualified as CBOR (DeserialiseFailure)
+import Control.Monad.Except (MonadError)
+
+import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
+                                         evaluateScriptRestricting)
+import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
+                                                   evaluateScriptRestricting)
 import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
-                           evaluateScriptCounting, evaluateScriptRestricting, isScriptWellFormed, mkEvaluationContext)
+                           assertScriptWellFormed, evaluateScriptCounting, evaluateScriptRestricting,
+                           mkEvaluationContext)
 import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.V2.ParamName
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
-
 import PlutusCore.Data qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-isScriptWellFormed :: ProtocolVersion -> SerialisedScript -> Bool
-isScriptWellFormed = Common.isScriptWellFormed PlutusV2
+assertScriptWellFormed :: MonadError CBOR.DeserialiseFailure m
+                       => ProtocolVersion
+                       -> SerialisedScript
+                       -> m ()
+assertScriptWellFormed = Common.assertScriptWellFormed PlutusV2
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
