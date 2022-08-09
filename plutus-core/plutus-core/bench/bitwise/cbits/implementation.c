@@ -1,5 +1,14 @@
 #include "cbits.h"
 
+size_t c_popcount_naive(unsigned char const *src, size_t const len) {
+  size_t total = 0;
+  for (size_t i = 0; i < len; i++) {
+    total += __builtin_popcount(*src);
+    src++;
+  }
+  return total;
+}
+
 void c_and_implementation_3(unsigned char *dst, unsigned char const *src1,
                             unsigned char const *src2, size_t const len) {
   size_t const big_step_size = sizeof(unsigned long long);
@@ -80,6 +89,18 @@ void c_and_implementation(unsigned char *dst, unsigned char const *src1,
   }
 }
 
+void c_and_implementation_naive(unsigned char *dst, unsigned char const *src1,
+                                unsigned char const *src2, size_t const len) {
+  for (size_t i = 0; i < len; i++) {
+    unsigned char const x = *src1;
+    unsigned char const y = *src2;
+    *dst = x & y;
+    src1++;
+    src2++;
+    dst++;
+  }
+}
+
 void c_complement_implementation(unsigned char *dst, unsigned char const *src,
                                  size_t const len) {
   size_t const big_step_size = sizeof(unsigned long long);
@@ -100,5 +121,15 @@ void c_complement_implementation(unsigned char *dst, unsigned char const *src,
     *small_dst = ~x;
     small_src++;
     small_dst++;
+  }
+}
+
+void c_complement_implementation_naive(unsigned char *dst,
+                                       unsigned char const *src,
+                                       size_t const len) {
+  for (size_t i = 0; i < len; i++) {
+    *dst = ~(*src);
+    src++;
+    dst++;
   }
 }

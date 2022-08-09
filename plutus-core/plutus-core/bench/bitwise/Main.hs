@@ -39,9 +39,9 @@ main = do
     ]
   where
     sizes :: [Int]
-    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047]
+    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767]
     largerSizes :: [Int]
-    largerSizes = [31, 63, 127, 255, 511, 1023, 2047]
+    largerSizes = [31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767]
     probingSizes :: [Int]
     probingSizes = [511, 767, 1023]
     bandLabel :: String
@@ -85,6 +85,7 @@ packedAndBench ::
 packedAndBench mainLabel len =
   withResource (mkBinaryArgs len) noCleanup $ \xs ->
     let pzwLabel = "packZipWith"
+        pzwLabel' = "packZipWith (C)"
         czwLabel2 = "chunkedZipWith (2 blocks)"
         czwLabel2' = "chunkedZipWith (2 blocks, C)"
         czwLabel3 = "chunkedZipWith (3 blocks)"
@@ -93,6 +94,7 @@ packedAndBench mainLabel len =
         matchLabel = "$NF == \"" <> pzwLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench pzwLabel . nfIO $ uncurry (zipWithBinary (.&.)) <$> xs,
+        bcompare matchLabel . bench pzwLabel' . nfIO $ uncurry candBinaryNaive <$> xs,
         bcompare matchLabel . bench czwLabel2 . nfIO $ uncurry (chunkZipWith2 (.&.) (.&.)) <$> xs,
         bcompare matchLabel . bench czwLabel2' . nfIO $ uncurry candBinary2 <$> xs,
         bcompare matchLabel . bench czwLabel3 . nfIO $ uncurry (chunkZipWith3 (.&.) (.&.) (.&.)) <$> xs,
@@ -140,12 +142,14 @@ popCountBench ::
 popCountBench mainLabel len =
   withResource (mkUnaryArg len) noCleanup $ \xs ->
     let fLabel = "foldl'"
+        fLabel' = "foldl' (C)"
         cpLabel2 = "chunkPopCount2"
         cpLabel3 = "chunkPopCount3"
         testLabel = mainLabel <> ", length " <> show len
         matchLabel = "$NF == \"" <> fLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench fLabel . nfIO $ BS.foldl' (\acc w8 -> acc + popCount w8) 0 <$> xs,
+        bcompare matchLabel . bench fLabel' . nfIO $ popcountNaive <$> xs,
         bcompare matchLabel . bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
         bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
         ]
@@ -157,6 +161,7 @@ complementBench ::
 complementBench mainLabel len =
   withResource (mkUnaryArg len) noCleanup $ \xs ->
     let mLabel = "map"
+        mLabel' = "map (C)"
         cmLabel2 = "chunkedMap (2 blocks)"
         cmLabel2' = "chunkedMap (2 blocks, C)"
         cmLabel3 = "chunkMap (3 blocks)"
@@ -164,6 +169,7 @@ complementBench mainLabel len =
         matchLabel = "$NF == \"" <> mLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench mLabel . nfIO $ BS.map complement <$> xs,
+        bcompare matchLabel . bench mLabel' . nfIO $ ccomplementNaive <$> xs,
         bcompare matchLabel . bench cmLabel2 . nfIO $ chunkMap2 complement complement <$> xs,
         bcompare matchLabel . bench cmLabel2' . nfIO $ ccomplement <$> xs,
         bcompare matchLabel . bench cmLabel3 . nfIO $ chunkMap3 complement complement complement <$> xs
@@ -177,6 +183,7 @@ andBench mainLabel len =
   withResource (mkBinaryArgs len) noCleanup $ \xs ->
     let zwLabel = "zipWith"
         pzwLabel = "packZipWith"
+        pzwLabel' = "packZipWith (C)"
         czwLabel2 = "chunkedZipWith (2 blocks)"
         czwLabel2' = "chunkedZipWith (2 blocks, C)"
         czwLabel3 = "chunkedZipWith (3 blocks)"
@@ -186,6 +193,7 @@ andBench mainLabel len =
       bgroup testLabel [
         bench zwLabel . nfIO $ uncurry (zipWithBinary (.&.)) <$> xs,
         bcompare matchLabel . bench pzwLabel . nfIO $ uncurry (packZipWithBinary (.&.)) <$> xs,
+        bcompare matchLabel . bench pzwLabel' . nfIO $ uncurry candBinaryNaive <$> xs,
         bcompare matchLabel . bench czwLabel2 . nfIO $ uncurry (chunkZipWith2 (.&.) (.&.)) <$> xs,
         bcompare matchLabel . bench czwLabel2' . nfIO $ uncurry candBinary2 <$> xs,
         bcompare matchLabel . bench czwLabel3 . nfIO $ uncurry (chunkZipWith3 (.&.) (.&.) (.&.)) <$> xs,
@@ -243,6 +251,17 @@ candBinary3 bs bs'
         candImplementation3 dst (castPtr src) (castPtr src') (fromIntegral len)
         unsafePackMallocCStringLen (castPtr dst, len)
 
+-- Same as above, but as obvious as possible
+candBinaryNaive :: ByteString -> ByteString -> Maybe ByteString
+candBinaryNaive bs bs'
+  | BS.length bs /= BS.length bs' = Nothing
+  | otherwise = pure . unsafeDupablePerformIO .
+    unsafeUseAsCStringLen bs $ \(src, len) ->
+      unsafeUseAsCStringLen bs' $ \(src', _) -> do
+        dst <- mallocBytes len
+        candImplementationNaive dst (castPtr src) (castPtr src') (fromIntegral len)
+        unsafePackMallocCStringLen (castPtr dst, len)
+
 -- Wrapper for raw C bitwise complement
 ccomplement :: ByteString -> ByteString
 ccomplement bs = unsafeDupablePerformIO .
@@ -250,6 +269,27 @@ ccomplement bs = unsafeDupablePerformIO .
     dst <- mallocBytes len
     ccomplementImplementation dst (castPtr src) (fromIntegral len)
     unsafePackMallocCStringLen (castPtr dst, len)
+
+ccomplementNaive :: ByteString -> ByteString
+ccomplementNaive bs = unsafeDupablePerformIO .
+  unsafeUseAsCStringLen bs $ \(src, len) -> do
+    dst <- mallocBytes len
+    ccomplementImplementationNaive dst (castPtr src) (fromIntegral len)
+    unsafePackMallocCStringLen (castPtr dst, len)
+
+popcountNaive :: ByteString -> Int
+popcountNaive bs = unsafeDupablePerformIO .
+  unsafeUseAsCStringLen bs $ \(src, len) -> do
+    let res = cpopcountNaive (castPtr src) (fromIntegral len)
+    pure . fromIntegral $ res
+
+foreign import ccall unsafe "cbits.h c_and_implementation_naive"
+  candImplementationNaive ::
+    Ptr CUChar ->
+    Ptr CUChar ->
+    Ptr CUChar ->
+    CSize ->
+    IO ()
 
 foreign import ccall unsafe "cbits.h c_and_implementation"
   candImplementation2 ::
@@ -273,3 +313,16 @@ foreign import ccall unsafe "cbits.h c_complement_implementation"
     Ptr CUChar ->
     CSize ->
     IO ()
+
+foreign import ccall unsafe "cbits.h c_complement_implementation_naive"
+  ccomplementImplementationNaive ::
+    Ptr CUChar ->
+    Ptr CUChar ->
+    CSize ->
+    IO ()
+
+foreign import ccall unsafe "cbits.h c_popcount_naive"
+  cpopcountNaive ::
+    Ptr CUChar ->
+    CSize ->
+    CSize
