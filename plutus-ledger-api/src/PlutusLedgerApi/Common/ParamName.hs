@@ -8,6 +8,7 @@ module PlutusLedgerApi.Common.ParamName where
 import PlutusCore.Evaluation.Machine.CostModelInterface
 
 import Control.Monad.Except
+import Control.Monad.Writer.Strict
 import Data.Bifunctor
 import Data.Char (toLower)
 import Data.List.Extra
@@ -58,16 +59,30 @@ instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
     gshowParamName (L1 x) = gshowParamName x
     gshowParamName (R1 x) = gshowParamName x
 
--- Given an ordered list of parameter values, tag them with their parameter names.
-tagWithParamNames :: forall k m. (Enum k, Bounded k, MonadError CostModelApplyError m) => [Integer] -> m [(k, Integer)]
+-- | Given an ordered list of parameter values, tag them with their parameter names.
+-- See Note [Cost model parameters from the ledger's point of view]
+tagWithParamNames :: forall k m. (Enum k, Bounded k,
+                            MonadError CostModelApplyError m,
+                            -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
+                            -- OPTIMIZE: using List [] as the log datatype is worse than others (DList/Endo) but does not matter much here
+                            MonadWriter [CostModelApplyWarn] m)
+                  => [Integer] -> m [(k, Integer)]
 tagWithParamNames ledgerParams =
     let paramNames = enumerate @k
-        lenActual = length ledgerParams
         lenExpected = length paramNames
-    in if lenActual /= lenExpected
-       then throwError $ CMWrongNumberOfParams lenExpected lenActual
-       else pure $ zip paramNames ledgerParams
-
+        lenActual = length ledgerParams
+    in case lenExpected `compare` lenActual of
+        EQ ->
+            pure $ zip paramNames ledgerParams
+        LT -> do
+            -- See Note [Cost model parameters from the ledger's point of view]
+            when (lenActual > lenExpected) $
+                tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
+            -- zip will truncate any extraneous params
+            pure $ zip paramNames ledgerParams
+        GT ->
+            -- See Note [Cost model parameters from the ledger's point of view]
+            throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
 
 -- | Essentially untag the association of param names to values
 -- so that CostModelInterface can make use of it.

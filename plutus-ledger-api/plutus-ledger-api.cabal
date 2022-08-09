@@ -169,6 +169,7 @@ executable evaluation-test
     , base                       >=4.9 && <5
     , extra
     , filepath
+    , mtl
     , plutus-core
     , plutus-ledger-api
     , plutus-ledger-api-testlib
