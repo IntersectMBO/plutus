@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -7,7 +8,8 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types where
+module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
+  Ann (..)) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -18,6 +20,7 @@ import PlutusIR.Compiler.Definitions
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
+import PlutusTx.Annotation
 
 import FamInstEnv qualified as GHC
 import GhcPlugins qualified as GHC
@@ -48,10 +51,11 @@ data CompileContext uni fun = CompileContext {
     ccFlags       :: GHC.DynFlags,
     ccFamInstEnvs :: GHC.FamInstEnvs,
     ccNameInfo    :: NameInfo,
-    ccScopes      :: ScopeStack uni fun,
+    ccScopes      :: ScopeStack uni,
     ccBlackholed  :: Set.Set GHC.Name,
     ccCurDef      :: Maybe LexName,
-    ccModBreaks   :: Maybe GHC.ModBreaks
+    ccModBreaks   :: Maybe GHC.ModBreaks,
+    ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
@@ -160,14 +164,11 @@ stableModuleCmp m1 m2 =
 
 -- See Note [Scopes]
 type Compiling uni fun m ann =
-    ( Monad m
-    , MonadError (CompileError uni fun ann) m
+    ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
-    , MonadDefs LexName uni fun () m
+    , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
-    , PLC.GShow uni, PLC.GEq uni
-    , PLC.ToBuiltinMeaning uni fun
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way
@@ -197,10 +198,10 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope uni fun = Scope (Map.Map GHC.Name (PLCVar uni fun)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
+data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
+type ScopeStack uni = NE.NonEmpty (Scope uni)
 
-initialScopeStack :: ScopeStack uni fun
+initialScopeStack :: ScopeStack uni
 initialScopeStack = pure $ Scope Map.empty Map.empty
 
 withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a

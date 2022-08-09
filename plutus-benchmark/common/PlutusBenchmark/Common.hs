@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -24,6 +25,7 @@ import PlutusTx qualified as Tx
 
 import PlutusCore qualified as PLC
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -22,7 +23,7 @@ import Test.Tasty.Hedgehog
 
 tests :: TestTree
 tests = testGroup "checks"
-    [ testProperty "renaming ensures global uniqueness" propRenameCheck
+    [ testPropertyNamed "renaming ensures global uniqueness" "propRenameCheck" propRenameCheck
     , shadowed
     , multiplyDefined
     , incoherentUse

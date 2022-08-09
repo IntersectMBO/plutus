@@ -16,6 +16,7 @@ This includes a variety of useful tools:
 * Agda with the right libraries set up to build our Agda code
 * `stylish-haskell`
 * `haskell-language-server`
+* `editorconfig-checker`
 * ... and more
 
 Have a look in `shell.nix` to see what's there.
@@ -30,6 +31,7 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
 
 - `fix-stylish-haskell` will re-format all the Haskell sources correctly.
+- `fix-cabal-fmt` will re-format all the Cabal sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
 
 If you're not using `nix-shell` all the time and you want to run one of these, you can use `nix-shell --run`.
@@ -167,6 +169,10 @@ You can update it xref:update-nix-pins[with the Nix flake commands].
 
 == Working conventions
 
+=== Style guide
+
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
+
 === Code is communication
 
 We are a relatively large team working on sometimes quite abstruse problems.
@@ -216,12 +222,17 @@ you could write a Note describing the trick (and justifying its usage!), and the
 
 === Code formatting
 
-We use `stylish-haskell` for Haskell code formatting.
-CI checks that running this is a no-op, so if you don’t apply it then your PR will not go green.
-To avoid annoyance, set up your editor to run them automatically.
-The `nix-shell` environment provides a `stylish-haskell` binaries of the correct version.
+We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal files.
+They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
-You can run `stylish-haskell` over your tree using the `fix-stylish-haskell` script provided by the `nix-shell` environment.
+To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `fix-stylish-haskell` or `fix-cabal-fmt` respectively.
+They are provided by the `nix-shell` environment.
+
+=== Code linting
+
+There are two `.hlint.yaml` files, one in `./` and the other in `.github/`.
+The one in `./` is the default hint file used by editors, and the one in `.github/` is used by CI.
+Think of the former as suggested hints, and the latter as enforced hints.
 
 === Compiler warnings
 
@@ -259,6 +270,12 @@ The key bottleneck in getting a PR merged is code review.
 Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
 
 The amount of time it's worth spending doing this is probably much more than you think.
+
+==== What branch to target
+
+Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
+PRs should target `master` unless there is a very good reason not to.
+The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
 
 ==== What changes to include
 
@@ -348,7 +365,7 @@ Sometimes it is useful to benchmark a PR, and we have some automation for this.
 To trigger it, make a comment on the PR with this form: `/benchmark <benchmark-component>`, where `<benchmark-component>` is as you would provide it to cabal.
 For example, if you would run `cabal bench plutus-benchmark:validation` locally, then write `/benchmark plutus-benchmark:validation` in the comment.
 
-This will trigger a benchmarking job on a stable machine. 
+This will trigger a benchmarking job on a stable machine.
 The job will:
 
 1. Run the specified benchmark on the base of the PR branch.
@@ -365,7 +382,7 @@ For that reason, we ask you to follow these additional guidelines (the rest of t
 === All changes must have an issue
 
 Make sure that any change you make has a corresponding GitHub issue.
-The issue should describe the problem and describe your proposed solutiion. 
+The issue should describe the problem and describe your proposed solutiion.
 Before you start working on implementing it, you must get a comment from the Plutus team that the solution seems sensible.
 This functions as a light "design review" before you get too stuck into doing a PR.
 
@@ -420,6 +437,8 @@ Michael also has permissions to restart failed builds.
 The documentation site is built on ReadTheDocs.
 It will build a preview for each PR which is linked from the PR status.
 It's useful to take a look if you're changing any of the documentation.
+
+Run `build-and-serve-docs` in nix-shell to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
 
 ==== Github Actions
 

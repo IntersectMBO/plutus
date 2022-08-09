@@ -1,72 +1,103 @@
-cabal-version: 3.0
-name: plutus-conformance
-version: 1.0.0.0
-license: Apache-2.0
+cabal-version:      3.0
+name:               plutus-conformance
+version:            1.0.0.0
+license:            Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: marty.stumpf@iohk.io
-author: Plutus Core Team
-synopsis: Conformance Test Suite for Plutus Core
-description:
-    Comprehensive Conformance Test Suite for Plutus Core.
-category: Language, Plutus, Conformance
-build-type: Simple
-extra-doc-files: README.md
+
+maintainer:         marty.stumpf@iohk.io
+author:             Plutus Core Team
+synopsis:           Conformance Test Suite for Plutus Core
+description:        Comprehensive Conformance Test Suite for Plutus Core.
+category:           Language, Plutus, Conformance
+build-type:         Simple
+extra-doc-files:    README.md
 extra-source-files:
-    
+
 source-repository head
-    type: git
-    location: https://github.com/input-output-hk/plutus
+  type:     git
+  location: https://github.com/input-output-hk/plutus
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities -Wunused-packages
-                 -Wmissing-deriving-strategies
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
 
 library
-    import: lang
-    visibility: public
-    hs-source-dirs: src/
-    exposed-modules:
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules: PlutusConformance.Common
+  build-depends:
+    , base
+    , directory
+    , filepath
+    , lens
+    , megaparsec
+    , plutus-core
+    , tasty
+    , tasty-expected-failure
+    , tasty-golden
+    , text
+    , witherable
 
-test-suite uplc-eval-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: uplc/evaluation
-    other-modules:
-    build-depends:
-        base >=4.9 && <5,
-        tasty-golden -any,
-        text -any,
-        plutus-conformance
+executable add-test-output
+  import:         lang
+  main-is:        Spec.hs
+  hs-source-dirs: executables/add-test-output/
+  other-modules:
+  build-depends:
+    , base                  >=4.9 && <5
+    , directory
+    , optparse-applicative
+    , plutus-conformance
+    , plutus-core
+    , tasty-golden
+    , text
 
-test-suite tplc-eval-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: tplc/evaluation
-    other-modules:
-    build-depends:
-        base >=4.9 && <5,
-        tasty-golden -any,
-        text -any
+executable haskell-implementation
+  import:         lang
+  main-is:        Spec.hs
+  hs-source-dirs: executables/haskell-implementation
+  other-modules:
+  build-depends:  base >=4.9 && <5
 
-test-suite tplc-typecheck-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: tplc/typecheck
-    other-modules:
-    build-depends:
-        base >=4.9 && <5,
-        tasty-golden -any,
-        text -any
+test-suite haskell-conformance
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: haskell test-cases
+  other-modules:
+  build-depends:
+    , base                >=4.9 && <5
+    , plutus-conformance
+
+test-suite agda-conformance
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: agda test-cases
+  other-modules:
+  build-depends:
+    , base                >=4.9 && <5
+    , plutus-conformance
+    , plutus-core
+    , plutus-metatheory
+    , transformers

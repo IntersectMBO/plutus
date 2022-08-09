@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -31,23 +32,25 @@ import Witherable (Witherable (wither))
 removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun, PLC.MonadQuote m)
-    => Term TyName name uni fun a
+    => PLC.BuiltinVersion fun
+    -> Term TyName name uni fun a
     -> m (Term TyName name uni fun a)
-removeDeadBindings t = do
+removeDeadBindings ver t = do
     tRen <- PLC.rename t
-    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness tRen)
+    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness ver tRen)
 
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.ToBuiltinMeaning uni fun)
-    => Term tyname name uni fun a
+    => PLC.BuiltinVersion fun
+    -> Term tyname name uni fun a
     -> Liveness
-calculateLiveness t =
+calculateLiveness ver t =
     let
         depGraph :: G.Graph Deps.Node
-        depGraph = fst $ Deps.runTermDeps t
+        depGraph = fst $ Deps.runTermDeps ver t
     in Set.fromList $ T.reachable Deps.Root depGraph
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool

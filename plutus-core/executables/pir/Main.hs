@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -25,7 +26,7 @@ import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Plated
-import Prettyprinter
+import PlutusPrelude
 
 data Command = Analyse AOpts
              | Compile COpts
@@ -119,10 +120,10 @@ loadPirAndAnalyse aopts = do
                 pirT ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
         -- a helper lookup table of uniques to their textual representation
         nameTable :: IM.IntMap T.Text
-        nameTable = IM.fromList [(coerce $ nameUnique n , nameString n) | n <- names]
+        nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
-        retentionMap = PIR.termRetentionMap pirT
+        retentionMap = PIR.termRetentionMap def pirT
         -- sort the map by decreasing retained size
         sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
 

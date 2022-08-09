@@ -130,7 +130,7 @@ BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (in
 BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
 BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
 BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B> b b')))
+BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
 BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₂ (V-con
   (bytestring (SHA2-256 b)))
 BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
@@ -138,6 +138,12 @@ BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
 BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (BLAKE2B-256 b)))
 BUILTIN verifyEd25519Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
+... | just b = inj₂ (V-con (bool b))
+... | nothing = inj₁ userError
+BUILTIN verifyEcdsaSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
+... | just b = inj₂ (V-con (bool b))
+... | nothing = inj₁ userError
+BUILTIN verifySchnorrSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ userError
 BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
@@ -203,6 +209,8 @@ ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString _ base
 ival sha2-256 = V-I⇒ sha2-256 _ base
 ival sha3-256 = V-I⇒ sha3-256 _ base
 ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature _ base
+ival verifyEcdsaSecp256k1Signature = V-I⇒ verifyEcdsaSecp256k1Signature _ base
+ival verifySchnorrSecp256k1Signature = V-I⇒ verifySchnorrSecp256k1Signature _ base
 ival equalsByteString = V-I⇒ equalsByteString _ base
 ival ifThenElse = V-IΠ ifThenElse _ base
 ival appendString = V-I⇒ appendString _ base

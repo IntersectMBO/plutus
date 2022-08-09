@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {- | Tests for the Plutus nofib benchmarks, mostly comparing the result of Plutus
 evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to
@@ -46,7 +47,7 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4700
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4720
                , runTestNested $ Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
 

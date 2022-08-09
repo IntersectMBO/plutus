@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | This compiles several list-sorting algorithms to Plutus Core and runs them on
@@ -13,6 +14,7 @@ import PlutusBenchmark.Lists.Sort
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 

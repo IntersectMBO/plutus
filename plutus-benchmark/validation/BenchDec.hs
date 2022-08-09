@@ -1,14 +1,17 @@
+-- editorconfig-checker-disable-file
 module Main where
+
+import PlutusLedgerApi.V1
+import PlutusLedgerApi.V1.Scripts
+import UntypedPlutusCore qualified as UPLC
 
 import Codec.Serialise qualified as Serialise (serialise)
 import Common
+import Control.Exception
 import Criterion
 import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short (toShort)
-import Plutus.V1.Ledger.Api
-import Plutus.V1.Ledger.Scripts
-import UntypedPlutusCore qualified as UPLC
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -34,13 +37,11 @@ main = benchWith mkDecBM
 
             -- we then have to re-encode it
             bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v unsaturated)
-            -- strictify and "short" the result cbor to create a real `SerializedScript`
+            -- strictify and "short" the result cbor to create a real `SerialisedScript`
 
-            benchScript :: SerializedScript = toShort . BSL.toStrict $ bslCBOR
+            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (\ s ->
-                     isScriptWellFormed (ProtocolVersion 6 0) s
-                     || error "validation script failed to decode"
+        in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
                 ) benchScript
 

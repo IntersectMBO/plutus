@@ -1,1 +1,0 @@
-(delay (lam z (lam f z)))

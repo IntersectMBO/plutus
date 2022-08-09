@@ -36,8 +36,6 @@ import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.ConfigName
 import PlutusCore.Pretty.Readable
 
-import Data.Default.Class
-
 -- | Whether to pretty-print PLC errors in full or with some information omitted.
 data CondensedErrors
     = CondensedErrorsYes

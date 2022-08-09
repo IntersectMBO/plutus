@@ -1,3 +1,6 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Eq (eqLaws) where
 
 import Hedgehog (Property, PropertyT, property, success, (===))
@@ -6,11 +9,11 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genInteger, genRational, testEntangled, testEntangled3, varyRational)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 eqLaws :: [TestTree]
 eqLaws = [
-  testProperty "== is reflexive" propEqRefl,
+  testPropertyNamed "== is reflexive" "propEqRefl" propEqRefl,
   testEntangled "== is symmetric" genRational propEqSymm,
   testEntangled3 "== is transitive" genRational propEqTrans,
   testEntangled "== implies substitution" genRational propEqSub

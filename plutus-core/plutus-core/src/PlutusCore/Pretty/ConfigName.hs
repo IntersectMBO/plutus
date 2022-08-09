@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 module PlutusCore.Pretty.ConfigName
     ( PrettyConfigName (..)
     , HasPrettyConfigName (..)

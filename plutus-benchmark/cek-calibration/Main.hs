@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -17,6 +18,7 @@ module Main (main) where
 import Prelude qualified as Haskell
 
 import PlutusCore
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty qualified as PP
 import PlutusTx qualified as Tx
 import PlutusTx.Prelude as Tx

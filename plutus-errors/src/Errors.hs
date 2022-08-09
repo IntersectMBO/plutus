@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_HADDOCK hide #-}
 -- | The catalogue of all Plutus errors, obsolete or not.
@@ -46,6 +47,8 @@ allErrors =
    , 'PLC.KindMismatch
    , 'PLC.TypeMismatch
    , 'PLC.UnknownBuiltinFunctionE
+   , 'PLC.TyNameMismatch
+   , 'PLC.NameMismatch
    , 'PLC.FreeTypeVariableE
    , 'PLC.FreeVariableE
    , 'PLC.FreeVariable

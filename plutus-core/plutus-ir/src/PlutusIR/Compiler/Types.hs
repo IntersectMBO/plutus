@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -17,12 +18,14 @@ import Control.Monad.Reader
 import Control.Lens
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
+import PlutusPrelude
 
 import Data.Text qualified as T
 
@@ -39,6 +42,9 @@ data PirTCConfig uni fun = PirTCConfig {
 makeLenses ''PirTCConfig
 
 -- pir config has inside a plc config so it can act like it
+instance PLC.HasKindCheckConfig (PirTCConfig uni fun) where
+    kindCheckConfig = pirConfigTCConfig . PLC.kindCheckConfig
+
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
@@ -77,12 +83,16 @@ data CompilationCtx uni fun a = CompilationCtx {
     , _ccEnclosing       :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
     , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)
+    , _ccBuiltinVer      :: PLC.BuiltinVersion fun
     }
 
 makeLenses ''CompilationCtx
 
-toDefaultCompilationCtx :: PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
-toDefaultCompilationCtx configPlc = CompilationCtx defaultCompilationOpts noProvenance $ Just (PirTCConfig configPlc YesEscape)
+toDefaultCompilationCtx :: Default (PLC.BuiltinVersion fun) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
+toDefaultCompilationCtx configPlc =
+    CompilationCtx defaultCompilationOpts noProvenance
+        (Just $ PirTCConfig configPlc YesEscape)
+        def
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -145,12 +155,12 @@ type Compiling m e uni fun a =
     -- Pretty printing instances
     , PLC.Pretty fun
     , PLC.Closed uni
-    , PLC.GShow uni
+    , PLC.Pretty (PLC.SomeTypeIn uni)
     , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )
 
-type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni fun a) (PIR.Term tyname name uni fun a)
+type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
 
 -- | We generate some shared definitions compilation, this datatype
 -- defines the "keys" for those definitions.

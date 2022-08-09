@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleContexts       #-}
@@ -30,7 +31,7 @@ module PlutusIR.Compiler.Definitions (DefT
                                               , lookupConstructors
                                               , lookupDestructor) where
 
-import PlutusIR
+import PlutusIR as PIR
 import PlutusIR.MkPir hiding (error)
 
 import PlutusCore.MkPlc qualified as PLC
@@ -54,6 +55,17 @@ import Data.Map qualified as Map
 import Data.Maybe
 import Data.Set qualified as Set
 
+{- Note [Annotations on Bindings]
+
+When constructing Bindings (including TermBind, TypeBind and DatatypeBind) from definitions
+in `runDefT`, we use the annotation on the VarDecl and TyVarDecl as the annotation of the
+Binding itself. The reason is that the simplifier looks at the annotation of a Binding as
+one of the factors to determine whether to inline the Binding. When we define a term that
+should be inlined, we put the corresponding annotation in the VarDecl or TyVarDecl (note
+that there's no need to annotate the term itself), and that annotation needs to be copied
+to the Binding when creating the Binding.
+-}
+
 -- | A map from keys to pairs of bindings and their dependencies (as a list of keys).
 type DefMap key def = Map.Map key (def, Set.Set key)
 
@@ -61,12 +73,12 @@ mapDefs :: (a -> b) -> DefMap key a -> DefMap key b
 mapDefs f = Map.map (first f)
 
 type TermDefWithStrictness uni fun ann =
-    PLC.Def (VarDecl TyName Name uni fun ann) (Term TyName Name uni fun ann, Strictness)
+    PLC.Def (VarDecl TyName Name uni ann) (Term TyName Name uni fun ann, Strictness)
 
 data DefState key uni fun ann = DefState {
     _termDefs     :: DefMap key (TermDefWithStrictness uni fun ann),
     _typeDefs     :: DefMap key (TypeDef TyName uni ann),
-    _datatypeDefs :: DefMap key (DatatypeDef TyName Name uni fun ann),
+    _datatypeDefs :: DefMap key (DatatypeDef TyName Name uni ann),
     _aliases      :: Set.Set key
     }
 makeLenses ''DefState
@@ -80,7 +92,6 @@ instance MonadState s m => MonadState s (DefT key uni fun ann m) where
     put = lift . put
     state = lift . state
 
--- TODO: provenances
 runDefT :: (Monad m, Ord key) => ann -> DefT key uni fun ann m (Term TyName Name uni fun ann) -> m (Term TyName Name uni fun ann)
 runDefT x act = do
     (term, s) <- runStateT (unDefT act) (DefState mempty mempty mempty mempty)
@@ -88,9 +99,10 @@ runDefT x act = do
         where
             bindingDefs defs =
                 let
-                    terms = mapDefs (\d -> TermBind x (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
-                    types = mapDefs (\d -> TypeBind x (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
-                    datatypes = mapDefs (\d -> DatatypeBind x (PLC.defVal d)) (_datatypeDefs defs)
+                    -- See Note [Annotations on Bindings]
+                    terms = mapDefs (\d -> TermBind (_varDeclAnn (defVar d)) (snd $ PLC.defVal d) (PLC.defVar d) (fst $ PLC.defVal d)) (_termDefs defs)
+                    types = mapDefs (\d -> TypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVar d) (PLC.defVal d)) (_typeDefs defs)
+                    datatypes = mapDefs (\d -> DatatypeBind (_tyVarDeclAnn (defVar d)) (PLC.defVal d)) (_datatypeDefs defs)
                 in terms `Map.union` types `Map.union` datatypes
 
 -- | Given the definitions in the program, create a topologically ordered list of the
@@ -146,10 +158,10 @@ modifyTypeDef name f = liftDef $ DefT $ modify $ over typeDefs $ Map.adjust (fir
 
 defineDatatype
     :: forall key uni fun ann m . MonadDefs key uni fun ann m
-    => key -> DatatypeDef TyName Name uni fun ann -> Set.Set key -> m ()
+    => key -> DatatypeDef TyName Name uni ann -> Set.Set key -> m ()
 defineDatatype name def deps = liftDef $ DefT $ modify $ over datatypeDefs $ Map.insert name (def, deps)
 
-modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni fun ann -> DatatypeDef TyName Name uni fun ann)-> m ()
+modifyDatatypeDef :: MonadDefs key uni fun ann m => key -> (DatatypeDef TyName Name uni ann -> DatatypeDef TyName Name uni ann)-> m ()
 modifyDatatypeDef name f = liftDef $ DefT $ modify $ over datatypeDefs $ Map.adjust (first f) name
 
 -- | Modifies the dependency set of a key.

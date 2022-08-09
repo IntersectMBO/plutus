@@ -1,0 +1,22 @@
+name: HLint
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - synchronize
+jobs:
+  hlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/hlint-setup@v2
+        with:
+          version: '3.4'
+      - uses: haskell/actions/hlint-run@v1
+        with:
+          hlint-bin: "hlint --hint=./.github/.hlint.yaml"
+          fail-on: status
+          path: .

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+-- editorconfig-checker-disable-file
 
 -- This file contains a version of the CEK machine in
 -- continuation-passing-style, where the frames and return

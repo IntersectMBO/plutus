@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-| Description : Property based testing for Plutus Core
 
 This file contains the tests and some associated machinery but not the
@@ -10,7 +11,6 @@ generators.
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
 
 module PlutusCore.Generators.NEAT.Spec
   ( tests
@@ -30,7 +30,9 @@ module PlutusCore.Generators.NEAT.Spec
   ) where
 
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.NEAT.Common
 import PlutusCore.Generators.NEAT.Term
 import PlutusCore.Normalize
@@ -90,7 +92,7 @@ tests genOpts@GenOptions{} =
 {- NOTE:
 
 The tests below perform multiple steps in a pipeline, they take in
-kind & type or type & term and then peform operations on them passing
+kind & type or type & term and then perform operations on them passing
 the result along to the next one, sometimes the result is passed to
 several operations and/or several results are later combined and
 sometimes a result is discarded. Quite a lot of this is inherently
@@ -127,7 +129,7 @@ prop_typePreservation tyG tmG = do
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
-  withExceptT TypeError $ checkKind tcConfig () ty (Type ())
+  withExceptT TypeError $ checkKind defKindCheckConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
@@ -137,7 +139,7 @@ prop_typePreservation tyG tmG = do
     evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
--- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
+-- |Property: check if both the typed CK and untyped CEK machines produce the same output
 -- modulo erasure.
 --
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
@@ -146,7 +148,7 @@ prop_agree_termEval tyG tmG = do
 
   -- Check if the type checker for generated terms is sound:
   ty <- withExceptT GenError $ convertClosedType tynames (Type ()) tyG
-  withExceptT TypeError $ checkKind tcConfig () ty (Type ())
+  withExceptT TypeError $ checkKind defKindCheckConfig () ty (Type ())
   tm <- withExceptT GenError $ convertClosedTerm tynames names tyG tmG
   withExceptT TypeError $ checkType tcConfig () tm (Normalized ty)
 
@@ -155,11 +157,11 @@ prop_agree_termEval tyG tmG = do
     evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
 
   -- erase CK output
-  let tmUCk = U.erase tmCk
+  let tmUCk = eraseTerm tmCk
 
   -- run untyped CEK on erased input
   tmUCek <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParameters (U.erase tm) `catchError` handleUError
+    U.evaluateCekNoEmit defaultCekParameters (eraseTerm tm) `catchError` handleUError
 
   -- check if typed CK and untyped CEK give the same output modulo erasure
   unless (tmUCk == tmUCek) $
@@ -183,15 +185,13 @@ prop_normalizeConvertCommuteTypes :: Kind ()
                                   -> ClosedTypeG
                                   -> ExceptT TestFail Quote ()
 prop_normalizeConvertCommuteTypes k tyG = do
-  tcConfig <- withExceptT TypeError $ getDefTypeCheckConfig ()
-
   -- Check if the kind checker for generated types is sound:
   ty <- withExceptT GenError $ convertClosedType tynames k tyG
-  withExceptT TypeError $ checkKind tcConfig () ty k
+  withExceptT TypeError $ checkKind defKindCheckConfig () ty k
 
   -- Check if the converted type, when reduced, still has the same kind:
   ty1 <- withExceptT TypeError $ unNormalized <$> normalizeType ty
-  withExceptT TypeError $ checkKind tcConfig () ty k
+  withExceptT TypeError $ checkKind defKindCheckConfig () ty k
 
   -- Check if normalization for generated types is sound:
   ty2 <- withExceptT GenError $ convertClosedType tynames k (normalizeTypeG tyG)
@@ -443,7 +443,7 @@ _mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
 packAssertion f t a =
-  case (runQuote . runExceptT $ f t a) of
+  case runQuote . runExceptT $ f t a of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
 

@@ -1,89 +1,104 @@
-cabal-version:       2.4
-name:                prettyprinter-configurable
-version:             0.1.0.0
+cabal-version:      2.4
+name:               prettyprinter-configurable
+version:            0.1.0.0
+
 -- synopsis:
 -- description:
 -- homepage:            https://github.com/githubuser/prettyprinter-configurable#readme
 license-files:
   LICENSE
   NOTICE
-author:              David Luposchainsky, effectfully
-maintainer:          plutus@iohk.io
-category:            User Interfaces, Text
-build-type:          Custom
-extra-source-files:  README.md
+
+author:             David Luposchainsky, effectfully
+maintainer:         plutus@iohk.io
+category:           User Interfaces, Text
+build-type:         Custom
+extra-source-files: README.md
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll FlexibleContexts ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable DerivingStrategies DerivingVia
-                        ImportQualifiedPost
-    ghc-options: -Wall -Wnoncanonical-monad-instances
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities -Wunused-packages
-                 -Wmissing-deriving-strategies
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    ExplicitForAll
+    FlexibleContexts
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies
 
 custom-setup
-    setup-depends:
-        base >=4.9 && <5,
-        Cabal -any,
-        cabal-doctest -any
+  setup-depends:
+    , base           >=4.9 && <5
+    , Cabal
+    , cabal-doctest
 
 library
-    import: lang
-    hs-source-dirs: src
-    exposed-modules:
-        Text.Fixity
-        Text.Fixity.Internal
-        Text.Pretty
-        Text.PrettyBy
-        Text.PrettyBy.Default
-        Text.PrettyBy.Fixity
-        Text.PrettyBy.Internal
-        Text.PrettyBy.Internal.Utils
-        Text.PrettyBy.Monad
-    build-depends:
-        base >=4.9 && <5,
-        prettyprinter -any,
-        mtl -any,
-        text -any,
-        microlens -any
-    ghc-options: -O2
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules:
+    Text.Fixity
+    Text.Fixity.Internal
+    Text.Pretty
+    Text.PrettyBy
+    Text.PrettyBy.Default
+    Text.PrettyBy.Fixity
+    Text.PrettyBy.Internal
+    Text.PrettyBy.Internal.Utils
+    Text.PrettyBy.Monad
+
+  build-depends:
+    , base           >=4.9 && <5
+    , microlens
+    , mtl
+    , prettyprinter
+    , text
+
+  ghc-options:     -O2
 
 test-suite prettyprinter-configurable-test
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Main.hs
-    hs-source-dirs: test
-    other-modules:
-        Default
-        NonDefault
-        Universal
-        Expr
-    build-depends:
-        base >=4.9 && <5,
-        prettyprinter-configurable -any,
-        prettyprinter -any,
-        text -any,
-        megaparsec -any,
-        parser-combinators -any,
-        QuickCheck -any,
-        quickcheck-text -any,
-        tasty -any,
-        tasty-hunit -any,
-        tasty-quickcheck -any
-    ghc-options:
-        -threaded -rtsopts -with-rtsopts=-N
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: test
+  other-modules:
+    Default
+    Expr
+    NonDefault
+    Universal
+
+  build-depends:
+    , base                        >=4.9 && <5
+    , megaparsec
+    , parser-combinators
+    , prettyprinter
+    , prettyprinter-configurable
+    , QuickCheck
+    , quickcheck-text
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
+
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
 
 test-suite prettyprinter-configurable-doctest
-    import: lang
-    type: exitcode-stdio-1.0
-    main-is: Main.hs
-    hs-source-dirs: doctest
-    build-depends:
-        base >=4.9 && <5,
-        doctest -any
-    ghc-options:
-        -threaded -rtsopts -with-rtsopts=-N
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: doctest
+  build-depends:
+    , base     >=4.9 && <5
+    , doctest
+
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N

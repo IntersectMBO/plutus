@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -23,13 +24,13 @@ instance tyname ~ TyName => Reference TyName (Term tyname name uni fun) where
 instance name ~ Name => Reference Name (Term tyname name uni fun) where
     referenceVia reg name term = Apply NotAName term $ Var (reg name) name
 
-instance tyname ~ TyName => Reference TyName (VarDecl tyname name uni fun) where
+instance tyname ~ TyName => Reference TyName (VarDecl tyname name uni) where
     referenceVia reg tyname (VarDecl ann varName ty) =
         VarDecl ann varName $ referenceVia reg tyname ty
 
 -- | Scoping for data types is hard, so we employ some extra paranoia and reference the provided
 -- 'TyName' in the type of every single constructor, and also apply the final head to that 'TyName'.
-instance tyname ~ TyName => Reference TyName (Datatype tyname name uni fun) where
+instance tyname ~ TyName => Reference TyName (Datatype tyname name uni) where
     referenceVia reg tyname (Datatype dataAnn dataDecl params matchName constrs) =
         Datatype dataAnn dataDecl params matchName $ map goConstr constrs where
             tyVar = TyVar (reg tyname) tyname
@@ -63,10 +64,10 @@ instance name ~ Name => Reference Name (Binding tyname name uni fun) where
 instance Reference tyname t => Reference (TyVarDecl tyname ann) t where
     referenceVia reg = referenceVia reg . _tyVarDeclName
 
-instance Reference name t => Reference (VarDecl tyname name uni fun ann) t where
+instance Reference name t => Reference (VarDecl tyname name uni ann) t where
     referenceVia reg = referenceVia reg . _varDeclName
 
-instance (Reference TyName t, Reference Name t) => Reference (Datatype TyName Name uni fun ann) t where
+instance (Reference TyName t, Reference Name t) => Reference (Datatype TyName Name uni ann) t where
     referenceVia reg (Datatype _ dataDecl params matchName constrs)
         = referenceVia reg dataDecl
         -- Parameters of a data type are not visible outside of the data type no matter what.
@@ -142,8 +143,8 @@ establishScopingConstrs
     -> ann
     -> TyName
     -> [TyVarDecl TyName NameAnn]
-    -> [VarDecl TyName Name uni fun ann]
-    -> Quote [VarDecl TyName Name uni fun NameAnn]
+    -> [VarDecl TyName Name uni ann]
+    -> Quote [VarDecl TyName Name uni NameAnn]
 establishScopingConstrs regSelf dataAnn dataName params constrsPossiblyEmpty = do
     cons0Name <- freshName "cons0"
     let cons0 = VarDecl dataAnn cons0Name $ TyVar dataAnn dataName
@@ -253,10 +254,10 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name
 instance tyname ~ TyName => CollectScopeInfo (TyVarDecl tyname) where
     collectScopeInfo (TyVarDecl ann tyname kind) = handleSname ann tyname <> collectScopeInfo kind
 
-instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (VarDecl tyname name uni fun) where
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (VarDecl tyname name uni) where
     collectScopeInfo (VarDecl ann name ty) = handleSname ann name <> collectScopeInfo ty
 
-instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Datatype tyname name uni fun) where
+instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Datatype tyname name uni) where
     collectScopeInfo (Datatype matchAnn dataDecl params matchName constrs) = fold
         [ collectScopeInfo dataDecl
         , foldMap collectScopeInfo params

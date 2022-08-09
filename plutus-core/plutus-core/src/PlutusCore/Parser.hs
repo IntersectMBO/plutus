@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Parsers for PLC terms in DefaultUni.
@@ -7,6 +8,7 @@ module PlutusCore.Parser
     , parseProgram
     , parseTerm
     , parseType
+    , SourcePos
     , ParserError(..)
     ) where
 

@@ -1,0 +1,43 @@
+(program
+  1.0.0
+  [
+    [
+      (lam s_181 [ s_181 s_181 ])
+      (lam
+        s_182
+        (lam
+          x_183
+          [
+            (lam
+              factorial_184
+              [
+                [
+                  [
+                    [
+                      (force (builtin ifThenElse))
+                      [ [ (builtin equalsInteger) x_183 ] (con integer 0) ]
+                    ]
+                    (lam u_185 (con integer 1))
+                  ]
+                  (lam
+                    u_186
+                    [
+                      [ (builtin multiplyInteger) x_183 ]
+                      [
+                        factorial_184
+                        [ [ (builtin subtractInteger) x_183 ] (con integer 1) ]
+                      ]
+                    ]
+                  )
+                ]
+                (con unit ())
+              ]
+            )
+            [ s_182 s_182 ]
+          ]
+        )
+      )
+    ]
+    (con integer 5)
+  ]
+)

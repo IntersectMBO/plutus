@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -29,6 +30,7 @@ import PlutusBenchmark.NoFib.Queens qualified as Queens
 import PlutusCore qualified as PLC
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
 import PlutusTx (getPlc)
@@ -312,12 +314,12 @@ main = do
           Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        Hs.mapM_ putStrLn $ unindent . prettyPlcClassicDebug . mkProg . getTerm $ pa
+        Hs.mapM_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.mkDefaultProg . getTerm $ pa
             where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
-        writeFlatNamed . mkProg . getTerm $ pa
+        writeFlatNamed . UPLC.mkDefaultProg . getTerm $ pa
     DumpFlatDeBruijn pa ->
-        writeFlatDeBruijn . mkProg . toAnonDeBruijnTerm . getTerm $ pa
+        writeFlatDeBruijn . UPLC.mkDefaultProg . toAnonDeBruijnTerm . getTerm $ pa
     SizesAndBudgets
         -> printSizesAndBudgets
     -- Write the output to stdout and let the user deal with redirecting it.
@@ -331,6 +333,3 @@ main = do
                Prime input             -> Prime.mkPrimalityBenchTerm input
                Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                           else Prime.mkPrimalityTestTerm n
-
-          mkProg :: UPLC.Term name uni fun () -> UPLC.Program name uni fun ()
-          mkProg = UPLC.Program () (PLC.defaultVersion ())

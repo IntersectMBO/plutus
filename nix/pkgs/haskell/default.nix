@@ -8,6 +8,7 @@
 , gitignore-nix
 , R
 , libsodium-vrf
+, secp256k1
 , rPackages
 , z3
 , enableHaskellProfiling
@@ -34,7 +35,7 @@ let
   baseProject =
     { deferPluginErrors }:
     import ./haskell.nix {
-      inherit lib haskell-nix R libsodium-vrf rPackages z3;
+      inherit lib haskell-nix R libsodium-vrf secp256k1 rPackages z3;
       inherit agdaWithStdlib compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
@@ -58,6 +59,7 @@ let
 
 in
 rec {
-  inherit index-state compiler-nix-name project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
+  inherit index-state compiler-nix-name;
+  inherit project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
   inherit extraPackages;
 }

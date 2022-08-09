@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The exceptions that an abstract machine can throw.
 
 -- appears in the generated instances
@@ -8,10 +9,8 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlutusCore.Evaluation.Machine.Exception
@@ -42,6 +41,7 @@ import PlutusCore.Pretty
 import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
+import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
 import ErrorCode
@@ -179,11 +179,11 @@ unsafeExtractEvaluationResult
     :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
     => Either (EvaluationException user internal term) a
     -> EvaluationResult a
-unsafeExtractEvaluationResult = either throw id . extractEvaluationResult
+unsafeExtractEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
-        [ "Could not unlift a builtin:", hardline
+        [ "Could not unlift a value:", hardline
         , pretty err
         ]
 

@@ -1,3 +1,5 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE FlexibleInstances        #-}
@@ -21,11 +23,13 @@ module Universe.Core
     , SomeTypeIn (..)
     , Kinded (..)
     , ValueOf (..)
+    , Contains (..)
+    , Includes
+    , knownUniOf
+    , someType
     , someValueOf
     , someValue
     , someValueType
-    , Contains (..)
-    , Includes
     , DecodeUniM (..)
     , Closed (..)
     , decodeKindedUni
@@ -36,7 +40,7 @@ module Universe.Core
     , HasUniApply (..)
     , checkStar
     , withApplicable
-    , knownUniOf
+    , tryUniApply
     , GShow (..)
     , gshow
     , GEq (..)
@@ -399,6 +403,10 @@ at the use site, so instead we define 'Includes' as a type alias of one argument
 has to be immediately applied only to a @uni@ at the use site).
 -}
 
+-- | A @Kinded uni@ contains an @a :: k@ whenever @uni@ contains it and @k@ is 'Typeable'.
+instance (Typeable k, uni `Contains` a) => Kinded uni `Contains` (a :: k) where
+    knownUni = Kinded knownUni
+
 -- See Note [The definition of Includes].
 -- | @uni `Includes` a@ reads as \"@a@ is in the @uni@\". @a@ can be of a higher-kind,
 -- see the docs of 'Contains' on why you might want that.
@@ -408,6 +416,10 @@ type Includes uni = Permits (Contains uni)
 -- | Same as 'knownUni', but receives a @proxy@.
 knownUniOf :: uni `Contains` a => proxy a -> uni (Esc a)
 knownUniOf _ = knownUni
+
+-- | Wrap a type into @SomeTypeIn@, provided it's in the universe.
+someType :: forall k (a :: k) uni. uni `Contains` a => SomeTypeIn uni
+someType = SomeTypeIn $ knownUni @k @uni @a
 
 -- | Wrap a value into @Some (ValueOf uni)@, given its explicit type tag.
 someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
@@ -551,6 +563,9 @@ type uni1 <: uni2 = uni1 `Everywhere` Includes uni2
 
 -- | A class for \"@uni@ has general type application\".
 class HasUniApply (uni :: Type -> Type) where
+    -- | Apply a type constructor to an argument.
+    uniApply :: forall k l (f :: k -> l) a. uni (Esc f) -> uni (Esc a) -> uni (Esc (f a))
+
     -- | Deconstruct a type application into the function and the argument and feed them to the
     -- continuation. If the type is not an application, then return the default value.
     matchUniApply
@@ -594,6 +609,14 @@ withApplicable _ _ k =
             Refl <- fromJustM $ typeRepKind repB `testEquality` typeRep @Type
             withTypeable repB k
         _ -> mzero
+
+-- | Apply a type constructor to an argument, provided kinds match.
+tryUniApply
+    :: (MonadPlus m, HasUniApply uni)
+    => SomeTypeIn (Kinded uni) -> SomeTypeIn (Kinded uni) -> m (SomeTypeIn (Kinded uni))
+tryUniApply (SomeTypeIn (Kinded uniF)) (SomeTypeIn (Kinded uniA)) =
+    withApplicable uniF uniA $
+        pure . SomeTypeIn . Kinded $ uniF `uniApply` uniA
 
 {- Note [The G, the Tag and the Auto]
 Providing instances for

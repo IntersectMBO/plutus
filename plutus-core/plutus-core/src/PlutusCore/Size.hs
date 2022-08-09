@@ -61,7 +61,7 @@ termSize term = fold
     , term ^. termSubterms . to termSize
     ]
 
-varDeclSize :: VarDecl tyname name uni fun ann -> Size
+varDeclSize :: VarDecl tyname name uni ann -> Size
 varDeclSize varDecl = fold
     [ Size 1
     , varDecl ^. varDeclSubtypes . to typeSize

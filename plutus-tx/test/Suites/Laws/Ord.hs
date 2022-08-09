@@ -1,3 +1,6 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Ord (ordLaws) where
 
 import Hedgehog (Property, PropertyT, property, success, (/==), (===))
@@ -5,11 +8,11 @@ import PlutusTx.Prelude qualified as Plutus
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genRational, normalAndEquivalentTo, testEntangled, testEntangled3)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 ordLaws :: [TestTree]
 ordLaws = [
-  testProperty "<= is reflexive" propOrdRefl,
+  testPropertyNamed "<= is reflexive" "propOrdRefl" propOrdRefl,
   testEntangled "<= is anti-symmetric" genRational propOrdAntiSymm,
   testEntangled3 "<= is transitive" genRational propOrdTrans,
   testEntangled "== implies EQ" genRational propOrdCompare

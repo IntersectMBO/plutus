@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -9,13 +10,15 @@
 
 module Common where
 
-import PlutusPrelude (through)
+import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
+import PlutusCore.Compiler.Erase qualified as PLC
 import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
@@ -28,11 +31,10 @@ import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
 import PlutusCore.StdLib.Data.Integer qualified as StdLib
 import PlutusCore.StdLib.Data.Unit qualified as StdLib
 
-import Control.DeepSeq (NFData, rnf)
+import Control.DeepSeq (rnf)
 import Control.Lens hiding (ix, op)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
-import Data.Bifunctor (second)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
@@ -42,10 +44,9 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
 import GHC.TypeLits (symbolVal)
-import Prettyprinter (Doc, pretty, (<+>))
+import Prettyprinter ((<+>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
@@ -444,7 +445,7 @@ toTypedTermExample term = TypedTermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
-        PLC.typecheckPipeline tcConfig program
+        PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
         Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> errorWithoutStackTrace $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy
@@ -493,7 +494,7 @@ getUplcExamples =
                 \case
                   SomeTypeExample _ -> Nothing
                   SomeTypedTermExample (TypedTermExample _ e) ->
-                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ UPLC.erase e
+                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ PLC.eraseTerm e
             mapMaybeSnd _ []     = []
             mapMaybeSnd f ((a,b):r) =
                 case f b of
@@ -623,8 +624,8 @@ typeSchemeToSignature = toSig []
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
-  let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
+  let builtins = enumerate @UPLC.DefaultFun
   mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
-      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
 
 

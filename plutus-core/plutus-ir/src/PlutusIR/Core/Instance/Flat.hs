@@ -23,9 +23,7 @@ instance ( PLC.Closed uni
          , Flat a
          , Flat tyname
          , Flat name
-         -- This was needed only for the Flat instance
-         , Flat fun
-         ) => Flat (Datatype tyname name uni fun a)
+         ) => Flat (Datatype tyname name uni a)
 
 instance Flat Recursivity
 

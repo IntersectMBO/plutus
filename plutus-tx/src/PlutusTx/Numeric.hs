@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}

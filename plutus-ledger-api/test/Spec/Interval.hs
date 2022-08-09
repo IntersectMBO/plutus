@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeApplications #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 module Spec.Interval where
@@ -8,10 +10,10 @@ import Hedgehog (Property, forAll, property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Plutus.V1.Ledger.Interval qualified as Interval
-import Test.Tasty
-import Test.Tasty.HUnit
-import Test.Tasty.Hedgehog (testProperty)
+import PlutusLedgerApi.V1.Interval qualified as Interval
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (assertBool, testCase)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 alwaysIsNotEmpty :: TestTree
 alwaysIsNotEmpty =
@@ -89,8 +91,8 @@ tests =
     , alwaysIsNotEmpty
     , openIsEmpty
     , openOverlaps
-    , testProperty "interval intersection" intvlIntersection
-    , testProperty "interval intersection with always/never" intvlIntersectionWithAlwaysNever
-    , testProperty "interval isEmpty" intvlIsEmpty
-    , testProperty "interval overlaps" intvlOverlaps
+    , testPropertyNamed "interval intersection" "intvIntersection" intvlIntersection
+    , testPropertyNamed "interval intersection with always/never" "intvlIntersectionWithAlwaysNever" intvlIntersectionWithAlwaysNever
+    , testPropertyNamed "interval isEmpty" "intvlIsEmpty" intvlIsEmpty
+    , testPropertyNamed "interval overlaps" "intvlOverlaps" intvlOverlaps
     ]

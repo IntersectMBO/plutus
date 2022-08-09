@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 -- | Implements a PIR-to-PIR transformation that makes all recursive term definitions
@@ -109,25 +110,25 @@ nonStrictify = \case
     TermBind x _ d rhs -> TermBind x NonStrict d rhs
     b                  -> b
 
-mkStrictifyingBinding :: ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
-mkStrictifyingBinding = \case
+mkStrictifyingBinding :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
+mkStrictifyingBinding ver = \case
     -- Only need to strictify if the previous binding was not definitely pure
     -- Also, we're reusing the same variable here, see Note [Thunking recursions]
-    TermBind x _ d rhs | not (isPure (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
-    _                                                       -> Nothing
+    TermBind x _ d rhs | not (isPure ver (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
+    _                                                           -> Nothing
 
-thunkRecursionsStep :: ToBuiltinMeaning uni fun => Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursionsStep (Let a Rec bs t) =
+thunkRecursionsStep :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+thunkRecursionsStep ver (Let a Rec bs t) =
     -- See Note [Thunking recursions]
     let (toThunk, noThunk) = partition strictNonFunctionBinding bs
         newBindings = fmap nonStrictify toThunk ++ noThunk
-        strictifiers = mapMaybe mkStrictifyingBinding toThunk
+        strictifiers = mapMaybe (mkStrictifyingBinding ver) toThunk
     in mkLet a Rec newBindings $ mkLet a NonRec strictifiers t
-thunkRecursionsStep t = t
+thunkRecursionsStep _ t = t
 
 -- | Thunk recursions to turn recusive values of non-function type into recursive values of function type,
 -- so we can compile them.
 --
 -- Note: this pass breaks global uniqueness!
-thunkRecursions :: ToBuiltinMeaning uni fun => Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursions = transformOf termSubterms thunkRecursionsStep
+thunkRecursions :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+thunkRecursions = transformOf termSubterms . thunkRecursionsStep

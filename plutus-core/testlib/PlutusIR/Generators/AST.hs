@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines generators for PIR syntax trees for testing purposes.
 -- It should only contain those generators that can't be reused from PLC
 -- (PIR-exclusive constructs, Term, and Program)
@@ -25,7 +26,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 genName :: PLC.AstGen Name
-genName = Gen.filterT (not . isPirKw . nameString) PLC.genName where
+genName = Gen.filterT (not . isPirKw . _nameText) PLC.genName where
     isPirKw name = name `elem`
         [ "vardecl", "typedecl"
         , "let"
@@ -43,13 +44,13 @@ genRecursivity = Gen.element [Rec, NonRec]
 genStrictness :: MonadGen m => m Strictness
 genStrictness = Gen.element [Strict, NonStrict]
 
-genVarDecl :: PLC.AstGen (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun ())
+genVarDecl :: PLC.AstGen (VarDecl TyName Name PLC.DefaultUni ())
 genVarDecl = VarDecl () <$> genName <*> genType
 
 genTyVarDecl :: PLC.AstGen (TyVarDecl TyName ())
 genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
-genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni PLC.DefaultFun ())
+genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
     where listOf = Gen.list (Range.linear 0 10)
 

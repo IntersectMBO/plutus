@@ -26,7 +26,7 @@ typeSchemeToRuntimeScheme (TypeSchemeAll _ schK) =
 test_TypeSchemesAndRuntimeSchemesAgree :: TestTree
 test_TypeSchemesAndRuntimeSchemesAgree =
     testCase "type schemes are coherent with runtime schemes" $
-        for_ (enumeration @DefaultFun) $ \fun ->
-            case toBuiltinMeaning @_ @_ @(Term TyName Name DefaultUni DefaultFun ()) fun of
+        for_ (enumerate @DefaultFun) $ \fun ->
+            case toBuiltinMeaning @_ @_ @(Term TyName Name DefaultUni DefaultFun ()) def fun of
                 BuiltinMeaning typeSch _ (BuiltinRuntimeOptions runtimeSch _ _ _) ->
                     typeSchemeToRuntimeScheme typeSch @?= runtimeSch

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeFamilies #-}
 
 module Evaluation.Machines
@@ -5,13 +6,14 @@ module Evaluation.Machines
     )
 where
 
+import GHC.Exts (fromString)
 import PlutusCore
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Generators.Interesting
 import PlutusCore.Generators.Test
 import PlutusCore.Pretty
-
 
 import Test.Tasty
 import Test.Tasty.Hedgehog
@@ -24,7 +26,7 @@ testMachine
     -> TestTree
 testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name ->
-        testProperty name . propEvaluate eval
+        testPropertyNamed name (fromString name) . propEvaluate eval
 
 test_machines :: TestTree
 test_machines = testGroup

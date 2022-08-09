@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines types and functions related to "type-eval checking".
 
 {-# LANGUAGE DataKinds              #-}
@@ -26,6 +27,7 @@ import PlutusCore.Generators.Internal.Utils
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Normalize
 import PlutusCore.Pretty

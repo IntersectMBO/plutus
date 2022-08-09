@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -47,6 +48,7 @@ import PlutusCore qualified as TPLC
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Generators
 import PlutusCore.Generators.AST
 import PlutusCore.Pretty
@@ -60,6 +62,7 @@ import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.Either.Extras
 import Data.Text (Text)
 import Hedgehog
 import Prettyprinter qualified as PP
@@ -139,7 +142,7 @@ catchAll :: a -> ExceptT SomeException IO a
 catchAll value = ExceptT $ try @SomeException (evaluate value)
 
 rethrow :: ExceptT SomeException IO a -> IO a
-rethrow = fmap (either throw id) . runExceptT
+rethrow = fmap unsafeFromEither . runExceptT
 
 runTPlc
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
@@ -170,7 +173,7 @@ runUPlcProfile values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
         (result, logOut) = UPLC.evaluateCek UPLC.logEmitter TPLC.defaultCekParameters t
-    res <- either (throwError . SomeException) pure result
+    res <- fromRightM (throwError . SomeException) result
     pure (res, logOut)
 
 -- For the profiling executable.
@@ -184,7 +187,7 @@ runUPlcProfileExec values = do
     ps <- traverse toUPlc values
     let (UPLC.Program _ _ t) = foldl1 UPLC.applyProgram ps
         (result, logOut) = UPLC.evaluateCek UPLC.logWithTimeEmitter TPLC.defaultCekParameters t
-    res <- either (throwError . SomeException) pure result
+    res <- fromRightM (throwError . SomeException) result
     pure (res, logOut)
 
 ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
@@ -327,7 +330,7 @@ test_scopingGood
     -> (t NameAnn -> TPLC.Quote (t NameAnn))
     -> TestTree
 test_scopingGood gen ren =
-    testProperty "renamer does not destroy scoping" $
+    testPropertyNamed "renamer does not destroy scoping" "test_scopingGood" $
         prop_scopingFor gen ren
 
 -- | Test that a renaming machinery destroys scoping when a bad renamer is chosen.

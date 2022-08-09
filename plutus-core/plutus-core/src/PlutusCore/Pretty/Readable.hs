@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# LANGUAGE ConstraintKinds   #-}
@@ -18,8 +19,6 @@ import PlutusCore.Pretty.ConfigName
 import Control.Lens
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
-
-import Data.Default.Class
 
 data ShowKinds
     = ShowKindsYes

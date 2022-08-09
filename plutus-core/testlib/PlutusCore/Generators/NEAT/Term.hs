@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-| Description: PLC Syntax, typechecker,semantics property based testing.
 
 This file contains
@@ -61,8 +62,8 @@ NOTE: We don't just want to enumerate arbitrary types but also normal
 
       Two approaches spring to mind:
 
-      1. We could define a seperate AST for normal types and possibly
-      also a seperate AST for terms with normalized types. This would
+      1. We could define a separate AST for normal types and possibly
+      also a separate AST for terms with normalized types. This would
       be the safest option as it would then be impossible to generate
       a non-normalized type that claimed to be normalized. This is how
       it's done in the metatheory package. The downside is that there

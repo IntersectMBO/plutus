@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE StrictData      #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -9,13 +10,12 @@ where
 
 import PlutusCore.Builtin
 
-import PlutusCore.Evaluation.Machine.ExBudget ()
-
 import Control.DeepSeq
 import Control.Lens
 import GHC.Exts (inline)
 import GHC.Generics
 import GHC.Types (Type)
+import NoThunks.Class
 
 {-| We need to account for the costs of evaluator steps and also built-in function
    evaluation.  The models for these have different structures and are used in
@@ -43,7 +43,7 @@ data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
     , builtinsRuntime :: BuiltinsRuntime fun (term uni fun)
     }
     deriving stock Generic
-    deriving anyclass NFData
+    deriving anyclass (NFData, NoThunks)
 
 -- See Note [Inlining meanings of builtins].
 {-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}
@@ -53,9 +53,10 @@ mkMachineParameters ::
     , HasMeaningIn uni (val uni fun)
     , ToBuiltinMeaning uni fun
     )
-    => UnliftingMode
+    => BuiltinVersion fun
+    -> UnliftingMode
     -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
-mkMachineParameters unlMode (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime unlMode builtinCosts)
+mkMachineParameters ver unlMode (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime ver unlMode builtinCosts)
 {-# INLINE mkMachineParameters #-}

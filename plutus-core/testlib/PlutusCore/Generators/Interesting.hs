@@ -1,10 +1,10 @@
+-- editorconfig-checker-disable-file
 -- | Sample generators used for tests.
 
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Generators.Interesting
     ( TermGen

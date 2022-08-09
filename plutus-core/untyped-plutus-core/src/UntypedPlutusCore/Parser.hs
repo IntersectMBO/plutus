@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 module UntypedPlutusCore.Parser
@@ -24,6 +25,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
+import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm)
 
 -- Parsers for UPLC terms
@@ -40,11 +42,11 @@ builtinTerm = inParens $ UPLC.Builtin <$> wordPos "builtin" <*> builtinFunction
 varTerm :: Parser PTerm
 varTerm = UPLC.Var <$> getSourcePos <*> name
 
-lamTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
+lamTerm :: Parser PTerm
 lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
 
-appTerm :: Parser (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun  SourcePos)
-appTerm = inBrackets $ UPLC.Apply <$> getSourcePos <*> term <*> term
+appTerm :: Parser PTerm
+appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
 
 delayTerm :: Parser PTerm
 delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term

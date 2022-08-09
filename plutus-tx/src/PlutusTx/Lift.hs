@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE PartialTypeSignatures #-}
@@ -29,6 +30,7 @@ import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty (PrettyConst)
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
@@ -47,10 +49,10 @@ import Prettyprinter
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
-type PrettyPrintable uni fun = ( PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
+type PrettyPrintable uni fun = (Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 
 type Throwable uni fun =
-    ( PLC.GShow uni, PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
+    ( Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
     , Pretty fun, GHC.Typeable fun
     )
 
@@ -70,10 +72,10 @@ safeLift x = do
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = set (ccOpts . coMaxSimplifierIterations) 0 (toDefaultCompilationCtx tcConfig)
-        usOpts = set UPLC.soMaxSimplifierIterations 0 UPLC.defaultSimplifyOpts
-    compiled <- flip runReaderT ccConfig $ compileTerm lifted
-    let erased = UPLC.erase compiled
-    db <- UPLC.deBruijnTerm =<< UPLC.simplifyTerm usOpts erased
+        ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+    plc <- flip runReaderT ccConfig $ compileTerm lifted
+    uplc <- flip runReaderT ucOpts $ PLC.compileTerm plc
+    db <- UPLC.deBruijnTerm uplc
     pure $ void db
 
 -- | Get a Plutus Core program corresponding to the given value.
@@ -170,7 +172,14 @@ typeCheckAgainst p plcTerm = do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
+    -- Here we use a 'Default' builtin version, because the typechecker needs
+    -- to be handed a builtin version (implementation detail).
+    -- See Note [Versioned builtins]
     tcConfig <- PLC.getDefTypeCheckConfig (Original ())
+    -- The PIR compiler *pointfully* needs a builtin version, but in this instance of only "lifting"
+    -- it is safe to default to any builtin version, since the 'Lift'
+    -- is impervious to builtins and will not generate code containing builtins.
+    -- See Note [Versioned builtins]
     compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileTerm applied
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
@@ -197,6 +206,6 @@ typeCode
     -> m (CompiledCodeIn uni fun a)
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
-    let erased = UPLC.eraseProgram prog
-    db <-  traverseOf UPLC.progTerm (\t -> UPLC.deBruijnTerm =<< UPLC.simplifyTerm UPLC.defaultSimplifyOpts t) erased
+    compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
+    db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
     pure $ DeserializedCode db Nothing mempty

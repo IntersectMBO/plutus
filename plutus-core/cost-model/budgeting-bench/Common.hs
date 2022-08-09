@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
@@ -9,7 +10,9 @@ module Common
 where
 
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.MkPlc
@@ -101,12 +104,12 @@ bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
 -- Just make the term (con unit ()), which is about the simplest possible.
 mkUnit :: uni `Includes` () => PlainTerm uni fun
-mkUnit = erase $  mkConstant () ()
+mkUnit = eraseTerm $  mkConstant () ()
 
 -- Create a term instantiating a builtin and applying it to one argument
 mkApp1 :: (uni `Includes` a, NFData a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
 mkApp1 !name !tys (force -> !x) =
-    erase $ mkIterApp () instantiated [mkConstant () x]
+    eraseTerm $ mkIterApp () instantiated [mkConstant () x]
     where instantiated = mkIterInst () (builtin () name) tys
 
 
@@ -115,7 +118,7 @@ mkApp2
     :: (uni `Includes` a, uni `Includes` b, NFData a, NFData b)
     =>  fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
 mkApp2 !name !tys (force -> !x) (force -> !y) =
-    erase $ mkIterApp () instantiated [mkConstant () x,  mkConstant () y]
+    eraseTerm $ mkIterApp () instantiated [mkConstant () x,  mkConstant () y]
     where instantiated = mkIterInst () (builtin () name) tys
 
 
@@ -124,7 +127,7 @@ mkApp3
     :: (uni `Includes` a, uni `Includes` b, uni `Includes` c, NFData a, NFData b, NFData c)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
 mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
-    erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
+    eraseTerm $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
     where instantiated = mkIterInst () (builtin () name) tys
 
 
@@ -135,7 +138,7 @@ mkApp4
         NFData a, NFData b, NFData c, NFData d)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
 mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
-    erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y
+    eraseTerm $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y
                                       , mkConstant () z, mkConstant () t ]
     where instantiated = mkIterInst () (builtin () name) tys
 
@@ -147,7 +150,7 @@ mkApp5
         NFData a, NFData b, NFData c, NFData d, NFData e)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
 mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
-    erase $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
+    eraseTerm $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
                                       , mkConstant () t, mkConstant () u ]
     where instantiated = mkIterInst () (builtin () name) tys
 
@@ -159,7 +162,7 @@ mkApp6
         NFData a, NFData b, NFData c, NFData d, NFData e, NFData f)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
 mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v) =
-    erase $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
+    eraseTerm $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]
     where instantiated = mkIterInst () (builtin () name) tys
 
@@ -225,21 +228,19 @@ createTwoTermBuiltinBenchElementwise name tys xs ys =
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.
 
-{- | Given a builtin function f of type a * b * c -> _ together with lists
-   xs::[a], ys::[b], and zs::[c], create a collection of benchmarks which run f
-   on all pairs in 'zip3 xs ys zs'.
+{- | Given a builtin function f of type a * b * c -> _ together with a list of
+   inputs of type (a,b,c), create a collection of benchmarks which run f on all
+   inputs.
 -}
 createThreeTermBuiltinBenchElementwise
     :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, uni `Includes` c,
             ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c, NFData a, NFData b, NFData c)
     => fun
     -> [Type tyname uni ()]
-    -> [a]
-    -> [b]
-    -> [c]
+    -> [(a,b,c)]
     -> Benchmark
-createThreeTermBuiltinBenchElementwise name tys xs ys zs =
-    bgroup (show name) $ zipWith3 (\x y z -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]]) xs ys zs
+createThreeTermBuiltinBenchElementwise name tys inputs =
+    bgroup (show name) $ map (\(x, y, z) -> bgroup (showMemoryUsage x) [bgroup (showMemoryUsage y) [mkBM x y z]]) inputs
         where mkBM x y z = benchDefault (showMemoryUsage z) $ mkApp3 name tys x y z
 -- TODO: throw an error if xmem != ymem?  That would suggest that the caller has
 -- done something wrong.

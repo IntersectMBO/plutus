@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
@@ -30,6 +31,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
+import PlutusPrelude
 
 
 -- | The default cost model for built-in functions.
@@ -79,15 +81,15 @@ defaultUnliftingMode :: UnliftingMode
 defaultUnliftingMode = UnliftingImmediate
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
+defaultCekParameters = mkMachineParameters def defaultUnliftingMode defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters =
-    mkMachineParameters defaultUnliftingMode $
+    mkMachineParameters def defaultUnliftingMode $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
+defaultBuiltinsRuntime = toBuiltinsRuntime def defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

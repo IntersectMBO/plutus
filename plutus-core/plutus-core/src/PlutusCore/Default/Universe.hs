@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
@@ -29,6 +30,7 @@ module PlutusCore.Default.Universe
     , pattern DefaultUniList
     , pattern DefaultUniPair
     , module Export  -- Re-exporting universes infrastructure for convenience.
+    , noMoreTypeFunctions
     ) where
 
 import PlutusCore.Builtin
@@ -37,12 +39,17 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Applicative
+import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
 import Data.Int
 import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
+import Data.Word
 import GHC.Exts (inline, oneShot)
+import Text.Pretty
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -118,24 +125,35 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
+    uniApply = DefaultUniApply
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
+deriving stock instance Show (DefaultUni a)
 instance GShow DefaultUni where gshowsPrec = showsPrec
-instance Show (DefaultUni a) where
-    show DefaultUniInteger             = "integer"
-    show DefaultUniByteString          = "bytestring"
-    show DefaultUniString              = "string"
-    show DefaultUniUnit                = "unit"
-    show DefaultUniBool                = "bool"
-    show DefaultUniProtoList           = "list"
-    show DefaultUniProtoPair           = "pair"
-    show (uniF `DefaultUniApply` uniB) = case uniF of
-        DefaultUniProtoList                          -> concat ["list (", show uniB, ")"]
-        DefaultUniProtoPair                          -> concat ["pair (", show uniB, ")"]
-        DefaultUniProtoPair `DefaultUniApply` uniA   -> concat ["pair (", show uniA, ") (", show uniB, ")"]
-        uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
-    show DefaultUniData = "data"
+
+instance HasRenderContext config => PrettyBy config (DefaultUni a) where
+    prettyBy = inContextM $ \case
+        DefaultUniInteger         -> "integer"
+        DefaultUniByteString      -> "bytestring"
+        DefaultUniString          -> "string"
+        DefaultUniUnit            -> "unit"
+        DefaultUniBool            -> "bool"
+        DefaultUniProtoList       -> "list"
+        DefaultUniProtoPair       -> "pair"
+        DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
+        DefaultUniData            -> "data"
+
+-- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
+-- doesn't pretty-print them otherwise (e.g. @integer@).
+-- This is so we can have a single instance that is safe to use with both the classic and the
+-- readable pretty-printers, even though for the latter it may result in redundant parens being
+-- shown. We are planning to change the classic syntax to remove this silliness.
+instance Pretty (DefaultUni a) where
+    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
+instance Pretty (SomeTypeIn DefaultUni) where
+    pretty (SomeTypeIn uni) = pretty uni
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
@@ -219,11 +237,11 @@ instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
-{- Note [Int as Integer]
+{- Note [Integral types as Integer]
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
-like to use work over 'Int'.
+like to use work over 'Int' and 'Word8'.
 
-This is inconvenient and also error-prone: dealing with a function that takes an 'Int' means carefully
+This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8' means carefully
 downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
 wrong by e.g. blindly using 'fromInteger'.
 
@@ -232,6 +250,7 @@ use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave d
 
 So, what to do? We adopt the following strategy:
 - We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
 - We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
 
 This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
@@ -252,7 +271,7 @@ being "internal".
 instance KnownTypeAst DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Int as Integer].
+-- See Note [Integral types as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
     makeKnown = makeKnown . toInteger
     {-# INLINE makeKnown #-}
@@ -274,7 +293,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Int as Integer].
+-- See Note [Integral types as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     -- This could safely just be toInteger, but this way is more explicit and it'll
     -- turn into the same thing anyway.
@@ -284,6 +303,23 @@ instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     readKnown term = intCastEq @Int64 @Int <$> readKnown term
     {-# INLINE readKnown #-}
+
+instance KnownTypeAst DefaultUni Word8 where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word8 where
+    makeKnown = makeKnown . toInteger
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 where
+    readKnown term =
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+           case toIntegralSized i of
+               Just w8 -> pure w8
+               _       -> throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

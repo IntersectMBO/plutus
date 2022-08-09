@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -24,7 +25,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -35,9 +36,10 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
+import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
--- TODO: should we have the commonest builtins at the front to have more compact encoding?
+-- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
@@ -91,6 +93,7 @@ data DefaultFun
     | TailList
     | NullList
     -- Data
+    -- See Note [Pattern matching on built-in types].
     -- It is convenient to have a "choosing" function for a data type that has more than two
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
@@ -107,10 +110,10 @@ data DefaultFun
     | UnBData
     | EqualsData
     | SerialiseData
-    -- Misc constructors
-    -- Constructors that we need for constructing e.g. Data. Polymorphic builtin
-    -- constructors are often problematic (See note [Representable built-in
-    -- functions over polymorphic built-in types])
+    -- Misc monomorphized constructors.
+    -- We could simply replace those with constants, but we use built-in functions for consistency
+    -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
+    -- See note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -453,7 +456,7 @@ So we use the @Opaque val rep@ wrapper, which is basically a @val@ with a @rep@ 
 Not only does this encoding allow us to specify both the Haskell and the Plutus types of the
 builtin simultaneously, but it also makes it possible to infer such a type from a regular
 polymorphic Haskell function (how that is done is a whole another story), so that we don't even need
-to specify any types when creating builtins out of simple polymorphic functions.
+to specify any types when creating built-in functions out of simple polymorphic denotations.
 
 If we wanted to specify the type explicitly, we could do it like this (leaving out the @Var0@ thing
 for the elaboration machinery to figure out):
@@ -621,8 +624,9 @@ As opposed to "automatic unlifting" that we were using before where 'Bool' in th
 denotation of a builtin causes the builtins machinery to convert the given argument to a 'Bool'
 constant automatically behind the scenes.
 
-3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift
-automatically to a constant and then unlift manually to 'Bool' using the 'SomeConstant' wrapper:
+3. There's a middle ground between automatic and manual unlifting to 'Bool', one can unlift a value
+automatically as a constant and then unlift the result manually to 'Bool' using the 'SomeConstant'
+wrapper:
 
     newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
         { unSomeConstant :: Some (ValueOf uni)
@@ -659,8 +663,8 @@ we'll get an error, saying that a polymorphic built-in type can't be applied to 
 It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
 general case, plus it has to be very inefficient.
 
-Instead we have to use 'SomeConstant' to automatically unlift to a constant and then check that the
-value inside of it is a list (by matching on the type tag):
+Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
+check that the value inside of it is a list (by matching on the type tag):
 
     toBuiltinMeaning NullList =
         makeBuiltinMeaning
@@ -689,8 +693,8 @@ Here's a similar built-in function:
         where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
-              DefaultUniPair uniA _ <- pure uniPairAB          -- [1]
-              pure . fromConstant . someValueOf uniA $ fst xy  -- [2]
+              DefaultUniPair uniA _ <- pure uniPairAB  -- [1]
+              pure . fromValueOf uniA $ fst xy         -- [2]
 
 In this definition we extract the first element of a pair by checking that the given constant is
 indeed a pair [1] and lifting its first element into @val@ using the type tag for the first
@@ -728,9 +732,9 @@ Our final example is this:
           consPlc
             (SomeConstant (Some (ValueOf uniA x)))
             (SomeConstant (Some (ValueOf uniListA xs))) = do
-                DefaultUniList uniA' <- pure uniListA                -- [1]
-                Just Refl <- pure $ uniA `geq` uniA'                 -- [2]
-                pure . fromConstant . someValueOf uniListA $ x : xs  -- [3]
+                DefaultUniList uniA' <- pure uniListA  -- [1]
+                Just Refl <- pure $ uniA `geq` uniA'   -- [2]
+                pure . fromValueOf uniListA $ x : xs   -- [3]
 
 Here we prepend an element to a list [3] after checking that the second argument is indeed a
 list [1] and that the type tag of the element being prepended equals the type tag for elements of
@@ -758,7 +762,7 @@ This last part means that one can attach any (legal) @rep@ to an 'Opaque' or 'So
 it'll be used by the Plutus type checker completely regardless of what the built-in function
 actually does. Let's look at some examples.
 
-1. The following built-in function unlifts a 'Bool' and returns it back:
+1. The following built-in function unlifts to 'Bool' and lifts the result back:
 
     toBuiltinMeaning IdIntegerAsBool =
         makeBuiltinMeaning
@@ -829,104 +833,287 @@ goes without saying that this is not supposed to be done.
 
 So overall one needs to be very careful when defining built-in functions that have explicit
 'Opaque' and 'SomeConstant' arguments. Expressiveness doesn't come for free.
+
+Read Note [Pattern matching on built-in types] next.
+-}
+
+{- Note [Pattern matching on built-in types]
+At the moment we really only support direct pattern matching on enumeration types: 'Void', 'Unit',
+'Bool' etc. This is because the denotation of a builtin cannot construct general terms (as opposed
+to constants), only juggle the ones that were provided as arguments without changing them.
+So e.g. if we wanted to add the following data type:
+
+    newtype AnInt = AnInt Int
+
+as a built-in type, we wouldn't be able to add the following function as its pattern matcher:
+
+    matchAnInt :: AnInt -> (Int -> r) -> r
+    matchAnInt (AnInt i) f = f i
+
+because currently we cannot express the @f i@ part using the builtins machinery as that would
+require applying an arbitrary Plutus Core function in the denotation of a builtin, which would
+allow us to return arbitrary terms from the builtin application machinery, which is something
+that we originally had, but decided to abandon due to performance concerns.
+
+But it's still possible to have @AnInt@ as a built-in type, it's just that instead of trying to
+make its pattern matcher into a builtin we can have the following builtin:
+
+    anIntToInt :: AnInt -> Int
+    anIntToInt (AnInt i) = i
+
+which fits perfectly well into the builtins machinery.
+
+Although that becomes annoying for more complex data types. For tuples we need to provide two
+projection functions ('fst' and 'snd') instead of a single pattern matcher, which is not too bad,
+but to get pattern matching on lists we need a more complicated setup. For example we can have three
+built-in functions: @null@, @head@ and @tail@, plus require `Bool` to be in the universe, so that we
+can define an equivalent of
+
+    matchList :: [a] -> r -> (a -> [a] -> r) -> r
+    matchList xs z f = if null xs then z else f (head xs) (tail xs)
+
+If a constructor stores more than one value, the corresponding projection function packs them
+into a (possibly nested) pair, for example for
+
+    data Data
+        = Constr Integer [Data]
+        | <...>
+
+we have (pseudocode):
+
+    unConstrData (Constr i ds) = (i, ds)
+
+In order to get pattern matching over 'Data' we need a projection function per constructor as well
+as with lists, but writing (where the @Data@ suffix indicates that a function is a builtin that
+somehow corresponds to a constructor of 'Data')
+
+    if isConstrData d
+        then uncurry fConstr $ unConstrData d
+        else if isMapData d
+            then fMap $ unMapData d
+            else if isListData d
+                then fList $ unListData d
+                else <...>
+
+is tedious and inefficient and so instead we have a single @chooseData@ builtin that matches on
+its @Data@ argument and chooses the appropriate branch (type instantiations and strictness concerns
+are omitted for clarity):
+
+     chooseData
+        (uncurry fConstr $ unConstrData d)
+        (fMap $ unMapData d)
+        (fList $ unListData d)
+        <...>
+        d
+
+which, for example, evaluates to @fMap es@ when @d@ is @Map es@
+
+We decided to handle lists the same way by using @chooseList@ rather than @null@ for consistency.
+
+On the bright side, this encoding of pattern matchers does work, so maybe it's indeed worth to
+prioritize performance over convenience, especially given the fact that performance is of a concern
+to every single end user while the inconvenience is only a concern for the compiler writers and
+we don't add complex built-in types too often.
+
+It is not however clear if we can't get more performance gains by defining matchers directly as
+higher-order built-in functions compared to forbidding them. Particularly since if higher-order
+built-in functions were allowed, we could define not only matches, but also folds and keep recursion
+on the Haskell side for conversions from 'Data', which can potentially have a huge positive impact
+on performance.
+
+Read Note [Representable built-in functions over polymorphic built-in types] next.
+-}
+
+{- Note [Representable built-in functions over polymorphic built-in types]
+In Note [Pattern matching on built-in types] we discussed how general higher-order polymorphic
+built-in functions are troubling, but polymorphic built-in functions can be troubling even in
+the first-order case. In a Plutus program we always pair constants of built-in types with their
+tags from the universe, which means that in order to produce a constant embedded into a program
+we need the tag of the type of that constant. We can't get that tag from a Plutus type -- those
+are gone at runtime, so the only place we can get a type tag from during evaluation is some already
+existing constant. I.e. the following built-in function is representable:
+
+    tail : all a. [a] -> [a]
+
+because for constructing the result we need a type tag for @[a]@, but we have a value of that type
+as an argument and so we can extract the type tag from it. Same applies to
+
+    swap : all a b. (a, b) -> (b, a)
+
+since 'SomeConstantOf' always contains a type tag for each type that a polymorphic built-in type is
+instantiated with and so constructing a type tag for @(b, a)@ given type tags for @a@ and @b@ is
+unproblematic.
+
+And so neither
+
+    cons : all a. a -> [a] -> [a]
+
+is troubling (even though that ones requires checking at runtime that the element to be prepended
+is of the same type as the type of the elements of the list as it's impossible to enforce this kind
+of type safety in Haskell over possibly untyped PLC).
+
+However consider the following imaginary builtin:
+
+    nil : all a. [a]
+
+we can't represent it for two reasons:
+
+1. we don't have any argument providing us a type tag for @a@ and hence we can't construct a type
+   tag for @[a]@
+2. it would be a very unsound builtin to have. We can only instantiate built-in types with other
+   built-in types and so allowing @nil {some_non_built_in_type}@ would be a lie that couldn't reduce
+   to anything since it's not even possible to represent a built-in list with non-built-in elements
+   (even if there's zero of them)
+
+"Wait, but wouldn't @cons {some_non_built_in_type}@ be a lie as well?" -- No! Since @cons@ does not
+just construct a list filled with elements of a non-built-in type but also expects one as an
+argument and providing such an argument is impossible, 'cause it's pretty much the same thing as
+populating 'Void' -- both values are equally unrepresentable. And so @cons {some_non_built_in_type}@
+is a way to say @absurd@, which is perfectly fine to have.
+
+Finally,
+
+    comma :: all a b. a -> b -> (a, b)
+
+is representable (because we can require arguments to be constants carrying universes with them,
+which we can use to construct the resulting universe), but is still a lie, because instantiating
+that builtin with non-built-in types is possible and so the PLC type checker won't throw on such
+an instantiation, which will become 'EvalutionFailure' at runtime the moment unlifting of a
+non-constant is attempted when a constant is expected.
+
+So could we still get @nil@ or a safe version of @comma@ somehow? Well, we could have this
+weirdness:
+
+    nilOfTypeOf : all a. [a] -> [a]
+
+i.e. ask for an already existing list, but ignore the actual list and only use the type tag.
+
+But since we're ignoring the actual list, can't we just not pass it in the first place? And instead
+pass around our good old friends, singletons. We should be able to do that, but it hasn't been
+investigated. Perhaps something along the lines of adding the following constructor to 'DefaultUni':
+
+    DefaultUniProtoSing :: DefaultUni (Esc (Proxy @GHC.Type))
+
+and then defining
+
+    nil : all a. sing a -> [a]
+
+and then the Plutus Tx compiler can provide a type class or something for constructing singletons
+for built-in types.
+
+This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but we decided not to
+do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
+
+    data BuiltinVersion DefaultFun = DefaultFunV1 | DefaultFunV2
+        deriving stock (Enum, Bounded, Show)
+
     -- Integers
     toBuiltinMeaning
         :: forall val. HasMeaningIn uni val
-        => DefaultFun -> BuiltinMeaning val BuiltinCostModel
-    toBuiltinMeaning AddInteger =
+        => BuiltinVersion DefaultFun -> DefaultFun -> BuiltinMeaning val BuiltinCostModel
+    toBuiltinMeaning _ver AddInteger =
         makeBuiltinMeaning
             ((+) @Integer)
             (runCostingFunTwoArguments . paramAddInteger)
-    toBuiltinMeaning SubtractInteger =
+    toBuiltinMeaning _ver SubtractInteger =
         makeBuiltinMeaning
             ((-) @Integer)
             (runCostingFunTwoArguments . paramSubtractInteger)
-    toBuiltinMeaning MultiplyInteger =
+    toBuiltinMeaning _ver MultiplyInteger =
         makeBuiltinMeaning
             ((*) @Integer)
             (runCostingFunTwoArguments . paramMultiplyInteger)
-    toBuiltinMeaning DivideInteger =
+    toBuiltinMeaning _ver DivideInteger =
         makeBuiltinMeaning
             (nonZeroArg div)
             (runCostingFunTwoArguments . paramDivideInteger)
-    toBuiltinMeaning QuotientInteger =
+    toBuiltinMeaning _ver QuotientInteger =
         makeBuiltinMeaning
             (nonZeroArg quot)
             (runCostingFunTwoArguments . paramQuotientInteger)
-    toBuiltinMeaning RemainderInteger =
+    toBuiltinMeaning _ver RemainderInteger =
         makeBuiltinMeaning
             (nonZeroArg rem)
             (runCostingFunTwoArguments . paramRemainderInteger)
-    toBuiltinMeaning ModInteger =
+    toBuiltinMeaning _ver ModInteger =
         makeBuiltinMeaning
             (nonZeroArg mod)
             (runCostingFunTwoArguments . paramModInteger)
-    toBuiltinMeaning EqualsInteger =
+    toBuiltinMeaning _ver EqualsInteger =
         makeBuiltinMeaning
             ((==) @Integer)
             (runCostingFunTwoArguments . paramEqualsInteger)
-    toBuiltinMeaning LessThanInteger =
+    toBuiltinMeaning _ver LessThanInteger =
         makeBuiltinMeaning
             ((<) @Integer)
             (runCostingFunTwoArguments . paramLessThanInteger)
-    toBuiltinMeaning LessThanEqualsInteger =
+    toBuiltinMeaning _ver LessThanEqualsInteger =
         makeBuiltinMeaning
             ((<=) @Integer)
             (runCostingFunTwoArguments . paramLessThanEqualsInteger)
     -- Bytestrings
-    toBuiltinMeaning AppendByteString =
+    toBuiltinMeaning _ver AppendByteString =
         makeBuiltinMeaning
             BS.append
             (runCostingFunTwoArguments . paramAppendByteString)
-    toBuiltinMeaning ConsByteString =
-        makeBuiltinMeaning
-            (\n xs -> BS.cons (fromIntegral @Integer n) xs)
-            (runCostingFunTwoArguments . paramConsByteString)
-    toBuiltinMeaning SliceByteString =
+    toBuiltinMeaning ver ConsByteString =
+        -- costing-parameter name and costing signature remain the same
+        let costingFun = (runCostingFunTwoArguments . paramConsByteString)
+        -- See Note [Versioned builtins]
+        in case ver of
+            DefaultFunV1 -> makeBuiltinMeaning
+               (\n xs -> BS.cons (fromIntegral @Integer n) xs)
+               costingFun
+            -- For versions other (i.e. larger) than V1, the first input must be in range [0.255].
+            -- See Note [How to add a built-in function: simple cases]
+            _ -> makeBuiltinMeaning
+              (\(n :: Word8) xs -> BS.cons n xs)
+              costingFun
+    toBuiltinMeaning _ver SliceByteString =
         makeBuiltinMeaning
             (\start n xs -> BS.take n (BS.drop start xs))
             (runCostingFunThreeArguments . paramSliceByteString)
-    toBuiltinMeaning LengthOfByteString =
+    toBuiltinMeaning _ver LengthOfByteString =
         makeBuiltinMeaning
             BS.length
             (runCostingFunOneArgument . paramLengthOfByteString)
-    toBuiltinMeaning IndexByteString =
+    toBuiltinMeaning _ver IndexByteString =
         makeBuiltinMeaning
             (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
             -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
             (runCostingFunTwoArguments . paramIndexByteString)
-    toBuiltinMeaning EqualsByteString =
+    toBuiltinMeaning _ver EqualsByteString =
         makeBuiltinMeaning
             ((==) @BS.ByteString)
             (runCostingFunTwoArguments . paramEqualsByteString)
-    toBuiltinMeaning LessThanByteString =
+    toBuiltinMeaning _ver LessThanByteString =
         makeBuiltinMeaning
             ((<) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanByteString)
-    toBuiltinMeaning LessThanEqualsByteString =
+    toBuiltinMeaning _ver LessThanEqualsByteString =
         makeBuiltinMeaning
             ((<=) @BS.ByteString)
             (runCostingFunTwoArguments . paramLessThanEqualsByteString)
     -- Cryptography and hashes
-    toBuiltinMeaning Sha2_256 =
+    toBuiltinMeaning _ver Sha2_256 =
         makeBuiltinMeaning
             Hash.sha2_256
             (runCostingFunOneArgument . paramSha2_256)
-    toBuiltinMeaning Sha3_256 =
+    toBuiltinMeaning _ver Sha3_256 =
         makeBuiltinMeaning
             Hash.sha3_256
             (runCostingFunOneArgument . paramSha3_256)
-    toBuiltinMeaning Blake2b_256 =
+    toBuiltinMeaning _ver Blake2b_256 =
         makeBuiltinMeaning
             Hash.blake2b_256
             (runCostingFunOneArgument . paramBlake2b_256)
-    toBuiltinMeaning VerifyEd25519Signature =
+    toBuiltinMeaning _ver VerifyEd25519Signature =
         makeBuiltinMeaning
-            (verifyEd25519Signature @EvaluationResult)
+            verifyEd25519Signature_V1   -- TODO: also allow verifyEd25519Signature_V2
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
@@ -944,48 +1131,48 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin-core/secp256k1.
      -}
-    toBuiltinMeaning VerifyEcdsaSecp256k1Signature =
+    toBuiltinMeaning _ver VerifyEcdsaSecp256k1Signature =
         makeBuiltinMeaning
             verifyEcdsaSecp256k1Signature
             (runCostingFunThreeArguments . paramVerifyEcdsaSecp256k1Signature)
-    toBuiltinMeaning VerifySchnorrSecp256k1Signature =
+    toBuiltinMeaning _ver VerifySchnorrSecp256k1Signature =
         makeBuiltinMeaning
             verifySchnorrSecp256k1Signature
             (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
     -- Strings
-    toBuiltinMeaning AppendString =
+    toBuiltinMeaning _ver AppendString =
         makeBuiltinMeaning
             ((<>) @Text)
             (runCostingFunTwoArguments . paramAppendString)
-    toBuiltinMeaning EqualsString =
+    toBuiltinMeaning _ver EqualsString =
         makeBuiltinMeaning
             ((==) @Text)
             (runCostingFunTwoArguments . paramEqualsString)
-    toBuiltinMeaning EncodeUtf8 =
+    toBuiltinMeaning _ver EncodeUtf8 =
         makeBuiltinMeaning
             encodeUtf8
             (runCostingFunOneArgument . paramEncodeUtf8)
-    toBuiltinMeaning DecodeUtf8 =
+    toBuiltinMeaning _ver DecodeUtf8 =
         makeBuiltinMeaning
             (reoption @_ @EvaluationResult . decodeUtf8')
             (runCostingFunOneArgument . paramDecodeUtf8)
     -- Bool
-    toBuiltinMeaning IfThenElse =
+    toBuiltinMeaning _ver IfThenElse =
         makeBuiltinMeaning
             (\b x y -> if b then x else y)
             (runCostingFunThreeArguments . paramIfThenElse)
     -- Unit
-    toBuiltinMeaning ChooseUnit =
+    toBuiltinMeaning _ver ChooseUnit =
         makeBuiltinMeaning
             (\() a -> a)
             (runCostingFunTwoArguments . paramChooseUnit)
     -- Tracing
-    toBuiltinMeaning Trace =
+    toBuiltinMeaning _ver Trace =
         makeBuiltinMeaning
             (\text a -> a <$ emit text)
             (runCostingFunTwoArguments . paramTrace)
     -- Pairs
-    toBuiltinMeaning FstPair =
+    toBuiltinMeaning _ver FstPair =
         makeBuiltinMeaning
             fstPlc
             (runCostingFunOneArgument . paramFstPair)
@@ -993,9 +1180,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           fstPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val a)
           fstPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair uniA _ <- pure uniPairAB
-              pure . fromConstant . someValueOf uniA $ fst xy
+              pure . fromValueOf uniA $ fst xy
           {-# INLINE fstPlc #-}
-    toBuiltinMeaning SndPair =
+    toBuiltinMeaning _ver SndPair =
         makeBuiltinMeaning
             sndPlc
             (runCostingFunOneArgument . paramSndPair)
@@ -1003,10 +1190,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           sndPlc :: SomeConstant uni (a, b) -> EvaluationResult (Opaque val b)
           sndPlc (SomeConstant (Some (ValueOf uniPairAB xy))) = do
               DefaultUniPair _ uniB <- pure uniPairAB
-              pure . fromConstant . someValueOf uniB $ snd xy
+              pure . fromValueOf uniB $ snd xy
           {-# INLINE sndPlc #-}
     -- Lists
-    toBuiltinMeaning ChooseList =
+    toBuiltinMeaning _ver ChooseList =
         makeBuiltinMeaning
             choosePlc
             (runCostingFunThreeArguments . paramChooseList)
@@ -1018,7 +1205,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 []    -> a
                 _ : _ -> b
           {-# INLINE choosePlc #-}
-    toBuiltinMeaning MkCons =
+    toBuiltinMeaning _ver MkCons =
         makeBuiltinMeaning
             consPlc
             (runCostingFunTwoArguments . paramMkCons)
@@ -1036,9 +1223,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 -- Should that rather give us an 'UnliftingError'? For that we need
                 -- https://github.com/input-output-hk/plutus/pull/3035
                 Just Refl <- pure $ uniA `geq` uniA'
-                pure . fromConstant . someValueOf uniListA $ x : xs
+                pure . fromValueOf uniListA $ x : xs
           {-# INLINE consPlc #-}
-    toBuiltinMeaning HeadList =
+    toBuiltinMeaning _ver HeadList =
         makeBuiltinMeaning
             headPlc
             (runCostingFunOneArgument . paramHeadList)
@@ -1047,9 +1234,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           headPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList uniA <- pure uniListA
               x : _ <- pure xs
-              pure . fromConstant $ someValueOf uniA x
+              pure $ fromValueOf uniA x
           {-# INLINE headPlc #-}
-    toBuiltinMeaning TailList =
+    toBuiltinMeaning _ver TailList =
         makeBuiltinMeaning
             tailPlc
             (runCostingFunOneArgument . paramTailList)
@@ -1058,9 +1245,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           tailPlc (SomeConstant (Some (ValueOf uniListA xs))) = do
               DefaultUniList _ <- pure uniListA
               _ : xs' <- pure xs
-              pure . fromConstant $ someValueOf uniListA xs'
+              pure $ fromValueOf uniListA xs'
           {-# INLINE tailPlc #-}
-    toBuiltinMeaning NullList =
+    toBuiltinMeaning _ver NullList =
         makeBuiltinMeaning
             nullPlc
             (runCostingFunOneArgument . paramNullList)
@@ -1072,7 +1259,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {-# INLINE nullPlc #-}
 
     -- Data
-    toBuiltinMeaning ChooseData =
+    toBuiltinMeaning _ver ChooseData =
         makeBuiltinMeaning
             (\d
               xConstr
@@ -1084,85 +1271,91 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     I      {} -> xI
                     B      {} -> xB)
             (runCostingFunSixArguments . paramChooseData)
-    toBuiltinMeaning ConstrData =
+    toBuiltinMeaning _ver ConstrData =
         makeBuiltinMeaning
             Constr
             (runCostingFunTwoArguments . paramConstrData)
-    toBuiltinMeaning MapData =
+    toBuiltinMeaning _ver MapData =
         makeBuiltinMeaning
             Map
             (runCostingFunOneArgument . paramMapData)
-    toBuiltinMeaning ListData =
+    toBuiltinMeaning _ver ListData =
         makeBuiltinMeaning
             List
             (runCostingFunOneArgument . paramListData)
-    toBuiltinMeaning IData =
+    toBuiltinMeaning _ver IData =
         makeBuiltinMeaning
             I
             (runCostingFunOneArgument . paramIData)
-    toBuiltinMeaning BData =
+    toBuiltinMeaning _ver BData =
         makeBuiltinMeaning
             B
             (runCostingFunOneArgument . paramBData)
-    toBuiltinMeaning UnConstrData =
+    toBuiltinMeaning _ver UnConstrData =
         makeBuiltinMeaning
             (\case
                 Constr i ds -> EvaluationSuccess (i, ds)
                 _           -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnConstrData)
-    toBuiltinMeaning UnMapData =
+    toBuiltinMeaning _ver UnMapData =
         makeBuiltinMeaning
             (\case
                 Map es -> EvaluationSuccess es
                 _      -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnMapData)
-    toBuiltinMeaning UnListData =
+    toBuiltinMeaning _ver UnListData =
         makeBuiltinMeaning
             (\case
                 List ds -> EvaluationSuccess ds
                 _       -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnListData)
-    toBuiltinMeaning UnIData =
+    toBuiltinMeaning _ver UnIData =
         makeBuiltinMeaning
             (\case
                 I i -> EvaluationSuccess i
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnIData)
-    toBuiltinMeaning UnBData =
+    toBuiltinMeaning _ver UnBData =
         makeBuiltinMeaning
             (\case
                 B b -> EvaluationSuccess b
                 _   -> EvaluationFailure)
             (runCostingFunOneArgument . paramUnBData)
-    toBuiltinMeaning EqualsData =
+    toBuiltinMeaning _ver EqualsData =
         makeBuiltinMeaning
             ((==) @Data)
             (runCostingFunTwoArguments . paramEqualsData)
-    toBuiltinMeaning SerialiseData =
+    toBuiltinMeaning _ver SerialiseData =
         makeBuiltinMeaning
             (BS.toStrict . serialise @Data)
             (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
-    toBuiltinMeaning MkPairData =
+    toBuiltinMeaning _ver MkPairData =
         makeBuiltinMeaning
             ((,) @Data @Data)
             (runCostingFunTwoArguments . paramMkPairData)
-    toBuiltinMeaning MkNilData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+    toBuiltinMeaning _ver MkNilData =
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @Data)
             (runCostingFunOneArgument . paramMkNilData)
-    toBuiltinMeaning MkNilPairData =
-        -- Nullary builtins don't work, so we need a unit argument.
-        -- We don't really need this builtin, see Note [Constants vs built-in functions],
+    toBuiltinMeaning _ver MkNilPairData =
+        -- Nullary built-in functions don't work, so we need a unit argument.
+        -- We don't really need this built-in function, see Note [Constants vs built-in functions],
         -- but we keep it around for historical reasons and convenience.
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
+
+instance Default (BuiltinVersion DefaultFun) where
+    def = DefaultFunV2
+
+instance Pretty (BuiltinVersion DefaultFun) where
+    pretty = viaShow
 
 -- It's set deliberately to give us "extra room" in the binary format to add things without running
 -- out of space for tags (expanding the space would change the binary format for people who're

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -92,7 +93,7 @@ propIgnores splice = property $ do
 
 parsing :: TestNested
 parsing = return $ testGroup "parsing"
-    [ testProperty "parser round-trip" propRoundTrip
-    , testProperty "parser ignores whitespace" (propIgnores whitespace)
-    , testProperty "parser ignores comments" (propIgnores comment)
+    [ testPropertyNamed "parser round-trip" "propRoundTrip" propRoundTrip
+    , testPropertyNamed "parser ignores whitespace" "propIgnores whitespace" (propIgnores whitespace)
+    , testPropertyNamed "parser ignores comments" "propIgnores comments" (propIgnores comment)
     ]

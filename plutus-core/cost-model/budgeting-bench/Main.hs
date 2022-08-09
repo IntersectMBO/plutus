@@ -1,9 +1,10 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeOperators #-}
 
 -- See CostModelGeneration.md
 module Main (main) where
 
-import CriterionExtensions (criterionMainWith)
+import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
 
 import Benchmarks.Bool qualified
 import Benchmarks.ByteStrings qualified
@@ -44,7 +45,7 @@ main = do
   gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
 
   criterionMainWith
-       True
+       Start
        defaultConfig $
             Benchmarks.Bool.makeBenchmarks            gen
         <>  Benchmarks.ByteStrings.makeBenchmarks     gen
@@ -66,6 +67,6 @@ main = do
   -- data will still be generated and saved in benching.csv).
 
   criterionMainWith
-       False
+       Continue
        (defaultConfig { C.timeLimit = 30 }) $
        Benchmarks.Nops.makeBenchmarks gen

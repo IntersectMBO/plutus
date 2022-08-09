@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -19,6 +20,7 @@ module Suites.Laws.Helpers (
 import Data.Functor.Contravariant (contramap)
 import Data.Kind (Type)
 import Data.Maybe (isJust, isNothing)
+import GHC.Exts (fromString)
 import Hedgehog (Gen, MonadTest, Property, PropertyT, assert, cover, failure, forAllWith, property, success, (===))
 import Hedgehog.Function (Arg (build), CoGen, vary, via)
 import Hedgehog.Gen qualified as Gen
@@ -27,7 +29,7 @@ import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
 import Prelude
 import Test.Tasty (TestTree, localOption)
-import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testProperty)
+import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testPropertyNamed)
 import Text.Show.Pretty (ppShow)
 
 -- This is a hack to avoid coverage issues.
@@ -58,7 +60,8 @@ testEntangled :: forall (a :: Type) .
   Gen a ->
   (a -> a -> PropertyT IO ()) ->
   TestTree
-testEntangled name gen cb = localOption coverLimit . testProperty name . property $ do
+testEntangled name gen cb =
+  localOption coverLimit . testPropertyNamed name (fromString name) . property $ do
   (x, my) <- forAllWith ppEntangled ((,) <$> gen <*> maybe' gen)
   cover 45 "identical" (isNothing my)
   cover 45 "possibly different" (isJust my)
@@ -78,7 +81,8 @@ testEntangled3 :: forall (a :: Type) .
   Gen a ->
   (a -> a -> a -> PropertyT IO ()) ->
   TestTree
-testEntangled3 name gen cb = localOption coverLimit . testProperty name . property $ do
+testEntangled3 name gen cb =
+  localOption coverLimit . testPropertyNamed name (fromString name) . property $ do
   (x, myz) <- forAllWith ppEntangled3 ((,) <$> gen <*> maybe' ((,) <$> gen <*> gen))
   cover 45 "identical" (isNothing myz)
   cover 45 "possibly different" (isJust myz)
@@ -101,7 +105,8 @@ testEntangled3 name gen cb = localOption coverLimit . testProperty name . proper
 -- so in a way that doesn't require passing magical arguments around, and also
 -- allows easier tweaking.
 testCoverProperty :: String -> Property -> TestTree
-testCoverProperty name = localOption coverLimit . testProperty name
+testCoverProperty name =
+  localOption coverLimit . testPropertyNamed name (fromString name)
 
 genRational :: Gen Plutus.Rational
 genRational = do
