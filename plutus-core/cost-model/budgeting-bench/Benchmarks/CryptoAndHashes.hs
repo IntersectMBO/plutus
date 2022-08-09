@@ -27,14 +27,14 @@ bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Signature verification functions.  Wrong input sizes cause error, time should
 -- be otherwise independent of correctness/incorrectness of signature.
 
--- For VerifySignature, for speed purposes it shouldn't matter if the signature
--- and public key are correct as long as they're the correct sizes (256 bits/32
--- bytes for keys, 512 bytes/64 bits for signatures).
+-- For VerifyEd25519Signature, for speed purposes it shouldn't matter if the
+-- signature and public key are correct as long as they're the correct sizes
+-- (256 bits/32 bytes for keys, 512 bytes/64 bits for signatures).
 
-benchVerifySignature :: Benchmark
-benchVerifySignature =
+benchVerifyEd25519Signature :: Benchmark
+benchVerifyEd25519Signature =
     createThreeTermBuiltinBenchElementwise name [] pubkeys messages signatures
-           where name = VerifySignature
+           where name = VerifyEd25519Signature
                  pubkeys    = listOfSizedByteStrings 50 32
                  messages   = bigByteStrings seedA
                  signatures = listOfSizedByteStrings 50 64
@@ -47,7 +47,8 @@ benchVerifySignature =
 -- to the fact that the underlying C implementation is *extremely* fast, but
 -- there's quite a bit of error handling when an argument is the wrong size.
 -- However in the latter case the program will terminate anyway, so we don't
--- care about costing it accurately.]
+-- care about costing it accurately.] Just to be sure, check the results, maybe
+-- try with bigger inputs.
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
@@ -56,6 +57,10 @@ benchVerifyEcdsaSecp256k1Signature =
               pubkeys    = listOfSizedByteStrings 50 64
               messages   = listOfSizedByteStrings 50 32
               signatures = listOfSizedByteStrings 50 64
+-- NB: verifyEcdsaSecp256k1Signature returns immediately for 50% of
+-- randomly-chosen signatures: see Note [ECDSA secp256k1 signature verification]
+-- in Builtins.hs.  This doesn't apply to VerifySchnorrSecp256k1Signature.
+
 
 benchVerifySchnorrSecp256k1Signature :: Benchmark
 benchVerifySchnorrSecp256k1Signature =
@@ -77,9 +82,9 @@ benchByteStringOneArgOp name =
 ---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =  [benchVerifySignature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]
+makeBenchmarks _gen =  [benchVerifyEd25519Signature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]
                        <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
 
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
--- 2.82 times longer than Blake2b.  All are (very) linear in the size of the
+-- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the
 -- input.

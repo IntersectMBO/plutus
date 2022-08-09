@@ -173,7 +173,7 @@ builtinNames = [
     , 'Builtins.verifyEcdsaSecp256k1Signature
     , 'Builtins.verifySchnorrSecp256k1Signature
 
-    , 'Builtins.verifySignature
+    , 'Builtins.verifyEd25519Signature
 
     , ''Integer
     , 'Builtins.addInteger
@@ -238,7 +238,7 @@ builtinNames = [
     , 'Builtins.unsafeDataAsI
     ]
 
-defineBuiltinTerm :: CompilingDefault uni fun m => TH.Name -> PIRTerm uni fun -> m ()
+defineBuiltinTerm :: CompilingDefault uni fun m ann => TH.Name -> PIRTerm uni fun -> m ()
 defineBuiltinTerm name term = do
     ghcId <- GHC.tyThingId <$> getThing name
     var <- compileVarFresh ghcId
@@ -248,7 +248,7 @@ defineBuiltinTerm name term = do
     PIR.defineTerm (LexName $ GHC.getName ghcId) def mempty
 
 -- | Add definitions for all the builtin types to the environment.
-defineBuiltinType :: forall uni fun m. Compiling uni fun m => TH.Name -> PIRType uni -> m ()
+defineBuiltinType :: forall uni fun m ann. Compiling uni fun m ann => TH.Name -> PIRType uni -> m ()
 defineBuiltinType name ty = do
     tc <- GHC.tyThingTyCon <$> getThing name
     var <- compileTcTyVarFresh tc
@@ -257,7 +257,7 @@ defineBuiltinType name ty = do
     PIR.recordAlias @LexName @uni @fun @() (LexName $ GHC.getName tc)
 
 -- | Add definitions for all the builtin terms to the environment.
-defineBuiltinTerms :: CompilingDefault uni fun m => m ()
+defineBuiltinTerms :: CompilingDefault uni fun m ann => m ()
 defineBuiltinTerms = do
     CompileContext {ccOpts=compileOpts} <- ask
 
@@ -288,7 +288,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.verifySchnorrSecp256k1Signature $ mkBuiltin PLC.VerifySchnorrSecp256k1Signature
 
     -- Crypto
-    defineBuiltinTerm 'Builtins.verifySignature $ mkBuiltin PLC.VerifySignature
+    defineBuiltinTerm 'Builtins.verifyEd25519Signature $ mkBuiltin PLC.VerifyEd25519Signature
 
     -- Integer builtins
     defineBuiltinTerm 'Builtins.addInteger $ mkBuiltin PLC.AddInteger
@@ -359,7 +359,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm 'Builtins.serialiseData $ mkBuiltin PLC.SerialiseData
 
 defineBuiltinTypes
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => m ()
 defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinByteString $ PLC.toTypeAst $ Proxy @BS.ByteString
@@ -372,7 +372,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinList $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
-lookupBuiltinTerm :: Compiling uni fun m => TH.Name -> m (PIRTerm uni fun)
+lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)
 lookupBuiltinTerm name = do
     ghcName <- GHC.getName <$> getThing name
     maybeTerm <- PIR.lookupTerm () (LexName ghcName)
@@ -381,7 +381,7 @@ lookupBuiltinTerm name = do
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | Lookup a builtin type by its TH name. These are assumed to be present, so fails if it is cannot find it.
-lookupBuiltinType :: Compiling uni fun m => TH.Name -> m (PIRType uni)
+lookupBuiltinType :: Compiling uni fun m ann => TH.Name -> m (PIRType uni)
 lookupBuiltinType name = do
     ghcName <- GHC.getName <$> getThing name
     maybeType <- PIR.lookupType () (LexName ghcName)
@@ -390,13 +390,13 @@ lookupBuiltinType name = do
         Nothing -> throwSd CompilationError $ "Missing builtin definition:" GHC.<+> (GHC.text $ show name)
 
 -- | The function 'error :: forall a . a'.
-errorFunc :: Compiling uni fun m => m (PIRTerm uni fun)
+errorFunc :: Compiling uni fun m ann => m (PIRTerm uni fun)
 errorFunc = do
     n <- safeFreshTyName "e"
     pure $ PIR.TyAbs () n (PIR.Type ()) (PIR.Error () (PIR.TyVar () n))
 
 -- | The delayed error function 'error :: forall a . () -> a'.
-delayedErrorFunc :: CompilingDefault uni fun m => m (PIRTerm uni fun)
+delayedErrorFunc :: CompilingDefault uni fun m ann => m (PIRTerm uni fun)
 delayedErrorFunc = do
     n <- safeFreshTyName "a"
     t <- liftQuote (freshName "thunk")

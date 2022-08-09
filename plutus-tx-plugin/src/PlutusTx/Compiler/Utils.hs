@@ -21,7 +21,7 @@ import Data.Text qualified as T
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
 -- failing if it is missing.
-getThing :: Compiling uni fun m => TH.Name -> m GHC.TyThing
+getThing :: Compiling uni fun m ann => TH.Name -> m GHC.TyThing
 getThing name = do
     CompileContext{ccNameInfo=names} <- ask
     case Map.lookup name names of
@@ -33,7 +33,11 @@ sdToTxt sd = do
   CompileContext { ccFlags=flags } <- ask
   pure $ T.pack $ GHC.showSDocForUser flags GHC.alwaysQualify sd
 
-throwSd :: (MonadError (CompileError uni fun) m, MonadReader (CompileContext uni fun) m) => (T.Text -> Error uni fun ()) -> GHC.SDoc -> m a
+throwSd ::
+    (MonadError (CompileError uni fun ann) m, MonadReader (CompileContext uni fun) m) =>
+    (T.Text -> Error uni fun ann) ->
+    GHC.SDoc ->
+    m a
 throwSd constr = (throwPlain . constr) <=< sdToTxt
 
 tyConsOfExpr :: GHC.CoreExpr -> GHC.UniqSet GHC.TyCon

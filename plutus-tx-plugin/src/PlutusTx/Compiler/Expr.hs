@@ -98,7 +98,7 @@ rule.
 -}
 
 compileLiteral
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
@@ -140,7 +140,7 @@ strip = \case
     expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: CompilingDefault uni fun m => GHC.DataCon -> m (PIRTerm uni fun)
+compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
 compileDataConRef dc =
     let
         tc = GHC.dataConTyCon dc
@@ -168,7 +168,7 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
@@ -188,7 +188,7 @@ compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating al
         delayed <- delay compiledBody >>= wrapDefaultAlt
         return (nonDelayed, delayed)
     where
-        wrapDefaultAlt :: CompilingDefault uni fun m => PIRTerm uni fun -> m (PIRTerm uni fun)
+        wrapDefaultAlt :: CompilingDefault uni fun m ann => PIRTerm uni fun -> m (PIRTerm uni fun)
         wrapDefaultAlt body' = do
             -- need to consume the args
             argTypes <- mapM compileTypeNorm instArgTys
@@ -441,7 +441,7 @@ ourselves before we start.
 -}
 
 hoistExpr
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
 hoistExpr var t = do
     let name = GHC.getName var
@@ -467,7 +467,7 @@ hoistExpr var t = do
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar () var'
 
-maybeProfileRhs :: CompilingDefault uni fun m => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni fun -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
     CompileContext {ccOpts=compileOpts} <- ask
     let ty = PLC._varDeclType var
@@ -495,7 +495,7 @@ mkTrace ty str v =
 
 -- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
 mkLazyTrace
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => PLC.Type PLC.TyName uni ()
     -> T.Text
     -> PIRTerm uni PLC.DefaultFun
@@ -607,27 +607,6 @@ entryExitTracing lamName displayName e ty =
    guarantee that the annotation `a` is logged before we execute `body`.
 -}
 
-{- Note [Tick-unfloating]
-   GHC likes to float ticks on case scrutinees. This screws with boolean
-   coverage (because the result of the case expression is not necessarily
-   boolean typed) so we un-float these ticks. Specifically, GHC will convert an
-   expression like:
-   ```
-   if <tick with source location of condition> condition
-   then trueCase
-   else falseCase
-   ```
-   into something equivalent to:
-   ```
-   <tick with source location of condition>
-   if condition
-   then trueCase
-   else falseCase
-   ```
-   which means that we don't get boolean coverage for `condition` as there is no tick around it (so we
-   don't know where it is).
--}
-
 {- Note [Boolean coverage]
    During testing it is useful (sometimes even critical) to know which boolean
    expressions have evaluated to true and false respectively. To track this we
@@ -644,7 +623,7 @@ entryExitTracing lamName displayName e ty =
 -}
 
 compileExpr
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
@@ -838,9 +817,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 let binds = pure $ PIR.TermBind () PIR.NonStrict v scrutinee'
                 pure $ PIR.Let () PIR.NonRec binds mainCase
 
-        -- See Note [Tick-unfloating]
-        GHC.Tick tick (GHC.Case scrutinee b t alts) -> compileExpr (GHC.Case (GHC.Tick tick scrutinee) b t alts)
-
         -- we can use source notes to get a better context for the inner expression
         -- these are put in when you compile with -g
         -- See Note [What source locations to cover]
@@ -865,9 +841,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
    included as a coverage annotation. This has both advantages and disadvantages.
    On the one hand "trying as hard as we can" gives us as much coverage information as
    possible. On the other hand GHC can sometimes do tricky things like tick floating
-   (see Note [Tick-unfloating]) that will degrade the quality of the coverage information
-   we get. However, we have yet to find any evidence that GHC treats different ticks
-   differently with regards to tick floating.
+   that will degrade the quality of the coverage information we get. However, we have
+   yet to find any evidence that GHC treats different ticks differently with regards
+   to tick floating.
 -}
 
 {- Note [Partial type signature for getSourceSpan]
@@ -912,7 +888,7 @@ toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
 -- See Note [Tracking coverage and lazyness]
 -- See Note [Coverage order]
 -- | Annotate a term for coverage
-coverageCompile :: CompilingDefault uni fun m
+coverageCompile :: CompilingDefault uni fun m ann
                 => GHC.CoreExpr -- ^ The original expression
                 -> GHC.Type -- ^ The type of the expression
                 -> GHC.RealSrcSpan -- ^ The source location of this expression
@@ -968,7 +944,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       findHeadSymbol _              = Nothing
 
 compileExprWithDefs
-    :: CompilingDefault uni fun m
+    :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExprWithDefs e = do
     defineBuiltinTypes
