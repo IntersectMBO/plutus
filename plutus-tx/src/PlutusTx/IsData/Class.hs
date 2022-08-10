@@ -46,6 +46,7 @@ class UnsafeFromData (a :: Type) where
     --
     -- When implementing this function, make sure to call 'unsafeFromBuiltinData'
     -- rather than 'fromBuiltinData' when converting substructures!
+    -- This is a simple type without any validation, __use with caution__.
     unsafeFromBuiltinData :: BuiltinData -> a
 
 instance ToData BuiltinData where

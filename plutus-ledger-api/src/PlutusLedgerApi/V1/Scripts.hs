@@ -223,7 +223,11 @@ newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
 instance Haskell.Show StakeValidator where
     show = const "StakeValidator { <script> }"
 
--- | Script runtime representation of a 28 byte hash.
+{- | Script runtime representation of a 28 byte hash. Hashed with `BLAKE2b-224`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
     deriving
@@ -235,7 +239,11 @@ newtype ScriptHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a 28 byte hash.
+{- | Script runtime representation of a 28 byte hash. Hashed with `BLAKE2b-224`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
     deriving
@@ -247,7 +255,11 @@ newtype ValidatorHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a 32 byte hash.
+{- | Script runtime representation of a 32 byte hash. Hashed with `BLAKE2b-256`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
     deriving
@@ -259,7 +271,11 @@ newtype DatumHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a 32 byte hash.
+{- | Script runtime representation of a 32 byte hash. Hashed with `BLAKE2b-256`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString
     deriving
@@ -271,7 +287,11 @@ newtype RedeemerHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a 28 byte hash.
+{- | Script runtime representation of a 28 byte hash. Hashed with `BLAKE2b-224`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
     deriving
@@ -283,7 +303,11 @@ newtype MintingPolicyHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a 28 byte hash.
+{- | Script runtime representation of a 28 byte hash. Hashed with `BLAKE2b-224`.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype StakeValidatorHash =
     StakeValidatorHash Builtins.BuiltinByteString
     deriving

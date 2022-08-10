@@ -227,7 +227,7 @@ pubKeyOutput :: TxOut -> Maybe PubKeyHash
 pubKeyOutput TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
 {-# INLINABLE ownHashes #-}
--- | Get the validator and datum hashes of the output that is curently being validated
+-- | Get the validator and datum hashes of the output that is currently being validated
 ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
 ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
 ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"

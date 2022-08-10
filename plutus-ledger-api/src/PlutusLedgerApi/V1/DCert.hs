@@ -15,7 +15,7 @@ import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusTx qualified as PlutusTx
+import PlutusTx qualified
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras
 

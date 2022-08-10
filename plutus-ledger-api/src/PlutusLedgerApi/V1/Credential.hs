@@ -17,15 +17,17 @@ import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ValidatorHash)
-import PlutusTx qualified as PlutusTx
+import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (..), (<+>))
 
--- | Staking credential used to assign rewards
+-- | Staking credential used to assign rewards.
 data StakingCredential
     = StakingHash Credential
-    | StakingPtr Integer Integer Integer -- NB: The fields should really be Word64 / Natural / Natural, but 'Integer' is our only integral type so we need to use it instead.
+    -- | NB: The fields should really be Word64 / Natural / Natural,
+    -- but 'Integer' is our only integral type so we need to use it instead.
+    | StakingPtr Integer Integer Integer
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 
@@ -44,8 +46,12 @@ instance PlutusTx.Eq StakingCredential where
 
 -- | Credential required to unlock a transaction output
 data Credential
-  = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
-  | ScriptCredential ValidatorHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
+  =
+    -- | The transaction that spends this output must be signed by the private key.
+    PubKeyCredential PubKeyHash
+    -- | The transaction that spends this output must include the validator script
+    -- and be accepted by the validator.
+  | ScriptCredential ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 
