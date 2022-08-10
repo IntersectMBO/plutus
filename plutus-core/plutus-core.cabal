@@ -794,13 +794,7 @@ benchmark bitwise
   other-modules:    Implementations
   include-dirs:     plutus-core/bench/bitwise/cbits
   c-sources:        plutus-core/bench/bitwise/cbits/implementation.c
-
-  if arch(x86_64)
-    cc-options: -O3 -mtune=intel
-
-  else
-    cc-options: -O3
-
+  cc-options:       -O3
   build-depends:
     , base
     , bytestring

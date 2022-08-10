@@ -35,7 +35,8 @@ main = do
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes,
     bgroup bandLabel' . fmap (packedAndBench bandLabel') $ largerSizes,
-    bgroup bcompLabel' . fmap (complementBench bcompLabel') $ probingSizes
+    bgroup bcompLabel' . fmap (complementBench bcompLabel') $ probingSizes,
+    bgroup bandCOnlyLabel . fmap (andCOnlyBench bandCOnlyLabel) $ sizes
     ]
   where
     sizes :: [Int]
@@ -60,6 +61,8 @@ main = do
     rotateLabel = "Slow rotate versus prescan"
     rotateLabel' :: String
     rotateLabel' = "Bitwise rotate versus block rotate"
+    bandCOnlyLabel :: String
+    bandCOnlyLabel = "C bitwise AND"
 
 -- Benchmarks
 
@@ -76,6 +79,23 @@ popCountBlockBench mainLabel len =
       bgroup testLabel [
         bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
         bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
+        ]
+
+andCOnlyBench ::
+  String ->
+  Int ->
+  Benchmark
+andCOnlyBench mainLabel len =
+  withResource (mkBinaryArgs len) noCleanup $ \xs ->
+    let pzwLabel' = "packZipWith (C)"
+        czwLabel2' = "chunkedZipWith (2 blocks, C)"
+        czwLabel3' = "chunkedZipWith (3 blocks, C)"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> pzwLabel' <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench pzwLabel' . nfIO $ uncurry candBinaryNaive <$> xs,
+        bcompare matchLabel . bench czwLabel2' . nfIO $ uncurry candBinary2 <$> xs,
+        bcompare matchLabel . bench czwLabel3' . nfIO $ uncurry candBinary3 <$> xs
         ]
 
 packedAndBench ::
