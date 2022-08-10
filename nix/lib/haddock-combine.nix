@@ -10,6 +10,11 @@ in
 runCommand "haddock-join"
 {
   buildInputs = [ hsdocs ];
+  # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
+  # which contains information about which nix paths are referenced by the package. This will allow
+  # us to resolve hyperlinks to haddocks elsewhere in the store.
+  #
+  # See also https://nixos.org/manual/nix/stable/expressions/advanced-attributes.html#adv-attr-exportReferencesGraph # editorconfig-checker-disable-line
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
