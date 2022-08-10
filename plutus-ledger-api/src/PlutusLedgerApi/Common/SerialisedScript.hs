@@ -3,7 +3,7 @@ module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
     , scriptCBORDecoder
     , ScriptForExecution (..)
-    , isScriptWellFormed
+    , assertScriptWellFormed
     ) where
 
 import PlutusCore
@@ -13,10 +13,12 @@ import UntypedPlutusCore qualified as UPLC
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
+import Control.Arrow ((>>>))
+import Control.Monad.Except
+import Data.Bifunctor
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.Short
 import Data.Coerce
-import Data.Either
 import Data.Set as Set
 import Prettyprinter
 
@@ -59,6 +61,17 @@ implies that it is (almost certainly) an encoded script and the script does not 
 
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
-isScriptWellFormed :: LedgerPlutusVersion -> ProtocolVersion -> SerialisedScript -> Bool
-isScriptWellFormed lv pv = isRight . CBOR.deserialiseFromBytes (scriptCBORDecoder lv pv) . fromStrict . fromShort
-
+assertScriptWellFormed :: MonadError CBOR.DeserialiseFailure m
+                       => LedgerPlutusVersion
+                       -> ProtocolVersion
+                       -> SerialisedScript
+                       -> m ()
+assertScriptWellFormed lv pv = fromShort
+                             >>> fromStrict
+                             >>> CBOR.deserialiseFromBytes (scriptCBORDecoder lv pv)
+                             {- Returning here the ScriptExecution could allow us to reuse
+                                the function in `mkTermToEvaluate`, but it has the downside
+                                of "leaking" the actual Script through the API. Instead,
+                                we opt to throw away the ScriptExecution result. -}
+                             >>> second (const ())
+                             >>> liftEither

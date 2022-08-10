@@ -92,7 +92,7 @@ tests genOpts@GenOptions{} =
 {- NOTE:
 
 The tests below perform multiple steps in a pipeline, they take in
-kind & type or type & term and then peform operations on them passing
+kind & type or type & term and then perform operations on them passing
 the result along to the next one, sometimes the result is passed to
 several operations and/or several results are later combined and
 sometimes a result is discarded. Quite a lot of this is inherently
@@ -139,7 +139,7 @@ prop_typePreservation tyG tmG = do
     evaluateCkNoEmit defaultBuiltinsRuntime tm `catchError` handleError ty
   withExceptT TypeError $ checkType tcConfig () tmCK (Normalized ty)
 
--- |Property: check if both the typed CK and untyped CEK machines produce the same ouput
+-- |Property: check if both the typed CK and untyped CEK machines produce the same output
 -- modulo erasure.
 --
 prop_agree_termEval :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
@@ -443,7 +443,7 @@ _mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
 packAssertion f t a =
-  case (runQuote . runExceptT $ f t a) of
+  case runQuote . runExceptT $ f t a of
     Left  e -> assertFailure $ show e
     Right _ -> return ()
 

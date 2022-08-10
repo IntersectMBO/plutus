@@ -7,6 +7,7 @@ module PlutusLedgerApi.Test.EvaluationContext
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusLedgerApi.Common
+import PlutusPrelude
 
 import Data.Either.Extras
 import Data.Maybe
@@ -17,4 +18,4 @@ costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
 -- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
 evalCtxForTesting :: EvaluationContext
-evalCtxForTesting = unsafeFromEither $ mkDynEvaluationContext costModelParamsForTesting
+evalCtxForTesting = unsafeFromEither $ mkDynEvaluationContext def costModelParamsForTesting

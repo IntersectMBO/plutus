@@ -12,7 +12,6 @@ module PlutusPrelude
     , (&&&)
     , (<&>)
     , toList
-    , bool
     , first
     , second
     , on
@@ -86,6 +85,7 @@ module PlutusPrelude
     , printPretty
     -- * Text
     , showText
+    , Default (def)
     ) where
 
 import Control.Applicative (Alternative (..), liftA2)
@@ -97,8 +97,8 @@ import Control.Lens
 import Control.Monad.Reader
 import Data.Array
 import Data.Bifunctor (first, second)
-import Data.Bool (bool)
 import Data.Coerce (Coercible, coerce)
+import Data.Default.Class
 import Data.Either (fromRight, isRight)
 import Data.Foldable (fold, toList)
 import Data.Function (on)

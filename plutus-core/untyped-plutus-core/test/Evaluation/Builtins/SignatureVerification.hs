@@ -28,16 +28,16 @@ import Control.Lens.Prism (Prism', prism')
 import Control.Lens.Review (review)
 import Data.ByteString (ByteString)
 import Data.Kind (Type)
-import Data.Maybe (isNothing)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import Hedgehog (Gen, PropertyT, annotateShow, cover, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
                    EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusPrelude
 import Text.Show.Pretty (ppShow)
 
 ecdsaSecp256k1Prop :: PropertyT IO ()
@@ -86,7 +86,7 @@ runTestDataWith testData f op = do
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
         ]
-  let result = typecheckEvaluateCek defaultCekParameters actualExp
+  let result = typecheckEvaluateCek def defaultBuiltinCostModel actualExp
   case result of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> do

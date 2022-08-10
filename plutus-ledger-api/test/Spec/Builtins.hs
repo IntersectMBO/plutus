@@ -16,6 +16,7 @@ import UntypedPlutusCore as UPLC
 import Codec.Serialise
 import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short
+import Data.Either
 import Data.Foldable (fold, for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
@@ -39,10 +40,10 @@ tests =
             in for_ allBuiltins $ \f -> assertBool (show f) (f `Set.member` allPvBuiltins)
     , testCase "builtins aren't available before Alonzo" $ assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 maryPV) -- l1 valid, p4 invalid
     , testCase "serializeData is only available in l2,Vasil and after" $ do
-         assertBool "in l1,Alonzo" $ not $ V1.isScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "in l1,Vasil" $ not $ V1.isScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "in l2,Alonzo" $ not $ V2.isScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "in l3,Alonzo" $ not $ V3.isScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "not in l2,Vasil" $ V2.isScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "not in l3,Chang" $ V3.isScriptWellFormed changPV serialiseDataExScript
+         assertBool "in l1,Alonzo" $ isLeft $ V1.assertScriptWellFormed alonzoPV serialiseDataExScript
+         assertBool "in l1,Vasil" $ isLeft $ V1.assertScriptWellFormed vasilPV serialiseDataExScript
+         assertBool "in l2,Alonzo" $ isLeft $ V2.assertScriptWellFormed alonzoPV serialiseDataExScript
+         assertBool "in l3,Alonzo" $ isLeft $ V3.assertScriptWellFormed alonzoPV serialiseDataExScript
+         assertBool "not in l2,Vasil" $ isRight $ V2.assertScriptWellFormed vasilPV serialiseDataExScript
+         assertBool "not in l3,Chang" $ isRight $ V3.assertScriptWellFormed changPV serialiseDataExScript
     ]

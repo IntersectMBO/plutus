@@ -50,7 +50,7 @@ import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
 
 import Control.Monad
-import Control.Monad.Reader (MonadReader (ask))
+import Control.Monad.Reader (ask, asks)
 
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
@@ -462,8 +462,9 @@ hoistExpr var t = do
                 mempty
 
             t' <- maybeProfileRhs var' =<< compileExpr t
+            ver <- asks ccBuiltinVer
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure (const PIR.NonStrict) t'
+            let strict = PIR.isPure ver (const PIR.NonStrict) t'
 
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
             pure $ PIR.mkVar AnnOther var'
@@ -628,7 +629,7 @@ compileExpr
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks} <- ask
+    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -748,7 +749,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
             -- the binding is in scope for the body, but not for the arg
             rhs' <- compileExpr rhs
             -- See Note [Non-strict let-bindings]
-            let strict = PIR.isPure (const PIR.NonStrict) rhs'
+            let strict = PIR.isPure ver (const PIR.NonStrict) rhs'
             withVarScoped b $ \v -> do
                 rhs'' <- maybeProfileRhs v rhs'
                 let binds = pure $ PIR.TermBind AnnOther (if strict then PIR.Strict else PIR.NonStrict) v rhs''
@@ -761,7 +762,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
                     rhs' <- maybeProfileRhs v =<< compileExpr rhs
                     -- See Note [Non-strict let-bindings]
-                    let strict = PIR.isPure (const PIR.NonStrict) rhs'
+                    let strict = PIR.isPure ver (const PIR.NonStrict) rhs'
                     pure $ PIR.TermBind AnnOther (if strict then PIR.Strict else PIR.NonStrict) v rhs'
                 body' <- compileExpr body
                 pure $ PIR.mkLet AnnOther PIR.Rec binds body'
@@ -800,7 +801,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
                     return (nonDelayedAlt, delayedAlt)
                 let
-                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure (const PIR.NonStrict) nonDelayed
+                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure ver (const PIR.NonStrict) nonDelayed
                     lazyCase = not (and isPureAlt || length dcs == 1)
                     branches = compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
                         if lazyCase then delayedAlt else nonDelayedAlt

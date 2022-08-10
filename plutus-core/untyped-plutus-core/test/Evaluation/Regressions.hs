@@ -9,13 +9,12 @@ module Evaluation.Regressions (
 import Data.Bits (zeroBits)
 import Data.ByteString (ByteString)
 import Data.List.Split (chunksOf)
-import Data.Maybe (fromMaybe)
-import Data.Word (Word8)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN)
 import PlutusCore (DefaultFun (VerifySchnorrSecp256k1Signature), EvaluationResult (EvaluationFailure))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusPrelude
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Read (readMaybe)
@@ -31,7 +30,7 @@ schnorrVerifyRegressions =
             mkConstant @ByteString () message,
             mkConstant @ByteString () signature
             ]
-      let result = typecheckEvaluateCek defaultCekParameters comp
+      let result = typecheckEvaluateCek def defaultBuiltinCostModel comp
       case result of
         Left _         -> assertFailure "Failed to type check unexpectedly"
         Right (res, _) -> assertEqual "" EvaluationFailure res

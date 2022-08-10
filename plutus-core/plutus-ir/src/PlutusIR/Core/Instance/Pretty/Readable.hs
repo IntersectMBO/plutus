@@ -23,8 +23,6 @@ import PlutusPrelude
 import Prettyprinter
 import Prettyprinter.Custom
 
-import Data.Default.Class
-
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
 -- | Pretty-print something with the Pir prettyprinter settings.

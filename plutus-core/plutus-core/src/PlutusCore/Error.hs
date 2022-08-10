@@ -132,11 +132,11 @@ instance ShowErrorComponent ParserError where
     showErrorComponent = show . pretty
 
 instance Pretty ann => Pretty (UniqueError ann) where
-    pretty (MultiplyDefined u def redef) =
-        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+>
-        "is redefined at" <+> pretty redef
-    pretty (IncoherentUsage u def use) =
-        "Variable" <+> pretty u <+> "defined at" <+> pretty def <+>
+    pretty (MultiplyDefined u defd redefd) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty defd <+>
+        "is redefined at" <+> pretty redefd
+    pretty (IncoherentUsage u defd use) =
+        "Variable" <+> pretty u <+> "defined at" <+> pretty defd <+>
         "is used in a different scope at" <+> pretty use
     pretty (FreeVariable u use) =
         "Variable" <+> pretty u <+> "is free at" <+> pretty use

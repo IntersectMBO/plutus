@@ -30,13 +30,12 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
+import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck.Internal
-
-import Universe
 
 -- | The constraint for built-in types/functions are kind/type-checkable.
 --
@@ -55,10 +54,10 @@ defKindCheckConfig = KindCheckConfig DetectNameMismatches
 -- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
     :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
-    => ann -> m (BuiltinTypes uni fun)
-builtinMeaningsToTypes ann =
+    => BuiltinVersion fun -> ann -> m (BuiltinTypes uni fun)
+builtinMeaningsToTypes ver ann =
     runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
-        let ty = typeOfBuiltinFunction fun
+        let ty = typeOfBuiltinFunction ver fun
         _ <- inferKind defKindCheckConfig $ ann <$ ty
         dupable <$> normalizeType ty
 
@@ -67,7 +66,7 @@ getDefTypeCheckConfig
     :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
     => ann -> m (TypeCheckConfig uni fun)
 getDefTypeCheckConfig ann =
-    TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ann
+    TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes def ann
 
 -- | Infer the kind of a type.
 inferKind

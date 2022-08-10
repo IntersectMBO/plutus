@@ -163,6 +163,9 @@ instance ExMemoryUsage Integer where
                                -- Assume 64-bit size for Integer
   {-# INLINE memoryUsage #-}
 
+instance ExMemoryUsage Word8 where
+  memoryUsage _ = ExMemory 1
+
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
    gives the correct answer for the empty bytestring.  Maybe we should just use

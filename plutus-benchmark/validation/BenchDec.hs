@@ -7,6 +7,7 @@ import UntypedPlutusCore qualified as UPLC
 
 import Codec.Serialise qualified as Serialise (serialise)
 import Common
+import Control.Exception
 import Criterion
 import Data.ByteString as BS
 import Data.ByteString.Lazy as BSL
@@ -41,8 +42,6 @@ main = benchWith mkDecBM
             benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (\ s ->
-                     isScriptWellFormed (ProtocolVersion 6 0) s
-                     || error "validation script failed to decode"
+        in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
                 ) benchScript
 

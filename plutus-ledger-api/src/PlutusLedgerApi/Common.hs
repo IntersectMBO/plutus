@@ -4,7 +4,7 @@ module PlutusLedgerApi.Common
     , evaluateScriptRestricting
     , EvaluationContext (..)
     , mkDynEvaluationContext
-    , isScriptWellFormed
+    , assertScriptWellFormed
     , assertWellFormedCostModelParams
     , toMachineParameters
     , SerialisedScript
