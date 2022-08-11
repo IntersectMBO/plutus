@@ -582,17 +582,16 @@ evalBuiltinApp
     -> Term NamedDeBruijn uni fun ()
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term runtime =
-    case runtime of
-        BuiltinResult cost getX -> do
-            spendBudgetCek (BBuiltinApp fun) cost
-            case getX of
-                MakeKnownFailure logs err       -> do
-                    ?cekEmitter logs
-                    throwKnownTypeErrorWithCause term err
-                MakeKnownSuccess x              -> pure x
-                MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-        _ -> pure $ VBuiltin fun term runtime
+evalBuiltinApp fun term runtime = case runtime of
+    BuiltinResult cost getX -> do
+        spendBudgetCek (BBuiltinApp fun) cost
+        case getX of
+            MakeKnownFailure logs err       -> do
+                ?cekEmitter logs
+                throwKnownTypeErrorWithCause term err
+            MakeKnownSuccess x              -> pure x
+            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+    _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].

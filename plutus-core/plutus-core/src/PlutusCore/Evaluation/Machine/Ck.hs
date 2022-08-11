@@ -67,16 +67,12 @@ evalBuiltinApp
     :: Term TyName Name uni fun ()
     -> BuiltinRuntime (CkValue uni fun)
     -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime =
-    case runtime of
-        BuiltinResult _ getX ->
-            case getX of
-                MakeKnownFailure logs err       -> do
-                    emitCkM logs
-                    throwKnownTypeErrorWithCause term err
-                MakeKnownSuccess x              -> pure x
-                MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
-        _ -> pure $ VBuiltin term runtime
+evalBuiltinApp term runtime = case runtime of
+    BuiltinResult _ getX -> case getX of
+        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
+        MakeKnownSuccess x              -> pure x
+        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
+    _ -> pure $ VBuiltin term runtime
 
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case

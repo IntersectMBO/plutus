@@ -46,7 +46,7 @@ typecheckAnd ver action costingPart term = TPLC.runQuoteT $ do
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , PrettyUni uni fun, uni `Everywhere` ExMemoryUsage
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
     => BuiltinVersion fun
     -> CostingPart uni fun
@@ -57,7 +57,7 @@ typecheckEvaluateCek ver = typecheckAnd ver $ unsafeEvaluateCek logEmitter
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , PrettyUni uni fun, uni `Everywhere` ExMemoryUsage
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        )
     => BuiltinVersion fun
     -> CostingPart uni fun
@@ -68,7 +68,7 @@ typecheckEvaluateCekNoEmit ver = typecheckAnd ver unsafeEvaluateCekNoEmit
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , PrettyUni uni fun, uni `Everywhere` ExMemoryUsage
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
        , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => BuiltinVersion fun
