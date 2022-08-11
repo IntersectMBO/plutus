@@ -197,9 +197,11 @@ data CekValue uni fun =
     -- the call sites (search for 'VBuiltin').
   | VBuiltin
       !fun
-      -- ^ So that we know, for what builtin we're calculating the cost.  TODO: any chance we could
-      -- sneak this into 'BuiltinRuntime' where we have a partially instantiated costing function
-      -- anyway?
+      -- ^ So that we know, for what builtin we're calculating the cost. We can sneak this into
+      -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
+      -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
+      -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
+      -- the change: https://github.com/input-output-hk/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
       (Term NamedDeBruijn uni fun ())
       -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
       -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
@@ -528,7 +530,7 @@ data Context uni fun
     | NoFrame
     deriving stock (Show)
 
--- TODO: document.
+-- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
@@ -757,6 +759,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     stepAndMaybeSpend :: StepKind -> WordArray -> CekM uni fun s WordArray
     stepAndMaybeSpend !kind !unbudgetedSteps = do
         -- See Note [Structure of the step counter]
+        -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
+        -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromIntegral $ fromEnum kind
             !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
             !unbudgetedStepsTotal = readArray unbudgetedSteps' 7

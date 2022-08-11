@@ -129,6 +129,7 @@ data Term tyname name uni fun a =
                         | Unwrap a (Term tyname name uni fun a)
                         deriving stock (Functor, Show, Generic)
 
+-- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
     memoryUsage =
         Prelude.error "Internal error: 'memoryUsage' for IR 'Term' is not supposed to be forced"

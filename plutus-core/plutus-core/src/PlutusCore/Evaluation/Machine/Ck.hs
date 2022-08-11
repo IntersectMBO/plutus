@@ -142,6 +142,7 @@ data Frame uni fun
 
 type Context uni fun = [Frame uni fun]
 
+-- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (CkValue uni fun) where
     memoryUsage = error "Internal error: 'memoryUsage' for 'CkValue' is not supposed to be forced"
 

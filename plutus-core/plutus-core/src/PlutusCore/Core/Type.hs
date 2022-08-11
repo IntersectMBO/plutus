@@ -92,6 +92,7 @@ data Term tyname name uni fun ann
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 
+-- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
     memoryUsage = error "Internal error: 'memoryUsage' for Core 'Term' is not supposed to be forced"
 
