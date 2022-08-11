@@ -157,7 +157,22 @@ type family GetArgs a where
     GetArgs _        = '[]
 
 {- Note [Merging the denotation and the costing function]
-TODO
+The runtime denotation of a builtin computes both the builtin application and its cost
+(see the docs of 'BuiltinRuntime' for details). Doing both at the same time has a number of benefits
+(see Note [runCostingFun* API]), however in the user-facing API we want to separate the concepts
+of the denotation and the costing function. This is because:
+
+1. the two are fundamentally distinct and we have loads of documentation for each of them
+   separately, so conflating them in the actual API would be unnecessary coupling
+2. right now it's clear which bits of the definition of a builtin consitute evaluation and which
+   ones constitute costing as the two are different arguments to 'makeBuiltinMeaning'. If evaluation
+   and costing were intertwined, it would be much harder to review the definition of a builtin
+3. and it would also be more boilerplate and less clear type signatures otherwise
+
+Hence we want 'makeBuiltinMeaning' to take evaluation and costing bits separately and intertwine
+them behind the scenes. Which is straightforward: we only need to pass the two together in the
+methods of the 'KnownMonotype' and 'KnownPolytype' classes and zip them argument by argument
+into a single 'BuiltinRuntime'.
 -}
 
 -- | A class that allows us to derive a monotype for a builtin.
