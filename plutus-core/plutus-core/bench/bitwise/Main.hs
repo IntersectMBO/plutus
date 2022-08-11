@@ -5,33 +5,33 @@
 
 module Main (main) where
 
-import Control.Monad (replicateM)
-import Data.Bits (complement, popCount, zeroBits, (.&.))
+import Benches.Popcount qualified as Popcount
+import Data.Bits (complement, zeroBits, (.&.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCStringLen)
-import Data.Kind (Type)
 import Data.Word (Word8)
+import DataGen (mkBinaryArgs, mkUnaryArg, noCleanup, sizes)
 import Foreign.C.Types (CSize (CSize), CUChar)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr)
 import GHC.Exts (fromListN)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
-import Implementations (chunkMap2, chunkMap3, chunkPopCount2, chunkPopCount3, chunkZipWith2, chunkZipWith3,
-                        packZipWithBinary, rotateBS, rotateBSFast)
+import Implementations (chunkMap2, chunkMap3, chunkZipWith2, chunkZipWith3, packZipWithBinary, rotateBS, rotateBSFast)
 import System.IO.Unsafe (unsafeDupablePerformIO)
-import System.Random.Stateful (mkStdGen, randomM, runStateGen_)
-import Test.Tasty (withResource)
+import Test.Tasty (testGroup, withResource)
 import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, defaultMain, nfIO)
 
 main :: IO ()
 main = do
   setLocaleEncoding utf8
   defaultMain [
+    testGroup "Popcount" [
+      Popcount.benches,
+      Popcount.cBenches
+      ],
     bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
-    bgroup popCountLabel . fmap (popCountBench popCountLabel) $ sizes,
-    bgroup popCountLabel' . fmap (popCountBlockBench popCountLabel') $ sizes,
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes,
     bgroup bandLabel' . fmap (packedAndBench bandLabel') $ largerSizes,
@@ -39,8 +39,6 @@ main = do
     bgroup bandCOnlyLabel . fmap (andCOnlyBench bandCOnlyLabel) $ sizes
     ]
   where
-    sizes :: [Int]
-    sizes = [1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767]
     largerSizes :: [Int]
     largerSizes = [31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767]
     probingSizes :: [Int]
@@ -53,10 +51,6 @@ main = do
     bcompLabel = "Bitwise complement"
     bcompLabel' :: String
     bcompLabel' = "Bitwise complement probe"
-    popCountLabel :: String
-    popCountLabel = "Popcount"
-    popCountLabel' :: String
-    popCountLabel' = "Block popcount"
     rotateLabel :: String
     rotateLabel = "Slow rotate versus prescan"
     rotateLabel' :: String
@@ -65,21 +59,6 @@ main = do
     bandCOnlyLabel = "C bitwise AND"
 
 -- Benchmarks
-
-popCountBlockBench ::
-  String ->
-  Int ->
-  Benchmark
-popCountBlockBench mainLabel len =
-  withResource (mkUnaryArg len) noCleanup $ \xs ->
-    let cpLabel2 = "chunkPopCount2"
-        cpLabel3 = "chunkPopCount3"
-        testLabel = mainLabel <> ", length " <> show len
-        matchLabel = "$NF == \"" <> cpLabel2 <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-      bgroup testLabel [
-        bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
-        bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
-        ]
 
 andCOnlyBench ::
   String ->
@@ -155,25 +134,6 @@ rotateVsPrescanBench mainLabel len =
                                                              (BS.all (== complement zeroBits) <$> xs)
         ]
 
-popCountBench ::
-  String ->
-  Int ->
-  Benchmark
-popCountBench mainLabel len =
-  withResource (mkUnaryArg len) noCleanup $ \xs ->
-    let fLabel = "foldl'"
-        fLabel' = "foldl' (C)"
-        cpLabel2 = "chunkPopCount2"
-        cpLabel3 = "chunkPopCount3"
-        testLabel = mainLabel <> ", length " <> show len
-        matchLabel = "$NF == \"" <> fLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-      bgroup testLabel [
-        bench fLabel . nfIO $ BS.foldl' (\acc w8 -> acc + popCount w8) 0 <$> xs,
-        bcompare matchLabel . bench fLabel' . nfIO $ popcountNaive <$> xs,
-        bcompare matchLabel . bench cpLabel2 . nfIO $ chunkPopCount2 <$> xs,
-        bcompare matchLabel . bench cpLabel3 . nfIO $ chunkPopCount3 <$> xs
-        ]
-
 complementBench ::
   String ->
   Int ->
@@ -220,21 +180,7 @@ andBench mainLabel len =
         bcompare matchLabel . bench czwLabel3' . nfIO $ uncurry candBinary3 <$> xs
         ]
 
--- Generators
-
-mkUnaryArg :: Int -> IO ByteString
-mkUnaryArg len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
-  fromListN len <$> replicateM len (randomM gen)
-
-mkBinaryArgs :: Int -> IO (ByteString, ByteString)
-mkBinaryArgs len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
-  (,) <$> (fromListN len <$> replicateM len (randomM gen)) <*>
-          (fromListN len <$> replicateM len (randomM gen))
-
 -- Helpers
-
-noCleanup :: forall (a :: Type) . a -> IO ()
-noCleanup = const (pure ())
 
 -- Naive implementations for comparison
 zipWithBinary ::
@@ -297,12 +243,6 @@ ccomplementNaive bs = unsafeDupablePerformIO .
     ccomplementImplementationNaive dst (castPtr src) (fromIntegral len)
     unsafePackMallocCStringLen (castPtr dst, len)
 
-popcountNaive :: ByteString -> Int
-popcountNaive bs = unsafeDupablePerformIO .
-  unsafeUseAsCStringLen bs $ \(src, len) -> do
-    let res = cpopcountNaive (castPtr src) (fromIntegral len)
-    pure . fromIntegral $ res
-
 foreign import ccall unsafe "cbits.h c_and_implementation_naive"
   candImplementationNaive ::
     Ptr CUChar ->
@@ -340,9 +280,3 @@ foreign import ccall unsafe "cbits.h c_complement_implementation_naive"
     Ptr CUChar ->
     CSize ->
     IO ()
-
-foreign import ccall unsafe "cbits.h c_popcount_naive"
-  cpopcountNaive ::
-    Ptr CUChar ->
-    CSize ->
-    CSize
