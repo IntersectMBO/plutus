@@ -43,12 +43,23 @@ import Deriving.Aeson
 import GHC.Exts
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
--- TODO: document.
+-- | A class used for convenience in this module, don't export it.
 class OnMemoryUsages c a where
+    -- | Turn
+    --
+    -- > \mem1 ... memN -> f mem1 ... memN
+    --
+    -- into
+    --
+    -- > \arg1 ... argN -> f (memoryUsage arg1) ... (memoryUsage argN)
+    --
+    -- so that we don't need to repeat those 'memoryUsage' calls at every use site, which would also
+    -- require binding @arg*@ explicitly, i.e. even more boilerplate.
     onMemoryUsages :: c -> a
 
 instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
         OnMemoryUsages (ExMemory -> c) ab where
+    -- | 'inline' is for making sure that 'memoryUsage' does get inlined.
     onMemoryUsages f = onMemoryUsages . f . inline memoryUsage
     {-# INLINE onMemoryUsages #-}
 
@@ -72,6 +83,23 @@ data ModelOneArgument =
     deriving anyclass (NFData)
 instance Default ModelOneArgument where
     def = ModelOneArgumentConstantCost 0
+
+{- Note [runCostingFun* API]
+Costing functions take unlifted values, compute the 'ExMemory' of each of them and then invoke
+the corresponding @run*Model@ over the computed 'ExMemory's. The reason why we don't just make the
+costing functions take 'ExMemory's in the first place is that this would move the burden of
+computing the 'ExMemory's onto the caller, i.e. the user defining the meaning of a builtin and it
+would be just another hoop to jump through and a completely unnecessary complication for the user.
+
+The reason why costing functions take unlifted values are:
+
+1. we need to unlift them anyway to compute the result of a builtin application, so since we already
+   need them elsewhere, we can utilize them in the costing machinery too. Otherwise the costing
+   machinery would need to do some unlifting itself, which would be wasteful
+2. the costing function might actually depend on the constants that get fed to the builtin.
+   For example, checking equality of integers stored in a 'Data' object potentially has a different
+   complexity to checking equality of lists of bytestrings
+-}
 
 {- Note [Optimizations of runCostingFun*]
 We optimize all @runCostingFun*@ functions in the same way:
@@ -113,6 +141,7 @@ This wasn't investigated.
 These optimizations gave us a ~3.2% speedup at the time this Note was written.
 -}
 
+-- See Note [runCostingFun* API].
 runCostingFunOneArgument
     :: ExMemoryUsage a1
     => CostingFun ModelOneArgument
@@ -212,6 +241,7 @@ data ModelTwoArguments =
 instance Default ModelTwoArguments where
     def = ModelTwoArgumentsConstantCost 0
 
+-- See Note [runCostingFun* API].
 runCostingFunTwoArguments
     :: ( ExMemoryUsage a1
        , ExMemoryUsage a2
@@ -308,6 +338,7 @@ runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept s
     size3 * slope + intercept
 {-# NOINLINE runThreeArgumentModel #-}
 
+-- See Note [runCostingFun* API].
 runCostingFunThreeArguments
     :: ( ExMemoryUsage a1
        , ExMemoryUsage a2
@@ -346,6 +377,7 @@ runFourArgumentModel
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> c
 {-# NOINLINE runFourArgumentModel #-}
 
+-- See Note [runCostingFun* API].
 runCostingFunFourArguments
     :: ( ExMemoryUsage a1
        , ExMemoryUsage a2
@@ -387,6 +419,7 @@ runFiveArgumentModel
 runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> c
 {-# NOINLINE runFiveArgumentModel #-}
 
+-- See Note [runCostingFun* API].
 runCostingFunFiveArguments
     :: ( ExMemoryUsage a1
        , ExMemoryUsage a2
@@ -430,6 +463,7 @@ runSixArgumentModel
 runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> c
 {-# NOINLINE runSixArgumentModel #-}
 
+-- See Note [runCostingFun* API].
 runCostingFunSixArguments
     :: ( ExMemoryUsage a1
        , ExMemoryUsage a2
