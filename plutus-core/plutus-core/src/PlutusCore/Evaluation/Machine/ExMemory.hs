@@ -129,6 +129,53 @@ instance Pretty ExCPU where
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
+{- Note [ExMemoryUsage instances for non-constants]
+In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
+argument to the costing function associated with the builtin. For a polymorphic builtin this means
+that we need to be able to compute the 'ExMemory' of the AST provided as an argument to the builtin.
+How do we do that? Our strategy is:
+
+1. if the AST is a wrapped constant, then calculate the 'ExMemory' of the constant
+2. if the AST is something else, return 1
+
+This is pretty reasonable: a polymorphic builtin *is* allowed to check if the AST that it got as an
+argument is a constant or not, and if it happens to be a constant, the builtin *is* allowed to use
+it whatever way it wishes (see Note [Builtins and Plutus type checking] for details). Hence a
+builtin may in fact do something ad hoc for constants and we need to account for this possibility in
+the costing machinery.
+
+But if the given AST is not a constant, the builtin can't do anything else with it, hence we simply
+return 1, meaning "the costing function can't use this 'ExMemory' in any non-vacuous way".
+
+See 'HasMeaningIn' for a full list of constraints determining what a builtin can do with values.
+
+However for all types of values, except the one used by the production evaluator, we implement
+'ExMemoryUsage' as a call to 'error'. Not because other evaluators don't compute costs during
+evaluation -- the CK machine for example does in fact compute them (because we share the same
+builtins machinery between all the evaluators and we want it to be efficient on the production path,
+hence it's easier to optimize it for all evaluators than just for the single production evaluator).
+And not because the resulting 'ExBudget' is not forced by an evaluator that doesn't care about
+costing -- it still gets forced (for the same reason).
+
+The actual reason why we call 'error' is because at the moment no builtin is supposed to have a
+costing function that actually computes the 'ExMemory' of the given AST. Currently, if the builtin
+takes an 'Opaque', it's not supposed to actually look inside of it (unlike with 'SomeConstant') and
+hence the costing function is supposed to ignore that argument. It is possible that we'll eventually
+decide to add such a builtin, so the current approach of throwing an 'error' is a precaution
+ensuring that we won't add any weirdness by accident.
+
+We don't call 'error' on the production path, because we don't want this risk in there. A failing
+test is fine, a failing reasonable transaction is not and we don't want to risk it, even if it seems
+very unlikely that such a failure could slip in.
+
+The way we ignore arguments in costing functions is by computing the 'ExMemory' of each of those
+arguments lazily. I.e. a call to 'memoryUsage' can only be forced within a costing function and
+never outside of one. We have to do this regardless of all the reasoning above: if we compute
+the 'ExMemory' of, say, a list strictly, then a builtin prepending an element to a list will
+have the complexity of O(length_of_the_list) (because computing the 'ExMemory' of a list requires
+traversing the list), while we of course want it to be O(1).
+-}
+
 class ExMemoryUsage a where
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 

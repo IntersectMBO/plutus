@@ -70,7 +70,8 @@ data BuiltinMeaning val cost =
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
-class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun, Default (BuiltinVersion fun)) => ToBuiltinMeaning uni fun where
+class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun, Default (BuiltinVersion fun)) =>
+            ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
