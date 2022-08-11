@@ -1062,7 +1062,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             BS.append
             (runCostingFunTwoArguments . paramAppendByteString)
     toBuiltinMeaning ver ConsByteString =
-        -- costing-parameter name and costing signature remain the same
+        -- The costing function is the same for all versions of this builtin, but since the
+        -- denotation of the builtin accepts constants of different types ('Integer' vs 'Word8'),
+        -- the costing function needs to by polymorphic over the type of constant.
         let costingFun :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudget
             costingFun = runCostingFunTwoArguments . paramConsByteString
         -- See Note [Versioned builtins]
@@ -1073,7 +1075,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             -- For versions other (i.e. larger) than V1, the first input must be in range [0.255].
             -- See Note [How to add a built-in function: simple cases]
             _ -> makeBuiltinMeaning
-              (\(n :: Word8) xs -> BS.cons n xs)
+              BS.cons
               costingFun
     toBuiltinMeaning _ver SliceByteString =
         makeBuiltinMeaning

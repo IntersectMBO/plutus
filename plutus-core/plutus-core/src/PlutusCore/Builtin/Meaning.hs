@@ -167,7 +167,7 @@ of the denotation and the costing function. This is because:
 2. right now it's clear which bits of the definition of a builtin consitute evaluation and which
    ones constitute costing as the two are different arguments to 'makeBuiltinMeaning'. If evaluation
    and costing were intertwined, it would be much harder to review the definition of a builtin
-3. and it would also be more boilerplate and less clear type signatures otherwise
+3. ... and it would also be more boilerplate and less clear type signatures
 
 Hence we want 'makeBuiltinMeaning' to take evaluation and costing bits separately and intertwine
 them behind the scenes. Which is straightforward: we only need to pass the two together in the
@@ -241,13 +241,13 @@ didn't have any reusage of partial applications: https://github.com/input-output
 
 One-shotting the runtime denotations alone made certain game contracts slower by ~9%. A lot of time
 was spent on the investigation, but we still don't know why that was happening. Plus, basically any
-other change to the builtins machinery would cause the same kind of the slowdown, so we just
-admitted defeat and decided it wasn't worth investigating the issue further.
+other change to the builtins machinery would cause the same kind of slowdown, so we just admitted
+defeat and decided it wasn't worth investigating the issue further.
 Relevant thread: https://github.com/input-output-hk/plutus/pull/4620
 
 The speedup that adding a call to 'oneShot' gives us, if any, is smaller than our noise threshold,
-however it also makes those confusing allocations to disappear from the generated Core, which is
-enough of a reason to add the call.
+however it also makes those confusing allocations disappear from the generated Core, which is enough
+of a reason to add the call.
 -}
 
 {- Note [Strict application in runtime denotations]

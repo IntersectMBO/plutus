@@ -54,7 +54,7 @@ class OnMemoryUsages c a where
     -- > \arg1 ... argN -> f (memoryUsage arg1) ... (memoryUsage argN)
     --
     -- so that we don't need to repeat those 'memoryUsage' calls at every use site, which would also
-    -- require binding @arg*@ explicitly, i.e. even more boilerplate.
+    -- require binding @arg*@ explicitly, i.e. require even more boilerplate.
     onMemoryUsages :: c -> a
 
 instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>

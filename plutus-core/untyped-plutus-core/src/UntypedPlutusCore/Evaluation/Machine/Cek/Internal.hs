@@ -537,8 +537,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VDelay {}   -> 1
         VLamAbs {}  -> 1
         VBuiltin {} -> 1
-    {-# INLINE memoryUsage #-}  -- It probably gets inlined anyway, but an explicit pragma
-                                -- shouldn't hurt.
+    {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
 tryError :: MonadError e m => m a -> m (Either e a)

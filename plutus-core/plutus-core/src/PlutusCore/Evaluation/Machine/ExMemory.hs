@@ -177,6 +177,7 @@ traversing the list), while we of course want it to be O(1).
 -}
 
 class ExMemoryUsage a where
+    -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
