@@ -11,6 +11,7 @@ import PlutusLedgerApi.Common.ParamName
 {-| The enumeration of all possible cost model parameter names for this language version.
 IMPORTANT: The order of appearance of the data constructors here matters. DO NOT REORDER.
 See Note [Quotation marks in cost model parameter constructors]
+See Note [Cost model parameters from the ledger's point of view]
 -}
 data ParamName =
     AddInteger'cpu'arguments'intercept

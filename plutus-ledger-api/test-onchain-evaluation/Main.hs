@@ -19,6 +19,7 @@ import Control.Monad.Extra (whenJust)
 import Data.List.NonEmpty (nonEmpty, toList)
 import Data.Maybe (catMaybes)
 
+import Control.Monad.Writer.Strict
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
@@ -45,7 +46,7 @@ testOneFile eventFile = testCase (takeBaseName eventFile) $ do
   where
     mkContext f = \case
         Nothing         -> Right Nothing
-        Just costParams -> Just . (,costParams) <$> f costParams
+        Just costParams -> Just . (,costParams) . fst <$> runWriterT (f costParams)
 
     runSingleEvent ctxV1 ctxV2 event =
         case event of
