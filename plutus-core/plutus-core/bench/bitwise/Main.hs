@@ -5,6 +5,7 @@
 
 module Main (main) where
 
+import Benches.Complement qualified as Complement
 import Benches.Popcount qualified as Popcount
 import Data.Bits (complement, zeroBits, (.&.))
 import Data.ByteString (ByteString)
@@ -17,7 +18,7 @@ import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr)
 import GHC.Exts (fromListN)
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
-import Implementations (chunkMap2, chunkMap3, chunkZipWith2, chunkZipWith3, packZipWithBinary, rotateBS, rotateBSFast)
+import Implementations (chunkZipWith2, chunkZipWith3, packZipWithBinary, rotateBS, rotateBSFast)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 import Test.Tasty (testGroup, withResource)
 import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, defaultMain, nfIO)
@@ -30,27 +31,22 @@ main = do
       Popcount.benches,
       Popcount.cBenches
       ],
-    bgroup bcompLabel . fmap (complementBench bcompLabel) $ sizes,
+    testGroup "Complement" [
+      Complement.benches
+      ],
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes,
     bgroup bandLabel' . fmap (packedAndBench bandLabel') $ largerSizes,
-    bgroup bcompLabel' . fmap (complementBench bcompLabel') $ probingSizes,
     bgroup bandCOnlyLabel . fmap (andCOnlyBench bandCOnlyLabel) $ sizes
     ]
   where
     largerSizes :: [Int]
     largerSizes = [31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767]
-    probingSizes :: [Int]
-    probingSizes = [511, 767, 1023]
     bandLabel :: String
     bandLabel = "Bitwise AND"
     bandLabel' :: String
     bandLabel' = "Packed bitwise AND"
-    bcompLabel :: String
-    bcompLabel = "Bitwise complement"
-    bcompLabel' :: String
-    bcompLabel' = "Bitwise complement probe"
     rotateLabel :: String
     rotateLabel = "Slow rotate versus prescan"
     rotateLabel' :: String
@@ -134,27 +130,6 @@ rotateVsPrescanBench mainLabel len =
                                                              (BS.all (== complement zeroBits) <$> xs)
         ]
 
-complementBench ::
-  String ->
-  Int ->
-  Benchmark
-complementBench mainLabel len =
-  withResource (mkUnaryArg len) noCleanup $ \xs ->
-    let mLabel = "map"
-        mLabel' = "map (C)"
-        cmLabel2 = "chunkedMap (2 blocks)"
-        cmLabel2' = "chunkedMap (2 blocks, C)"
-        cmLabel3 = "chunkMap (3 blocks)"
-        testLabel = mainLabel <> ", length " <> show len
-        matchLabel = "$NF == \"" <> mLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-      bgroup testLabel [
-        bench mLabel . nfIO $ BS.map complement <$> xs,
-        bcompare matchLabel . bench mLabel' . nfIO $ ccomplementNaive <$> xs,
-        bcompare matchLabel . bench cmLabel2 . nfIO $ chunkMap2 complement complement <$> xs,
-        bcompare matchLabel . bench cmLabel2' . nfIO $ ccomplement <$> xs,
-        bcompare matchLabel . bench cmLabel3 . nfIO $ chunkMap3 complement complement complement <$> xs
-        ]
-
 andBench ::
   String ->
   Int ->
@@ -228,21 +203,6 @@ candBinaryNaive bs bs'
         candImplementationNaive dst (castPtr src) (castPtr src') (fromIntegral len)
         unsafePackMallocCStringLen (castPtr dst, len)
 
--- Wrapper for raw C bitwise complement
-ccomplement :: ByteString -> ByteString
-ccomplement bs = unsafeDupablePerformIO .
-  unsafeUseAsCStringLen bs $ \(src, len) -> do
-    dst <- mallocBytes len
-    ccomplementImplementation dst (castPtr src) (fromIntegral len)
-    unsafePackMallocCStringLen (castPtr dst, len)
-
-ccomplementNaive :: ByteString -> ByteString
-ccomplementNaive bs = unsafeDupablePerformIO .
-  unsafeUseAsCStringLen bs $ \(src, len) -> do
-    dst <- mallocBytes len
-    ccomplementImplementationNaive dst (castPtr src) (fromIntegral len)
-    unsafePackMallocCStringLen (castPtr dst, len)
-
 foreign import ccall unsafe "cbits.h c_and_implementation_naive"
   candImplementationNaive ::
     Ptr CUChar ->
@@ -262,20 +222,6 @@ foreign import ccall unsafe "cbits.h c_and_implementation"
 foreign import ccall unsafe "cbits.h c_and_implementation_3"
   candImplementation3 ::
     Ptr CUChar ->
-    Ptr CUChar ->
-    Ptr CUChar ->
-    CSize ->
-    IO ()
-
-foreign import ccall unsafe "cbits.h c_complement_implementation"
-  ccomplementImplementation ::
-    Ptr CUChar ->
-    Ptr CUChar ->
-    CSize ->
-    IO ()
-
-foreign import ccall unsafe "cbits.h c_complement_implementation_naive"
-  ccomplementImplementationNaive ::
     Ptr CUChar ->
     Ptr CUChar ->
     CSize ->
