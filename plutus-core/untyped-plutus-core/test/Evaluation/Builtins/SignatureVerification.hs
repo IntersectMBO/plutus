@@ -9,7 +9,8 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
-  ed25519Prop,
+  ed25519PropV1,
+  ed25519PropV2,
   schnorrSecp256k1Prop,
   ) where
 
@@ -34,6 +35,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
                    EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Default as Plutus (BuiltinVersion (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
@@ -49,7 +51,7 @@ ecdsaSecp256k1Prop = do
   cover 14 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 14 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 14 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith testCase fromMessageHash VerifyEcdsaSecp256k1Signature
+  runTestDataWith def testCase fromMessageHash VerifyEcdsaSecp256k1Signature
 
 schnorrSecp256k1Prop :: PropertyT IO ()
 schnorrSecp256k1Prop = do
@@ -59,34 +61,41 @@ schnorrSecp256k1Prop = do
   cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith testCase id VerifySchnorrSecp256k1Signature
+  runTestDataWith def testCase id VerifySchnorrSecp256k1Signature
 
-ed25519Prop :: PropertyT IO ()
-ed25519Prop = do
+ed25519Prop :: BuiltinVersion DefaultFun -> PropertyT IO ()
+ed25519Prop ver = do
   testCase <- forAllWith ppShow genEd25519Case
   cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
   cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
   cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith testCase id VerifyEd25519Signature
+  runTestDataWith ver testCase id VerifyEd25519Signature
+
+ed25519PropV1 :: PropertyT IO ()
+ed25519PropV1 = ed25519Prop DefaultFunV1
+
+ed25519PropV2 :: PropertyT IO ()
+ed25519PropV2 = ed25519Prop DefaultFunV2
 
 -- Helpers
 
 runTestDataWith :: forall (a :: Type) (msg :: Type) .
   (DSIGNAlgorithm a) =>
+  BuiltinVersion DefaultFun ->
   Case a msg ->
   (msg -> ByteString) ->
   DefaultFun ->
   PropertyT IO ()
-runTestDataWith testData f op = do
+runTestDataWith ver testData f op = do
   let (vk, msg, sig) = getCaseData f testData
   let actualExp = mkIterApp () (builtin () op) [
         mkConstant @ByteString () vk,
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
         ]
-  let result = typecheckEvaluateCek def defaultBuiltinCostModel actualExp
+  let result = typecheckEvaluateCek ver defaultBuiltinCostModel actualExp
   case result of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> do
