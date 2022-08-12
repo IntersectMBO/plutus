@@ -1119,6 +1119,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   _            -> verifyEd25519Signature_V2
         in makeBuiltinMeaning
            verifyEd25519Signature
+           -- Benchmarks indicate that the two versions have very similar
+           -- execution times, so it's safe to use the same costing function for
+           -- both.
            (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
