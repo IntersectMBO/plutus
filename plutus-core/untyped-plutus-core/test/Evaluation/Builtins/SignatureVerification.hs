@@ -9,8 +9,8 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
-  ed25519PropV1,
-  ed25519PropV2,
+  ed25519_V1Prop,
+  ed25519_V2Prop,
   schnorrSecp256k1Prop,
   ) where
 
@@ -73,11 +73,11 @@ ed25519Prop ver = do
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith ver testCase id VerifyEd25519Signature
 
-ed25519PropV1 :: PropertyT IO ()
-ed25519PropV1 = ed25519Prop DefaultFunV1
+ed25519_V1Prop :: PropertyT IO ()
+ed25519_V1Prop = ed25519Prop DefaultFunV1
 
-ed25519PropV2 :: PropertyT IO ()
-ed25519PropV2 = ed25519Prop DefaultFunV2
+ed25519_V2Prop :: PropertyT IO ()
+ed25519_V2Prop = ed25519Prop DefaultFunV2
 
 -- Helpers
 
