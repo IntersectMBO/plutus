@@ -30,8 +30,10 @@ module PlutusLedgerApi.V2.Contexts
     -- * Validator functions
     , pubKeyOutput
     , scriptOutputsAt
+    , scriptInputsAt
     , pubKeyOutputsAt
     , valueLockedBy
+    , valueUnlockedBy
     , valuePaidTo
     , spendsOutput
     , txSignedBy
@@ -195,12 +197,28 @@ scriptOutputsAt h p =
         flt _ = Nothing
     in mapMaybe flt (txInfoOutputs p)
 
+{-# INLINABLE scriptInputsAt #-}
+-- | Get the list of 'TxOut' inputs of the pending transaction at
+--   a given script address.
+scriptInputsAt :: ValidatorHash -> TxInfo -> [(OutputDatum, Value)]
+scriptInputsAt h p =
+    let flt TxInInfo{txInInfoResolved=TxOut{txOutDatum=d, txOutAddress=Address (ScriptCredential s) _, txOutValue}} | s == h = Just (d, txOutValue)
+        flt _ = Nothing
+    in mapMaybe flt (txInfoInputs p)
+
 {-# INLINABLE valueLockedBy #-}
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: TxInfo -> ValidatorHash -> Value
 valueLockedBy ptx h =
     let outputs = map snd (scriptOutputsAt h ptx)
     in mconcat outputs
+
+{-# INLINABLE valueUnlockedBy #-}
+-- | Get the total value unlocked by the given validator in this transaction.
+valueUnlockedBy :: TxInfo -> ValidatorHash -> Value
+valueUnlockedBy ptx h =
+    let inputs = map snd (scriptInputsAt h ptx)
+    in mconcat inputs
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.
