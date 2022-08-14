@@ -27,7 +27,8 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     shiftHomogenous, shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend,
                                     testBitEmpty, testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckEvaluateCekNoEmit, typecheckReadKnownCek)
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519Prop, schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
+                                                  schnorrSecp256k1Prop)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -613,8 +614,11 @@ test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
-                 testGroup "Ed25519 signatures" [
-                                testPropertyNamed "Ed25519 verification behaves correctly on all inputs" "ed25519_correct" . property $ ed25519Prop
+                 testGroup "Ed25519 signatures (V1)" [
+                                testPropertyNamed "Ed25519_V1 verification behaves correctly on all inputs" "ed25519_V1_correct" . property $ ed25519_V1Prop
+                               ],
+                 testGroup "Ed25519 signatures (V2)" [
+                                testPropertyNamed "Ed25519_V2 verification behaves correctly on all inputs" "ed25519_V2_correct" . property $ ed25519_V2Prop
                                ],
                  testGroup "Signatures on the SECP256k1 curve" [
                                 testPropertyNamed "ECDSA verification behaves correctly on all inputs" "ecdsa_correct" . property $ ecdsaSecp256k1Prop,
