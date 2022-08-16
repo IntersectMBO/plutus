@@ -806,7 +806,7 @@ benchmark bitwise
   cc-options:       -O3
 
   if arch(x86_64)
-    cc-options: -mpopcnt
+    cc-options: -mpopcnt -mbmi
 
   build-depends:
     , base

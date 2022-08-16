@@ -1,4 +1,5 @@
 #include "cbits.h"
+#include <stdint.h>
 
 size_t c_popcount_naive(unsigned char const *restrict src, size_t const len) {
   size_t total = 0;

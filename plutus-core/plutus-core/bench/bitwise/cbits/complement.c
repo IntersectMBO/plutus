@@ -1,4 +1,5 @@
 #include "cbits.h"
+#include <stdint.h>
 
 void c_complement_naive(unsigned char *restrict dst,
                         unsigned char const *restrict src, size_t const len) {
