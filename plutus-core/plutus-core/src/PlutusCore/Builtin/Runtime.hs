@@ -14,8 +14,6 @@ import Control.Monad.Except
 import Data.Array
 import NoThunks.Class
 
--- We tried instantiating 'BuiltinMeaning' on the fly and that was much slower than precaching
--- 'BuiltinRuntime's.
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
 -- builtin with no arguments) by instantiating (via 'fromBuiltinRuntimeOptions') a
@@ -90,7 +88,10 @@ instance NFData (BuiltinRuntime val) where
     -- this to WHNF to get it forced to NF.
     rnf = rwhnf
 
--- | A 'BuiltinRuntime' for each builtin from a set of builtins.
+-- | A 'BuiltinRuntime' for each builtin from a set of builtins. Just an 'Array' of cached
+-- 'BuiltinRuntime's. We could instantiate 'BuiltinMeaning' on the fly and avoid caching
+-- 'BuiltinRuntime' in an array, but we've tried it and it was much slower as we do rely on caching
+-- (especially for costing).
 newtype BuiltinsRuntime fun val = BuiltinsRuntime
     { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
     }
