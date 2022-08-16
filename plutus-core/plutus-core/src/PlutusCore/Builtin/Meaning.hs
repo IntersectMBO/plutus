@@ -226,7 +226,7 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             -- outside of 'MakeKnownM'.
             --
             -- We could introduce a level of indirection and say that a 'BuiltinResult' is either
-            -- a bugdeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
+            -- a budgeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
             -- inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
             (BuiltinResult mempty . MakeKnownFailure mempty)
