@@ -164,7 +164,7 @@ of the denotation and the costing function. This is because:
 
 1. the two are fundamentally distinct and we have loads of documentation for each of them
    separately, so conflating them in the actual API would be unnecessary coupling
-2. right now it's clear which bits of the definition of a builtin consitute evaluation and which
+2. right now it's clear which bits of the definition of a builtin constitute evaluation and which
    ones constitute costing as the two are different arguments to 'makeBuiltinMeaning'. If evaluation
    and costing were intertwined, it would be much harder to review the definition of a builtin
 3. ... and it would also be more boilerplate and less clear type signatures
