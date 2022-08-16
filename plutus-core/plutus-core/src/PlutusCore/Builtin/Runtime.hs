@@ -107,5 +107,5 @@ lookupBuiltin
     => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
 -- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
 lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
-    Nothing  -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
-    Just bri -> pure bri
+    Nothing      -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
+    Just runtime -> pure runtime

@@ -104,7 +104,7 @@ The reason why costing functions take unlifted values are:
 {- Note [Optimizations of runCostingFun*]
 We optimize all @runCostingFun*@ functions in the same way:
 
-1. the two @run*Model@ functions are called right after matching on the first argument, so that
+1. the two calls to @run*Model@ are placed right after matching on the first argument, so that
    they are partially computed and cached, which results in them being called only once per builtin
 2. we use a strict case-expression for matching, which GHC can't move inside the resulting lambda
    (unlike a strict let-expression for example)

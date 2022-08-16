@@ -1070,11 +1070,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         -- See Note [Versioned builtins]
         in case ver of
             DefaultFunV1 -> makeBuiltinMeaning
+               @(Integer -> BS.ByteString -> BS.ByteString)
                (\n xs -> BS.cons (fromIntegral @Integer n) xs)
                costingFun
             -- For versions other (i.e. larger) than V1, the first input must be in range [0.255].
             -- See Note [How to add a built-in function: simple cases]
             _ -> makeBuiltinMeaning
+              @(Word8 -> BS.ByteString -> BS.ByteString)
               BS.cons
               costingFun
     toBuiltinMeaning _ver SliceByteString =

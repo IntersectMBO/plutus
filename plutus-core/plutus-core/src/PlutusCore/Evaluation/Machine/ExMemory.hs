@@ -242,7 +242,6 @@ instance ExMemoryUsage Bool where
   memoryUsage _ = 1
   {-# INLINE memoryUsage #-}
 
--- Memory usage for lists: let's just go for a naive traversal for now.
 instance ExMemoryUsage a => ExMemoryUsage [a] where
     memoryUsage = foldl' (\a x -> memoryUsage x + a) 0
     {-# INLINE memoryUsage #-}

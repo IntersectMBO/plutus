@@ -222,7 +222,7 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             --
             -- Note that putting the cost inside of 'MakeKnownM' is not an option, since forcing
             -- the 'MakeKnownM' computation is exactly forcing the builtin application, which we
-            -- can't do before accouting for the cost of the application, i.e. the cost must be
+            -- can't do before accounting for the cost of the application, i.e. the cost must be
             -- outside of 'MakeKnownM'.
             --
             -- We could introduce a level of indirection and say that a 'BuiltinResult' is either
