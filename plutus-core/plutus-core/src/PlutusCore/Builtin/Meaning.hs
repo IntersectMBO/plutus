@@ -251,11 +251,11 @@ of a reason to add the call.
 -}
 
 {- Note [Strict application in runtime denotations]
-Runtime denotations contain a number of strict applications via @($!)@. Those are important: without
-them GHC thinks that the argument may not be needed in the end and so creates a thunk for it, which
-is not only unnecessary allocation, but also prevents things from being unboxed. The argument may
-indeed not be needed in the end, but in that case we've got an evaluation failure and we're about to
-terminate evaluation anyway, hence we care much more about optimizing the happy path.
+Runtime denotations contain strict let-bindings. Those are important: without them GHC thinks that
+the argument may not be needed in the end and so creates a thunk for it, which is not only
+unnecessary allocation, but also prevents things from being unboxed. The argument may indeed not be
+needed in the end, but in that case we've got an evaluation failure and we're about to terminate
+evaluation anyway, hence we care much more about optimizing the happy path.
 -}
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
@@ -267,15 +267,16 @@ instance
 
     -- See Note [One-shotting runtime denotations].
     -- Unlift, then recurse.
-    toMonoImmediateF (f, exF) = BuiltinLamAbs . oneShot $
+    toMonoImmediateF (f, exF) = BuiltinLamAbs . oneShot $ \arg -> do
+        x <- readKnown arg
         -- See Note [Strict application in runtime denotations].
-        fmap (\x -> toMonoImmediateF @val @args @res . (,) (f x) $! exF x) . readKnown
+        let !exY = exF x
+        pure $ toMonoImmediateF @val @args @res (f x, exY)
     {-# INLINE toMonoImmediateF #-}
 
     -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
     toMonoDeferredF getBoth = BuiltinLamAbs . oneShot $ \arg ->
-        -- See Note [Strict application in runtime denotations].
         -- Ironically computing the unlifted value strictly is the best way of doing deferred
         -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
         -- saturation and any evaluation failure is only registered when the whole builtin
@@ -284,8 +285,12 @@ instance
         -- exception at any stage, that would be a bug regardless of how unlifting is aligned.
         --
         -- 'pure' signifies that no failure can occur at this point.
-        pure . toMonoDeferredF @val @args @res $!
-            (\(f, exF) x -> (,) (f x) $! exF x) <$> getBoth <*> readKnown arg
+        pure . toMonoDeferredF @val @args @res $! do
+            (f, exF) <- getBoth
+            x <- readKnown arg
+            -- See Note [Strict application in runtime denotations].
+            let !exY = exF x
+            pure (f x, exY)
     {-# INLINE toMonoDeferredF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
