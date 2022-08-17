@@ -124,10 +124,13 @@ prop_builtinEvaluation ver bn costModel mkGen f = property $ do
     args0 <- forAllNoShow $ mkGen bn
     let
         eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> MakeKnownM (Term uni fun)
-        eval []           (BuiltinResult _ getX)    = getX
-        eval (arg : args) (BuiltinLamAbs toRuntime) = eval args =<< liftReadKnownM (toRuntime arg)
-        eval args         (BuiltinDelay runtime)    = eval args runtime
-        eval _ _                                    =
+        eval [] (BuiltinResult _ getX) =
+            getX
+        eval (arg : args) (BuiltinExpectArgument toRuntime) =
+            eval args =<< liftReadKnownM (toRuntime arg)
+        eval args (BuiltinExpectForce runtime) =
+            eval args runtime
+        eval _ _ =
             -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0

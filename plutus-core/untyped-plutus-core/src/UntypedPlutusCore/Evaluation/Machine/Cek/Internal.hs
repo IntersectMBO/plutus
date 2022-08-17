@@ -696,7 +696,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            BuiltinDelay runtime' -> do
+            BuiltinExpectForce runtime' -> do
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
@@ -732,7 +732,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinLamAbs f -> case f arg of
+            BuiltinExpectArgument f -> case f arg of
                 Left err       -> throwKnownTypeErrorWithCause argTerm err
                 Right runtime' -> do
                     res <- evalBuiltinApp fun term' runtime'

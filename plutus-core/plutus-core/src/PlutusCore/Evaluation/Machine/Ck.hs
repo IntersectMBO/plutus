@@ -283,7 +283,7 @@ instantiateEvaluate stack ty (VBuiltin term runtime) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        BuiltinDelay runtime' -> do
+        BuiltinExpectForce runtime' -> do
             res <- evalBuiltinApp term' runtime'
             stack <| res
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
@@ -308,7 +308,7 @@ applyEvaluate stack (VBuiltin term runtime) arg = do
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        BuiltinLamAbs f -> case f arg of
+        BuiltinExpectArgument f -> case f arg of
             Left err       -> throwKnownTypeErrorWithCause argTerm err
             Right runtime' -> do
                 res <- evalBuiltinApp term' runtime'

@@ -267,7 +267,7 @@ instance
 
     -- See Note [One-shotting runtime denotations].
     -- Unlift, then recurse.
-    toMonoImmediateF (f, exF) = BuiltinLamAbs . oneShot $ \arg -> do
+    toMonoImmediateF (f, exF) = BuiltinExpectArgument . oneShot $ \arg -> do
         x <- readKnown arg
         -- See Note [Strict application in runtime denotations].
         let !exY = exF x
@@ -276,7 +276,7 @@ instance
 
     -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
-    toMonoDeferredF getBoth = BuiltinLamAbs . oneShot $ \arg ->
+    toMonoDeferredF getBoth = BuiltinExpectArgument . oneShot $ \arg ->
         -- Ironically computing the unlifted value strictly is the best way of doing deferred
         -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
         -- saturation and any evaluation failure is only registered when the whole builtin
@@ -331,10 +331,10 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
 
-    toPolyImmediateF = BuiltinDelay . toPolyImmediateF @binds @val @args @res
+    toPolyImmediateF = BuiltinExpectForce . toPolyImmediateF @binds @val @args @res
     {-# INLINE toPolyImmediateF #-}
 
-    toPolyDeferredF = BuiltinDelay . toPolyDeferredF @binds @val @args @res
+    toPolyDeferredF = BuiltinExpectForce . toPolyDeferredF @binds @val @args @res
     {-# INLINE toPolyDeferredF #-}
 
 -- | Ensure a built-in function is not nullary and throw a nice error otherwise.
