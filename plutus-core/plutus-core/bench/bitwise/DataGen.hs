@@ -3,6 +3,7 @@
 
 module DataGen (
   mkUnaryArg,
+  mkHomogenousArg,
   mkBinaryArgs,
   sizes,
   noCleanup,
@@ -10,7 +11,9 @@ module DataGen (
 
 import Control.Monad (replicateM)
 import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
 import Data.Kind (Type)
+import Data.Word (Word8)
 import GHC.Exts (fromListN)
 import System.Random.Stateful (mkStdGen, randomM, runStateGen_)
 
@@ -18,6 +21,10 @@ import System.Random.Stateful (mkStdGen, randomM, runStateGen_)
 mkUnaryArg :: Int -> IO ByteString
 mkUnaryArg len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
   fromListN len <$> replicateM len (randomM gen)
+
+-- Generate a ByteString of a given length full of the given byte
+mkHomogenousArg :: Int -> Word8 -> IO ByteString
+mkHomogenousArg len = pure . BS.replicate len
 
 -- Generate two ByteStrings, both of a given length
 mkBinaryArgs :: Int -> IO (ByteString, ByteString)

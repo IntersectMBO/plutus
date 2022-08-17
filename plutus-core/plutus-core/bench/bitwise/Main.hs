@@ -6,6 +6,7 @@
 module Main (main) where
 
 import Benches.Complement qualified as Complement
+import Benches.Homogenous qualified as Homogenous
 import Benches.Popcount qualified as Popcount
 import Data.Bits (complement, zeroBits, (.&.))
 import Data.ByteString (ByteString)
@@ -33,6 +34,9 @@ main = do
       ],
     testGroup "Complement" [
       Complement.benches
+      ],
+    testGroup "Homogenous" [
+      Homogenous.benches
       ],
     bgroup bandLabel . fmap (andBench bandLabel) $ sizes,
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,

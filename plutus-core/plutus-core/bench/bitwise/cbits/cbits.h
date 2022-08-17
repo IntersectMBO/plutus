@@ -1,6 +1,7 @@
 #ifndef CBITS_H
 #define CBITS_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 // Popcount
@@ -15,6 +16,16 @@ size_t c_popcount_block_unroll(unsigned char const *restrict src, size_t len);
 
 void c_complement_naive(unsigned char *restrict dst,
                         unsigned char const *restrict src, size_t const len);
+
+// Homogeneity
+
+bool c_homogenous_naive(unsigned char const needle,
+                        unsigned char const *restrict haystack,
+                        size_t const len);
+
+bool c_homogenous_sliding_window(unsigned char const needle,
+                                 unsigned char const *restrict haystack,
+                                 size_t len);
 
 // Others
 

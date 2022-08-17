@@ -793,6 +793,7 @@ benchmark bitwise
   main-is:          Main.hs
   other-modules:
     Benches.Complement
+    Benches.Homogenous
     Benches.Popcount
     DataGen
     Implementations
@@ -800,6 +801,7 @@ benchmark bitwise
   include-dirs:     plutus-core/bench/bitwise/cbits
   c-sources:
     plutus-core/bench/bitwise/cbits/complement.c
+    plutus-core/bench/bitwise/cbits/homogenous.c
     plutus-core/bench/bitwise/cbits/implementation.c
     plutus-core/bench/bitwise/cbits/popcount.c
 
