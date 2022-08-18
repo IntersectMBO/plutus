@@ -5,6 +5,7 @@ module DataGen (
   mkUnaryArg,
   mkHomogenousArg,
   mkBinaryArgs,
+  mkZeroesOne,
   sizes,
   noCleanup,
   ) where
@@ -25,6 +26,10 @@ mkUnaryArg len = pure . runStateGen_ (mkStdGen 42) $ \gen ->
 -- Generate a ByteString of a given length full of the given byte
 mkHomogenousArg :: Int -> Word8 -> IO ByteString
 mkHomogenousArg len = pure . BS.replicate len
+
+-- Generates n - 1 zeroes, followed by a one byte
+mkZeroesOne :: Int -> IO ByteString
+mkZeroesOne len = pure $ BS.snoc (BS.replicate (len - 1) 0x00) 0x01
 
 -- Generate two ByteStrings, both of a given length
 mkBinaryArgs :: Int -> IO (ByteString, ByteString)
