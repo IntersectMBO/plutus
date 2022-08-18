@@ -17,4 +17,6 @@ instance Flat.Flat a => Serialise (SerialiseViaFlat a) where
 decodeViaFlat :: Flat.Get a -> CBOR.Decoder s a
 decodeViaFlat decoder = do
     bs <- decodeBytes
-    fromRightM (fail . show) $ Flat.unflatWith decoder bs
+    -- lift any flat's failures to be cborg failures (MonadFail)
+    fromRightM (fail . show) $
+        Flat.unflatWith decoder bs

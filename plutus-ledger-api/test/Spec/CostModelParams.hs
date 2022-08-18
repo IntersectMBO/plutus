@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
 module Spec.CostModelParams where
 
@@ -14,6 +15,8 @@ import PlutusCore.Evaluation.Machine.MachineParameters as Plutus
 
 import Barbies
 import Control.Lens
+import Control.Monad.Except
+import Control.Monad.Writer.Strict
 import Data.Either
 import Data.List.Extra
 import Data.Map as Map
@@ -35,24 +38,32 @@ tests =
             175 @=? length (enumerate @V3.ParamName)
             175 @=? length v3CostModelParamNames
     , testCase "text" $ do
-            -- this depends on the fact that V1/V2 are alphabetically-ordered; does not have to hold for future versions
+            -- this depends on the fact that V1/V2 are alphabetically-ordered;
+            -- does not have to hold for future protocol versions when adding new builtins
             altV1CostModelParamNames @=? v1CostModelParamNames
-            -- this depends on the fact that V1/V2 are alphabetically-ordered; does not have to hold for future versions
+            -- this depends on the fact that V1/V2 are alphabetically-ordered;
+            -- does not have to hold for future protocol versions when adding new builtins
             Map.keys (fromJust Plutus.defaultCostModelParams) @=? v2CostModelParamNames
     , testCase "context length" $ do
             let defaultCostValues = Map.elems $ fromJust defaultCostModelParams
             -- the defaultcostmodelparams reflects only the latest version V3, so this should succeed because the lengths match
-            assertBool "wrong number of arguments in V2.mkContext" $ isRight $ V3.mkEvaluationContext defaultCostValues
+            assertBool "wrong number of arguments in V2.mkContext" $ isRight $ runExcept $ runWriterT $ V3.mkEvaluationContext defaultCostValues
             -- currently v2 args ==v3 args
-            assertBool "wrong number of arguments in V2.mkContext" $ isRight $ V2.mkEvaluationContext defaultCostValues
-            -- this one should not succeed because V1 evaluation-context expects less number of arguments.
-            assertBool "wrong number of arguments in V1.mkContext" $ isLeft $ V1.mkEvaluationContext defaultCostValues
+            assertBool "wrong number of arguments in V2.mkContext" $ isRight $ runExcept $ runWriterT $ V2.mkEvaluationContext defaultCostValues
+            -- this one should succeed because we pass more params
+            assertBool "larger number of params did not warn" $ hasWarnMoreParams (length v3CostModelParamNames) (length v3CostModelParamNames+1) $
+                runExcept $ runWriterT $ V3.mkEvaluationContext $ defaultCostValues ++ [1] -- dummy param value appended
     , testCase "cost model parameters" $ do
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v2 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v2CostModelParamNames
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v3 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v3CostModelParamNames
     ]
+  where
+    hasWarnMoreParams :: Int -> Int -> Either a (b, [CostModelApplyWarn]) -> Bool
+    hasWarnMoreParams testExpected testActual (Right (_,[CMTooManyParamsWarn{..}]))
+        | testExpected==cmTooManyExpected && testActual==cmTooManyActual  = True
+    hasWarnMoreParams _ _ _ = False
 
 v1CostModelParamNames :: [Text.Text]
 v1CostModelParamNames = Text.pack . showParamName <$> enumerate @V1.ParamName

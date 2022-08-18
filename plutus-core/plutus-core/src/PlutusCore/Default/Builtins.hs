@@ -25,7 +25,8 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifySchnorrSecp256k1Signature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
+               verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
@@ -1111,10 +1112,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             Hash.blake2b_256
             (runCostingFunOneArgument . paramBlake2b_256)
-    toBuiltinMeaning _ver VerifyEd25519Signature =
-        makeBuiltinMeaning
-            verifyEd25519Signature_V1   -- TODO: also allow verifyEd25519Signature_V2
-            (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+    toBuiltinMeaning ver VerifyEd25519Signature =
+        let verifyEd25519Signature =
+                case ver of
+                  DefaultFunV1 -> verifyEd25519Signature_V1
+                  _            -> verifyEd25519Signature_V2
+        in makeBuiltinMeaning
+           verifyEd25519Signature
+           -- Benchmarks indicate that the two versions have very similar
+           -- execution times, so it's safe to use the same costing function for
+           -- both.
+           (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
        fact two valid values of s, one effectively the negative of the other.
