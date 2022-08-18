@@ -25,3 +25,9 @@ The general process for creating an ADR is:
 3. adding the ADR in the table of content tree of the Readthedocs
 
 4. committing and pushing to the repository
+
+.. toctree::
+   :maxdepth: 1
+   :titlesonly:
+
+   0001-record-architecture-decisions
