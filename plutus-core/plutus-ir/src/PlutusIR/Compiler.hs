@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,6 +13,7 @@ module PlutusIR.Compiler (
     AsTypeError (..),
     AsTypeErrorExt (..),
     Provenance (..),
+    DatatypeComponent (..),
     noProvenance,
     CompilationOpts,
     coOptimize,
@@ -22,6 +24,7 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
+    coInlineHints,
     coProfile,
     defaultCompilationOpts,
     CompilationCtx,
@@ -52,6 +55,7 @@ import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck.Internal
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 
 import Control.Lens
 import Control.Monad
@@ -63,11 +67,11 @@ import PlutusPrelude
 -- Simplifier passes
 data Pass uni fun =
   Pass { _name      :: String
-       , _shouldRun :: forall m e a.   Compiling m e uni fun a => m Bool
-       , _pass      :: forall m e a b. Compiling m e uni fun a => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
+       , _shouldRun :: forall m e a. Compiling m e uni fun a => m Bool
+       , _pass      :: forall m e a. Compiling m e uni fun a => Term TyName Name uni fun (Provenance a) -> m (Term TyName Name uni fun (Provenance a))
        }
 
-onOption :: Compiling m e uni fun a => Lens' CompilationOpts Bool -> m Bool
+onOption :: Compiling m e uni fun a => Lens' (CompilationOpts a) Bool -> m Bool
 onOption coOpt = view (ccOpts . coOpt)
 
 isVerbose :: Compiling m e uni fun a => m Bool
@@ -95,7 +99,11 @@ availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "inline"               (onOption coDoSimplifierInline)             Inline.inline
+    , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
+                                                                                  hints <- view (ccOpts . coInlineHints)
+                                                                                  ver <- view ccBuiltinVer
+                                                                                  Inline.inline hints ver t
+                                                                              )
     ]
 
 -- | Actual simplifier
@@ -108,7 +116,7 @@ simplify = foldl' (>=>) pure (map applyPass availablePasses)
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts $ simplify'
+simplifyTerm = runIfOpts simplify'
     -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
@@ -127,8 +135,13 @@ simplifyTerm = runIfOpts $ simplify'
 
 -- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
-floatTerm :: (Compiling m e uni fun a, Semigroup b) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-floatTerm = runIfOpts $ pure . LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm
+floatTerm
+    :: (Compiling m e uni fun a, Semigroup b)
+    => Term TyName Name uni fun b
+    -> m (Term TyName Name uni fun b)
+floatTerm t = do
+    ver <- view ccBuiltinVer
+    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm ver) t
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -140,10 +153,13 @@ typeCheckTerm t = do
         Nothing       -> pure ()
 
 check :: Compiling m e uni fun b => Term TyName Name uni fun (Provenance b) -> m ()
-check arg = do
-    shouldCheck <- view (ccOpts . coPedantic)
-    -- the typechecker requires global uniqueness, so rename here
-    if shouldCheck then typeCheckTerm =<< PLC.rename arg else pure ()
+check arg =
+    whenM (view (ccOpts . coPedantic)) $
+         -- the typechecker requires global uniqueness, so rename here
+        typeCheckTerm =<< PLC.rename arg
+
+withVer :: MonadReader (CompilationCtx uni fun a) m => (PLC.BuiltinVersion fun -> m t) -> m t
+withVer = (view ccBuiltinVer >>=)
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -159,7 +175,7 @@ compileToReadable =
     >=> PLC.rename
     >=> through typeCheckTerm
     >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> DeadCode.removeDeadBindings
+    >=> (withVer . flip DeadCode.removeDeadBindings)
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
     >=> (<$ logVerbose "  !!! floatTerm")
@@ -175,7 +191,9 @@ compileReadableToPlc =
     >=> NonStrict.compileNonStrictBindings False
     >=> through check
     >=> (<$ logVerbose "  !!! thunkRecursions")
-    >=> (pure . ThunkRec.thunkRecursions)
+    >=> (withVer . fmap pure . flip ThunkRec.thunkRecursions)
+    -- Thunking recursions breaks global uniqueness
+    >=> PLC.rename
     >=> through check
     -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
     -- See Note [Using unit versus force/delay]
@@ -191,7 +209,7 @@ compileReadableToPlc =
     -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
     -- can eliminate any of them which are unused here.
     >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> DeadCode.removeDeadBindings
+    >=> (withVer . flip DeadCode.removeDeadBindings)
     >=> through check
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm

@@ -126,7 +126,19 @@ SIG sha3-256 =
   con bytestring ∷ []
   ,,
   con bytestring
-SIG verifySignature =
+SIG verifyEd25519Signature =
+  ∅
+  ,,
+  con bytestring ∷ con bytestring ∷ con bytestring ∷ []
+  ,,
+  con bool
+SIG verifyEcdsaSecp256k1Signature =
+  ∅
+  ,,
+  con bytestring ∷ con bytestring ∷ con bytestring ∷ []
+  ,,
+  con bool
+SIG verifySchnorrSecp256k1Signature =
   ∅
   ,,
   con bytestring ∷ con bytestring ∷ con bytestring ∷ []

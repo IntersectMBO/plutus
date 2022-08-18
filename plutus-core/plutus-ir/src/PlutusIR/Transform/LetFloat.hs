@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -6,12 +7,19 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 module PlutusIR.Transform.LetFloat (floatTerm) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusIR
+import PlutusIR.Purity
+import PlutusIR.Subst
+
 import Control.Arrow ((>>>))
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Data.Coerce
-import Data.Foldable
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as M
 import Data.Map.Monoidal qualified as MM
@@ -20,12 +28,6 @@ import Data.Semigroup.Generic
 import Data.Set qualified as S
 import Data.Set.Lens (setOf)
 import GHC.Generics
-import PlutusCore qualified as PLC
-import PlutusCore.Constant qualified as PLC
-import PlutusCore.Name qualified as PLC
-import PlutusIR
-import PlutusIR.Purity
-import PlutusIR.Subst
 
 {- Note [Let Floating pass]
 
@@ -149,7 +151,11 @@ representativeBindingUnique =
 type Scope = M.Map PLC.Unique Pos
 
 -- | The first pass has a reader context of current depth, and (term&type)variables in scope.
-data MarkCtx = MarkCtx { _markCtxDepth :: Depth, _markCtxScope :: Scope }
+data MarkCtx fun = MarkCtx {
+    _markCtxDepth     :: Depth
+    , _markCtxScope   :: Scope
+    , _markBuiltinVer :: PLC.BuiltinVersion fun
+    }
 makeLenses ''MarkCtx
 
 -- | The result of the first pass is a subset(union of all computed scopes).
@@ -189,11 +195,12 @@ type FloatTable tyname name uni fun a = MM.MonoidalMap Pos (NE.NonEmpty (Binding
 -- | The 1st pass of marking floatable lets
 mark :: forall tyname name uni fun a.
       (Ord tyname, Ord name, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, PLC.ToBuiltinMeaning uni fun)
-     => Term tyname name uni fun a
+     => PLC.BuiltinVersion fun
+     -> Term tyname name uni fun a
      -> Marks
-mark = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty) . go
+mark ver = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty ver) . go
   where
-    go :: Term tyname name uni fun a -> ReaderT MarkCtx (Writer Marks) ()
+    go :: Term tyname name uni fun a -> ReaderT (MarkCtx fun) (Writer Marks) ()
     go = breakNonRec >>> \case
         -- lam/Lam are treated the same.
         LamAbs _ n _ tBody  -> withLam n $ go tBody
@@ -202,9 +209,10 @@ mark = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty) . go
         -- main operation: for letrec or single letnonrec
         Let ann r bs@(representativeBindingUnique -> letU) tIn ->
           let letN = BindingGrp ann r bs in
-          if floatable letN
-          then do
-            scope <- asks _markCtxScope
+          ifM (floatable letN)
+          -- then
+          (do
+            scope <- view markCtxScope
             let freeVars =
                     -- if Rec, remove the here-bindings from free
                     ifRec r (S.\\ setOf (traversed.bindingIds) bs) $
@@ -220,7 +228,7 @@ mark = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty) . go
             withDepth (const floatDepth) $
                 -- if rec, then its bindings are in scope in the rhs'es
                 ifRec r (withBs bs floatPos) $
-                    traverse_ go (bs^..traversed.bindingSubterms)
+                    traverseOf_ (traversed . bindingSubterms) go bs
 
             -- visit the inTerm
             -- bindings are inscope in the InTerm for both rec&nonrec
@@ -228,15 +236,17 @@ mark = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty) . go
 
             -- collect here the new mark and propagate all
             tell $ M.singleton letU floatPos
-          else do
+          )
+          -- else
+          $ do
             -- since it is unfloatable (effectful), this let is a new anchor
             -- acts as anchor both in rhs'es and inTerm
             withDepth (+1) $ do
-                depth <- asks _markCtxDepth
+                depth <- view markCtxDepth
                 let toPos = Pos depth letU
                 -- visit the rhs'es
                 -- if rec, then its bindings are in scope in the rhs'es
-                ifRec r (withBs bs $ toPos LetRhs) $ traverse_ go (bs^..traversed.bindingSubterms)
+                ifRec r (withBs bs $ toPos LetRhs) $ traverseOf_ (traversed . bindingSubterms) go bs
 
                 -- bindings are inscope in the InTerm for both rec&nonrec
                 withBs bs (toPos LamBody) $ go tIn
@@ -254,9 +264,8 @@ calcFreeVars (BindingGrp _ r bs) = foldMap1 calcBinding bs
     -- given a binding return all its free term *AND* free type variables
     calcBinding :: Binding tyname name uni fun a -> S.Set PLC.Unique
     calcBinding b =
-        -- OPTIMIZE: safe to change to S.mapMonotonic?
-        S.map (^.PLC.theUnique) (fvBinding b)
-        <> S.map (^.PLC.theUnique) (ftvBinding r b)
+        setOf (fvBinding . PLC.theUnique) b
+        <> setOf (ftvBinding r . PLC.theUnique) b
 
 -- | The second pass of cleaning the term of the floatable lets, and placing them in a separate map
 -- OPTIMIZE: use State for building the FloatTable, and for reducing the Marks
@@ -274,7 +283,7 @@ removeLets marks term = runWriter $ go term
         -- main operation: for letrec or single letnonrec
         Let a r bs@(representativeBindingUnique -> letU) tIn -> do
             -- go to rhs'es and collect their floattable + cleanedterm
-            bs' <- traverse goBinding bs
+            bs' <- bs & (traversed . bindingSubterms) go
             -- go to inTerm and collect its floattable + cleanedterm
             tIn' <- go tIn
             case M.lookup letU marks of
@@ -299,14 +308,6 @@ removeLets marks term = runWriter $ go term
         t@Constant{} -> pure t
         t@Builtin{} -> pure t
         t@Error{} -> pure t
-
-    goBinding :: Binding tyname name uni fun a
-              -> Writer (FloatTable tyname name uni fun a) (Binding tyname name uni fun a)
-    goBinding = \case
-        TermBind x s d t -> TermBind x s d <$> go t
-        -- no term inside here, nothing to do
-        b@TypeBind{}     -> pure b
-        b@DatatypeBind{} -> pure b
 
 -- | The 3rd and last pass that, given the result of 'removeLets', places the lets back (floats) at the right marked positions.
 floatBackLets :: forall tyname name uni fun a term m.
@@ -390,9 +391,9 @@ floatTerm :: (PLC.ToBuiltinMeaning uni fun,
             PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
             Ord tyname, Ord name, Semigroup a
             )
-          => Term tyname name uni fun a -> Term tyname name uni fun a
-floatTerm t =
-    mark t
+          => PLC.BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+floatTerm ver t =
+    mark ver t
     & flip removeLets t
     & uncurry floatBackLets
 
@@ -401,20 +402,19 @@ floatTerm t =
 maxPos :: M.Map k Pos -> Pos
 maxPos = foldr max topPos
 
-withDepth :: (r ~ MarkCtx, MonadReader r m)
+withDepth :: (r ~ MarkCtx fun, MonadReader r m)
           => (Depth -> Depth) -> m a -> m a
 withDepth = local . over markCtxDepth
 
-withLam :: (r ~ MarkCtx, MonadReader r m, PLC.HasUnique name unique)
+withLam :: (r ~ MarkCtx fun, MonadReader r m, PLC.HasUnique name unique)
         => name
         -> m a -> m a
-withLam n = local $ \ (MarkCtx d scope) ->
-    let u = n^.PLC.theUnique
-        d' = d+1
+withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope ver) ->
+    let d' = d+1
         pos' = Pos d' u LamBody
-    in MarkCtx d' (M.insert u pos' scope)
+    in MarkCtx d' (M.insert u pos' scope) ver
 
-withBs :: (r ~ MarkCtx, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
+withBs :: (r ~ MarkCtx fun, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
        => NE.NonEmpty (Binding tyname name uni fun a3)
        -> Pos
        -> m a -> m a
@@ -427,22 +427,30 @@ ifRec r f a = case r of
     Rec    -> f a
     NonRec -> a
 
-floatable :: PLC.ToBuiltinMeaning uni fun => BindingGrp tyname name uni fun a -> Bool
-floatable (BindingGrp _ _ bs) = all hasNoEffects bs
+floatable :: (MonadReader (MarkCtx fun) m , PLC.ToBuiltinMeaning uni fun) => BindingGrp tyname name uni fun a -> m Bool
+floatable (BindingGrp _ _ bs) = do
+    ver <- view markBuiltinVer
+    pure $ all (hasNoEffects ver) bs
+           &&
+           -- See Note [Floating type-lets]
+           none isTypeBind bs
 
 {-| Returns if a binding has absolutely no effects  (see Value.hs)
 See Note [Purity, strictness, and variables]
 An extreme alternative implementation is to treat *all strict* bindings as unfloatable, e.g.:
 `hasNoEffects = \case {TermBind _ Strict _  _ -> False; _ -> True}`
 -}
-hasNoEffects :: PLC.ToBuiltinMeaning uni fun => Binding tyname name uni fun a -> Bool
-hasNoEffects = \case
+hasNoEffects :: PLC.ToBuiltinMeaning uni fun => PLC.BuiltinVersion fun -> Binding tyname name uni fun a -> Bool
+hasNoEffects ver = \case
     TypeBind{}               -> True
     DatatypeBind{}           -> True
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
     -- TODO: We could maybe do better here, but not worth it at the moment
-    TermBind _ Strict _ t    -> isPure (const NonStrict) t
+    TermBind _ Strict _ t    -> isPure ver (const NonStrict) t
+
+isTypeBind :: Binding tyname name uni fun a -> Bool
+isTypeBind = \case TypeBind{} -> True; _ -> False
 
 -- | Breaks down linear let nonrecs by
 -- the rule: {let nonrec (b:bs) in t} === {let nonrec b in let nonrec bs in t}
@@ -477,4 +485,18 @@ The end result is that no nested, floatable let will appear anymore inside anoth
 (e.g. invalid output:  let x=1+(let y=3 in y) in ...)
 *EXCEPT* if the nested let is intercepted by a lam/Lam anchor (depends on a lam/Lam that is located inside the parent-let's rhs)
 e.g. valid output: let x= \z -> (let y = 3+z in y) in ...
+-}
+
+{- Note [Floating type-lets]
+
+In general, type-lets cannot be floated because of opaqueness. For example, it is unsound to turn
+
+(let a = x in \(b : a) t) (y : x)
+
+into
+
+let a = x in (\(b : a) t) (y : x)
+
+Because type-lets are opaque, this doesn't type check - the formal parameter has type `a` while
+`y` has type `x`.
 -}

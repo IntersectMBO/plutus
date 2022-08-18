@@ -3,18 +3,23 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:defer-errors -fplugin-opt PlutusTx.Plugin:no-context -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
+{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
 
 module Plugin.Typeclasses.Spec where
 
-import Common
-import Lib
+import Test.Tasty.Extras
+
 import Plugin.Typeclasses.Lib
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
+import PlutusTx.Test
 
 
 import Data.Proxy

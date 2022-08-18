@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 
@@ -15,7 +16,7 @@ import PlutusIR.Analysis.Size
 import PlutusIR.Core
 
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (ToBuiltinMeaning)
+import PlutusCore.Builtin as PLC
 import PlutusCore.Name
 
 import Algebra.Graph qualified as C
@@ -96,7 +97,7 @@ we know there's a bug somewhere and if it doesn't, we don't care about it.
 data RetainedSize
     = Retains Size
     | NotARetainer
-    deriving (Show)
+    deriving stock (Show)
 
 instance Pretty RetainedSize where
     pretty (Retains size) = "$" <> pretty size <> "$"
@@ -174,10 +175,12 @@ hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.membe
 -- | Compute the retention map of a term.
 termRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
-    => Term tyname name uni fun ann -> IntMap Size
-termRetentionMap term = depsRetentionMap sizeInfo deps where
+    => PLC.BuiltinVersion fun
+    -> Term tyname name uni fun ann
+    -> IntMap Size
+termRetentionMap ver term = depsRetentionMap sizeInfo deps where
     sizeInfo = toDirectionRetentionMap term
-    deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps term
+    deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps ver term
 
 -- | Apply a function to the annotation of each part of every 'Binding' in a term.
 reannotateBindings
@@ -214,11 +217,12 @@ reannotateBindings f = goTerm where
 -- | Annotate each part of every 'Binding' in a term with the size that it retains.
 annotateWithRetainedSize
     :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, ToBuiltinMeaning uni fun)
-    => Term tyname name uni fun ann
+    => PLC.BuiltinVersion fun
+    -> Term tyname name uni fun ann
     -> Term tyname name uni fun RetainedSize
 -- @reannotateBindings@ only processes annotations "associated with" a unique, so it can't change
 -- the type. Therefore we need to set all the bindings to an appropriate type beforehand.
-annotateWithRetainedSize term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
-    retentionMap = termRetentionMap term
+annotateWithRetainedSize ver term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
+    retentionMap = termRetentionMap ver term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.
     upd i _ = Retains $ IntMap.findWithDefault (Size 0) i retentionMap

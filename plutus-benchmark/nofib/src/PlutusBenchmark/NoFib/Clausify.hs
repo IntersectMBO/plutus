@@ -27,7 +27,7 @@ data Formula =
   Con Formula Formula |
   Imp Formula Formula |
   Eqv Formula Formula
-      deriving (Haskell.Show)
+      deriving stock (Haskell.Show)
 Tx.makeLift ''Formula
 
 -- separate positive and negative literals, eliminating duplicates
@@ -185,7 +185,8 @@ getFormula =
 runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
-{-# INLINABLE mkClausifyTerm #-}
+mkClausifyCode :: StaticFormula -> Tx.CompiledCode [LRVars]
+mkClausifyCode formula = $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula
+
 mkClausifyTerm :: StaticFormula -> Term
-mkClausifyTerm formula = compiledCodeToTerm $
-                         $$(Tx.compile [|| runClausify ||])`Tx.applyCode` Tx.liftCode formula
+mkClausifyTerm formula = compiledCodeToTerm $ mkClausifyCode formula

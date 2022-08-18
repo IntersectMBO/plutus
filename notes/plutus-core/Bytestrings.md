@@ -30,7 +30,7 @@ that.  However we do provide concrete syntax for bytestrings:
 `(con bytestring #91ef22)` for example; `(con bytestring #)` represents the empty bytestring.
 
 The problem is that there is no easy way to _construct_ a bytestring in Haskell
-and convert it into a PLC bytestring, or to programatically construct a new
+and convert it into a PLC bytestring, or to programmatically construct a new
 bytestring inside a Plutus Core program.  The `Data` type supports bytestrings
 and can be used to pass bytestrings into validators, but this isn't very
 general-purpose.
@@ -102,7 +102,7 @@ add some extra builtins for these at both the PlutusTx and PLC levels.
 Here's an initial proposal for some new Plutus Core builtins to improve bytestring support.
 
   * `stringToBytestring`, converting built-in PLC strings to bytestrings and implemented using `pack`.
-     I think that in conjuction with `OverloadedStrings` this would make it reasonably easy to convert
+     I think that in conjunction with `OverloadedStrings` this would make it reasonably easy to convert
      "literal" Haskell ByteStrings to PLC bytestrings.
   * `integerToChar`, implemented using `Data.Char.chr`.  This could be used to build bytestrings at execution time.
     `consChar` (see below) would help with this.

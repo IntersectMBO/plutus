@@ -1,1 +1,1 @@
-iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) (/\(r :: *) -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\(nat :: *) -> all (r :: *). r -> (nat -> r) -> r) -> r) -> z)
+iwrap (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\nat -> all r. r -> (nat -> r) -> r) (/\r -> \(z : r) -> \(f : ifix (\(rec :: (* -> *) -> *) -> \(f :: * -> *) -> f (rec f)) (\nat -> all r. r -> (nat -> r) -> r) -> r) -> z)

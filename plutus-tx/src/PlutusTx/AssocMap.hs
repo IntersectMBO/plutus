@@ -1,4 +1,6 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -38,6 +40,7 @@ module PlutusTx.AssocMap (
     ) where
 
 import Control.DeepSeq (NFData)
+import Data.Data
 import GHC.Generics (Generic)
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
@@ -53,7 +56,7 @@ import Prettyprinter (Pretty (..))
 
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map { unMap :: [(k, v)] }
-    deriving stock (Generic, Haskell.Eq, Haskell.Show)
+    deriving stock (Generic, Haskell.Eq, Haskell.Show, Data)
     deriving newtype (Eq, Ord, NFData)
 
 -- Hand-written instances to use the underlying 'Map' type in 'Data', and to be reasonably efficient.

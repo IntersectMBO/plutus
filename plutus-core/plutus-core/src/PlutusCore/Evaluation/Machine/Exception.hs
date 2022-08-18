@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | The exceptions that an abstract machine can throw.
 
 -- appears in the generated instances
@@ -8,22 +9,23 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlutusCore.Evaluation.Machine.Exception
     ( UnliftingError (..)
     , AsUnliftingError (..)
+    , KnownTypeError (..)
     , MachineError (..)
     , AsMachineError (..)
     , EvaluationError (..)
     , AsEvaluationError (..)
     , ErrorWithCause (..)
     , EvaluationException
+    , throwNotAConstant
     , mapCauseInMachineException
+    , throwing
     , throwing_
     , throwingWithCause
     , extractEvaluationResult
@@ -37,8 +39,9 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Control.Lens
-import Control.Monad.Error.Lens (throwing_)
+import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
+import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
 import ErrorCode
@@ -47,8 +50,14 @@ import Prettyprinter
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
 newtype UnliftingError
     = UnliftingErrorE Text
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
     deriving newtype (IsString, Semigroup, NFData)
+
+-- | The type of errors that 'readKnown' and 'makeKnown' can return.
+data KnownTypeError
+    = KnownTypeUnliftingError UnliftingError
+    | KnownTypeEvaluationFailure
+    deriving stock (Eq)
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun
@@ -71,7 +80,8 @@ data MachineError fun
       -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
       -- See the machine implementations for details.
     | UnknownBuiltin fun
-    deriving (Show, Eq, Functor, Generic, NFData)
+    deriving stock (Show, Eq, Functor, Generic)
+    deriving anyclass (NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
@@ -80,13 +90,20 @@ data EvaluationError user internal
       -- ^ Indicates bugs.
     | UserEvaluationError user
       -- ^ Indicates user errors.
-    deriving (Show, Eq, Functor, Generic, NFData)
+    deriving stock (Show, Eq, Functor, Generic)
+    deriving anyclass (NFData)
 
 mtraverse makeClassyPrisms
     [ ''UnliftingError
+    , ''KnownTypeError
     , ''MachineError
     , ''EvaluationError
     ]
+
+instance AsUnliftingError KnownTypeError where
+    _UnliftingError = _KnownTypeUnliftingError
+instance AsEvaluationFailure KnownTypeError where
+    _EvaluationFailure = _EvaluationFailureVia KnownTypeEvaluationFailure
 
 instance internal ~ MachineError fun => AsMachineError (EvaluationError user internal) fun where
     _MachineError = _InternalEvaluationError
@@ -98,22 +115,27 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
     _EvaluationFailure = _UserEvaluationError . _EvaluationFailure
 
 -- | An error and (optionally) what caused it.
-data ErrorWithCause err term = ErrorWithCause
+data ErrorWithCause err cause = ErrorWithCause
     { _ewcError :: err
-    , _ewcCause :: Maybe term
-    } deriving (Eq, Functor, Foldable, Traversable, Generic, NFData)
+    , _ewcCause :: Maybe cause
+    } deriving stock (Eq, Functor, Foldable, Traversable, Generic)
+    deriving anyclass (NFData)
 
 instance Bifunctor ErrorWithCause where
     bimap f g (ErrorWithCause err cause) = ErrorWithCause (f err) (g <$> cause)
 
-instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err term) where
+instance AsEvaluationFailure err => AsEvaluationFailure (ErrorWithCause err cause) where
     _EvaluationFailure = iso _ewcError (flip ErrorWithCause Nothing) . _EvaluationFailure
 
-instance (Pretty err, Pretty term) => Pretty (ErrorWithCause err term) where
+instance (Pretty err, Pretty cause) => Pretty (ErrorWithCause err cause) where
     pretty (ErrorWithCause e c) = pretty e <+> "caused by:" <+> pretty c
 
 type EvaluationException user internal =
     ErrorWithCause (EvaluationError user internal)
+
+throwNotAConstant :: MonadError KnownTypeError m => m void
+throwNotAConstant = throwError $ KnownTypeUnliftingError "Not a constant"
+{-# INLINE throwNotAConstant #-}
 
 mapCauseInMachineException
     :: (term1 -> term2)
@@ -138,7 +160,7 @@ silently without reporting that anything has gone wrong (but returning
 a non-zero exit code to the shell via `exitFailure`).  This is because
 UserEvaluationError is used in cases when a PLC program itself goes
 wrong (for example, a failure due to `(error)`, a failure during
-builtin evavluation, or exceeding the gas limit).  This is used to
+builtin evaluation, or exceeding the gas limit).  This is used to
 signal unsuccessful in validation and so is not regarded as a real
 error; in contrast, machine errors, typechecking failures,
 and so on are genuine errors and we report their context if available.
@@ -157,11 +179,11 @@ unsafeExtractEvaluationResult
     :: (PrettyPlc internal, PrettyPlc term, Typeable internal, Typeable term)
     => Either (EvaluationException user internal term) a
     -> EvaluationResult a
-unsafeExtractEvaluationResult = either throw id . extractEvaluationResult
+unsafeExtractEvaluationResult = unsafeFromEither . extractEvaluationResult
 
 instance Pretty UnliftingError where
     pretty (UnliftingErrorE err) = fold
-        [ "Could not unlift a builtin:", hardline
+        [ "Could not unlift a value:", hardline
         , pretty err
         ]
 
@@ -199,20 +221,20 @@ instance
         , pretty err
         ]
 
-instance (PrettyBy config term, PrettyBy config err) =>
-            PrettyBy config (ErrorWithCause err term) where
+instance (PrettyBy config cause, PrettyBy config err) =>
+            PrettyBy config (ErrorWithCause err cause) where
     prettyBy config (ErrorWithCause err mayCause) =
         "An error has occurred: " <+> prettyBy config err <>
             case mayCause of
                 Nothing    -> mempty
                 Just cause -> hardline <> "Caused by:" <+> prettyBy config cause
 
-instance (PrettyPlc term, PrettyPlc err) =>
-            Show (ErrorWithCause err term) where
+instance (PrettyPlc cause, PrettyPlc err) =>
+            Show (ErrorWithCause err cause) where
     show = render . prettyPlcReadableDebug
 
 deriving anyclass instance
-    (PrettyPlc term, PrettyPlc err, Typeable term, Typeable err) => Exception (ErrorWithCause err term)
+    (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) => Exception (ErrorWithCause err cause)
 
 instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30

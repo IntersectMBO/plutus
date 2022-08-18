@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 
 -- | Common option parsers for executables
@@ -42,7 +43,7 @@ stdOutput = flag' StdOutput
 
 formatHelp :: String
 formatHelp =
-  "textual, flat (de Bruijn indices), or flat-named (names)"
+  "textual, flat-named (names), flat (de Bruijn indices), or flat-namedDeBruijn (names and de Bruijn indices)"
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -71,6 +72,7 @@ outputformat = option (maybeReader formatReader)
   <> value Textual
   <> showDefault
   <> help ("Output format: " ++ formatHelp))
+
 -- -x -> run 100 times and print the mean time
 timing1 :: Parser TimingMode
 timing1 = flag NoTiming (Timing 100)

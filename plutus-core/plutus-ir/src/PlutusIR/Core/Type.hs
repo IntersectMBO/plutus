@@ -1,5 +1,7 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusIR.Core.Type (
@@ -18,19 +20,22 @@ module PlutusIR.Core.Type (
     Binding (..),
     Term (..),
     Program (..),
-    applyProgram
+    applyProgram,
+    termAnn,
+    progAnn,
+    progTerm,
     ) where
 
 import PlutusPrelude
 
+import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Constant (AsConstant (..), FromConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
-
 
 import Data.Text qualified as T
 
@@ -44,26 +49,26 @@ the underlying representation can vary. The `Generic` instances of the
 terms can thus be used as backwards compatibility is not required.
 -}
 
-data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni fun a]
-    deriving (Functor, Show, Generic)
+data Datatype tyname name uni a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
+    deriving stock (Functor, Show, Generic)
 
-varDeclNameString :: VarDecl tyname Name uni fun a -> String
-varDeclNameString = T.unpack . PLC.nameString . _varDeclName
+varDeclNameString :: VarDecl tyname Name uni a -> String
+varDeclNameString = T.unpack . PLC._nameText . _varDeclName
 
 tyVarDeclNameString :: TyVarDecl TyName a -> String
-tyVarDeclNameString = T.unpack . PLC.nameString . PLC.unTyName . _tyVarDeclName
+tyVarDeclNameString = T.unpack . PLC._nameText . PLC.unTyName . _tyVarDeclName
 
-datatypeNameString :: Datatype TyName Name uni fun a -> String
+datatypeNameString :: Datatype TyName name uni a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
 
 -- | Each multi-let-group has to be marked with its scoping:
--- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifer cannot refer to itself or later-introduced identifiers of the group.
+-- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
 -- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
-    deriving (Show, Eq, Generic, Ord)
+    deriving stock (Show, Eq, Generic, Ord)
 
 -- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 -- The lattice is ordered by "power": a non-recursive binding group can be made recursive and it will still work, but not vice versa.
@@ -73,12 +78,12 @@ instance Semigroup Recursivity where
   Rec <> _    = Rec
 
 data Strictness = NonStrict | Strict
-    deriving (Show, Eq, Generic)
+    deriving stock (Show, Eq, Generic)
 
-data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni fun a) (Term tyname name uni fun a)
+data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
-                           | DatatypeBind a (Datatype tyname name uni fun a)
-    deriving (Functor, Show, Generic)
+                           | DatatypeBind a (Datatype tyname name uni a)
+    deriving stock (Functor, Show, Generic)
 
 -- Terms
 
@@ -121,15 +126,14 @@ data Term tyname name uni fun a =
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
-                        deriving (Functor, Show, Generic)
+                        deriving stock (Functor, Show, Generic)
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance AsConstant (Term tyname name uni fun ann) where
-    asConstant _        (Constant _ val) = pure val
-    asConstant mayCause _                = throwNotAConstant mayCause
+instance HasConstant (Term tyname name uni fun ()) where
+    asConstant (Constant _ val) = pure val
+    asConstant _                = throwNotAConstant
 
-instance FromConstant (Term tyname name uni fun ()) where
     fromConstant = Constant ()
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
@@ -147,7 +151,12 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 -- no version as PIR is not versioned
-data Program tyname name uni fun a = Program a (Term tyname name uni fun a) deriving Generic
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
+    deriving stock Generic
+makeLenses ''Program
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
@@ -158,3 +167,17 @@ applyProgram
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
 applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
+
+termAnn :: Term tyname name uni fun a -> a
+termAnn t = case t of
+  Let a _ _ _    -> a
+  Var a _        -> a
+  TyAbs a _ _ _  -> a
+  LamAbs a _ _ _ -> a
+  Apply a _ _    -> a
+  Constant a _   -> a
+  Builtin a _    -> a
+  TyInst a _ _   -> a
+  Error a _      -> a
+  IWrap a _ _ _  -> a
+  Unwrap a _     -> a

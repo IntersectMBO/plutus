@@ -1,3 +1,6 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 module PlutusCore.Subst
     ( substTyVarA
     , substVarA
@@ -14,11 +17,10 @@ module PlutusCore.Subst
     , fvTerm
     , ftvTerm
     , ftvTy
+    , ftvTyCtx
     , vTerm
     , tvTerm
     , tvTy
-    , uniquesType
-    , uniquesTerm
     ) where
 
 import PlutusPrelude
@@ -27,9 +29,8 @@ import PlutusCore.Core
 import PlutusCore.Name
 
 import Control.Lens
-import Data.Functor.Foldable (cata)
+import Control.Lens.Unsound qualified as Unsound
 import Data.Set as Set
-import Data.Set.Lens (setOf)
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
 purely = coerce
@@ -147,65 +148,46 @@ termSubstFreeNames = purely termSubstFreeNamesA
 -- Free variables
 
 -- | Get all the free term variables in a term.
-fvTerm :: Ord name => Term tyname name uni fun ann -> Set name
-fvTerm = cata f
-  where
-    f (VarF _ n)        = singleton n
-    f (TyAbsF _ _ _ t)  = t
-    f (LamAbsF _ n _ t) = delete n t
-    f (ApplyF _ t1 t2)  = t1 `union` t2
-    f (TyInstF _ t _)   = t
-    f (UnwrapF _ t)     = t
-    f (IWrapF _ _ _ t)  = t
-    f ConstantF{}       = Set.empty
-    f BuiltinF{}        = Set.empty
-    f ErrorF{}          = Set.empty
+fvTerm :: Ord name => Traversal' (Term tyname name uni fun ann) name
+fvTerm = fvTermCtx mempty
+
+fvTermCtx :: Ord name => Set.Set name -> Traversal' (Term tyname name uni fun ann) name
+fvTermCtx bound f = \case
+    Var a n         -> Var a <$> (if Set.member n bound then pure n else f n)
+    LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (Set.insert n bound) f t
+    t               -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a term.
-ftvTerm :: Ord tyname => Term tyname name uni fun ann -> Set tyname
-ftvTerm = cata f
-  where
-    f (TyAbsF _ ty _ t)    = delete ty t
-    f (LamAbsF _ _ ty t)   = ftvTy ty `union` t
-    f (ApplyF _ t1 t2)     = t1 `union` t2
-    f (TyInstF _ t ty)     = t `union` ftvTy ty
-    f (UnwrapF _ t)        = t
-    f (IWrapF _ pat arg t) = ftvTy pat `union` ftvTy arg `union` t
-    f (ErrorF _ ty)        = ftvTy ty
-    f VarF{}               = Set.empty
-    f ConstantF{}          = Set.empty
-    f BuiltinF{}           = Set.empty
+ftvTerm :: Ord tyname => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm = ftvTermCtx mempty
+
+ftvTermCtx :: Ord tyname => Set.Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx bound f = \case
+    TyAbs a ty k t -> TyAbs a ty k <$> ftvTermCtx (Set.insert ty bound) f t
+    -- sound because the subterms and subtypes are disjoint
+    t              -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free type variables in a type.
-ftvTy :: Ord tyname => Type tyname uni ann -> Set tyname
-ftvTy = cata f
-  where
-    f (TyVarF _ ty)          = singleton ty
-    f (TyFunF _ i o)         = i `union` o
-    f (TyIFixF _ pat arg)    = pat `union` arg
-    f (TyForallF _ bnd _ ty) = delete bnd ty
-    f (TyLamF _ bnd _ ty)    = delete bnd ty
-    f (TyAppF _ ty1 ty2)     = ty1 `union` ty2
-    f TyBuiltinF{}           = Set.empty
+ftvTy :: Ord tyname => Traversal' (Type tyname uni ann) tyname
+ftvTy = ftvTyCtx mempty
 
+ftvTyCtx :: Ord tyname => Set.Set tyname -> Traversal' (Type tyname uni ann) tyname
+ftvTyCtx bound f = \case
+    TyVar a ty          -> TyVar a <$> (if Set.member ty bound then pure ty else f ty)
+    TyForall a bnd k ty -> TyForall a bnd k <$> ftvTyCtx (Set.insert bnd bound) f ty
+    TyLam a bnd k ty    -> TyLam a bnd k <$> ftvTyCtx (Set.insert bnd bound) f ty
+    t                   -> (typeSubtypes . ftvTyCtx bound) f t
+
+
+-- TODO: these could be Traversals
 -- | Get all the term variables in a term.
-vTerm :: Ord name => Term tyname name uni fun ann -> Set name
-vTerm = setOf $ termSubtermsDeep . termVars
+vTerm :: Fold (Term tyname name uni fun ann) name
+vTerm = termSubtermsDeep . termVars
 
 -- | Get all the type variables in a term.
-tvTerm :: Ord tyname => Term tyname name uni fun ann -> Set tyname
-tvTerm = setOf $ termSubtypesDeep . typeTyVars
+tvTerm :: Fold (Term tyname name uni fun ann) tyname
+tvTerm = termSubtypesDeep . typeTyVars
 
 -- | Get all the type variables in a type.
-tvTy :: Ord tyname => Type tyname uni ann -> Set tyname
-tvTy = setOf $ typeSubtypesDeep . typeTyVars
-
--- All uniques
-
--- | Get all the uniques in a type.
-uniquesType :: HasUniques (Type tyname uni ann) => Type tyname uni ann -> Set Unique
-uniquesType = setOf typeUniquesDeep
-
--- | Get all the uniques in a term (including the type-level ones).
-uniquesTerm :: HasUniques (Term tyname name uni fun ann) => Term tyname name uni fun ann -> Set Unique
-uniquesTerm = setOf termUniquesDeep
+tvTy :: Fold (Type tyname uni ann) tyname
+tvTy = typeSubtypesDeep . typeTyVars

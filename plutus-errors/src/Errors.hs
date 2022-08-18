@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_HADDOCK hide #-}
 -- | The catalogue of all Plutus errors, obsolete or not.
@@ -35,8 +36,6 @@ allErrors =
    , 'PIR.MalformedDataConstrResType
    , 'PIR.CompilationError
    , 'PIR.UnsupportedError
-   , 'PLC.LexErr
-   , 'PLC.Unexpected
    , 'PLC.UnknownBuiltinType
    , 'PLC.BuiltinTypeNotAStar
    , 'PLC.UnknownBuiltinFunction
@@ -48,6 +47,8 @@ allErrors =
    , 'PLC.KindMismatch
    , 'PLC.TypeMismatch
    , 'PLC.UnknownBuiltinFunctionE
+   , 'PLC.TyNameMismatch
+   , 'PLC.NameMismatch
    , 'PLC.FreeTypeVariableE
    , 'PLC.FreeVariableE
    , 'PLC.FreeVariable
@@ -63,6 +64,7 @@ allErrors =
    , 'PLC.EmptyBuiltinArityMachineError
    , 'PLC.CekOutOfExError
    , 'PLC.CekEvaluationFailure
+   , 'PLC.ParseErrorB
    , 'PTX.ImpossibleDeserialisationFailure
    , 'PTX.CompilationError
    , 'PTX.UnsupportedError

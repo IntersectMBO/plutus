@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -238,8 +239,8 @@ renameConstrTypeM (Restorer restoreAfterData) = renameSpineM where
 renameConstrCM
     :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Restorer m
-    -> VarDecl tyname name uni fun ann
-    -> ContT c m (m (VarDecl tyname name uni fun ann))
+    -> VarDecl tyname name uni ann
+    -> ContT c m (m (VarDecl tyname name uni ann))
 renameConstrCM restorerAfterData (VarDecl ann name ty) = do
     nameFr <- ContT $ PLC.withFreshenedName name
     pure $ VarDecl ann nameFr <$> renameConstrTypeM restorerAfterData ty
@@ -256,8 +257,8 @@ onNonRec Rec    _ x = x
 renameDatatypeCM
     :: (MonadRename m, PLC.HasUniques (Term tyname name uni fun ann))
     => Recursivity
-    -> Datatype tyname name uni fun ann
-    -> ContT c m (m (Datatype tyname name uni fun ann))
+    -> Datatype tyname name uni ann
+    -> ContT c m (m (Datatype tyname name uni ann))
 renameDatatypeCM recy (Datatype x dataDecl params matchName constrs) = do
     -- The first stage (the data type itself, its constructors and its matcher get renamed).
     -- Note that all of these are visible downstream.

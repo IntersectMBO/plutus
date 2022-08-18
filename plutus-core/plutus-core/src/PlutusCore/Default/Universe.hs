@@ -1,7 +1,9 @@
+-- editorconfig-checker-disable-file
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -18,25 +20,36 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+-- effectfully: to the best of my experimentation, -O2 here improves performance, however by
+-- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
+-- 'Int' is compiled (one more call is inlined with -O2). This needs to be investigated.
+{-# OPTIONS_GHC -O2 #-}
+
 module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
     , module Export  -- Re-exporting universes infrastructure for convenience.
+    , noMoreTypeFunctions
     ) where
 
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
-import PlutusCore.Parsable
 
 import Control.Applicative
-import Control.Monad
+import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
-import Data.Foldable
+import Data.Int
+import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
+import Data.Word
+import GHC.Exts (inline, oneShot)
+import Text.Pretty
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -112,53 +125,35 @@ instance ToKind DefaultUni where
     toSingKind DefaultUniData           = knownKind
 
 instance HasUniApply DefaultUni where
+    uniApply = DefaultUniApply
+
     matchUniApply (DefaultUniApply f a) _ h = h f a
     matchUniApply _                     z _ = z
 
+deriving stock instance Show (DefaultUni a)
 instance GShow DefaultUni where gshowsPrec = showsPrec
-instance Show (DefaultUni a) where
-    show DefaultUniInteger             = "integer"
-    show DefaultUniByteString          = "bytestring"
-    show DefaultUniString              = "string"
-    show DefaultUniUnit                = "unit"
-    show DefaultUniBool                = "bool"
-    show DefaultUniProtoList           = "list"
-    show DefaultUniProtoPair           = "pair"
-    show (uniF `DefaultUniApply` uniB) = case uniF of
-        DefaultUniProtoList                          -> concat ["list (", show uniB, ")"]
-        DefaultUniProtoPair                          -> concat ["pair (", show uniB, ")"]
-        DefaultUniProtoPair `DefaultUniApply` uniA   -> concat ["pair (", show uniA, ") (", show uniB, ")"]
-        uniG `DefaultUniApply` _ `DefaultUniApply` _ -> noMoreTypeFunctions uniG
-    show DefaultUniData = "data"
 
--- See Note [Parsing horribly broken].
-instance Parsable (SomeTypeIn (Kinded DefaultUni)) where
-    parse "bool"       = Just . SomeTypeIn $ Kinded DefaultUniBool
-    parse "bytestring" = Just . SomeTypeIn $ Kinded DefaultUniByteString
-    parse "string"     = Just . SomeTypeIn $ Kinded DefaultUniString
-    parse "integer"    = Just . SomeTypeIn $ Kinded DefaultUniInteger
-    parse "unit"       = Just . SomeTypeIn $ Kinded DefaultUniUnit
-    parse text         = asum
-        [ do
-            aT <- Text.stripPrefix "[" text >>= Text.stripSuffix "]"
-            SomeTypeIn (Kinded a) <- parse aT
-            Refl <- checkStar @DefaultUni a
-            Just . SomeTypeIn . Kinded $ DefaultUniList a
-        , do
-            abT <- Text.stripPrefix "(" text >>= Text.stripSuffix ")"
-            -- Note that we don't allow whitespace after @,@ (but we could).
-            -- Anyway, looking for a single comma is just plain wrong, as we may have a nested
-            -- tuple (and it can be left- or right- or both-nested), so we're running into
-            -- the same parsing problem as with constants.
-            case Text.splitOn "," abT of
-                [aT, bT] -> do
-                    SomeTypeIn (Kinded a) <- parse aT
-                    Refl <- checkStar @DefaultUni a
-                    SomeTypeIn (Kinded b) <- parse bT
-                    Refl <- checkStar @DefaultUni b
-                    Just . SomeTypeIn . Kinded $ DefaultUniPair a b
-                _ -> Nothing
-        ]
+instance HasRenderContext config => PrettyBy config (DefaultUni a) where
+    prettyBy = inContextM $ \case
+        DefaultUniInteger         -> "integer"
+        DefaultUniByteString      -> "bytestring"
+        DefaultUniString          -> "string"
+        DefaultUniUnit            -> "unit"
+        DefaultUniBool            -> "bool"
+        DefaultUniProtoList       -> "list"
+        DefaultUniProtoPair       -> "pair"
+        DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
+        DefaultUniData            -> "data"
+
+-- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
+-- doesn't pretty-print them otherwise (e.g. @integer@).
+-- This is so we can have a single instance that is safe to use with both the classic and the
+-- readable pretty-printers, even though for the latter it may result in redundant parens being
+-- shown. We are planning to change the classic syntax to remove this silliness.
+instance Pretty (DefaultUni a) where
+    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
+instance Pretty (SomeTypeIn DefaultUni) where
+    pretty (SomeTypeIn uni) = pretty uni
 
 instance DefaultUni `Contains` Integer       where knownUni = DefaultUniInteger
 instance DefaultUni `Contains` BS.ByteString where knownUni = DefaultUniByteString
@@ -181,38 +176,150 @@ instance KnownBuiltinTypeAst DefaultUni [a]           => KnownTypeAst DefaultUni
 instance KnownBuiltinTypeAst DefaultUni (a, b)        => KnownTypeAst DefaultUni (a, b)
 instance KnownBuiltinTypeAst DefaultUni Data          => KnownTypeAst DefaultUni Data
 
-instance KnownBuiltinTypeIn DefaultUni term Integer       => KnownTypeIn DefaultUni term Integer
-instance KnownBuiltinTypeIn DefaultUni term BS.ByteString => KnownTypeIn DefaultUni term BS.ByteString
-instance KnownBuiltinTypeIn DefaultUni term Text.Text     => KnownTypeIn DefaultUni term Text.Text
-instance KnownBuiltinTypeIn DefaultUni term ()            => KnownTypeIn DefaultUni term ()
-instance KnownBuiltinTypeIn DefaultUni term Bool          => KnownTypeIn DefaultUni term Bool
-instance KnownBuiltinTypeIn DefaultUni term [a]           => KnownTypeIn DefaultUni term [a]
-instance KnownBuiltinTypeIn DefaultUni term (a, b)        => KnownTypeIn DefaultUni term (a, b)
-instance KnownBuiltinTypeIn DefaultUni term Data          => KnownTypeIn DefaultUni term Data
+{- Note [Constraints of ReadKnownIn and MakeKnownIn instances]
+For a monomorphic data type @X@ one only needs to add a @HasConstantIn DefaultUni term@ constraint
+in order to be able to provide a @ReadTypeIn DefaultUni term X@ instance and the same applies to
+'MakeKnownIn'.
 
--- If this tells you a 'KnownTypeIn' instance is missing, add it right above, following the pattern
--- (you'll also need to add a 'KnownTypeAst' instance as well).
+For a polymorphic data type @Y@ in addition to the same @HasConstantIn DefaultUni term@ constraint
+one also needs to add @DefaultUni `Contains` Y@, where @Y@ contains all of its type variables.
+
+See the reference site of this Note for examples.
+
+The difference is due to the fact that for any monomorphic type @X@ the @DefaultUni `Contains` X@
+constraint can be discharged statically, so we don't need it to provide the instance, while in
+the polymorphic case whether @Y@ is in the universe or not depends on whether its type arguments are
+in the universe or not, so the @DefaultUni `Contains` Y@ constraint can't be discharged statically.
+
+Could we still provide @DefaultUni `Contains` X@ even though it's redundant? That works, but then
+GHC does not attempt to discharge it statically and takes the type tag needed for unlifting from
+the provided constraint rather than the global scope, which makes the code measurably slower.
+
+Could we at least hide the discrepancy behind a type family? Unfortunately, that generates worse
+Core as some things don't get inlined properly. Somehow GHC is not able to see through the type
+family that it fully reduces anyway.
+
+Finally, instead of writing @DefaultUni `Contains` Y@ we could write @DefaultUni `Contains` a@
+for each argument type @a@ in @Y@ (because that implies @DefaultUni `Contains` Y@), however GHC
+creates a redundant @let@ in that case (@-fno-cse@ or some other technique for preventing GHC from
+doing CSE may solve that problem). For now we do the simplest thing and just write
+@DefaultUni `Contains` Y@.
+
+A call to 'geq' does not get inlined due to 'geq' being recursive. It's an obvious inefficiency and
+one that can be fixed, see https://github.com/input-output-hk/plutus/pull/4462
+It's some pretty annoying boilerplate and for now we've decided it's not worth it.
+-}
+
+-- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Data
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    MakeKnownIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    MakeKnownIn DefaultUni term (a, b)
+
+-- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Integer
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BS.ByteString
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Text.Text
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term ()
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Bool
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Data
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+    ReadKnownIn DefaultUni term [a]
+instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+    ReadKnownIn DefaultUni term (a, b)
+
+-- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 
-{- Note [Int as Integer]
-We represent 'Int' as 'Integer' in PLC and check that an 'Integer' fits into 'Int' when
-unlifting constants fo type 'Int' and fail with an evaluation failure (via 'AsEvaluationFailure')
-if it doesn't. We couldn't fail via 'AsUnliftingError', because an out-of-bounds error is not an
+{- Note [Integral types as Integer]
+Technically our universe only contains 'Integer', but many of the builtin functions that we would
+like to use work over 'Int' and 'Word8'.
+
+This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8' means carefully
+downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
+wrong by e.g. blindly using 'fromInteger'.
+
+Moreover, there is a latent risk here: if we *were* to build on a 32-bit platform, then programs which
+use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
+
+So, what to do? We adopt the following strategy:
+- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
+
+This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
+'Int64'. So we can use 'Int' conveniently, but only if it has predictable behaviour.
+
+(An alternative would be to just add 'Int', but add 'IntCastEq Int Int64' as an instance constraint.
+That would also work, this way just seemed a little more explicit, and avoids adding constraints,
+which can sometimes interfere with optimization and inling.)
+
+Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
+supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
+
+Note: we couldn't fail the bounds check with 'AsUnliftingError', because an out-of-bounds error is not an
 internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
 being "internal".
 -}
 
+instance KnownTypeAst DefaultUni Int64 where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
+    makeKnown = makeKnown . toInteger
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
+    readKnown term =
+        -- See Note [Performance of KnownTypeIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+            -- We don't make use here of `toIntegralSized` because of performance considerations,
+            -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
+            -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
+            if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
+                then pure $ fromIntegral i
+                else throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Int as Integer].
-instance HasConstantIn DefaultUni term => KnownTypeIn DefaultUni term Int where
-    makeKnown mayCause = makeKnown mayCause . toInteger
-    readKnown mayCause term = do
-        i :: Integer <- readKnown mayCause term
-        unless (fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)) $
-            throwingWithCause _EvaluationFailure () mayCause
-        pure $ fromIntegral i
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
+    -- This could safely just be toInteger, but this way is more explicit and it'll
+    -- turn into the same thing anyway.
+    makeKnown = makeKnown . intCastEq @Int @Int64
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
+    readKnown term = intCastEq @Int64 @Int <$> readKnown term
+    {-# INLINE readKnown #-}
+
+instance KnownTypeAst DefaultUni Word8 where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word8 where
+    makeKnown = makeKnown . toInteger
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 where
+    readKnown term =
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+           case toIntegralSized i of
+               Just w8 -> pure w8
+               _       -> throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

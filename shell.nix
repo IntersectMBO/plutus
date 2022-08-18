@@ -4,8 +4,9 @@
 }:
 let
   inherit (packages) pkgs plutus docs;
-  inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt;
-  inherit (plutus) haskell agdaPackages stylish-haskell sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
+  inherit (pkgs) stdenv lib utillinux python3 nixpkgs-fmt glibcLocales;
+  inherit (plutus) haskell agdaPackages stylish-haskell cabal-fmt;
+  inherit (plutus) sphinxcontrib-haddock sphinx-markdown-tables sphinxemoji nix-pre-commit-hooks;
   inherit (plutus) agdaWithStdlib;
 
   # For Sphinx, and ad-hoc usage
@@ -15,6 +16,7 @@ let
     sphinxemoji
     ps.sphinxcontrib_plantuml
     ps.sphinxcontrib-bibtex
+    ps.sphinx-autobuild
     ps.sphinx
     ps.sphinx_rtd_theme
     ps.recommonmark
@@ -27,6 +29,7 @@ let
       stylish-haskell = stylish-haskell;
       nixpkgs-fmt = nixpkgs-fmt;
       shellcheck = pkgs.shellcheck;
+      cabal-fmt = cabal-fmt;
     };
     hooks = {
       stylish-haskell.enable = true;
@@ -35,8 +38,14 @@ let
         # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
         # does not appear to work inside the hook. For now we have to thus
         # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-        excludes = [ ".*nix/pkgs/haskell/materialized.*/.*" ".*/spago-packages.nix$" ".*/packages.nix$" ];
+        excludes =
+          [
+            ".*nix/pkgs/haskell/materialized.*/.*"
+            ".*/spago-packages.nix$"
+            ".*/packages.nix$"
+          ];
       };
+      cabal-fmt.enable = true;
       shellcheck.enable = true;
       png-optimization = {
         enable = true;
@@ -55,14 +64,21 @@ let
 
   # build inputs from nixpkgs ( -> ./nix/default.nix )
   nixpkgsInputs = (with pkgs; [
+    # For scripts/s3-sync-unzip.sh
+    awscli2
+    # For scripts/s3-sync-unzip.sh
+    bzip2
     cacert
     editorconfig-core-c
+    editorconfig-checker
     ghcid
     jq
+    # See https://github.com/cachix/pre-commit-hooks.nix/issues/148 for why we need this
+    pre-commit
     nixFlakesAlias
     nixpkgs-fmt
+    cabal-fmt
     shellcheck
-    stack
     yq
     zlib
   ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
@@ -73,12 +89,12 @@ let
     cardano-repo-tool
     fixPngOptimization
     fixStylishHaskell
+    fixCabalFmt
     haskell-language-server
     haskell-language-server-wrapper
     hie-bios
     hlint
     stylish-haskell
-    updateMaterialized
     docs.build-and-serve-docs
   ]);
 
@@ -91,13 +107,11 @@ haskell.project.shellFor {
 
   shellHook = ''
     ${pre-commit-check.shellHook}
-  ''
-  # Work around https://github.com/NixOS/nix/issues/3345, which makes
-  # tests etc. run single-threaded in a nix-shell.
-  # Sets the affinity to cores 0-1000 for $$ (current PID in bash)
-  # Only necessary for linux - darwin doesn't even expose thread
-  # affinity APIs!
-  + lib.optionalString stdenv.isLinux ''
-    ${utillinux}/bin/taskset -pc 0-1000 $$
   '';
+
+  # This is no longer set automatically as of more recent `haskell.nix` revisions,
+  # but is useful for users with LANG settings.
+  LOCALE_ARCHIVE = lib.optionalString
+    (stdenv.hostPlatform.libc == "glibc")
+    "${glibcLocales}/lib/locale/locale-archive";
 }

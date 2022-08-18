@@ -30,7 +30,7 @@
     };
     haskell-language-server = {
       # Pinned to a release
-      url = "github:haskell/haskell-language-server?ref=1.3.0";
+      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
       flake = false;
     };
     iohk-nix = {
@@ -43,10 +43,6 @@
     };
     sphinxcontrib-haddock = {
       url = "github:michaelpj/sphinxcontrib-haddock";
-      flake = false;
-    };
-    stackage-nix = {
-      url = "github:input-output-hk/stackage.nix";
       flake = false;
     };
   };

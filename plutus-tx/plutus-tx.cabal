@@ -1,119 +1,175 @@
-cabal-version: 2.2
-name: plutus-tx
-version: 0.1.0.0
-license: Apache-2.0
+cabal-version:   3.0
+name:            plutus-tx
+version:         1.0.0.0
+license:         Apache-2.0
 license-files:
   LICENSE
   NOTICE
-maintainer: michael.peyton-jones@iohk.io
-author: Michael Peyton Jones
-synopsis: Libraries for Plutus Tx and its prelude
-description:
-    Libraries for Plutus Tx and its prelude
-category: Language
-build-type: Simple
+
+maintainer:      michael.peyton-jones@iohk.io
+author:          Michael Peyton Jones
+synopsis:        Libraries for Plutus Tx and its prelude
+description:     Libraries for Plutus Tx and its prelude
+category:        Language
+build-type:      Simple
 extra-doc-files: README.md
 
 source-repository head
-    type: git
-    location: https://github.com/input-output-hk/plutus
+  type:     git
+  location: https://github.com/input-output-hk/plutus
 
 common lang
-    default-language: Haskell2010
-    default-extensions: ExplicitForAll ScopedTypeVariables
-                        DeriveGeneric StandaloneDeriving DeriveLift
-                        GeneralizedNewtypeDeriving DeriveFunctor DeriveFoldable
-                        DeriveTraversable NoImplicitPrelude
-                        ImportQualifiedPost
-    ghc-options: -Wall -Wnoncanonical-monad-instances -Wunused-packages
-                 -Wincomplete-uni-patterns -Wincomplete-record-updates
-                 -Wredundant-constraints -Widentities
-                 -Wunused-packages
-                 -- See Plutus Tx readme
-                 -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+  default-language:   Haskell2010
+  default-extensions:
+    NoImplicitPrelude
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    ExplicitForAll
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  -- See Plutus Tx readme for why we need the following flags:
+  -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages -Wmissing-deriving-strategies -fobject-code
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 library
-    import: lang
-    hs-source-dirs: src
-    exposed-modules:
-        PlutusTx
-        PlutusTx.Coverage
-        PlutusTx.TH
-        PlutusTx.Prelude
-        PlutusTx.Evaluation
-        PlutusTx.Applicative
-        PlutusTx.Base
-        PlutusTx.Bool
-        PlutusTx.IsData
-        PlutusTx.IsData.Class
-        PlutusTx.ErrorCodes
-        PlutusTx.Eq
-        PlutusTx.Enum
-        PlutusTx.Either
-        PlutusTx.Foldable
-        PlutusTx.Functor
-        PlutusTx.Lattice
-        PlutusTx.List
-        PlutusTx.Ord
-        PlutusTx.Integer
-        PlutusTx.Maybe
-        PlutusTx.Monoid
-        PlutusTx.Numeric
-        PlutusTx.Ratio
-        PlutusTx.Semigroup
-        PlutusTx.Sqrt
-        PlutusTx.Traversable
-        PlutusTx.AssocMap
-        PlutusTx.Trace
-        PlutusTx.These
-        PlutusTx.Code
-        PlutusTx.Lift
-        PlutusTx.Lift.Class
-        PlutusTx.Builtins
-        PlutusTx.Builtins.Class
-        PlutusTx.Builtins.Internal
-        PlutusTx.Plugin.Utils
-        PlutusTx.Utils
-    other-modules:
-        PlutusTx.IsData.Instances
-        PlutusTx.IsData.TH
-        PlutusTx.Lift.THUtils
-        PlutusTx.Lift.Instances
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        deepseq -any,
-        template-haskell >=2.13.0.0,
-        th-abstraction -any,
-        prettyprinter -any,
-        text -any,
-        mtl -any,
-        containers -any,
-        flat -any,
-        plutus-core -any,
-        lens -any,
-        ghc-prim -any,
-        aeson -any,
-        hashable -any,
-        memory -any,
-        serialise -any
+  import:          lang
+  hs-source-dirs:  src
+  exposed-modules:
+    PlutusTx
+    PlutusTx.Applicative
+    PlutusTx.AssocMap
+    PlutusTx.Base
+    PlutusTx.Bool
+    PlutusTx.Builtins
+    PlutusTx.Builtins.Class
+    PlutusTx.Builtins.Internal
+    PlutusTx.Code
+    PlutusTx.Coverage
+    PlutusTx.Either
+    PlutusTx.Enum
+    PlutusTx.Eq
+    PlutusTx.ErrorCodes
+    PlutusTx.Foldable
+    PlutusTx.Functor
+    PlutusTx.Integer
+    PlutusTx.IsData
+    PlutusTx.IsData.Class
+    PlutusTx.Lattice
+    PlutusTx.Lift
+    PlutusTx.Lift.Class
+    PlutusTx.List
+    PlutusTx.Maybe
+    PlutusTx.Monoid
+    PlutusTx.Numeric
+    PlutusTx.Ord
+    PlutusTx.Plugin.Utils
+    PlutusTx.Prelude
+    PlutusTx.Ratio
+    PlutusTx.Semigroup
+    PlutusTx.Show
+    PlutusTx.Show.TH
+    PlutusTx.Sqrt
+    PlutusTx.TH
+    PlutusTx.These
+    PlutusTx.Trace
+    PlutusTx.Traversable
+    PlutusTx.Utils
+
+  other-modules:
+    PlutusTx.IsData.Instances
+    PlutusTx.IsData.TH
+    PlutusTx.Lift.Instances
+    PlutusTx.Lift.THUtils
+
+  build-depends:
+    , aeson
+    , base              >=4.9      && <5
+    , bytestring
+    , containers
+    , deepseq
+    , deriving-compat
+    , extra
+    , flat
+    , ghc-prim
+    , hashable
+    , lens
+    , memory
+    , mtl
+    , plutus-core       ^>=1.0
+    , prettyprinter
+    , serialise
+    , template-haskell  >=2.13.0.0
+    , text
+    , th-abstraction
+    , th-compat
+    , transformers
+
+library plutus-tx-testlib
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  testlib
+  exposed-modules: PlutusTx.Test
+  build-depends:
+    , base                                            >=4.9 && <5
+    , filepath
+    , flat
+    , ghc-prim
+    , lens
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
+    , plutus-tx
+    , prettyprinter
+    , tagged
+    , tasty
+    , text
 
 test-suite plutus-tx-test
-    import: lang
-    if(impl(ghcjs) || os(windows))
-        buildable: False
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    hs-source-dirs: test
-    build-tool-depends: doctest:doctest
-    build-depends:
-        base >=4.9 && <5,
-        bytestring -any,
-        plutus-core -any,
-        plutus-tx -any,
-        hedgehog -any,
-        tasty -any,
-        tasty-hedgehog -any,
-        tasty-hunit -any,
-        serialise -any,
-        cborg -any
+  import:             lang
+
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
+  other-modules:
+    Show.Spec
+    Suites.Laws
+    Suites.Laws.Additive
+    Suites.Laws.Construction
+    Suites.Laws.Eq
+    Suites.Laws.Helpers
+    Suites.Laws.Module
+    Suites.Laws.Multiplicative
+    Suites.Laws.Ord
+    Suites.Laws.Other
+    Suites.Laws.Ring
+    Suites.Laws.Serialization
+
+  hs-source-dirs:     test
+  build-tool-depends: doctest:doctest
+  build-depends:
+    , aeson
+    , base                                            >=4.9 && <5
+    , bytestring
+    , cborg
+    , filepath
+    , hedgehog
+    , hedgehog-fn
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
+    , plutus-tx
+    , pretty-show
+    , serialise
+    , tasty
+    , tasty-hedgehog
+    , tasty-hunit
+    , transformers

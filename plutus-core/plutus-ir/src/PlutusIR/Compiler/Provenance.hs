@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -27,13 +28,14 @@ data Provenance a = Original a
                   | DatatypeComponent DatatypeComponent (Provenance a)
                   -- | Added for accumulating difference provenances when floating lets
                   | MultipleSources (S.Set (Provenance a))
-                  deriving (Show, Eq, Ord)
+                  deriving stock (Show, Eq, Ord, Foldable)
 
 instance Ord a => Semigroup (Provenance a) where
-  MultipleSources ps1 <> MultipleSources ps2 = MultipleSources (ps1<>ps2)
-  x <> MultipleSources ps2                   = MultipleSources (S.insert x ps2)
-  MultipleSources ps1 <> x                   = MultipleSources (S.insert x ps1)
-  x <> y                                     = MultipleSources (S.fromList [x,y])
+    x <> y = MultipleSources (toSet x `S.union` toSet y)
+      where
+        toSet = \case
+            MultipleSources ps -> ps
+            other              -> S.singleton other
 
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
@@ -45,7 +47,7 @@ data DatatypeComponent = Constructor
                        | DestructorType
                        | DatatypeType
                        | PatternFunctor
-                       deriving (Show, Eq, Ord)
+                       deriving stock (Show, Eq, Ord)
 
 instance PP.Pretty DatatypeComponent where
     pretty = \case
@@ -57,7 +59,7 @@ instance PP.Pretty DatatypeComponent where
         PatternFunctor  -> "pattern functor"
 
 data GeneratedKind = RecursiveLet
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 instance PP.Pretty GeneratedKind where
     pretty = \case

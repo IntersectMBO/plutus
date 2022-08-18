@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | This module defines Haskell data types that simplify construction of PLC types and terms.
 
 {-# LANGUAGE DeriveAnyClass    #-}

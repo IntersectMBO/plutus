@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -11,11 +12,12 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 
+import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 
-import CostModelCreation
+import CreateBuiltinCostModel
 import TH
 
 import Control.Applicative (Const, getConst)
@@ -35,29 +37,29 @@ import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
 {- | This module is supposed to test that the R cost models for built-in functions
-   defined in models.R (using the data in benching.csv) produce the same results
-   as the Haskell versions. However there are a couple of subtleties.  (A) The R
-   models use floating point numbers and the Haskell versions use
-   CostingIntegers, and there will be some difference in precision because of
-   this. (B) The R models produce results in milliseconds and the Haskell
-   versions produce results in picoseconds. We deal with (B) by using the msToPs
-   function from CostModelCreation to convert R results to picoseconds expressed
-   as CostingIntegers.  To deal with (A), we don't check for exact equality of
-   the outputs but instead check that the R result and the Haskell result agreee
-   to within a factor of 1/100 (one percent).
+   defined in models.R (using the CSV output from 'cost-model-budgeting-bench;))
+   produce the same results as the Haskell versions. However there are a couple
+   of subtleties.  (A) The R models use floating point numbers and the Haskell
+   versions use CostingIntegers, and there will be some difference in precision
+   because of this. (B) The R models produce results in microseconds and the
+   Haskell versions produce results in picoseconds. We deal with (B) by using
+   the microToPico function from CreateBuiltinCostModel to convert R results to
+   picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
+   for exact equality of the outputs but instead check that the R result and the
+   Haskell result agreee to within a factor of 1/100 (one percent).
 -}
 
 {-
-   The tests here use Haskell costing functions (in costModelsR from
-   CreateCostModel.hs) which are loaded directly from R.  The costing functions
-   we use in practice are read from builtinCostModel.json, which contains
-   JSON-serialised versions of the Haskell costing functions.  Perhaps the tests
-   should be reading the Haskell costing functions from the JSON file as well;
-   there shouldn't really be any problem because the functions should be the
-   same as the ones we construct from R here (they're essentially the contents
-   of costModelsR converted to JSON), but it wouldn't do any harm to include any
-   possible loss of accuracy due to serialisation/deserialisation in the tests
-   as well.
+   The tests here use Haskell costing functions (in 'costModelsR' from
+   'CreateBuiltinCostModel.hs') which are loaded directly from R.  The costing
+   functions we use in practice are read from 'builtinCostModel.json', which
+   contains JSON-serialised versions of the Haskell costing functions.  Perhaps
+   the tests should be reading the Haskell costing functions from the JSON file
+   as well; there shouldn't really be any problem because the functions should
+   be the same as the ones we construct from R here (they're essentially the
+   contents of 'costModelsR' converted to JSON), but it wouldn't do any harm to
+   include any possible loss of accuracy due to serialisation/deserialisation in
+   the tests as well.
 
 -}
 
@@ -137,10 +139,10 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
   let
     predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
-      let
-        xD = fromIntegral x :: Double
-      in
-       msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
+        let
+            xD = fromIntegral x :: Double
+        in
+          microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
     predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
     sizeGen = memUsageGen
@@ -165,7 +167,7 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
     sizeGen = case domain of
@@ -193,7 +195,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
         yD = fromIntegral y :: Double
         zD = fromIntegral z :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
@@ -222,8 +224,8 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
         vD = fromIntegral v :: Double
         wD = fromIntegral w :: Double
       in
-        msToPs . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
-                                     u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+                                          u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
                                                      (ExMemory x) (ExMemory y) (ExMemory z) (ExMemory u) (ExMemory v) (ExMemory w)
@@ -274,7 +276,7 @@ makeProp6 name fun param models =
 main :: IO ()
 main =
     withEmbeddedR R.defaultConfig $ runRegion $ do
-      models <- CostModelCreation.costModelsR
+      models <- CreateBuiltinCostModel.costModelsR DFP.benchingResultsFile DFP.rModelFile
       H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
           where tests models =  -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
                     [ $(genTest 2 "addInteger")            Everywhere
@@ -301,10 +303,10 @@ main =
                     -- Cryptography and hashes
                     , $(genTest 1 "sha2_256")
                     , $(genTest 1 "sha3_256")
-                    , $(genTest 1 "blake2b")
-                --  , $(genTest 3 "verifySignature")
-                      -- We need to save the sizes of all three arguments for this in benching.csv: see SCP-3025.
-                      -- See also the comments in CostModelCreation.hs and SCP-3038.
+                    , $(genTest 1 "blake2b_256")
+                    , $(genTest 3 "verifyEd25519Signature")
+                    , $(genTest 3 "verifyEcdsaSecp256k1Signature")
+                    , $(genTest 3 "verifySchnorrSecp256k1Signature")
 
                     -- Strings
                     , $(genTest 2 "appendString") Everywhere
@@ -345,6 +347,7 @@ main =
                     , $(genTest 1 "unIData")
                     , $(genTest 1 "unBData")
                     , $(genTest 2 "equalsData") Everywhere
+                    , $(genTest 1 "serialiseData")
 
                     -- Misc constructors
                     , $(genTest 2 "mkPairData") Everywhere

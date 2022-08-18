@@ -28,19 +28,21 @@ open import Check
 open import Scoped.Extrication
 open import Type.BetaNBE
 open import Type.BetaNormal
-open import Untyped as U
-import Untyped.Reduction as U
+import Untyped as U
+open import Untyped.CEK as U
 import Scoped as S
 open import Raw
 open import Scoped
 open import Utils hiding (ByteString)
-open import Untyped
 open import Algorithmic hiding (Term;Type)
 open import Algorithmic.ReductionEC
 open import Algorithmic.Reduction
 open import Algorithmic.CK
 open import Algorithmic.CEKV
 open import Algorithmic.Erasure
+import Algorithmic.Evaluation as L
+
+
 
 -- There's a long prelude here that could go in a different file but
 -- currently it's only used here
@@ -64,13 +66,13 @@ instance
 
 postulate
   ByteString : Set
-  getContents : IO ByteString
-  readFile : String → IO ByteString
+  getContents : IO String
+  readFile : String → IO String
 
 {-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
 {-# COMPILE GHC ByteString = type BSL.ByteString #-}
-{-# COMPILE GHC readFile = \ s -> BSL.readFile (T.unpack s) #-}
-{-# COMPILE GHC getContents = BSL.getContents #-}
+{-# COMPILE GHC readFile = \s -> TextIO.readFile (T.unpack s) #-}
+{-# COMPILE GHC getContents = TextIO.getContents #-}
 
 -- System.Exit stuff
 
@@ -108,9 +110,9 @@ postulate
   unconvTm : RawTm → Term
   convP : Program → RawTm
   ParseError : Set
-  parse : ByteString → Either ParseError ProgramN
-  parseTm : ByteString → Either ParseError TermN
-  parseTy : ByteString → Either ParseError TypeN
+  parse : String → Either ParseError ProgramN
+  parseTm : String → Either ParseError TermN
+  parseTy : String → Either ParseError TypeN
   showTerm : RawTm → String
   deBruijnify : ProgramN → Either FreeVariableError Program
   deBruijnifyTm : TermN → Either FreeVariableError Term
@@ -122,18 +124,19 @@ postulate
   TermU : Set
   deBruijnifyU : ProgramNU → Either FreeVariableError ProgramU
   deBruijnifyTmU : TermNU → Either FreeVariableError TermU
-  parseU : ByteString → Either ParseError ProgramNU
-  parseTmU : ByteString → Either ParseError TermNU
-  convPU : ProgramU → Untyped
-  convTmU : TermU → Untyped
-  unconvTmU : Untyped → TermU
+  parseU : String → Either ParseError ProgramNU
+  parseTmU : String → Either ParseError TermNU
+  convPU : ProgramU → U.Untyped
+  convTmU : TermU → U.Untyped
+  unconvTmU : U.Untyped → TermU
   
 
 {-# FOREIGN GHC import PlutusCore.Name #-}
-{-# FOREIGN GHC import PlutusCore.Lexer #-}
 {-# FOREIGN GHC import PlutusCore.Parser #-}
 {-# FOREIGN GHC import PlutusCore.Pretty #-}
 {-# FOREIGN GHC import PlutusCore.DeBruijn #-}
+{-# FOREIGN GHC import PlutusCore.Error #-}
+{-# FOREIGN GHC import PlutusCore.Quote #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore as U #-}
 {-# FOREIGN GHC import qualified UntypedPlutusCore.Parser as U #-}
 
@@ -145,31 +148,32 @@ postulate
 {-# COMPILE GHC unconvTy = unconvT 0 #-}
 {-# COMPILE GHC unconvTm = unconv 0 #-}
 {-# FOREIGN GHC import Data.Bifunctor #-}
+{-# FOREIGN GHC import Data.Functor #-}
+{-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC ParseError = type ParseError () #-}
-{-# COMPILE GHC parse = first (() <$) . runQuote . runExceptT . parseProgram  #-}
-{-# COMPILE GHC parseU = first (() <$) . runQuote . runExceptT . U.parseProgram  #-}
-{-# COMPILE GHC parseTm = first (() <$) . runQuote. runExceptT . parseTerm  #-}
-{-# COMPILE GHC parseTy = first (() <$) . runQuote . runExceptT . parseType  #-}
-{-# COMPILE GHC deBruijnify = second (() <$) . runExcept . deBruijnProgram #-}
-{-# COMPILE GHC deBruijnifyTm = second (() <$) . runExcept . deBruijnTerm #-}
-{-# COMPILE GHC deBruijnifyTy = second (() <$) . runExcept . deBruijnTy #-}
+{-# COMPILE GHC parse = runQuoteT . parseProgram  #-}
+{-# COMPILE GHC parseU = runQuoteT . U.parseProgram  #-}
+{-# COMPILE GHC parseTm = runQuoteT . parseTerm  #-}
+{-# COMPILE GHC parseTy = runQuoteT . parseType  #-}
+{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm  #-}
+{-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
+{-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
+{-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import PlutusCore #-}
-{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SourcePos #-}
 {-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.Lexer.AlexPosn #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
 {-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC deBruijnifyU = second (() <$) . runExcept . U.deBruijnProgram #-}
-{-# COMPILE GHC deBruijnifyTmU = second (() <$) . runExcept . U.deBruijnTerm #-}
-{-# COMPILE GHC parseTmU = first (() <$) . runQuote. runExceptT . U.parseTerm  #-}
+{-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
+{-# COMPILE GHC deBruijnifyTmU = second void . runExcept . U.deBruijnTerm #-}
 {-# COMPILE GHC convTmU = U.conv #-}
 {-# COMPILE GHC unconvTmU = U.uconv 0 #-}
 
@@ -177,7 +181,7 @@ postulate
   prettyPrintTm : RawTm → String
   prettyPrintTy : RawTy → String
 
-  prettyPrintUTm : Untyped → String
+  prettyPrintUTm : U.Untyped → String
 
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# COMPILE GHC prettyPrintTm = display @T.Text . unconv 0 #-}
@@ -222,7 +226,7 @@ uglyTypeError builtinError = "builtinError"
 
 {-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError) #-}
 
-parsePLC : ByteString → Either ERROR (ScopedTm Z)
+parsePLC : String → Either ERROR (ScopedTm Z)
 parsePLC plc = do
   namedprog ← withE parseError $ parse plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
@@ -230,11 +234,12 @@ parsePLC plc = do
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
-parseUPLC : ByteString → Either ERROR (0 ⊢)
+open import Data.Empty
+parseUPLC : String → Either ERROR (⊥ U.⊢)
 parseUPLC plc = do
   namedprog ← withE parseError $ parseU plc
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
-  withE scopeError $ U.scopeCheckU {0} (convPU prog)
+  withE scopeError $ U.scopeCheckU0 (convPU prog)
 
 typeCheckPLC : ScopedTm Z → Either TypeError (Σ (∅ ⊢Nf⋆ *) (∅ ⊢_))
 typeCheckPLC t = inferType _ t
@@ -256,13 +261,18 @@ reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ U.progressor 10000000 (erase t)
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
+    where ◆  → inj₁ (runtimeError userError)
+          _    → inj₁ (runtimeError gasError)
+
+{-
+just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU t')
+    -}
+  return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  just t' ← withE runtimeError $ Algorithmic.Reduction.progressor maxsteps t
-    where nothing → inj₁ (runtimeError userError)
+  t' ← withE runtimeError $ L.stepper t maxsteps
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
 executePLC TCK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
@@ -277,17 +287,18 @@ executePLC TCEKV t = do
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
 
-executeUPLC : 0 ⊢ → Either ERROR String
+executeUPLC : ⊥ U.⊢ → Either ERROR String
 executeUPLC t = do
-  just t' ← withE runtimeError $ U.progressor 10000000 t
-    where nothing → inj₁ (runtimeError userError)
-  return $ prettyPrintUTm (extricateU t')
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
+    where ◆  → inj₁ (runtimeError userError)
+          _    → inj₁ (runtimeError gasError)
+  return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 
-evalByteString : EvalMode → ByteString → Either ERROR String
-evalByteString U b = do
+evalString : EvalMode → String → Either ERROR String
+evalString U b = do
   t ← parseUPLC b
   executeUPLC t
-evalByteString m b = do
+evalString m b = do
 {-
   -- some debugging code
   namedprog ← withE parseError $ parse b
@@ -306,8 +317,8 @@ evalByteString m b = do
   t ← parsePLC b
   executePLC m t
 
-typeCheckByteString : ByteString → Either ERROR String
-typeCheckByteString b = do
+typeCheckString : String → Either ERROR String
+typeCheckString b = do
   t ← parsePLC b
   (A ,, _) ← withE (λ e → typeError (uglyTypeError e) ) $ typeCheckPLC t
 {-
@@ -325,26 +336,7 @@ junk : ∀{n} → Vec String n
 junk {zero}      = []
 junk {Nat.suc n} = Data.Integer.Show.show (pos n) ∷ junk
 
-alphaTm : ByteString → ByteString → Bool
-alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
-alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
-alphaTm plc1 plc2 | _ | _ = Bool.false
-
-{-# COMPILE GHC alphaTm as alphaTm #-}
-
-alphaU : ByteString → ByteString → Bool
-alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decUTm (convTmU plc1'') (convTmU plc2'')
-alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
-alphaU plc1 plc2 | _ | _ = Bool.false
-
-{-# COMPILE GHC alphaU as alphaU #-}
-
-
-blah : ByteString → ByteString → String
+blah : String → String → String
 blah plc1 plc2 with parseTm plc1 | parseTm plc2
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
 blah plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = rawPrinter (convTm plc1'') ++ " || " ++ rawPrinter (convTm plc2'')
@@ -353,7 +345,7 @@ blah plc1 plc2 | _ | _ = "parsing failed"
 
 {-# COMPILE GHC blah as blah #-}
 
-printTy : ByteString → String
+printTy : String → String
 printTy b with parseTy b
 ... | inj₁ _ = "parseTy error"
 ... | inj₂ A  with deBruijnifyTy A
@@ -362,7 +354,7 @@ printTy b with parseTy b
 
 {-# COMPILE GHC printTy as printTy #-}
 
-alphaTy : ByteString → ByteString → Bool
+alphaTy : String → String → Bool
 alphaTy plc1 plc2 with parseTy plc1 | parseTy plc2
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTy plc1' | deBruijnifyTy plc2'
 alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTy (convTy plc1'') (convTy plc2'')
@@ -370,6 +362,25 @@ alphaTy plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
 alphaTy plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaTy as alphaTy #-}
+
+alphaTm : String → String → Bool
+alphaTm plc1 plc2 with parseTm plc1 | parseTm plc2
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTm plc1' | deBruijnifyTm plc2'
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = decRTm (convTm plc1'') (convTm plc2'')
+alphaTm plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
+alphaTm plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaTm as alphaTm #-}
+
+alphaU : String → String → Bool
+alphaU plc1 plc2 with parseTmU plc1 | parseTmU plc2
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' with deBruijnifyTmU plc1' | deBruijnifyTmU plc2'
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | inj₂ plc1'' | inj₂ plc2'' = U.decUTm (convTmU plc1'') (convTmU plc2'')
+alphaU plc1 plc2 | inj₂ plc1' | inj₂ plc2' | _ | _ = Bool.false
+alphaU plc1 plc2 | _ | _ = Bool.false
+
+{-# COMPILE GHC alphaU as alphaU #-}
+
 
 -- Opt stuff
 
@@ -402,12 +413,12 @@ postulate execP : IO Command
 {-# COMPILE GHC execP = execP #-}
 
 evalInput : EvalMode → Input → IO (Either ERROR String)
-evalInput m (FileInput fn) = fmap (evalByteString m) (readFile fn)
-evalInput m StdInput       = fmap (evalByteString m) getContents
+evalInput m (FileInput fn) = fmap (evalString m) (readFile fn)
+evalInput m StdInput       = fmap (evalString m) getContents
 
 tcInput : Input → IO (Either ERROR String)
-tcInput (FileInput fn) = fmap typeCheckByteString (readFile fn)
-tcInput StdInput       = fmap typeCheckByteString getContents
+tcInput (FileInput fn) = fmap typeCheckString (readFile fn)
+tcInput StdInput       = fmap typeCheckString getContents
 
 
 main' : Command → IO ⊤
@@ -501,8 +512,6 @@ normalizeTypeTerm t = do
 
 -- Haskell interface to (typechecked and proven correct) reduction
 
-import Algorithmic.Evaluation as L
-
 runTL : Term → Either ERROR Term
 runTL t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
@@ -511,6 +520,8 @@ runTL t = do
   return (unconvTm (unshifter Z (extricateScope (extricate t))))
 
 {-# COMPILE GHC runTL as runTLAgda #-}
+
+-- note the interfaces to evaluation below catch userErrors and replace them with error terms
 
 -- Haskell interface to (typechecked) CK
 runTCK : Term → Either ERROR Term
@@ -542,13 +553,18 @@ postulate showU : TermU -> String
 
 {-# COMPILE GHC showU = T.pack . show #-}
 
-
+-- Note that according to the specification ◆ should reduce to an error term,
+-- but here the untyped PLC term evaluator
+-- matches the behaviour of the Haskell implementation:
+-- an error is thrown with ◆. 
 runU : TermU → Either ERROR TermU
 runU t = do
-  tDB ← withE scopeError $ U.scopeCheckU {0} (convTmU t)
-  just tR ← withE runtimeError $ U.progressor maxsteps tDB
-    where nothing → inj₂ (unconvTmU UError)
-  return (unconvTmU (extricateU tR))
+  tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
+  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
+    where      
+    ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
+    _ → inj₁ (runtimeError gasError)
+  return (unconvTmU (U.extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}
 \end{code}

@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns               #-}
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GADTs                      #-}

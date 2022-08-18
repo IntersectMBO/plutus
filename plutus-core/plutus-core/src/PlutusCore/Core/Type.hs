@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DeriveAnyClass           #-}
 {-# LANGUAGE DerivingVia              #-}
@@ -27,7 +28,6 @@ module PlutusCore.Core.Type
     , Binder (..)
     , defaultVersion
     -- * Helper functions
-    , toTerm
     , termAnn
     , typeAnn
     , mapFun
@@ -40,6 +40,9 @@ module PlutusCore.Core.Type
     , tyDeclAnn
     , tyDeclType
     , tyDeclKind
+    , progAnn
+    , progVer
+    , progTerm
     )
 where
 
@@ -54,15 +57,11 @@ import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe
 
-{- Note [Annotations and equality]
-Equality of two things does not depend on their annotations.
-So don't use @deriving Eq@ for things with annotations.
--}
-
 data Kind ann
     = Type ann
     | KindArrow ann (Kind ann) (Kind ann)
-    deriving (Show, Functor, Generic, NFData, Lift, Hashable)
+    deriving stock (Eq, Show, Functor, Generic, Lift)
+    deriving anyclass (NFData, Hashable)
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -75,7 +74,8 @@ data Type tyname uni ann
     | TyBuiltin ann (SomeTypeIn uni) -- ^ Builtin type
     | TyLam ann tyname (Kind ann) (Type tyname uni ann)
     | TyApp ann (Type tyname uni ann) (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
@@ -88,16 +88,44 @@ data Term tyname name uni fun ann
     | Unwrap ann (Term tyname name uni fun ann)
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann)
     | Error ann (Type tyname uni ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
 
--- | Version of Plutus Core to be used for the program.
+{- |
+The version of Plutus Core used by this program.
+
+The intention is to convey different levels of backwards compatibility for existing scripts:
+- Major version changes are backwards-incompatible
+- Minor version changes are backwards-compatible
+- Patch version changes should be entirely invisible (and we will likely not use this level)
+
+The version used should be changed only when the /language itself/ changes.
+For example, adding a new kind of term to the language would require a minor
+version bump; removing a kind of term would require a major version bump.
+
+Similarly, changing the semantics of the language will require a version bump,
+typically a major one. This is the main reason why the version is actually
+tracked in the AST: we can have two language versions with identical ASTs but
+different semantics, so we need to track the version explicitly.
+
+Compatibility is about compatibility for specific scripts, not about e.g. tools which consume scripts.
+Adding a new kind of term does not change how existing scripts behave, but does change what
+tools would need to do to process scripts.
+-}
 data Version ann
     = Version ann Natural Natural Natural
-    deriving (Show, Functor, Generic, NFData, Hashable)
+    deriving stock (Eq, Show, Functor, Generic)
+    deriving anyclass (NFData, Hashable)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
-data Program tyname name uni fun ann = Program ann (Version ann) (Term tyname name uni fun ann)
-    deriving (Show, Functor, Generic, NFData, Hashable)
+data Program tyname name uni fun ann = Program
+    { _progAnn  :: ann
+    , _progVer  :: Version ann
+    , _progTerm :: Term tyname name uni fun ann
+    }
+    deriving stock (Show, Functor, Generic)
+    deriving anyclass (NFData)
+makeLenses ''Program
 
 -- | Extract the universe from a type.
 type family UniOf a :: GHC.Type -> GHC.Type
@@ -109,15 +137,15 @@ data TyVarDecl tyname ann = TyVarDecl
     { _tyVarDeclAnn  :: ann
     , _tyVarDeclName :: tyname
     , _tyVarDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''TyVarDecl
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
-data VarDecl tyname name uni fun ann = VarDecl
+data VarDecl tyname name uni ann = VarDecl
     { _varDeclAnn  :: ann
     , _varDeclName :: name
     , _varDeclType :: Type tyname uni ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''VarDecl
 
 -- | A "type declaration", i.e. a kind for a type.
@@ -125,7 +153,7 @@ data TyDecl tyname uni ann = TyDecl
     { _tyDeclAnn  :: ann
     , _tyDeclType :: Type tyname uni ann
     , _tyDeclKind :: Kind ann
-    } deriving (Functor, Show, Generic)
+    } deriving stock (Functor, Show, Generic)
 makeLenses ''TyDecl
 
 tyDeclVar :: TyVarDecl tyname ann -> TyDecl tyname uni ann
@@ -135,13 +163,13 @@ instance HasUnique tyname TypeUnique => HasUnique (TyVarDecl tyname ann) TypeUni
     unique f (TyVarDecl ann tyname kind) =
         unique f tyname <&> \tyname' -> TyVarDecl ann tyname' kind
 
-instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni fun ann) TermUnique where
+instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni ann) TermUnique where
     unique f (VarDecl ann name ty) =
         unique f name <&> \name' -> VarDecl ann name' ty
 
 newtype Normalized a = Normalized
     { unNormalized :: a
-    } deriving (Show, Eq, Functor, Foldable, Traversable, Generic)
+    } deriving stock (Show, Eq, Functor, Foldable, Traversable, Generic)
       deriving newtype (NFData, Pretty, PrettyBy config)
       deriving Applicative via Identity
 
@@ -157,9 +185,6 @@ type instance HasUniques (Program tyname name uni fun ann) =
 -- | The default version of Plutus Core supported by this library.
 defaultVersion :: ann -> Version ann
 defaultVersion ann = Version ann 1 0 0
-
-toTerm :: Program tyname name uni fun ann -> Term tyname name uni fun ann
-toTerm (Program _ _ term) = term
 
 typeAnn :: Type tyname uni ann -> ann
 typeAnn (TyVar ann _       ) = ann

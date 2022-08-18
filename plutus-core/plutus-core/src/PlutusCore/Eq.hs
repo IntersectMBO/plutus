@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | An internal module that defines functions for deciding equality of values of data types
 -- that encode things with binders.
 
@@ -106,13 +107,13 @@ type-level renaming).
 -- | From left to right.
 newtype LR a = LR
     { unLR :: a
-    } deriving (Generic)
+    } deriving stock (Generic)
 
 -- See Note [Side tracking].
 -- | From right to left.
 newtype RL a = RL
     { unRL :: a
-    } deriving (Generic)
+    } deriving stock (Generic)
 
 -- See Note [Side tracking].
 -- | A left @a@ and a right @a@.

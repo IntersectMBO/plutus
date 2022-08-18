@@ -24,7 +24,8 @@ import Universe
 
 instance
         ( PrettyClassicBy configName name
-        , GShow uni, Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
     prettyBy config = \case
@@ -50,7 +51,7 @@ instance
             sexp "force" (consAnnIf config ann
                 [prettyBy config term])
       where
-        prettyTypeOf :: GShow t => Some (ValueOf t) -> Doc dann
+        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
         prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>

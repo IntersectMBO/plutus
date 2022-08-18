@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -8,9 +9,12 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
+-- For some reason this module is very slow to compile otherwise
+{-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
+import PlutusPrelude
 import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -24,9 +28,11 @@ import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
 import GhcPlugins qualified as GHC
+import OccurAnal qualified as GHC
 import Panic qualified as GHC
 
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty as PLC
 import PlutusCore.Quote
 
@@ -35,9 +41,11 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusTx.Options
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
 
+import Control.Exception (throwIO)
 import Control.Lens
 import Control.Monad
 import Control.Monad.Except
@@ -47,39 +55,14 @@ import Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
-import Data.Foldable (fold)
-import Data.List (isPrefixOf)
+import Data.Either.Validation
 import Data.Map qualified as Map
-import Data.Maybe (fromMaybe)
 import Data.Set qualified as Set
-import Data.Traversable (for)
-import ErrorCode
+import ErrorCode (HasErrorCode (errorCode))
 import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
-import Text.Read (readMaybe)
-
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
-
-data PluginOptions = PluginOptions {
-    poDoTypecheck                      :: Bool
-    , poDeferErrors                    :: Bool
-    , poContextLevel                   :: Int
-    , poDumpPir                        :: Bool
-    , poDumpPlc                        :: Bool
-    , poDumpUPlc                       :: Bool
-    , poOptimize                       :: Bool
-    , poPedantic                       :: Bool
-    , poVerbose                        :: Bool
-    , poDebug                          :: Bool
-    , poMaxSimplifierIterations        :: Int
-    , poDoSimplifierUnwrapCancel       :: Bool
-    , poDoSimplifierBeta               :: Bool
-    , poDoSimplifierInline             :: Bool
-    , poDoSimplifierRemoveDeadBindings :: Bool
-    , poProfile                        :: ProfileOpts
-    , poCoverage                       :: CoverageOpts
-    }
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -106,6 +89,16 @@ unconditionally which we pretty much are.
 See https://gitlab.haskell.org/ghc/ghc/issues/16615 for upstream discussion.
 -}
 
+{- Note [newtype field accessors in `base`]
+For some unknown reason, newtype field accessors in `base`, such as `getFirst`, `appEndo` and
+`getDual`, cause Cabal build and Nix build to behave differently. In Cabal build, these
+field accessors' unfoldings are available to the GHC simplifier, and so the simplifier inlines
+them into `Coercion`s. But in Nix build, somehow their unfoldings aren't available.
+
+This started to happen after a seemingly innocent PR (#4552), and it eventually led to different
+PIRs, PLCs and UPLCs, causing test failures. Replacing them with `coerce` avoids the problem.
+-}
+
 plugin :: GHC.Plugin
 plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
                            , GHC.installCoreToDos = install
@@ -116,7 +109,9 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
           -- create simplifier pass to be placed at the front
           simplPass <- mkSimplPass <$> GHC.getDynFlags
           -- instantiate our plugin pass
-          pluginPass <- mkPluginPass <$> parsePluginArgs args
+          pluginPass <- mkPluginPass <$> case parsePluginOptions args of
+              Success opts -> pure opts
+              Failure errs -> liftIO $ throwIO errs
           -- return the pipeline
           pure $
              simplPass
@@ -137,55 +132,6 @@ mkSimplPass flags =
             , GHC.sm_case_case = False
             , GHC.sm_eta_expand = False
             }
-
--- | Parses the arguments that were given to ghc at commandline as "-fplugin-opt PlutusTx.Plugin:arg1"
-parsePluginArgs :: [GHC.CommandLineOption] -> GHC.CoreM PluginOptions
-parsePluginArgs args = do
-    let opts = PluginOptions {
-            poDoTypecheck = notElem' "no-typecheck"
-            , poDeferErrors = elem' "defer-errors"
-            , poContextLevel = if elem' "no-context" then 0 else if elem "debug-context" args then 3 else 1
-            , poDumpPir = elem' "dump-pir"
-            , poDumpPlc = elem' "dump-plc"
-            , poDumpUPlc = elem' "dump-uplc"
-            , poOptimize = notElem' "no-optimize"
-            , poPedantic = elem' "pedantic"
-            , poVerbose = elem' "verbose"
-            , poDebug = elem' "debug"
-            , poMaxSimplifierIterations = maxIterations
-            -- Simplifier Passes
-            , poDoSimplifierUnwrapCancel = notElem' "no-simplifier-unwrap-cancel"
-            , poDoSimplifierBeta = notElem' "no-simplifier-beta"
-            , poDoSimplifierInline = notElem' "no-simplifier-inline"
-            , poDoSimplifierRemoveDeadBindings = notElem' "no-simplifier-remove-dead-bindings"
-            -- profiling: @profile-all@ turns on profiling for everything
-            , poProfile =
-                if elem' "profile-all"
-                then All
-                else None
-            , poCoverage = CoverageOpts . Set.fromList $
-                   [ l | l <- [minBound .. maxBound], elem' "coverage-all" ]
-                ++ [ LocationCoverage  | elem' "coverage-location"  ]
-                ++ [ BooleanCoverage  | elem' "coverage-boolean"  ]
-            }
-    -- TODO: better parsing with failures
-    pure opts
-    where
-        elem' :: String -> Bool
-        elem' = flip elem args
-        notElem' :: String -> Bool
-        notElem' = flip notElem args
-        prefix :: String
-        prefix = "max-simplifier-iterations="
-        defaultIterations :: Int
-        defaultIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
-        maxIterations :: Int
-        maxIterations = case filter (isPrefixOf prefix) args of
-            match : _ ->
-                let val = drop (length prefix) match in
-                    fromMaybe defaultIterations (readMaybe val)
-            _ -> defaultIterations
-
 
 {- Note [Marker resolution]
 We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
@@ -226,10 +172,10 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
 
 -- | The monad where the plugin runs in for each module.
 -- It is a core->core compiler monad, called PluginM, augmented with pure errors.
-type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun) GHC.CoreM)
+type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun Ann) GHC.CoreM)
 
 -- | Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.
-runPluginM :: (PLC.GShow uni, PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
+runPluginM :: (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun)
            => PluginCtx -> PluginM uni fun a -> GHC.CoreM a
 runPluginM pctx act = do
     res <- runExceptT $ runReaderT act pctx
@@ -307,18 +253,18 @@ compileMarkedExprOrDefer :: String -> GHC.Type -> GHC.CoreExpr -> PluginM PLC.De
 compileMarkedExprOrDefer locStr codeTy origE = do
     opts <- asks pcOpts
     let compileAct = compileMarkedExpr locStr codeTy origE
-    if poDeferErrors opts
+    if _posDeferErrors opts
       -- TODO: we could perhaps move this catchError to the "runExceptT" module-level, but
       -- it leads to uglier code and difficulty of handling other pure errors
       then compileAct `catchError` emitRuntimeError codeTy
       else compileAct
 
 -- | Given an expected Haskell type 'a', it generates Haskell code which throws a GHC runtime error "as" 'CompiledCode a'.
-emitRuntimeError :: (PLC.GShow uni, PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
-                 => GHC.Type -> CompileError uni fun -> PluginM uni fun GHC.CoreExpr
+emitRuntimeError :: (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst)
+                 => GHC.Type -> CompileError uni fun Ann -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
-    let shown = show $ PP.pretty (pruneContext (poContextLevel opts) e)
+    let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
     pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
@@ -336,17 +282,27 @@ compileMarkedExpr locStr codeTy origE = do
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
+    let coverage = CoverageOpts . Set.fromList $
+                   [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
+                ++ [ LocationCoverage  | _posCoverageLocation opts  ]
+                ++ [ BooleanCoverage  | _posCoverageBoolean opts  ]
     let ctx = CompileContext {
-            ccOpts = CompileOptions {coProfile =poProfile opts , coCoverage = poCoverage opts },
+            ccOpts = CompileOptions {coProfile=_posProfile opts,coCoverage=coverage,coRemoveTrace=_posRemoveTrace opts},
             ccFlags = flags,
             ccFamInstEnvs = famEnvs,
             ccNameInfo = nameInfo,
             ccScopes = initialScopeStack,
             ccBlackholed = mempty,
-            ccModBreaks = modBreaks
+            ccCurDef = Nothing,
+            ccModBreaks = modBreaks,
+            ccBuiltinVer = def
             }
+    -- See Note [Occurrence analysis]
+    let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $ withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $ runCompiler moduleNameStr opts origE
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
+        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+            runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
@@ -365,58 +321,84 @@ compileMarkedExpr locStr codeTy origE = do
 
 -- | The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
-runCompiler
-    :: forall uni fun m . (uni ~ PLC.DefaultUni, fun ~ PLC.DefaultFun, MonadReader (CompileContext uni fun) m, MonadWriter CoverageIndex m, MonadQuote m, MonadError (CompileError uni fun) m, MonadIO m)
-    => String
-    -> PluginOptions
-    -> GHC.CoreExpr
-    -> m (PIRProgram uni fun, UPLCProgram uni fun)
+runCompiler ::
+    forall uni fun m.
+    ( uni ~ PLC.DefaultUni
+    , fun ~ PLC.DefaultFun
+    , MonadReader (CompileContext uni fun) m
+    , MonadWriter CoverageIndex m
+    , MonadQuote m
+    , MonadError (CompileError uni fun Ann) m
+    , MonadIO m
+    ) =>
+    String ->
+    PluginOptions ->
+    GHC.CoreExpr ->
+    m (PIRProgram uni fun, UPLCProgram uni fun)
 runCompiler moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
-    -- Pir configuration
-    let pirTcConfig = if poDoTypecheck opts
+    let hints = UPLC.InlineHints $ \ann _ -> case ann of
+            -- See Note [The problem of inlining destructors]
+            -- We want to inline destructors, but even in UPLC our inlining heuristics
+            -- aren't quite smart enough to tell that they're good inlining candidates,
+            -- so we just explicitly tell the inliner to inline them all.
+            --
+            -- In fact, this instructs the inliner to inline *any* binding inside a destructor,
+            -- which is a slightly large hammer but is actually what we want since it will mean
+            -- that we also aggressively reduce the bindings inside the destructor.
+            PIR.DatatypeComponent PIR.Destructor _ -> True
+            _                                      -> AnnInline `elem` toList ann
+    -- Compilation configuration
+    let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
                       then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
-                 & set (PIR.ccOpts . PIR.coOptimize) (poOptimize opts)
-                 & set (PIR.ccOpts . PIR.coPedantic) (poPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (poVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (poDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (poMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
+                 & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
-                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (poDoSimplifierUnwrapCancel opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (poDoSimplifierBeta opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (poDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coInlineHints)                    hints
+        plcOpts = PLC.defaultCompilationOpts
+            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+            & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT () $ compileExprWithDefs expr
-    when (poDumpPir opts) . liftIO $ dumpFlat (PIR.Program () pirT) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    when (_posDumpPir opts) . liftIO $
+        dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
-    when (poDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
     let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
-    when (poDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
+    when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
-    when (poDoTypecheck opts) . void $
-        liftExcept $ PLC.typecheckPipeline plcTcConfig plcP
+    when (_posDoTypecheck opts) . void $
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
 
-    uplcP <- liftExcept $ UPLC.deBruijnProgram $ UPLC.simplifyProgram $ UPLC.eraseProgram plcP
-    when (poDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
+    dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
+    let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it using our 'CompileError'
-      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun ()) m b -> m b
+      liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun Ann) m b -> m b
       liftExcept act = do
         plcTcError <- runExceptT act
         -- also wrap the PLC Error annotations into Original provenances, to match our expected 'CompileError'

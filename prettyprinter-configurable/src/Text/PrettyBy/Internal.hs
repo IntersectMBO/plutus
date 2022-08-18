@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes        #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DataKinds                  #-}
@@ -118,7 +119,7 @@ class PrettyBy config a where
     -- The default implementation of 'prettyBy' for a 'Functor' is going to be in terms of
     -- 'defaultPrettyFunctorBy':
     --
-    -- >>> newtype N a = N a deriving (Functor) deriving newtype (Pretty)
+    -- >>> newtype N a = N a deriving stock (Functor) deriving newtype (Pretty)
     -- >>> instance PrettyBy () a => PrettyBy () (N a)
     -- >>> prettyBy () (N (42 :: Int))
     -- 42
@@ -127,7 +128,7 @@ class PrettyBy config a where
     -- 'Functor' (i.e. the parameter has to be of kind @*@). Then 'defaultPrettyFunctorBy' is used
     -- again:
     --
-    -- >>> newtype N a = N Int deriving (Functor) deriving newtype (Pretty)
+    -- >>> newtype N a = N Int deriving stock (Functor) deriving newtype (Pretty)
     -- >>> instance PrettyBy () (N b)
     -- >>> prettyBy () (N 42)
     -- 42
@@ -417,7 +418,7 @@ instance DefaultPrettyBy config a => Pretty (AttachDefaultPrettyConfig config a)
 -- Like in the case of 'prettyBy', the default implementation of 'defaultPrettyBy' for a 'Functor'
 -- is 'defaultPrettyFunctorBy' (and for a 'Bifunctor' -- 'defaultPrettyBifunctorBy'):
 --
--- >>> data Twice a = Twice a a deriving (Functor)
+-- >>> data Twice a = Twice a a deriving stock (Functor)
 -- >>> instance Pretty a => Pretty (Twice a) where pretty (Twice x y) = pretty x <+> "&" <+> pretty y
 -- >>> instance PrettyBy config a => DefaultPrettyBy config (Twice a)
 -- >>> deriving via PrettyCommon (Twice a) instance PrettyDefaultBy config (Twice a) => PrettyBy config (Twice a)
@@ -798,7 +799,7 @@ deriving via PrettyCommon (Maybe a)
 --
 -- or you can use the type to via-derive instances:
 --
--- >>> data D = D deriving (Show)
+-- >>> data D = D deriving stock (Show)
 -- >>> deriving via PrettyAny D instance PrettyBy ViaShow D
 -- >>> prettyBy ViaShow D
 -- D

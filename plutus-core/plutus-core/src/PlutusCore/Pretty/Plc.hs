@@ -40,7 +40,7 @@ import PlutusCore.Pretty.Readable
 data CondensedErrors
     = CondensedErrorsYes
     | CondensedErrorsNo
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 -- | Options for pretty-printing PLC entities.
 newtype PrettyConfigPlcOptions = PrettyConfigPlcOptions
@@ -105,14 +105,14 @@ debugPrettyConfigPlcClassic opts =
 defPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 defPrettyConfigPlcReadable opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable defPrettyConfigName ShowKindsYes
+        topPrettyConfigReadable defPrettyConfigName def
 
 -- | The 'PrettyConfigPlc' used for debugging and readability:
 -- use the refined view and print 'Unique's, but not name attachments.
 debugPrettyConfigPlcReadable :: PrettyConfigPlcOptions -> PrettyConfigPlc
 debugPrettyConfigPlcReadable opts =
     PrettyConfigPlc opts . PrettyConfigPlcReadable $
-        topPrettyConfigReadable debugPrettyConfigName ShowKindsYes
+        topPrettyConfigReadable debugPrettyConfigName def
 
 -- | Pretty-print a PLC value in the default mode using the classic view.
 prettyPlcClassicDef :: PrettyPlc a => a -> Doc ann

@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase   #-}
 
@@ -6,16 +7,16 @@ module Main (main) where
 import Common
 import Parsers
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty qualified as PP
 
-import UntypedPlutusCore qualified as UPLC (eraseProgram)
-
-import Data.Function ((&))
 import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
+import Control.Lens
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -38,6 +39,8 @@ data Command = Apply     ApplyOptions
              | Example   ExampleOptions
              | Erase     EraseOptions
              | Eval      EvalOptions
+             | DumpModel
+             | PrintBuiltinSignatures
 
 ---------------- Option parsers ----------------
 
@@ -87,6 +90,12 @@ plutusOpts = hsubparser (
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
+    <> command "dump-model"
+           (info (pure DumpModel)
+            (progDesc "Dump the cost model parameters"))
+    <> command "print-builtin-signatures"
+           (info (pure PrintBuiltinSignatures)
+            (progDesc "Print the signatures of the built-in functions"))
   )
 
 ---------------- Script application ----------------
@@ -94,7 +103,7 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.AlexPosn)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -108,7 +117,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
   prog <- getProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
-    PLC.typecheckPipeline tcConfig (void prog)
+    PLC.inferTypeOfProgram tcConfig (void prog)
     of
       Left (e :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
         errorWithoutStackTrace $ PP.displayPlcDef e
@@ -121,7 +130,7 @@ runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode timingMode) = do
   prog <- getProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
-      term = void . PLC.toTerm $ prog
+      term = void $ prog ^. PLC.progTerm
       !_ = rnf term
       -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
       -- The parser apparently returns a fully-evaluated AST, but let's be on the safe side.
@@ -140,8 +149,8 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
-  let untypedProg = () <$ UPLC.eraseProgram typedProg
+  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
+  let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
@@ -150,25 +159,28 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.AlexPosn) ) >>= print . getPrintMethod mode
+    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
 runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.AlexPosn))
+    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------
+
 main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts -> runApply        opts
-        Typecheck opts -> runTypecheck    opts
-        Eval      opts -> runEval         opts
-        Example   opts -> runPlcPrintExample opts
-        Erase     opts -> runErase        opts
-        Print     opts -> runPrint        opts
-        Convert   opts -> runConvert      opts
+        Apply     opts         -> runApply        opts
+        Typecheck opts         -> runTypecheck    opts
+        Eval      opts         -> runEval         opts
+        Example   opts         -> runPlcPrintExample opts
+        Erase     opts         -> runErase        opts
+        Print     opts         -> runPrint        opts
+        Convert   opts         -> runConvert      opts
+        DumpModel              -> runDumpModel
+        PrintBuiltinSignatures -> runPrintBuiltinSignatures

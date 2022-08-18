@@ -6,13 +6,15 @@ module Evaluation.Builtins.MakeRead
     ) where
 
 import PlutusCore qualified as TPLC
-import PlutusCore.Constant
+import PlutusCore.Builtin
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Unit
+import PlutusPrelude
 
 import UntypedPlutusCore as UPLC (Name, Term, TyName)
 
@@ -30,13 +32,13 @@ import Data.Text (Text)
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.
 readMakeHetero
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) b
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) b
        )
     => a -> EvaluationResult b
 readMakeHetero x = do
-    xTerm <- makeKnownOrFail @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
-    case extractEvaluationResult <$> typecheckReadKnownCek TPLC.defaultCekParameters xTerm of
+    xTerm <- makeKnownOrFail @_ @(TPLC.Term TyName Name DefaultUni DefaultFun ()) x
+    case extractEvaluationResult <$> typecheckReadKnownCek def TPLC.defaultBuiltinCostModel xTerm of
         Left err          -> error $ "Type error" ++ displayPlcCondensedErrorClassic err
         Right (Left err)  -> error $ "Evaluation error: " ++ show err
         Right (Right res) -> res
@@ -44,15 +46,15 @@ readMakeHetero x = do
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of the same type.
 readMake
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        )
     => a -> EvaluationResult a
 readMake = readMakeHetero
 
 builtinRoundtrip
-    :: ( KnownType (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
-       , KnownType (UPLC.Term Name DefaultUni DefaultFun ()) a
+    :: ( MakeKnown (TPLC.Term TyName Name DefaultUni DefaultFun ()) a
+       , ReadKnown (UPLC.Term Name DefaultUni DefaultFun ()) a
        , Show a, Eq a
        )
     => Gen a -> Property
@@ -64,7 +66,7 @@ builtinRoundtrip genX = property $ do
 
 test_textRoundtrip :: TestTree
 test_textRoundtrip =
-    testProperty "textRoundtrip" . builtinRoundtrip $
+    testPropertyNamed "textRoundtrip" "textRoundtrip" . builtinRoundtrip $
         Gen.text (Range.linear 0 20) Gen.unicode
 
 -- | Generate a bunch of 'text's, put each of them into a 'Term', apply a builtin over
@@ -77,14 +79,14 @@ test_textRoundtrip =
 -- Calls 'unsafePerformIO' internally while evaluating the term, because the CEK machine can only
 -- handle pure things and 'unsafePerformIO' is the way to pretend an effectful thing is pure.
 test_collectText :: TestTree
-test_collectText = testProperty "collectText" . property $ do
+test_collectText = testPropertyNamed "collectText" "collectText" . property $ do
     strs <- forAll . Gen.list (Range.linear 0 10) $ Gen.text (Range.linear 0 20) Gen.unicode
     let step arg rest = mkIterApp () (tyInst () (builtin () Trace) unit)
             [ mkConstant @Text @DefaultUni () arg
             , rest
             ]
         term = foldr step unitval (reverse strs)
-    strs' <- case typecheckEvaluateCek TPLC.defaultCekParameters term of
+    strs' <- case typecheckEvaluateCek def TPLC.defaultBuiltinCostModel term of
         Left _                             -> failure
         Right (EvaluationFailure, _)       -> failure
         Right (EvaluationSuccess _, strs') -> return strs'

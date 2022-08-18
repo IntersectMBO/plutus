@@ -11,6 +11,13 @@
         )
       )
     )
-    (lam ds MyMonoRecord ds)
+    (lam
+      ds
+      MyMonoRecord
+      [
+        { [ MyMonoRecord_match ds ] (con integer) }
+        (lam i (con integer) (lam ds (con integer) i))
+      ]
+    )
   )
 )

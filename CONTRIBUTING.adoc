@@ -16,6 +16,7 @@ This includes a variety of useful tools:
 * Agda with the right libraries set up to build our Agda code
 * `stylish-haskell`
 * `haskell-language-server`
+* `editorconfig-checker`
 * ... and more
 
 Have a look in `shell.nix` to see what's there.
@@ -30,8 +31,8 @@ NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a
 The shell comes with some tools for fixing various simple problems that the CI will complain about. Specifically:
 
 - `fix-stylish-haskell` will re-format all the Haskell sources correctly.
+- `fix-cabal-fmt` will re-format all the Cabal sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
-- `updateMaterialized` will update the materialized Nix files (see xref:update-generated[later]).
 
 If you're not using `nix-shell` all the time and you want to run one of these, you can use `nix-shell --run`.
 
@@ -42,11 +43,9 @@ From here you can build the project packages directly with `cabal`.
 
 NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-index-state[we have pinned].
 
-For `stack`, you may want to use the Nix integration and point it at `shell.nix`, which will make sure you at least get the right GHC.
-
 [WARNING]
 ====
-You can also use `cabal` and `stack` outside the `nix-shell` environment to build the project.
+You can also use `cabal` outside the `nix-shell` environment to build the project.
 _However_ there are two caveats:
 
 * You may get different versions of packages.
@@ -105,6 +104,9 @@ To resolve it, simply add the following lines in your `cabal.project.local`:
 package plutus-core
   ghc-options: -fexternal-interpreter
 ```
+
+This issue is tracked upstream at https://gitlab.haskell.org/ghc/ghc/-/issues/18320
+
 ====
 
 There are various tools for visualizing the resulting profile, e.g. https://hackage.haskell.org/package/ghc-prof-flamegraph.
@@ -117,40 +119,22 @@ IMPORTANT: this binary is called `haskell-language-server`, rather than `haskell
 
 We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fine these days.
 
-[[update-generated]]
-=== How to update the generated Haskell package set
-
-Some of the Nix code that builds all the Haskell packages and their dependencies is generated automatically.
-However, to avoid doing too much work all the time, we have checked the generated output in.
-
-IMPORTANT: These files needs to be regenerated if you change any dependencies in cabal files.
-But the CI will tell you if you've failed to do so.
-
-You can regenerate the files by running `updateMaterialized` (provided by `nix-shell`) from the repository root.
-
-This will also update the `plan-256` shas for the extra Haskell tools, if you have a problem iwth that.
-
 === How to add a new Haskell package
 
 You need to do a few things when adding a new package, in the following order:
 
 . Add the cabal file for the new package.
 . Add the package to link:cabal.project[`cabal.project`].
-. Add the package to link:stack.yaml[`stack.yaml`].
-. Update the xref:update-generated[package set].
-. Update the `xref:update-hie[hie-*.yaml` files].
 . Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.
 
 [[update-haskell-pins]]
 === How to update our pinned Haskell dependencies
 
-We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) and `extra-dep` (Stack) mechanisms.
+We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) mechanism.
 
 These can be managed normally, but ensure that:
 
-* The specifications remain in sync between `cabal.project` and `stack.yaml`.
-* You update the xref:update-generated[package set].
-* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/haskell.nix`.
+* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/pkgs/haskell/haskell.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
 [[update-nix-pins]]
@@ -183,9 +167,11 @@ The set of index states which it knows about is controlled by `hackage.nix`, whi
 This therefore needs to be newer than the index state.
 You can update it xref:update-nix-pins[with the Nix flake commands].
 
-You will need to update the xref:update-generated[package set] after this to reflect the new build plan that Cabal will pick.
-
 == Working conventions
+
+=== Style guide
+
+Please follow our link:STYLEGUIDE{outfilesuffix}[Haskell style guide], which documents most of our conventions for working on Haskell code.
 
 === Code is communication
 
@@ -236,12 +222,17 @@ you could write a Note describing the trick (and justifying its usage!), and the
 
 === Code formatting
 
-We use `stylish-haskell` for Haskell code formatting.
-CI checks that running this is a no-op, so if you don’t apply it then your PR will not go green.
-To avoid annoyance, set up your editor to run them automatically.
-The `nix-shell` environment provides a `stylish-haskell` binaries of the correct version.
+We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal files.
+They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
-You can run `stylish-haskell` over your tree using the `fix-stylish-haskell` script provided by the `nix-shell` environment.
+To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `fix-stylish-haskell` or `fix-cabal-fmt` respectively.
+They are provided by the `nix-shell` environment.
+
+=== Code linting
+
+There are two `.hlint.yaml` files, one in `./` and the other in `.github/`.
+The one in `./` is the default hint file used by editors, and the one in `.github/` is used by CI.
+Think of the former as suggested hints, and the latter as enforced hints.
 
 === Compiler warnings
 
@@ -279,6 +270,12 @@ The key bottleneck in getting a PR merged is code review.
 Code review is great (see below), but it can slow you down if you don't take the time to make it easy.
 
 The amount of time it's worth spending doing this is probably much more than you think.
+
+==== What branch to target
+
+Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
+PRs should target `master` unless there is a very good reason not to.
+The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
 
 ==== What changes to include
 
@@ -362,6 +359,42 @@ Read these blog posts for more good tips:
 - https://mtlynch.io/human-code-reviews-1/
 - https://mtlynch.io/human-code-reviews-2/
 
+=== Benchmarking PRs
+
+Sometimes it is useful to benchmark a PR, and we have some automation for this.
+To trigger it, make a comment on the PR with this form: `/benchmark <benchmark-component>`, where `<benchmark-component>` is as you would provide it to cabal.
+For example, if you would run `cabal bench plutus-benchmark:validation` locally, then write `/benchmark plutus-benchmark:validation` in the comment.
+
+This will trigger a benchmarking job on a stable machine.
+The job will:
+
+1. Run the specified benchmark on the base of the PR branch.
+2. Run the specified benchmark on the tip of the PR branch.
+3. Compare the two runs.
+4. Post the comparison as a comment to the PR.
+
+== External contributors
+
+The Plutus team welcomes contributions from external contributors.
+However, it can be difficult for the Plutus team to quickly review contributions from people where we don't have an existing relationship.
+For that reason, we ask you to follow these additional guidelines (the rest of the document also applies!), which will make it easier for us to review your work, and therefore make the contributing process smoother for you.
+
+=== All changes must have an issue
+
+Make sure that any change you make has a corresponding GitHub issue.
+The issue should describe the problem and describe your proposed solutiion.
+Before you start working on implementing it, you must get a comment from the Plutus team that the solution seems sensible.
+This functions as a light "design review" before you get too stuck into doing a PR.
+
+Reviewing the issue makes things easier for the Plutus team (it's easier to read an issue than a PR); and less frustrating for the contributor (it's nicer to get design feeback *before* you have done lots of work on the implementation).
+We can also offer advice on implementation, or let you know that we're already planning to fix the issue (or that there is a good reason not to!).
+
+=== Keep changes well-scoped
+
+Try to keep your PR focussed on one change.
+This is a pratice we try to follow generally, but especially for external contributions where reviews tend to be more laborious, it's good to keep things focussed.
+If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as such!
+
 == Supporting systems
 
 === Continuous integration
@@ -405,10 +438,12 @@ The documentation site is built on ReadTheDocs.
 It will build a preview for each PR which is linked from the PR status.
 It's useful to take a look if you're changing any of the documentation.
 
+Run `build-and-serve-docs` in nix-shell to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
+
 ==== Github Actions
 
 These perform some of the same checks as Hydra, but Github Actions is often more available, so they return faster and act as a "smoke check".
 
 ==== Buildkite
 
-Buildkite is used for a benchmarking job, triggered by a comment on a PR containing `/benchmark`.
+Buildkite is used to run the benchmarking job.

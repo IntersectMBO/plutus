@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | Precedence-general machinery for deciding whether an expression needs to be wrapped in
 -- parentheses or not. Source code has comments on the approach used and how it compares to some
 -- other known approaches.
@@ -209,7 +210,7 @@ data Associativity
     = LeftAssociative
     | RightAssociative
     | NonAssociative
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 -- See Note [Approaches to precedence-aware pretty-printing].
 -- | Fixity of an operator.
@@ -233,20 +234,20 @@ data Associativity
 data FixityOver prec = Fixity
     { _fixityAssociativity :: !Associativity
     , _fixityPrecedence    :: !prec
-    } deriving (Show, Eq)
+    } deriving stock (Show, Eq)
 
 -- | Direction in which pretty-printing goes. For example in @x + y@ @x@ is pretty-printed to the
 -- left of @+@ and @y@ is pretty-printed to the right of @+@.
 data Direction
     = ToTheLeft
     | ToTheRight
-    deriving (Show, Eq)
+    deriving stock (Show, Eq)
 
 -- | A context that an expression is being rendered in.
 data RenderContextOver prec = RenderContext
     { _renderContextDirection :: !Direction
     , _renderContextFixity    :: !(FixityOver prec)
-    } deriving (Show, Eq)
+    } deriving stock (Show, Eq)
 
 -- Instead of receiving a @a -> a@ this function could simply return a 'Bool'.
 -- | Enclose an @a@ (using the provided function) if required or leave it as is.

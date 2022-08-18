@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -17,11 +18,12 @@ import PlutusCore.StdLib.Meta.Data.Tuple
 import PlutusCore.StdLib.Type
 
 import PlutusCore
+import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Data.Bifunctor
@@ -218,6 +220,16 @@ iteAtString = iteAt string
 iteAtStringWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringWithCond = Apply () iteAtString lteExpr
 
+-- [ { (builtin ifThenElse) (con string) } (11<=22) 33 "abc" ] : IllTypedRuns
+-- This is ill-typed because the first branch is of type @integer@ and the second branch is of type
+-- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
+-- at types at runtime.
+iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
+iteAtStringWithCondWithIntegerWithString = mkIterApp () (iteAtStringWithCond)
+    [ mkConstant @Integer () 33
+    , mkConstant @Text () "abc"
+    ]
+
 -- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
 iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
@@ -319,14 +331,14 @@ goldenVsPretty extn name value =
 goldenVsEvaluatedCK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCK name
     = goldenVsPretty ".plc.golden" name
-    . bimap (fmap UPLC.erase) UPLC.erase
+    . bimap (fmap eraseTerm) eraseTerm
     . evaluateCkNoEmit defaultBuiltinsRuntime
 
 goldenVsEvaluatedCEK :: String -> Term TyName Name DefaultUni DefaultFun () -> TestTree
 goldenVsEvaluatedCEK name
-    = goldenVsPretty ".plc.golden" name
+    = goldenVsPretty ".uplc.golden" name
     . evaluateCekNoEmit defaultCekParameters
-    . UPLC.erase
+    . eraseTerm
 
 runTypecheck
     :: Term TyName Name DefaultUni DefaultFun ()
@@ -367,6 +379,7 @@ namesAndTests =
    , ("diFullyApplied", diFullyApplied)
    , ("iteAtString", iteAtString)
    , ("iteAtStringWithCond", iteAtStringWithCond)
+   , ("iteAtStringWithCondWithIntegerWithString", iteAtStringWithCondWithIntegerWithString)
    , ("iteAtStringFullyApplied", iteAtStringFullyApplied)
    , ("iteAtIntegerArrowInteger", iteAtIntegerArrowInteger)
    , ("iteAtIntegerArrowIntegerWithCond", iteAtIntegerArrowIntegerWithCond)

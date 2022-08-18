@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -7,7 +8,8 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types where
+module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
+  Ann (..)) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -15,9 +17,10 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
-import PlutusCore.Constant qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
+import PlutusTx.Annotation
 
 import FamInstEnv qualified as GHC
 import GhcPlugins qualified as GHC
@@ -32,13 +35,15 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Language.Haskell.TH.Syntax qualified as TH
+import Prettyprinter
 
 type NameInfo = Map.Map TH.Name GHC.TyThing
 
 -- | Compilation options.
 data CompileOptions = CompileOptions {
-      coProfile  :: ProfileOpts
-    , coCoverage :: CoverageOpts
+      coProfile     :: ProfileOpts
+    , coCoverage    :: CoverageOpts
+    , coRemoveTrace :: Bool
     }
 
 data CompileContext uni fun = CompileContext {
@@ -46,16 +51,21 @@ data CompileContext uni fun = CompileContext {
     ccFlags       :: GHC.DynFlags,
     ccFamInstEnvs :: GHC.FamInstEnvs,
     ccNameInfo    :: NameInfo,
-    ccScopes      :: ScopeStack uni fun,
+    ccScopes      :: ScopeStack uni,
     ccBlackholed  :: Set.Set GHC.Name,
-    ccModBreaks   :: Maybe GHC.ModBreaks
+    ccCurDef      :: Maybe LexName,
+    ccModBreaks   :: Maybe GHC.ModBreaks,
+    ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
     | None
-    deriving (Eq)
+    deriving stock (Eq, Show)
+
+instance Pretty ProfileOpts where
+    pretty = viaShow
 
 -- | Coverage options
 -- See Note [Coverage annotations]
@@ -75,7 +85,7 @@ data CoverageType = LocationCoverage -- ^ Check that all source locations that w
                                     -- we know the source location have been covered. For this to work at all we need
                                     -- `{-# OPTIONS_GHC -g #-}` turn on with
                                     -- `{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-}`
-                    deriving (Ord, Eq, Show, Enum, Bounded)
+                    deriving stock (Ord, Eq, Show, Enum, Bounded)
 
 {- Note [Coverage order]
    The order in which `CoverageType` constructors appear in the type determine the order in
@@ -94,7 +104,7 @@ data CoverageType = LocationCoverage -- ^ Check that all source locations that w
 -- The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
 -- a problem if you compare things from different builds, which we don't do.
 newtype LexName = LexName GHC.Name
-    deriving (Eq)
+    deriving stock (Eq)
 
 instance Show LexName where
     show (LexName n) = GHC.occNameString $ GHC.occName n
@@ -153,25 +163,22 @@ stableModuleCmp m1 m2 =
     (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
 
 -- See Note [Scopes]
-type Compiling uni fun m =
-    ( Monad m
-    , MonadError (CompileError uni fun) m
+type Compiling uni fun m ann =
+    ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
-    , MonadDefs LexName uni fun () m
+    , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
-    , PLC.GShow uni, PLC.GEq uni
-    , PLC.ToBuiltinMeaning uni fun
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way
 -- we don't need to write 'PLC.DefaultUni' everywhere (in 'PIRTerm', 'PIRType' etc) and instead
 -- can write the short @uni@ and know that it actually means 'PLC.DefaultUni'. Same regarding
 -- 'DefaultFun'.
-type CompilingDefault uni fun m =
+type CompilingDefault uni fun m ann =
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
-    , Compiling uni fun m
+    , Compiling uni fun m ann
     )
 
 blackhole :: MonadReader (CompileContext uni fun) m => GHC.Name -> m a -> m a
@@ -191,8 +198,18 @@ appropriately.
 So we have the usual mechanism of carrying around a stack of scopes.
 -}
 
-data Scope uni fun = Scope (Map.Map GHC.Name (PLCVar uni fun)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni fun = NE.NonEmpty (Scope uni fun)
+data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
+type ScopeStack uni = NE.NonEmpty (Scope uni)
 
-initialScopeStack :: ScopeStack uni fun
+initialScopeStack :: ScopeStack uni
 initialScopeStack = pure $ Scope Map.empty Map.empty
+
+withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a
+withCurDef name = local (\cc -> cc {ccCurDef=Just name})
+
+modifyCurDeps :: Compiling uni fun m ann => (Set.Set LexName -> Set.Set LexName) -> m ()
+modifyCurDeps f = do
+    cur <- asks ccCurDef
+    case cur of
+        Nothing -> pure ()
+        Just n  -> modifyDeps n f

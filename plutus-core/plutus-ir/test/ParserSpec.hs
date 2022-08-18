@@ -1,12 +1,10 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 module ParserSpec (parsing) where
 
 import PlutusPrelude
-
-import Common
 
 import Data.Char
 import Data.Text qualified as T
@@ -21,7 +19,10 @@ import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
+import PlutusCore (runQuoteT)
+import PlutusCore.Error (ParserErrorBundle)
 import Test.Tasty
+import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
@@ -71,21 +72,28 @@ propRoundTrip :: Property
 propRoundTrip = property $ do
     code <- display <$> forAllWith display (runAstGen genProgram)
     let backward = fmap (display . prog)
-        forward = fmap PrettyProg . parse program "test"
+        forward = fmap PrettyProg . parseProg
     tripping code forward backward
+
+parseProg :: T.Text
+    -> Either
+        ParserErrorBundle
+        (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProg p =
+    runQuoteT $ parse program "test" p
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
     let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos -> String
         displayProgram = display
-        parse1 = displayProgram <$> (parse program "test" $ T.pack original)
-        parse2 = displayProgram <$> (parse program "test" $ T.pack scrambled)
+        parse1 = displayProgram <$> (parseProg $ T.pack original)
+        parse2 = displayProgram <$> (parseProg $ T.pack scrambled)
     parse1 === parse2
 
 parsing :: TestNested
 parsing = return $ testGroup "parsing"
-    [ testProperty "parser round-trip" propRoundTrip
-    , testProperty "parser ignores whitespace" (propIgnores whitespace)
-    , testProperty "parser ignores comments" (propIgnores comment)
+    [ testPropertyNamed "parser round-trip" "propRoundTrip" propRoundTrip
+    , testPropertyNamed "parser ignores whitespace" "propIgnores whitespace" (propIgnores whitespace)
+    , testPropertyNamed "parser ignores comments" "propIgnores comments" (propIgnores comment)
     ]

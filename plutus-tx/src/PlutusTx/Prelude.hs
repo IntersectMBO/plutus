@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- Need some extra imports from the Prelude for doctests, annoyingly
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -45,6 +46,7 @@ module PlutusTx.Prelude (
     quotient,
     remainder,
     even,
+    odd,
     -- * Maybe
     module Maybe,
     -- * Either
@@ -65,14 +67,15 @@ module PlutusTx.Prelude (
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
-    verifySignature,
+    verifyEd25519Signature,
+    verifyEcdsaSecp256k1Signature,
+    verifySchnorrSecp256k1Signature,
     -- * Rational numbers
     Rational,
-    (%),
+    unsafeRatio,
+    ratio,
     fromInteger,
     round,
-    divMod,
-    quotRem,
     -- * Data
     BuiltinData,
     fromBuiltin,
@@ -87,7 +90,8 @@ import PlutusTx.Bool as Bool
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
                           consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
                           equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
-                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace, verifySignature)
+                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum
@@ -170,6 +174,10 @@ remainder = Builtins.remainderInteger
 {-# INLINABLE even #-}
 even :: Integer -> Bool
 even n = if modulo n 2 == 0 then True else False
+
+{-# INLINABLE odd #-}
+odd :: Integer -> Bool
+odd n = if even n then False else True
 
 {-# INLINABLE takeByteString #-}
 -- | Returns the n length prefix of a 'ByteString'.

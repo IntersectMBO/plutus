@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -9,20 +10,23 @@ import Codec.Serialise qualified as Serialise
 import Control.Exception (ErrorCall, catch)
 import Data.ByteString qualified as BS
 import Data.Either (isLeft)
-import Data.Word
+import Data.Word (Word64)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Data (Data (..))
-import PlutusTx.List (nub, nubBy)
+import PlutusCore.Data (Data (B, Constr, I, List, Map))
+import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
-import PlutusTx.Prelude (dropByteString, takeByteString)
-import PlutusTx.Ratio (Rational, denominator, numerator, recip, (%))
-import PlutusTx.Sqrt (Sqrt (..), isqrt, rsqrt)
+import PlutusTx.Prelude (dropByteString, one, takeByteString)
+import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
+import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
 import Prelude hiding (Rational, negate, recip)
-import Test.Tasty
+import Show.Spec qualified
+import Suites.Laws (lawsTests)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Extras (runTestNestedIn)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 main :: IO ()
 main = defaultMain tests
@@ -34,13 +38,15 @@ tests = testGroup "plutus-tx" [
     , ratioTests
     , bytestringTests
     , listTests
+    , lawsTests
+    , runTestNestedIn ["test"] Show.Spec.tests
     ]
 
 sqrtTests :: TestTree
 sqrtTests = testGroup "isqrt/rsqrt tests"
-  [ testProperty "isqrt x^2 = x" isqrtRoundTrip
-  , testProperty "rsqrt (a/b)^2 = integer part of a/b" rsqrtRoundTrip
-  , testProperty "rsqrt (-x/b) = Imaginary" rsqrtRoundTripImaginary
+  [ testPropertyNamed "isqrt x^2 = x" "isqrtRoundTrip" isqrtRoundTrip
+  , testPropertyNamed "rsqrt (a/b)^2 = integer part of a/b" "rsqrtRoundTrip" rsqrtRoundTrip
+  , testPropertyNamed "rsqrt (-x/b) = Imaginary" "rsqrtRoundTripImaginary" rsqrtRoundTripImaginary
   ]
 
 rsqrtRoundTripImaginary :: Property
@@ -54,7 +60,7 @@ rsqrtRoundTripImaginary = property $ do
   a <- forAll numerators
   b <- forAll denominators
 
-  let x      = a % b
+  let x      = unsafeRatio a b
       decode = \case
             Imaginary -> True
             _         -> False
@@ -69,7 +75,7 @@ rsqrtRoundTrip = property $ do
   a <- forAll numerators
   b <- forAll denominators
 
-  let x = a % b
+  let x = unsafeRatio a b
       f = square
       g = decode . rsqrt
       integerPart = a `div` b
@@ -87,7 +93,7 @@ square r =
     n = numerator r
     d = denominator r
     two = 2 :: Integer
-    in (n^two) % (d^two)
+    in unsafeRatio (n^two) (d^two)
 
 isqrtRoundTrip :: Property
 isqrtRoundTrip = property $ do
@@ -101,9 +107,9 @@ isqrtRoundTrip = property $ do
 
 serdeTests :: TestTree
 serdeTests = testGroup "Data serialisation"
-    [ testProperty "data round-trip" dataRoundTrip
-    , testProperty "no big bytestrings" noBigByteStrings
-    , testProperty "no big integers" noBigIntegers
+    [ testPropertyNamed "data round-trip" "dataRoundTrip" dataRoundTrip
+    , testPropertyNamed "no big bytestrings" "noBigByteStrings" noBigByteStrings
+    , testPropertyNamed "no big integers" "noBigIntegers" noBigIntegers
     ]
 
 dataRoundTrip :: Property
@@ -124,7 +130,7 @@ sixtyFourByteInteger = 2^((64 :: Integer) *8)
 genData :: MonadGen m => m Data
 genData =
     let st = Gen.subterm genData id
-        constrIndex = fromIntegral <$> (Gen.integral @_ @Word64 Range.linearBounded)
+        constrIndex = fromIntegral <$> Gen.integral @_ @Word64 Range.linearBounded
         reasonableInteger = Gen.integral (Range.linear (-100000) 100000)
         -- over 64 bytes
         reallyBigInteger = Gen.integral (Range.linear sixtyFourByteInteger (sixtyFourByteInteger * 2))
@@ -166,24 +172,25 @@ noBigIntegers = property $ do
 
 ratioTests :: TestTree
 ratioTests = testGroup "Ratio"
-  [ testProperty "reciprocal ordering 1" reciprocalOrdering1
-  , testProperty "reciprocal ordering 2" reciprocalOrdering2
-  , testProperty "reciprocal ordering 3" reciprocalOrdering3
+  [ testPropertyNamed "reciprocal ordering 1" "reciprocalOrdering1" reciprocalOrdering1
+  , testPropertyNamed "reciprocal ordering 2" "reciprocalOrdering2" reciprocalOrdering2
+  , testPropertyNamed "reciprocal ordering 3" "reciprocalOrdering3" reciprocalOrdering3
   , testCase "recip 0 % 2 fails" reciprocalFailsZeroNumerator
   ]
 
 -- We check that 'recip' throws an exception if the numerator is zero
 reciprocalFailsZeroNumerator :: Assertion
 reciprocalFailsZeroNumerator = do
-  res <- catch (pure $! recip $ 0 % 2) $ \(_ :: ErrorCall) -> pure $ 1 % 1
-  -- the result should be 1 % 1 if there was an exception
-  res @?= (1 % 1)
+  res <- catch (pure $! recip $ unsafeRatio 0 2) $
+    \(_ :: ErrorCall) -> pure one
+  -- the result should be 1 if there was an exception
+  res @?= one
 
 genPositiveRational :: Monad m => PropertyT m Rational
 genPositiveRational = do
   a <- forAll . Gen.integral $ Range.linear 1 100000
   b <- forAll . Gen.integral $ Range.linear 1 100000
-  return (a % b)
+  return (unsafeRatio a b)
 
 genNegativeRational :: Monad m => PropertyT m Rational
 genNegativeRational = negate <$> genPositiveRational
@@ -244,6 +251,9 @@ listTests :: TestTree
 listTests = testGroup "List"
   [ nubByTests
   , nubTests
+  , partitionTests
+  , sortTests
+  , sortByTests
   ]
 
 nubByTests :: TestTree
@@ -258,4 +268,20 @@ nubTests = testGroup "nub"
   , testCase "[2, 1, 1] == [2, 1]" $ nub [2 :: Integer, 1, 1] @?= [2, 1]
   , testCase "[1, 1, 1] == [1]" $ nub [1 :: Integer, 1, 1] @?= [1]
   , testCase "[1, 2, 3, 4, 5] == [1, 2, 3, 4, 5]" $ nub [1 :: Integer, 2, 3, 4, 5] @?= [1, 2, 3, 4, 5]
+  ]
+
+partitionTests :: TestTree
+partitionTests = testGroup "partition"
+  [ testCase "partition \"aeiou\" \"Hello World!\"" $ (partition (`elem` ("aeiou" :: String)) "Hello World!") @?= ("eoo","Hll Wrld!")
+  , testCase "partition even [1,2,3,4,5,6]" $ (partition even [1 :: Int,2,3,4,5,6]) @?= ([2,4,6],[1,3,5])
+  ]
+
+sortTests :: TestTree
+sortTests = testGroup "sort"
+  [ testCase "sort [1,6,4,3,2,5]" $ (sort [1 :: Integer,6,4,3,2,5]) @?= [1,2,3,4,5,6]
+  ]
+
+sortByTests :: TestTree
+sortByTests = testGroup "sortBy"
+  [ testCase "sortBy second pairs" $ (sortBy (\(a,_) (b,_) -> compare a b) [(2 :: Integer, "world" :: String), (4, "!"), (1, "Hello")]) @?= [(1,"Hello"),(2,"world"),(4,"!")]
   ]

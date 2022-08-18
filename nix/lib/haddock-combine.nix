@@ -10,6 +10,11 @@ in
 runCommand "haddock-join"
 {
   buildInputs = [ hsdocs ];
+  # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
+  # which contains information about which nix paths are referenced by the package. This will allow
+  # us to resolve hyperlinks to haddocks elsewhere in the store.
+  #
+  # See also https://nixos.org/manual/nix/stable/expressions/advanced-attributes.html#adv-attr-exportReferencesGraph # editorconfig-checker-disable-line
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
@@ -79,7 +84,7 @@ runCommand "haddock-join"
     sed -i -r "s,^\#search-results \{,\#search-results \{ max-height:80%;overflow-y:scroll;," "$f"
   done
 
-  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87
+  # Following: https://github.com/input-output-hk/ouroboros-network/blob/2068d091bc7dcd3f4538fb76f1b598f219d1e0c8/scripts/haddocs.sh#L87 # editorconfig-checker-disable-line
   # Assemble a toplevel `doc-index.json` from package level ones.
   shopt -s globstar
   echo "[]" > "doc-index.json"

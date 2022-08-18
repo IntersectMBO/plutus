@@ -28,7 +28,7 @@ of Haskell libraries.
 - [X] Correspondence to untyped (reduction) semantics;
 - [X] Published paper.
 
-### Stage 2 (testing producation against Agda model)
+### Stage 2 (testing production against Agda model)
 
 - [X] An extrinsically typed evaluator that can be compiled to Haskell;
 - [X] Typechecker + compilation to Haskell;
@@ -40,50 +40,39 @@ of Haskell libraries.
 
 ### Stage 3 (further metatheory)
 
+- [X] Intrinsically typed EC reduction;
 - [X] Intrinsically typed CK machine;
-- [X] Extrinsically typed CK machine;
-- [ ] Correspondence between CK executation and reduction;
-- [ ] Correspondence between extrinsic and intrinsic semantics;
+- [X] Intrinsically typed CEK machine;
+- [ ] Correspondence between structural reduction and EC reduction;
+- [X] Correspondence between CK executation and reduction (in EC style);
+- [X] Correspondence between CK executation and CEK execution;
 - [X] Soundness of typechecking;
 - [ ] Completeness of typechecking;
 - [X] Intrinsic evaluation, compiled to Haskell.
 - [ ] Published paper.
 
+### Stage 4 (untyped CEK)
+
+- [X] Untyped CEK machine;
+- [X] Testing typed CEK against untyped CEK;
+- [ ] Correspondence between typed and untyped CEK;
+- [ ] Untyped CEK compiled to production quality Haskell;
+- [ ] Published paper.
+
+
 ## Installation
 
+plutus-metatheory is a module inside plutus, so the instructions are
+the same as for other plutus components, see the top-level [README](https://github.com/input-output-hk/plutus).
 
-### To typecheck the formalisation in Agda
-The formalisation requires version 2.6.1 or higher of Agda and the latest
-corresonnding version of the Agda standard library.
+You can execute the plc-agda command like this:
 
-### To compile to Haskell
-
-It also it contains a command line tool called `plc-agda` for
-executing plutus core programs. The command line tool is an Agda
-program that is compiled to Haskell, it uses Haskell libraries (such
-as bytestring) and also borrows the Plutus parser and pretty printer.
-
-The `plc-agda` tool can be installed by running the following commands
-starting in the root folder of the `plutus` repository:
-
-With nix:
 ```
 $ nix-shell
-$ cabal v2-install plutus-metatheory
+$ cabal v2-run plc-agda
 ```
 
-Without nix:
-```
-$ cd plutus-metatheory
-$ agda --compile --ghc-dont-call-ghc Main.lagda
-$ cd ..
-$ cabal v2-install plutus-metatheory
-```
-
-The `plc-agda` can execute Plutus Core programs. It is intended to
-be used for testing the `plc` command against. The tests can be
-executed by running the following command from the `plutus` root
-folder:
+To run the tests you can execute:
 
 ```
 $ nix-shell

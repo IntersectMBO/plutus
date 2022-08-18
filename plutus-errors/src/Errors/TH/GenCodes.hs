@@ -7,8 +7,8 @@ import ErrorCode
 import Language.Haskell.TH as TH
 import Language.Haskell.TH.Datatype as TH
 
--- | Takes a list of errors names (dataconstructors)
--- and maps it to a list that will evaluate to their actuall error codes :: [Natural]
+-- | Takes a list of errors names (data constructors)
+-- and maps it to a list that will evaluate to their actual error codes :: [Natural]
 genCodes :: [TH.Name] -> Q TH.Exp
 genCodes cs = do
    method <- [| errorCode |]    -- the errorCode method

@@ -1,3 +1,3 @@
 (delay
-  (lam case_GHC_Types_True_3 (lam case_GHC_Types_False_4 case_GHC_Types_True_3))
+  (lam case_GHC_Types_True_0 (lam case_GHC_Types_False_1 case_GHC_Types_True_0))
 )

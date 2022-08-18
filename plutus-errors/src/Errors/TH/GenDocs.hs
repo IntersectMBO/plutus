@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_HADDOCK hide #-}
 module Errors.TH.GenDocs (genDocs) where
@@ -10,12 +11,12 @@ import Language.Haskell.TH as TH
 import Prettyprinter qualified as PP
 
 -- | Generate haddock documentation for all errors and their codes,
--- by creating type-synonyms to lifted dataconstructors using a DataKinds trick.
+-- by creating type-synonyms to lifted data constructors using a DataKinds trick.
 -- Note: Template Haskell cannot currently generate Haddock comments. See: <https://gitlab.haskell.org/ghc/ghc/-/issues/5467>
 genDocs :: Q [TH.Dec]
 genDocs = let allCodes = $(genCodes allErrors)
           in case findDuplicates allCodes of
-                 []   -> pure $ fmap mkTySyn (zip allErrors allCodes)
+                 []   -> pure $ fmap mkTySyn (sortOn snd $ zip allErrors allCodes)
                  -- Fail at compile time if duplicate error codes are found.
                  dups -> fail $ "ErrorCode instances have some duplicate error-code numbers: " ++ (show $ PP.pretty dups)
 

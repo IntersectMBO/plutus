@@ -20,7 +20,7 @@
           }
           (abs a (type)
 		    [ { (builtin ifThenElse) a }
-			  [ (builtin verifySignature) signed txhash pubkey
+			  [ (builtin verifyEd25519Signature) signed txhash pubkey
 			  ]
 			]
 	      )

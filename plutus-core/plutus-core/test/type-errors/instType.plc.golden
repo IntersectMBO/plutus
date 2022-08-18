@@ -1,4 +1,4 @@
-Type mismatch at line 2, column 3 in term
+Type mismatch at test:2:5 in term
   '(con integer 0)'.
 Expected type
   '(all * (type) *)',

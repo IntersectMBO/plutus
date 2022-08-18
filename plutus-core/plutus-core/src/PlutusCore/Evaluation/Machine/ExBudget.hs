@@ -1,12 +1,11 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE UndecidableInstances   #-}
-
-{-# LANGUAGE StrictData             #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE StrictData            #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 {- Note [Strict Data for budgeting]
 
@@ -84,27 +83,28 @@ possible to adjust them at runtime.
 
  * The basic data for models of execution time is produced by Criterion
    benchmarks (run via plutus-core:cost-model-budgeting-bench) and saved in
-   'benching.csv'.  At this point the time units are seconds.
+   a CSV file (usually 'benching.csv').  At this point the time units are seconds.
 
- * The data in 'benching.csv' is used by plutus-core:update-cost-model to create
+ * The data in the CSV file is used by plutus-core:generate-cost-model to create
    cost-prediction models for the built-in functions, and data describing these
-   is written to builtinCostModel.json.  This process involves several steps:
+   is written to a JSON file (usually 'builtinCostModel.json'.  This process
+   involves several steps:
 
-     * The CostModelCreation module reads in the data from 'benching.csv' and
-       runs R code in 'models.R' to fit linear models to the benchmark results
-       for each builtin.  This process (and its results) necessarily invloves
-       the use of floating-point numbers.
+     * The CreateBuiltinCostModel module reads in the data from the CSV file
+       and runs R code in 'models.R' to fit linear models to the benchmark
+       results for each builtin.  This process (and its results) necessarily
+       involves the use of floating-point numbers.
 
        Builtin execution times are typically of the order of 10^(-6) or 10^(-7)
-       seconds, and the benching data is converted to milliseconds in 'models.R'
+       seconds, and the benching data is converted to microseconds in 'models.R'
        because it's sometimes useful to work with the data interactively and this
        makes the numbers a lot more human-readable.
 
      * The coefficents from the R models are returned to the Haskell code in
-       CostModelCreation and written out to costModel.json.  To avoid the use of
-       floats in JSON and in cost prediction at runtime (which might be
+       CreateBuiltinCostModel and written out to a JSON file.  To avoid the
+       use of floats in JSON and in cost prediction at runtime (which might be
        machine-dependent if floats were used), numbers are multiplied by 10^6
-       and rounded to the nearest integer, shfting from the millisecond scale to
+       and rounded to the nearest integer, shfting from the microsecond scale to
        the picosecond scale.  This rescaling is safe because all of our models
        are (currently) linear in their inputs.
 
@@ -145,13 +145,15 @@ module PlutusCore.Evaluation.Machine.ExBudget
     )
 where
 
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
 
+import Codec.Serialise (Serialise (..))
 import Data.Char (toLower)
 import Data.Semigroup
 import Deriving.Aeson
 import Language.Haskell.TH.Lift (Lift)
-import PlutusCore.Evaluation.Machine.ExMemory
+import NoThunks.Class
 import Prettyprinter
 
 
@@ -175,7 +177,7 @@ instance ExBudgetBuiltin fun () where
 
 data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
     deriving stock (Eq, Show, Generic, Lift)
-    deriving anyclass (PrettyBy config, NFData)
+    deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
     deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
     -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
@@ -203,7 +205,7 @@ instance Pretty ExBudget where
 
 newtype ExRestrictingBudget = ExRestrictingBudget
     { unExRestrictingBudget :: ExBudget
-    } deriving (Show, Eq)
+    } deriving stock (Show, Eq)
       deriving newtype (Semigroup, Monoid)
       deriving newtype (Pretty, PrettyBy config, NFData)
 

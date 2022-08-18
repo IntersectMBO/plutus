@@ -1,0 +1,3 @@
+(program
+  (lam x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ]))
+)

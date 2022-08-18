@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- | (Re)generate ErrorCode instances for initial errors
 {-# LANGUAGE TemplateHaskell #-}
 module Errors.TH.Bootstrap (
