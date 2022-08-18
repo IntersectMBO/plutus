@@ -42,12 +42,6 @@ runCommand "haddock-join"
     relpath=$(realpath --relative-to=$(dirname $f) --no-symlinks $root)
     pkgsRegex="${"file:///nix/store/[^/]*/share/doc"}"
     sed -i -r "s,$pkgsRegex,$relpath,g" "$f"
-    # Now also replace the index/contents links so they point to (what will be)
-    # the combined ones instead.
-    # Match the enclosing quotes to make sure the regex for index.html doesn't also match
-    # the trailing part of doc-index.html
-    sed -i -r "s,\"index\.html\",\"$relpath/share/doc/index.html\",g" "$f"
-    sed -i -r "s,\"doc-index\.html\",\"$relpath/share/doc/doc-index.html\",g" "$f"
   done
 
   # Move to the docdir. We do this so that we can give relative docpaths to
