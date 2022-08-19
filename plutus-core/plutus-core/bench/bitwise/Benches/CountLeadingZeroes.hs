@@ -1,5 +1,6 @@
 module Benches.CountLeadingZeroes (
-  benches
+  benches,
+  cBenches,
   ) where
 
 import Data.Bits (countLeadingZeros, zeroBits)
@@ -15,6 +16,9 @@ import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, nfIO)
 
 benches :: Benchmark
 benches = bgroup "Basic CLZ" $ benchBasic "CLZ" <$> sizes
+
+cBenches :: Benchmark
+cBenches = bgroup "C CLZ" $ benchC "C CLZ" <$> sizes
 
 -- Helpers
 
@@ -33,6 +37,23 @@ benchBasic mainLabel len =
       bgroup testLabel [
         bench naiveLabel . nfIO $ naiveClz <$> xs,
         bcompare matchLabel . bench cnaiveLabel . nfIO $ xs >>= wrapping cClzNaive,
+        bcompare matchLabel . bench cblockLabel . nfIO $ xs >>= wrapping cClzBlock,
+        bcompare matchLabel . bench cunrolledLabel . nfIO $ xs >>= wrapping cClzBlockUnrolled
+      ]
+
+benchC ::
+  String ->
+  Int ->
+  Benchmark
+benchC mainLabel len =
+  withResource (mkZeroesOne len) noCleanup $ \xs ->
+    let cnaiveLabel = "naive C"
+        cblockLabel = "block C"
+        cunrolledLabel = "unrolled C"
+        testLabel = mainLabel <> ", length " <> show len
+        matchLabel = "$NF == \"" <> cnaiveLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
+      bgroup testLabel [
+        bench cnaiveLabel . nfIO $ xs >>= wrapping cClzNaive,
         bcompare matchLabel . bench cblockLabel . nfIO $ xs >>= wrapping cClzBlock,
         bcompare matchLabel . bench cunrolledLabel . nfIO $ xs >>= wrapping cClzBlockUnrolled
       ]

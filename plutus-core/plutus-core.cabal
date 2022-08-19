@@ -793,6 +793,7 @@ benchmark bitwise
   main-is:          Main.hs
   other-modules:
     Benches.Binary
+    Benches.BitRead
     Benches.Complement
     Benches.CountLeadingZeroes
     Benches.Homogenous
@@ -803,6 +804,7 @@ benchmark bitwise
   include-dirs:     plutus-core/bench/bitwise/cbits
   c-sources:
     plutus-core/bench/bitwise/cbits/binary.c
+    plutus-core/bench/bitwise/cbits/bit-access.c
     plutus-core/bench/bitwise/cbits/clz.c
     plutus-core/bench/bitwise/cbits/complement.c
     plutus-core/bench/bitwise/cbits/homogenous.c

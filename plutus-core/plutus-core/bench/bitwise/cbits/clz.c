@@ -1,4 +1,5 @@
 #include "cbits.h"
+#include <stdint.h>
 
 size_t c_clz_naive(unsigned char const *src, size_t const len) {
   size_t leading_zeroes = 0;

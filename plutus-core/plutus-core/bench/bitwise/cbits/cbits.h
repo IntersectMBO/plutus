@@ -32,6 +32,11 @@ bool c_homogenous_sliding_window(unsigned char const needle,
 void c_and_naive(unsigned char *restrict dst, unsigned char const *src1,
                  unsigned char const *src2, size_t const len);
 
+// Bit reading and writing
+
+bool c_bit_at(size_t const ix, unsigned char *const restrict src,
+              size_t const len);
+
 // CLZ
 
 size_t c_clz_naive(unsigned char const *restrict src, size_t const len);
