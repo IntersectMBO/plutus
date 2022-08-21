@@ -49,8 +49,8 @@ wrapper :: Int -> ByteString -> Maybe Bool
 wrapper ix bs = do
   guard (ix >= 0)
   guard (ix <= bitLength)
-  let CBool res = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) ->
-                    pure . cBitAt (fromIntegral ix) (castPtr ptr) . fromIntegral $ len
+  let CBool res = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, _) ->
+                    pure . cBitAt (fromIntegral ix) . castPtr $ ptr
   pure $ res /= 0
   where
     bitLength :: Int
@@ -60,5 +60,4 @@ foreign import ccall unsafe "cbits.h c_bit_at"
   cBitAt ::
     CSize ->
     Ptr CUChar ->
-    CSize ->
     CBool

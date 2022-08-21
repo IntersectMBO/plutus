@@ -794,6 +794,7 @@ benchmark bitwise
   other-modules:
     Benches.Binary
     Benches.BitRead
+    Benches.BitWrite
     Benches.Complement
     Benches.CountLeadingZeroes
     Benches.Homogenous

@@ -34,8 +34,14 @@ void c_and_naive(unsigned char *restrict dst, unsigned char const *src1,
 
 // Bit reading and writing
 
-bool c_bit_at(size_t const ix, unsigned char *const restrict src,
-              size_t const len);
+bool c_bit_at(size_t const ix, unsigned char *const restrict src);
+
+void c_bit_set_naive(bool const b, size_t const ix, unsigned char *restrict dst,
+                     unsigned char const *restrict src, size_t const len);
+
+void c_bit_set_memcpy(bool const b, size_t const ix,
+                      unsigned char *restrict dst,
+                      unsigned char const *restrict src, size_t const len);
 
 // CLZ
 

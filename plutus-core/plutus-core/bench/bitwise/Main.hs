@@ -7,6 +7,7 @@ module Main (main) where
 
 import Benches.Binary qualified as Binary
 import Benches.BitRead qualified as BitRead
+import Benches.BitWrite qualified as BitWrite
 import Benches.Complement qualified as Complement
 import Benches.CountLeadingZeroes qualified as CountLeadingZeroes
 import Benches.Homogenous qualified as Homogenous
@@ -42,6 +43,9 @@ main = do
       ],
     testGroup "Bit read" [
       BitRead.benches
+      ],
+    testGroup "Bit write" [
+      BitWrite.benches
       ],
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes
