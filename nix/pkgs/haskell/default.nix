@@ -41,9 +41,11 @@ let
 
   # All the packages defined by our project, including dependencies
   packages = project.hsPkgs;
+  packagesWithCoverage = projectWithCoverage.hsPkgs;
 
   # Just the packages in the project
   projectPackages = haskell-nix.haskellLib.selectProjectPackages packages;
+  projectPackagesWithCoverage = haskell-nix.haskellLib.selectProjectPackages packagesWithCoverage;
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
@@ -53,7 +55,8 @@ let
 in
 rec {
   inherit index-state compiler-nix-name;
-  inherit project projectProfiled projectWithCoverage;
-  inherit projectPackages packages;
+  inherit project packages projectPackages;
+  inherit projectProfiled;
+  inherit projectWithCoverage packagesWithCoverage projectPackagesWithCoverage;
   inherit extraPackages;
 }
