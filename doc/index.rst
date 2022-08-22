@@ -4,17 +4,19 @@ Plutus Programming and Reference Guide
 About Plutus
 --------------------
 
-Plutus is the programming language and compiler (Plutus Tx) that is used to write 
-Plutus scripts that run on the Cardano blockchain. Compiled Plutus Core programs 
-are able to interact with the Cardano ledger through the ledger interface. 
+Plutus consists of Plutus Core, the programming, scripting and assembly language; 
+and Plutus Tx, the compiler that compiles the Haskell source code into Plutus Core 
+to form the on-chain part of a contract application. All of this is used in combination 
+to write Plutus scripts that run on the Cardano blockchain. Compiled Plutus Core 
+scripts or programs are able to interact with the Cardano ledger through the 
+ledger interface. 
 
 The Plutus Core Repository
 ----------------------------------
 
 The `Plutus Core Repository <https://github.com/input-output-hk/plutus>`_ contains 
 the implementation, specification, and mechanized metatheory of Plutus Core. 
-It contains Plutus Tx, which takes the Haskell source code and compiles it into 
-Plutus Core (PLC). 
+It also contains Plutus Tx. 
 
 About This Documentation
 ---------------------------------
@@ -29,16 +31,14 @@ Intended Audience
 
 The intended audience of this documentation includes DApp developers, Plutus developers, 
 developers writing smart contracts, Haskell developers who want to write Plutus scripts, 
-and developers who want to learn to use the compiler, Plutus Tx. 
+and developers who want to learn to use the compiler, Plutus Tx. It is also designed for 
+developers who want to learn Plutus directly from the team that developed the Plutus language. 
 
-It is also intended for developers who want to learn Plutus from the definitive 
-source: the team that developed the Plutus language, which is built on top of Haskell. 
+Because Plutus is built on top of Haskell, it is helpful to have a background in Haskell. 
+However, this document is also intended for developers who may not know Haskell very well. 
 
-While it is helpful to have a background in Haskell, this document is also intended 
-for developers who may not know Haskell very well. 
-
-This guide is also intended for people who need to reference and access specifications, 
-along with certification companies and certification auditors. 
+This guide is also meant for people who need to reference and access specifications, 
+as well as for certification companies and certification auditors. 
 
 
 .. toctree::
