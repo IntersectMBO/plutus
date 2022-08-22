@@ -35,7 +35,7 @@ data LedgerBytesError =
     deriving stock (Show)
     deriving anyclass (Exception)
 
-{- | Convert a hex encoded `Bytestring` to a `LedgerBytes`. May return a `LedgerBytesError`. -}
+{- | Convert a hex encoded `Bytestring` to a `LedgerBytes`. May return an error (`LedgerBytesError`). -}
 fromHex :: BS.ByteString -> Either LedgerBytesError LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     where

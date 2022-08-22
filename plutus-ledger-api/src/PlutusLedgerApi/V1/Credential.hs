@@ -24,8 +24,11 @@ import Prettyprinter (Pretty (..), (<+>))
 
 -- | Staking credential used to assign rewards.
 data StakingCredential
+    -- | The staking hash is the `Credential` required to unlock a transaction output. Either
+    -- a public key credential (`Crypto.PubKeyHash`) or
+    -- a script credential (`Scripts.ValidatorHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
     = StakingHash Credential
-    -- | NB: The fields should really be Word64 / Natural / Natural,
+    -- | NB: The fields should really be `Word64` `Natural` `Natural`,
     -- but 'Integer' is our only integral type so we need to use it instead.
     | StakingPtr Integer Integer Integer
     deriving stock (Eq, Ord, Show, Generic)
@@ -44,13 +47,14 @@ instance PlutusTx.Eq StakingCredential where
         PlutusTx.&& c PlutusTx.== c'
     _ == _ = False
 
--- | Credential required to unlock a transaction output
+-- | Credentials required to unlock a transaction output.
 data Credential
   =
     -- | The transaction that spends this output must be signed by the private key.
+    -- Hashed with /BLAKE2b-244/. 28 byte. See `Crypto.PubKeyHash`.
     PubKeyCredential PubKeyHash
-    -- | The transaction that spends this output must include the validator script
-    -- and be accepted by the validator.
+    -- | The transaction that spends this output must include the validator script and
+    -- be accepted by the validator. Hashed with /BLAKE2b-244/. 28 byte. See `Scripts.ValidatorHash`.
   | ScriptCredential ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)

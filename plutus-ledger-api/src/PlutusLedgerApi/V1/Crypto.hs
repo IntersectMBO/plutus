@@ -19,7 +19,8 @@ import PlutusTx.Prelude qualified as PlutusTx
 import Prettyprinter
 
 {- | The hash of a public key. This is frequently used to identify the public key,
-rather than the key itself. Hashed with `BLAKE2b-224`. 28 bytes.
+rather than the key itself. Hashed with /BLAKE2b-224/. 28 bytes.
+
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).

@@ -70,8 +70,9 @@ import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
 
-{- | ByteString representing the currency, hashed with `BLAKE2b-224`.
+{- | ByteString representing the currency, hashed with /BLAKE2b-224/.
 It is empty for `Ada`, 28 bytes for `PolicyId`.
+
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
@@ -101,9 +102,10 @@ currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 currencySymbol :: BS.ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
-{- | ByteString of a name of a token, hashed with `BLAKE2b-256`.
+{- | ByteString of a name of a token, hashed with /BLAKE2b-256/.
 Shown as UTF-8 string when possible.
 Should be no longer than 32 bytes, empty for Ada.
+
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
