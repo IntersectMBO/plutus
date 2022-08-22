@@ -32,9 +32,9 @@ let
   mkHaskellDimension = pkgs: haskell: # projectPackagesWithCoverage:
     let
       select = type: _:
-        if type == "library" || type == "benchmarks" || type == "exec" then
+        if type == "library" || type == "benchmarks" || type == "exes" then
           pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
-        else if type == "check" then
+        else if type == "checks" then
           pkgs.haskell-nix.haskellLib.collectChecks' haskell.projectPackagesWithCoverage
         else if type == "tests" then
           pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
