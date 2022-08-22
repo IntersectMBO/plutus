@@ -110,9 +110,9 @@ module PlutusLedgerApi.V3 (
     , builtinDataToData
     -- * Errors
     , EvaluationError (..)
+    , ScriptDecodeError (..)
     ) where
 
-import Codec.CBOR.Read qualified as CBOR (DeserialiseFailure)
 import Control.Monad.Except (MonadError)
 
 import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
@@ -131,13 +131,18 @@ import PlutusLedgerApi.V3.ParamName
 import PlutusCore.Data qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
 
+-- | An alias to the language version this module exposes at runtime.
+--  MAYBE: Use CPP '__FILE__' + some TH to automate this.
+thisPlutusVersion :: LedgerPlutusVersion
+thisPlutusVersion = PlutusV3
+
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-assertScriptWellFormed :: MonadError CBOR.DeserialiseFailure m
+assertScriptWellFormed :: MonadError ScriptDecodeError m
                        => ProtocolVersion
                        -> SerialisedScript
                        -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed PlutusV3
+assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
@@ -150,7 +155,7 @@ evaluateScriptCounting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting PlutusV3
+evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -166,4 +171,4 @@ evaluateScriptRestricting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting PlutusV3
+evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
