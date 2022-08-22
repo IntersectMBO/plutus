@@ -5,7 +5,6 @@
 , sourcesOverride ? { }
 , sources
 , haskellNix
-, enableHaskellProfiling ? false
 }:
 let
   ownOverlays =
@@ -36,7 +35,7 @@ let
     config = haskellNix.nixpkgsArgs.config // config;
   };
 
-  plutus = import ./pkgs { inherit pkgs enableHaskellProfiling sources; };
+  plutus = import ./pkgs { inherit pkgs sources; };
 
 in
 {

@@ -1,7 +1,7 @@
 # editorconfig-checker-disable-file
 { haddock-combine, haskell, haskell-nix, writeTextFile }:
 let
-  toHaddock = haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackagesAllHaddock;
+  toHaddock = haskell-nix.haskellLib.collectComponents' "library" haskell.projectPackages;
 in
 haddock-combine {
   hspkgs = builtins.attrValues toHaddock;

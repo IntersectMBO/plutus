@@ -2,7 +2,6 @@
 , system ? builtins.currentSystem
 , config ? { }
 , sources
-, enableHaskellProfiling
 }:
 let
   inherit (pkgs) stdenv;
@@ -11,8 +10,7 @@ let
 
   # { index-state, compiler-nix-name, project, projectPackages, packages, extraPackages }
   haskell = pkgs.callPackage ./haskell {
-    inherit gitignore-nix sources;
-    inherit agdaWithStdlib enableHaskellProfiling;
+    inherit gitignore-nix sources agdaWithStdlib;
 
     # This ensures that the utility scripts produced in here will run on the current system, not
     # the build system, so we can run e.g. the darwin ones on linux
@@ -123,7 +121,7 @@ let
   plutus-haddock-combined =
     let
       haddock-combine = pkgs.callPackage ../lib/haddock-combine.nix {
-        ghc = haskell.projectAllHaddock.pkg-set.config.ghc.package;
+        ghc = haskell.project.pkg-set.config.ghc.package;
         inherit (sphinxcontrib-haddock) sphinxcontrib-haddock;
       };
     in

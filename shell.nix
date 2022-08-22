@@ -1,6 +1,5 @@
 { system ? builtins.currentSystem
-, enableHaskellProfiling ? false
-, packages ? import ./. { inherit system enableHaskellProfiling; }
+, packages ? import ./. { inherit system; }
 }:
 let
   inherit (packages) pkgs plutus docs;

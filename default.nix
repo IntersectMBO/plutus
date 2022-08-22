@@ -17,10 +17,8 @@
     };
   }
 , packages ? import ./nix {
-    inherit system sources crossSystem config sourcesOverride haskellNix enableHaskellProfiling;
+    inherit system sources crossSystem config sourcesOverride haskellNix;
   }
-  # Whether to build our Haskell packages (and their dependencies) with profiling enabled.
-, enableHaskellProfiling ? false
 }:
 let
   inherit (packages) pkgs plutus;

@@ -11,7 +11,6 @@
 , secp256k1
 , rPackages
 , z3
-, enableHaskellProfiling
 }:
 let
   # The Hackage index-state from cabal.project
@@ -32,25 +31,19 @@ let
   compiler-nix-name = "ghc8107";
 
   # The haskell project created by haskell-nix.stackProject'
-  baseProject =
-    { deferPluginErrors }:
-    import ./haskell.nix {
-      inherit lib haskell-nix R libsodium-vrf secp256k1 rPackages z3;
-      inherit agdaWithStdlib compiler-nix-name gitignore-nix;
-      inherit enableHaskellProfiling;
-      inherit deferPluginErrors;
-    };
-  project = baseProject { deferPluginErrors = false; };
-  # The same as above, but this time with we defer plugin errors so that we
-  # can build "all" (the interesting) haddocks that would otherwise fail.
-  projectAllHaddock = baseProject { deferPluginErrors = true; };
+  baseProject = import ./haskell.nix {
+    inherit lib haskell-nix R libsodium-vrf secp256k1 rPackages z3;
+    inherit agdaWithStdlib compiler-nix-name gitignore-nix;
+  };
+  project = baseProject;
+  projectProfiled = baseProject.appendModule { profiling = true; };
+  projectWithCoverage = baseProject.appendModule { coverage = true; };
 
   # All the packages defined by our project, including dependencies
   packages = project.hsPkgs;
 
   # Just the packages in the project
   projectPackages = haskell-nix.haskellLib.selectProjectPackages packages;
-  projectPackagesAllHaddock = haskell-nix.haskellLib.selectProjectPackages projectAllHaddock.hsPkgs;
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
@@ -60,6 +53,7 @@ let
 in
 rec {
   inherit index-state compiler-nix-name;
-  inherit project projectAllHaddock projectPackages projectPackagesAllHaddock packages;
+  inherit project projectProfiled projectWithCoverage;
+  inherit projectPackages packages;
   inherit extraPackages;
 }
