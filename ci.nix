@@ -31,26 +31,24 @@ let
   #  with all haskell components of that type
   mkHaskellDimension = pkgs: haskell: # projectPackagesWithCoverage:
     let
-      projectPackages = haskell.projectPackagesWithCoverage;
-
-      collectProjectCoverageReport = _: _:
-        haskell.projectWithCoverage.projectCoverageReport;
-      # retrieve all checks from a Haskell package
-      collectChecks = _: _:
-        pkgs.haskell-nix.haskellLib.collectChecks' projectPackages;
-      # retrieve all components of a Haskell package
-      collectComponents = type: _:
-        pkgs.haskell-nix.haskellLib.collectComponents' type projectPackages;
-      # Given a component type and the retrieve function, retrieve components from haskell packages
-      select = type: selector: (selector type) null;
+      select = type: _:
+        if type == "library" || type == "benchmarks" || type == "exec" then
+          pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
+        else if type == "check" then
+          pkgs.haskell-nix.haskellLib.collectChecks' haskell.projectPackagesWithCoverage
+        else if type == "tests" then
+          pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
+        else if type == "projectCoverageReport" then
+          haskell.projectPackagesWithCoverage
+        else { };
       # { component-type : retriever-fn }
       attrs = {
-        "library" = collectComponents;
-        "tests" = collectComponents;
-        "benchmarks" = collectComponents;
-        "exes" = collectComponents;
-        "checks" = collectChecks;
-        "projectCoverageReport" = collectProjectCoverageReport;
+        "library" = null;
+        "tests" = null;
+        "benchmarks" = null;
+        "exes" = null;
+        "checks" = null;
+        "projectCoverageReport" = null;
       };
     in
     dimension "Haskell component" attrs select;
