@@ -22,9 +22,9 @@ About This Documentation
 ---------------------------------
 
 The purpose of this documentation is to serve as an introduction to the Plutus language 
-and to programming in Plutus. It is meant to be educational, so it includes tutorials 
-and how-to instructions. It is also intended as a reference for beginning and experienced 
-developers. 
+and to programming in Plutus. It is meant to be educational, so it includes explanations, 
+tutorials and how-to instructions. It is also intended as a reference for beginning and 
+experienced developers. 
 
 Intended Audience
 ---------------------------
