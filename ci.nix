@@ -29,15 +29,20 @@ let
   # }
   #  Where each attribute contains an attribute set
   #  with all haskell components of that type
-  mkHaskellDimension = pkgs: projectPackagesWithCoverage:
+  mkHaskellDimension = pkgs: haskell: # projectPackagesWithCoverage:
     let
-      collectProjectCoverageReport = _: ps: ps.projectCoverageReport;
+      projectPackages = haskell.projectPackagesWithCoverage;
+
+      collectProjectCoverageReport = _: _:
+        haskell.projectWithCoverage.projectCoverageReport;
       # retrieve all checks from a Haskell package
-      collectChecks = _: ps: pkgs.haskell-nix.haskellLib.collectChecks' ps;
+      collectChecks = _: _:
+        pkgs.haskell-nix.haskellLib.collectChecks' projectPackages;
       # retrieve all components of a Haskell package
-      collectComponents = type: ps: pkgs.haskell-nix.haskellLib.collectComponents' type ps;
+      collectComponents = type: _:
+        pkgs.haskell-nix.haskellLib.collectComponents' type projectPackages;
       # Given a component type and the retrieve function, retrieve components from haskell packages
-      select = type: selector: (selector type) projectPackagesWithCoverage;
+      select = type: selector: (selector type) null;
       # { component-type : retriever-fn }
       attrs = {
         "library" = collectComponents;
@@ -99,7 +104,7 @@ let
 
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs
-            (mkHaskellDimension pkgs plutus.haskell.projectPackagesWithCoverage);
+            (mkHaskellDimension pkgs plutus.haskell);
         }));
     in
     dimension "System" systems (name: sys: _select name sys null)
