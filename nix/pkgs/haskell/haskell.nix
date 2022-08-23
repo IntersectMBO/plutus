@@ -66,6 +66,30 @@ let
             tests: False
         '';
         modules = [
+
+          (
+            let prpjectPackages =
+              [
+                "plutus-benchmark"
+                "plutus-conformance"
+                "plutus-core"
+                "plutus-errors"
+                "plutus-ledger-api"
+                "plutus-metatheory"
+                "plutus-tx"
+                "plutus-tx-plugin"
+                "prettyprinter-configurable"
+                "word-array"
+              ]; in
+            {
+              packages = lib.genAttrs projectPackages (name: {
+                # Mark package as local non-dep in the nix-shell.
+                # fixme: Haskell.nix should set it
+                # package.isProject = true;
+                doCoverage = coverage;
+              });
+            }
+          )
           ({ pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) {
             packages = {
               # Things that need plutus-tx-plugin
@@ -184,11 +208,9 @@ let
         ] ++ lib.optional config.profiling {
           enableLibraryProfiling = true;
           enableProfiling = true;
-        } ++ lib.optional config.coverage {
-          doCoverage = true;
-        };
-      })
-    ];
+        }
+          })
+          ];
 
-in
-project
+        in
+        project
