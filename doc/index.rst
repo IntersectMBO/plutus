@@ -7,7 +7,7 @@ About Plutus
 The Plutus project consists of Plutus Core, the programming language used for scripts on Cardano; tooling and compilers for compiling various intermediate languages into Plutus Core;
 and Plutus Tx, the compiler that compiles the Haskell source code into Plutus Core 
 to form the on-chain part of a contract application. All of this is used in combination 
-to write Plutus scripts that run on the Cardano blockchain. Compiled Plutus Core 
+to write Plutus Core scripts that run on the Cardano blockchain. Compiled Plutus Core 
 scripts or programs are able to interact with the Cardano ledger through the 
 ledger interface. 
 
