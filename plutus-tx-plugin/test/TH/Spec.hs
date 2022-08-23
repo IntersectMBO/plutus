@@ -25,6 +25,7 @@ import PlutusCore.Pretty
 import PlutusTx
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Prelude
+import PlutusTx.Show (show)
 
 import Prelude qualified as Haskell
 
@@ -71,7 +72,7 @@ traceRepeatedly = $$(compile
      [||
           let i1 = trace "Making my first int" (1::Integer)
               i2 = trace "Making my second int" (2::Integer)
-              i3 = trace "Adding them up" (i1 + i2)
+              i3 = trace ("Adding them up: " `Builtins.appendString` show (i1 + i2)) (i1 + i2)
           in i3
     ||])
 
