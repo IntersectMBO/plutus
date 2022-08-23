@@ -6,7 +6,7 @@ module PlutusTx.Show.TH where
 
 import PlutusTx.Base
 import PlutusTx.Bool
-import PlutusTx.Builtins hiding (showString)
+import PlutusTx.Builtins
 import PlutusTx.Foldable
 import PlutusTx.List
 
