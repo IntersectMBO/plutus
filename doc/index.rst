@@ -34,7 +34,7 @@ developers writing smart contracts, Haskell developers who want to write Plutus 
 and developers who want to learn to use the compiler, Plutus Tx. It is also designed for 
 developers who want to learn Plutus directly from the team that developed the Plutus language. 
 
-Because Plutus is built on top of Haskell, it is helpful to have a background in Haskell. 
+Because Plutus Tx is built on top of Haskell, it is helpful to have a background in Haskell. 
 However, this document is also intended for developers who may not know Haskell very well. 
 
 This guide is also meant for people who need to reference and access specifications, 
