@@ -51,7 +51,7 @@ calculateLiveness ver t =
     let
         depGraph :: G.Graph Deps.Node
         depGraph = fst $ Deps.runTermDeps ver t
-    in Set.fromList $ T.reachable Deps.Root depGraph
+    in Set.fromList $ T.reachable depGraph Deps.Root
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool
 live n =

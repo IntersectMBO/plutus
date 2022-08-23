@@ -145,7 +145,7 @@ printBudgetStateBudget model b =
               putStrLn $ "CPU budget:    " ++ show cpu
               putStrLn $ "Memory budget: " ++ show mem
 
-printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
+printBudgetStateTally :: (Cek.Hashable fun, Show fun)
        => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
@@ -204,7 +204,7 @@ class PrintBudgetState cost where
 instance PrintBudgetState Cek.CountingSt where
     printBudgetState _term model (Cek.CountingSt budget) = printBudgetStateBudget model budget
 
-instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
+instance (Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
     printBudgetState term model (Cek.TallyingSt tally budget) = do
         printBudgetStateBudget model budget
         putStrLn ""

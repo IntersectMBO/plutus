@@ -259,7 +259,7 @@ library
 
   build-depends:
     , aeson
-    , algebraic-graphs            >=0.3
+    , algebraic-graphs            >=0.7
     , array
     , barbies
     , base                        >=4.9     && <5

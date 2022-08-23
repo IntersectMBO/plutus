@@ -38,6 +38,7 @@ import PlutusIR.Core.Type
 
 import Control.Lens hiding (Strict, (<.>))
 import Data.Functor.Apply
+import Data.Functor.Bind.Class
 
 infixr 6 <^>
 
@@ -105,18 +106,6 @@ bindingIds f = \case
                     <.*> traverse1Maybe ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
                     <.> PLC.theUnique f n
                     <.*> traverse1Maybe ((PLC.varDeclName . PLC.theUnique) f) vdecls)
-  where
-    -- | Traverse using 'Apply', but getting back the result in 'MaybeApply f' instead of in 'f'.
-    traverse1Maybe :: (Apply f, Traversable t) => (a -> f b) -> t a -> MaybeApply f (t b)
-    traverse1Maybe f' = traverse (MaybeApply . Left . f')
-
-    -- | Apply a non-empty container of functions to a possibly-empty-with-unit container of values.
-    -- Taken from: <https://github.com/ekmett/semigroupoids/issues/66#issue-271899630>
-    (<.*>) :: (Apply f) => f (a -> b) -> MaybeApply f a -> f b
-    ff <.*> MaybeApply (Left fa) = ff <.> fa
-    ff <.*> MaybeApply (Right a) = ($ a) <$> ff
-    infixl 4 <.*>
-
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
