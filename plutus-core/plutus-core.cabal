@@ -305,7 +305,7 @@ library
     , semigroupoids
     , semigroups                  >=0.19.1
     , serialise
-    , some                        <1.0.3
+    , some
     , template-haskell
     , text
     , th-compat
@@ -364,7 +364,7 @@ library plutus-core-testlib
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable
     , size-based
-    , some                        <1.0.3
+    , some
     , Stream
     , tasty
     , tasty-golden
@@ -738,7 +738,7 @@ library index-envs
     , containers
     , extra
     , nonempty-vector
-    , ral              ==0.1
+    , ral              ^>=0.2
     , vector
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
@@ -753,7 +753,7 @@ benchmark index-envs-bench
     , criterion        >=1.5.9.0
     , index-envs
     , nonempty-vector
-    , ral              ==0.1
+    , ral              ^>=0.2
     , random           >=1.2.0
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
