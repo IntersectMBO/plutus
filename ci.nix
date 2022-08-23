@@ -39,7 +39,7 @@ let
         else if type == "tests" then
           pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
         else if type == "projectCoverageReport" then
-          haskell.projectPackagesWithCoverage.projectCoverageReport
+          haskell.projectWithCoverage.projectCoverageReport
         else { };
       # { component-type : retriever-fn }
       attrs = {
