@@ -53,7 +53,7 @@ size_t c_clz_block_unrolled(unsigned char const *restrict src, size_t len);
 
 // Shift
 
-void c_shift_bytes(int shift, unsigned char *restrict dst,
-                   unsigned char const *restrict src, size_t const len);
+void c_shift_bits(int bit_shift, unsigned char *restrict dst,
+                  unsigned char const *restrict src, size_t len);
 
 #endif /* CBITS_H */

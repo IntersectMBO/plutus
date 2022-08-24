@@ -49,9 +49,7 @@ main = do
       BitWrite.benches
       ],
     testGroup "Bit shift" [
-      Shift.benches,
-      Shift.overlongBenches,
-      Shift.byteStepBenches
+      Shift.benches
       ],
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes
