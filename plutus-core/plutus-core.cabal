@@ -798,9 +798,9 @@ benchmark bitwise
     Benches.CountLeadingZeroes
     Benches.Homogenous
     Benches.Popcount
+    Benches.Rotate
     Benches.Shift
     DataGen
-    Implementations
 
   include-dirs:     plutus-core/bench/bitwise/cbits
   c-sources:
