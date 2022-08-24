@@ -811,6 +811,7 @@ benchmark bitwise
     plutus-core/bench/bitwise/cbits/complement.c
     plutus-core/bench/bitwise/cbits/homogenous.c
     plutus-core/bench/bitwise/cbits/popcount.c
+    plutus-core/bench/bitwise/cbits/shift.c
 
   cc-options:       -O3
 

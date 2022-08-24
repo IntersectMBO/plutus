@@ -8,10 +8,16 @@ import Data.Bits (bit, shiftR, testBit, zeroBits, (.|.))
 import Data.Bool (bool)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Internal (fromForeignPtr, mallocByteString)
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Foldable (foldl')
 import Data.Word (Word8)
 import DataGen (mkUnaryArg, noCleanup, sizes)
+import Foreign.C.Types (CInt (CInt), CSize (CSize), CUChar)
+import Foreign.ForeignPtr (castForeignPtr, withForeignPtr)
+import Foreign.Ptr (Ptr, castPtr)
 import GHC.Exts (fromList)
+import System.IO.Unsafe (unsafeDupablePerformIO)
 import Test.Tasty (withResource)
 import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, nfIO)
 
@@ -36,6 +42,8 @@ benchByteShift mainLabel len =
         noPrecheckNotLabel = "No precheck, non-byte shift"
         precheckByteLabel = "Precheck, byte shift"
         precheckNotLabel = "Precheck, non-byte shift"
+        precheckCByteLabel = "Precheck in C, byte shift"
+        precheckCNotLabel = "Precheck in C, non-byte shift"
         testLabel = mainLabel <> ", length " <> show len
         matchLabelByte = "$NF == \"" <> noPrecheckByteLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\""
         matchLabelNot = "$NF == \"" <> noPrecheckNotLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
@@ -43,7 +51,9 @@ benchByteShift mainLabel len =
         bench noPrecheckByteLabel . nfIO $ bitShift ((len - 1) * 8) <$> xs,
         bench noPrecheckNotLabel . nfIO $ bitShift (len * 4 - 1) <$> xs,
         bcompare matchLabelByte . bench precheckByteLabel . nfIO $ precheckByte bitShift ((len - 1) * 8) <$> xs,
-        bcompare matchLabelNot . bench precheckNotLabel . nfIO $ precheckByte bitShift (len * 4 - 1) <$> xs
+        bcompare matchLabelNot . bench precheckNotLabel . nfIO $ precheckByte bitShift (len * 4 - 1) <$> xs,
+        bcompare matchLabelByte . bench precheckCByteLabel . nfIO $ precheckByteC bitShift ((len - 1) * 8) <$> xs,
+        bcompare matchLabelNot . bench precheckCNotLabel . nfIO $ precheckByteC bitShift (len * 4 - 1) <$> xs
         ]
 
 benchOverlong ::
@@ -95,6 +105,18 @@ precheckByte f i bs = case i `quotRem` 8 of
     len :: Int
     len = BS.length bs
 
+precheckByteC ::
+  (Int -> ByteString -> ByteString) ->
+  Int ->
+  ByteString ->
+  ByteString
+precheckByteC f i bs = case i `quotRem` 8 of
+  (i', 0) -> unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(src, len) -> do
+    fp <- mallocByteString len
+    withForeignPtr fp $ \dst -> cShiftBytes (fromIntegral i') dst (castPtr src) . fromIntegral $ len
+    pure . fromForeignPtr (castForeignPtr fp) 0 $ len
+  _ -> f i bs
+
 precheckOverlong ::
   (Int -> ByteString -> ByteString) ->
   Int ->
@@ -130,3 +152,11 @@ bitAtClipping bs i
   where
     bitLength :: Int
     bitLength = BS.length bs * 8
+
+foreign import ccall unsafe "cbits.h  c_shift_bytes"
+  cShiftBytes ::
+    CInt ->
+    Ptr CUChar ->
+    Ptr CUChar ->
+    CSize ->
+    IO ()
