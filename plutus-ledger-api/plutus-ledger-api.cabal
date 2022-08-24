@@ -131,11 +131,11 @@ test-suite plutus-ledger-api-test
   main-is:        Spec.hs
   hs-source-dirs: test
   other-modules:
-    Spec.Builtins
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
     Spec.NoThunks
+    Spec.Versions
 
   build-depends:
     , barbies
