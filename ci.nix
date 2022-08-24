@@ -29,7 +29,7 @@ let
   # }
   #  Where each attribute contains an attribute set
   #  with all haskell components of that type
-  mkHaskellDimension = pkgs: haskell: # projectPackagesWithCoverage:
+  mkHaskellDimension = platformString: pkgs: haskell: # projectPackagesWithCoverage:
     let
       select = type: _:
         if type == "library" || type == "benchmarks" || type == "exes" then
@@ -38,7 +38,7 @@ let
           pkgs.haskell-nix.haskellLib.collectChecks' haskell.projectPackagesWithCoverage
         else if type == "tests" then
           pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
-        else if type == "projectCoverageReport" then
+        else if type == "projectCoverageReport" && platformString != "x86_64-windows" then
           haskell.projectWithCoverage.projectCoverageReport
         else { };
       # { component-type : retriever-fn }
@@ -102,7 +102,7 @@ let
 
           # build all haskell packages and tests
           haskell = pkgs.recurseIntoAttrs
-            (mkHaskellDimension pkgs plutus.haskell);
+            (mkHaskellDimension platformString pkgs plutus.haskell);
         }));
     in
     dimension "System" systems (name: sys: _select name sys null)
