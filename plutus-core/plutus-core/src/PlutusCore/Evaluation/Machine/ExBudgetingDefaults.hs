@@ -23,8 +23,6 @@ import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
-import PlutusCore.Evaluation.Machine.ExBudget ()
-import PlutusCore.Evaluation.Machine.ExMemory ()
 import PlutusCore.Evaluation.Machine.MachineParameters
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts

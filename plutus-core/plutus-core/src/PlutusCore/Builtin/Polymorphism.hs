@@ -20,6 +20,7 @@ import PlutusPrelude
 
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Core
+import PlutusCore.Evaluation.Machine.ExMemory
 
 import Data.Kind qualified as GHC (Type)
 import GHC.Ix
@@ -136,7 +137,7 @@ See Note [Elaboration of polymorphism] for how this machinery is used in practic
 -- to look at. 'Opaque' can appear in the type of the denotation of a builtin.
 newtype Opaque val (rep :: GHC.Type) = Opaque
     { unOpaque :: val
-    } deriving newtype (HasConstant)
+    } deriving newtype (HasConstant, ExMemoryUsage)
 -- Try not to add instances for this data type, so that we can throw more 'NoConstraintsErrMsg'
 -- kind of type errors.
 
@@ -149,7 +150,7 @@ type instance UniOf (Opaque val rep) = UniOf val
 -- @Opaque val rep@).
 newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
-    }
+    } deriving newtype (ExMemoryUsage)
 
 type instance UniOf (SomeConstant uni rep) = uni
 

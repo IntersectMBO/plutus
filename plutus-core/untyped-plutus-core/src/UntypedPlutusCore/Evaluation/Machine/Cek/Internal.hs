@@ -197,9 +197,11 @@ data CekValue uni fun =
     -- the call sites (search for 'VBuiltin').
   | VBuiltin
       !fun
-      -- ^ So that we know, for what builtin we're calculating the cost.  TODO: any chance we could
-      -- sneak this into 'BuiltinRuntime' where we have a partially instantiated costing function
-      -- anyway?
+      -- ^ So that we know, for what builtin we're calculating the cost. We can sneak this into
+      -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
+      -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
+      -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
+      -- the change: https://github.com/input-output-hk/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
       (Term NamedDeBruijn uni fun ())
       -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
       -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
@@ -528,14 +530,14 @@ data Context uni fun
     | NoFrame
     deriving stock (Show)
 
-toExMemory :: (Closed uni, uni `Everywhere` ExMemoryUsage) => CekValue uni fun -> ExMemory
-toExMemory = \case
-    VCon c      -> memoryUsage c
-    VDelay {}   -> 1
-    VLamAbs {}  -> 1
-    VBuiltin {} -> 1
-{-# INLINE toExMemory #-}  -- It probably gets inlined anyway, but an explicit pragma
-                           -- shouldn't hurt.
+-- See Note [ExMemoryUsage instances for non-constants].
+instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun) where
+    memoryUsage = \case
+        VCon c      -> memoryUsage c
+        VDelay {}   -> 1
+        VLamAbs {}  -> 1
+        VBuiltin {} -> 1
+    {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
 tryError :: MonadError e m => m a -> m (Either e a)
@@ -579,8 +581,8 @@ evalBuiltinApp
     -> Term NamedDeBruijn uni fun ()
     -> BuiltinRuntime (CekValue uni fun)
     -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
-    RuntimeSchemeResult -> do
+evalBuiltinApp fun term runtime = case runtime of
+    BuiltinResult cost getX -> do
         spendBudgetCek (BBuiltinApp fun) cost
         case getX of
             MakeKnownFailure logs err       -> do
@@ -595,7 +597,7 @@ evalBuiltinApp fun term runtime@(BuiltinRuntime sch getX cost) = case sch of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s, uni `Everywhere` ExMemoryUsage)
+    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
     => Context uni fun
     -> CekValEnv uni fun
     -> Term NamedDeBruijn uni fun ()
@@ -688,14 +690,13 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
     forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
-    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) = do
+    forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) = do
         -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
-        case sch of
+        case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            RuntimeSchemeAll schK -> do
-                let runtime' = BuiltinRuntime schK f exF
+            BuiltinExpectForce runtime' -> do
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
@@ -723,21 +724,17 @@ enterComputeCek = computeCek (toWordArray 0) where
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term (BuiltinRuntime sch f exF)) arg = do
+    applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) arg = do
         let argTerm = dischargeCekValue arg
             -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
             -- in a 'VBuiltin'.
             term' = Apply () term argTerm
-        case sch of
+        case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            RuntimeSchemeArrow schB -> case f arg of
-                Left err -> throwKnownTypeErrorWithCause argTerm err
-                Right y  -> do
-                    -- TODO: should we bother computing that 'ExMemory' eagerly? We may not need it.
-                    -- We pattern match on @arg@ twice: in 'readKnown' and in 'toExMemory'.
-                    -- Maybe we could fuse the two?
-                    let runtime' = BuiltinRuntime schB y . exF $ toExMemory arg
+            BuiltinExpectArgument f -> case f arg of
+                Left err       -> throwKnownTypeErrorWithCause argTerm err
+                Right runtime' -> do
                     res <- evalBuiltinApp fun term' runtime'
                     returnCek unbudgetedSteps ctx res
             _ ->
@@ -760,6 +757,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     stepAndMaybeSpend :: StepKind -> WordArray -> CekM uni fun s WordArray
     stepAndMaybeSpend !kind !unbudgetedSteps = do
         -- See Note [Structure of the step counter]
+        -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
+        -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromIntegral $ fromEnum kind
             !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
             !unbudgetedStepsTotal = readArray unbudgetedSteps' 7
@@ -772,7 +771,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: ( uni `Everywhere` ExMemoryUsage, Ix fun, PrettyUni uni fun)
+    :: (Ix fun, PrettyUni uni fun)
     => MachineParameters CekMachineCosts CekValue uni fun
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

@@ -1,19 +1,20 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module PlutusLedgerApi.Common.Versions
     ( module PlutusLedgerApi.Common.ProtocolVersions
     , LedgerPlutusVersion (..)
+    , languageIntroducedIn
+    , languagesAvailableIn
     , builtinsIntroducedIn
     , builtinsAvailableIn
     ) where
 
 import PlutusCore
 import PlutusLedgerApi.Common.ProtocolVersions
+import PlutusPrelude
 
-import Data.Foldable
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import GHC.Generics
 import Prettyprinter
 
 {- Note [New builtins and protocol versions]
@@ -42,7 +43,7 @@ data LedgerPlutusVersion =
       PlutusV1
     | PlutusV2
     | PlutusV3
-   deriving stock (Eq, Ord, Show, Generic)
+   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
 
 instance Pretty LedgerPlutusVersion where
     pretty = viaShow
@@ -82,6 +83,26 @@ builtinsIntroducedIn = Map.fromList [
           PopCountByteString, FindFirstSetByteString
           ])
   ]
+
+-- | Query the protocol version that a specific ledger plutus version was first introduced in.
+-- 'Introduction' in this context means the enablement/allowance of scripts of that language version to be executed on-chain.
+languageIntroducedIn :: LedgerPlutusVersion -> ProtocolVersion
+languageIntroducedIn = \case
+    PlutusV1 -> alonzoPV
+    PlutusV2 -> vasilPV
+    PlutusV3 -> changPV
+
+-- | Given a protocol version return a set of all available plutus languages that are enabled/allowed to run.
+-- Assumes that languages once introduced/enabled, will never be disabled in the future.
+languagesAvailableIn :: ProtocolVersion -> Set.Set LedgerPlutusVersion
+languagesAvailableIn searchPv =
+    foldMap ledgerVersionToSet enumerate
+  where
+    -- OPTIMIZE: could be done faster using takeWhile
+    ledgerVersionToSet :: LedgerPlutusVersion -> Set.Set LedgerPlutusVersion
+    ledgerVersionToSet lv
+        | languageIntroducedIn lv <= searchPv = Set.singleton lv
+        | otherwise = mempty
 
 {-| Which builtin functions are available in the given 'ProtocolVersion'?
 

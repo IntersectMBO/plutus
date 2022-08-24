@@ -15,6 +15,7 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude
@@ -45,15 +46,16 @@ type Term uni fun = PLC.Term TyName Name uni fun ()
 -}
 test_builtinsDon'tThrow :: TestTree
 test_builtinsDon'tThrow =
-    testGroup
-        "Builtins don't throw"
-        $ (\fun -> testGroup "for every version" $
-           (\ver ->
-                testPropertyNamed (render $ pretty fun <> pretty ver) (fromString . render $ pretty fun <> pretty ver) $
-                   prop_builtinEvaluation def fun gen f
-           -- perhaps using maxBound (with Enum, Bounded) is indeed better than Default for BuiltinVersions
-           ) <$> enumerate @(BuiltinVersion DefaultFun)
-          ) <$> enumerate @DefaultFun
+    testGroup "Builtins don't throw" $
+        enumerate @(BuiltinVersion DefaultFun) <&> \ver ->
+            testGroup (fromString . render $ "Version: " <> pretty ver) $
+                enumerate @DefaultFun <&> \fun ->
+                    -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
+                    -- @Default@ for BuiltinVersions
+                    testPropertyNamed
+                        (display fun)
+                        (fromString $ display fun)
+                        (prop_builtinEvaluation ver fun defaultBuiltinCostModel gen f)
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case
@@ -93,7 +95,7 @@ test_alwaysThrows =
     testGroup
         "Builtins throwing exceptions should cause tests to fail"
         [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
-            prop_builtinEvaluation @_ @AlwaysThrows ver AlwaysThrows (genArgsWellTyped ver) f
+            prop_builtinEvaluation @_ @AlwaysThrows ver AlwaysThrows () (genArgsWellTyped ver) f
         ]
   where
     ver = AlwaysThrowsV1
@@ -108,41 +110,33 @@ test_alwaysThrows =
 prop_builtinEvaluation ::
     forall uni fun.
     (ToBuiltinMeaning uni fun, Pretty (SomeTypeIn uni),
-        Pretty fun, Closed uni, uni `Everywhere` PrettyConst)
-    => PLC.BuiltinVersion fun
-    -> fun ->
+        Pretty fun, Closed uni, uni `Everywhere` PrettyConst) =>
+    PLC.BuiltinVersion fun ->
+    fun ->
+    CostingPart uni fun ->
     -- | A function making a generator for @fun@'s arguments.
     (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
     -- outcome, and decides whether to pass or fail the property.
     (fun -> [Term uni fun] -> Either SomeException (MakeKnownM (Term uni fun)) -> PropertyT IO ()) ->
     Property
-prop_builtinEvaluation ver bn mkGen f = property $ do
-    args <- forAllNoShow (mkGen bn)
-    f bn args =<< liftIO (try @SomeException . evaluate $ eval args)
-  where
-    meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
-    meaning = toBuiltinMeaning ver bn
-
-    eval :: [Term uni fun] -> MakeKnownM (Term uni fun)
-    eval args0 = case meaning of
-        BuiltinMeaning _ _ runtime -> go (_broRuntimeScheme runtime) (_broImmediateF runtime) args0
-      where
-        go ::
-            forall n.
-            RuntimeScheme n ->
-            ToRuntimeDenotationType (Term uni fun) n ->
-            [Term uni fun] ->
-            MakeKnownM (Term uni fun)
-        go sch fn args = case (sch, args) of
-            (RuntimeSchemeArrow sch', a : as) -> do
-                res <- liftReadKnownM (fn a)
-                go sch' res as
-            (RuntimeSchemeResult, []) -> fn
-            (RuntimeSchemeAll sch', _) -> go sch' fn args
-            -- TODO: can we make this function run in GenT MakeKnownM and generate arguments
+prop_builtinEvaluation ver bn costModel mkGen f = property $ do
+    args0 <- forAllNoShow $ mkGen bn
+    let
+        eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> MakeKnownM (Term uni fun)
+        eval [] (BuiltinResult _ getX) =
+            getX
+        eval (arg : args) (BuiltinExpectArgument toRuntime) =
+            eval args =<< liftReadKnownM (toRuntime arg)
+        eval args (BuiltinExpectForce runtime) =
+            eval args runtime
+        eval _ _ =
+            -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
             -- on the fly to avoid this error case?
-            _ -> error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
+            error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
+        BuiltinMeaning _ _ runtimeOpts = toBuiltinMeaning ver bn
+        runtime0 = _broImmediateF runtimeOpts costModel
+    f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
 
 genArgsWellTyped ::
     forall uni fun.

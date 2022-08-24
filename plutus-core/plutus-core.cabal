@@ -482,7 +482,6 @@ test-suite untyped-plutus-core-test
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
     Evaluation.Builtins.Bitwise
-    Evaluation.Builtins.Coherence
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead

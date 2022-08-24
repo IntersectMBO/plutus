@@ -5,11 +5,11 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
 import PlutusLedgerApi.V1
-import Spec.Builtins qualified
 import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.NoThunks qualified
+import Spec.Versions qualified
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -93,7 +93,7 @@ tests = testGroup "plutus-ledger-api" [
     ]
     , Spec.Interval.tests
     , Spec.Eval.tests
-    , Spec.Builtins.tests
+    , Spec.Versions.tests
     , Spec.CostModelParams.tests
     , Spec.NoThunks.tests
     ]
