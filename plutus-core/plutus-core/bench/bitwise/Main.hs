@@ -12,6 +12,7 @@ import Benches.Complement qualified as Complement
 import Benches.CountLeadingZeroes qualified as CountLeadingZeroes
 import Benches.Homogenous qualified as Homogenous
 import Benches.Popcount qualified as Popcount
+import Benches.Shift qualified as Shift
 import Data.Bits (complement, zeroBits, (.&.))
 import Data.ByteString qualified as BS
 import DataGen (mkUnaryArg, noCleanup, sizes)
@@ -46,6 +47,11 @@ main = do
       ],
     testGroup "Bit write" [
       BitWrite.benches
+      ],
+    testGroup "Bit shift" [
+      Shift.benches,
+      Shift.overlongBenches,
+      Shift.byteStepBenches
       ],
     bgroup rotateLabel . fmap (rotateVsPrescanBench rotateLabel) $ sizes,
     bgroup rotateLabel' . fmap (rotateFastVsSlow rotateLabel') $ sizes

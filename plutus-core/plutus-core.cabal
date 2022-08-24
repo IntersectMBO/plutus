@@ -799,6 +799,7 @@ benchmark bitwise
     Benches.CountLeadingZeroes
     Benches.Homogenous
     Benches.Popcount
+    Benches.Shift
     DataGen
     Implementations
 
