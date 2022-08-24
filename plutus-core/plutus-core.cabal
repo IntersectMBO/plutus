@@ -796,7 +796,6 @@ benchmark bitwise
     Benches.BitWrite
     Benches.Complement
     Benches.CountLeadingZeroes
-    Benches.Homogenous
     Benches.Popcount
     Benches.Rotate
     Benches.Shift
@@ -808,8 +807,8 @@ benchmark bitwise
     plutus-core/bench/bitwise/cbits/bit-access.c
     plutus-core/bench/bitwise/cbits/clz.c
     plutus-core/bench/bitwise/cbits/complement.c
-    plutus-core/bench/bitwise/cbits/homogenous.c
     plutus-core/bench/bitwise/cbits/popcount.c
+    plutus-core/bench/bitwise/cbits/rotate.c
     plutus-core/bench/bitwise/cbits/shift.c
 
   cc-options:       -O3

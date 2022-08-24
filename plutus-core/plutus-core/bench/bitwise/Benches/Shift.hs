@@ -55,7 +55,8 @@ bitShiftC i bs = case signum i of
   0 -> bs
   _ -> unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(src, len) -> do
     fp <- mallocByteString len
-    withForeignPtr fp $ \dst -> cShiftBits (fromIntegral i) dst (castPtr src) . fromIntegral $ len
+    withForeignPtr fp $ \dst ->
+      cShiftBits (fromIntegral i) dst (castPtr src) . fromIntegral $ len
     pure . fromForeignPtr (castForeignPtr fp) 0 $ len
 
 bitAtClipping :: ByteString -> Int -> Bool

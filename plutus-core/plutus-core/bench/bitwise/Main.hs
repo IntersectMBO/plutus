@@ -10,7 +10,6 @@ import Benches.BitRead qualified as BitRead
 import Benches.BitWrite qualified as BitWrite
 import Benches.Complement qualified as Complement
 import Benches.CountLeadingZeroes qualified as CountLeadingZeroes
-import Benches.Homogenous qualified as Homogenous
 import Benches.Popcount qualified as Popcount
 import Benches.Rotate qualified as Rotate
 import Benches.Shift qualified as Shift
@@ -28,9 +27,6 @@ main = do
       ],
     testGroup "Complement" [
       Complement.benches
-      ],
-    testGroup "Homogenous" [
-      Homogenous.benches
       ],
     testGroup "Binary" [
       Binary.benches
