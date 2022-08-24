@@ -13,6 +13,19 @@
 , compiler-nix-name
 }:
 let
+  projectPackages =
+    [
+      "plutus-benchmark"
+      "plutus-conformance"
+      "plutus-core"
+      "plutus-errors"
+      "plutus-ledger-api"
+      "plutus-metatheory"
+      "plutus-tx"
+      "plutus-tx-plugin"
+      "prettyprinter-configurable"
+      "word-array"
+    ];
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject'
     [
@@ -68,25 +81,12 @@ let
         modules = [
 
           (
-            let prpjectPackages =
-              [
-                "plutus-benchmark"
-                "plutus-conformance"
-                "plutus-core"
-                "plutus-errors"
-                "plutus-ledger-api"
-                "plutus-metatheory"
-                "plutus-tx"
-                "plutus-tx-plugin"
-                "prettyprinter-configurable"
-                "word-array"
-              ]; in
             {
               packages = lib.genAttrs projectPackages (name: {
                 # Mark package as local non-dep in the nix-shell.
                 # fixme: Haskell.nix should set it
-                # package.isProject = true;
-                doCoverage = coverage;
+                package.isProject = true;
+                doCoverage = config.coverage;
               });
             }
           )
@@ -208,9 +208,8 @@ let
         ] ++ lib.optional config.profiling {
           enableLibraryProfiling = true;
           enableProfiling = true;
-        }
-          })
-          ];
-
-        in
-        project
+        };
+      })
+    ];
+in
+project
