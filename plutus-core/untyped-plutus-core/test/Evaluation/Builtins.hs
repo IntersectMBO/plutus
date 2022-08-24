@@ -1,6 +1,5 @@
 module Evaluation.Builtins (test_builtins) where
 
-import Evaluation.Builtins.Coherence (test_TypeSchemesAndRuntimeSchemesAgree)
 import Evaluation.Builtins.Definition (test_definition)
 import Evaluation.Builtins.MakeRead (test_makeRead)
 
@@ -11,5 +10,4 @@ test_builtins =
     testGroup "builtins"
         [ test_definition
         , test_makeRead
-        , test_TypeSchemesAndRuntimeSchemesAgree
         ]

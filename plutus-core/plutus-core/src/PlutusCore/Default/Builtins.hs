@@ -20,6 +20,7 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
@@ -1062,17 +1063,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             BS.append
             (runCostingFunTwoArguments . paramAppendByteString)
     toBuiltinMeaning ver ConsByteString =
-        -- costing-parameter name and costing signature remain the same
-        let costingFun = (runCostingFunTwoArguments . paramConsByteString)
+        -- The costing function is the same for all versions of this builtin, but since the
+        -- denotation of the builtin accepts constants of different types ('Integer' vs 'Word8'),
+        -- the costing function needs to by polymorphic over the type of constant.
+        let costingFun :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudget
+            costingFun = runCostingFunTwoArguments . paramConsByteString
         -- See Note [Versioned builtins]
         in case ver of
             DefaultFunV1 -> makeBuiltinMeaning
+               @(Integer -> BS.ByteString -> BS.ByteString)
                (\n xs -> BS.cons (fromIntegral @Integer n) xs)
                costingFun
             -- For versions other (i.e. larger) than V1, the first input must be in range [0.255].
             -- See Note [How to add a built-in function: simple cases]
             _ -> makeBuiltinMeaning
-              (\(n :: Word8) xs -> BS.cons n xs)
+              @(Word8 -> BS.ByteString -> BS.ByteString)
+              BS.cons
               costingFun
     toBuiltinMeaning _ver SliceByteString =
         makeBuiltinMeaning

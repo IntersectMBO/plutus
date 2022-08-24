@@ -27,7 +27,9 @@ import Data.Text (Text)
 
 -- | Type check and evaluate a term.
 typecheckAnd
-    :: (MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni)
+    :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
+       , Closed uni, uni `Everywhere` ExMemoryUsage
+       )
     => BuiltinVersion fun
     -> (MachineParameters CekMachineCosts CekValue uni fun -> UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
