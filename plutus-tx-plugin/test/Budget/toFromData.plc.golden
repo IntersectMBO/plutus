@@ -64,11 +64,18 @@
         (let
           (nonrec)
           (termbind
-            (nonstrict)
+            (strict)
+            (vardecl
+              tup [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+            )
+            [ (builtin unConstrData) d ]
+          )
+          (termbind
+            (strict)
             (vardecl index (con integer))
             [
               { { (builtin fstPair) (con integer) } [ (con list) (con data) ] }
-              [ (builtin unConstrData) d ]
+              tup
             ]
           )
           [
@@ -174,7 +181,7 @@
                   (let
                     (nonrec)
                     (termbind
-                      (nonstrict)
+                      (strict)
                       (vardecl
                         tup
                         [
@@ -184,7 +191,7 @@
                       [ (builtin unConstrData) d ]
                     )
                     (termbind
-                      (nonstrict)
+                      (strict)
                       (vardecl index (con integer))
                       [
                         {
@@ -209,10 +216,11 @@
                           (lam
                             ds
                             (con unit)
-                            [
-                              { { Right (con integer) } b }
-                              [
-                                dUnsafeFromData
+                            (let
+                              (nonrec)
+                              (termbind
+                                (strict)
+                                (vardecl arg (con data))
                                 [
                                   { (builtin headList) (con data) }
                                   [
@@ -223,8 +231,12 @@
                                     tup
                                   ]
                                 ]
+                              )
+                              [
+                                { { Right (con integer) } b }
+                                [ dUnsafeFromData arg ]
                               ]
-                            ]
+                            )
                           )
                         ]
                         (lam
@@ -248,10 +260,11 @@
                                 (lam
                                   ds
                                   (con unit)
-                                  [
-                                    { { Left (con integer) } b }
-                                    [
-                                      dUnsafeFromData
+                                  (let
+                                    (nonrec)
+                                    (termbind
+                                      (strict)
+                                      (vardecl arg (con data))
                                       [
                                         { (builtin headList) (con data) }
                                         [
@@ -262,8 +275,12 @@
                                           tup
                                         ]
                                       ]
+                                    )
+                                    [
+                                      { { Left (con integer) } b }
+                                      [ dUnsafeFromData arg ]
                                     ]
-                                  ]
+                                  )
                                 )
                               ]
                               (lam
@@ -322,7 +339,7 @@
                 (let
                   (nonrec)
                   (termbind
-                    (nonstrict)
+                    (strict)
                     (vardecl
                       tup
                       [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
@@ -330,7 +347,7 @@
                     [ (builtin unConstrData) d ]
                   )
                   (termbind
-                    (nonstrict)
+                    (strict)
                     (vardecl index (con integer))
                     [
                       {
@@ -350,10 +367,11 @@
                         (lam
                           ds
                           (con unit)
-                          [
-                            { Just a }
-                            [
-                              dUnsafeFromData
+                          (let
+                            (nonrec)
+                            (termbind
+                              (strict)
+                              (vardecl arg (con data))
                               [
                                 { (builtin headList) (con data) }
                                 [
@@ -364,8 +382,9 @@
                                   tup
                                 ]
                               ]
-                            ]
-                          ]
+                            )
+                            [ { Just a } [ dUnsafeFromData arg ] ]
+                          )
                         )
                       ]
                       (lam
@@ -446,7 +465,7 @@
               (let
                 (nonrec)
                 (termbind
-                  (nonstrict)
+                  (strict)
                   (vardecl
                     tup
                     [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
@@ -469,6 +488,17 @@
                   (vardecl t [ (con list) (con data) ])
                   [ { (builtin tailList) (con data) } t ]
                 )
+                (termbind
+                  (strict)
+                  (vardecl index (con integer))
+                  [
+                    {
+                      { (builtin fstPair) (con integer) }
+                      [ (con list) (con data) ]
+                    }
+                    tup
+                  ]
+                )
                 [
                   [
                     [
@@ -480,45 +510,42 @@
                             [ [ [ Tuple3 Bool ] (con integer) ] Bool ]
                           )
                         }
-                        [
-                          [
-                            (builtin equalsInteger)
-                            [
-                              {
-                                { (builtin fstPair) (con integer) }
-                                [ (con list) (con data) ]
-                              }
-                              tup
-                            ]
-                          ]
-                          (con integer 0)
-                        ]
+                        [ [ (builtin equalsInteger) index ] (con integer 0) ]
                       ]
                       (lam
                         ds
                         (con unit)
-                        [
-                          [
-                            [
-                              { { { Tuple3 Bool } (con integer) } Bool }
-                              [
-                                dUnsafeFromData
-                                [ { (builtin headList) (con data) } t ]
-                              ]
-                            ]
-                            [
-                              (builtin unIData)
-                              [ { (builtin headList) (con data) } t ]
-                            ]
-                          ]
-                          [
-                            dUnsafeFromData
+                        (let
+                          (nonrec)
+                          (termbind
+                            (strict)
+                            (vardecl arg (con data))
+                            [ { (builtin headList) (con data) } t ]
+                          )
+                          (termbind
+                            (strict)
+                            (vardecl arg (con data))
+                            [ { (builtin headList) (con data) } t ]
+                          )
+                          (termbind
+                            (strict)
+                            (vardecl arg (con data))
                             [
                               { (builtin headList) (con data) }
                               [ { (builtin tailList) (con data) } t ]
                             ]
+                          )
+                          [
+                            [
+                              [
+                                { { { Tuple3 Bool } (con integer) } Bool }
+                                [ dUnsafeFromData arg ]
+                              ]
+                              [ (builtin unIData) arg ]
+                            ]
+                            [ dUnsafeFromData arg ]
                           ]
-                        ]
+                        )
                       )
                     ]
                     (lam
