@@ -56,10 +56,10 @@ toDigits :: Builtins.Integer -> [Builtins.Integer]
 toDigits = go []
   where
     go acc n = case n `quotRem` 10 of
-        (quot, rem) ->
-            if quot == 0
-                then rem : acc
-                else go (rem : acc) quot
+        (q, r) ->
+            if q == 0
+                then r : acc
+                else go (r : acc) q
 
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
