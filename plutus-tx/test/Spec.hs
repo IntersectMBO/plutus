@@ -39,7 +39,8 @@ tests = testGroup "plutus-tx" [
     , bytestringTests
     , listTests
     , lawsTests
-    , runTestNestedIn ["test"] Show.Spec.tests
+    , Show.Spec.propertyTests
+    , runTestNestedIn ["test"] Show.Spec.goldenTests
     ]
 
 sqrtTests :: TestTree

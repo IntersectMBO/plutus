@@ -7,13 +7,36 @@ module Show.Spec where
 
 import PlutusTx.Bool
 import PlutusTx.Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Show
 
 import Control.Monad.Trans.Reader as Reader
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Char8 qualified as Char8
+import Data.Text qualified as Text
+import Hedgehog
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 import Prelude hiding (Show (..))
 import System.FilePath
 import Test.Tasty
 import Test.Tasty.Extras
+import Test.Tasty.Hedgehog
+
+toHaskellString :: BuiltinString -> String
+toHaskellString (BI.BuiltinString t) = Text.unpack t
+
+showIntegerRoundtrip :: Property
+showIntegerRoundtrip = property $ do
+    integer :: Integer <- forAll $ Gen.integral (Range.linear (-10000) 10000)
+    read (toHaskellString (show integer)) === integer
+
+showByteStringBase16 :: Property
+showByteStringBase16 = property $ do
+    bytestring <- forAll $ Gen.bytes (Range.linear 0 20)
+    let hex = Base16.encode bytestring
+        builtinBytestring = BI.BuiltinByteString bytestring
+    toHaskellString (show builtinBytestring) === Char8.unpack hex
 
 goldenShow :: forall a. Show a => TestName -> a -> TestNested
 goldenShow name x = do
@@ -46,8 +69,22 @@ data GadtD a where
     GadtC :: Integer -> BuiltinString -> GadtD Bool
 deriveShow ''GadtD
 
-tests :: TestNested
-tests =
+propertyTests :: TestTree
+propertyTests =
+    testGroup
+        "PlutusTx.Show property-based tests"
+        [ testPropertyNamed
+            "PlutusTx.Show @Integer"
+            "PlutusTx.Show @Integer"
+            showIntegerRoundtrip
+        , testPropertyNamed
+            "PlutusTx.Show @BuiltinByteString"
+            "PlutusTx.Show @BuiltinByteString"
+            showByteStringBase16
+        ]
+
+goldenTests :: TestNested
+goldenTests =
     testNested
         "Show"
         [ goldenShow "product-type" (ProductC 3 [True, False])
