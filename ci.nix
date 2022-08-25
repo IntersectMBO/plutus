@@ -32,7 +32,7 @@ let
   mkHaskellDimension = platformString: pkgs: haskell: # projectPackagesWithCoverage:
     let
 
-      removeRecurse = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations");
+      # removeRecurse = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations");
       isProjectPackage = pkgs.haskell-nix.haskellLib.isProjectPackage;
 
       select = type: _:
