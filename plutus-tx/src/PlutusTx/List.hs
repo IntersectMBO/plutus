@@ -25,7 +25,6 @@ module PlutusTx.List (
     partition,
     sort,
     sortBy,
-    fromRange,
     ) where
 
 import PlutusTx.Bool (Bool (..), otherwise, (||))
@@ -259,13 +258,3 @@ sortBy cmp l = mergeAll (sequences l)
       | otherwise       = a:merge as' bs
     merge [] bs         = bs
     merge as []         = as
-
-{-# INLINEABLE fromRange #-}
--- | @fromRange x y = [x..y]@. This is needed because the Plutus Tx compiler cannot
--- compile the range syntax.
-fromRange :: Integer -> Integer -> [Integer]
-fromRange start = go []
-  where
-    go acc x
-      | x `Builtins.lessThanInteger` start = acc
-      | otherwise = go (x:acc) (x `Builtins.subtractInteger` 1)
