@@ -172,7 +172,8 @@ splitAt n xs
     go _ []     = ([], [])
     go m (y:ys)
       | m `Builtins.equalsInteger` 1 = ([y], ys)
-      | otherwise = let (zs, ws) = go (Builtins.subtractInteger m 1) ys in (y:zs, ws)
+      | otherwise = case go (Builtins.subtractInteger m 1) ys of
+          (zs, ws) -> (y:zs, ws)
 
 {-# INLINABLE nub #-}
 -- | Plutus Tx version of 'Data.List.nub'.
