@@ -16,6 +16,7 @@ import Test.Tasty.Extras
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
+import PlutusTx.Prelude qualified as P
 import PlutusTx.Test ()
 import PlutusTx.TH (compile)
 
@@ -24,7 +25,12 @@ import PlutusTx.TH (compile)
 -- ones that run on UPLC.
 tests :: TestNested
 tests = testNested "Optimization" [
-   goldenUPlc "maybeFun" maybeFun ]
+    goldenUPlc "maybeFun" maybeFun
+  , goldenUPlc "trueOrError" trueOrError
+  , goldenUEval "trueOrErrorEval" [ toUPlc trueOrError ]
+  , goldenUPlc "trueOrErrorOpaque" trueOrErrorOpaque
+  , goldenUEval "trueOrErrorOpaqueEval" [ toUPlc trueOrErrorOpaque ]
+  ]
 
 -- The point of this test is to check that matchers get eliminated unconditionally
 -- even if they're used more than once.
@@ -37,3 +43,11 @@ maybeFun = $$(compile
                  Nothing -> Nothing
             Nothing -> Nothing
    ||])
+
+trueOrError :: CompiledCode Bool
+trueOrError = $$(compile [|| c True (P.error () :: Bool) ||])
+  where
+    c x _ = x
+
+trueOrErrorOpaque :: CompiledCode Bool
+trueOrErrorOpaque = $$(compile [|| P.const True (P.error () :: Bool) ||])
