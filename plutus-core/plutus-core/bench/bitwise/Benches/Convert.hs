@@ -2,7 +2,6 @@
 
 module Benches.Convert (
   benchesBSToI,
-  benchesBSToIBlock,
   ) where
 
 import Control.Monad (guard)
@@ -23,26 +22,7 @@ benchesBSToI :: Benchmark
 benchesBSToI = bgroup "Basic ByteString to Integer conversion" $
   benchBSToI "Basic ByteString to Integer conversion" <$> sizes
 
-benchesBSToIBlock :: Benchmark
-benchesBSToIBlock = bgroup "Block ByteString to Integer conversion" $
-  benchBSToIBlock "Block ByteString to Integer conversion" <$> sizes
-
 -- Helpers
-
-benchBSToIBlock ::
-  String ->
-  Int ->
-  Benchmark
-benchBSToIBlock mainLabel len =
-  withResource (mkUnaryArg len) noCleanup $ \xs ->
-    let shiftLabel = "scan backwards with shifts"
-        blockLabel = "scan backwards in blocks with shifts"
-        testLabel = mainLabel <> ", length " <> show len
-        matchLabel = "$NF == \"" <> shiftLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
-      bgroup testLabel [
-        bench shiftLabel . nfIO $ bsToIShift <$> xs,
-        bcompare matchLabel . bench blockLabel . nfIO $ bsToIShiftBlock <$> xs
-        ]
 
 benchBSToI ::
   String ->
@@ -53,6 +33,7 @@ benchBSToI mainLabel len =
     let naiveLabel = "scan backwards"
         forwardsLabel = "scan forwards"
         shiftLabel = "scan backwards with shifts"
+        blockLabel = "scan backwards in blocks with shifts"
         forwardsShiftLabel = "scan forwards with shifts"
         testLabel = mainLabel <> ", length " <> show len
         matchLabel = "$NF == \"" <> naiveLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
@@ -60,7 +41,8 @@ benchBSToI mainLabel len =
         bench naiveLabel . nfIO $ bsToI <$> xs,
         bcompare matchLabel . bench forwardsLabel . nfIO $ bsToIForward <$> xs,
         bcompare matchLabel . bench shiftLabel . nfIO $ bsToIShift <$> xs,
-        bcompare matchLabel . bench forwardsShiftLabel . nfIO $ bsToIShiftForward <$> xs
+        bcompare matchLabel . bench forwardsShiftLabel . nfIO $ bsToIShiftForward <$> xs,
+        bcompare matchLabel . bench blockLabel . nfIO $ bsToIShiftBlock <$> xs
         ]
 
 -- Implementations
