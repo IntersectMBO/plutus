@@ -28,7 +28,7 @@ import Data.Data
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
-import Data.Text as Text (Text, empty, pack)
+import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
@@ -399,26 +399,6 @@ emptyString = BuiltinString Text.empty
 {-# NOINLINE equalsString #-}
 equalsString :: BuiltinString -> BuiltinString -> BuiltinBool
 equalsString (BuiltinString s1) (BuiltinString s2) = BuiltinBool $ s1 == s2
-
-{-# NOINLINE showInteger #-}
-showInteger :: Integer -> BuiltinString
-showInteger = BuiltinString . Text.pack . show
-
-{-# NOINLINE showBool #-}
-showBool :: Bool -> BuiltinString
-showBool = BuiltinString . Text.pack . show
-
-{-# NOINLINE showString #-}
-showString :: BuiltinString -> BuiltinString
-showString (BuiltinString s) = BuiltinString . Text.pack $ show s
-
-{-# NOINLINE showByteString #-}
-showByteString :: BuiltinByteString -> BuiltinString
-showByteString (BuiltinByteString s) = BuiltinString . Text.pack $ show s
-
-{-# NOINLINE showData #-}
-showData :: BuiltinData -> BuiltinString
-showData (BuiltinData d) = BuiltinString . Text.pack $ show d
 
 {-# NOINLINE trace #-}
 trace :: BuiltinString -> a -> a
