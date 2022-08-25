@@ -67,8 +67,10 @@ toDigits = go []
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
     -- Base16-encode the ByteString and show the result.
-    showsPrec _ s = foldr alg id [0 .. Builtins.subtractInteger (Builtins.lengthOfByteString s) 1]
+    showsPrec _ s = foldr alg id (fromRange 0 (len `Builtins.subtractInteger` 1))
       where
+        len = Builtins.lengthOfByteString s
+
         showWord8 :: Builtins.Integer -> ShowS
         showWord8 x =
             toHex (x `Builtins.divideInteger` 16)
