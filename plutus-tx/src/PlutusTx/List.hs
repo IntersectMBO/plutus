@@ -172,7 +172,7 @@ splitAt n xs
     go :: Integer -> [a] -> ([a], [a])
     go _ []     = ([], [])
     go m (y:ys)
-      | m `Builtins.equalsInteger` 1 = ([y], ys)
+      | m == 1 = ([y], ys)
       | otherwise = case go (Builtins.subtractInteger m 1) ys of
           (zs, ws) -> (y:zs, ws)
 
