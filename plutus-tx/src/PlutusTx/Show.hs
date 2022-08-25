@@ -64,7 +64,7 @@ toDigits = go []
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
     -- Base16-encode the ByteString and show the result.
-    showsPrec _ s = foldr alg id (fromRange 0 (len - 1))
+    showsPrec _ s = foldr alg id (enumFromTo 0 (len - 1))
       where
         len = Builtins.lengthOfByteString s
 

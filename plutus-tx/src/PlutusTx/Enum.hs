@@ -6,7 +6,8 @@ import PlutusTx.Bool (Bool (..), otherwise)
 import PlutusTx.Builtins
 import PlutusTx.Eq ((==))
 import PlutusTx.ErrorCodes
-import PlutusTx.Ord (Ordering (..))
+import PlutusTx.List
+import PlutusTx.Ord (Ord (..), Ordering (..))
 import PlutusTx.Trace
 
 -- | Class 'Enum' defines operations on sequentially ordered types.
@@ -19,6 +20,8 @@ class Enum a where
   toEnum :: Integer -> a
   -- | Convert to an 'Integer'.
   fromEnum :: a -> Integer
+  -- | Construct a list from the given range.
+  enumFromTo :: a -> a -> [a]
 
 instance Enum Integer where
   {-# INLINABLE succ #-}
@@ -33,6 +36,11 @@ instance Enum Integer where
   {-# INLINABLE fromEnum #-}
   fromEnum x = x
 
+  {-# INLINABLE enumFromTo #-}
+  enumFromTo x y
+    | x > y = []
+    | otherwise = x : enumFromTo (succ x) y
+
 instance Enum () where
   {-# INLINABLE succ #-}
   succ _ = traceError succVoidBadArgumentError
@@ -46,6 +54,9 @@ instance Enum () where
 
   {-# INLINABLE fromEnum #-}
   fromEnum () = 0
+
+  {-# INLINABLE enumFromTo #-}
+  enumFromTo _ _ = [()]
 
 instance Enum Bool where
   {-# INLINABLE succ #-}
@@ -64,6 +75,9 @@ instance Enum Bool where
   {-# INLINABLE fromEnum #-}
   fromEnum False = 0
   fromEnum True  = 1
+
+  {-# INLINABLE enumFromTo #-}
+  enumFromTo x y = map toEnum (enumFromTo (fromEnum x) (fromEnum y))
 
 instance Enum Ordering where
   {-# INLINABLE succ #-}
@@ -86,3 +100,6 @@ instance Enum Ordering where
   fromEnum LT = 0
   fromEnum EQ = 1
   fromEnum GT = 2
+
+  {-# INLINABLE enumFromTo #-}
+  enumFromTo x y = map toEnum (enumFromTo (fromEnum x) (fromEnum y))
