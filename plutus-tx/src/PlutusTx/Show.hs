@@ -34,17 +34,17 @@ instance Show Builtins.Integer where
         alg digit acc =
             showString
                 ( if
-                        | digit `Builtins.equalsInteger` 0 -> "0"
-                        | digit `Builtins.equalsInteger` 1 -> "1"
-                        | digit `Builtins.equalsInteger` 2 -> "2"
-                        | digit `Builtins.equalsInteger` 3 -> "3"
-                        | digit `Builtins.equalsInteger` 4 -> "4"
-                        | digit `Builtins.equalsInteger` 5 -> "5"
-                        | digit `Builtins.equalsInteger` 6 -> "6"
-                        | digit `Builtins.equalsInteger` 7 -> "7"
-                        | digit `Builtins.equalsInteger` 8 -> "8"
-                        | digit `Builtins.equalsInteger` 9 -> "9"
-                        | otherwise                        -> "<invalid digit>"
+                    | digit `Builtins.equalsInteger` 0 -> "0"
+                    | digit `Builtins.equalsInteger` 1 -> "1"
+                    | digit `Builtins.equalsInteger` 2 -> "2"
+                    | digit `Builtins.equalsInteger` 3 -> "3"
+                    | digit `Builtins.equalsInteger` 4 -> "4"
+                    | digit `Builtins.equalsInteger` 5 -> "5"
+                    | digit `Builtins.equalsInteger` 6 -> "6"
+                    | digit `Builtins.equalsInteger` 7 -> "7"
+                    | digit `Builtins.equalsInteger` 8 -> "8"
+                    | digit `Builtins.equalsInteger` 9 -> "9"
+                    | otherwise                        -> "<invalid digit>"
                 )
                 . acc
 
@@ -75,14 +75,14 @@ instance Show Builtins.BuiltinByteString where
                 . toHex (x `Builtins.modInteger` 16)
         toHex x =
             if
-                    | x `Builtins.lessThanEqualsInteger` 9 -> showsPrec 0 x
-                    | x `Builtins.equalsInteger` 10        -> showString "a"
-                    | x `Builtins.equalsInteger` 11        -> showString "b"
-                    | x `Builtins.equalsInteger` 12        -> showString "c"
-                    | x `Builtins.equalsInteger` 13        -> showString "d"
-                    | x `Builtins.equalsInteger` 14        -> showString "e"
-                    | x `Builtins.equalsInteger` 15        -> showString "f"
-                    | otherwise                            -> showString "<invalid byte>"
+                | x `Builtins.lessThanEqualsInteger` 9 -> showsPrec 0 x
+                | x `Builtins.equalsInteger` 10        -> showString "a"
+                | x `Builtins.equalsInteger` 11        -> showString "b"
+                | x `Builtins.equalsInteger` 12        -> showString "c"
+                | x `Builtins.equalsInteger` 13        -> showString "d"
+                | x `Builtins.equalsInteger` 14        -> showString "e"
+                | x `Builtins.equalsInteger` 15        -> showString "f"
+                | otherwise                            -> showString "<invalid byte>"
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg i acc = showWord8 (Builtins.indexByteString s i) . acc
 
