@@ -160,6 +160,7 @@ test-suite plutus-tx-test
   build-depends:
     , aeson
     , base                                            >=4.9 && <5
+    , base16-bytestring
     , bytestring
     , cborg
     , filepath
@@ -172,4 +173,5 @@ test-suite plutus-tx-test
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , text
     , transformers

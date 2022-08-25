@@ -41,7 +41,8 @@ tests = testGroup "plutus-tx" [
     , enumTests
     , listTests
     , lawsTests
-    , runTestNestedIn ["test"] Show.Spec.tests
+    , Show.Spec.propertyTests
+    , runTestNestedIn ["test"] Show.Spec.goldenTests
     ]
 
 sqrtTests :: TestTree
