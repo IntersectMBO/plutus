@@ -13,7 +13,6 @@ import PlutusLedgerApi.V1.Scripts as Scripts
 import UntypedPlutusCore as UPLC
 
 import Codec.Serialise qualified as CBOR
-import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as BSS
 import Data.Either
@@ -118,11 +117,7 @@ illTypedPartialBuiltin = Apply () (Builtin () AddInteger) (mkConstant () True)
 
 -- Evaluates using the Scripts module.
 testScripts :: TestTree
-testScripts = "v1-scripts" `testWith` evalScripts
-  where
-      evalScripts :: UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
-      evalScripts = isRight . runExcept . Scripts.evaluateScript . Script . UPLC.mkDefaultProg
-
+testScripts = "v1-scripts" `testWith` evalAPI vasilPV
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serialising and deserialising the program, so we can see any errors that might arise from that.
@@ -178,4 +173,3 @@ mkLam = LamAbs () (DeBruijn 0)
 -- a sufficient large debruijn index for testing
 outOfScope :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 outOfScope = Var () (DeBruijn 9999999)
-
