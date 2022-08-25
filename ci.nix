@@ -37,7 +37,7 @@ let
         else if type == "checks" then
           pkgs.haskell-nix.haskellLib.collectChecks' haskell.projectPackagesWithCoverage
         else if type == "tests" then
-          pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
+          pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackagesWithCoverage
         else if type == "projectCoverageReport" && platformString != "x86_64-windows" then
           haskell.projectWithCoverage.projectCoverageReport
         else { };
