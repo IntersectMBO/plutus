@@ -41,7 +41,7 @@
                 (nonrec)
                 (termbind
                   (nonstrict)
-                  (vardecl quot (con integer))
+                  (vardecl q (con integer))
                   [ [ (builtin quotientInteger) n ] y ]
                 )
                 {
@@ -55,8 +55,7 @@
                               [
                                 { (builtin ifThenElse) Bool }
                                 [
-                                  [ (builtin equalsInteger) quot ]
-                                  (con integer 0)
+                                  [ (builtin equalsInteger) q ] (con integer 0)
                                 ]
                               ]
                               True
@@ -92,7 +91,7 @@
                             acc
                           ]
                         ]
-                        quot
+                        q
                       ]
                     )
                   ]
