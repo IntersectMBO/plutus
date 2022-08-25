@@ -30,22 +30,10 @@ instance Show Builtins.Integer where
         showString (if n `Builtins.lessThanInteger` 0 then "-" else "")
             . foldr alg id (toDigits n)
       where
-        toDigits :: Builtins.Integer -> [Builtins.Integer]
-        toDigits m =
-            let quotient = m `Builtins.quotientInteger` 10
-                remainder = m `Builtins.remainderInteger` 10
-                digit =
-                    if remainder `Builtins.lessThanInteger` 0
-                        then 0 `Builtins.subtractInteger` remainder
-                        else remainder
-             in if quotient `Builtins.equalsInteger` 0
-                    then [digit]
-                    else digit : toDigits quotient
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg digit acc =
-            acc
-                . showString
-                    ( if
+            showString
+                ( if
                         | digit `Builtins.equalsInteger` 0 -> "0"
                         | digit `Builtins.equalsInteger` 1 -> "1"
                         | digit `Builtins.equalsInteger` 2 -> "2"
@@ -57,7 +45,24 @@ instance Show Builtins.Integer where
                         | digit `Builtins.equalsInteger` 8 -> "8"
                         | digit `Builtins.equalsInteger` 9 -> "9"
                         | otherwise                        -> "<invalid digit>"
-                    )
+                )
+                . acc
+
+{-# INLINEABLE toDigits #-}
+-- | Convert an integer to individual digits.
+toDigits :: Builtins.Integer -> [Builtins.Integer]
+toDigits = go []
+  where
+    go acc n =
+        let quotient = n `Builtins.quotientInteger` 10
+            remainder = n `Builtins.remainderInteger` 10
+            digit =
+                if remainder `Builtins.lessThanInteger` 0
+                    then 0 `Builtins.subtractInteger` remainder
+                    else remainder
+         in if quotient `Builtins.equalsInteger` 0
+                then digit : acc
+                else go (digit : acc) quotient
 
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
@@ -70,14 +75,14 @@ instance Show Builtins.BuiltinByteString where
                 . toHex (x `Builtins.modInteger` 16)
         toHex x =
             if
-                | x `Builtins.lessThanEqualsInteger` 9 -> showsPrec 0 x
-                | x `Builtins.equalsInteger` 10        -> showString "a"
-                | x `Builtins.equalsInteger` 11        -> showString "b"
-                | x `Builtins.equalsInteger` 12        -> showString "c"
-                | x `Builtins.equalsInteger` 13        -> showString "d"
-                | x `Builtins.equalsInteger` 14        -> showString "e"
-                | x `Builtins.equalsInteger` 15        -> showString "f"
-                | otherwise                            -> showString "<invalid byte>"
+                    | x `Builtins.lessThanEqualsInteger` 9 -> showsPrec 0 x
+                    | x `Builtins.equalsInteger` 10        -> showString "a"
+                    | x `Builtins.equalsInteger` 11        -> showString "b"
+                    | x `Builtins.equalsInteger` 12        -> showString "c"
+                    | x `Builtins.equalsInteger` 13        -> showString "d"
+                    | x `Builtins.equalsInteger` 14        -> showString "e"
+                    | x `Builtins.equalsInteger` 15        -> showString "f"
+                    | otherwise                            -> showString "<invalid byte>"
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg i acc = showWord8 (Builtins.indexByteString s i) . acc
 
