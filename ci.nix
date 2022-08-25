@@ -31,6 +31,8 @@ let
   #  with all haskell components of that type
   mkHaskellDimension = platformString: pkgs: haskell: # projectPackagesWithCoverage:
     let
+
+      removeRecurse = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations");
       isProjectPackage = pkgs.haskell-nix.haskellLib.isProjectPackage;
 
       select = type: _:
@@ -39,7 +41,8 @@ let
         else if type == "checks" then
           pkgs.haskell-nix.haskellLib.collectChecks isProjectPackage haskell.packagesWithCoverage
         else if type == "tests" then
-          pkgs.haskell-nix.haskellLib.collectComponents type isProjectPackage haskell.packagesWithCoverage
+          pkgs.haskell-nix.haskellLib.collectComponents type isProjectPackage
+            haskell.packagesWithCoverage
         else if type == "projectCoverageReport" && platformString != "x86_64-windows" then
           haskell.projectWithCoverage.projectCoverageReport
         else { };
