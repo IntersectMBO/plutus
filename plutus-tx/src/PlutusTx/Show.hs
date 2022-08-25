@@ -26,9 +26,10 @@ import PlutusTx.Show.TH
 
 instance Show Builtins.Integer where
     {-# INLINEABLE showsPrec #-}
-    showsPrec _ n =
-        showString (if n `Builtins.lessThanInteger` 0 then "-" else "")
-            . foldr alg id (toDigits n)
+    showsPrec p n =
+        if n `Builtins.lessThanInteger` 0
+            then showString "-" . showsPrec p (0 `Builtins.subtractInteger` n)
+            else foldr alg id (toDigits n)
       where
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg digit acc =
@@ -49,17 +50,13 @@ instance Show Builtins.Integer where
                 . acc
 
 {-# INLINEABLE toDigits #-}
--- | Convert an integer to individual digits.
+-- | Convert a non-negative integer to individual digits.
 toDigits :: Builtins.Integer -> [Builtins.Integer]
 toDigits = go []
   where
     go acc n =
         let quotient = n `Builtins.quotientInteger` 10
-            remainder = n `Builtins.remainderInteger` 10
-            digit =
-                if remainder `Builtins.lessThanInteger` 0
-                    then 0 `Builtins.subtractInteger` remainder
-                    else remainder
+            digit = n `Builtins.remainderInteger` 10
          in if quotient `Builtins.equalsInteger` 0
                 then digit : acc
                 else go (digit : acc) quotient

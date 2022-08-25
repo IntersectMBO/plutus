@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -14,8 +15,10 @@ module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.TH (compile)
 import PlutusTx.Test (goldenBudget, goldenPir)
 
@@ -44,6 +47,8 @@ tests = testNested "Budget" [
   , goldenPir "applicative" applicative
   , goldenBudget "patternMatch" patternMatch
   , goldenPir "patternMatch" patternMatch
+  , goldenBudget "show" compiledShow
+  , goldenPir "show" compiledShow
   ]
 
 compiledSum :: CompiledCode Integer
@@ -104,3 +109,18 @@ patternMatch = $$(compile [||
       let x = Just 1
           y = Just 2
        in patternMatchExample x y ||])
+
+showExample :: Integer -> Integer
+showExample x =
+    let !a = PlutusTx.trace (PlutusTx.show x) x
+        !b = PlutusTx.trace "This is an example" a
+        !c = PlutusTx.trace (PlutusTx.show (PlutusTx.encodeUtf8 "This is an example")) b
+        !d = PlutusTx.trace (PlutusTx.show (PlutusTx.greaterThanInteger c 0)) c
+        !e = PlutusTx.trace (PlutusTx.show [a, b, c, d]) d
+        !f = PlutusTx.trace (PlutusTx.show (a, b, c, d, e)) e
+     in f `PlutusTx.multiplyInteger` 2
+
+compiledShow :: CompiledCode Integer
+compiledShow = $$(compile [||
+      let x = -1234567890
+       in showExample x ||])
