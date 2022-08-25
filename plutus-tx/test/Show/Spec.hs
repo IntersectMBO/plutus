@@ -51,12 +51,12 @@ tests =
     testNested
         "Show"
         [ goldenShow "product-type" (ProductC 3 [True, False])
-        , goldenShow "product-type-2" ((:-:) [3] False)
+        , goldenShow "product-type-2" ((:-:) [-300] False)
         , goldenShow "sum-type-1" SumC1
         , goldenShow "sum-type-2" (SumC2 (1, "string", "bytestring"))
-        , goldenShow "record-type" (RecordC "string" ([1, 2, 3], True))
+        , goldenShow "record-type" (RecordC "string" ([0, 1, 2, 3], True))
         , goldenShow "infix-type" ((42, True) :+: ["foo", "bar"])
-        , goldenShow "infix-type-2" ((42, True) `InfixC` "foo")
-        , goldenShow "gadt" (GadtC 42 "string")
+        , goldenShow "infix-type-2" ((-12345, True) `InfixC` "foo")
+        , goldenShow "gadt" (GadtC (-42) "string")
         , goldenShow "poly" (PolyC (42 :: Integer, False) [])
         ]

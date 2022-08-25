@@ -68,11 +68,6 @@ module PlutusTx.Builtins (
                                 -- * Lists
                                 , matchList
                                 -- * Tracing
-                                , showInteger
-                                , showBool
-                                , showString
-                                , showByteString
-                                , showData
                                 , trace
                                 -- * Conversions
                                 , fromBuiltin
@@ -328,26 +323,6 @@ emptyString = BI.emptyString
 -- | Check if two strings are equal
 equalsString :: BuiltinString -> BuiltinString -> Bool
 equalsString x y = fromBuiltin (BI.equalsString x y)
-
-{-# INLINABLE showInteger #-}
-showInteger :: Integer -> BuiltinString
-showInteger = BI.showInteger
-
-{-# INLINABLE showBool #-}
-showBool :: Bool -> BuiltinString
-showBool = BI.showBool
-
-{-# INLINABLE showString #-}
-showString :: BuiltinString -> BuiltinString
-showString = BI.showString
-
-{-# INLINABLE showByteString #-}
-showByteString :: BuiltinByteString -> BuiltinString
-showByteString = BI.showByteString
-
-{-# INLINABLE showData #-}
-showData :: BuiltinData -> BuiltinString
-showData = BI.showData
 
 {-# INLINABLE trace #-}
 -- | Emit the given string as a trace message before evaluating the argument.
