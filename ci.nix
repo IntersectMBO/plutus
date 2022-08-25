@@ -31,13 +31,15 @@ let
   #  with all haskell components of that type
   mkHaskellDimension = platformString: pkgs: haskell: # projectPackagesWithCoverage:
     let
+      isProjectPackage = pkgs.haskell-nix.haskellLib.isProjectPackage;
+
       select = type: _:
         if type == "library" || type == "benchmarks" || type == "exes" then
           pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackages
         else if type == "checks" then
-          pkgs.haskell-nix.haskellLib.collectChecks' haskell.projectPackagesWithCoverage
+          pkgs.haskell-nix.haskellLib.collectChecks isProjectPackage haskell.packagesWithCoverage
         else if type == "tests" then
-          pkgs.haskell-nix.haskellLib.collectComponents' type haskell.projectPackagesWithCoverage
+          pkgs.haskell-nix.haskellLib.collectComponents type isProjectPackage haskell.packagesWithCoverage
         else if type == "projectCoverageReport" && platformString != "x86_64-windows" then
           haskell.projectWithCoverage.projectCoverageReport
         else { };
