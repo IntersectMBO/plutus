@@ -88,6 +88,9 @@ instance Show Builtins.BuiltinByteString where
 
 instance Show Builtins.BuiltinString where
     {-# INLINEABLE showsPrec #-}
+    -- Add quotes to the given string. `Prelude.show @String` uses @showLitChar@ to process
+    -- non-ascii characters and escape characters, in additional to adding quotes. We have
+    -- no builtin that operates on `Char`, so we cannot implement the same behavior.
     showsPrec _ s = showString "\"" . showString s . showString "\""
 
 instance Show Builtins.BuiltinData where
