@@ -71,11 +71,14 @@ import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
 
 {- | ByteString representing the currency, hashed with /BLAKE2b-224/.
-It is empty for `Ada`, 28 bytes for `PolicyId`.
+It is empty for `Ada`, 28 bytes for `MintingPolicyHash`.
+Forms an `AssetClass` along with `TokenName`.
+A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Integer`.
+So `CurrencySymbol` should be unique for `Value` to contain all currencies.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
 -}
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving
@@ -105,10 +108,11 @@ currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 {- | ByteString of a name of a token, hashed with /BLAKE2b-256/.
 Shown as UTF-8 string when possible.
 Should be no longer than 32 bytes, empty for Ada.
+Forms an `AssetClass` along with a `CurrencySymbol`.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelly ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
 -}
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
@@ -166,21 +170,28 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
--- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
--- quantity of that currency.
---
--- Operations on currencies are usually implemented /pointwise/. That is,
--- we apply the operation to the quantities for each currency in turn. So
--- when we add two 'Value's the resulting 'Value' has, for each currency,
--- the sum of the quantities of /that particular/ currency in the argument
--- 'Value'. The effect of this is that the currencies in the 'Value' are "independent",
--- and are operated on separately.
---
--- Whenever we need to get the quantity of a currency in a 'Value' where there
--- is no explicit quantity of that currency in the 'Value', then the quantity is
--- taken to be zero.
---
--- See note [Currencies] for more details.
+{- | The 'Value' type represents a collection of amounts of different currencies.
+This is a map from 'CurrencySymbol's to a quantity of that currency.
+We can think of 'Value' as a vector space whose dimensions are currencies.
+To create a value of 'Value', we need to specify a currency. This can be done
+using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
+'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
+similar to 'Ledger.Ada' for their own currencies.
+
+Operations on currencies are usually implemented /pointwise/. That is,
+we apply the operation to the quantities for each currency in turn. So
+when we add two 'Value's the resulting 'Value' has, for each currency,
+the sum of the quantities of /that particular/ currency in the argument
+'Value'. The effect of this is that the currencies in the 'Value' are "independent",
+and are operated on separately.
+
+Whenever we need to get the quantity of a currency in a 'Value' where there
+is no explicit quantity of that currency in the 'Value', then the quantity is
+taken to be zero.
+
+There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
+do the right thing in some cases.
+ -}
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
@@ -193,9 +204,6 @@ instance Haskell.Eq Value where
 instance Eq Value where
     {-# INLINABLE (==) #-}
     (==) = eq
-
--- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
--- do the right thing in some cases.
 
 instance Haskell.Semigroup Value where
     (<>) = unionWith (+)
@@ -230,24 +238,6 @@ instance JoinSemiLattice Value where
 instance MeetSemiLattice Value where
     {-# INLINABLE (/\) #-}
     (/\) = unionWith Ord.min
-
-{- note [Currencies]
-
-The 'Value' type represents a collection of amounts of different currencies.
-
-We can think of 'Value' as a vector space whose dimensions are
-currencies. At the moment there is only a single currency (Ada), so 'Value'
-contains one-dimensional vectors. When currency-creating transactions are
-implemented, this will change and the definition of 'Value' will change to a
-'Map Currency Int', effectively a vector with infinitely many dimensions whose
-non-zero values are recorded in the map.
-
-To create a value of 'Value', we need to specify a currency. This can be done
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
-'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
-similar to 'Ledger.Ada' for their own currencies.
-
--}
 
 {-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.

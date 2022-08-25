@@ -28,9 +28,12 @@ data StakingCredential
     -- a public key credential (`Crypto.PubKeyHash`) or
     -- a script credential (`Scripts.ValidatorHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
     = StakingHash Credential
-    -- | NB: The fields should really be `Word64` `Natural` `Natural`,
+    -- | NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
     -- but 'Integer' is our only integral type so we need to use it instead.
-    | StakingPtr Integer Integer Integer
+    | StakingPtr
+        Integer -- ^ the slot number
+        Integer -- ^ the transaction index (within the block)
+        Integer -- ^ the certificate index (within the transaction)
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

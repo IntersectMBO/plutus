@@ -35,8 +35,8 @@ newtype DiffMilliSeconds = DiffMilliSeconds Integer
 
 makeLift ''DiffMilliSeconds
 
--- | POSIX time is measured as the number of milliseconds since 1970-01-01T00:00:00Z.
--- Must be non-negative.
+-- | POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
+-- This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime`
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData)
