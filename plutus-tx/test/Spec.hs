@@ -15,7 +15,7 @@ import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, pr
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
-import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
+import PlutusTx.List (fromRange, nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
@@ -249,11 +249,19 @@ dropByteStringTests = testGroup "dropByteString"
 
 listTests :: TestTree
 listTests = testGroup "List"
-  [ nubByTests
+  [ fromRangeTests
+  , nubByTests
   , nubTests
   , partitionTests
   , sortTests
   , sortByTests
+  ]
+
+fromRangeTests :: TestTree
+fromRangeTests = testGroup "fromRange"
+  [ testCase "fromRange (-2) 2 == [-2..2]" $ fromRange (-2) 2 @?= [-2..2]
+  , testCase "fromRange 2 (-2) == []" $ fromRange 2 (-2) @?= []
+  , testCase "fromRange 42 42 == [42]" $ fromRange 42 42 @?= [42]
   ]
 
 nubByTests :: TestTree
