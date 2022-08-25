@@ -795,6 +795,7 @@ benchmark bitwise
     Benches.BitRead
     Benches.BitWrite
     Benches.Complement
+    Benches.Convert
     Benches.CountLeadingZeroes
     Benches.Popcount
     Benches.Rotate

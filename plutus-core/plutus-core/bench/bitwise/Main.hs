@@ -9,6 +9,7 @@ import Benches.Binary qualified as Binary
 import Benches.BitRead qualified as BitRead
 import Benches.BitWrite qualified as BitWrite
 import Benches.Complement qualified as Complement
+import Benches.Convert qualified as Convert
 import Benches.CountLeadingZeroes qualified as CountLeadingZeroes
 import Benches.Popcount qualified as Popcount
 import Benches.Rotate qualified as Rotate
@@ -46,5 +47,9 @@ main = do
       ],
     testGroup "Bit rotate" [
       Rotate.benches
+      ],
+    testGroup "Conversions" [
+      Convert.benchesBSToI,
+      Convert.benchesBSToIBlock
       ]
     ]
