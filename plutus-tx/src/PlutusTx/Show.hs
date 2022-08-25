@@ -20,7 +20,6 @@ import PlutusTx.Base
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either
-import PlutusTx.Foldable (foldl)
 import PlutusTx.List
 import PlutusTx.Maybe
 import PlutusTx.Show.TH
@@ -63,7 +62,7 @@ instance Show Builtins.Integer where
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
     -- Base16-encode the ByteString and show the result.
-    showsPrec _ s = foldl alg id [0 .. Builtins.subtractInteger (Builtins.lengthOfByteString s) 1]
+    showsPrec _ s = foldr alg id [0 .. Builtins.subtractInteger (Builtins.lengthOfByteString s) 1]
       where
         showWord8 :: Builtins.Integer -> ShowS
         showWord8 x =
@@ -79,8 +78,8 @@ instance Show Builtins.BuiltinByteString where
                 | x `Builtins.equalsInteger` 14        -> showString "e"
                 | x `Builtins.equalsInteger` 15        -> showString "f"
                 | otherwise                            -> showString "<invalid byte>"
-        alg :: ShowS -> Builtins.Integer -> ShowS
-        alg acc i = acc . showWord8 (Builtins.indexByteString s i)
+        alg :: Builtins.Integer -> ShowS -> ShowS
+        alg i acc = showWord8 (Builtins.indexByteString s i) . acc
 
 instance Show Builtins.BuiltinString where
     {-# INLINEABLE showsPrec #-}
@@ -117,11 +116,11 @@ showList showElem = \case
     x : xs ->
         showString "["
             . showElem x
-            . foldl alg id xs
+            . foldr alg id xs
             . showString "]"
       where
-        alg :: ShowS -> a -> ShowS
-        alg acc a = acc . showString "," . showElem a
+        alg :: a -> ShowS -> ShowS
+        alg a acc = showString "," . showElem a . acc
 
 deriveShow ''(,)
 deriveShow ''(,,)
