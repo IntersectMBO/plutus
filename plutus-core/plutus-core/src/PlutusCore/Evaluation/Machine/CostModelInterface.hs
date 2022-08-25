@@ -90,8 +90,8 @@ the set of current cost model parameters of that version with new parameters for
 Note that, removing existing builtins is only possible by issuing a brand-new plutus language version
 that would exclude them (and their cost model parameters).
 An alternative without issuing a new protocol update and affecting a current version,
-would be to set via a protocol update the builtins' cost model parameters prohibitively high,
-so as to make those builtins impossible to execute given the current maxium transaction budget,
+would be to set via (b) the builtins' cost model parameters prohibitively high,
+so as to make those builtins impossible to execute given the current maximum transaction budget,
 thus effectively disabling their execution.
 
 The ledger-state stores a *mapping* of each plutus-language version to its current set of cost model parameters.

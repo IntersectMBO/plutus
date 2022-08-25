@@ -129,33 +129,90 @@ instance Pretty ExCPU where
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
+{- Note [ExMemoryUsage instances for non-constants]
+In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
+argument to the costing function associated with the builtin. For a polymorphic builtin this means
+that we need to be able to compute the 'ExMemory' of the AST provided as an argument to the builtin.
+How do we do that? Our strategy is:
+
+1. if the AST is a wrapped constant, then calculate the 'ExMemory' of the constant
+2. if the AST is something else, return 1
+
+This is pretty reasonable: a polymorphic builtin *is* allowed to check if the AST that it got as an
+argument is a constant or not, and if it happens to be a constant, the builtin *is* allowed to use
+it whatever way it wishes (see Note [Builtins and Plutus type checking] for details). Hence a
+builtin may in fact do something ad hoc for constants and we need to account for this possibility in
+the costing machinery.
+
+But if the given AST is not a constant, the builtin can't do anything else with it, hence we simply
+return 1, meaning "the costing function can't use this 'ExMemory' in any non-vacuous way".
+
+See 'HasMeaningIn' for a full list of constraints determining what a builtin can do with values.
+
+However for all types of values, except the one used by the production evaluator, we implement
+'ExMemoryUsage' as a call to 'error'. Not because other evaluators don't compute costs during
+evaluation -- the CK machine for example does in fact compute them (because we share the same
+builtins machinery between all the evaluators and we want it to be efficient on the production path,
+hence it's easier to optimize it for all evaluators than just for the single production evaluator).
+And not because the resulting 'ExBudget' is not forced by an evaluator that doesn't care about
+costing -- it still gets forced (for the same reason).
+
+The actual reason why we call 'error' is because at the moment no builtin is supposed to have a
+costing function that actually computes the 'ExMemory' of the given AST. Currently, if the builtin
+takes an 'Opaque', it's not supposed to actually look inside of it (unlike with 'SomeConstant') and
+hence the costing function is supposed to ignore that argument. It is possible that we'll eventually
+decide to add such a builtin, so the current approach of throwing an 'error' is a precaution
+ensuring that we won't add any weirdness by accident.
+
+We don't call 'error' on the production path, because we don't want this risk in there. A failing
+test is fine, a failing reasonable transaction is not and we don't want to risk it, even if it seems
+very unlikely that such a failure could slip in.
+
+The way we ignore arguments in costing functions is by computing the 'ExMemory' of each of those
+arguments lazily. I.e. a call to 'memoryUsage' can only be forced within a costing function and
+never outside of one. We have to do this regardless of all the reasoning above: if we compute
+the 'ExMemory' of, say, a list strictly, then a builtin prepending an element to a list will
+have the complexity of O(length_of_the_list) (because computing the 'ExMemory' of a list requires
+traversing the list), while we of course want it to be O(1).
+-}
+
 class ExMemoryUsage a where
+    -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
+    {-# INLINE memoryUsage #-}
 instance ExMemoryUsage SatInt where
     memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
+    {-# INLINE memoryUsage #-}
 deriving newtype instance ExMemoryUsage ExMemory
 deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
   memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+  {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
   -- TODO this is just to match up with existing golden tests. We probably need to account for @uni@ as well.
   memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
   memoryUsage () = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Integer where
   memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0 (but in practice returns -1)
   memoryUsage i = ExMemory $ fromIntegral $ (I# n) + 1
                                where n = (integerLog2# (abs i) `quotInt#` integerToInt 64) :: Int#
                                -- Assume 64-bit size for Integer
+  {-# INLINE memoryUsage #-}
+
+instance ExMemoryUsage Word8 where
+  memoryUsage _ = ExMemory 1
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
@@ -165,28 +222,29 @@ instance ExMemoryUsage Integer where
 instance ExMemoryUsage BS.ByteString where
   memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
   -- This is slow and inaccurate, but matches the version that was originally deployed.
   -- We may try and improve this in future so long as the new version matches this exactly.
   memoryUsage text = memoryUsage $ T.unpack text
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
   memoryUsage _ = 1
+  {-# INLINE memoryUsage #-}
 
--- Memory usage for lists: let's just go for a naive traversal for now.
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = sizeList
-        where sizeList =
-                  \case
-                   []   -> 0
-                   x:xs -> memoryUsage x + sizeList xs
+    memoryUsage = foldl' (\a x -> memoryUsage x + a) 0
+    {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
    a Data object, and also the sizes of the contents of the nodes.  This is not
