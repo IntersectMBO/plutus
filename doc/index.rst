@@ -9,9 +9,10 @@ smart contracts on the Cardano blockchain. This involves using Plutus Tx to writ
 scripts, requiring some knowledge of the Haskell programming language. 
 
 This guide is also meant for certification companies, certification auditors, 
-and people who need to reference specifications, such as the 
-`Cardano Ledger Specification <https://github.com/input-output-hk/cardano-ledger#cardano-ledger>`_ 
-and the `Plutus Core Specification <https://github.com/input-output-hk/plutus#specifications-and-design>`_. 
+and people who need to reference specifications, such as: 
+
+* the `Cardano Ledger Specification <https://github.com/input-output-hk/cardano-ledger#cardano-ledger>`_ and 
+* the `Plutus Core Specification <https://github.com/input-output-hk/plutus#specifications-and-design>`_. 
 
 About this Documentation
 -----------------------------
@@ -43,7 +44,7 @@ Public Plutus Libraries Documentation
 -------------------------------------------
 
 See also the `public Plutus libraries documentation <https://playground.plutus.iohkdev.io/doc/haddock/>`_ 
-to access Haddock-generated documentation of all the code, including Plutus Core. 
+to access Haddock-generated documentation of all the code. 
 
 
 .. toctree::
