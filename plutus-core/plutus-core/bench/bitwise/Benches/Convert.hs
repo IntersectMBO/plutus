@@ -2,18 +2,20 @@
 
 module Benches.Convert (
   benchesBSToI,
+  benchesIToBS,
   ) where
 
 import Control.Monad (guard)
-import Data.Bits (unsafeShiftL)
+import Data.Bits (unsafeShiftL, zeroBits)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.Word (Word16, Word32, Word64, Word8)
-import DataGen (mkUnaryArg, noCleanup, sizes)
+import DataGen (mkInteger, mkUnaryArg, noCleanup, sizes)
 import Foreign.C.Types (CChar)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (peekByteOff)
+import GHC.Exts (fromList)
 import System.IO.Unsafe (unsafeDupablePerformIO)
 import Test.Tasty (withResource)
 import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, nfIO)
@@ -21,6 +23,10 @@ import Test.Tasty.Bench (Benchmark, bcompare, bench, bgroup, nfIO)
 benchesBSToI :: Benchmark
 benchesBSToI = bgroup "Basic ByteString to Integer conversion" $
   benchBSToI "Basic ByteString to Integer conversion" <$> sizes
+
+benchesIToBS :: Benchmark
+benchesIToBS = bgroup "Basic Integer to ByteString conversion" $
+  benchIToBS "Basic Integer to ByteString conversion" <$> sizes
 
 -- Helpers
 
@@ -45,7 +51,32 @@ benchBSToI mainLabel len =
         bcompare matchLabel . bench blockLabel . nfIO $ bsToIShiftBlock <$> xs
         ]
 
+benchIToBS ::
+  String ->
+  Int ->
+  Benchmark
+benchIToBS mainLabel len =
+  withResource (mkInteger len) noCleanup $ \i ->
+    let naiveLabel = "naive"
+        testLabel = mainLabel <> ", length " <> show len in
+      bgroup testLabel [
+        bench naiveLabel . nfIO $ iToBS <$> i
+        ]
+
 -- Implementations
+
+iToBS :: Integer -> Maybe ByteString
+iToBS i = case signum i of
+  (-1) -> Nothing
+  0 -> pure . BS.singleton $ zeroBits
+  _ -> pure $ if i < 256
+              then BS.singleton . fromIntegral $ i
+              else fromList . go [] $ i
+  where
+    go :: [Word8] -> Integer -> [Word8]
+    go acc !j = case j `quotRem` 256 of
+      (0, r) -> fromIntegral r : acc -- we're done
+      (d, r) -> go (fromIntegral r : acc) d
 
 bsToI :: ByteString -> Maybe Integer
 bsToI bs = do

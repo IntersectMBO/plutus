@@ -820,6 +820,7 @@ benchmark bitwise
   build-depends:
     , base
     , bytestring
+    , mtl
     , random
     , tasty
     , tasty-bench

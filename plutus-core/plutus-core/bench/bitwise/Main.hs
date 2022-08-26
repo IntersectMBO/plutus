@@ -49,6 +49,7 @@ main = do
       Rotate.benches
       ],
     testGroup "Conversions" [
-      Convert.benchesBSToI
+      Convert.benchesBSToI,
+      Convert.benchesIToBS
       ]
     ]
