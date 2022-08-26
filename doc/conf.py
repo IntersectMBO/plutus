@@ -22,7 +22,7 @@ if rtd_version not in ["stable", "latest"]:
 
 # -- Project information -----------------------------------------------------
 
-project = 'Plutus Programming and Reference Guide'
+project = 'Plutus Core and Plutus Tx User Guide'
 copyright = '2022, IOHK'
 author = 'IOHK'
 
