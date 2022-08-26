@@ -28,6 +28,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
+import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
 
 import Control.Lens hiding (Strict)
@@ -118,12 +119,12 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 
 -- 'SubstRng' in the paper, no 'Susp' case
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni fun a = Done (Term tyname name uni fun a)
+newtype InlineTerm tyname name uni fun a = Done (Dupable (Term tyname name uni fun a))
 
 newtype TermEnv tyname name uni fun a = TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
-newtype TypeEnv tyname uni a = TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Type tyname uni a) }
+newtype TypeEnv tyname uni a = TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
 data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
@@ -182,7 +183,7 @@ lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
     -> Subst tyname name uni fun a
-    -> Maybe (Type tyname uni a)
+    -> Maybe (Dupable (Type tyname uni a))
 lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
@@ -194,7 +195,7 @@ extendType
     -> Type tyname uni a
     -> Subst tyname name uni fun a
     -> Subst tyname name uni fun a
-extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn ty
+extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
 {- Note [Inlining and global uniqueness]
 Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
@@ -273,7 +274,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         _    -> typeSubstTyNamesM substTyName t
     -- See Note [Renaming strategy]
     substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-    substTyName tyname = gets (lookupType tyname) >>= traverse PLC.rename
+    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
     -- See Note [Renaming strategy]
     substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
@@ -282,7 +283,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     renameTerm = \case
         -- Already processed term, just rename and put it in, don't do any
         -- further optimization here.
-        Done t -> PLC.rename t
+        Done t -> liftDupable t
 
 {- Note [Renaming strategy]
 Since we assume global uniqueness, we can take a slightly different approach to
@@ -328,12 +329,12 @@ maybeAddSubst body a s n rhs = do
 
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
-    then extendAndDrop (Done rhs')
+    then extendAndDrop (Done $ dupable rhs')
     else do
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postUnconditional <- postInlineUnconditional rhs'
         if hinted || postUnconditional
-        then extendAndDrop (Done rhs')
+        then extendAndDrop (Done $ dupable rhs')
         else pure $ Just rhs'
     where
         extendAndDrop :: forall b . InlineTerm tyname name uni fun a -> InlineM tyname name uni fun a (Maybe b)
