@@ -17,10 +17,6 @@ module PlutusLedgerApi.V1.Scripts
     , scriptSize
     , fromCompiledCode
     , ScriptError (..)
-    , evaluateScript
-    , runScript
-    , runMintingPolicyScript
-    , runStakeValidatorScript
     , applyValidator
     , applyMintingPolicyScript
     , applyStakeValidatorScript
@@ -53,16 +49,12 @@ import Codec.CBOR.Extras (SerialiseViaFlat (..))
 import Codec.Serialise (Serialise (..), serialise)
 import Control.DeepSeq (NFData)
 import Control.Lens hiding (Context)
-import Control.Monad.Except (MonadError, throwError)
 import Data.ByteString.Lazy qualified as BSL
 import Data.String
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import PlutusCore qualified as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.Exception (ErrorWithCause (..), EvaluationError (..))
 import PlutusCore.MkPlc qualified as PLC
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx (CompiledCode, FromData (..), ToData (..), UnsafeFromData (..), getPlc, makeLift)
@@ -72,7 +64,6 @@ import PlutusTx.Prelude
 import Prettyprinter
 import Prettyprinter.Extras
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
 newtype Script = Script { unScript :: UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun () }
@@ -161,43 +152,6 @@ applyArguments (Script p) args =
     let termArgs = Haskell.fmap (PLC.mkConstant ()) args
         applied t = PLC.mkIterApp () t termArgs
     in Script $ over UPLC.progTerm applied p
-
--- | Evaluate a script, returning the trace log.
-evaluateScript :: forall m . (MonadError ScriptError m) => Script -> m (PLC.ExBudget, [Text])
-evaluateScript s =
-    let namedT = UPLC.termMapNames UPLC.fakeNameDeBruijn $ UPLC._progTerm $ unScript s
-    in case UPLC.checkScope @UPLC.FreeVariableError namedT of
-        Left fvError -> throwError $ EvaluationError [] ("FreeVariableFailure of" ++ Haskell.show fvError)
-        _ -> let (result, UPLC.TallyingSt _ budget, logOut) = UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter namedT
-            in case result of
-                 Right _ -> Haskell.pure (budget, logOut)
-                 Left errWithCause@(ErrorWithCause err cause) -> throwError $ case err of
-                     InternalEvaluationError internalEvalError -> EvaluationException (Haskell.show errWithCause) (PLC.show internalEvalError)
-                     UserEvaluationError evalError -> EvaluationError logOut (mkError evalError cause) -- TODO fix this error channel fuckery
-
--- | Create an error message from the contents of an ErrorWithCause.
--- If the cause of an error is a `Just t` where `t = b v0 v1 .. vn` for some builtin `b` then
--- the error will be a "BuiltinEvaluationFailure" otherwise it will be `PLC.show evalError`
-mkError :: UPLC.CekUserError -> Maybe (UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()) -> String
-mkError evalError Nothing = PLC.show evalError
-mkError evalError (Just t) =
-  case findBuiltin t of
-    Just b  -> "BuiltinEvaluationFailure of " ++ Haskell.show b
-    Nothing -> PLC.show evalError
-  where
-    findBuiltin :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> Maybe PLC.DefaultFun
-    findBuiltin t = case t of
-       UPLC.Apply _ t _   -> findBuiltin t
-       UPLC.Builtin _ fun -> Just fun
-       -- These two *really shouldn't* appear but
-       -- we are future proofing for a day when they do
-       UPLC.Force _ t     -> findBuiltin t
-       UPLC.Delay _ t     -> findBuiltin t
-       -- Future proofing for eta-expanded builtins
-       UPLC.LamAbs _ _ t  -> findBuiltin t
-       UPLC.Var _ _       -> Nothing
-       UPLC.Constant _ _  -> Nothing
-       UPLC.Error _       -> Nothing
 
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
 mkValidatorScript = Validator . fromCompiledCode
@@ -332,17 +286,6 @@ applyValidator
 applyValidator (Context (BuiltinData valData)) (Validator validator) (Datum (BuiltinData datum)) (Redeemer (BuiltinData redeemer)) =
     applyArguments validator [datum, redeemer, valData]
 
--- | Evaluate a 'Validator' with its 'Context', 'Datum', and 'Redeemer', returning the log.
-runScript
-    :: (MonadError ScriptError m)
-    => Context
-    -> Validator
-    -> Datum
-    -> Redeemer
-    -> m (PLC.ExBudget, [Text])
-runScript context validator datum redeemer =
-    evaluateScript (applyValidator context validator datum redeemer)
-
 -- | Apply 'MintingPolicy' to its 'Context' and 'Redeemer'.
 applyMintingPolicyScript
     :: Context
@@ -352,16 +295,6 @@ applyMintingPolicyScript
 applyMintingPolicyScript (Context (BuiltinData valData)) (MintingPolicy validator) (Redeemer (BuiltinData red)) =
     applyArguments validator [red, valData]
 
--- | Evaluate a 'MintingPolicy' with its 'Context' and 'Redeemer', returning the log.
-runMintingPolicyScript
-    :: (MonadError ScriptError m)
-    => Context
-    -> MintingPolicy
-    -> Redeemer
-    -> m (PLC.ExBudget, [Text])
-runMintingPolicyScript context mps red =
-    evaluateScript (applyMintingPolicyScript context mps red)
-
 -- | Apply 'StakeValidator' to its 'Context' and 'Redeemer'.
 applyStakeValidatorScript
     :: Context
@@ -370,16 +303,6 @@ applyStakeValidatorScript
     -> Script
 applyStakeValidatorScript (Context (BuiltinData valData)) (StakeValidator validator) (Redeemer (BuiltinData red)) =
     applyArguments validator [red, valData]
-
--- | Evaluate a 'StakeValidator' with its 'Context' and 'Redeemer', returning the log.
-runStakeValidatorScript
-    :: (MonadError ScriptError m)
-    => Context
-    -> StakeValidator
-    -> Redeemer
-    -> m (PLC.ExBudget, [Text])
-runStakeValidatorScript context wps red =
-    evaluateScript (applyStakeValidatorScript context wps red)
 
 makeLift ''ScriptHash
 
