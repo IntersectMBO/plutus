@@ -93,7 +93,7 @@ newtype BuiltinTypes uni fun = BuiltinTypes
 type TyVarKinds = UniqueMap TypeUnique (Named (Kind ()))
 type VarTypes uni = UniqueMap TermUnique (Named (Dupable (Normalized (Type TyName uni ()))))
 
--- | Decides what to do upon encountering a varible whose names doesn't match the name of the
+-- | Decides what to do upon encountering a variable whose name doesn't match the name of the
 -- variable with the same unique that is currently in the scope. Consider for example this type:
 --
 --     \(a_0 :: *) (b_0 :: *) -> a_0
