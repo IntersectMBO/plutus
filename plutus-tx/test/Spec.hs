@@ -15,12 +15,13 @@ import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, pr
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
-import PlutusTx.List (fromRange, nub, nubBy, partition, sort, sortBy)
+import PlutusTx.Enum (Enum (..))
+import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
-import Prelude hiding (Rational, negate, recip)
+import Prelude hiding (Enum (..), Rational, negate, recip)
 import Show.Spec qualified
 import Suites.Laws (lawsTests)
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -37,9 +38,11 @@ tests = testGroup "plutus-tx" [
     , sqrtTests
     , ratioTests
     , bytestringTests
+    , enumTests
     , listTests
     , lawsTests
-    , runTestNestedIn ["test"] Show.Spec.tests
+    , Show.Spec.propertyTests
+    , runTestNestedIn ["test"] Show.Spec.goldenTests
     ]
 
 sqrtTests :: TestTree
@@ -247,21 +250,24 @@ dropByteStringTests = testGroup "dropByteString"
   , testCase "drop 10" $ dropByteString 10 "hello" @?= ""
   ]
 
+enumTests :: TestTree
+enumTests = testGroup "Enum"
+  [ enumFromToTests ]
+
+enumFromToTests :: TestTree
+enumFromToTests = testGroup "enumFromTo"
+  [ testCase "enumFromTo (-2) 2 == [-2..2]" $ enumFromTo @Integer (-2) 2 @?= [-2..2]
+  , testCase "enumFromTo 2 (-2) == []" $ enumFromTo @Integer 2 (-2) @?= []
+  , testCase "enumFromTo 42 42 == [42]" $ enumFromTo @Integer 42 42 @?= [42]
+  ]
+
 listTests :: TestTree
 listTests = testGroup "List"
-  [ fromRangeTests
-  , nubByTests
+  [ nubByTests
   , nubTests
   , partitionTests
   , sortTests
   , sortByTests
-  ]
-
-fromRangeTests :: TestTree
-fromRangeTests = testGroup "fromRange"
-  [ testCase "fromRange (-2) 2 == [-2..2]" $ fromRange (-2) 2 @?= [-2..2]
-  , testCase "fromRange 2 (-2) == []" $ fromRange 2 (-2) @?= []
-  , testCase "fromRange 42 42 == [42]" $ fromRange 42 42 @?= [42]
   ]
 
 nubByTests :: TestTree

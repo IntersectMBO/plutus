@@ -20,54 +20,51 @@ import PlutusTx.Base
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either
-import PlutusTx.List
+import PlutusTx.List (foldr)
 import PlutusTx.Maybe
+import PlutusTx.Prelude hiding (foldr)
 import PlutusTx.Show.TH
 
 instance Show Builtins.Integer where
     {-# INLINEABLE showsPrec #-}
-    showsPrec _ n =
-        showString (if n `Builtins.lessThanInteger` 0 then "-" else "")
-            . foldr alg id (toDigits n)
+    showsPrec p n =
+        if n < 0
+            then showString "-" . showsPrec p (negate n)
+            else foldr alg id (toDigits n)
       where
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg digit acc =
             showString
                 ( if
-                    | digit `Builtins.equalsInteger` 0 -> "0"
-                    | digit `Builtins.equalsInteger` 1 -> "1"
-                    | digit `Builtins.equalsInteger` 2 -> "2"
-                    | digit `Builtins.equalsInteger` 3 -> "3"
-                    | digit `Builtins.equalsInteger` 4 -> "4"
-                    | digit `Builtins.equalsInteger` 5 -> "5"
-                    | digit `Builtins.equalsInteger` 6 -> "6"
-                    | digit `Builtins.equalsInteger` 7 -> "7"
-                    | digit `Builtins.equalsInteger` 8 -> "8"
-                    | digit `Builtins.equalsInteger` 9 -> "9"
-                    | otherwise                        -> "<invalid digit>"
+                    | digit == 0 -> "0"
+                    | digit == 1 -> "1"
+                    | digit == 2 -> "2"
+                    | digit == 3 -> "3"
+                    | digit == 4 -> "4"
+                    | digit == 5 -> "5"
+                    | digit == 6 -> "6"
+                    | digit == 7 -> "7"
+                    | digit == 8 -> "8"
+                    | digit == 9 -> "9"
+                    | otherwise  -> "<invalid digit>"
                 )
                 . acc
 
 {-# INLINEABLE toDigits #-}
--- | Convert an integer to individual digits.
+-- | Convert a non-negative integer to individual digits.
 toDigits :: Builtins.Integer -> [Builtins.Integer]
 toDigits = go []
   where
-    go acc n =
-        let quotient = n `Builtins.quotientInteger` 10
-            remainder = n `Builtins.remainderInteger` 10
-            digit =
-                if remainder `Builtins.lessThanInteger` 0
-                    then 0 `Builtins.subtractInteger` remainder
-                    else remainder
-         in if quotient `Builtins.equalsInteger` 0
-                then digit : acc
-                else go (digit : acc) quotient
+    go acc n = case n `quotRem` 10 of
+        (q, r) ->
+            if q == 0
+                then r : acc
+                else go (r : acc) q
 
 instance Show Builtins.BuiltinByteString where
     {-# INLINEABLE showsPrec #-}
     -- Base16-encode the ByteString and show the result.
-    showsPrec _ s = foldr alg id (fromRange 0 (len `Builtins.subtractInteger` 1))
+    showsPrec _ s = foldr alg id (enumFromTo 0 (len - 1))
       where
         len = Builtins.lengthOfByteString s
 
@@ -75,16 +72,18 @@ instance Show Builtins.BuiltinByteString where
         showWord8 x =
             toHex (x `Builtins.divideInteger` 16)
                 . toHex (x `Builtins.modInteger` 16)
+
+        toHex :: Integer -> ShowS
         toHex x =
             if
-                | x `Builtins.lessThanEqualsInteger` 9 -> showsPrec 0 x
-                | x `Builtins.equalsInteger` 10        -> showString "a"
-                | x `Builtins.equalsInteger` 11        -> showString "b"
-                | x `Builtins.equalsInteger` 12        -> showString "c"
-                | x `Builtins.equalsInteger` 13        -> showString "d"
-                | x `Builtins.equalsInteger` 14        -> showString "e"
-                | x `Builtins.equalsInteger` 15        -> showString "f"
-                | otherwise                            -> showString "<invalid byte>"
+                | x <= 9    -> showsPrec 0 x
+                | x == 10   -> showString "a"
+                | x == 11   -> showString "b"
+                | x == 12   -> showString "c"
+                | x == 13   -> showString "d"
+                | x == 14   -> showString "e"
+                | x == 15   -> showString "f"
+                | otherwise -> showString "<invalid byte>"
         alg :: Builtins.Integer -> ShowS -> ShowS
         alg i acc = showWord8 (Builtins.indexByteString s i) . acc
 
