@@ -48,7 +48,7 @@ import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
-{- | A transaction ID. Hashed with BLAKE2b-256. 32 byte.
+{- | A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the

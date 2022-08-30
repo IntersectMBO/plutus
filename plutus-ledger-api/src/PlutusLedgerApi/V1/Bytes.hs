@@ -28,14 +28,14 @@ import PlutusTx
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras (Pretty, PrettyShow (..))
 
-{- | An error that is encountered when converting a `Bytestring` to a `LedgerBytes`. -}
+{- | An error that is encountered when converting a `ByteString` to a `LedgerBytes`. -}
 data LedgerBytesError =
     UnpairedDigit -- ^ Odd number of bytes.
     | NotHexit Char -- ^ Not a hex digit.
     deriving stock (Show)
     deriving anyclass (Exception)
 
-{- | Convert a hex encoded `Bytestring` to a `LedgerBytes`. May return an error (`LedgerBytesError`). -}
+{- | Convert a hex encoded `ByteString` to a `LedgerBytes`. May return an error (`LedgerBytesError`). -}
 fromHex :: BS.ByteString -> Either LedgerBytesError LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     where

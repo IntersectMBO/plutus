@@ -28,7 +28,9 @@ data StakingCredential
     -- a public key credential (`Crypto.PubKeyHash`) or
     -- a script credential (`Scripts.ValidatorHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
     = StakingHash Credential
-    -- | NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
+    -- | The certificate pointer, constructed by the given
+    -- slot number, transaction and certificate indices.
+    -- NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
     -- but 'Integer' is our only integral type so we need to use it instead.
     | StakingPtr
         Integer -- ^ the slot number
@@ -54,10 +56,10 @@ instance PlutusTx.Eq StakingCredential where
 data Credential
   =
     -- | The transaction that spends this output must be signed by the private key.
-    -- Hashed with /BLAKE2b-244/. 28 byte. See `Crypto.PubKeyHash`.
+    -- See `Crypto.PubKeyHash`.
     PubKeyCredential PubKeyHash
     -- | The transaction that spends this output must include the validator script and
-    -- be accepted by the validator. Hashed with /BLAKE2b-244/. 28 byte. See `Scripts.ValidatorHash`.
+    -- be accepted by the validator. See `Scripts.ValidatorHash`.
   | ScriptCredential ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)

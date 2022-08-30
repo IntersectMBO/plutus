@@ -74,7 +74,6 @@ import Prettyprinter.Extras (PrettyShow (PrettyShow))
 It is empty for `Ada`, 28 bytes for `MintingPolicyHash`.
 Forms an `AssetClass` along with `TokenName`.
 A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Integer`.
-So `CurrencySymbol` should be unique for `Value` to contain all currencies.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
@@ -105,7 +104,7 @@ currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 currencySymbol :: BS.ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
-{- | ByteString of a name of a token, hashed with /BLAKE2b-256/.
+{- | ByteString of a name of a token.
 Shown as UTF-8 string when possible.
 Should be no longer than 32 bytes, empty for Ada.
 Forms an `AssetClass` along with a `CurrencySymbol`.
@@ -171,7 +170,6 @@ assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
 {- | The 'Value' type represents a collection of amounts of different currencies.
-This is a map from 'CurrencySymbol's to a quantity of that currency.
 We can think of 'Value' as a vector space whose dimensions are currencies.
 To create a value of 'Value', we need to specify a currency. This can be done
 using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
