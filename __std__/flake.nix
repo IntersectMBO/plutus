@@ -8,6 +8,7 @@
 # Most of what there is to know about the nix code inside this repository
 # can be learned by reading this file. A second read will be needed as some
 # std-specific terms may be referenced first and defined later.
+# You may also refer to the glossary: https://divnix.github.io/std/glossary.html
 {
   description = "Plutus Core - The Scripting Language for Cardano";
 
@@ -61,7 +62,7 @@
   # The flake outputs are managed by std.
   outputs = inputs:
 
-    # The growOn function accepts a first "soil" argument, defining the organelles.
+    # The growOn function accepts a first argument defining the organelles.
     inputs.std.growOn
       {
 
@@ -96,18 +97,18 @@
         #   packages :: installables
         #     Packages available via nix build
         #   devshellProfiles :: functions
-        #     Building blocks for devshells, not exposed by the flake
+        #     Building blocks for devshells, not exposed to the nix cli
         #   scripts :: functions
         #     Bash scripts simplifying or automating a variety of tasks
         #     Generally these are available as commands inside the development shell
-        #     These are very repository specific, and are not exposed by the flake
+        #     These are very repository specific, and are not exposed to the nix cli
         #   library :: functions
-        #     Functions and values shared across the current cell
-        #     These are very repository specific, and are not exposed by the flake
+        #     Functions and derivations shared across the current cell
+        #     These are very repository specific, and are not exposed to the nix cli
         #
         # std provides a TUI to interact with the organelles.
         # Available interactions are determined by the organelle's type.
-        # Because this repository does not use the TUI, the type is actually irrelevant.
+        # Because this repository does not use the TUI, the type is mostly irrelevant.
         organelles = [
           (inputs.std.devshells "devshells")
           (inputs.std.installables "packages")
@@ -117,7 +118,7 @@
         ];
       }
 
-      # The growOn function will then accept an arbitrary number of attrs.
+      # The growOn function will then accept an arbitrary number of "soil" attrs.
       # This is where we translate cells and organelles into a standard
       # nix flake outputs attrs.
       #
@@ -222,7 +223,7 @@
   # - And also accessible via inputs.cells.doc.packages.eutxo-paper
   # - And also buildable via nix build .#eutxo-paper
   #
-  # An another example, consider the file /nix/toolchain/packages/default.nix
+  # As another example, consider the file /nix/toolchain/packages/default.nix
   #
   # - /toolchain is the cell name
   # - /toolchain is accessible via cell.* from { inputs, cell } (while inside /nix/toolchain)
