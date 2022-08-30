@@ -16,7 +16,7 @@ module PlutusLedgerApi.V1.Credential
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusLedgerApi.V1.Scripts (ValidatorHash)
+import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
@@ -54,6 +54,7 @@ instance PlutusTx.Eq StakingCredential where
 
 -- | Credentials required to unlock a transaction output.
 data Credential
+<<<<<<< HEAD
   =
     -- | The transaction that spends this output must be signed by the private key.
     -- See `Crypto.PubKeyHash`.
@@ -61,6 +62,10 @@ data Credential
     -- | The transaction that spends this output must include the validator script and
     -- be accepted by the validator. See `Scripts.ValidatorHash`.
   | ScriptCredential ValidatorHash
+=======
+  = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
+  | ScriptCredential ScriptHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
+>>>>>>> dcf8a6565 (Remove the hash types)
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

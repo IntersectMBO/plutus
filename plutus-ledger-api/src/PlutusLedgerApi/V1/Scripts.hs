@@ -25,9 +25,6 @@ module PlutusLedgerApi.V1.Scripts
     , DatumHash(..)
     , RedeemerHash(..)
     , ScriptHash(..)
-    , ValidatorHash(..)
-    , MintingPolicyHash (..)
-    , StakeValidatorHash (..)
     ) where
 
 import Prelude qualified as Haskell
@@ -173,29 +170,7 @@ newtype ScriptHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
-{- | Type representing the /BLAKE2b-224/ hash of a validator. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype ValidatorHash =
-    ValidatorHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
-{- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
+-- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
     deriving
@@ -224,52 +199,12 @@ newtype RedeemerHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
-{- | Type representing the /BLAKE2b-224/ hash of a minting policy. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype MintingPolicyHash =
-    MintingPolicyHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
-{- | Type representing the /BLAKE2b-224/ hash of a stake validator. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype StakeValidatorHash =
-    StakeValidatorHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype Context = Context BuiltinData
     deriving newtype (Pretty, Haskell.Show)
 
 makeLift ''ScriptHash
-
-makeLift ''ValidatorHash
-
-makeLift ''MintingPolicyHash
-
-makeLift ''StakeValidatorHash
 
 makeLift ''DatumHash
 

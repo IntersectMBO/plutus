@@ -81,9 +81,6 @@ module PlutusLedgerApi.V3 (
     , Map
     , fromList
     -- *** Newtypes and hash types
-    , ValidatorHash (..)
-    , MintingPolicyHash (..)
-    , StakeValidatorHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)

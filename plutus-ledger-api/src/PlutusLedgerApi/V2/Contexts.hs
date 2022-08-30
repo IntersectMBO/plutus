@@ -28,19 +28,13 @@ module PlutusLedgerApi.V2.Contexts
     , findContinuingOutputs
     , getContinuingOutputs
     -- * Validator functions
-    , pubKeyOutput
-    , scriptOutputsAt
     , pubKeyOutputsAt
-    , valueLockedBy
     , valuePaidTo
     , spendsOutput
     , txSignedBy
     , valueSpent
     , valueProduced
     , ownCurrencySymbol
-    , ownHashes
-    , ownHash
-    , fromSymbol
     ) where
 
 import GHC.Generics (Generic)
@@ -50,14 +44,14 @@ import PlutusTx.Prelude hiding (toList)
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 import PlutusLedgerApi.V1.Address (Address (..))
-import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..), fromSymbol, pubKeyOutput)
+import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..))
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
 import PlutusLedgerApi.V1.DCert (DCert (..))
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Value (CurrencySymbol, Value)
-import PlutusLedgerApi.V2.Tx (OutputDatum (..), TxId (..), TxOut (..), TxOutRef (..))
+import PlutusLedgerApi.V2.Tx (TxId (..), TxOut (..), TxOutRef (..))
 
 import Prelude qualified as Haskell
 
@@ -174,33 +168,6 @@ txSignedBy :: TxInfo -> PubKeyHash -> Bool
 txSignedBy TxInfo{txInfoSignatories} k = case find ((==) k) txInfoSignatories of
     Just _  -> True
     Nothing -> False
-
-{-# INLINABLE ownHashes #-}
--- | Get the validator and datum hashes of the output that is curently being validated
-ownHashes :: ScriptContext -> (ValidatorHash, OutputDatum)
-ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatum=d}}) = (s,d)
-ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"
-
-{-# INLINABLE ownHash #-}
--- | Get the hash of the validator script that is currently being validated.
-ownHash :: ScriptContext -> ValidatorHash
-ownHash p = fst (ownHashes p)
-
-{-# INLINABLE scriptOutputsAt #-}
--- | Get the list of 'TxOut' outputs of the pending transaction at
---   a given script address.
-scriptOutputsAt :: ValidatorHash -> TxInfo -> [(OutputDatum, Value)]
-scriptOutputsAt h p =
-    let flt TxOut{txOutDatum=d, txOutAddress=Address (ScriptCredential s) _, txOutValue} | s == h = Just (d, txOutValue)
-        flt _ = Nothing
-    in mapMaybe flt (txInfoOutputs p)
-
-{-# INLINABLE valueLockedBy #-}
--- | Get the total value locked by the given validator in this transaction.
-valueLockedBy :: TxInfo -> ValidatorHash -> Value
-valueLockedBy ptx h =
-    let outputs = map snd (scriptOutputsAt h ptx)
-    in mconcat outputs
 
 {-# INLINABLE pubKeyOutputsAt #-}
 -- | Get the values paid to a public key address by a pending transaction.

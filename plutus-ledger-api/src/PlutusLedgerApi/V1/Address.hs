@@ -12,7 +12,7 @@ module PlutusLedgerApi.V1.Address
     , pubKeyHashAddress
     , scriptHashAddress
     , toPubKeyHash
-    , toValidatorHash
+    , toScriptHash
     , stakingCredential
     ) where
 
@@ -54,15 +54,15 @@ toPubKeyHash :: Address -> Maybe PubKeyHash
 toPubKeyHash (Address (PubKeyCredential k) _) = Just k
 toPubKeyHash _                                = Nothing
 
-{-# INLINABLE toValidatorHash #-}
+{-# INLINABLE toScriptHash #-}
 -- | The validator hash of the address, if any
-toValidatorHash :: Address -> Maybe ValidatorHash
-toValidatorHash (Address (ScriptCredential k) _) = Just k
-toValidatorHash _                                = Nothing
+toScriptHash :: Address -> Maybe ScriptHash
+toScriptHash (Address (ScriptCredential k) _) = Just k
+toScriptHash _                                = Nothing
 
 {-# INLINABLE scriptHashAddress #-}
 -- | The address that should be used by a transaction output locked by the given validator script hash.
-scriptHashAddress :: ValidatorHash -> Address
+scriptHashAddress :: ScriptHash -> Address
 scriptHashAddress vh = Address (ScriptCredential vh) Nothing
 
 {-# INLINABLE stakingCredential #-}
