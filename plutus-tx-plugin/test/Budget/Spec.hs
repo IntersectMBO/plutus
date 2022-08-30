@@ -17,6 +17,7 @@ import Test.Tasty.Extras
 
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
+import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.TH (compile)
@@ -38,6 +39,9 @@ tests = testNested "Budget" [
 
   , goldenBudget "elem" compiledElem
   , goldenPir "elem" compiledElem
+
+  , goldenBudget "toFromData" compiledToFromData
+  , goldenPir "toFromData" compiledToFromData
 
   , goldenBudget "monadicDo" monadicDo
   , goldenPir "monadicDo" monadicDo
@@ -75,6 +79,15 @@ compiledElem :: CompiledCode Bool
 compiledElem = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.elem 0 ls ||])
+
+compiledToFromData :: CompiledCode (Either Integer (Maybe (Bool, Integer, Bool)))
+compiledToFromData = $$(compile [||
+      let
+       v :: Either Integer (Maybe (Bool, Integer, Bool))
+       v = Right (Just (True, 1, False))
+       d :: PlutusTx.BuiltinData
+       d = PlutusTx.toBuiltinData v
+      in PlutusTx.unsafeFromBuiltinData d ||])
 
 doExample :: Maybe Integer -> Maybe Integer -> Maybe Integer
 doExample x y = do

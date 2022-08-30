@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
@@ -44,14 +45,14 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
         handleList (argName:rest) lExp = do
             tailName <- TH.newName "t"
             [|
-             let consCase = \ $(TH.varP argName) $(TH.varP tailName) -> $(handleList rest (TH.varE tailName))
+             let !consCase = \ $(TH.varP argName) $(TH.varP tailName) -> $(handleList rest (TH.varE tailName))
              in matchList $lExp Nothing consCase
              |]
     -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
     let body =
             [|
-                let indexMatchCase = $(handleList argNames argsExpr)
-                    fallthrough = $kont
+                let !indexMatchCase = $(handleList argNames argsExpr)
+                    !fallthrough = $kont
                 in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
             |]
     body
@@ -69,7 +70,7 @@ fromDataClause indexedCons = do
             indexedCons
     let body =
           [|
-            let constrMatchCase = \ $(TH.varP indexName) $(TH.varP argsName) -> $cases
+            let !constrMatchCase = \ $(TH.varP indexName) $(TH.varP argsName) -> $cases
             in matchData' $(TH.varE dName) constrMatchCase (const Nothing) (const Nothing) (const Nothing) (const Nothing)
           |]
     TH.clause [TH.varP dName] (TH.normalB body) []
@@ -88,15 +89,15 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
         handleList (argName:rest) lExp = do
             [|
              let
-                 t = $lExp
-                 $(TH.varP argName) = BI.head t
+                 !t = $lExp
+                 $(TH.bangP $ TH.varP argName) = BI.head t
              in $(handleList rest [| BI.tail t |])
              |]
     -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
     let body =
             [|
-                let indexMatchCase = $(handleList argNames argsExpr)
-                    fallthrough = $kont
+                let !indexMatchCase = $(handleList argNames argsExpr)
+                    !fallthrough = $kont
                 in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
             |]
     body
@@ -114,8 +115,8 @@ unsafeFromDataClause indexedCons = do
             indexedCons
     let body =
           [|
-            let $(TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
-                $(TH.varP indexName) = BI.fst $(TH.varE tupName)
+            let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
+                $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
             in $cases
           |]
     TH.clause [TH.varP dName] (TH.normalB body) []
