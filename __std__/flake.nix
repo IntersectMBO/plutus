@@ -99,7 +99,7 @@
       #     Building blocks for devshells, not exposed by the flake 
       #   scripts :: functions
       #     Bash scripts simplifying or automating a variety of tasks
-      #     Generally these available as commands inside the development shell 
+      #     Generally these are available as commands inside the development shell 
       #     These are very repository specific, and are not exposed by the flake
       #   library :: functions
       #     Functions and values shared across the current cell
@@ -127,12 +127,12 @@
     # 
     # The attrs will be recursively merged in the order in which they appear.
     { 
-      # Here we say that we want the devshells organelle inside the doc cell 
+      # Here we say that we want the devshells organelle of the doc cell 
       # (which contains a number of shell-able derivations) to be exposed 
       # by the flake and accessible via nix develop.
       devShells = inputs.std.harvest inputs.self ["doc" "devshells"];
 
-      # Here we say that we want the packages organelle inside the doc cell 
+      # Here we say that we want the packages organelle of the doc cell 
       # (which contains a number of buildable derivations) to be exposed 
       # by the flake and accessible via nix build (or nix run).
       packages = inputs.std.harvest inputs.self ["doc" "packages"];
@@ -158,13 +158,14 @@
   # A description of the arguments follows:
   # 
   #   inputs.self
-  #     This is a path pointing to the cellsFrom argument of growOn.
+  #     This is a path pointing to the top level of the repository.
   #     It is the *only* way to reference source files inside the repository.
   #     e.g.: { src = inputs.self + /plutus-core-spec; }
   # 
   #   inputs.cells 
-  #     Provides access to the all cells.
+  #     Provides access to all cells.
   #     Remember that a cell is named after its folder.
+  #     The full format is inputs.cells.<cell>.<organelle>.value
   #     e.g.: inputs.cells.doc.packages.doc-site
   #     e.g.: inputs.cells.toolchain.devshellsProfiles.common
   #     e.g.: inputs.cells.haskell.devshells.haskell-shell
@@ -177,7 +178,7 @@
   # 
   #   cell.*organelle*
   #     The cell value gives access to all its organelles:
-  #     e.g.: cell.scripts.build-and-server-doc-site (only works for code in /nix/doc)
+  #     e.g.: cell.scripts.build-and-server-doc-site (only works for code in /nix/scripts)
   #       Alternatively: inputs.cells.doc.scripts.build-and-server-doc-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
@@ -201,9 +202,9 @@
   # nix (develop|build|run) .#some-fragment  
   # That is unless the relevant organelle was not exposed by the flake.
   # 
-  # Also note that while virtually all nix files evaluate to derivations, some (like the ones in
-  # the library organelle) actually evaluate to functions.
-  # So it is more accurate to say that the convention is to export one nix value per nix file.
+  # Also note that while virtually all nix files evaluate to derivations, some 
+  # (like the ones in the library organelle) actually evaluate to functions.
+  # So it is more accurate to say that the convention is to export one nix *value* per nix file.
 
 
   # # # # # REFERENCE EXAMPLE  
@@ -211,18 +212,20 @@
   # As an example, consider the file /nix/doc/packages/eutxo-paper.nix:
   #
   # - /doc is the cell name
-  # - /doc is accessible as cell from { inputs, cell } (while inside /nix/doc)
+  # - /doc is accessible via cell.* from { inputs, cell } (while inside /nix/doc)
   # - /doc is accessible via inputs.cells.doc (everywhere)
   # - /packages is the organelle name
   # - /packages is accessible via cell.packages (while inside /nix/doc)
   # - /packages is accessible via inputs.cells.doc.packages (everywhere)
   # - /eutxo-paper.nix contains a *single derivation*
-  # - A derivation named eutxo-paper is accessible via nix build .#eutxo-paper
+  # - A derivation named eutxo-paper is accessible via cell.packages.eutxo-paper
+  # - And also accessible via inputs.cells.doc.packages.eutxo-paper
+  # - And also buildable via nix build .#eutxo-paper
   # 
   # An another example, consider the file /nix/toolchain/packages/default.nix
   #
   # - /toolchain is the cell name
-  # - /toolchain is accessible as cell from { inputs, cell } (while inside /nix/toolchain)
+  # - /toolchain is accessible via cell.* from { inputs, cell } (while inside /nix/toolchain)
   # - /toolchain is accessible via inputs.cells.toolchain (everywhere)
   # - /packages is the organelle name
   # - /packages is accessible via cell.packages (while inside /nix/toolchain)
