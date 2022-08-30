@@ -27,23 +27,12 @@ module PlutusLedgerApi.V1.Tx
     , txOutPubKey
     ,txOutDatum
     ,pubKeyHashTxOut
-    -- * Transaction inputs
-    , TxInType(..)
-    , TxIn(..)
-    , inRef
-    , inType
-    , inScripts
-    , pubKeyTxIn
-    , scriptTxIn
-    , pubKeyTxIns
-    , scriptTxIns
     ) where
 
 import Control.DeepSeq (NFData)
 import Control.Lens
 import Data.Map (Map)
 import Data.Maybe (isJust)
-import Data.Set qualified as Set
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import Prettyprinter
@@ -98,67 +87,6 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
-
--- | The type of a transaction input.
-data TxInType =
-      -- TODO: these should all be hashes, with the validators and data segregated to the side
-      ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
-    | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
-    | ConsumeSimpleScriptAddress -- ^ Consume a simple script
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData)
-
--- | A transaction input, consisting of a transaction output reference and an input type.
-data TxIn = TxIn {
-    txInRef  :: !TxOutRef,
-    txInType :: Maybe TxInType
-    }
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData)
-
-instance Pretty TxIn where
-    pretty TxIn{txInRef,txInType} =
-                let rest =
-                        case txInType of
-                            Just (ConsumeScriptAddress _ redeemer _) ->
-                                pretty redeemer
-                            _ -> mempty
-                in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
-
--- | The 'TxOutRef' spent by a transaction input.
-inRef :: Lens' TxIn TxOutRef
-inRef = lens txInRef s where
-    s txi r = txi { txInRef = r }
-
--- | The type of a transaction input.
-inType :: Lens' TxIn (Maybe TxInType)
-inType = lens txInType s where
-    s txi t = txi { txInType = t }
-
--- | Validator, redeemer, and data scripts of a transaction input that spends a
---   "pay to script" output.
-inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
-inScripts TxIn{ txInType = t } = case t of
-    Just (ConsumeScriptAddress v r d) -> Just (v, r, d)
-    _                                 -> Nothing
-
--- | A transaction input that spends a "pay to public key" output, given the witness.
-pubKeyTxIn :: TxOutRef -> TxIn
-pubKeyTxIn r = TxIn r (Just ConsumePublicKeyAddress)
-
--- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
-scriptTxIn ref v r d = TxIn ref . Just $ ConsumeScriptAddress v r d
-
--- | Filter to get only the pubkey inputs.
-pubKeyTxIns :: Fold (Set.Set TxIn) TxIn
-pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == Just ConsumePublicKeyAddress))
-
--- | Filter to get only the script inputs.
-scriptTxIns :: Fold (Set.Set TxIn) TxIn
-scriptTxIns = (\x -> folding x) . Set.filter $ \case
-    TxIn{ txInType = Just ConsumeScriptAddress{} } -> True
-    _                                              -> False
 
 -- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
 data TxOut = TxOut {

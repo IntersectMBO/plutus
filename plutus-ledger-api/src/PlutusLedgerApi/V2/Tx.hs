@@ -29,16 +29,6 @@ module PlutusLedgerApi.V2.Tx
     , outDatum
     , outReferenceScript
     , pubKeyHashTxOut
-    -- * Transaction inputs
-    , TxInType(..)
-    , TxIn(..)
-    , inRef
-    , inType
-    , inScripts
-    , pubKeyTxIn
-    , scriptTxIn
-    , pubKeyTxIns
-    , scriptTxIns
     ) where
 
 import Control.DeepSeq (NFData)
