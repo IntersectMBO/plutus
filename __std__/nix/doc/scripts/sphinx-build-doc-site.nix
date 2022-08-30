@@ -4,6 +4,7 @@ inputs.nixpkgs.writeShellApplication {
   name = "build";
   runtimeInputs = [ 
     inputs.cells.toolchain.packages.repo-root
+    cell.library.sphinx-tools
   ];
   text = ''
     root="$(repo-root)"
