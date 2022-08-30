@@ -3,10 +3,10 @@
 inputs.nixpkgs.stdenv.mkDerivation {
   name = "plutus-docs";
 
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices 
-    (inputs.self + /doc) 
+  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+    (inputs.self + /doc)
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
-  
+
   buildInputs = [
     cell.library.sphinx-tools
   ];

@@ -1,41 +1,41 @@
 { inputs, cell }:
-let 
+let
   inherit (inputs.nixpkgs) lib;
-in 
-  { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
-    
-    cell.library.build-latex {
+in
+{ name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
-      inherit name;
-      inherit description;
-      inherit texFiles;
+cell.library.build-latex {
 
-      src = cell.library.filter-latex-sources src;
+  inherit name;
+  inherit description;
+  inherit texFiles;
 
-      buildInputs = lib.optionals withAgda [ 
-        inputs.cells.toolchain.packages.agda-with-stdlib
-      ];
+  src = cell.library.filter-latex-sources src;
 
-      texInputs = {
-        inherit (inputs.nixpkgs.texlive)
-          acmart
-          bibtex biblatex
-          collection-bibtexextra
-          collection-fontsextra
-          collection-fontsrecommended
-          collection-latex
-          collection-latexextra
-          collection-luatex
-          collection-mathscience
-          scheme-small;
-      };
+  buildInputs = lib.optionals withAgda [
+    inputs.cells.toolchain.packages.agda-with-stdlib
+  ];
 
-      preBuild = lib.optionalString withAgda ''
-        agda --latex ${agdaFile} --latex-dir .
-      '';
-      
-      meta = with lib; {
-        inherit description;
-        license = licenses.asl20;
-      };
-    }
+  texInputs = {
+    inherit (inputs.nixpkgs.texlive)
+      acmart
+      bibtex biblatex
+      collection-bibtexextra
+      collection-fontsextra
+      collection-fontsrecommended
+      collection-latex
+      collection-latexextra
+      collection-luatex
+      collection-mathscience
+      scheme-small;
+  };
+
+  preBuild = lib.optionalString withAgda ''
+    agda --latex ${agdaFile} --latex-dir .
+  '';
+
+  meta = with lib; {
+    inherit description;
+    license = licenses.asl20;
+  };
+}

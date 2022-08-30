@@ -1,17 +1,17 @@
 { inputs, cell }:
 
 inputs.std.std.lib.mkShell {
-  
+
   name = "doc-shell";
 
   imports = [
     inputs.cells.toolchain.devshellProfiles.common
   ];
-  
-  packages = [ 
-    cell.library.sphinx-tools 
+
+  packages = [
+    cell.library.sphinx-tools
   ];
-  
+
   commands = [
     {
       package = cell.scripts.sphinx-build-doc-site;

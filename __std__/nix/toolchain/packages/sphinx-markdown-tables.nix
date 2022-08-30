@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let 
+let
   package = { lib, buildPythonPackage, fetchPypi, markdown }:
     buildPythonPackage rec {
       pname = "sphinx-markdown-tables";
@@ -21,6 +21,6 @@ let
         description = "";
         maintainers = with maintainers; [ michaelpj ];
       };
-  };
-in 
-  inputs.nixpkgs.python3Packages.callPackage package {}
+    };
+in
+inputs.nixpkgs.python3Packages.callPackage package { }

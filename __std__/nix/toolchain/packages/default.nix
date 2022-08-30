@@ -6,11 +6,11 @@
 
   inherit (import ./sphinxcontrib-haddock.nix organelle)
 
-    sphinxcontrib-domaintools 
+    sphinxcontrib-domaintools
 
     sphinxcontrib-haddock
-    
-    sphobjinv; 
+
+    sphobjinv;
 
   git-work-in-progress = import ./git-work-in-progress.nix organelle;
 

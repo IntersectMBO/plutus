@@ -2,7 +2,7 @@
 
 inputs.nixpkgs.writeShellApplication {
   name = "build";
-  runtimeInputs = [ 
+  runtimeInputs = [
     inputs.cells.toolchain.packages.repo-root
     cell.library.sphinx-tools
   ];

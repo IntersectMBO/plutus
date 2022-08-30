@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let 
+let
   package = { lib, buildPythonPackage, fetchPypi, sphinx }:
     buildPythonPackage rec {
       pname = "sphinxemoji";
@@ -20,7 +20,7 @@ let
         description = "";
         maintainers = with maintainers; [ michaelpj ];
       };
-  };
-in 
-  inputs.nixpkgs.python3Packages.callPackage package {}
+    };
+in
+inputs.nixpkgs.python3Packages.callPackage package { }
 

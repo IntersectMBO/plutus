@@ -20,7 +20,7 @@
     std = {
       url = "github:divnix/std";
       inputs.nixpkgs.follows = "nixpkgs";
-    }; 
+    };
     haskell-nix = {
       url = "github:input-output-hk/haskell.nix";
       inputs = {
@@ -62,90 +62,91 @@
   outputs = inputs:
 
     # The growOn function accepts a first "soil" argument, defining the organelles. 
-    inputs.std.growOn {
-  
-      # Boilerplate
-      inherit inputs; 
-  
-      # ALL nix files will reside inside this folder, no exception.
-      # Each subfolder is a "cell".
-      # Cell names are arbitrary.
-      # Cells are for highest-level organization and grouping of nix code.
-      #
-      # In this repository we have three cells:
-      #   doc 
-      #     Develop and build all the documentation artifacts
-      #   haskell
-      #     Develop and build all haskell components 
-      #   toolchain 
-      #     Common tools and functions shared across multiple cells
-      #
-      cellsFrom = ./nix; 
+    inputs.std.growOn
+      {
 
-      # Each cell contains arbitrary "organelles".
-      # Each organelle must be either:
-      #   A nix file named after the organelle
-      #   A directory named after the organelle and containing a default.nix
-      # Organelles have types.
-      # Not all cells have the same organelles.
-      # All organelles belong in a cell.
-      #
-      # In this repository we have five organelles, listed below with their type:
-      #   devshells :: devshells
-      #     Development shells available via nix develop
-      #   packages :: installables
-      #     Packages available via nix build 
-      #   devshellProfiles :: functions
-      #     Building blocks for devshells, not exposed by the flake 
-      #   scripts :: functions
-      #     Bash scripts simplifying or automating a variety of tasks
-      #     Generally these are available as commands inside the development shell 
-      #     These are very repository specific, and are not exposed by the flake
-      #   library :: functions
-      #     Functions and values shared across the current cell
-      #     These are very repository specific, and are not exposed by the flake
-      #    
-      # std provides a TUI to interact with the organelles.
-      # Available interactions are determined by the organelle's type.
-      # Because this repository does not use the TUI, the type is actually irrelevant.
-      organelles = [
-        (inputs.std.devshells "devshells")
-        (inputs.std.installables "packages")
-        (inputs.std.functions "devshellProfiles")
-        (inputs.std.functions "scripts")
-        (inputs.std.functions "library")
-      ];
-    }
-    
-    # The growOn function will then accept an arbitrary number of attrs.
-    # This is where we translate cells and organelles into a standard 
-    # nix flake outputs attrs.
-    # 
-    # This is where we also decide which cells and which organelles will
-    # make it into the flake. To exclude stuff from the flake, we simply
-    # do not "harvest" it.
-    # 
-    # The attrs will be recursively merged in the order in which they appear.
-    { 
-      # Here we say that we want the devshells organelle of the doc cell 
-      # (which contains a number of shell-able derivations) to be exposed 
-      # by the flake and accessible via nix develop.
-      devShells = inputs.std.harvest inputs.self ["doc" "devshells"];
+        # Boilerplate
+        inherit inputs;
 
-      # Here we say that we want the packages organelle of the doc cell 
-      # (which contains a number of buildable derivations) to be exposed 
-      # by the flake and accessible via nix build (or nix run).
-      packages = inputs.std.harvest inputs.self ["doc" "packages"];
-    }
-    {
-      # The devshells inside the haskell cells will be added to the ones
-      # already harvested from the doc shell. Same for packages.
-      devShells = inputs.std.harvest inputs.self ["haskell" "devshells"];
-      packages = inputs.std.harvest inputs.self ["haskell" "packages"];
-    }
-    {
-      packages = inputs.std.harvest inputs.self ["toolchain" "packages"];
-    };
+        # ALL nix files will reside inside this folder, no exception.
+        # Each subfolder is a "cell".
+        # Cell names are arbitrary.
+        # Cells are for highest-level organization and grouping of nix code.
+        #
+        # In this repository we have three cells:
+        #   doc 
+        #     Develop and build all the documentation artifacts
+        #   haskell
+        #     Develop and build all haskell components 
+        #   toolchain 
+        #     Common tools and functions shared across multiple cells
+        #
+        cellsFrom = ./nix;
+
+        # Each cell contains arbitrary "organelles".
+        # Each organelle must be either:
+        #   A nix file named after the organelle
+        #   A directory named after the organelle and containing a default.nix
+        # Organelles have types.
+        # Not all cells have the same organelles.
+        # All organelles belong in a cell.
+        #
+        # In this repository we have five organelles, listed below with their type:
+        #   devshells :: devshells
+        #     Development shells available via nix develop
+        #   packages :: installables
+        #     Packages available via nix build 
+        #   devshellProfiles :: functions
+        #     Building blocks for devshells, not exposed by the flake 
+        #   scripts :: functions
+        #     Bash scripts simplifying or automating a variety of tasks
+        #     Generally these are available as commands inside the development shell 
+        #     These are very repository specific, and are not exposed by the flake
+        #   library :: functions
+        #     Functions and values shared across the current cell
+        #     These are very repository specific, and are not exposed by the flake
+        #    
+        # std provides a TUI to interact with the organelles.
+        # Available interactions are determined by the organelle's type.
+        # Because this repository does not use the TUI, the type is actually irrelevant.
+        organelles = [
+          (inputs.std.devshells "devshells")
+          (inputs.std.installables "packages")
+          (inputs.std.functions "devshellProfiles")
+          (inputs.std.functions "scripts")
+          (inputs.std.functions "library")
+        ];
+      }
+
+      # The growOn function will then accept an arbitrary number of attrs.
+      # This is where we translate cells and organelles into a standard 
+      # nix flake outputs attrs.
+      # 
+      # This is where we also decide which cells and which organelles will
+      # make it into the flake. To exclude stuff from the flake, we simply
+      # do not "harvest" it.
+      # 
+      # The attrs will be recursively merged in the order in which they appear.
+      {
+        # Here we say that we want the devshells organelle of the doc cell 
+        # (which contains a number of shell-able derivations) to be exposed 
+        # by the flake and accessible via nix develop.
+        devShells = inputs.std.harvest inputs.self [ "doc" "devshells" ];
+
+        # Here we say that we want the packages organelle of the doc cell 
+        # (which contains a number of buildable derivations) to be exposed 
+        # by the flake and accessible via nix build (or nix run).
+        packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
+      }
+      {
+        # The devshells inside the haskell cells will be added to the ones
+        # already harvested from the doc shell. Same for packages.
+        devShells = inputs.std.harvest inputs.self [ "haskell" "devshells" ];
+        packages = inputs.std.harvest inputs.self [ "haskell" "packages" ];
+      }
+      {
+        packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
+      };
 
   # # # # # THE STANDARD FORMAT OF NIX FILES 
   # 
