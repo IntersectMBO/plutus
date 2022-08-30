@@ -8,22 +8,12 @@ inputs.nixpkgs.stdenv.mkDerivation {
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
   
   buildInputs = [
-    
-    inputs.cells.toolchain.packages.sphinxcontrib-haddock
-    inputs.cells.toolchain.packages.sphinxcontrib-domaintools
-    inputs.cells.toolchain.packages.sphinx-markdown-tables
-    inputs.cells.toolchain.packages.sphinxemoji
-
-    inputs.nixpkgs.python3Packages.sphinx
-    inputs.nixpkgs.python3Packages.sphinx_rtd_theme
-    inputs.nixpkgs.python3Packages.sphinxcontrib_plantuml
-    inputs.nixpkgs.python3Packages.sphinxcontrib-bibtex
-    inputs.nixpkgs.python3Packages.recommonmark
+    cell.library.sphinx-tools
   ];
 
   dontInstall = true;
 
-  # TODO(std) cannot be built untile we std'ize the haskell packages.
+  # TODO(std) cannot be built until we std'ize the haskell packages.
   # Original:
   # cp -aR ${plutus.plutus-haddock-combined}/share/doc haddock
   # -n gives warnings on missing link targets, -W makes warnings into errors

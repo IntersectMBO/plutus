@@ -3,10 +3,10 @@
 inputs.nixpkgs.writeShellApplication {
   name = "build";
   runtimeInputs = [ 
-    inputs.cells.toolchain.packages.git-show-toplevel
+    inputs.cells.toolchain.packages.repo-root
   ];
   text = ''
-    root="$(git-show-toplevel)"
+    root="$(repo-root)"
     sphinx-build -j 4 -n "$root/doc" "$root/doc/_build"
   '';
 }

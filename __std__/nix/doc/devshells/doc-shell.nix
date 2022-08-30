@@ -1,25 +1,30 @@
 { inputs, cell }:
 
-let 
-  sphinxTools = inputs.nixpkgs.python3.withPackages (pkgs: [
+# let 
+#   sphinxTools = inputs.nixpkgs.python3.withPackages (pkgs: [
 
-    inputs.cells.toolchain.packages.sphinxcontrib-domaintools
-    inputs.cells.toolchain.packages.sphinx-markdown-tables
-    inputs.cells.toolchain.packages.sphinxemoji
+#     inputs.cells.toolchain.packages.sphinxcontrib-domaintools
+#     inputs.cells.toolchain.packages.sphinx-markdown-tables
+#     inputs.cells.toolchain.packages.sphinxemoji
 
-    pkgs.sphinxcontrib_plantuml
-    pkgs.sphinxcontrib-bibtex
-    pkgs.sphinx-autobuild
-    pkgs.sphinx
-    pkgs.sphinx_rtd_theme
-    pkgs.recommonmark
-  ]);
+#     pkgs.sphinxcontrib_plantuml
+#     pkgs.sphinxcontrib-bibtex
+#     pkgs.sphinx-autobuild
+#     pkgs.sphinx
+#     pkgs.sphinx_rtd_theme
+#     pkgs.recommonmark
+#   ]);
 
-in 
+# in 
 
 inputs.std.std.lib.mkShell {
   name = "doc-shell";
-  imports = [inputs.cells.toolchain.devshellProfiles.common];
+  imports = [
+    inputs.cells.toolchain.devshellProfiles.common
+  ];
+  packages = [ 
+    cell.library.sphinx-tools 
+  ];
   commands = [
     {
       package = cell.scripts.sphinx-build-doc-site;
@@ -37,5 +42,4 @@ inputs.std.std.lib.mkShell {
       help = "Full nix build of the doc + serve them on port 3000";
     }
   ];
-  packages = [ sphinxTools ];
 }

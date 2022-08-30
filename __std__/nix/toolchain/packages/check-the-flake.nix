@@ -12,7 +12,7 @@ inputs.nixpkgs.writeShellApplication {
     nix build .#eutxo-paper
     nix build .#eutxoma-paper
     nix build .#extended-utxo-spec
-    nix build .#git-show-toplevel
+    nix build .#repo-root
     nix build .#git-work-in-progress
     nix build .#lazy-machine-notes
     nix build .#multi-currency-notes
