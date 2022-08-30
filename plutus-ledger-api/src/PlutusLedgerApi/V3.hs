@@ -80,18 +80,9 @@ module PlutusLedgerApi.V3 (
     -- *** Association maps
     , Map
     , fromList
-    -- *** Newtypes for script/datum types and hash types
-    , Validator (..)
-    , mkValidatorScript
-    , unValidatorScript
+    -- *** Newtypes and hash types
     , ValidatorHash (..)
-    , MintingPolicy (..)
-    , mkMintingPolicyScript
-    , unMintingPolicyScript
     , MintingPolicyHash (..)
-    , StakeValidator (..)
-    , mkStakeValidatorScript
-    , unStakeValidatorScript
     , StakeValidatorHash (..)
     , Redeemer (..)
     , RedeemerHash (..)

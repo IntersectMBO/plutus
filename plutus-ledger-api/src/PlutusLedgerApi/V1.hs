@@ -75,18 +75,9 @@ module PlutusLedgerApi.V1 (
     , upperBound
     , strictLowerBound
     , strictUpperBound
-    -- *** Newtypes for script/datum types and hash types
-    , Validator (..)
-    , mkValidatorScript
-    , unValidatorScript
+    -- *** Newtypes and hash types
     , ValidatorHash (..)
-    , MintingPolicy (..)
-    , mkMintingPolicyScript
-    , unMintingPolicyScript
     , MintingPolicyHash (..)
-    , StakeValidator (..)
-    , mkStakeValidatorScript
-    , unStakeValidatorScript
     , StakeValidatorHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
