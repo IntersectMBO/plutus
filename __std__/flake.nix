@@ -2,7 +2,7 @@
 #
 # This repository uses the std tool https://github.com/divnix/std.
 # Familiarity with std is required to be able to contribute effectively.
-# While official documentation can be found in its GitHub, this flake
+# While official documentation for std can be found in its GitHub, this flake
 # has been thoroughly commented so as to quickstart new maintainers.
 #
 # Most of what there is to know about the nix code inside this repository
