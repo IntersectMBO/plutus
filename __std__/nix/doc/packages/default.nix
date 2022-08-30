@@ -12,7 +12,7 @@
   eutxoma-paper = import ./eutxoma-paper.nix organelle;
 
   # TODO(std) broken, uncomment once we have agda
-  # unraveling-recursion-paper = import ./unraveling-recursion-paper.nix organelle; 
+  # unraveling-recursion-paper = import ./unraveling-recursion-paper.nix organelle;
 
   plutus-core-spec = import ./plutus-core-spec.nix organelle;
 

@@ -60,5 +60,3 @@ cell.library.build-latex {
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';
 }
-
-   
