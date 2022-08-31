@@ -208,7 +208,7 @@
   #
   # Also note that while virtually all nix files evaluate to derivations, some
   # (like the ones in the library organelle) actually evaluate to functions.
-  # So it is more accurate to say that the convention is to export one 
+  # So it is more accurate to say that the convention is to export one
   # (non-attribute-set!) nix value per nix file.
 
 
