@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.nixpkgs.writeShellScript {
+inputs.nixpkgs.writeShellApplication {
 
   name = "fix-stylish-haskell";
 

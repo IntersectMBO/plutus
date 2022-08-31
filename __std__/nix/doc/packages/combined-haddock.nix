@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-cell.packages.todo-derivation
+inputs.cells.toolchain.packages.todo-derivation
 
 
 # # editorconfig-checker-disable-file
