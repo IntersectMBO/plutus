@@ -1,3 +1,5 @@
+# TODO(std) Just tagging this file as "done"
+
 ############################################################################
 # Extra Haskell packages which we build with haskell.nix, but which aren't
 # part of our project's package set themselves.

@@ -1,3 +1,5 @@
+# TODO(std) Just tagging this file as "done"
+
 { writeShellScriptBin, fd, optipng }:
 
 writeShellScriptBin "fix-png-optimization" ''
