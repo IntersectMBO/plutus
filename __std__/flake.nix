@@ -103,7 +103,8 @@
         #     Generally these are available as commands inside the development shell
         #     These are very repository specific, and are not exposed to the flake
         #   library :: functions
-        #     Functions and derivations shared across the current cell
+        #     Functions and non-derivation values (e.g. attrs of derivations) shared 
+        #     across the current cell.
         #     These are very repository specific, and are not exposed to the flake
         #
         # std provides a TUI to interact with the organelles.
