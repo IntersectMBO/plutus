@@ -85,14 +85,19 @@ parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseProgram = parseGen program
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m)
+    => String
+    -> Text
+    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseProgram inputName = parse program inputName
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
     (AsParserErrorBundle e, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
-    => Text
+    => String
+    -> Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram
+parseScoped inputName = through (checkProgram (const True)) <=< rename <=< parseProgram inputName

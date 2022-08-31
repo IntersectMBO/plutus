@@ -77,7 +77,7 @@ propParser = testPropertyNamed "Parser" "parser" $ property $ do
     where
         parseProg
             :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
-        parseProg p = runQuoteT $ parseProgram p
+        parseProg p = runQuoteT $ parseProgram "test" p
 
 propUnit :: TestTree
 propUnit = testCase "Unit" $ fold

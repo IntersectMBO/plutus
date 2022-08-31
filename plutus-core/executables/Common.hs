@@ -72,8 +72,7 @@ class Executable p where
 
   -- | Parse a program.
   parseProgram ::
-    T.Text ->
-      Either ParserErrorBundle (p PLC.SourcePos)
+    String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -92,7 +91,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram = PLC.runQuoteT . PLC.parseProgram
+  parseProgram inputName = PLC.runQuoteT . PLC.parseProgram inputName
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -103,7 +102,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram = PLC.runQuoteT . UPLC.parseProgram
+  parseProgram inputName = PLC.runQuoteT . UPLC.parseProgram inputName
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -218,6 +217,10 @@ instance PrintBudgetState Cek.RestrictingSt where
 ---------------- Types for commands and arguments ----------------
 
 data Input       = FileInput FilePath | StdInput
+instance Show Input where
+    show (FileInput path) = show path
+    show StdInput         = "<stdin>"
+
 data Output      = FileOutput FilePath | StdOutput
 data TimingMode  = NoTiming | Timing Integer deriving stock (Eq)  -- Report program execution time?
 data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
@@ -282,10 +285,10 @@ parseInput ::
 parseInput inp = do
     contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram contents of
+    case parseProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
       Left (err :: ParserErrorBundle) ->
-        errorWithoutStackTrace $ show err
+          errorWithoutStackTrace $ PP.render $ pretty err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program

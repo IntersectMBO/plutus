@@ -80,9 +80,12 @@ term = choice $ map try
 
 -- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
-parseProgram = parseGen program
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    => String
+    -> Text
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+parseProgram inputName = parse program inputName
 
 -- | Parser for PLC programs.
 program :: Parser (Program TyName Name DefaultUni DefaultFun SourcePos)
