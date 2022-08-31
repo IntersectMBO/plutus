@@ -2,7 +2,6 @@
 
 cell.packages.todo-derivation
 
-
 # # TODO Remove this patch once the PR gets merged upstream.
 # # See https://github.com/phadej/cabal-fmt/pull/45
 # cabalFmtProject = haskell-nix.cabalProject' {

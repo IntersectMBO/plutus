@@ -2,9 +2,6 @@
 
 cell.packages.todo-derivation
 
-
-
-
 # agdaWithStdlib =
 #   # Need a newer version for 2.6.2 compatibility
 #   let stdlib = agdaPackages.standard-library.overrideAttrs (oldAtts: rec {

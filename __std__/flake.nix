@@ -173,7 +173,7 @@
   #     Provides access to all cells.
   #     Remember that a cell is named after its folder.
   #     The full format is inputs.cells.<cell>.<organelle>.value
-  #     e.g.: inputs.cells.doc.packages.doc-site
+  #     e.g.: inputs.cells.doc.packages.read-the-docs-site
   #     e.g.: inputs.cells.toolchain.devshellsProfiles.common
   #     e.g.: inputs.cells.haskell.devshells.haskell-shell
   #
@@ -185,8 +185,8 @@
   #
   #   cell.*organelle*
   #     The cell value gives access to all its organelles:
-  #     e.g.: cell.scripts.build-and-server-doc-site (only works for code in /nix/scripts)
-  #       Alternatively: inputs.cells.doc.scripts.build-and-server-doc-site (works everywhere)
+  #     e.g.: cell.scripts.build-and-server-read-the-docs-site (only works for code in /nix/scripts)
+  #       Alternatively: inputs.cells.doc.scripts.build-and-server-read-the-docs-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
 

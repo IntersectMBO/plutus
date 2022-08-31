@@ -1,7 +1,7 @@
 { inputs, cell }:
 
-# TODO(std) needs to be fixed once __std__ is brought to the toplevel.
-# TODO(std) remove broken_fragments as they get fixed
+# TODO(std) path must be fixed once __std__ is brought to the toplevel.
+# TODO(std) make this part of CI
 inputs.nixpkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [ inputs.nixpkgs.nix ];

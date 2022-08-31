@@ -3,7 +3,9 @@
 let
   package = { lib, buildPythonPackage, fetchPypi, markdown }:
     buildPythonPackage rec {
+
       pname = "sphinx-markdown-tables";
+      
       # For some reason the PyPI source for 0.0.15 seems to be missing
       version = "0.0.14";
 

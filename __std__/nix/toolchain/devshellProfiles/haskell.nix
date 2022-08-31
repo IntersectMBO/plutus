@@ -24,7 +24,8 @@ _: {
     # Is it even used?
     # inputs.nixpkgs.ghcid 
 
-    inputs.nixpkgs.awscli2 # TODO(std) move these 3 into devops shell or script when we have one
+    # TODO(std) move these 3 into devops shell or script when we have one
+    inputs.nixpkgs.awscli2 
     inputs.nixpkgs.bzip2
     inputs.nixpkgs.cacert
 
@@ -35,11 +36,10 @@ _: {
     inputs.nixpkgs.shellcheck
     inputs.nixpkgs.yq
     inputs.nixpkgs.zlib
+  ] 
+  ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 
+  [ 
+    cell.packages.r-packages.plotly 
+    cell.packages.r-lang 
   ];
-  # ] 
-  # ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 
-  # [ 
-  #   cell.packages.r-packages.plotly 
-  #   cell.packages.r-lang 
-  # ];
 }

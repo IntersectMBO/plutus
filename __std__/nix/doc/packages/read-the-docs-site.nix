@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 inputs.nixpkgs.stdenv.mkDerivation {
-  name = "plutus-docs";
+  name = "read-the-docs-site";
 
   src = inputs.nixpkgs.lib.sourceFilesBySuffices
     (inputs.self + /doc)

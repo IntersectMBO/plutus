@@ -2,7 +2,6 @@
 
 cell.packages.todo-derivation
 
-
 # hlsProject = haskell-nix.cabalProject' {
 #   # See https://github.com/haskell/haskell-language-server/issues/411.
 #   # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools

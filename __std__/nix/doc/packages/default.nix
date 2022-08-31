@@ -1,6 +1,6 @@
 { inputs, cell }@organelle:
 {
-  doc-site = import ./doc-site.nix organelle;
+  read-the-docs-site = import ./read-the-docs-site.nix organelle;
 
   system-f-in-agda-paper = import ./system-f-in-agda-paper.nix organelle;
 
