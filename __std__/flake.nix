@@ -150,6 +150,9 @@
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
+      }
+      {
+        packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       };
 
   # TODO(std) move this part of the doc (which doesn't need to reference the code
