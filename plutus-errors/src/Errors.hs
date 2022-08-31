@@ -22,10 +22,14 @@ See plutus-errors/README.md
 {-# WARNING ObsoleteErrors "These errors and their error codes *should* not be thrown by any plutus code anymore" #-}
 data ObsoleteErrors =
     ReservedErrorCode
+  | EmptyBuiltinArityMachineError
+  -- ^ an old error when we were checking arities of builtins during evaluation
+
     -- append here the obsolete errors
 
 instance HasErrorCode ObsoleteErrors where
-    errorCode ReservedErrorCode {} = ErrorCode 0
+    errorCode ReservedErrorCode {}             = ErrorCode 0
+    errorCode EmptyBuiltinArityMachineError {} = ErrorCode 34
     -- append here the corresponding obsolete error codes
 
 -- | All errors among the whole Plutus project. This includes both existing and obsolete errors.
@@ -61,7 +65,6 @@ allErrors =
    , 'PLC.UnliftingErrorE
    , 'PLC.BuiltinTermArgumentExpectedMachineError
    , 'PLC.UnexpectedBuiltinTermArgumentMachineError
-   , 'PLC.EmptyBuiltinArityMachineError
    , 'PLC.CekOutOfExError
    , 'PLC.CekEvaluationFailure
    , 'PLC.ParseErrorB
