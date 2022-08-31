@@ -6,7 +6,7 @@
 
   filter-latex-sources = import ./filter-latex-sources.nix organelle;
 
-  sphinx-tools = import ./sphinx-tools.nix organelle;
+  sphinx-toolchain = import ./sphinx-toolchain.nix organelle;
 }
 
 

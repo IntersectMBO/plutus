@@ -14,7 +14,7 @@
 
   sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix organelle;
 
-  sphinx-tools = import ./sphinx-tools.nix organelle;
+  sphinx-toolchain = import ./sphinx-toolchain.nix organelle;
 
   git-work-in-progress = import ./git-work-in-progress.nix organelle;
 

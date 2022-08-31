@@ -9,7 +9,7 @@ inputs.std.std.lib.mkShell {
   ];
 
   packages = [
-    cell.library.sphinx-tools
+    cell.library.sphinx-toolchain
   ];
 
   commands = [
