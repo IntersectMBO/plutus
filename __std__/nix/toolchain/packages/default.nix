@@ -50,7 +50,13 @@
 
   sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix organelle;
 
-  sphinxcontrib-haddock = import ./sphinxcontrib-haddock.nix organelle;
+  inherit (import ./sphinxcontrib-haddock.nix organelle)
+
+    sphinxcontrib-domaintools
+ 
+    sphinxcontrib-haddock
+ 
+    sphobjinv;
 
   sphinxemoji = import ./sphinxemoji.nix organelle;
 
