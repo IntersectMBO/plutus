@@ -35,6 +35,31 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
                         Left _          -> Nothing
                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
+-- | For debugging.
+agdaEvalUplcProgDebug :: UplcProg -> Either String UplcProg
+agdaEvalUplcProgDebug (UPLC.Program () version tmU) =
+    let
+        -- turn it into an untyped de Bruijn term
+        tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+        tmUDB = deBruijnTerm tmU
+    in
+    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+        -- if there's an exception, evaluation failed, should return `Nothing`.
+        Left fvError -> Left $ show (fvError :: Error DefaultUni DefaultFun ())
+        -- evaluate the untyped term with CEK
+        Right tmUDBSuccess ->
+            case runUAgda tmUDBSuccess of
+                Left evalError -> Left $ show evalError
+                Right tmEvaluated ->
+                    let tmNamed = runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                    in
+                    -- turn it back into a named term
+                    case tmNamed of
+                        Left _          -> Left ""
+                        Right namedTerm -> Right $ UPLC.Program () version namedTerm
+
+
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
 failingTests :: [FilePath]
