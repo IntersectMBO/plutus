@@ -75,10 +75,6 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | EmptyBuiltinArityMachineError
-      -- ^ We've reached a state where a builtin instantiation or application is attempted
-      -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
-      -- See the machine implementations for details.
     | UnknownBuiltin fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
@@ -201,8 +197,6 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin expected a term argument, but something else was received"
     prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
         "A builtin received a term argument when something else was expected"
-    prettyBy _      EmptyBuiltinArityMachineError =
-        "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
@@ -240,7 +234,6 @@ instance HasErrorCode UnliftingError where
       errorCode        UnliftingErrorE {}        = ErrorCode 30
 
 instance HasErrorCode (MachineError err) where
-      errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
       errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
       errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
       errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
