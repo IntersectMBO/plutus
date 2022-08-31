@@ -139,6 +139,9 @@
         packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
       }
       {
+        packages = inputs.std.harvest inputs.self [ "doc" "scripts" ];
+      }
+      {
         # The devshells inside the haskell cells will be added to the ones
         # already harvested from the doc shell. Same for packages.
         devShells = inputs.std.harvest inputs.self [ "haskell" "devshells" ];
