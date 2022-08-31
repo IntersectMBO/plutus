@@ -119,8 +119,8 @@
       }
 
       # The growOn function will then accept an arbitrary number of "soil" attrs.
-      # This is where we translate cells and organelles into a standard
-      # nix flake outputs attrs.
+      # This is where we translate cells and organelles into a standard nix flake
+      # outputs attrs.
       #
       # This is where we also decide which cells and which organelles will
       # make it into the flake. To exclude stuff from the flake, we simply
