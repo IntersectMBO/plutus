@@ -76,6 +76,7 @@ module PlutusLedgerApi.V1 (
     , strictLowerBound
     , strictUpperBound
     -- *** Newtypes and hash types
+    , ScriptHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)

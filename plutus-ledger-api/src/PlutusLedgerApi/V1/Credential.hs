@@ -54,18 +54,13 @@ instance PlutusTx.Eq StakingCredential where
 
 -- | Credentials required to unlock a transaction output.
 data Credential
-<<<<<<< HEAD
   =
     -- | The transaction that spends this output must be signed by the private key.
     -- See `Crypto.PubKeyHash`.
     PubKeyCredential PubKeyHash
     -- | The transaction that spends this output must include the validator script and
     -- be accepted by the validator. See `Scripts.ValidatorHash`.
-  | ScriptCredential ValidatorHash
-=======
-  = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
-  | ScriptCredential ScriptHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
->>>>>>> dcf8a6565 (Remove the hash types)
+  | ScriptCredential ScriptHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

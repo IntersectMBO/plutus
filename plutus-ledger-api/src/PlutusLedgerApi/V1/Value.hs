@@ -86,19 +86,6 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
 
-<<<<<<< HEAD
-{-# INLINABLE mpsSymbol #-}
--- | The `CurrencySymbol` of a monetary policy hash
-mpsSymbol :: MintingPolicyHash -> CurrencySymbol
-mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
-
-{-# INLINABLE currencyMPSHash #-}
--- | The minting policy hash of a `CurrencySymbol`.
-currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
-currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
-
-=======
->>>>>>> dcf8a6565 (Remove the hash types)
 {-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.
 currencySymbol :: BS.ByteString -> CurrencySymbol

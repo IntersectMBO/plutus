@@ -81,11 +81,11 @@ module PlutusLedgerApi.V3 (
     , Map
     , fromList
     -- *** Newtypes and hash types
+    , ScriptHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)
     , DatumHash (..)
-    , ScriptHash (..)
     -- * Data
     , Data (..)
     , BuiltinData (..)
@@ -110,7 +110,6 @@ import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evalu
 import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
                            assertScriptWellFormed, evaluateScriptCounting, evaluateScriptRestricting,
                            mkEvaluationContext)
-import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 import PlutusLedgerApi.V3.EvaluationContext
