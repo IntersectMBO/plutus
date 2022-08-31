@@ -10,7 +10,7 @@
 # std-specific terms may be referenced first and defined later.
 # You may also refer to the glossary: https://divnix.github.io/std/glossary.html
 {
-  description = "Plutus Core - The Scripting Language for Cardano";
+  description = "Plutus Core";
 
   # The flake inputs will be accessible by name in each nix file like so:
   # { inputs, cell }: inputs.nixpkgs, inputs.haskell-nix
@@ -97,14 +97,14 @@
         #   packages :: installables
         #     Packages available via nix build
         #   devshellProfiles :: functions
-        #     Building blocks for devshells, not exposed to the nix cli
+        #     Building blocks for devshells, not exposed to the flake
         #   scripts :: functions
         #     Bash scripts simplifying or automating a variety of tasks
         #     Generally these are available as commands inside the development shell
-        #     These are very repository specific, and are not exposed to the nix cli
+        #     These are very repository specific, and are not exposed to the flake
         #   library :: functions
         #     Functions and derivations shared across the current cell
-        #     These are very repository specific, and are not exposed to the nix cli
+        #     These are very repository specific, and are not exposed to the flake
         #
         # std provides a TUI to interact with the organelles.
         # Available interactions are determined by the organelle's type.
@@ -147,6 +147,9 @@
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
       };
+
+  # TODO(std) move this part of the doc (which doesn't need to reference the code
+  # in flake.nix) into the README or in a separate doc.
 
   # # # # # THE STANDARD FORMAT OF NIX FILES
   #
@@ -194,9 +197,9 @@
   # - A default.nix organelle importing and thus grouping all files in its folder
   # - A file evaluating to a single derivation
   #
-  # Further, we enforce that the derivation name be equal to the file name.
+  # Further, we enforce that the nix fragment name be equal to the file name.
   # This means that if one looks at the fully expanded structure of the cellsFrom folder,
-  # one will conclude that there are exactly as many derivations as there are nix files
+  # one will conclude that there are exactly as many fragments as there are nix files
   # (excluding the default.nix files, which again merely act as a grouper for the organelle).
   #
   # Finally this means that for each nix file "some-fragment.nix", one can run:
@@ -205,7 +208,8 @@
   #
   # Also note that while virtually all nix files evaluate to derivations, some
   # (like the ones in the library organelle) actually evaluate to functions.
-  # So it is more accurate to say that the convention is to export one nix *value* per nix file.
+  # So it is more accurate to say that the convention is to export one 
+  # (non-attribute-set!) nix value per nix file.
 
 
   # # # # # REFERENCE EXAMPLE
@@ -219,6 +223,7 @@
   # - /packages is accessible via cell.packages (while inside /nix/doc)
   # - /packages is accessible via inputs.cells.doc.packages (everywhere)
   # - /eutxo-paper.nix contains a *single derivation*
+  # - eutxo-paper is the name of the flake fragment
   # - A derivation named eutxo-paper is accessible via cell.packages.eutxo-paper
   # - And also accessible via inputs.cells.doc.packages.eutxo-paper
   # - And also buildable via nix build .#eutxo-paper

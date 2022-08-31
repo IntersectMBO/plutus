@@ -16,18 +16,17 @@ inputs.std.std.lib.mkShell {
     {
       package = cell.scripts.sphinx-build-doc-site;
       category = "doc";
-      help = "Build the docs locally in doc/_build";
+      help = "Build the docs locally with output in doc/_build";
     }
     {
       package = cell.scripts.sphinx-autobuild-doc-site;
       category = "doc";
-      name = "aaaaaa";
-      help = "Start the autobuild server in doc/_build";
+      help = "Start the autobuild server with output in doc/_build";
     }
     {
       package = cell.scripts.build-and-serve-doc-site;
       category = "doc";
-      help = "Full nix build of the doc + serve them on port 3000";
+      help = "nix build and serve the doc site on port 3000";
     }
   ];
 }
