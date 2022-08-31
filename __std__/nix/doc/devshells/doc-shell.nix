@@ -21,6 +21,7 @@ inputs.std.std.lib.mkShell {
     {
       package = cell.scripts.sphinx-autobuild-doc-site;
       category = "doc";
+      name = "aaaaaa";
       help = "Start the autobuild server in doc/_build";
     }
     {

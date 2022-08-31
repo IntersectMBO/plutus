@@ -108,7 +108,7 @@
         #
         # std provides a TUI to interact with the organelles.
         # Available interactions are determined by the organelle's type.
-        # Because this repository does not use the TUI, the type is mostly irrelevant.
+        # Because this repository does not yet use the TUI, the type is mostly irrelevant.
         organelles = [
           (inputs.std.devshells "devshells")
           (inputs.std.installables "packages")
