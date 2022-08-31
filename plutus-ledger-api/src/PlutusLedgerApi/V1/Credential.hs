@@ -17,15 +17,25 @@ import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ValidatorHash)
-import PlutusTx qualified as PlutusTx
+import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (..), (<+>))
 
--- | Staking credential used to assign rewards
+-- | Staking credential used to assign rewards.
 data StakingCredential
+    -- | The staking hash is the `Credential` required to unlock a transaction output. Either
+    -- a public key credential (`Crypto.PubKeyHash`) or
+    -- a script credential (`Scripts.ValidatorHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
     = StakingHash Credential
-    | StakingPtr Integer Integer Integer -- NB: The fields should really be Word64 / Natural / Natural, but 'Integer' is our only integral type so we need to use it instead.
+    -- | The certificate pointer, constructed by the given
+    -- slot number, transaction and certificate indices.
+    -- NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
+    -- but 'Integer' is our only integral type so we need to use it instead.
+    | StakingPtr
+        Integer -- ^ the slot number
+        Integer -- ^ the transaction index (within the block)
+        Integer -- ^ the certificate index (within the transaction)
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 
@@ -42,10 +52,15 @@ instance PlutusTx.Eq StakingCredential where
         PlutusTx.&& c PlutusTx.== c'
     _ == _ = False
 
--- | Credential required to unlock a transaction output
+-- | Credentials required to unlock a transaction output.
 data Credential
-  = PubKeyCredential PubKeyHash -- ^ The transaction that spends this output must be signed by the private key
-  | ScriptCredential ValidatorHash -- ^ The transaction that spends this output must include the validator script and be accepted by the validator.
+  =
+    -- | The transaction that spends this output must be signed by the private key.
+    -- See `Crypto.PubKeyHash`.
+    PubKeyCredential PubKeyHash
+    -- | The transaction that spends this output must include the validator script and
+    -- be accepted by the validator. See `Scripts.ValidatorHash`.
+  | ScriptCredential ValidatorHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

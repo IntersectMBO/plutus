@@ -53,36 +53,49 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Data
+import Data.Data (Data)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
-import PlutusLedgerApi.V1.Scripts
-import PlutusTx qualified as PlutusTx
+import PlutusLedgerApi.V1.Scripts (MintingPolicyHash (..))
+import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
-import PlutusTx.These
-import Prettyprinter
-import Prettyprinter.Extras
+import PlutusTx.These (These (..))
+import Prettyprinter (Pretty, (<>))
+import Prettyprinter.Extras (PrettyShow (PrettyShow))
 
+{- | ByteString representing the currency, hashed with /BLAKE2b-224/.
+It is empty for `Ada`, 28 bytes for `MintingPolicyHash`.
+Forms an `AssetClass` along with `TokenName`.
+A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Integer`.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
 
 {-# INLINABLE mpsSymbol #-}
--- | The currency symbol of a monetary policy hash
+-- | The `CurrencySymbol` of a monetary policy hash
 mpsSymbol :: MintingPolicyHash -> CurrencySymbol
 mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
 
 {-# INLINABLE currencyMPSHash #-}
--- | The minting policy hash of a currency symbol
+-- | The minting policy hash of a `CurrencySymbol`.
 currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
 currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
@@ -91,18 +104,27 @@ currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 currencySymbol :: BS.ByteString -> CurrencySymbol
 currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
 
--- | ByteString of a name of a token, shown as UTF-8 string when possible
+{- | ByteString of a name of a token.
+Shown as UTF-8 string when possible.
+Should be no longer than 32 bytes, empty for Ada.
+Forms an `AssetClass` along with a `CurrencySymbol`.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
     deriving Pretty via (PrettyShow TokenName)
 
+-- | UTF-8 encoding. Doesn't verify length.
 instance IsString TokenName where
     fromString = fromText . Text.pack
 
 {-# INLINABLE tokenName #-}
--- | Creates `TokenName` from raw `ByteString`.
+-- | Creates `TokenName` from raw `BS.ByteString`.
 tokenName :: BS.ByteString -> TokenName
 tokenName = TokenName . PlutusTx.toBuiltin
 
@@ -112,9 +134,11 @@ fromText = tokenName . E.encodeUtf8
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
 fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
 
+-- | Encode a `ByteString` to a hex `Text`.
 asBase16 :: BS.ByteString -> Text
 asBase16 bs = Text.concat ["0x", encodeByteString bs]
 
+-- | Wrap the input `Text` in double quotes.
 quoted :: Text -> Text
 quoted s = Text.concat ["\"", s, "\""]
 
@@ -134,7 +158,7 @@ adaSymbol = CurrencySymbol emptyByteString
 adaToken :: TokenName
 adaToken = TokenName emptyByteString
 
--- | An asset class, identified by currency symbol and token name.
+-- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Show, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
@@ -145,21 +169,27 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
--- | A cryptocurrency value. This is a map from 'CurrencySymbol's to a
--- quantity of that currency.
---
--- Operations on currencies are usually implemented /pointwise/. That is,
--- we apply the operation to the quantities for each currency in turn. So
--- when we add two 'Value's the resulting 'Value' has, for each currency,
--- the sum of the quantities of /that particular/ currency in the argument
--- 'Value'. The effect of this is that the currencies in the 'Value' are "independent",
--- and are operated on separately.
---
--- Whenever we need to get the quantity of a currency in a 'Value' where there
--- is no explicit quantity of that currency in the 'Value', then the quantity is
--- taken to be zero.
---
--- See note [Currencies] for more details.
+{- | The 'Value' type represents a collection of amounts of different currencies.
+We can think of 'Value' as a vector space whose dimensions are currencies.
+To create a value of 'Value', we need to specify a currency. This can be done
+using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
+'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
+similar to 'Ledger.Ada' for their own currencies.
+
+Operations on currencies are usually implemented /pointwise/. That is,
+we apply the operation to the quantities for each currency in turn. So
+when we add two 'Value's the resulting 'Value' has, for each currency,
+the sum of the quantities of /that particular/ currency in the argument
+'Value'. The effect of this is that the currencies in the 'Value' are "independent",
+and are operated on separately.
+
+Whenever we need to get the quantity of a currency in a 'Value' where there
+is no explicit quantity of that currency in the 'Value', then the quantity is
+taken to be zero.
+
+There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
+do the right thing in some cases.
+ -}
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
     deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
@@ -172,9 +202,6 @@ instance Haskell.Eq Value where
 instance Eq Value where
     {-# INLINABLE (==) #-}
     (==) = eq
-
--- No 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
--- do the right thing in some cases.
 
 instance Haskell.Semigroup Value where
     (<>) = unionWith (+)
@@ -209,24 +236,6 @@ instance JoinSemiLattice Value where
 instance MeetSemiLattice Value where
     {-# INLINABLE (/\) #-}
     (/\) = unionWith Ord.min
-
-{- note [Currencies]
-
-The 'Value' type represents a collection of amounts of different currencies.
-
-We can think of 'Value' as a vector space whose dimensions are
-currencies. At the moment there is only a single currency (Ada), so 'Value'
-contains one-dimensional vectors. When currency-creating transactions are
-implemented, this will change and the definition of 'Value' will change to a
-'Map Currency Int', effectively a vector with infinitely many dimensions whose
-non-zero values are recorded in the map.
-
-To create a value of 'Value', we need to specifiy a currency. This can be done
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
-'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
-similar to 'Ledger.Ada' for their own currencies.
-
--}
 
 {-# INLINABLE valueOf #-}
 -- | Get the quantity of the given currency in the 'Value'.

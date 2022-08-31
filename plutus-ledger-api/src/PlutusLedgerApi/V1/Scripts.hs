@@ -223,50 +223,104 @@ newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
 instance Haskell.Show StakeValidator where
     show = const "StakeValidator { <script> }"
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-224/ hash of a validator. 28 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype ValidatorHash =
     ValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-256/ hash of a redeemer. 32 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-224/ hash of a minting policy. 28 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype MintingPolicyHash =
     MintingPolicyHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-224/ hash of a stake validator. 28 bytes.
+
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype StakeValidatorHash =
     StakeValidatorHash Builtins.BuiltinByteString
-    deriving (IsString, Haskell.Show, Pretty) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Haskell.Show   -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
     deriving stock (Generic)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)

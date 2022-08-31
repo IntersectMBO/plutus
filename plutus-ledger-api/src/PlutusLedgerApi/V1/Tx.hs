@@ -48,32 +48,41 @@ import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
+{- | A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.
 
--- | A transaction ID, using a SHA256 hash as the transaction id.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
-    deriving (Show, Pretty, IsString) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Show           -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
--- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
--- script of type t in the transaction.
+-- | A redeemer pointer is a pair of a script type tag ('ScriptTag') `t` and an index `i`,
+-- picking out the i-th script of type `t` in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
+-- | Redeemers is a `Map` of redeemer pointer ('RedeemerPtr') and its 'Redeemer'.
 type Redeemers = Map RedeemerPtr Redeemer
 
 -- | A reference to a transaction output. This is a
--- pair of a transaction reference, and an index indicating which of the outputs
+-- pair of a transaction ID (`TxId`), and an index indicating which of the outputs
 -- of that transaction we are referring to.
 data TxOutRef = TxOutRef {
-    txOutRefId  :: TxId,
+    txOutRefId  :: TxId, -- ^ The transaction ID.
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
@@ -87,8 +96,8 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
-
--- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
+-- | A transaction output, consisting of a target address ('Address'), a value ('Value'),
+-- and optionally a datum hash ('DatumHash').
 data TxOut = TxOut {
     txOutAddress   :: Address,
     txOutValue     :: Value,

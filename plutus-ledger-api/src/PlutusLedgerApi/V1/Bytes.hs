@@ -28,12 +28,14 @@ import PlutusTx
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras (Pretty, PrettyShow (..))
 
+{- | An error that is encountered when converting a `ByteString` to a `LedgerBytes`. -}
 data LedgerBytesError =
-    UnpairedDigit
-    | NotHexit Char
+    UnpairedDigit -- ^ Odd number of bytes.
+    | NotHexit Char -- ^ Not a hex digit.
     deriving stock (Show)
     deriving anyclass (Exception)
 
+{- | Convert a hex encoded `ByteString` to a `LedgerBytes`. May return an error (`LedgerBytesError`). -}
 fromHex :: BS.ByteString -> Either LedgerBytesError LedgerBytes
 fromHex = fmap (LedgerBytes . P.toBuiltin) . asBSLiteral
     where
@@ -76,12 +78,17 @@ bytes = P.fromBuiltin . getLedgerBytes
 fromBytes :: BS.ByteString -> LedgerBytes
 fromBytes = LedgerBytes . P.toBuiltin
 
+{- | The `IsString` instance of `LedgerBytes` could throw an exception of `LedgerBytesError`. -}
 instance IsString LedgerBytes where
     fromString = unsafeFromEither . fromHex . fromString
 
+{- | The `Show` instance of `LedgerBytes` is its base16/hex encoded bytestring,
+decoded with UTF-8, unpacked to `String`. -}
 instance Show LedgerBytes where
     show = Text.unpack . encodeByteString . bytes
 
+{- | Encode a ByteString value in base16 (i.e. hexadecimal), then
+decode with UTF-8 to a `Text`. -}
 encodeByteString :: BS.ByteString -> Text.Text
 encodeByteString = TE.decodeUtf8 . Base16.encode
 
