@@ -49,4 +49,10 @@
   nix-flakes-alias = import ./nix-flakes-alias.nix organelle;
 
   cabal-fmt = import ./cabal-fmt.nix organelle;
+
+  nixpkgs-fmt = import ./nixpkgs-fmt.nix organelle;
+
+  R-packages = import ./R-packages.nix organelle;
+
+  R-lang = import ./R-lang.nix organelle;
 }

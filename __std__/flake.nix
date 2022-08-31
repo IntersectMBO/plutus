@@ -77,7 +77,7 @@
         # In this repository we have three cells:
         #   doc
         #     Develop and build all the documentation artifacts
-        #   haskell
+        #   plutus
         #     Develop and build all haskell components
         #   toolchain
         #     Common tools and functions shared across multiple cells
@@ -144,8 +144,8 @@
       {
         # The devshells inside the haskell cells will be added to the ones
         # already harvested from the doc shell. Same for packages.
-        devShells = inputs.std.harvest inputs.self [ "haskell" "devshells" ];
-        packages = inputs.std.harvest inputs.self [ "haskell" "packages" ];
+        devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
+        packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
