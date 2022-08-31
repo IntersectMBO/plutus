@@ -37,7 +37,6 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-
     inputs.cells.toolchain.agda-with-stdlib
 
     inputs.nixpkgs.zip
