@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-python3.sphinxcontrib-bibtex.overrideAttrs (oldAttrs: rec {
+inputs.nixpkgs.python3.sphinxcontrib-bibtex.overrideAttrs (oldAttrs: rec {
   version = "2.2.0";
   src = python-super.fetchPypi {
     inherit (oldAttrs) pname;
