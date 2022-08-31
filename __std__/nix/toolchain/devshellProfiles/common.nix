@@ -12,5 +12,10 @@ _: {
       category = "general commands";
       help = "prints the repository root path";
     }
+    {
+      package = cell.packages.check-the-flake;
+      category = "general commands";
+      help = "builds everything in the flake";
+    }
   ];
 }

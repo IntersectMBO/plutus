@@ -1,29 +1,36 @@
 { inputs, cell }:
 
+# TODO(std) needs to be fixed once __std__ is brought to the toplevel.
 inputs.nixpkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [ inputs.nixpkgs.nix ];
   text = ''
-    nix develop .#haskell-shell --build
-    nix develop .#doc-shell --build
+    root="$(repo-root)"
 
-    nix build .#cost-model-notes
-    nix build .#doc-site
-    nix build .#eutxo-paper
-    nix build .#eutxoma-paper
-    nix build .#extended-utxo-spec
-    nix build .#repo-root
-    nix build .#git-work-in-progress
-    nix build .#lazy-machine-notes
-    nix build .#multi-currency-notes
-    nix build .#plutus-core-spec
-    nix build .#plutus-report
-    nix build .#sphinx-markdown-tables
-    nix build .#sphinxcontrib-domaintools
-    nix build .#sphinxcontrib-haddock
-    nix build .#sphinxemoji
-    nix build .#sphobjinv
-    nix build .#utxoma-paper
+    shell_files=$(
+      find \
+        "$root/__std__/nix" \
+        -name "*.nix" \
+        -and -not -name "*default.nix" \
+        -and -path "*devshells*"
+    ) 
+
+    for file in "$shell_files"; do 
+      nix develop ".#$file" --build
+    done 
+
+    derivation_files=$(
+      find \
+        "$(repo-root)/__std__/nix" \
+        -name "*.nix" \
+        -and -not -name "*default.nix" \
+        -and -not -path "*library*" \
+        -and -not -path "*devshells*"
+    ) 
+
+    for file in "$derivation_files"; do 
+      nix build ".#$file"
+    done 
   '';
 }
 
