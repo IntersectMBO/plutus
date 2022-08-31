@@ -20,7 +20,9 @@ _: {
     cell.packages.cabal-fmt
     cell.packages.nixpkgs-fmt 
 
-    # inputs.nixpkgs.ghcid # TODO(std) why was this originally in the shell?
+    # TODO(std) This was originally in the shell, but it doesn't come from haskell-nix.
+    # Is it even used?
+    # inputs.nixpkgs.ghcid 
 
     inputs.nixpkgs.awscli2 # TODO(std) move these 3 into devops shell or script when we have one
     inputs.nixpkgs.bzip2 
@@ -33,10 +35,11 @@ _: {
     inputs.nixpkgs.shellcheck 
     inputs.nixpkgs.yq 
     inputs.nixpkgs.zlib 
-  ] 
-  ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 
-  [ 
-    cell.packages.r-packages.plotly 
-    cell.packages.r-lang 
   ];
+  # ] 
+  # ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 
+  # [ 
+  #   cell.packages.r-packages.plotly 
+  #   cell.packages.r-lang 
+  # ];
 }
