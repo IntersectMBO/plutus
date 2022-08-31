@@ -4,5 +4,5 @@
 
   sphinx-autobuild-doc-site = import ./sphinx-autobuild-doc-site.nix organelle;
 
-  serve-read-the-docs-site = import ./serve-read-the-docs-site.nix organelle;
+  serve-readthedocs-site = import ./serve-readthedocs-site.nix organelle;
 }

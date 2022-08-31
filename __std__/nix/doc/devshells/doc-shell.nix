@@ -24,7 +24,7 @@ inputs.std.std.lib.mkShell {
       help = "Start the autobuild server with output in doc/_build";
     }
     {
-      package = cell.scripts.build-and-serve-doc-site;
+      package = cell.scripts.serve-readthedocs-site;
       category = "doc";
       help = "nix build and serve the doc site on port 3000";
     }
