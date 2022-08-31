@@ -1,14 +1,15 @@
 { inputs, cell }:
 
-# TODO(std) this breaks the one-derivation-per-file rule, as it's an attrs
+# TODO(std) !!! this breaks the one-derivation-per-file rule, as it's an attrs TODO
+# Must figure out a way to deal with this
 
-cell.packages.todo-derivation
+let pkgs = inputs.nixpkgs; in
 
-  # rPackages = super.rPackages.override {
-  #   overrides = ({
-  #     hexbin = super.rPackages.hexbin.overrideDerivation (attrs: {
-  #       nativeBuildInputs = attrs.nativeBuildInputs ++ [ super.libiconv ];
-  #       buildInputs = attrs.buildInputs ++ [ super.libiconv ];
-  #     });
-  #   });
-  # };
+pkgs.rPackages.override {
+  overrides = ({
+    hexbin = pkgs.rPackages.hexbin.overrideDerivation (attrs: {
+      nativeBuildInputs = attrs.nativeBuildInputs ++ [ pkgs.libiconv ];
+      buildInputs = attrs.buildInputs ++ [ pkgs.libiconv ];
+    });
+  });
+}

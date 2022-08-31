@@ -5,8 +5,8 @@ inputs.nixpkgs.writeShellApplication {
   name = "fix-png-optimization";
 
   runtimeInputs = [
-    inputs.nixpkgs.fd 
-    inputs.nixpkgs.optipng 
+    inputs.nixpkgs.fd
+    inputs.nixpkgs.optipng
   ];
 
   text = ''

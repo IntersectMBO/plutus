@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 _: {
-  
+
   imports = [
     cell.devshellProfiles.common
   ];
@@ -18,23 +18,23 @@ _: {
     cell.packages.stylish-haskell
     cell.packages.nix-flakes-alias
     cell.packages.cabal-fmt
-    cell.packages.nixpkgs-fmt 
+    cell.packages.nixpkgs-fmt
 
     # TODO(std) This was originally in the shell, but it doesn't come from haskell-nix.
     # Is it even used?
     # inputs.nixpkgs.ghcid 
 
     inputs.nixpkgs.awscli2 # TODO(std) move these 3 into devops shell or script when we have one
-    inputs.nixpkgs.bzip2 
+    inputs.nixpkgs.bzip2
     inputs.nixpkgs.cacert
 
     inputs.nixpkgs.editorconfig-core-c
-    inputs.nixpkgs.editorconfig-checker 
-    inputs.nixpkgs.jq 
-    inputs.nixpkgs.pre-commit 
-    inputs.nixpkgs.shellcheck 
-    inputs.nixpkgs.yq 
-    inputs.nixpkgs.zlib 
+    inputs.nixpkgs.editorconfig-checker
+    inputs.nixpkgs.jq
+    inputs.nixpkgs.pre-commit
+    inputs.nixpkgs.shellcheck
+    inputs.nixpkgs.yq
+    inputs.nixpkgs.zlib
   ];
   # ] 
   # ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 

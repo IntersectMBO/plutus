@@ -5,8 +5,8 @@ inputs.nixpkgs.writeShellApplication {
   name = "fix-cabal-fmt";
 
   runtimeInputs = [
-    inputs.nixpkgs.fd 
-    cell.packages.cabal-fmt 
+    inputs.nixpkgs.fd
+    cell.packages.cabal-fmt
   ];
 
   text = ''

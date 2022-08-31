@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.cells.toolchain.packages.todo-derivation 
+inputs.cells.toolchain.packages.todo-derivation
 
 # TODO(std) broken, uncomment once we have agda
 
