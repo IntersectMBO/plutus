@@ -8,7 +8,7 @@ inputs.nixpkgs.stdenv.mkDerivation {
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
 
   buildInputs = [
-    cell.library.sphinx-toolchain
+    inputs.cells.toolchain.packages.sphinx-toolchain
   ];
 
   dontInstall = true;
