@@ -33,7 +33,7 @@ import NoThunks.Class
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
-    = BuiltinResult ExBudget ~(MakeKnownM val)
+    = BuiltinResult ExBudget ~(MakeKnownM (HeadSpine val))
     -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
     -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
     -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay

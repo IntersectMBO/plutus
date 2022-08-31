@@ -60,20 +60,6 @@ data CkValue uni fun =
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
     deriving stock (Show)
 
--- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: Term TyName Name uni fun ()
-    -> BuiltinRuntime (CkValue uni fun)
-    -> CkM uni fun s (CkValue uni fun)
-evalBuiltinApp term runtime = case runtime of
-    BuiltinResult _ getX -> case getX of
-        MakeKnownFailure logs err       -> emitCkM logs *> throwKnownTypeErrorWithCause term err
-        MakeKnownSuccess x              -> pure x
-        MakeKnownSuccessWithLogs logs x -> emitCkM logs $> x
-    _ -> pure $ VBuiltin term runtime
-
 ckValueToTerm :: CkValue uni fun -> Term TyName Name uni fun ()
 ckValueToTerm = \case
     VCon val             -> Constant () val
@@ -132,6 +118,7 @@ instance HasConstant (CkValue uni fun) where
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
+    | FrameApplyArgVal (CkValue uni fun)
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
@@ -258,12 +245,39 @@ _     |> var@Var{}               =
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
+FrameApplyArgVal arg : stack <| fun   = applyEvaluate stack fun arg
 FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
 FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _               ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just $ ckValueToTerm wrapped
+
+pushArgs :: Spine (CkValue uni fun) -> Context uni fun -> Context uni fun
+pushArgs args ctx = foldr ((:) . FrameApplyArgVal) ctx args
+
+returnCkHeadSpine
+    :: Ix fun
+    => Context uni fun
+    -> HeadSpine (CkValue uni fun)
+    -> CkM uni fun s (Term TyName Name uni fun ())
+returnCkHeadSpine stack (HeadSpine f xs) = pushArgs xs stack <| f
+
+-- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
+-- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+-- fully saturated or not.
+evalBuiltinApp
+    :: Ix fun
+    => Context uni fun
+    -> Term TyName Name uni fun ()
+    -> BuiltinRuntime (CkValue uni fun)
+    -> CkM uni fun s (Term TyName Name uni fun ())
+evalBuiltinApp stack term runtime = case runtime of
+    BuiltinResult _ getX -> case getX of
+        MakeKnownFailure logs err         -> emitCkM logs *> throwKnownTypeErrorWithCause term err
+        MakeKnownSuccess fXs              -> returnCkHeadSpine stack fXs
+        MakeKnownSuccessWithLogs logs fXs -> emitCkM logs *> returnCkHeadSpine stack fXs
+    _ -> stack <| VBuiltin term runtime
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application
@@ -283,9 +297,7 @@ instantiateEvaluate stack ty (VBuiltin term runtime) = do
         -- We allow a type argument to appear last in the type of a built-in function,
         -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
         -- application.
-        BuiltinExpectForce runtime' -> do
-            res <- evalBuiltinApp term' runtime'
-            stack <| res
+        BuiltinExpectForce runtime' -> evalBuiltinApp stack term' runtime'
         _ -> throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
 instantiateEvaluate _ _ val =
     throwingWithCause _MachineError NonPolymorphicInstantiationMachineError $ Just $ ckValueToTerm val
@@ -310,9 +322,7 @@ applyEvaluate stack (VBuiltin term runtime) arg = do
         -- argument next.
         BuiltinExpectArgument f -> case f arg of
             Left err       -> throwKnownTypeErrorWithCause argTerm err
-            Right runtime' -> do
-                res <- evalBuiltinApp term' runtime'
-                stack <| res
+            Right runtime' -> evalBuiltinApp stack term' runtime'
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =

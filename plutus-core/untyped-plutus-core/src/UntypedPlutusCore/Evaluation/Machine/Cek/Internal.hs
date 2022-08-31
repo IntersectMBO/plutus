@@ -526,6 +526,7 @@ we can match on context and the top frame in a single, strict pattern match.
 data Context uni fun
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun)                         -- ^ @[V _]@
     | FrameApplyArg !(CekValEnv uni fun) !(Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
+    | FrameApplyArgVal !(CekValue uni fun) !(Context uni fun)
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
@@ -571,27 +572,6 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
-
--- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: (GivenCekReqs uni fun s, PrettyUni uni fun)
-    => fun
-    -> Term NamedDeBruijn uni fun ()
-    -> BuiltinRuntime (CekValue uni fun)
-    -> CekM uni fun s (CekValue uni fun)
-evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult cost getX -> do
-        spendBudgetCek (BBuiltinApp fun) cost
-        case getX of
-            MakeKnownFailure logs err       -> do
-                ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    _ -> pure $ VBuiltin fun term runtime
-{-# INLINE evalBuiltinApp #-}
 
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
@@ -673,10 +653,48 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
     returnCek !unbudgetedSteps (FrameApplyArg argVarEnv arg ctx) fun =
         computeCek unbudgetedSteps (FrameApplyFun fun ctx) argVarEnv arg
+    returnCek !unbudgetedSteps (FrameApplyArgVal arg ctx) fun =
+        applyEvaluate unbudgetedSteps ctx fun arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
+
+    pushArgs :: Spine (CekValue uni fun) -> Context uni fun -> Context uni fun
+    pushArgs args ctx = foldr FrameApplyArgVal ctx args
+
+    returnCekNonEmpty
+        :: WordArray
+        -> Context uni fun
+        -> HeadSpine (CekValue uni fun)
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    returnCekNonEmpty unbudgetedSteps ctx (HeadSpine f xs) =
+        returnCek unbudgetedSteps (pushArgs xs ctx) f
+
+    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+    -- fully saturated or not.
+    evalBuiltinApp
+        :: WordArray
+        -> Context uni fun
+        -> fun
+        -> Term NamedDeBruijn uni fun ()
+        -> BuiltinRuntime (CekValue uni fun)
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    evalBuiltinApp !unbudgetedSteps !ctx fun term runtime = case runtime of
+       BuiltinResult cost getX -> do
+           spendBudgetCek (BBuiltinApp fun) cost
+           case getX of
+               MakeKnownFailure logs err -> do
+                   ?cekEmitter logs
+                   throwKnownTypeErrorWithCause term err
+               MakeKnownSuccess fXs ->
+                   returnCekNonEmpty unbudgetedSteps ctx fXs
+               MakeKnownSuccessWithLogs logs fXs -> do
+                   ?cekEmitter logs
+                   returnCekNonEmpty unbudgetedSteps ctx fXs
+       _ -> returnCek unbudgetedSteps ctx $ VBuiltin fun term runtime
+    {-# INLINE evalBuiltinApp #-}
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -700,8 +718,7 @@ enterComputeCek = computeCek (toWordArray 0) where
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' runtime'
-                returnCek unbudgetedSteps ctx res
+                evalBuiltinApp unbudgetedSteps ctx fun term' runtime'
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ !_ val =
@@ -734,9 +751,7 @@ enterComputeCek = computeCek (toWordArray 0) where
             -- argument next.
             BuiltinExpectArgument f -> case f arg of
                 Left err       -> throwKnownTypeErrorWithCause argTerm err
-                Right runtime' -> do
-                    res <- evalBuiltinApp fun term' runtime'
-                    returnCek unbudgetedSteps ctx res
+                Right runtime' -> evalBuiltinApp unbudgetedSteps ctx fun term' runtime'
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ !_ val _ =

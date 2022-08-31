@@ -23,6 +23,9 @@ module PlutusCore.Builtin.KnownType
     , ReadKnownM
     , liftReadKnownM
     , readKnownConstant
+    , Spine (..)
+    , HeadSpine (..)
+    , noSpine
     , MakeKnownIn (..)
     , MakeKnown
     , ReadKnownIn (..)
@@ -43,10 +46,12 @@ import PlutusCore.Evaluation.Result
 import Control.Monad.Except
 import Data.DList (DList)
 import Data.Either.Extras
+import Data.Functor.Identity
 import Data.String
 import Data.Text (Text)
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
+import Prettyprinter
 import Universe
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
@@ -356,13 +361,37 @@ readKnownConstant val = asConstant val >>= oneShot \case
             Nothing   -> Left . KnownTypeUnliftingError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
+data Spine a
+    = NilSpine
+    | ConsSpine a (Spine a)
+    deriving stock (Show, Eq, Foldable, Functor)
+
+data HeadSpine a
+    = HeadSpine a (Spine a)
+    deriving stock (Show, Eq, Functor)
+
+-- |
+--
+-- >>> pretty (ConsSpine 'a' $ ConsSpine 'b' NilSpine)
+-- [a, b]
+instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
+instance PrettyBy config a => PrettyBy config (Spine a)
+
+instance Pretty a => Pretty (HeadSpine a) where
+    pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
+instance PrettyBy config a => PrettyBy config (HeadSpine a)
+
+noSpine :: a -> HeadSpine a
+noSpine x = HeadSpine x NilSpine
+{-# INLINE noSpine #-}
+
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
     -- See Note [Cause of failure].
     -- | Convert a Haskell value to the corresponding PLC val.
     -- The inverse of 'readKnown'.
-    makeKnown :: a -> MakeKnownM val
-    default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
+    makeKnown :: a -> MakeKnownM (HeadSpine val)
+    default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM (HeadSpine val)
     -- Everything on evaluation path has to be strict in production, so in theory we don't need to
     -- force anything here. In practice however all kinds of weird things happen in tests and @val@
     -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
@@ -371,7 +400,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromValue $! x
+    makeKnown x = pure . noSpine . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
@@ -390,7 +419,7 @@ class uni ~ UniOf val => ReadKnownIn uni val a where
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
-makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
+makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult (HeadSpine val)
 makeKnownOrFail x = case makeKnown x of
     MakeKnownFailure _ _           -> EvaluationFailure
     MakeKnownSuccess val           -> EvaluationSuccess val
@@ -439,7 +468,7 @@ instance
     {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . fromConstant
+    makeKnown = coerceArg $ pure . noSpine . fromConstant
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
@@ -447,9 +476,13 @@ instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) whe
     {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure
+    makeKnown = coerceArg $ pure . noSpine
     {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
     readKnown = coerceArg pure
     {-# INLINE readKnown #-}
+
+instance uni ~ UniOf val => MakeKnownIn uni val (Opaque (HeadSpine val) rep) where
+    makeKnown = coerceArg pure
+    {-# INLINE makeKnown #-}

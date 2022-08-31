@@ -110,5 +110,5 @@ propEvaluate eval genTermOfTbv = withTests 200 . property $ do
         Left (TypeEvalCheckErrorException err)             -> fail err
         Left (TypeEvalCheckErrorIllEvaled expected actual) ->
             -- Ditto.
-            ShowPretty expected === ShowPretty actual
+            ShowPretty expected === ShowPretty (fmap noSpine actual)
         Right _                                            -> return ()

@@ -49,10 +49,10 @@ testMachine machine eval =
     testGroup machine $ fromInterestingTermGens $ \name genTermOfTbv ->
         testPropertyNamed name (fromString name) . withTests 200 . property $ do
             TermOf term val <- forAllWith mempty genTermOfTbv
-            let resExp = eraseTerm <$> makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
+            let resExp = makeKnownOrFail @_ @(Plc.Term TyName Name DefaultUni DefaultFun ()) val
             case extractEvaluationResult . eval $ eraseTerm term of
                 Left err     -> fail $ show err
-                Right resAct -> resAct === resExp
+                Right resAct -> fmap noSpine resAct === fmap (fmap eraseTerm) resExp
 
 test_machines :: TestTree
 test_machines =

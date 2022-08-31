@@ -1,0 +1,17 @@
+(all
+  a
+  (type)
+  (fun
+    (con data)
+    (fun
+      (fun (con integer) (fun [ (con list) (con data) ] a))
+      (fun
+        (fun [ (con list) [ [ (con pair) (con data) ] (con data) ] ] a)
+        (fun
+          (fun [ (con list) (con data) ] a)
+          (fun (fun (con integer) a) (fun (fun (con bytestring) a) a))
+        )
+      )
+    )
+  )
+)

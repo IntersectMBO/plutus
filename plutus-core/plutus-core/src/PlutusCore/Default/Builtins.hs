@@ -90,6 +90,7 @@ data DefaultFun
     | SndPair
     -- Lists
     | ChooseList
+    | CaseList
     | MkCons
     | HeadList
     | TailList
@@ -100,6 +101,7 @@ data DefaultFun
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
+    | CaseData
     | ConstrData
     | MapData
     | ListData
@@ -1007,6 +1009,10 @@ This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but
 do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
+headSpine :: Opaque val ab -> [val] -> Opaque (HeadSpine val) b
+headSpine (Opaque f) = Opaque . HeadSpine f . foldr ConsSpine NilSpine
+{-# INLINE headSpine #-}
+
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
 
@@ -1219,6 +1225,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 []    -> a
                 _ : _ -> b
           {-# INLINE choosePlc #-}
+    toBuiltinMeaning _ver CaseList =
+        makeBuiltinMeaning
+            caseListPlc
+            (\_ _ _ _ -> ExBudget 1 0)  -- TODO.
+        where
+          caseListPlc
+              :: SomeConstant uni [a]
+              -> Opaque val b
+              -> Opaque val (a -> [a] -> b)
+              -> EvaluationResult (Opaque (HeadSpine val) b)
+          caseListPlc (SomeConstant (Some (ValueOf uniListA xs0))) z f = do
+            DefaultUniList uniA <- pure uniListA
+            pure $ case xs0 of
+                []     -> headSpine z []
+                x : xs -> headSpine f [fromValueOf uniA x, fromValueOf uniListA xs]
+          {-# INLINE caseListPlc #-}
     toBuiltinMeaning _ver MkCons =
         makeBuiltinMeaning
             consPlc
@@ -1285,6 +1307,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     I      {} -> xI
                     B      {} -> xB)
             (runCostingFunSixArguments . paramChooseData)
+    toBuiltinMeaning _ver CaseData =
+        makeBuiltinMeaning
+            caseDataPlc
+            (\_ _ _ _ _ _ _ -> ExBudget 1 0)  -- TODO.
+        where
+          caseDataPlc
+              :: Data
+              -> Opaque val (Integer -> [Data] -> b)
+              -> Opaque val ([(Data, Data)] -> b)
+              -> Opaque val ([Data] -> b)
+              -> Opaque val (Integer -> b)
+              -> Opaque val (BS.ByteString -> b)
+              -> Opaque (HeadSpine val) b
+          caseDataPlc d fConstr fMap fList fI fB = case d of
+              Constr i ds -> headSpine fConstr [fromValue i, fromValue ds]
+              Map es      -> headSpine fMap [fromValue es]
+              List ds     -> headSpine fList [fromValue ds]
+              I i         -> headSpine fI [fromValue i]
+              B b         -> headSpine fB [fromValue b]
+          {-# INLINE caseDataPlc #-}
     toBuiltinMeaning _ver ConstrData =
         makeBuiltinMeaning
             Constr
@@ -1450,6 +1492,8 @@ instance Flat DefaultFun where
               MkNilData                       -> 49
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
+              CaseList                        -> 54
+              CaseData                        -> 55
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1506,6 +1550,8 @@ instance Flat DefaultFun where
               go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure CaseList
+              go 55 = pure CaseData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

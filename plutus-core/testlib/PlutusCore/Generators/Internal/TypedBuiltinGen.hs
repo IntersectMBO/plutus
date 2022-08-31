@@ -67,7 +67,9 @@ attachCoercedTerm a = do
             [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
             , show $ prettyConst x
             ]
-        EvaluationSuccess v -> pure $ TermOf v x
+        EvaluationSuccess r -> case r of
+            HeadSpine v NilSpine -> pure $ TermOf v x
+            _                    -> fail "Iterated application is not supported"
 
 -- | Update a typed built-ins generator by overwriting the generator for a certain built-in.
 updateTypedBuiltinGen

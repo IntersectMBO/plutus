@@ -118,12 +118,18 @@ prop_builtinEvaluation ::
     (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
     -- outcome, and decides whether to pass or fail the property.
-    (fun -> [Term uni fun] -> Either SomeException (MakeKnownM (Term uni fun)) -> PropertyT IO ()) ->
+    (fun ->
+        [Term uni fun] ->
+        Either SomeException (MakeKnownM (HeadSpine (Term uni fun))) ->
+        PropertyT IO ()) ->
     Property
 prop_builtinEvaluation ver bn costModel mkGen f = property $ do
     args0 <- forAllNoShow $ mkGen bn
     let
-        eval :: [Term uni fun] -> BuiltinRuntime (Term uni fun) -> MakeKnownM (Term uni fun)
+        eval ::
+            [Term uni fun] ->
+            BuiltinRuntime (Term uni fun) ->
+            MakeKnownM (HeadSpine (Term uni fun))
         eval [] (BuiltinResult _ getX) =
             getX
         eval (arg : args) (BuiltinExpectArgument toRuntime) =

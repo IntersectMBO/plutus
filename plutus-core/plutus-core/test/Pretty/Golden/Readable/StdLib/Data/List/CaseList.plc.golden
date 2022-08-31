@@ -1,1 +1,1 @@
-/\a -> \(x : list a) -> /\r -> \(z : r) -> \(f : a -> list a -> r) -> chooseList {a} {unit -> r} x (\(u : unit) -> z) (\(u : unit) -> f (headList {a} x) (tailList {a} x)) ()
+/\a -> \(xs : list a) -> /\r -> \(z : r) -> \(f : a -> list a -> r) -> caseList {a} {unit -> r} xs (\(u : unit) -> z) (\(x : a) -> \(xs' : list a) -> \(u : unit) -> f x xs') ()

@@ -34,23 +34,24 @@ list = mkTyBuiltin @_ @[] ()
 -- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
 --
 -- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
--- >     chooseList
+-- >     caseList
 -- >         {a}
 -- >         {() -> r}
 -- >         xs
 -- >         (\(u : ()) -> z)
--- >         (\(u : ()) -> f (head {a} xs) (tail {a} xs))
+-- >         (\(x : a) (xs' : list a) (u : ()) -> f x xs')
 -- >         ()
 caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseList = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
-    xs <- freshName "x"
+    xs <- freshName "xs"
+    x <- freshName "x"
+    xs' <- freshName "xs'"
     z <- freshName "z"
     f <- freshName "f"
     u <- freshName "u"
     let listA = TyApp () list $ TyVar () a
-        funAtXs fun = apply () (tyInst () (builtin () fun) $ TyVar () a) $ var () xs
     return
         . tyAbs () a (Type ())
         . lamAbs () xs listA
@@ -58,13 +59,14 @@ caseList = runQuote $ do
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
         $ mkIterApp ()
-                (mkIterInst () (builtin () ChooseList)
+                (mkIterInst () (builtin () CaseList)
                     [ TyVar () a
                     , TyFun () unit $ TyVar () r
                     ])
             [ var () xs
             , lamAbs () u unit $ var () z
-            , lamAbs () u unit $ mkIterApp () (var () f) [funAtXs HeadList, funAtXs TailList]
+            , lamAbs () x (TyVar () a) . lamAbs () xs' listA . lamAbs () u unit $
+                mkIterApp () (var () f) [var () x, var () xs']
             , unitval
             ]
 
