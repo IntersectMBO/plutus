@@ -12,10 +12,11 @@ inputs.nixpkgs.writeShellApplication {
         "$root/__std__/nix" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
-        -and -path "*devshells*"
-    ) 
+        -and -path "*devshells*" \
+        -exec basename {} .nix \;
+    )
 
-    for file in "$shell_files"; do 
+    for file in $shell_files; do 
       nix develop ".#$file" --build
     done 
 
@@ -25,10 +26,11 @@ inputs.nixpkgs.writeShellApplication {
         -name "*.nix" \
         -and -not -name "*default.nix" \
         -and -not -path "*library*" \
-        -and -not -path "*devshells*"
+        -and -not -path "*devshells*" \
+        -exec basename {} .nix \;
     ) 
 
-    for file in "$derivation_files"; do 
+    for file in $derivation_files; do 
       nix build ".#$file"
     done 
   '';
