@@ -102,8 +102,8 @@ data GenEnv = GenEnv
 -}
 
 -- | Run a generator in debug-mode.
-debug :: GenTm a -> GenTm a
-debug gen = local (\env -> env { geDebug = True }) gen
+withDebug :: GenTm a -> GenTm a
+withDebug gen = local (\env -> env { geDebug = True }) gen
 
 -- | Run a `GenTm  generator in a top-level empty context where we are allowed to generate
 -- datatypes.
@@ -135,8 +135,8 @@ runGenTmCustom f cg g = do
 -- * Utility functions
 
 -- | Don't allow types to escape from a generator.
-noEscape :: GenTm a -> GenTm a
-noEscape = local $ \env -> env { geEscaping = NoEscape }
+withNoEscape :: GenTm a -> GenTm a
+withNoEscape = local $ \env -> env { geEscaping = NoEscape }
 
 -- * Dealing with size
 
@@ -199,7 +199,7 @@ getUniques = do
       x <- genFreshName "x"
       sizeSplit 1 7 (maybe (genType Star) return ma)
                     --      v--- LOOK HERE!
-                    (\ a -> bindTmName x a . noEscape $ genTerm mb) $ \ a (b, body) ->
+                    (\ a -> bindTmName x a . withNoEscape $ genTerm mb) $ \ a (b, body) ->
                     --      ^--- LOOK HERE!
                     TyFun () a b, LamAbs () x a body)
    ```

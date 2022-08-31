@@ -342,8 +342,8 @@ genTerm mty = checkInvariants $ do
       r   <- liftGen $ frequency [(5, pure True), (30, pure False)]
       -- Generate the binding
       -- TODO: maybe also generate mutually recursive bindings?
-      let genBin (x, a) | r         = noEscape . bindTmName x a . genTermOfType $ a
-                        | otherwise = noEscape . genTermOfType $ a
+      let genBin (x, a) | r         = withNoEscape . bindTmName x a . genTermOfType $ a
+                        | otherwise = withNoEscape . genTermOfType $ a
       -- Generate both bound terms and body with a size split of 1:7 (note, we are generating up to three bound
       -- terms, so the size split is really something like n:7).
       (tms, (ty, body)) <-
@@ -357,17 +357,17 @@ genTerm mty = checkInvariants $ do
       -- TODO: this freshenTyName here might be a bit paranoid
       y <- freshenTyName (setOf ftvTy a) <$> genFreshTyName "a"
       let ty = TyForall () y k $ renameType x y a
-      (ty,) . TyAbs () y k <$> (noEscape . bindTyName y k . genTermOfType $ renameType x y a)
+      (ty,) . TyAbs () y k <$> (withNoEscape . bindTyName y k . genTermOfType $ renameType x y a)
 
     genLam ma mb = do
       x <- genFreshName "x"
       (a, (b, body)) <-
         sizeSplit 1 7
           (maybe (genType Star) return ma)
-          (\ a -> bindTmName x a . noEscape $ genTerm mb)
+          (\ a -> bindTmName x a . withNoEscape $ genTerm mb)
       pure (TyFun () a b, LamAbs () x a body)
 
-    genApp mty = noEscape $ do
+    genApp mty = withNoEscape $ do
         ((_, arg), (toResTy, fun)) <-
           sizeSplit 1 4 (genTerm Nothing) (\ (argTy, _) -> genFun argTy mty)
         case toResTy of
@@ -377,7 +377,7 @@ genTerm mty = checkInvariants $ do
         genFun argTy mty = genTerm . Just . TyFun () argTy =<< maybe (genType Star) pure mty
 
     genVarApp :: HasCallStack => _
-    genVarApp Nothing = noEscape $ do
+    genVarApp Nothing = withNoEscape $ do
       -- CODE REVIEW: this function exists somewhere maybe? (Maybe even in this module...)
       let arity (TyForall _ _ _ b) = 1 + arity b
           arity (TyFun _ _ b)      = 1 + arity b
@@ -410,7 +410,7 @@ genTerm mty = checkInvariants $ do
       let cands = Map.toList vars
           doInst _ tm (InstApp instTy) = pure $ TyInst () tm instTy
           doInst n tm (InstArg argTy)  = onSize ((`div` n) . subtract 1)
-                                       . noEscape
+                                       . withNoEscape
                                        $ Apply () tm <$> genTermOfType argTy
       case [ foldM (doInst n) (Var () x) insts
            | (x, a)      <- cands,
@@ -808,7 +808,7 @@ genTypeAndTerm_ = runGenTm $ do
   return (ty, body)
 
 genTypeAndTermDebug_ :: Gen (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
-genTypeAndTermDebug_ = runGenTm . debug $ do
+genTypeAndTermDebug_ = runGenTm . withDebug $ do
   (ty, body) <- genTerm Nothing
   return (ty, body)
 
@@ -831,7 +831,7 @@ genFullyApplied typ trm = runGenTm $ go trm
       let ty = minimalType k
       genArgsApps (substClosedType x ty typ) (TyInst () trm ty)
     genArgsApps (TyFun _ a b) trm = do
-      (_, arg) <- noEscape $ genTerm (Just a)
+      (_, arg) <- withNoEscape $ genTerm (Just a)
       genArgsApps b (Apply () trm arg)
     genArgsApps ty trm = return (ty, trm)
 
