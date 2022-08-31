@@ -59,4 +59,8 @@
   agda-packages = import ./agda-packages.nix organelle;
 
   agda-project = import ./agda-project.nix organelle;
+
+  haddock-combine = import ./haddock-combine.nix organelle;
+
+  ghc = import ./ghc.nix organelle;
 }

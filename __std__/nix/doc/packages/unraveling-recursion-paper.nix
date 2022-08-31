@@ -1,61 +1,65 @@
 { inputs, cell }:
 
-let
+inputs.cells.toolchain.packages.todo-derivation 
 
-  artifacts = inputs.nixpkgs.runCommand
-    "FIR-compiler"
-    {
-      buildInputs = [ inputs.nixpkgs.zip ];
-      src = inputs.self + /papers/unraveling-recursion/code;
-    }
-    ''
-      mkdir -p $out
-      cd $src
-      zip -r $out/compiler.zip .
-    '';
-in
+# TODO(std) broken, uncomment once we have agda
 
-cell.library.build-latex {
-  name = "unraveling-recursion-paper";
+# let
 
-  texFiles = [ "unraveling-recursion.tex" ];
+#   artifacts = inputs.nixpkgs.runCommand
+#     "FIR-compiler"
+#     {
+#       buildInputs = [ inputs.nixpkgs.zip ];
+#       src = inputs.self + /papers/unraveling-recursion/code;
+#     }
+#     ''
+#       mkdir -p $out
+#       cd $src
+#       zip -r $out/compiler.zip .
+#     '';
+# in
 
-  texInputs = {
-    # more than we need at the moment, but doesn't cost much to include it
-    inherit (inputs.nixpkgs.texlive)
-      scheme-small
-      collection-bibtexextra
-      collection-latex
-      collection-latexextra
-      collection-luatex
-      collection-fontsextra
-      collection-fontsrecommended
-      collection-mathscience
-      acmart
-      bibtex
-      biblatex;
-  };
+# cell.library.build-latex {
+#   name = "unraveling-recursion-paper";
 
-  buildInputs = [
-    inputs.cells.toolchain.agda-with-stdlib
+#   texFiles = [ "unraveling-recursion.tex" ];
 
-    inputs.nixpkgs.zip
-  ];
+#   texInputs = {
+#     # more than we need at the moment, but doesn't cost much to include it
+#     inherit (inputs.nixpkgs.texlive)
+#       scheme-small
+#       collection-bibtexextra
+#       collection-latex
+#       collection-latexextra
+#       collection-luatex
+#       collection-fontsextra
+#       collection-fontsrecommended
+#       collection-mathscience
+#       acmart
+#       bibtex
+#       biblatex;
+#   };
 
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
-    (inputs.self + /papers/unraveling-recursion)
-    [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
+#   buildInputs = [
+#     inputs.cells.toolchain.agda-with-stdlib
 
-  preBuild = ''
-    for file in *.lagda; do
-      agda --latex $file --latex-dir .
-    done
+#     inputs.nixpkgs.zip
+#   ];
 
-    echo "\toggletrue{lagda}" > agdaswitch.tex
-  '';
+#   src = inputs.nixpkgs.lib.sourceFilesBySuffices
+#     (inputs.self + /papers/unraveling-recursion)
+#     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
-  postInstall = ''
-    cp ${artifacts}/* $out
-    zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
-  '';
-}
+#   preBuild = ''
+#     for file in *.lagda; do
+#       agda --latex $file --latex-dir .
+#     done
+
+#     echo "\toggletrue{lagda}" > agdaswitch.tex
+#   '';
+
+#   postInstall = ''
+#     cp ${artifacts}/* $out
+#     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
+#   '';
+# }

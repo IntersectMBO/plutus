@@ -33,19 +33,9 @@ inputs.nixpkgs.writeShellApplication {
         -exec basename {} .nix \;
     ) 
 
-    broken_fragments=(
-      system-f-in-agda-paper
-      unraveling-recursion-paper
-      agda-with-stdlib
-    )
-
     for fragment in $derivation_fragments; do 
-      if [[ "''${broken_fragments[*]}" =~ $fragment ]]; then 
-        echo skipping broken "$fragment"
-      else 
-        echo building "$fragment" 
-        nix build ".#$fragment"
-      fi 
+      echo building "$fragment" 
+      nix build ".#$fragment"
     done 
   '';
 }

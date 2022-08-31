@@ -2,8 +2,7 @@
 {
   doc-site = import ./doc-site.nix organelle;
 
-  # TODO(std) broken, uncomment once we have agda
-  #system-f-in-agda-paper = import ./system-f-in-agda-paper.nix organelle;
+  system-f-in-agda-paper = import ./system-f-in-agda-paper.nix organelle;
 
   eutxo-paper = import ./eutxo-paper.nix organelle;
 
@@ -11,8 +10,7 @@
 
   eutxoma-paper = import ./eutxoma-paper.nix organelle;
 
-  # TODO(std) broken, uncomment once we have agda
-  # unraveling-recursion-paper = import ./unraveling-recursion-paper.nix organelle;
+  unraveling-recursion-paper = import ./unraveling-recursion-paper.nix organelle;
 
   plutus-core-spec = import ./plutus-core-spec.nix organelle;
 
@@ -25,4 +23,6 @@
   plutus-report = import ./plutus-report.nix organelle;
 
   cost-model-notes = import ./cost-model-notes.nix organelle;
+
+  combined-haddock = import ./combined-haddock.nix organelle;
 }

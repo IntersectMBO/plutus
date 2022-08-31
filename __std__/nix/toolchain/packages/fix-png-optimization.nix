@@ -1,11 +1,15 @@
 { inputs, cell }:
 
-cell.packages.todo-derivation
+inputs.nixpkgs.writeShellScript {
 
-# { writeShellScriptBin, fd, optipng }:
+  name = "fix-png-optimization";
 
-# writeShellScriptBin "fix-png-optimization" ''
-#   ${fd}/bin/fd \
-#     --extension png \
-#     --exec "${optipng}/bin/optipng" {}
-# ''
+  runtimeInputs = [
+    inputs.nixpkgs.fd 
+    inputs.nixpkgs.optipng 
+  ];
+
+  text = ''
+    fd --extension png --exec "optipng" {}
+  '';
+}

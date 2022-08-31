@@ -1,15 +1,20 @@
 { inputs, cell }:
 
-cell.packages.todo-derivation
+inputs.nixpkgs.writeShellScript {
 
+  name = "fix-cabal-fmt";
 
-# { writeShellScriptBin, fd, cabal-fmt }:
+  runtimeInputs = [
+    inputs.nixpkgs.fd 
+    cell.packages.cabal-fmt 
+  ];
 
-# writeShellScriptBin "fix-cabal-fmt" ''
-#   ${fd}/bin/fd \
-#     --extension cabal \
-#     --exclude 'dist-newstyle/*' \
-#     --exclude 'dist/*' \
-#     --exclude '.stack-work/*' \
-#     --exec bash -c "${cabal-fmt}/bin/cabal-fmt --inplace {}"
-# ''
+  text = ''
+    fd \
+      --extension cabal \
+      --exclude 'dist-newstyle/*' \
+      --exclude 'dist/*' \
+      --exclude '.stack-work/*' \
+      --exec bash -c "cabal-fmt --inplace {}"
+  '';
+}

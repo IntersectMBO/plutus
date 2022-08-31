@@ -1,13 +1,20 @@
 { inputs, cell }:
 
-cell.packages.todo-derivation
+inputs.nixpkgs.writeShellScript {
 
+  name = "fix-stylish-haskell";
 
-# writeShellScriptBin "fix-stylish-haskell" ''
-#   ${fd}/bin/fd \
-#     --extension hs \
-#     --exclude 'dist-newstyle/*' \
-#     --exclude 'dist/*' \
-#     --exclude '.stack-work/*' \
-#     --exec bash -c "${stylish-haskell}/bin/stylish-haskell -i {}"
-# ''
+  runtimeInputs = [
+    inputs.nixpkgs.fd 
+    cell.packages.stylish-haskell
+  ];
+
+  text = ''
+    fd \
+      --extension hs \
+      --exclude 'dist-newstyle/*' \
+      --exclude 'dist/*' \
+      --exclude '.stack-work/*' \
+      --exec bash -c "stylish-haskell -i {}"
+  '';
+}
