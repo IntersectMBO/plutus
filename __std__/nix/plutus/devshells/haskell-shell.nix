@@ -2,7 +2,7 @@
 
 inputs.std.std.lib.mkShell {
   
-  name = "The Plutus Haskell Development Shell";
+  name = "plutus-shell";
 
   imports = [
     inputs.cells.toolchain.devshellProfiles.haskell
