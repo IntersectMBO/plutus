@@ -483,7 +483,6 @@ genCtx = do
   ks <- vectorOf n arbitrary
   return $ Map.fromList $ zip xs ks
 
--- CODE REVIEW: this should probably go somewhere else (??), where? Does it already exist?!
 instance Arbitrary (Kind ()) where
   arbitrary = sized $ arb . (`div` 3)
     where
