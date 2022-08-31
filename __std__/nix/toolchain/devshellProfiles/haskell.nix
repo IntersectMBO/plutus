@@ -34,7 +34,8 @@ _: {
     inputs.nixpkgs.yq 
     inputs.nixpkgs.zlib 
   ] 
-  ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) [ 
+  ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) 
+  [ 
     cell.packages.r-packages.plotly 
     cell.packages.r-lang 
   ];

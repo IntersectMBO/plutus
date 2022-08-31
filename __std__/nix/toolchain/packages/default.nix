@@ -55,4 +55,8 @@
   R-packages = import ./R-packages.nix organelle;
 
   R-lang = import ./R-lang.nix organelle;
+
+  agda-packages = import ./agda-packages.nix organelle;
+
+  agda-project = import ./agda-project.nix organelle;
 }
