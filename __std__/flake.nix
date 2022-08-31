@@ -103,7 +103,7 @@
         #     Generally these are available as commands inside the development shell
         #     These are very repository specific, and are not exposed to the flake
         #   library :: functions
-        #     Functions and non-derivation values (e.g. attrs of derivations) shared 
+        #     Functions and non-derivation values (e.g. attrs of derivations) shared
         #     across the current cell.
         #     These are very repository specific, and are not exposed to the flake
         #
@@ -187,7 +187,7 @@
   #   cell.*organelle*
   #     The cell value gives access to all its organelles:
   #     e.g.: cell.scripts.build-and-server-read-the-docs-site (only works for code in /nix/scripts)
-  #       Alternatively: inputs.cells.doc.scripts.build-and-server-read-the-docs-site (works everywhere)
+  #       Alternatively: inputs.cells.doc.scripts.serve-read-the-docs-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
 

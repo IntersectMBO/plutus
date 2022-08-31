@@ -17,10 +17,10 @@ inputs.nixpkgs.writeShellApplication {
         -exec basename {} .nix \;
     )
 
-    for fragment in $shell_fragments; do 
-      echo building "$fragment" 
+    for fragment in $shell_fragments; do
+      echo building "$fragment"
       nix develop ".#$fragment" --build
-    done 
+    done
 
     derivation_fragments=$(
       find \
@@ -31,11 +31,11 @@ inputs.nixpkgs.writeShellApplication {
         -and -not -path "*devshells*" \
         -and -not -path "*devshellProfiles*" \
         -exec basename {} .nix \;
-    ) 
+    )
 
-    for fragment in $derivation_fragments; do 
-      echo building "$fragment" 
+    for fragment in $derivation_fragments; do
+      echo building "$fragment"
       nix build ".#$fragment"
-    done 
+    done
   '';
 }

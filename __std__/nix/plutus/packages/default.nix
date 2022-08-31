@@ -1,4 +1,2 @@
 { inputs, cell }@organelle:
-{ 
-  
-}
+{ }

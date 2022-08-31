@@ -3,7 +3,8 @@
 cell.packages.todo-derivation
 
 # { runCommand, lib, ghc, jq, sphinxcontrib-haddock }:
-# { hspkgs # Haskell packages to make documentation for. Only those with a "doc" output will be used.
+# { hspkgs
+#   # Haskell packages to make documentation for. Only those with a "doc" output will be used.
 #   # Note: we do not provide arbitrary additional Haddock options, as these would not be
 #   # applied consistently, since we're reusing the already built Haddock for the packages.
 # , prologue ? null # Optionally, a file to be used for the Haddock "--prologue" option.
@@ -14,9 +15,9 @@ cell.packages.todo-derivation
 # runCommand "haddock-join"
 # {
 #   buildInputs = [ hsdocs ];
-#   # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
-#   # which contains information about which nix paths are referenced by the package. This will allow
-#   # us to resolve hyperlinks to haddocks elsewhere in the store.
+# # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
+# # which contains information about which nix paths are referenced by the package. This will allow
+# # us to resolve hyperlinks to haddocks elsewhere in the store.
 #   #
 #   # See also https://nixos.org/manual/nix/stable/expressions/advanced-attributes.html#adv-attr-exportReferencesGraph # editorconfig-checker-disable-line
 #   exportReferencesGraph = lib.concatLists
