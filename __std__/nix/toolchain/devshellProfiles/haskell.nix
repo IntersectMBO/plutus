@@ -2,7 +2,7 @@
 
 _: {
   
-  import = [
+  imports = [
     cell.devshellProfiles.common
   ];
 
@@ -34,7 +34,7 @@ _: {
     inputs.nixpkgs.yq 
     inputs.nixpkgs.zlib 
   ] 
-  ++ inputs.nixpkgs.lib.optionals (!stdenv.isDarwin) [ 
+  ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin) [ 
     cell.packages.r-packages.plotly 
     cell.packages.r-lang 
   ];
