@@ -25,4 +25,28 @@
 
   # TODO(std) make this part of CI
   check-the-flake = import ./check-the-flake.nix organelle;
+
+  todo-derivation = import ./todo-derivation.nix organelle;
+
+  cabal-install = import ./cabal-install.nix organelle;
+
+  cardano-repo-tool = import ./cardano-repo-tool.nix organelle;
+
+  fix-png-optimization = import ./fix-png-optimization.nix organelle;
+
+  fix-stylish-haskell = import ./fix-stylish-haskell.nix organelle;
+
+  fix-cabal-fmt = import ./fix-cabal-fmt.nix organelle;
+
+  haskell-language-server = import ./haskell-language-server.nix organelle;
+
+  hie-bios = import ./hie-bios.nix organelle;
+
+  hlint = import ./hlint.nix organelle;
+
+  stylish-haskell = import ./stylish-haskell.nix organelle;
+
+  nix-flakes-alias = import ./nix-flakes-alias.nix organelle;
+
+  cabal-fmt = import ./cabal-fmt.nix organelle;
 }
