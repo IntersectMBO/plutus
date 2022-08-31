@@ -12,6 +12,10 @@
 
     sphobjinv;
 
+  sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix organelle;
+
+  sphinx-tools = import ./sphinx-tools.nix organelle;
+
   git-work-in-progress = import ./git-work-in-progress.nix organelle;
 
   repo-root = import ./repo-root.nix organelle;
