@@ -2,8 +2,8 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) !!! this would break the one-derivation-per-file rule, as it's an attrs TODO
-# Must figure out a way to deal with this
+# TODO(std) !!! this would break the one-derivation-per-file rule, as it's an attrs 
+# Figure out a way to deal with this as soon as this derivation is needed.
 
 # let pkgs = inputs.nixpkgs; in
 
