@@ -16,7 +16,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
-import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..), UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -55,6 +55,7 @@ import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
+import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -288,8 +289,8 @@ parseInput inp = do
     -- parse the UPLC program
     case parseProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParserErrorBundle) ->
-          errorWithoutStackTrace $ PP.render $ pretty err
+      Left (ParseErrorB err) ->
+          errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program
