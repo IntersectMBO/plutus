@@ -63,8 +63,10 @@ let
   };
   cabalInstallProject = haskell-nix.hackage-project {
     name = "cabal-install";
-    version = "3.6.2.0";
+    version = "3.8.1.0";
     inherit compiler-nix-name index-state;
+    # The test suite depends on a nonexistent package...
+    configureArgs = "--disable-tests";
   };
   cardanoRepoToolProject = haskell-nix.cabalProject' {
     src = sources.cardano-repo-tool;
