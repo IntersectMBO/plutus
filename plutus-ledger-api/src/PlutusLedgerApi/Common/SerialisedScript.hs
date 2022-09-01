@@ -3,6 +3,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
+    , serialiseScript
+    , serialiseUPLC
+    , deserialiseUPLC
     , scriptCBORDecoder
     , ScriptForExecution (..)
     , ScriptDecodeError (..)
@@ -13,17 +16,19 @@ module PlutusLedgerApi.Common.SerialisedScript
 
 import PlutusCore
 import PlutusLedgerApi.Common.Versions
+import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
+import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.Exception
 import Control.Lens
 import Control.Monad.Error.Lens
 import Control.Monad.Except
-import Data.ByteString.Lazy as BSL (ByteString, fromStrict)
+import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
@@ -54,6 +59,38 @@ we only perform it in V2 and above.
 
 -- | Scripts to the ledger are serialised bytestrings.
 type SerialisedScript = ShortByteString
+
+{-| Note [Using Flat for serialsing/deserialising Script]
+`plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
+choice to use Flat was made to have a more efficient (most wins are in uncompressed
+size) data serialisation format and use less space on-chain.
+
+To make `plutus-ledger` work with scripts serialised with Flat, and keep the CBOR
+format otherwise, we have defined the `serialiseUPLC` and `deserialiseUPLC` functions.
+
+Because Flat is not self-describing and it gets used in the encoding of Programs,
+data structures that include scripts (for example, transactions) no-longer benefit
+for CBOR's ability to self-describe it's format.
+-}
+
+serialiseUPLC :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> SerialisedScript
+serialiseUPLC =
+    -- See Note [Using Flat for serialsing/deserialising Script]
+    -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
+    -- about introducing a working version
+    toShort . BSL.toStrict . serialise . SerialiseViaFlat
+
+deserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+deserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
+  where
+    unSerialiseViaFlat (SerialiseViaFlat a) = a
+
+serialiseScript :: forall a. CompiledCode a -> SerialisedScript
+serialiseScript = serialiseUPLC . toNameless . getPlc
+    where
+        toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+                -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+        toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
 -- | A variant of `Script` with a specialized decoder.
 newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())

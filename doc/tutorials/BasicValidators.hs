@@ -13,6 +13,7 @@ import PlutusTx
 import PlutusTx.Lift
 import PlutusTx.Prelude
 
+import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1.Contexts
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
@@ -65,8 +66,8 @@ validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 -- This is handy since it's more natural to talk about booleans.
 validateDate datum redeemer _ = check $ beforeEnd (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
 
-dateValidator :: Script
-dateValidator = fromCompiledCode $$(compile [|| validateDate ||])
+dateValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+dateValidator = $$(compile [|| validateDate ||])
 -- BLOCK4
 validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 validatePayment _ _ ctx =
@@ -82,16 +83,16 @@ validatePayment _ _ ctx =
     in check $ valueOf (fold values) adaSymbol adaToken >= 1
 --- BLOCK5
 -- We can serialize a 'Validator' directly to CBOR
-serializedDateValidator :: BSL.ByteString
-serializedDateValidator = serialise dateValidator
+serialisedDateValidator :: SerialisedScript
+serialisedDateValidator = serialiseScript dateValidator
 
 -- The serialized forms can be written or read using normal Haskell IO functionality.
 showSerialised :: IO ()
-showSerialised = print serializedDateValidator
+showSerialised = print serialisedDateValidator
 -- BLOCK6
 -- We can serialize 'CompiledCode' also
-serializedCompiledCode :: BS.ByteString
-serializedCompiledCode = Flat.flat $ alwaysSucceedsCompiled
+serialisedCompiledCode :: BS.ByteString
+serialisedCompiledCode = Flat.flat alwaysSucceedsCompiled
 
 -- The 'loadFromFile' function is a drop-in replacement for 'compile', but
 -- takes the file path instead of the code to compile.
