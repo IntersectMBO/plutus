@@ -13,8 +13,8 @@ Cardano blockchain. The Cardano ledger is able to interact with compiled Plutus 
 scripts through the ledger interface. 
 
 This documentation introduces the Plutus Core programming language and programming 
-with Plutus Tx. It is meant to be educational, so it includes explanations, tutorials 
-and how-to instructions. 
+with Plutus Tx. It includes explanations, tutorials, how-to instructions, 
+troubleshooting, and reference information. 
 
 The intended audience of this documentation includes people who want to implement 
 smart contracts on the Cardano blockchain. This involves using Plutus Tx to write 
