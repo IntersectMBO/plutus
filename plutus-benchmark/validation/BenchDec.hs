@@ -2,16 +2,12 @@
 module Main where
 
 import PlutusLedgerApi.V1
-import PlutusLedgerApi.V1.Scripts
 import UntypedPlutusCore qualified as UPLC
 
-import Codec.Serialise qualified as Serialise (serialise)
 import Common
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
-import Data.ByteString.Lazy as BSL
-import Data.ByteString.Short (toShort)
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -35,13 +31,9 @@ main = benchWith mkDecBM
             -- See Note [Deserialization size limits]
             (unsaturated, _args) = peelDataArguments fullyApplied
 
-            -- we then have to re-encode it
-            bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v unsaturated)
-            -- strictify and "short" the result cbor to create a real `SerialisedScript`
-
-            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
+            -- we then have to re-encode and serialise it
+            benchScript :: SerialisedScript = serialiseUPLC $ UPLC.Program () v unsaturated
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
                 ) benchScript
-
