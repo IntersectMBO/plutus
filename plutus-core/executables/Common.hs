@@ -70,7 +70,8 @@ type UplcProg =
 
 class Executable p where
 
-  -- | Parse a program.
+  -- | Parse a program.  The first argument (normally the file path) describes
+  -- the input stream, the second is the program text.
   parseProgram ::
     String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
 

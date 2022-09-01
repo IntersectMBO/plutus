@@ -78,8 +78,11 @@ term = choice $ map try
     , varTerm
     ]
 
--- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
+-- | Parse a PLC program. The resulting program will have fresh names. The
+-- underlying monad must be capable of handling any parse errors.  The first
+-- argument appears in parser errors and is supposed to describe the origin of
+-- the program (typically a file path); the second argument is the program text
+-- itself.
 parseProgram ::
     (AsParserErrorBundle e, MonadError e m, MonadQuote m)
     => String
