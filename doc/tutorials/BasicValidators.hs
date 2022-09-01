@@ -65,9 +65,8 @@ validateDate :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 -- This is handy since it's more natural to talk about booleans.
 validateDate datum redeemer _ = check $ beforeEnd (unsafeFromBuiltinData datum) (unsafeFromBuiltinData redeemer)
 
--- The 'Validator' type is jsut a wrapper around a bare 'Script' that has the correct type.
-dateValidator :: Validator
-dateValidator = mkValidatorScript $$(compile [|| validateDate ||])
+dateValidator :: Script
+dateValidator = fromCompiledCode $$(compile [|| validateDate ||])
 -- BLOCK4
 validatePayment :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 validatePayment _ _ ctx =

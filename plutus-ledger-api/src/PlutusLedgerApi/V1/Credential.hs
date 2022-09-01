@@ -16,7 +16,7 @@ module PlutusLedgerApi.V1.Credential
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusLedgerApi.V1.Scripts (ValidatorHash)
+import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
@@ -60,7 +60,7 @@ data Credential
     PubKeyCredential PubKeyHash
     -- | The transaction that spends this output must include the validator script and
     -- be accepted by the validator. See `Scripts.ValidatorHash`.
-  | ScriptCredential ValidatorHash
+  | ScriptCredential ScriptHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

@@ -18,8 +18,6 @@ module PlutusLedgerApi.V1.Value(
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
-    , mpsSymbol
-    , currencyMPSHash
     , adaSymbol
     -- ** Token names
     , TokenName(..)
@@ -60,7 +58,6 @@ import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
-import PlutusLedgerApi.V1.Scripts (MintingPolicyHash (..))
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
@@ -88,16 +85,6 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
-
-{-# INLINABLE mpsSymbol #-}
--- | The `CurrencySymbol` of a monetary policy hash
-mpsSymbol :: MintingPolicyHash -> CurrencySymbol
-mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
-
-{-# INLINABLE currencyMPSHash #-}
--- | The minting policy hash of a `CurrencySymbol`.
-currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
-currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.

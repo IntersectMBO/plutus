@@ -17,30 +17,14 @@ module PlutusLedgerApi.V1.Scripts
     , scriptSize
     , fromCompiledCode
     , ScriptError (..)
-    , applyValidator
-    , applyMintingPolicyScript
-    , applyStakeValidatorScript
     , applyArguments
-    -- * Script wrappers
-    , mkValidatorScript
-    , Validator (..)
-    , unValidatorScript
     , Redeemer(..)
     , Datum(..)
-    , mkMintingPolicyScript
-    , MintingPolicy (..)
-    , unMintingPolicyScript
-    , mkStakeValidatorScript
-    , StakeValidator (..)
-    , unStakeValidatorScript
     , Context(..)
     -- * Hashes
     , DatumHash(..)
     , RedeemerHash(..)
     , ScriptHash(..)
-    , ValidatorHash(..)
-    , MintingPolicyHash (..)
-    , StakeValidatorHash (..)
     ) where
 
 import Prelude qualified as Haskell
@@ -62,7 +46,6 @@ import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI
 import PlutusTx.Prelude
 import Prettyprinter
-import Prettyprinter.Extras
 import UntypedPlutusCore qualified as UPLC
 
 -- | A script on the chain. This is an opaque type as far as the chain is concerned.
@@ -153,34 +136,6 @@ applyArguments (Script p) args =
         applied t = PLC.mkIterApp () t termArgs
     in Script $ over UPLC.progTerm applied p
 
-mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
-mkValidatorScript = Validator . fromCompiledCode
-
-unValidatorScript :: Validator -> Script
-unValidatorScript = getValidator
-
-mkMintingPolicyScript :: CompiledCode (BuiltinData -> BuiltinData -> ()) -> MintingPolicy
-mkMintingPolicyScript = MintingPolicy . fromCompiledCode
-
-unMintingPolicyScript :: MintingPolicy -> Script
-unMintingPolicyScript = getMintingPolicy
-
-mkStakeValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> ()) -> StakeValidator
-mkStakeValidatorScript = StakeValidator . fromCompiledCode
-
-unStakeValidatorScript :: StakeValidator -> Script
-unStakeValidatorScript = getStakeValidator
-
--- | 'Validator' is a wrapper around 'Script's which are used as validators in transaction outputs.
-newtype Validator = Validator { getValidator :: Script }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (NFData)
-  deriving Pretty via (PrettyShow Validator)
-
-instance Haskell.Show Validator where
-    show = const "Validator { <script> }"
-
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: BuiltinData  }
   deriving stock (Generic, Haskell.Show)
@@ -203,32 +158,7 @@ instance Serialise Redeemer where
     encode (Redeemer (BuiltinData d)) = encode d
     decode = Redeemer . BuiltinData Haskell.<$> decode
 
--- | 'MintingPolicy' is a wrapper around 'Script's which are used as validators for minting constraints.
-newtype MintingPolicy = MintingPolicy { getMintingPolicy :: Script }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (NFData)
-  deriving Pretty via (PrettyShow MintingPolicy)
-
-instance Haskell.Show MintingPolicy where
-    show = const "MintingPolicy { <script> }"
-
--- | 'StakeValidator' is a wrapper around 'Script's which are used as validators for withdrawals and stake address certificates.
-newtype StakeValidator = StakeValidator { getStakeValidator :: Script }
-  deriving stock (Generic)
-  deriving newtype (Haskell.Eq, Haskell.Ord, Serialise)
-  deriving anyclass (NFData)
-  deriving Pretty via (PrettyShow MintingPolicy)
-
-instance Haskell.Show StakeValidator where
-    show = const "StakeValidator { <script> }"
-
-{- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
+-- | Script runtime representation of a @Digest SHA256@.
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
     deriving
@@ -240,29 +170,7 @@ newtype ScriptHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
-{- | Type representing the /BLAKE2b-224/ hash of a validator. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype ValidatorHash =
-    ValidatorHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
-{- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
+-- | Script runtime representation of a @Digest SHA256@.
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
     deriving
@@ -291,80 +199,12 @@ newtype RedeemerHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
-{- | Type representing the /BLAKE2b-224/ hash of a minting policy. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype MintingPolicyHash =
-    MintingPolicyHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
-{- | Type representing the /BLAKE2b-224/ hash of a stake validator. 28 bytes.
-
-This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
--}
-newtype StakeValidatorHash =
-    StakeValidatorHash Builtins.BuiltinByteString
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
-    deriving anyclass (NFData)
-
 -- | Information about the state of the blockchain and about the transaction
 --   that is currently being validated, represented as a value in 'Data'.
 newtype Context = Context BuiltinData
     deriving newtype (Pretty, Haskell.Show)
 
--- | Apply a 'Validator' to its 'Context', 'Datum', and 'Redeemer'.
-applyValidator
-    :: Context
-    -> Validator
-    -> Datum
-    -> Redeemer
-    -> Script
-applyValidator (Context (BuiltinData valData)) (Validator validator) (Datum (BuiltinData datum)) (Redeemer (BuiltinData redeemer)) =
-    applyArguments validator [datum, redeemer, valData]
-
--- | Apply 'MintingPolicy' to its 'Context' and 'Redeemer'.
-applyMintingPolicyScript
-    :: Context
-    -> MintingPolicy
-    -> Redeemer
-    -> Script
-applyMintingPolicyScript (Context (BuiltinData valData)) (MintingPolicy validator) (Redeemer (BuiltinData red)) =
-    applyArguments validator [red, valData]
-
--- | Apply 'StakeValidator' to its 'Context' and 'Redeemer'.
-applyStakeValidatorScript
-    :: Context
-    -> StakeValidator
-    -> Redeemer
-    -> Script
-applyStakeValidatorScript (Context (BuiltinData valData)) (StakeValidator validator) (Redeemer (BuiltinData red)) =
-    applyArguments validator [red, valData]
-
 makeLift ''ScriptHash
-
-makeLift ''ValidatorHash
-
-makeLift ''MintingPolicyHash
-
-makeLift ''StakeValidatorHash
 
 makeLift ''DatumHash
 

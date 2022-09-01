@@ -79,24 +79,12 @@ module PlutusLedgerApi.V2 (
     -- *** Association maps
     , Map
     , fromList
-    -- *** Newtypes for script/datum types and hash types
-    , Validator (..)
-    , mkValidatorScript
-    , unValidatorScript
-    , ValidatorHash (..)
-    , MintingPolicy (..)
-    , mkMintingPolicyScript
-    , unMintingPolicyScript
-    , MintingPolicyHash (..)
-    , StakeValidator (..)
-    , mkStakeValidatorScript
-    , unStakeValidatorScript
-    , StakeValidatorHash (..)
+    -- *** Newtypes and hash types
+    , ScriptHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)
     , DatumHash (..)
-    , ScriptHash (..)
     -- * Data
     , Data (..)
     , BuiltinData (..)
@@ -121,7 +109,6 @@ import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evalu
 import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
                            assertScriptWellFormed, evaluateScriptCounting, evaluateScriptRestricting,
                            mkEvaluationContext)
-import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.V2.ParamName
