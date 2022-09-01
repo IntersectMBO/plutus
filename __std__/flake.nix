@@ -189,7 +189,7 @@
   #
   #   cell.*organelle*
   #     The cell value gives access to all its organelles:
-  #     e.g.: cell.scripts.build-and-server-read-the-docs-site (only works for code in /nix/scripts)
+  #     e.g.: cell.scripts.serve-read-the-docs-site(only works for code in /nix/scripts)
   #       Alternatively: inputs.cells.doc.scripts.serve-read-the-docs-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
