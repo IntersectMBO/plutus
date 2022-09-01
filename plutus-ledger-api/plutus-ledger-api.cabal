@@ -150,7 +150,6 @@ test-suite plutus-ledger-api-test
     , plutus-core                ^>=1.0
     , plutus-ledger-api
     , plutus-ledger-api-testlib
-    , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit
