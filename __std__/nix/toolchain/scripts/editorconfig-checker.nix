@@ -8,13 +8,14 @@
 inputs.nixpkgs.stdenv.mkDerivation {
   name = "editorconfig-checker";
   
-  src = inputs.cells.toolchain.gitignore-nix.gitignoreSource inputs.self;
+  src = inputs.cells.toolchain.packages.gitignore-nix.gitignoreSource inputs.self;
   
   buildInputs = [inputs.nixpkgs.editorconfig-checker];
 
   installPhase = ''
     mkdir -p "$out/nix-support"
 
+    set -e
     # changing to the directory and then running it gives better output than
     # passing the directory to check, since file names are shorter
     cd $src
