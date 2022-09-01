@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 # This file presents a niv-like interface over the sources listed
 # in a flake.lock.
 { system }:

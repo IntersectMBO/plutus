@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 self: super: {
   # nixpkgs-fmt 1.2.0 breaks indentation of code examples in comments
   nixpkgs-fmt = self.rustPlatform.buildRustPackage rec {

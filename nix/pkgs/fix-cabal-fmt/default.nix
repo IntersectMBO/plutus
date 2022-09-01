@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 { writeShellScriptBin, fd, cabal-fmt }:
 
 writeShellScriptBin "fix-cabal-fmt" ''

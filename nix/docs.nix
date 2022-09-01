@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 { pkgs, plutus }:
 let
   inherit (pkgs) lib;

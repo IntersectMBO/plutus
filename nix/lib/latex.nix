@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 { stdenv, lib, texlive }: {
   # Build a latex derivation using latexmk.
   buildLatex =

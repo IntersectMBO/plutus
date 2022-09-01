@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 { lib, buildPythonPackage, fetchPypi, sphinx }:
 
 buildPythonPackage rec {

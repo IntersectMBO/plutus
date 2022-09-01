@@ -1,5 +1,3 @@
-# TODO(std) Just tagging this file as "done"
-
 # editorconfig-checker-disable-file
 { haddock-combine, haskell, haskell-nix, writeTextFile }:
 let
