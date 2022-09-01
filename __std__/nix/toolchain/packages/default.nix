@@ -62,5 +62,7 @@
 
   stylish-haskell = import ./stylish-haskell.nix organelle;
 
+  gitignore-nix = import ./gitignore-nix.nix organelle;
+
   todo-derivation = import ./todo-derivation.nix organelle;
 }

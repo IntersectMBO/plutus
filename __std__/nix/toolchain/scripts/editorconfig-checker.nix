@@ -1,25 +1,28 @@
 { inputs, cell }:
 
-cell.packages.todo-derivation
+# Runs `editorconfig-checker` on ${src}. If there are errors,
+# TODO(std) original line:
+# they are written to `$out/nix-support/hydra-build-products`
+# TODO(std) new line: (which is right?)
+# they are written to `$out/nix-support/editorconfig-checker.log`
+inputs.nixpkgs.stdenv.mkDerivation {
+  name = "editorconfig-checker";
+  
+  src = inputs.cells.toolchain.gitignore-nix.gitignoreSource inputs.self;
+  
+  buildInputs = [inputs.nixpkgs.editorconfig-checker];
 
+  installPhase = ''
+    mkdir -p "$out/nix-support"
 
-# { runCommand, editorconfig-checker, src }:
+    # changing to the directory and then running it gives better output than
+    # passing the directory to check, since file names are shorter
+    cd $src
+    editorconfig-checker 2>&1 | tee "$out/nix-support/editorconfig-checker.log"
 
-# # Runs `editorconfig-checker` on ${src}. If there are errors,
-# # they are written to `$out/nix-support/hydra-build-products`
-# runCommand "editorconfig-checker"
-# {
-#   buildInputs = [ editorconfig-checker ];
-# } ''
-#   mkdir -p "$out/nix-support"
-
-#   # changing to the directory and then running it gives better output than
-#   # passing the directory to check, since file names are shorter
-#   cd ${src}
-#   editorconfig-checker 2>&1 | tee "$out/nix-support/editorconfig-checker.log"
-
-#   if [ $? -ne 0 ]; then
-#     echo "*** editorconfig-checker found files that don't match the configuration"
-#     exit 1
-#   fi
-# ''
+    if [ $? -ne 0 ]; then
+      echo "*** editorconfig-checker found files that don't match the configuration"
+      exit 1
+    fi
+  '';
+}

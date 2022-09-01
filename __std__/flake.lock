@@ -65,6 +65,22 @@
         "type": "github"
       }
     },
+    "gitignore-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1660459072,
+        "narHash": "sha256-8DFJjXG8zqoONA1vXtgeKXy68KdJL5UaXR8NtVMUbx8=",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "a20de23b925fd8264fd7fad6454652e142fd7f73",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "type": "github"
+      }
+    },
     "hackage-nix": {
       "flake": false,
       "locked": {
@@ -172,6 +188,7 @@
     },
     "root": {
       "inputs": {
+        "gitignore-nix": "gitignore-nix",
         "hackage-nix": "hackage-nix",
         "haskell-nix": "haskell-nix",
         "nixpkgs": "nixpkgs",
