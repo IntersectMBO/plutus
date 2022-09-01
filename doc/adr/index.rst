@@ -1,10 +1,10 @@
-Architectural Decision Records
-==============================
+Architectural decision records
+====================================
 
 We document our architectural and design decisions for all of our components.
 In order to do that, there is practice called architectural decision records ("ADR"),
 that we can integrate into our workflow.
-An architectural decision record (ADR) is a document that captures an important architectural decision made along with its context and consequences.
+An ADR is a document that captures an important architectural decision made along with its context and consequences.
 
 The goals are:
 
