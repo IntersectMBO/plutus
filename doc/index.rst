@@ -9,8 +9,7 @@ scripts on Cardano; tooling and compilers for compiling various intermediate
 languages into Plutus Core; and Plutus Tx, the compiler that compiles the Haskell 
 source code into Plutus Core to form the on-chain part of a contract application. 
 All of this is used in combination to write Plutus Core scripts that run on the 
-Cardano blockchain. The Cardano ledger is able to interact with compiled Plutus Core 
-scripts through the ledger interface. 
+Cardano blockchain. 
 
 This documentation introduces the Plutus Core programming language and programming 
 with Plutus Tx. It includes explanations, tutorials, how-to instructions, 
@@ -20,12 +19,8 @@ The intended audience of this documentation includes people who want to implemen
 smart contracts on the Cardano blockchain. This involves using Plutus Tx to write 
 scripts, requiring some knowledge of the Haskell programming language. 
 
-.. note::
-   See the `public Plutus libraries documentation <https://playground.plutus.iohkdev.io/doc/haddock/>`_ 
-   to access Haddock-generated documentation of all the code. 
-
 This guide is also meant for certification companies, certification auditors, 
-and people who need to reference specifications. See, for example: 
+and people who need an accurate specification. See, for example: 
 
 * the `Cardano Ledger Specification <https://github.com/input-output-hk/cardano-ledger#cardano-ledger>`_ and 
 * the `Plutus Core Specification <https://github.com/input-output-hk/plutus#specifications-and-design>`_. 
