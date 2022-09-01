@@ -94,7 +94,7 @@ runCommand "haddock-join"
       ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
       "doc-index.json" \
       $file \
-      > /tmp/doc-index.json
-    mv /tmp/doc-index.json "doc-index.json"
+      > doc-index.json.tmp
+    mv doc-index.json.tmp "doc-index.json"
   done
 ''
