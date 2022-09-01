@@ -20,6 +20,10 @@ The intended audience of this documentation includes people who want to implemen
 smart contracts on the Cardano blockchain. This involves using Plutus Tx to write 
 scripts, requiring some knowledge of the Haskell programming language. 
 
+.. note::
+   See the `public Plutus libraries documentation <https://playground.plutus.iohkdev.io/doc/haddock/>`_ 
+   to access Haddock-generated documentation of all the code. 
+
 This guide is also meant for certification companies, certification auditors, 
 and people who need to reference specifications. See, for example: 
 
@@ -33,13 +37,6 @@ The `Plutus repository <https://github.com/input-output-hk/plutus>`_ contains
 the implementation, specification, and mechanized metatheory of Plutus Core. 
 It also contains the Plutus Tx compiler and the libraries, such as ``PlutusTx.List``, 
 for writing Haskell code that can be compiled to Plutus Core. 
-
-Public Plutus libraries documentation
--------------------------------------------
-
-See also the `public Plutus libraries documentation <https://playground.plutus.iohkdev.io/doc/haddock/>`_ 
-to access Haddock-generated documentation of all the code. 
-
 
 .. toctree::
    :caption: Explore Plutus
