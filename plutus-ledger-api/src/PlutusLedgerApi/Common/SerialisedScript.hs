@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
-    , serialiseScript
+    , serialiseCompiledCode
     , serialiseUPLC
     , deserialiseUPLC
     , scriptCBORDecoder
@@ -85,8 +85,8 @@ deserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
   where
     unSerialiseViaFlat (SerialiseViaFlat a) = a
 
-serialiseScript :: forall a. CompiledCode a -> SerialisedScript
-serialiseScript = serialiseUPLC . toNameless . getPlc
+serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
+serialiseCompiledCode = serialiseUPLC . toNameless . getPlc
     where
         toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
                 -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()

@@ -84,7 +84,7 @@ validatePayment _ _ ctx =
 --- BLOCK5
 -- We can serialize a 'Validator' directly to CBOR
 serialisedDateValidator :: SerialisedScript
-serialisedDateValidator = serialiseScript dateValidator
+serialisedDateValidator = serialiseCompiledCode dateValidator
 
 -- The serialized forms can be written or read using normal Haskell IO functionality.
 showSerialised :: IO ()

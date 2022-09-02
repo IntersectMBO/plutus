@@ -4,7 +4,7 @@
 module PlutusLedgerApi.V3 (
     -- * Scripts
       SerialisedScript
-    , serialiseScript
+    , serialiseCompiledCode
     , serialiseUPLC
     , deserialiseUPLC
     -- * Validating scripts

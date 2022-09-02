@@ -9,7 +9,7 @@ module PlutusLedgerApi.Common
     , assertWellFormedCostModelParams
     , toMachineParameters
     , SerialisedScript
-    , serialiseScript
+    , serialiseCompiledCode
     , serialiseUPLC
     , deserialiseUPLC
     , VerboseMode (..)
