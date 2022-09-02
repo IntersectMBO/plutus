@@ -23,21 +23,21 @@ To update or add test outputs, use the accept test option of the tests. E.g., to
 
 `cabal test haskell-conformance --test-options=--accept`
 
-There is also an executable (`add-test-output`) for adding test output to a specific directory:
+There is also an executable (`test-utils`) for adding/updating test output to a specific directory:
 
 E.g., run
 
-`cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing`
+`cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --missing`
 
 to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
 
 Or, to update and add outputs to all files in the /uplc directory, run
 
-cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all
+cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --all
 
 For the manual, run:
 
-`cabal run add-test-output -- -h`
+`cabal run test-utils -- -h`
 
 ## Executable for Haskell implementation
 

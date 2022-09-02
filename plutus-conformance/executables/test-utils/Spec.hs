@@ -113,12 +113,12 @@ helpText = string $ unlines
   , "or debug (for debugging failed tests)."
   , "(4) whether to write output files to all inputs or only the ones missing output files."
   , "E.g. run \n"
-  , "cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing \n"
+  , "cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --missing \n"
   , "to have the executable search for files with extension `.uplc`"
   , "in the /uplc directory that are missing output files."
   , "It will evaluate and create output files for them."
   , "Or run \n"
-  , "cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all \n"
+  , "cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --all \n"
   , "to update all files."
   ]
 
