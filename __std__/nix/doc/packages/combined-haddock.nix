@@ -2,7 +2,7 @@
 
 inputs.cells.toolchain.packages.todo-derivation
 
-# TODO(std) need haskell-nix for this 
+# TODO(std) need haskell-nix for this
 
 # # editorconfig-checker-disable-file
 # { haddock-combine, haskell, haskell-nix, writeTextFile }:

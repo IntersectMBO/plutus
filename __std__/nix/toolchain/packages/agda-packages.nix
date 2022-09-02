@@ -2,7 +2,7 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) we need haskell-nix for this 
+# TODO(std) we need haskell-nix for this
 
 # # We want to keep control of which version of Agda we use, so we supply our own and override
 # # the one from nixpkgs.

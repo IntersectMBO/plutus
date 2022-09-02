@@ -2,7 +2,7 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) we need haskell-nix for this 
+# TODO(std) we need haskell-nix for this
 
 # # TODO Remove this patch once the PR gets merged upstream.
 # # See https://github.com/phadej/cabal-fmt/pull/45

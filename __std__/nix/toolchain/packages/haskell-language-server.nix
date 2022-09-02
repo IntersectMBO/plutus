@@ -2,7 +2,7 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) we need haskell-nix for this 
+# TODO(std) we need haskell-nix for this
 
 # hlsProject = haskell-nix.cabalProject' {
 #   # See https://github.com/haskell/haskell-language-server/issues/411.

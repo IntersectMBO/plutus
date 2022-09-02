@@ -2,7 +2,7 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) we need stylish-haskell for this 
+# TODO(std) we need stylish-haskell for this
 
 # # Configure project pre-commit hooks
 # pre-commit-check = nix-pre-commit-hooks.run {
