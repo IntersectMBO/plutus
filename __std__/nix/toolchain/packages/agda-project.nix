@@ -2,6 +2,9 @@
 
 cell.packages.todo-derivation
 
+# TODO(std) we need haskell-nix for this 
+
+
 # agdaProject = haskell-nix.hackage-project {
 #   name = "Agda";
 #   version = "2.6.2.1";

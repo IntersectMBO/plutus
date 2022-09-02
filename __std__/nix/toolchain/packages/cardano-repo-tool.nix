@@ -2,6 +2,8 @@
 
 cell.packages.todo-derivation
 
+# TODO(std) we need haskell-nix for this 
+
 # cardanoRepoToolProject = haskell-nix.cabalProject' {
 #   src = sources.cardano-repo-tool;
 #   inherit compiler-nix-name index-state;

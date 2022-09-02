@@ -42,6 +42,8 @@
 
   nixpkgs-fmt = import ./nixpkgs-fmt.nix organelle;
 
+  pre-commit-check = import ./pre-commit-check.nix organelle;
+
   repo-root = import ./repo-root.nix organelle;
 
   sphinx-markdown-tables = import ./sphinx-markdown-tables.nix organelle;

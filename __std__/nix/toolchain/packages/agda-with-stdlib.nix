@@ -2,6 +2,8 @@
 
 cell.packages.todo-derivation
 
+# TODO(std) we need haskell-nix for this 
+
 # agdaWithStdlib =
 #   # Need a newer version for 2.6.2 compatibility
 #   let stdlib = agdaPackages.standard-library.overrideAttrs (oldAtts: rec {

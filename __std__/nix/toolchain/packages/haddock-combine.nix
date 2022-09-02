@@ -2,6 +2,8 @@
 
 cell.packages.todo-derivation
 
+# TODO(std) we need haskell-nix for this 
+
 # { runCommand, lib, ghc, jq, sphinxcontrib-haddock }:
 # { hspkgs
 #   # Haskell packages to make documentation for. Only those with a "doc" output will be used.
