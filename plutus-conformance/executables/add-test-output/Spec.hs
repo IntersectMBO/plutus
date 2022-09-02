@@ -1,12 +1,12 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-{- | This executable is for easy addition of tests. When run with the option `-- --missing`,
+{- | This executable is for
+(1) easy addition of tests: When run with the option `-- --missing`,
 output files will be added to all tests that had no output files.
 You can specify to add outputs to all input files with `-- --all`.
 You are advised to manually check that the outputs are correct.
-In other parts of the codebase we use golden tests with the `accept` test option turned on.
-Here we use an executable for easier customization.
+(2) debugging failed tests: choose the `debug` option and ...TODO
  -}
 
 module Main
@@ -44,6 +44,21 @@ dir =
   strArgument
     (metavar "DIR" <> help "The directory the input files are in." )
 
+data Feature =
+  GenTestOutput Runner
+  | Debug
+
+featureReader :: String -> Either String Feature
+featureReader "eval" = Right $ GenTestOutput Eval
+featureReader "typecheck" = Right $ GenTestOutput Typecheck
+featureReader "debug" = Right Debug
+featureReader inp =
+  Left
+    ("Unsupported feature " <> show inp <>
+        ". Please choose either eval (for generating evaluation test outputs), " <>
+        "or typecheck (for generating typechecking test outputs), " <>
+        "or debug (for debugging failed tests).")
+
 data Runner =
   Eval
   | Typecheck
@@ -58,7 +73,8 @@ runnerReader :: String -> Either String Runner
 runnerReader "eval" = Right Eval
 runnerReader "typecheck" = Right Typecheck
 runnerReader inp =
-  Left ("Unsupported test " <> show inp <>
+  Left
+    ("Unsupported test " <> show inp <>
         ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests).")
 
 data MissingOrAll =
@@ -92,7 +108,9 @@ helpText = string $ unlines
   , "(1) file extension to be searched"
   , "(2) directory to be searched"
   , "(3) the action to run the input files through;"
-  , "eval (for evaluation tests) or typecheck (for typechecking tests)."
+  , "eval (for evaluation tests),"
+  , "or typecheck (for typechecking tests),"
+  , "or debug (for debugging failed tests)."
   , "(4) whether to write output files to all inputs or only the ones missing output files."
   , "E.g. run \n"
   , "cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing \n"
