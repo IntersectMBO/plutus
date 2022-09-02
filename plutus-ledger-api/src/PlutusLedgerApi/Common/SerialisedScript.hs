@@ -60,7 +60,7 @@ we only perform it in V2 and above.
 -- | Scripts to the ledger are serialised bytestrings.
 type SerialisedScript = ShortByteString
 
-{-| Note [Using Flat for serialsing/deserialising Script]
+{-| Note [Using Flat for serialising/deserialising Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.
@@ -75,7 +75,7 @@ for CBOR's ability to self-describe it's format.
 
 serialiseUPLC :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> SerialisedScript
 serialiseUPLC =
-    -- See Note [Using Flat for serialsing/deserialising Script]
+    -- See Note [Using Flat for serialising/deserialising Script]
     -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
     -- about introducing a working version
     toShort . BSL.toStrict . serialise . SerialiseViaFlat
