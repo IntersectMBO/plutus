@@ -38,7 +38,7 @@ _: {
     inputs.nixpkgs.zlib
   ]
   ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin)
-    [ 
+    [
       # TODO(std) uncomment once we have overlayed R and R-packages
       # cell.packages.r-packages.plotly
       # cell.packages.r-lang

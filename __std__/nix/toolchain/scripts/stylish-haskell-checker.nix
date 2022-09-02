@@ -2,6 +2,8 @@
 
 cell.packages.todo-derivation
 
+# TODO(std) need stylish-haskell for this 
+
 # { runCommand, fixStylishHaskell, src, lib, diffutils, glibcLocales }:
 # let
 #   # just haskell sources and the stylish-haskell config file
