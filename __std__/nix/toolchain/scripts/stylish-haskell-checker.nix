@@ -2,7 +2,7 @@
 
 cell.packages.todo-derivation
 
-# TODO(std) need stylish-haskell for this 
+# TODO(std) need stylish-haskell for this
 
 # { runCommand, fixStylishHaskell, src, lib, diffutils, glibcLocales }:
 # let
