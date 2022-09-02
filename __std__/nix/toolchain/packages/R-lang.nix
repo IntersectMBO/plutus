@@ -1,5 +1,7 @@
 { inputs, cell }:
 
+# TODO(std) we want this to be an overlay 
+
 let pkgs = inputs.nixpkgs; in
 
 pkgs.R.overrideAttrs (oldAttrs: {

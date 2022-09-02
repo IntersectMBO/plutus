@@ -1,4 +1,4 @@
 { inputs, cell }@organelle:
 {
-  haskell-shell = import ./haskell-shell.nix organelle;
+  plutus-shell = import ./plutus-shell.nix organelle;
 }
