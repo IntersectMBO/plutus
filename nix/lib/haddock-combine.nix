@@ -18,7 +18,7 @@ runCommand "haddock-join"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
-  # FIXME latest timeout log https://hydra.iohk.io/build/18701775/nixlog/1
+  # FIXME l 
   echo TODO > $out
   exit 0
 
@@ -98,7 +98,7 @@ runCommand "haddock-join"
       ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
       "doc-index.json" \
       $file \
-      > doc-index.json.tmp
-    mv doc-index.json.tmp "doc-index.json"
+      > /tmp/doc-index.json
+    mv /tmp/doc-index.json "doc-index.json"
   done
 ''
