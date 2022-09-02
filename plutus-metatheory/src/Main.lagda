@@ -153,9 +153,9 @@ postulate
 
 {-# COMPILE GHC parse = runQuoteT . parseProgram #-}
 {-# COMPILE GHC parseU = runQuoteT . U.parseProgram #-}
-{-# COMPILE GHC parseTm = runQuoteT . parseTerm  #-}
-{-# COMPILE GHC parseTy = runQuoteT . parseType  #-}
-{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm  #-}
+{-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
+{-# COMPILE GHC parseTy = runQuoteT . parseType #-}
+{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
