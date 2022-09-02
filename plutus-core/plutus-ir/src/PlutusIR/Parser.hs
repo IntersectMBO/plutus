@@ -15,7 +15,7 @@ module PlutusIR.Parser
     ) where
 
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
-import PlutusCore.Parser hiding (parseProgram)
+import PlutusCore.Parser hiding (parseProgram, program)
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
@@ -130,13 +130,11 @@ program = whitespace >> do
     return prog
 
 -- | Parse a PIR program. The resulting program will have fresh names. The
--- underlying monad must be capable of handling any parse errors.  The first
--- argument appears in parser errors and is supposed to describe the origin of
--- the program (typically a file path); the second argument is the program text
--- itself.
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.
 parseProgram ::
     (AsParserErrorBundle e, MonadError e m, MonadQuote m)
-    => String
-    -> Text
+    => Text
     -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseProgram inputName = parse program inputName
+parseProgram = parseGen program

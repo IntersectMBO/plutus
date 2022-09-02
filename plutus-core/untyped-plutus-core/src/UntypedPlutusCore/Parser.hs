@@ -26,7 +26,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)
-import PlutusCore.Parser hiding (parseProgram, parseTerm)
+import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 
 -- Parsers for UPLC terms
 
@@ -84,23 +84,20 @@ parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -
 parseTerm = parseGen term
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The
--- underlying monad must be capable of handling any parse errors.  The first
--- argument appears in parser errors and is supposed to describe the origin of
--- the program (typically a file path); the second argument is the program text
--- itself.
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.`
 parseProgram ::
     (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m)
-    => String
-    -> Text
+    => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseProgram inputName = parse program inputName
+parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
     (AsParserErrorBundle e, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
-    => String
-    -> Text
+    => Text
     -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped inputName = through (checkProgram (const True)) <=< rename <=< parseProgram inputName
+parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram

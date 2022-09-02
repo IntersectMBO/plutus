@@ -43,7 +43,7 @@ shownEvaluationFailure = "evaluation failure"
 parseTxt ::
     T.Text
     -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
-parseTxt resTxt = runQuoteT $ UPLC.parseProgram "conformance-tests" resTxt
+parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | The input/output UPLC program type.
 type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()

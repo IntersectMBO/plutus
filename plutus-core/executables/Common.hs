@@ -24,6 +24,7 @@ import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
 import PlutusCore.Generators.Test qualified as Gen
 import PlutusCore.Normalize (normalizeType)
+import PlutusCore.Parser qualified as PLC (program)
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Rename (rename)
 import PlutusCore.StdLib.Data.Bool qualified as StdLib
@@ -50,7 +51,7 @@ import Prettyprinter ((<+>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
+import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
@@ -73,7 +74,7 @@ class Executable p where
 
   -- | Parse a program.  The first argument (normally the file path) describes
   -- the input stream, the second is the program text.
-  parseProgram ::
+  parseNamedProgram ::
     String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
@@ -93,7 +94,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram inputName = PLC.runQuoteT . PLC.parseProgram inputName
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -104,7 +105,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram inputName = PLC.runQuoteT . UPLC.parseProgram inputName
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -287,7 +288,7 @@ parseInput ::
 parseInput inp = do
     contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram (show inp) contents of
+    case parseNamedProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
       Left (ParseErrorB err) ->
           errorWithoutStackTrace $ errorBundlePretty err

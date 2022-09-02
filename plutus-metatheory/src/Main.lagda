@@ -151,8 +151,8 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = runQuoteT . parseProgram  "plutus-metatheory" #-}
-{-# COMPILE GHC parseU = runQuoteT . U.parseProgram  "plutus-metatheory" #-}
+{-# COMPILE GHC parse = runQuoteT . parseProgram #-}
+{-# COMPILE GHC parseU = runQuoteT . U.parseProgram #-}
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm  #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType  #-}
 {-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm  #-}

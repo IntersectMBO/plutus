@@ -191,7 +191,7 @@ propParser = property $ do
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
-        parseProg = runQuoteT . parseProgram "test"
+        parseProg = runQuoteT . parseProgram
 
 type TestFunction = T.Text -> Either DefaultError T.Text
 
@@ -215,7 +215,7 @@ parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
     T.Text
     -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram "test"
+parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
 printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
         MonadError e m)
@@ -232,7 +232,7 @@ testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 format
     :: (AsParserErrorBundle e, MonadError e m)
     => PrettyConfigPlc -> T.Text -> m T.Text
-format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram "test")
+format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 testsGolden :: [FilePath] -> TestTree
 testsGolden
