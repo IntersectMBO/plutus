@@ -191,7 +191,7 @@ propParser = property $ do
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
-        parseProg p = runQuoteT $ parseProgram p
+        parseProg = runQuoteT . parseProgram
 
 type TestFunction = T.Text -> Either DefaultError T.Text
 
