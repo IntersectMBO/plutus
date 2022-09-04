@@ -63,7 +63,8 @@ getSpineToTuple ann spine = liftQuote $ do
 -- > tupleTypeTermAt _ i (Tuple [a0, ... , an] term) =
 -- >     (ai, term {ai} (\(x0 : a0) ... (xn : an) -> xi))
 tupleTypeTermAt
-    :: (TermLike term TyName Name uni fun, MonadQuote m)
+    :: forall term uni fun ann m.
+       (TermLike term TyName Name uni fun, MonadQuote m)
     => ann -> Int -> Tuple term uni ann -> m (Type TyName uni ann, term ann)
 tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
     args <- ifor elTys $ \i ty -> do
@@ -104,11 +105,13 @@ tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTe
 -- >         in body
 -- >     ) term
 bindTuple
-    :: (TermLike term TyName Name uni fun, MonadQuote m)
+    :: forall term uni fun ann m.
+       (TermLike term TyName Name uni fun, MonadQuote m)
     => ann -> [Name] -> Tuple term uni ann -> term ann -> m (term ann)
 bindTuple ann names (Tuple elTys term) body = liftQuote $ do
     tup <- freshName "tup"
-    let tupVar = Tuple elTys $ var ann tup
+    let tupVar :: TermLike term TyName Name uni fun => Tuple term uni ann
+        tupVar = Tuple elTys $ var ann tup
     tupTy <- getTupleType ann tupVar
     tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
     pure $ apply ann (lamAbs ann tup tupTy $ foldr (termLet ann) body tupDefs) term
