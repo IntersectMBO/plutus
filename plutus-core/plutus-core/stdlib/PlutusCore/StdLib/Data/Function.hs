@@ -355,7 +355,7 @@ getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod
 -- >                 \(fN1 : a1 -> b1) ... (fNn : an -> bn) -> choose f1 ... fn
 getMutualFixOf
     :: (TermLike term TyName Name uni fun)
-    => ann -> term ann -> [FunctionDef term TyName Name uni fun ann] -> Quote (Tuple term uni ann)
+    => ann -> term ann -> [FunctionDef term TyName Name uni fun ann] -> Quote (Tuple term uni fun ann)
 getMutualFixOf ann fixn funs = do
     let funTys = map functionDefToType funs
 

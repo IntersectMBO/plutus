@@ -79,7 +79,7 @@ compileRecTerms body bs = do
 mkFixpoint
     :: forall m e uni fun a . Compiling m e uni fun a
     => NonEmpty (TermDef TyName Name uni fun (Provenance a))
-    -> DefT SharedName uni fun (Provenance a) m (Tuple.Tuple (Term TyName Name uni fun) uni (Provenance a))
+    -> DefT SharedName uni fun (Provenance a) m (Tuple.Tuple (Term TyName Name uni fun) uni fun (Provenance a))
 mkFixpoint bs = do
     p0 <- lift getEnclosing
 

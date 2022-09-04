@@ -28,16 +28,16 @@ import Control.Lens.Indexed (ifor, itraverse)
 import Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.
-data Tuple term uni ann where
+data Tuple term uni fun ann where
     Tuple :: TermLike term TyName Name uni fun =>
         { _tupleElementTypes :: [Type TyName uni ann] -- ^ The types of elements of a tuple.
         , _tupleTerm         :: term ann              -- ^ A term representation of the tuple.
-        } -> Tuple term uni ann
+        } -> Tuple term uni fun ann
 
 -- | Get the type of a 'Tuple'.
 --
 -- > getTupleType _ (Tuple [a1, ... , an] _) = all r. (a1 -> ... -> an -> r) -> r
-getTupleType :: MonadQuote m => ann -> Tuple term uni ann -> m (Type TyName uni ann)
+getTupleType :: MonadQuote m => ann -> Tuple term uni fun ann -> m (Type TyName uni ann)
 getTupleType ann (Tuple elTys _) = liftQuote $ do
     r <- freshTyName "r"
     let caseTy = mkIterTyFun ann elTys $ TyVar ann r
@@ -49,7 +49,7 @@ getTupleType ann (Tuple elTys _) = liftQuote $ do
 -- >     Tuple [a1, ... , an] (/\(r :: *) -> \(f :: a1 -> ... -> an -> r) -> f x1 ... xn)
 getSpineToTuple
     :: (TermLike term TyName Name uni fun, MonadQuote m)
-    => ann -> [(Type TyName uni ann, term ann)] -> m (Tuple term uni ann)
+    => ann -> [(Type TyName uni ann, term ann)] -> m (Tuple term uni fun ann)
 getSpineToTuple ann spine = liftQuote $ do
     r <- freshTyName "r"
     f <- freshName "f"
@@ -65,7 +65,7 @@ getSpineToTuple ann spine = liftQuote $ do
 tupleTypeTermAt
     :: forall term uni fun ann m.
        (TermLike term TyName Name uni fun, MonadQuote m)
-    => ann -> Int -> Tuple term uni ann -> m (Type TyName uni ann, term ann)
+    => ann -> Int -> Tuple term uni fun ann -> m (Type TyName uni ann, term ann)
 tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
     args <- ifor elTys $ \i ty -> do
         n <- freshName $ "arg_" <> showText i
@@ -82,7 +82,7 @@ tupleTypeTermAt ann ind (Tuple elTys term) = liftQuote $ do
 -- | Get the ith element of a 'Tuple'.
 tupleTermAt
     :: (TermLike term TyName Name uni fun, MonadQuote m)
-    => ann -> Int -> Tuple term uni ann -> m (term ann)
+    => ann -> Int -> Tuple term uni fun ann -> m (term ann)
 tupleTermAt ann ind tuple = snd <$> tupleTypeTermAt ann ind tuple
 
 -- | Get the ith element of a 'Tuple' as a 'TermDef'.
@@ -91,7 +91,7 @@ tupleDefAt
     => ann
     -> Int
     -> Name
-    -> Tuple term uni ann
+    -> Tuple term uni fun ann
     -> m (TermDef term TyName Name uni ann)
 tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTermAt ann ind tuple
 
@@ -107,10 +107,10 @@ tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTe
 bindTuple
     :: forall term uni fun ann m.
        (TermLike term TyName Name uni fun, MonadQuote m)
-    => ann -> [Name] -> Tuple term uni ann -> term ann -> m (term ann)
+    => ann -> [Name] -> Tuple term uni fun ann -> term ann -> m (term ann)
 bindTuple ann names (Tuple elTys term) body = liftQuote $ do
     tup <- freshName "tup"
-    let tupVar :: TermLike term TyName Name uni fun => Tuple term uni ann
+    let tupVar :: Tuple term uni fun ann
         tupVar = Tuple elTys $ var ann tup
     tupTy <- getTupleType ann tupVar
     tupDefs <- itraverse (\i name -> tupleDefAt ann i name tupVar) names
