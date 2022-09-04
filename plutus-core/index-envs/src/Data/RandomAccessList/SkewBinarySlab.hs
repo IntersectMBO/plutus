@@ -16,7 +16,7 @@ module Data.RandomAccessList.SkewBinarySlab
 import Data.Bits (unsafeShiftR)
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
-import GHC.Exts
+import GHC.Exts (IsList, toList)
 
 import Data.RandomAccessList.Class qualified as RAL
 
