@@ -21,7 +21,7 @@ runCommand "haddock-join"
   # FIXME
   # https://input-output.atlassian.net/browse/PLT-789
   # https://hydra.iohk.io/build/18701775/nixlog/1
-  echo TODO > $out 
+  echo TODO > $out
   exit 0
 
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
