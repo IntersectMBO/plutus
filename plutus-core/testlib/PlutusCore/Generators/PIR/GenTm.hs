@@ -199,7 +199,7 @@ getUniques = do
       x <- genFreshName "x"
       sizeSplit 1 7 (maybe (genType Star) return ma)
                     --      v--- LOOK HERE!
-                    (\ a -> bindTmName x a . noEscape $ genTerm mb) $ \ a (b, body) ->
+                    (\ a -> bindTmName x a . withNoEscape $ genTerm mb) $ \ a (b, body) ->
                     --      ^--- LOOK HERE!
                     TyFun () a b, LamAbs () x a body)
    ```
