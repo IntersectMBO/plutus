@@ -36,6 +36,7 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
 import Data.Foldable (for_)
+import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
@@ -49,6 +50,7 @@ import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.Options
 
 main :: IO ()
 main = do
@@ -56,7 +58,14 @@ main = do
     rwFiles <- findByExtension [".plc"] "plutus-core/test/scopes"
     typeFiles <- findByExtension [".plc"] "plutus-core/test/types"
     typeErrorFiles <- findByExtension [".plc"] "plutus-core/test/type-errors"
-    defaultMain (allTests plcFiles rwFiles typeFiles typeErrorFiles)
+    defaultMainWithIngredients defaultIngredientsExtra
+        (allTests plcFiles rwFiles typeFiles typeErrorFiles)
+
+ where
+     defaultIngredientsExtra =
+         includingOptions [Option $ Proxy @NEAT.GenMode, Option $ Proxy @NEAT.GenDepth]
+         : defaultIngredients
+
 
 compareName :: Name -> Name -> Bool
 compareName = (==) `on` _nameText
@@ -276,5 +285,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , test_costModelInterface
     , CBOR.DataStability.tests
     , Check.tests
-    , NEAT.tests NEAT.defaultGenOptions
+    , NEAT.tests
     ]
