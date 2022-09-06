@@ -1,19 +1,15 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | This executable is for
-(1) easy addition of tests: When run with the option `-- --missing`,
-output files will be added to all tests that had no output files.
-You can specify to add outputs to all input files with `-- --all`.
-You are advised to manually check that the outputs are correct.
-(2) debugging failed tests: choose the `debug` option and ...TODO
+(1) easy addition/updates of tests of a chosen directory.
+One can also use the golden test accept option to update all tests in a test suite.
+(2) debugging failed tests (Agda UPLC evaluator)
  -}
 
 module Main
     ( main
     ) where
 
-import Control.Monad (filterM)
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
 import Options.Applicative
@@ -21,16 +17,18 @@ import Options.Applicative.Help.Pretty (Doc, string)
 import PlutusConformance.Common
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
-import System.Directory (doesFileExist)
 import Test.Tasty.Golden (findByExtension)
 
 -- |  The arguments to the executable.
 data Args = MkArgs
-  { _argExt       :: String -- ^ file extension to be searched
-  , _argDir       :: FilePath -- ^ directory to be searched
-  , _argRunner    :: Runner
-  -- ^ the action to run the input files through; eval (for evaluation tests) or typecheck (for typechecking tests)
-  , _allOrMissing :: MissingOrAll -- ^ whether to write all output files or only the ones with missing outputs.
+  { _argExt     :: String -- ^ file extension to be searched
+  , _argDir     :: FilePath -- ^ directory to be searched
+  -- | the action to run the input files through;
+  -- eval (for updating evaluation tests)
+  -- or typecheck (for updating typechecking tests)
+  -- or debug (for debugging the Agda UPLC evaluator)
+  , _argFeature :: Feature
+
   }
 
 ext :: Parser String
@@ -48,9 +46,17 @@ data Feature =
   GenTestOutput Runner
   | Debug
 
+feature :: Parser Feature
+feature = argument
+  (eitherReader featureReader)
+  (metavar "FEATURE" <>
+    help ("The feature you want: Either \"eval\" or \"typecheck\" to generate test outputs," <>
+    " or \"debug\" for debugging the Agda UPLC evaluator." ))
+
 featureReader :: String -> Either String Feature
 featureReader "eval" = Right $ GenTestOutput Eval
 featureReader "typecheck" = Right $ GenTestOutput Typecheck
+-- currently we can only debug the agda implementation, may add others later
 featureReader "debug" = Right Debug
 featureReader inp =
   Left
@@ -64,91 +70,63 @@ data Runner =
   | Typecheck
   deriving stock (Show)
 
-runner :: Parser Runner
-runner = argument
-  (eitherReader runnerReader)
-  (metavar "RUNNER" <> help "The action to apply to the input files that generate the outputs. Either eval or typecheck." )
-
-runnerReader :: String -> Either String Runner
-runnerReader "eval" = Right Eval
-runnerReader "typecheck" = Right Typecheck
-runnerReader inp =
-  Left
-    ("Unsupported test " <> show inp <>
-        ". Please choose either eval (for evaluation tests) or typecheck (for typechecking tests).")
-
-data MissingOrAll =
-  Missing
-  | All
-
-missing :: Parser MissingOrAll
-missing =
-  flag' Missing ( long "missing"
-    <> short 'm'
-    <> help "only add missing outputs" )
-
-allInputs :: Parser MissingOrAll
-allInputs =
-  flag' All ( long "all"
-    <> short 'a'
-    <> help "add outputs to all input files" )
-
-allOrMissing :: Parser MissingOrAll
-allOrMissing = missing <|> allInputs
-
 args :: ParserInfo Args
-args = info ((MkArgs <$> ext <*> dir <*> runner <*> allOrMissing) <**> helper)
+args = info ((MkArgs <$> ext <*> dir <*> feature) <**> helper)
   -- using progDescDoc instead of progDesc because progDesc messes up the formatting.
   (fullDesc <> progDescDoc (Just helpText))
 
 helpText :: Doc
 helpText = string $ unlines
   ["This program adds test outputs to specified inputs."
-  , "To run the program, input the following 4 arguments:"
+  , "To run the program, input the following 3 arguments:"
   , "(1) file extension to be searched"
   , "(2) directory to be searched"
   , "(3) the action to run the input files through;"
   , "eval (for evaluation tests),"
   , "or typecheck (for typechecking tests),"
   , "or debug (for debugging failed tests)."
-  , "(4) whether to write output files to all inputs or only the ones missing output files."
   , "E.g. run \n"
-  , "cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --missing \n"
+  , "cabal run test-utils .uplc plutus-conformance/test-cases/uplc/ eval -- --missing \n"
   , "to have the executable search for files with extension `.uplc`"
-  , "in the /uplc directory that are missing output files."
+  , "in the /uplc directory."
   , "It will evaluate and create output files for them."
-  , "Or run \n"
-  , "cabal run test-utils .uplc plutus-conformance/uplc/ eval -- --all \n"
-  , "to update all files."
   ]
 
 main :: IO ()
 main = do
-    MkArgs extension directory run fileOpt <- customExecParser (prefs showHelpOnEmpty) args
-    allInputFiles <- findByExtension [extension] directory
-    inputFiles <-
-      case fileOpt of
-        Missing -> filterM (\testIn -> not <$> doesFileExist (testIn <> ".expected")) allInputFiles
-        All     -> pure allInputFiles
-    case run of
-      Eval ->
-        for_ inputFiles $ \inputFile -> do
-                  inputTxt <- T.readFile inputFile
-                  let parsed = parseTxt inputTxt
-                      outFilePath = inputFile <> ".expected"
-                  case parsed of
-                    Left (ParseErrorB _) -> do -- specifying parsed to ParserError for the compiler
-                      -- warn the user that the file failed to parse
-                      putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
-                      T.writeFile outFilePath shownParseError
-                    Right pro -> do
-                      case evalUplcProg (() <$ pro) of
-                        (Just prog) -> do
-                          T.writeFile outFilePath (render $ pretty prog)
-                          putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
-                        Nothing      -> do
-                          -- warn the user that the file failed to evaluate
-                          T.writeFile outFilePath shownEvaluationFailure
-                          putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
-      Typecheck ->
-        putStrLn "typechecking has not been implemented yet. Only evaluation tests (eval) are supported."
+    MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
+    inputFiles <- findByExtension [extension] directory
+    for_ inputFiles $ \inputFile -> do
+      inputTxt <- T.readFile inputFile
+      let parsed = parseTxt inputTxt
+          outFilePath = inputFile <> ".expected"
+      case parsed of
+        Left (ParseErrorB _) ->
+          case run of
+            GenTestOutput Eval ->
+              do -- specifying parsed to ParserError for the compiler
+              -- warn the user that the file failed to parse
+              putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
+              T.writeFile outFilePath shownParseError
+            _ -> pure () -- for debug mode we don't want to see the failed to parse case.
+        Right pro -> do
+          case run of
+            GenTestOutput Eval ->
+              case evalUplcProg (() <$ pro) of
+                (Just prog) -> do
+                  T.writeFile outFilePath (render $ pretty prog)
+                  putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
+                Nothing      -> do
+                  -- warn the user that the file failed to evaluate
+                  T.writeFile outFilePath shownEvaluationFailure
+                  putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+            GenTestOutput Typecheck ->
+              putStrLn $
+                "typechecking has not been implemented yet." <>
+                  "Only evaluation tests (eval) or debugging (debug) are supported."
+            Debug ->
+              case agdaEvalUplcProgDebug (() <$ pro) of
+                (Right _prog) -> pure ()
+                (Left err)      ->
+                  -- warn the user that the file failed to evaluate
+                  putStrLn $ inputFile <> " failed to evaluate. " <> err

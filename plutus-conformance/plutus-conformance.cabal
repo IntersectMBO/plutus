@@ -52,10 +52,12 @@ library
     , lens
     , megaparsec
     , plutus-core
+    , plutus-metatheory
     , tasty
     , tasty-expected-failure
     , tasty-golden
     , text
+    , transformers
     , witherable
 
 executable test-utils
@@ -65,7 +67,6 @@ executable test-utils
   other-modules:
   build-depends:
     , base                  >=4.9 && <5
-    , directory
     , optparse-applicative
     , plutus-conformance
     , plutus-core

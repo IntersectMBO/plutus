@@ -6,13 +6,15 @@
 module PlutusConformance.Common where
 
 import Control.Lens (traverseOf)
+import Control.Monad.Trans.Except
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import MAlonzo.Code.Main (runUAgda)
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Error (Error (..), ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
-import PlutusCore.Quote (runQuoteT)
+import PlutusCore.Quote (Quote, runQuote, runQuoteT)
 import PlutusPrelude (display, void)
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
@@ -23,6 +25,7 @@ import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
 import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
@@ -58,7 +61,7 @@ type UplcEvaluator = UplcProg -> Maybe UplcProg
 -- and test cases for directories without.
 discoverTests :: UplcEvaluator -- ^ The evaluator to be tested.
     -> (FilePath -> Bool)
-    -- ^ A function that takes a test name and returns
+    -- ^ A function that takes a test name and returned
     -- whether it should be labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
     -> IO TestTree
@@ -129,8 +132,8 @@ compareAlphaEq ::
     Either T.Text UplcProg -- ^ golden value
     -> Either T.Text UplcProg -- ^ tested value
     -> Maybe String
-    -- ^ If two values are the same, it returns `Nothing`.
-    -- If they are different, it returns an error that will be printed to the user.
+    -- ^ If two values are the same, it returned `Nothing`.
+    -- If they are different, it returned an error that will be printed to the user.
 compareAlphaEq (Left expectedTxt) (Left actualTxt) =
     if actualTxt == expectedTxt
     then Nothing
@@ -192,7 +195,7 @@ evalUplcProg = traverseOf UPLC.progTerm eval
 runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
     -> (FilePath -> Bool)
-    -- ^ A function that takes a test name and returns
+    -- ^ A function that takes a test name and returned
     -- whether it should labelled as `ExpectedFailure`.
     -> IO ()
 runUplcEvalTests eval expectedFailTests = do
@@ -202,3 +205,40 @@ runUplcEvalTests eval expectedFailTests = do
             expectedFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
+
+
+-- | For debugging failed UPLC evaluation tests (Agda implementation). Called by `test-utils`.
+agdaEvalUplcProgDebug :: UplcProg -> Either String UplcProg
+agdaEvalUplcProgDebug (UPLC.Program () version tmU) =
+    let
+        -- turn it into an untyped de Bruijn term
+        tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+        tmUDB = deBruijnTerm tmU
+    in
+    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+        -- if there's an exception, evaluation failed, should return `Nothing`.
+        Left fvError ->
+            Left $ "deBruijnTerm returned an error: "
+                <> show (fvError :: Error DefaultUni DefaultFun ())
+        -- evaluate the untyped term with CEK
+        Right tmUDBSuccess ->
+            case runUAgda tmUDBSuccess of
+                Left evalError ->
+                    Left $ "runUAgda returned an error: " <> show evalError <>
+                        "The input to runUAgda was " <> show tmUDBSuccess <>
+                        ", returned by deBruijnTerm."
+                Right tmEvaluated ->
+                    let tmNamed = runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                    in
+                    -- turn it back into a named term
+                    case tmNamed of
+                        Left (err :: Error DefaultUni DefaultFun ())          ->
+                            Left $
+                                "unDeBruijnTerm returned an error: " <> show err <>
+                                "The input to unDebruijnTerm was " <> show tmEvaluated <>
+                                ", returned by runUAgda." <>
+                                "The input to runUAgda was " <> show tmUDBSuccess <>
+                                ", returned by deBruijnTerm."
+                        Right namedTerm -> Right $ UPLC.Program () version namedTerm
+
