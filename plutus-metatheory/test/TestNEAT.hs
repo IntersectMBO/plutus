@@ -26,16 +26,16 @@ import Raw hiding (TypeError, tynames)
 import Debug.Trace
 
 main :: IO ()
-main = defaultMain $ allTests defaultGenOptions
+main = defaultMain allTests
 
-allTests :: GenOptions -> TestTree
-allTests genOpts = testGroup "NEAT"
-  [ bigTest "type-level"
-      genOpts {genDepth = 12}
+allTests :: TestTree
+allTests = testGroup "NEAT"
+  [ localOption (GenDepth 12) $
+    bigTest "type-level"
       (Type ())
       (packAssertion prop_Type)
-  , bigTest "term-level"
-      genOpts {genDepth = 18}
+  , localOption (GenDepth 18) $
+    bigTest "term-level"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]

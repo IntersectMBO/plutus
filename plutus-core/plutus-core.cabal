@@ -366,6 +366,7 @@ library plutus-core-testlib
     , size-based
     , some
     , Stream
+    , tagged
     , tasty
     , tasty-golden
     , tasty-hedgehog

@@ -10,15 +10,12 @@ generators.
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module PlutusCore.Generators.NEAT.Spec
   ( tests
-  , GenOptions (..)
-  , defaultGenOptions
   , Options (..)
   , TestFail (..)
-  , testCaseGen
   , bigTest
   , packAssertion
   , tynames
@@ -27,6 +24,8 @@ module PlutusCore.Generators.NEAT.Spec
   , Ctrex (..)
   , handleError
   , handleUError
+  , GenDepth (..)
+  , GenMode (..)
   ) where
 
 import PlutusCore
@@ -42,48 +41,56 @@ import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
 import Control.Monad.Except
-import Control.Search (Enumerable (..), Options (..), ctrex', search')
-import Data.Coolean (Cool, toCool, (!=>))
-import Data.Either
+import Control.Search (Enumerable (..), Options (..), search')
 import Data.Maybe
 import Data.Stream qualified as Stream
+import Data.Tagged
 import Data.Text qualified as Text
-import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.Options
 import Text.Printf
 
 -- * Property-based tests
 
-data GenOptions = GenOptions
-  { genDepth :: Int     -- ^ Search depth, measured in program size
-  , genMode  :: Options -- ^ Search strategy
-  }
+-- | Search depth, measured in program size
+newtype GenDepth = GenDepth {unGenDepth :: Int}
+    deriving newtype (Read, Eq, Ord)
 
-defaultGenOptions :: GenOptions
-defaultGenOptions = GenOptions
-  { genDepth = 11
-  , genMode  = OF
-  }
+-- | Search strategy
+newtype GenMode = GenMode {unGenMode :: Options}
+    deriving newtype (Read)
 
-tests :: GenOptions -> TestTree
-tests genOpts@GenOptions{} =
+instance IsOption GenDepth where
+    defaultValue = GenDepth 20
+    parseValue = safeRead
+    optionName = Tagged @GenDepth "gen-depth"
+    optionHelp = Tagged @GenDepth "Gen depth"
+
+instance IsOption GenMode where
+    defaultValue = GenMode OF
+    parseValue = safeRead
+    optionName = Tagged @GenMode "gen-mode"
+    optionHelp = Tagged @GenMode "Gen Mode"
+
+tests :: TestTree
+tests =
   testGroup "NEAT"
-
-  [ bigTest "normalization commutes with conversion from generated types"
-      genOpts {genDepth = 13}
+  -- the `adjustOption (min ...)` allows to make these big tests easier at runtime
+  [ adjustOption (min $ GenDepth 13) $
+    bigTest "normalization commutes with conversion from generated types"
       (Type ())
       (packAssertion prop_normalizeConvertCommuteTypes)
-  , bigTest "normal types cannot reduce"
-      genOpts {genDepth = 14}
+  , adjustOption (min $ GenDepth 14) $
+    bigTest "normal types cannot reduce"
       (Type ())
       (packAssertion prop_normalTypesCannotReduce)
-  , bigTest "type preservation - CK"
-      genOpts {genDepth = 18}
+  , adjustOption (min $ GenDepth 18) $
+    bigTest "type preservation - CK"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_typePreservation)
-  , bigTest "typed CK vs untyped CEK produce the same output"
-      genOpts {genDepth = 18}
+  , adjustOption (min $ GenDepth 18) $
+    bigTest "typed CK vs untyped CEK produce the same output"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_agree_termEval)
   ]
@@ -208,29 +215,6 @@ prop_normalTypesCannotReduce :: Kind ()
 prop_normalTypesCannotReduce k (Normalized tyG) =
   unless (isNothing $ stepTypeG tyG) $
     throwCtrex (CtrexNormalTypesCannotReduce k tyG)
-
--- |Create a generator test, searching for a counter-example to the
--- given predicate.
-
--- NOTE: we are not currently using this approach (using `ctrex'` to
--- search for a counter example), instead we generate a list of
--- examples using `search'` and look for a counter example ourselves
-testCaseGen :: (Check t a, Enumerable a, Show e)
-        => TestName
-        -> GenOptions
-        -> t
-        -> (t -> a -> ExceptT e Quote ())
-        -> TestTree
-testCaseGen name GenOptions{..} t prop =
-  testCaseInfo name $ do
-    -- NOTE: in the `Right` case, `prop t ctrex` is guarded by `not
-    -- (isOk (prop t ctrex))` hence the reasonable use of undefined
-    result <- ctrex' genMode genDepth (\x -> check t x !=> isOk (prop t x))
-    case result of
-      Left  count -> return $ printf "%d examples generated" count
-      Right ctrex ->
-        assertFailure . show . fromLeft undefined . run $ prop t ctrex
-
 
 -- * Test failures
 
@@ -407,14 +391,6 @@ instance Show Ctrex where
 throwCtrex :: Ctrex -> ExceptT TestFail Quote ()
 throwCtrex ctrex = throwError (Ctrex ctrex)
 
--- |Check if running |Quote| and |Except| throws any errors.
-isOk :: ExceptT e Quote a -> Cool
-isOk = toCool . isRight . run
-
--- |Run |Quote| and |Except| effects.
-run :: ExceptT e Quote a -> Either e a
-run = runQuote . runExceptT
-
 -- |Stream of type names t0, t1, t2, ..
 tynames :: Stream.Stream Text.Text
 tynames = mkTextNameStream "t"
@@ -422,23 +398,6 @@ tynames = mkTextNameStream "t"
 -- |Stream of names x0, x1, x2, ..
 names :: Stream.Stream Text.Text
 names = mkTextNameStream "x"
-
--- given a prop, generate examples and then turn them into individual
--- tasty tests. This can be accomplished without unsafePerformIO but
--- this is convenient to use.
--- e.g., add this to the tesGroup "NEAT" list above:
-{-
-  mapTest
-      genOpts {genDepth = 13}
-      (Type ())
-      (packTest prop_normalizeConvertCommuteTypes)
--}
-
-_mapTest :: (Check t a, Enumerable a)
-        => GenOptions -> t -> (t -> a -> TestTree) -> TestTree
-_mapTest GenOptions{..} t f = testGroup "a bunch of tests" $ map (f t) examples
-  where
-  examples = unsafePerformIO $ search' genMode genDepth (\a -> check t a)
 
 -- | given a prop, generate one test
 packAssertion :: (Show e) => (t -> a -> ExceptT e Quote ()) -> t -> a -> Assertion
@@ -451,8 +410,8 @@ packAssertion f t a =
 -- that applies the given test to each of them.
 
 bigTest :: (Check t a, Enumerable a)
-        => String -> GenOptions -> t -> (t -> a -> Assertion) -> TestTree
-bigTest s GenOptions{..} t f = testCaseInfo s $ do
-  as <- search' genMode genDepth (\a ->  check t a)
+        => String -> t -> (t -> a -> Assertion) -> TestTree
+bigTest s t f = askOption $ \ genMode -> askOption $ \ genDepth -> testCaseInfo s $ do
+  as <- search' (unGenMode genMode) (unGenDepth genDepth) (\a ->  check t a)
   _  <- traverse (f t) as
   return $ show (length as)
