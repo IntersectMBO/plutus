@@ -218,6 +218,7 @@ library
     PlutusCore.Pretty.Classic
     PlutusCore.Pretty.ConfigName
     PlutusCore.Pretty.Default
+    PlutusCore.Pretty.Extra
     PlutusCore.Pretty.Plc
     PlutusCore.Pretty.PrettyConst
     PlutusCore.Pretty.Readable

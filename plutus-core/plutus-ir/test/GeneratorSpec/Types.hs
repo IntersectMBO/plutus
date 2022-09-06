@@ -36,7 +36,7 @@ prop_shrinkTypeSound =
 
 -- Utility tests for debugging
 
--- | Test that shrinking types results in smaller types. Useful for debugging shrinking.
+-- | Test that shrinking a type results in a type of a smaller kind. Useful for debugging shrinking.
 prop_shrinkTypeSmallerKind :: Property
 prop_shrinkTypeSmallerKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType Map.empty) $ \ (k, ty) ->

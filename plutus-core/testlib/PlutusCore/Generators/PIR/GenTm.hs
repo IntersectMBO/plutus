@@ -102,8 +102,8 @@ data GenEnv = GenEnv
 -}
 
 -- | Run a generator in debug-mode.
-debug :: GenTm a -> GenTm a
-debug gen = local (\env -> env { geDebug = True }) gen
+withDebug :: GenTm a -> GenTm a
+withDebug gen = local (\env -> env { geDebug = True }) gen
 
 -- | Run a `GenTm  generator in a top-level empty context where we are allowed to generate
 -- datatypes.
@@ -135,8 +135,8 @@ runGenTmCustom f cg g = do
 -- * Utility functions
 
 -- | Don't allow types to escape from a generator.
-noEscape :: GenTm a -> GenTm a
-noEscape = local $ \env -> env { geEscaping = NoEscape }
+withNoEscape :: GenTm a -> GenTm a
+withNoEscape = local $ \env -> env { geEscaping = NoEscape }
 
 -- * Dealing with size
 
@@ -228,10 +228,12 @@ genFreshTyName s = TyName <$> genFreshName s
 genFreshTyNames :: [String] -> GenTm [TyName]
 genFreshTyNames ss = map TyName <$> genFreshNames ss
 
--- | Generate a name that overlaps with existing names on purpose. If there
--- are no existing names, generate a fresh name.
-genNotFreshName :: String -> GenTm Name
-genNotFreshName s = do
+-- | Generate a name that likely overlaps with existing names on purpose. If there are no existing
+-- names, generate a fresh name. This function doesn't distinguish between the type- and term-level
+-- scopes, hence it may generate a 'Name' \"clashing\" with a previously generated 'TyName' and not
+-- clashing with any previously generated 'Name'.
+genLikelyNotFreshName :: String -> GenTm Name
+genLikelyNotFreshName s = do
   used <- Set.toList <$> getUniques
   case used of
     [] -> genFreshName s
@@ -240,7 +242,7 @@ genNotFreshName s = do
 -- | Generate a fresh name most (a bit more than 75%) of the time and otherwise
 -- generate an already bound name. When there are no bound names generate a fresh name.
 genMaybeFreshName :: String -> GenTm Name
-genMaybeFreshName s = frequency [(3, genFreshName s), (1, genNotFreshName s)]
+genMaybeFreshName s = frequency [(3, genFreshName s), (1, genLikelyNotFreshName s)]
 
 -- | See `genMaybeFreshName`
 genMaybeFreshTyName :: String -> GenTm TyName

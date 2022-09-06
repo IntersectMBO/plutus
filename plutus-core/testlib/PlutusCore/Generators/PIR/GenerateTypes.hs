@@ -234,7 +234,7 @@ genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
 -- | Generate a type in the given context with the given kind.
 genTypeWithCtxDebug :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
-genTypeWithCtxDebug ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (debug $ genType k)
+genTypeWithCtxDebug ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (withDebug $ genType k)
 
 -- | Generate a well-kinded type and its kind in a given context
 genKindAndTypeWithCtx :: Map TyName (Kind ()) -> Gen (Kind(), Type TyName DefaultUni ())

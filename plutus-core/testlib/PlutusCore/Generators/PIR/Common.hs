@@ -30,12 +30,12 @@
 
 module PlutusCore.Generators.PIR.Common where
 
-import Data.Map (Map)
-import Data.Map qualified as Map
 import Data.String
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
+import Text.Pretty
 import Text.PrettyBy
+import Text.PrettyBy.Internal
 
 import PlutusCore.Default
 import PlutusCore.Name
@@ -45,14 +45,6 @@ instance Testable (Either String ()) where
     property = property . \case
         Left err -> failed { reason = err }
         Right () -> succeeded
-
--- CODE REVIEW: where to put the stuff below? Can we refactor to the point where we don't need them?
--- Currently we need these for shrinking, getting rid of them would be nice.
-deriving stock instance Eq (Term TyName Name DefaultUni DefaultFun ())
-deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
-deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
-deriving stock instance Eq (TyVarDecl TyName ())
-deriving stock instance Eq (Datatype TyName Name DefaultUni DefaultFun ())
 
 -- Some convenience definitions that make the code slightly more readable.
 {-# COMPLETE Star, (:->) #-}
@@ -83,12 +75,7 @@ var s i = Name (fromString s) (toEnum i)
 tyvar :: String -> Int -> TyName
 tyvar s i = TyName (var s i)
 
--- TODO: this should probably go elsewhere
-instance PrettyBy config i => PrettyBy config (NonNegative i) where
-  prettyBy ctx (NonNegative i) = prettyBy ctx i
-
--- TODO: this should probably go elsewhere
-instance ( HasPrettyDefaults config ~ 'True
-         , PrettyBy config k
-         , PrettyBy config v) => PrettyBy config (Map k v) where
-  prettyBy ctx = prettyBy ctx . Map.toList
+deriving newtype instance Pretty i => Pretty (NonNegative i)
+instance PrettyBy config i => DefaultPrettyBy config (NonNegative i)
+deriving via PrettyCommon (NonNegative i)
+    instance PrettyDefaultBy config (NonNegative i) => PrettyBy config (NonNegative i)
