@@ -48,6 +48,8 @@ failingTests = [
     , "test-cases/uplc/evaluation/example/churchSucc"
     , "test-cases/uplc/evaluation/term/lam"
     , "test-cases/uplc/evaluation/term/delay-lam"
+    -- this is because agda has the BuiltinVersion=V1; haskell defaults to latest BuilinVersion
+    , "test-cases/uplc/evaluation/builtin/consByteString"
     ]
 
 main :: IO ()
