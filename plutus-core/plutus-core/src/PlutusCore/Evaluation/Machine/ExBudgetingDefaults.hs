@@ -75,8 +75,10 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
+-- | Before vasil HF, the unlifting was immediate,
+-- Since vasil HF, the unlifiting is deferred.
 defaultUnliftingMode :: UnliftingMode
-defaultUnliftingMode = UnliftingImmediate
+defaultUnliftingMode = UnliftingDeferred
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 defaultCekParameters = mkMachineParameters def defaultUnliftingMode defaultCekCostModel
