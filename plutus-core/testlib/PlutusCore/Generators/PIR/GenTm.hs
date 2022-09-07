@@ -92,13 +92,14 @@ data GenEnv = GenEnv
   }
 
 {- Note [Recursion Control and geSize]
-   One would be forgiven for thinking that you don't need `geSize` in `GenTm` because
-   size is built-in to `Gen`. However, if you use `Gen`s built-in size to control the size
-   of both the terms you generate *and* the size of the constants in the terms you will end
-   up with skewed terms. Constants near the top of the term will be big and constants near
-   the bottom of the term will be small. For this reason we follow QuickCheck best practise
-   and keep track of the "recursion control size" separately from `Gen`s size in the `geSize`
-   field of the `GenEnv` environment.
+One would be forgiven for thinking that you don't need `geSize` in `GenTm` because size is built-in
+to 'Gen'. However, if you use 'Gen's built-in size to control the size of both the terms you
+generate *and* the size of the constants in the terms you will end up with skewed terms. Constants
+near the top of the term will be big and constants near the bottom of the term will be small. For
+this reason we follow QuickCheck best practise and keep track of the "recursion control size"
+separately from 'Gen's size in the 'geSize' field of the 'GenEnv' environment. I.e. we let the
+QuickCheck's size parameter to be responsible for the size of constants at the leaves of the AST
+and use 'geSize' to control the size of the AST itself.
 -}
 
 -- | Run a generator in debug-mode.

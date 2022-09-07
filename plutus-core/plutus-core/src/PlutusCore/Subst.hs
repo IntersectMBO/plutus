@@ -14,6 +14,9 @@ module PlutusCore.Subst
     , typeSubstTyNames
     , termSubstFreeNamesA
     , termSubstFreeNames
+    , typeSubstClosedType
+    , termSubstClosedType
+    , termSubstClosedTerm
     , fvTerm
     , ftvTerm
     , ftvTy
@@ -144,6 +147,64 @@ termSubstFreeNames
     -> Term tyname name uni fun ann
     -> Term tyname name uni fun ann
 termSubstFreeNames = purely termSubstFreeNamesA
+
+-- | Substitute a closed 'Type' for a type variable in a 'Type'. Does not descend under binders that
+-- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
+-- will not satisfy global uniqueness.
+typeSubstClosedType
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
+typeSubstClosedType tn0 ty0 = go where
+    go = \case
+         TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
+         TyFun    () ty1 ty2 -> TyFun    () (go ty1) (go ty2)
+         TyIFix   () ty1 ty2 -> TyIFix   () (go ty1) (go ty2)
+         TyApp    () ty1 ty2 -> TyApp    () (go ty1) (go ty2)
+         TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
+         TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
+         bt@TyBuiltin{}      -> bt
+    goUnder tn ty = if tn == tn0 then ty else go ty
+
+-- | Substitute a closed 'Type' for a type variable in a 'Term'. Does not descend under binders that
+-- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
+-- will not satisfy global uniqueness.
+termSubstClosedType
+    :: Eq tyname
+    => tyname -> Type tyname uni () -> Term tyname name uni fun () -> Term tyname name uni fun ()
+termSubstClosedType tn0 ty0 = go where
+    go = \case
+         v@Var{}                 -> v
+         c@Constant{}            -> c
+         b@Builtin{}             -> b
+         TyAbs   () tn ty body   -> TyAbs   () tn ty (goUnder tn body)
+         LamAbs  () var ty body  -> LamAbs  () var (goTy ty) (go body)
+         Apply   () fun arg      -> Apply   () (go fun) (go arg)
+         TyInst  () fun ty       -> TyInst  () (go fun) (goTy ty)
+         Unwrap  () term         -> Unwrap  () (go term)
+         IWrap   () pat arg term -> IWrap   () (goTy pat) (goTy arg) (go term)
+         Error   () ty           -> Error   () (goTy ty)
+    goUnder tn term = if tn == tn0 then term else go term
+    goTy = typeSubstClosedType tn0 ty0
+
+-- | Substitute a closed 'Term' for a term variable in a 'Term'. Does not descend under binders that
+-- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
+-- will not satisfy global uniqueness.
+termSubstClosedTerm
+    :: Eq name
+    => name -> Term tyname name uni fun () -> Term tyname name uni fun () -> Term tyname name uni fun ()
+termSubstClosedTerm varFor new = go where
+    go = \case
+         Var      () var          -> if var == varFor then new else Var () var
+         TyAbs    () tyn ty body  -> TyAbs    () tyn ty (go body)
+         LamAbs   () var ty body  -> LamAbs   () var ty (goUnder var body)
+         Apply    () fun arg      -> Apply    () (go fun) (go arg)
+         Constant () constant     -> Constant () constant
+         TyInst   () fun arg      -> TyInst   () (go fun) arg
+         Unwrap   () term         -> Unwrap   () (go term)
+         IWrap    () pat arg term -> IWrap    () pat arg (go term)
+         b@Builtin{}              -> b
+         e@Error  {}              -> e
+    goUnder var term = if var == varFor then term else go term
 
 -- Free variables
 

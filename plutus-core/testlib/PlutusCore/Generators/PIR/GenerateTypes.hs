@@ -50,12 +50,12 @@ import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Pretty
 import PlutusCore.Quote (runQuote)
+import PlutusCore.Subst
 import PlutusCore.TypeCheck (defKindCheckConfig)
 import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Error
-import PlutusIR.Subst
 
 import PlutusCore.Generators.PIR.GenTm
 
@@ -242,25 +242,6 @@ genKindAndTypeWithCtx ctx = do
   k <- arbitrary
   runGenTm $ local (\ e -> e { geTypes = ctx }) ((k,) <$> genType k)
 
--- CODE REVIEW: does this exist anywhere??
--- | `substClosedType x sub ty` substitutes the closed type `sub` for `x` in `ty`
-substClosedType :: TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
-substClosedType x sub ty =
-  case ty of
-    TyVar _ y
-      | x == y    -> sub
-      | otherwise -> ty
-    TyFun _ a b   -> TyFun () (substClosedType x sub a) (substClosedType x sub b)
-    TyApp _ a b   -> TyApp () (substClosedType x sub a) (substClosedType x sub b)
-    TyLam _ y k b
-      | x == y    -> ty
-      | otherwise -> TyLam () y k $ substClosedType x sub b
-    TyForall _ y k b
-      | x == y    -> ty
-      | otherwise -> TyForall () y k $ substClosedType x sub b
-    TyBuiltin{}   -> ty
-    TyIFix _ a b  -> TyIFix () (substClosedType x sub a) (substClosedType x sub b)
-
 -- | Get the kind of a builtin
 builtinKind :: SomeTypeIn DefaultUni -> Kind ()
 builtinKind (SomeTypeIn t) = kindOfBuiltinType t
@@ -317,7 +298,7 @@ fixKind ctx ty k
       case k of
         -- Fix lambdas to * by substituting a minimal type for the argument
         -- and fixing the body.
-        Type{}        -> fixKind ctx (substClosedType x (minimalType kx) b) k
+        Type{}        -> fixKind ctx (typeSubstClosedType x (minimalType kx) b) k
         -- Fix functions by either keeping the argument around (if we can) or getting
         -- rid of the argument (by turning its use-sites into minimal types) and introducing
         -- a new argument.
@@ -327,7 +308,7 @@ fixKind ctx ty k
           | otherwise             -> TyLam () x ka $ fixKind ctx' b' kb
             where
               ctx' = Map.insert x ka ctx
-              b'   = substClosedType x (minimalType kx) b
+              b'   = typeSubstClosedType x (minimalType kx) b
               kb'  = unsafeInferKind ctx' b'
     -- Ill-kinded builtins just go to minimal types
     TyBuiltin{}       -> minimalType k
@@ -364,7 +345,7 @@ shrinkKindAndType ctx (k, ty) =
     -- The slightly tricky case is the concat trace. See comment below.
     TyApp _ f a       -> [(ka, a) | ka `leKind` k] ++
                          [(k, b)                     | TyLam _ x _ b <- [f], not $ Set.member x (setOf ftvTy b)] ++
-                         [(k, substClosedType x a b) | TyLam _ x _ b <- [f], null (setOf ftvTy a)] ++
+                         [(k, typeSubstClosedType x a b) | TyLam _ x _ b <- [f], null (setOf ftvTy a)] ++
                          -- Here we try to shrink the function f, if we get something whose kind
                          -- is small enough we can return the new function f', otherwise we
                          -- apply f' to `fixKind ctx a ka'` - which takes `a` and tries to rewrite it
@@ -379,14 +360,14 @@ shrinkKindAndType ctx (k, ty) =
                          | (ka', a) <- shrinkKindAndType ctx (ka, a)]
       where ka = unsafeInferKind ctx a
     -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
-    TyLam _ x ka b    -> [ (KindArrow () ka' kb, TyLam () x ka' $ substClosedType x (minimalType ka) b)
+    TyLam _ x ka b    -> [ (KindArrow () ka' kb, TyLam () x ka' $ typeSubstClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
                          [ (KindArrow () ka kb', TyLam () x ka b)
                          | (kb', b) <- shrinkKindAndType (Map.insert x ka ctx) (kb, b)]
       where KindArrow _ _ kb = k
     TyForall _ x ka b -> [ (k, b) | not $ Set.member x (setOf ftvTy b) ] ++
                          -- (above) If the bound variable doesn't matter we get rid of the binding
-                         [ (k, TyForall () x ka' $ substClosedType x (minimalType ka) b)
+                         [ (k, TyForall () x ka' $ typeSubstClosedType x (minimalType ka) b)
                          | ka' <- shrink ka] ++
                          -- (above) we can always just shrink the bound variable to a smaller kind
                          -- and ignore it

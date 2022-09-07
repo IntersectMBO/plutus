@@ -58,6 +58,7 @@ import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Rename
+import PlutusCore.Subst (typeSubstClosedType)
 import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Error
@@ -561,7 +562,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
         TyAbs _ x _ body ->
           [ fixupTerm_ (Map.insert x k tyctx) ctx tyctx ctx tyInner' body
           | TyForall _ y k tyInner <- [ty]
-          , let tyInner' = substClosedType y (minimalType k) tyInner
+          , let tyInner' = typeSubstClosedType y (minimalType k) tyInner
           ]
 
         -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
@@ -837,7 +838,7 @@ genFullyApplied typ trm = runGenTm $ go trm
       _                     -> genArgsApps typ trm
     genArgsApps (TyForall _ x k typ) trm = do
       let ty = minimalType k
-      genArgsApps (substClosedType x ty typ) (TyInst () trm ty)
+      genArgsApps (typeSubstClosedType x ty typ) (TyInst () trm ty)
     genArgsApps (TyFun _ a b) trm = do
       (_, arg) <- withNoEscape $ genTerm (Just a)
       genArgsApps b (Apply () trm arg)

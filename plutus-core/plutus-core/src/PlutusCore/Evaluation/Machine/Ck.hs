@@ -34,6 +34,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
+import PlutusCore.Subst
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -150,61 +151,6 @@ runCkM runtime emitting a = runST $ do
         Just logsRef -> DList.toList <$> readSTRef logsRef
     pure (errOrRes, logs)
 
--- | Substitute a 'Term' for a variable in a 'Term' that can contain duplicate binders.
--- Do not descend under binders that bind the same variable as the one we're substituting for.
-substituteDb
-    :: Eq name
-    => name -> Term tyname name uni fun () -> Term tyname name uni fun () -> Term tyname name uni fun ()
-substituteDb varFor new = go where
-    go = \case
-         Var      () var          -> if var == varFor then new else Var () var
-         TyAbs    () tyn ty body  -> TyAbs    () tyn ty (go body)
-         LamAbs   () var ty body  -> LamAbs   () var ty (goUnder var body)
-         Apply    () fun arg      -> Apply    () (go fun) (go arg)
-         Constant () constant     -> Constant () constant
-         TyInst   () fun arg      -> TyInst   () (go fun) arg
-         Unwrap   () term         -> Unwrap   () (go term)
-         IWrap    () pat arg term -> IWrap    () pat arg (go term)
-         b@Builtin{}              -> b
-         e@Error  {}              -> e
-    goUnder var term = if var == varFor then term else go term
-
--- | Substitute a 'Type' for a type variable in a 'Term' that can contain duplicate binders.
--- Do not descend under binders that bind the same type variable as the one we're substituting for.
-substTyInTerm
-    :: Eq tyname
-    => tyname -> Type tyname uni () -> Term tyname name uni fun () -> Term tyname name uni fun ()
-substTyInTerm tn0 ty0 = go where
-    go = \case
-         v@Var{}                 -> v
-         c@Constant{}            -> c
-         b@Builtin{}             -> b
-         TyAbs   () tn ty body   -> TyAbs   () tn ty (goUnder tn body)
-         LamAbs  () var ty body  -> LamAbs  () var (goTy ty) (go body)
-         Apply   () fun arg      -> Apply   () (go fun) (go arg)
-         TyInst  () fun ty       -> TyInst  () (go fun) (goTy ty)
-         Unwrap  () term         -> Unwrap  () (go term)
-         IWrap   () pat arg term -> IWrap   () (goTy pat) (goTy arg) (go term)
-         Error   () ty           -> Error   () (goTy ty)
-    goUnder tn term = if tn == tn0 then term else go term
-    goTy = substTyInTy tn0 ty0
-
--- | Substitute a 'Type' for a type variable in a 'Type' that can contain duplicate binders.
--- Do not descend under binders that bind the same type variable as the one we're substituting for.
-substTyInTy
-    :: Eq tyname
-    => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
-substTyInTy tn0 ty0 = go where
-    go = \case
-         TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
-         TyFun    () ty1 ty2 -> TyFun    () (go ty1) (go ty2)
-         TyIFix   () ty1 ty2 -> TyIFix   () (go ty1) (go ty2)
-         TyApp    () ty1 ty2 -> TyApp    () (go ty1) (go ty2)
-         TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
-         TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
-         bt@TyBuiltin{}      -> bt
-    goUnder tn ty = if tn == tn0 then ty else go ty
-
 -- FIXME: make sure that the specification is up to date and that this matches.
 -- | The computing part of the CK machine. Rules are as follows:
 --
@@ -271,7 +217,9 @@ instantiateEvaluate
     -> Type TyName uni ()
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
-instantiateEvaluate stack ty (VTyAbs tn _k body) = stack |> substTyInTerm tn ty body -- No kind check - too expensive at run time.
+instantiateEvaluate stack ty (VTyAbs tn _k body) =
+     -- No kind check - too expensive at run time.
+    stack |> termSubstClosedType tn ty body
 instantiateEvaluate stack ty (VBuiltin term (BuiltinRuntime sch f exF)) = do
     let term' = TyInst () term ty
     case sch of
@@ -297,7 +245,8 @@ applyEvaluate
     -> CkValue uni fun
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
-applyEvaluate stack (VLamAbs name _ body) arg = stack |> substituteDb name (ckValueToTerm arg) body
+applyEvaluate stack (VLamAbs name _ body) arg =
+    stack |> termSubstClosedTerm name (ckValueToTerm arg) body
 applyEvaluate stack (VBuiltin term (BuiltinRuntime sch f exF)) arg = do
     let argTerm = ckValueToTerm arg
         term' = Apply () term argTerm
