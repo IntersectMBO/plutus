@@ -69,6 +69,7 @@ import PlutusCore.Generators.PIR.Builtin
 import PlutusCore.Generators.PIR.Common
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateTypes
+import PlutusCore.Generators.PIR.ShrinkTypes
 import PlutusCore.Generators.PIR.Substitutions
 import PlutusCore.Generators.PIR.Utils
 import PlutusCore.MkPlc (mkConstant)

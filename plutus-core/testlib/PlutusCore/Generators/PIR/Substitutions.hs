@@ -45,7 +45,9 @@ import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Subst
 
+import PlutusCore.Generators.PIR.Common
 import PlutusCore.Generators.PIR.GenerateTypes
+import PlutusCore.Generators.PIR.ShrinkTypes
 import PlutusCore.Generators.PIR.Utils
 
 -- | Perform unification. Sound but not complete.

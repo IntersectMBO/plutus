@@ -30,7 +30,11 @@
 
 module PlutusCore.Generators.PIR.Common where
 
+import Data.Bifunctor
+import Data.Map (Map)
+import Data.Map qualified as Map
 import Data.String
+import GHC.Stack
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
 import Text.Pretty
@@ -39,7 +43,10 @@ import Text.PrettyBy.Internal
 
 import PlutusCore.Default
 import PlutusCore.Name
+import PlutusCore.TypeCheck (defKindCheckConfig)
+import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
 import PlutusIR
+import PlutusIR.Error
 
 instance Testable (Either String ()) where
     property = property . \case
@@ -79,3 +86,39 @@ deriving newtype instance Pretty i => Pretty (NonNegative i)
 instance PrettyBy config i => DefaultPrettyBy config (NonNegative i)
 deriving via PrettyCommon (NonNegative i)
     instance PrettyDefaultBy config (NonNegative i) => PrettyBy config (NonNegative i)
+
+-- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
+argsKind :: Kind ann -> [Kind ann]
+argsKind Type{}            = []
+argsKind (KindArrow _ k l) = k : argsKind l
+
+-- | Infer the kind of a type in a given kind context
+inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Either String (Kind ())
+inferKind ctx ty =
+    first display . runTypeCheckM defKindCheckConfig $
+        foldr
+            (uncurry withTyVar)
+            (inferKindM @(Error DefaultUni DefaultFun ()) ty)
+            (Map.toList ctx)
+
+-- | Partial unsafeInferKind, useful for context where invariants are set up to guarantee
+-- that types are well-kinded.
+unsafeInferKind :: HasCallStack => Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind ()
+unsafeInferKind ctx ty =
+  case inferKind ctx ty of
+    Left msg -> error msg
+    Right k  -> k
+
+-- | Check well-kindedness of a type in a context
+checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Either String ()
+checkKind ctx ty kExp =
+    if kInf == Right kExp
+      then Right ()
+      else Left $ concat
+        [ "Inferred kind is "
+        , display kInf
+        , " while expected "
+        , display kExp
+        ]
+  where
+    kInf = inferKind ctx ty
