@@ -10,13 +10,6 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 import PlutusTx qualified as Tx
 import PlutusTx.Prelude as Tx
 
-{-# INLINABLE drop #-}
-drop :: Integer -> [a] -> [a]
-drop n l@(_:xs) =
-    if n <= 0 then l
-    else drop (n-1) xs
-drop _ [] = []
-
 {-# INLINABLE merge #-}
 merge :: [Integer] -> [Integer] -> [Integer]
 merge as@(a:as') bs@(b:bs') =

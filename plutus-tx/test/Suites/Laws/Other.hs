@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
@@ -11,24 +12,24 @@ import PlutusTx.Ratio qualified as Ratio
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, genRational, testCoverProperty)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 otherLaws :: [TestTree]
 otherLaws = [
-  testProperty "numerator r = numerator . scale (denominator r) $ r" propNumeratorScale,
-  testProperty "denominator r >= 1" propPosDen,
-  testProperty "recip r * r = 1 for r /= 0" propRecipSelf,
-  testProperty "abs r >= 0" propAbs,
-  testProperty "abs r * abs r' = abs (r * r')" propAbsTimes,
-  testProperty "r = n + f, where (n, f) = properFraction r" propProperFrac,
+  testPropertyNamed "numerator r = numerator . scale (denominator r) $ r" "propNumeratorScale" propNumeratorScale,
+  testPropertyNamed "denominator r >= 1" "propPosDen" propPosDen,
+  testPropertyNamed "recip r * r = 1 for r /= 0" "propRecipSelf" propRecipSelf,
+  testPropertyNamed "abs r >= 0" "propAbs" propAbs,
+  testPropertyNamed "abs r * abs r' = abs (r * r')" "probAbsTimes" propAbsTimes,
+  testPropertyNamed "r = n + f, where (n, f) = properFraction r" "propProperFrac" propProperFrac,
   testCoverProperty "signs of properFraction components match sign of input" propProperFracSigns,
-  testProperty "abs f < 1, where (_, f) = properFraction r" propProperFracAbs,
-  testProperty "abs (round r) >= abs n, where (n, _) = properFraction r" propAbsRound,
-  testProperty "halves round as expected" propRoundHalf,
-  testProperty ("if abs f < half, then round r = truncate r, " <>
-                "where (_, f) = properFraction r") propRoundLow,
-  testProperty ("if abs f > half, then abs (round r) = abs (truncate r) + 1, " <>
-                "where (_, f) = properFraction r") propRoundHigh
+  testPropertyNamed "abs f < 1, where (_, f) = properFraction r" "propProperFracAbs" propProperFracAbs,
+  testPropertyNamed "abs (round r) >= abs n, where (n, _) = properFraction r" "propAbsRound" propAbsRound,
+  testPropertyNamed "halves round as expected" "propRoundHalf" propRoundHalf,
+  testPropertyNamed ("if abs f < half, then round r = truncate r, " <>
+                "where (_, f) = properFraction r") "propRoundLow" propRoundLow,
+  testPropertyNamed ("if abs f > half, then abs (round r) = abs (truncate r) + 1, " <>
+                "where (_, f) = properFraction r") "propRoundHigh" propRoundHigh
   ]
 
 -- Helpers

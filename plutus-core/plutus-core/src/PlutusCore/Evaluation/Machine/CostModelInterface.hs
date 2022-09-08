@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
     ( CostModelParams
@@ -9,6 +10,7 @@ module PlutusCore.Evaluation.Machine.CostModelInterface
     , extractCostModelParams
     , applyCostModelParams
     , CostModelApplyError (..)
+    , CostModelApplyWarn (..)
     )
 where
 
@@ -76,6 +78,63 @@ that to split the map of parameters into two maps.
 
 -}
 
+{- Note [Cost model parameters from the ledger's point of view]
+
+A newly-voted protocol update may have some of the following effects:
+
+a) Introduce a new plutus-language version accompanied by a whole new set of cost model parameters for that new version.
+b) Update any values of existing cost model parameters for an existing plutus version.
+c) Bring new builtins to an existing plutus version, thus also extending
+the set of current cost model parameters of that version with new parameters for the new builtins.
+
+Note that, removing existing builtins is only possible by issuing a brand-new plutus language version
+that would exclude them (and their cost model parameters).
+An alternative without issuing a new protocol update and affecting a current version,
+would be to set via (b) the builtins' cost model parameters prohibitively high,
+so as to make those builtins impossible to execute given the current maximum transaction budget,
+thus effectively disabling their execution.
+
+The ledger-state stores a *mapping* of each plutus-language version to its current set of cost model parameters.
+Each set of parameters is represented as an *array of plain integer values*,
+without the  cost model parameter names. Overall this ledger-state can be conceptualized as `Map PlutusVersion [Integer]`.
+
+The implementation of (a) and (b) effects by the node software is straightforward:
+for (a) introduce a whole new entry to the Map; for (b) update the affected array in-place with the new values.
+As a consequence for implementing (c), we arrive to four restrictions that hold for ALL protocol updates:
+
+1) In case of (b), the values of the existing parameters may change, but their *meaning*,
+i.e. which parameter name and thus which builtin parameter they correspond to,  ABSOLUTELY CANNOT change. In other words,
+the existing parameters cannot be re-ordered.
+
+2) In case of (c) the new parameters (for the new builtins) must be appended **to the end** of the existing array for the affected version.
+
+3) The node software is responsible to re-create the plutus runtimes when a new protocol is voted in ---
+one plutus runtime a.k.a. `plutus-ledger-api.EvaluationContext` per plutus-version.
+
+4) The node software will always pass the array in its entirety to each plutus-runtime,
+and not partially just the updated-parameter values (in case of (b)) or just the new-parameter values (in case of (c)).
+
+There is one complication when (c) happens and some running nodes are not updated:
+these nodes are only aware of the old set of builtins, thus they expect a specific (fixed in software)
+number of cost model parameters.
+To guarantee smooth,continuous operation of the entire network (and not cause any splits)
+we allow the old nodes to continue operating when receiving more cost model parameters
+than they expected, and only issue a warning to them. When the nodes restart and update to the new node software
+these warnings will go away. The overall logic for the expected number of cost model paremeters is as follows:
+
+(expected number in node software == received number by ledger) => NOWARNING & NOERROR
+(expected number in node software < received number by ledger)  => WARNING
+(expected number in node software > received number by ledger)  => ERROR
+
+If the received number is EQ or GT the expected (WARNING), the plutus software
+will take the first n from the received cost model parameters (n==expected number),
+and create the internal (nameful) representation of cost model parameters, by assigning a parameter name
+to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
+plutus-ledger-api.
+
+-}
+
+
 -- See Note [Cost model parameters]
 type CostModelParams = Map.Map Text.Text Integer
 
@@ -101,19 +160,29 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
     | CMInternalWriteError String
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
-    | CMWrongNumberOfParams Int Int
-      -- ^ the ledger is supposed to pass the full list of params, no more, no less params.
+    | CMTooFewParamsError { cmTooFewExpected :: Int, cmTooFewActual :: Int }
+      -- ^ See Note [Cost model parameters from the ledger's point of view]
     deriving stock Show
     deriving anyclass Exception
+
+data CostModelApplyWarn =
+    CMTooManyParamsWarn { cmTooManyExpected :: Int, cmTooManyActual :: Int }
+    -- ^ See Note [Cost model parameters from the ledger's point of view]
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
         CMUnknownParamError k -> "Unknown cost model parameter:" <+> pretty k
         CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameteres"
         CMInternalWriteError str     -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
-        CMWrongNumberOfParams expected actual     -> "Wrong number of cost model parameters passed, expected" <+> pretty expected <+> "but got" <+> pretty actual
+        CMTooFewParamsError{..}     -> "Too few cost model parameters passed, expected" <+> pretty cmTooFewExpected <+> "but got" <+> pretty cmTooFewActual
       where
           preamble = "applyParams error:"
+
+instance Pretty CostModelApplyWarn where
+    pretty = (preamble <+>) . \case
+        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmTooManyExpected <+> "but got" <+> pretty cmTooManyActual
+      where
+          preamble = "applyParams warn:"
 
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.

@@ -91,7 +91,7 @@ tupleDefAt
     -> Int
     -> Name
     -> Tuple term uni ann
-    -> m (TermDef term TyName Name uni fun ann)
+    -> m (TermDef term TyName Name uni ann)
 tupleDefAt ann ind name tuple = uncurry (Def . VarDecl ann name) <$> tupleTypeTermAt ann ind tuple
 
 -- | Bind all elements of a 'Tuple' inside a 'Term'.

@@ -1,0 +1,1 @@
+(program 1.0.0 [(builtin quotientInteger) (con integer 1) (con integer 0)])

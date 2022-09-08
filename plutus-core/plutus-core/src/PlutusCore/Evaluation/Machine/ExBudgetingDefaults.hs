@@ -23,14 +23,13 @@ import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
-import PlutusCore.Evaluation.Machine.ExBudget ()
-import PlutusCore.Evaluation.Machine.ExMemory ()
 import PlutusCore.Evaluation.Machine.MachineParameters
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
+import PlutusPrelude
 
 
 -- | The default cost model for built-in functions.
@@ -76,19 +75,21 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
+-- | Before vasil HF, the unlifting was immediate,
+-- Since vasil HF, the unlifiting is deferred.
 defaultUnliftingMode :: UnliftingMode
-defaultUnliftingMode = UnliftingImmediate
+defaultUnliftingMode = UnliftingDeferred
 
 defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = mkMachineParameters defaultUnliftingMode defaultCekCostModel
+defaultCekParameters = mkMachineParameters def defaultUnliftingMode defaultCekCostModel
 
 unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
 unitCekParameters =
-    mkMachineParameters defaultUnliftingMode $
+    mkMachineParameters def defaultUnliftingMode $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime defaultUnliftingMode defaultBuiltinCostModel
+defaultBuiltinsRuntime = toBuiltinsRuntime def defaultUnliftingMode defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

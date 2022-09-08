@@ -78,9 +78,9 @@ import PlutusCore.MkPlc (mkConstant)
 -- Currently we need these for shrinking, getting rid of them would be nice.
 deriving stock instance Eq (Term TyName Name DefaultUni DefaultFun ())
 deriving stock instance Eq (Binding TyName Name DefaultUni DefaultFun ())
-deriving stock instance Eq (VarDecl TyName Name DefaultUni DefaultFun ())
+deriving stock instance Eq (VarDecl TyName Name DefaultUni ())
 deriving stock instance Eq (TyVarDecl TyName ())
-deriving stock instance Eq (Datatype TyName Name DefaultUni DefaultFun ())
+deriving stock instance Eq (Datatype TyName Name DefaultUni ())
 
 addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
           -> Map Name (Type TyName DefaultUni ())
@@ -437,7 +437,7 @@ scaledListOf g = do
   n  <- choose (0, sz `div` 3)
   onSize (`div` n) $ replicateM n g
 
-genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni DefaultFun () -> GenTm a) -> GenTm a
+genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni () -> GenTm a) -> GenTm a
 genDatatypeLet rec cont = do
     k <- liftGen arbitrary
     let kindArgs (k :-> k') = k : kindArgs k'
@@ -464,7 +464,7 @@ genDatatypeLet rec cont = do
 -- | Generate up to 5 datatypes and bind them in a generator.
 -- NOTE: despite its name this function does in fact not generate the `Let` binding
 -- for the datatypes.
-genDatatypeLets :: ([Datatype TyName Name DefaultUni DefaultFun ()] -> GenTm a) -> GenTm a
+genDatatypeLets :: ([Datatype TyName Name DefaultUni ()] -> GenTm a) -> GenTm a
 genDatatypeLets cont = do
   n <- liftGen $ choose (1, 5 :: Int)
   let go 0 k = k []
@@ -795,8 +795,8 @@ shrinkBind _ tyctx ctx bind =
     DatatypeBind _ dat               -> [ DatatypeBind () dat' | dat' <- shrinkDat tyctx dat ]
 
 shrinkDat :: Map TyName (Kind ())
-          -> Datatype TyName Name DefaultUni DefaultFun ()
-          -> [Datatype TyName Name DefaultUni DefaultFun ()]
+          -> Datatype TyName Name DefaultUni ()
+          -> [Datatype TyName Name DefaultUni ()]
 shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
   [ Datatype () dd xs m cs' | cs' <- shrinkList shrinkCon cs ]
   where

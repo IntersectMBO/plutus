@@ -48,6 +48,7 @@ where
 
 import PlutusPrelude
 
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
 import Control.Lens
@@ -90,6 +91,10 @@ data Term tyname name uni fun ann
     | Error ann (Type tyname uni ann)
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+
+-- See Note [ExMemoryUsage instances for non-constants].
+instance ExMemoryUsage (Term tyname name uni fun ann) where
+    memoryUsage = error "Internal error: 'memoryUsage' for Core 'Term' is not supposed to be forced"
 
 {- |
 The version of Plutus Core used by this program.
@@ -141,7 +146,7 @@ data TyVarDecl tyname ann = TyVarDecl
 makeLenses ''TyVarDecl
 
 -- | A "variable declaration", i.e. a name and a type for a variable.
-data VarDecl tyname name uni fun ann = VarDecl
+data VarDecl tyname name uni ann = VarDecl
     { _varDeclAnn  :: ann
     , _varDeclName :: name
     , _varDeclType :: Type tyname uni ann
@@ -163,7 +168,7 @@ instance HasUnique tyname TypeUnique => HasUnique (TyVarDecl tyname ann) TypeUni
     unique f (TyVarDecl ann tyname kind) =
         unique f tyname <&> \tyname' -> TyVarDecl ann tyname' kind
 
-instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni fun ann) TermUnique where
+instance HasUnique name TermUnique => HasUnique (VarDecl tyname name uni ann) TermUnique where
     unique f (VarDecl ann name ty) =
         unique f name <&> \name' -> VarDecl ann name' ty
 

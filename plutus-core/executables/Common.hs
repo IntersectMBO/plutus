@@ -10,13 +10,13 @@
 
 module Common where
 
-import PlutusPrelude (through)
+import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
-import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..), UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -24,6 +24,7 @@ import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
 import PlutusCore.Generators.Test qualified as Gen
 import PlutusCore.Normalize (normalizeType)
+import PlutusCore.Parser qualified as PLC (program)
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Rename (rename)
 import PlutusCore.StdLib.Data.Bool qualified as StdLib
@@ -31,11 +32,10 @@ import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
 import PlutusCore.StdLib.Data.Integer qualified as StdLib
 import PlutusCore.StdLib.Data.Unit qualified as StdLib
 
-import Control.DeepSeq (NFData, rnf)
+import Control.DeepSeq (rnf)
 import Control.Lens hiding (ix, op)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
-import Data.Bifunctor (second)
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
@@ -45,18 +45,18 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Data.Traversable (for)
 import Flat (Flat, flat, unflat)
 import GHC.TypeLits (symbolVal)
-import Prettyprinter (Doc, pretty, (<+>))
+import Prettyprinter ((<+>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
+import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
+import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -72,10 +72,10 @@ type UplcProg =
 
 class Executable p where
 
-  -- | Parse a program.
-  parseProgram ::
-    T.Text ->
-      Either ParserErrorBundle (p PLC.SourcePos)
+  -- | Parse a program.  The first argument (normally the file path) describes
+  -- the input stream, the second is the program text.
+  parseNamedProgram ::
+    String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -94,7 +94,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram = PLC.runQuoteT . PLC.parseProgram
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -105,7 +105,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram = PLC.runQuoteT . UPLC.parseProgram
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -147,7 +147,7 @@ printBudgetStateBudget model b =
               putStrLn $ "CPU budget:    " ++ show cpu
               putStrLn $ "Memory budget: " ++ show mem
 
-printBudgetStateTally :: (Eq fun, Cek.Hashable fun, Show fun)
+printBudgetStateTally :: (Cek.Hashable fun, Show fun)
        => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
@@ -206,7 +206,7 @@ class PrintBudgetState cost where
 instance PrintBudgetState Cek.CountingSt where
     printBudgetState _term model (Cek.CountingSt budget) = printBudgetStateBudget model budget
 
-instance (Eq fun, Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
+instance (Cek.Hashable fun, Show fun) => PrintBudgetState (Cek.TallyingSt fun) where
     printBudgetState term model (Cek.TallyingSt tally budget) = do
         printBudgetStateBudget model budget
         putStrLn ""
@@ -220,6 +220,10 @@ instance PrintBudgetState Cek.RestrictingSt where
 ---------------- Types for commands and arguments ----------------
 
 data Input       = FileInput FilePath | StdInput
+instance Show Input where
+    show (FileInput path) = show path
+    show StdInput         = "<stdin>"
+
 data Output      = FileOutput FilePath | StdOutput
 data TimingMode  = NoTiming | Timing Integer deriving stock (Eq)  -- Report program execution time?
 data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
@@ -284,10 +288,10 @@ parseInput ::
 parseInput inp = do
     contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram contents of
+    case parseNamedProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParserErrorBundle) ->
-        errorWithoutStackTrace $ show err
+      Left (ParseErrorB err) ->
+          errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program
@@ -626,8 +630,8 @@ typeSchemeToSignature = toSig []
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
-  let builtins = [minBound..maxBound] :: [UPLC.DefaultFun]
+  let builtins = enumerate @UPLC.DefaultFun
   mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
-      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
 
 

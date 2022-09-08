@@ -3,8 +3,9 @@ module PlutusLedgerApi.Common
     ( evaluateScriptCounting
     , evaluateScriptRestricting
     , EvaluationContext (..)
+    , ScriptDecodeError (..)
     , mkDynEvaluationContext
-    , isScriptWellFormed
+    , assertScriptWellFormed
     , assertWellFormedCostModelParams
     , toMachineParameters
     , SerialisedScript

@@ -260,7 +260,7 @@ library
 
   build-depends:
     , aeson
-    , algebraic-graphs            >=0.3
+    , algebraic-graphs            >=0.7
     , array
     , barbies
     , base                        >=4.9     && <5
@@ -303,11 +303,10 @@ library
     , prettyprinter-configurable
     , primitive
     , recursion-schemes
-    , secp256k1-haskell
     , semigroupoids
     , semigroups                  >=0.19.1
     , serialise
-    , some                        <1.0.3
+    , some
     , template-haskell
     , text
     , th-compat
@@ -378,8 +377,9 @@ library plutus-core-testlib
     , QuickCheck
     , quickcheck-transformer
     , size-based
-    , some                        <1.0.3
+    , some
     , Stream
+    , tagged
     , tasty
     , tasty-golden
     , tasty-hedgehog
@@ -494,14 +494,14 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
-    Evaluation.Builtins.Coherence
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
-    Evaluation.Builtins.SECP256k1
+    Evaluation.Builtins.SignatureVerification
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
+    Evaluation.Regressions
     Generators
     Transform.Simplify
 
@@ -518,7 +518,7 @@ test-suite untyped-plutus-core-test
     , plutus-core-testlib
     , pretty-show
     , prettyprinter
-    , secp256k1-haskell
+    , split
     , tasty
     , tasty-golden
     , tasty-hedgehog
@@ -674,7 +674,6 @@ executable cost-model-budgeting-bench
     , QuickCheck
     , quickcheck-instances
     , random
-    , secp256k1-haskell
     , text
     , time
 
@@ -762,7 +761,7 @@ library index-envs
     , containers
     , extra
     , nonempty-vector
-    , ral              ==0.1
+    , ral              ^>=0.2
     , vector
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
@@ -777,7 +776,7 @@ benchmark index-envs-bench
     , criterion        >=1.5.9.0
     , index-envs
     , nonempty-vector
-    , ral              ==0.1
+    , ral              ^>=0.2
     , random           >=1.2.0
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes

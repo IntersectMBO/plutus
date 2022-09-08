@@ -108,7 +108,7 @@ typeSubtypesDeep = cosmosOf typeSubtypes
 
 {-# INLINE varDeclSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'VarDecl'.
-varDeclSubtypes :: Traversal' (VarDecl tyname name uni fun a) (Type tyname uni a)
+varDeclSubtypes :: Traversal' (VarDecl tyname name uni a) (Type tyname uni a)
 varDeclSubtypes f (VarDecl a n ty) = VarDecl a n <$> f ty
 
 -- | Get all the direct child 'tyname a's of the given 'Term' from 'TyAbs'es.

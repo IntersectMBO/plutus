@@ -151,11 +151,11 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = runQuoteT . parseProgram  #-}
-{-# COMPILE GHC parseU = runQuoteT . U.parseProgram  #-}
-{-# COMPILE GHC parseTm = runQuoteT . parseTerm  #-}
-{-# COMPILE GHC parseTy = runQuoteT . parseType  #-}
-{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm  #-}
+{-# COMPILE GHC parse = runQuoteT . parseProgram #-}
+{-# COMPILE GHC parseU = runQuoteT . U.parseProgram #-}
+{-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
+{-# COMPILE GHC parseTy = runQuoteT . parseType #-}
+{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
@@ -553,12 +553,17 @@ postulate showU : TermU -> String
 
 {-# COMPILE GHC showU = T.pack . show #-}
 
+-- Note that according to the specification ◆ should reduce to an error term,
+-- but here the untyped PLC term evaluator
+-- matches the behaviour of the Haskell implementation:
+-- an error is thrown with ◆. 
 runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where ◆  → return (unconvTmU U.UError)
-          _    → inj₁ (runtimeError gasError)
+    where      
+    ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
+    _ → inj₁ (runtimeError gasError)
   return (unconvTmU (U.extricateU0 (U.discharge V)))
 
 {-# COMPILE GHC runU as runUAgda #-}

@@ -29,16 +29,6 @@ module PlutusLedgerApi.V2.Tx
     , outDatum
     , outReferenceScript
     , pubKeyHashTxOut
-    -- * Transaction inputs
-    , TxInType(..)
-    , TxIn(..)
-    , inRef
-    , inType
-    , inScripts
-    , pubKeyTxIn
-    , scriptTxIn
-    , pubKeyTxIns
-    , scriptTxIns
     ) where
 
 import Control.DeepSeq (NFData)
@@ -103,8 +93,8 @@ txOutPubKey :: TxOut -> Maybe PubKeyHash
 txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
 -- | The validator hash attached to a 'TxOut', if there is one.
-txOutValidatorHash :: TxOut -> Maybe ValidatorHash
-txOutValidatorHash TxOut{txOutAddress} = toValidatorHash txOutAddress
+txOutScriptHash :: TxOut -> Maybe ScriptHash
+txOutScriptHash TxOut{txOutAddress} = toScriptHash txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
@@ -133,7 +123,7 @@ isPubKeyOut = isJust . txOutPubKey
 
 -- | Whether the output is a pay-to-script output.
 isPayToScriptOut :: TxOut -> Bool
-isPayToScriptOut = isJust . txOutValidatorHash
+isPayToScriptOut = isJust . txOutScriptHash
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut

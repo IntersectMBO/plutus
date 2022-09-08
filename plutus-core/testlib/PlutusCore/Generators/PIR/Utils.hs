@@ -107,13 +107,13 @@ freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
         is = Set.insert j $ Set.insert (toEnum 0) $ Set.mapMonotonic (_nameUnique . unTyName) fvs
 
 -- | Get the names and types of the constructors of a datatype.
-constrTypes :: Datatype TyName Name DefaultUni DefaultFun () -> [(Name, Type TyName DefaultUni ())]
+constrTypes :: Datatype TyName Name DefaultUni () -> [(Name, Type TyName DefaultUni ())]
 constrTypes (Datatype _ _ xs _ cs) = [ (c, abstr ty) | VarDecl _ c ty <- cs ]
   where
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
 -- | Get the name and type of the match function for a given datatype.
-matchType :: Datatype TyName Name DefaultUni DefaultFun () -> (Name, Type TyName DefaultUni ())
+matchType :: Datatype TyName Name DefaultUni () -> (Name, Type TyName DefaultUni ())
 matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
@@ -128,7 +128,7 @@ matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
 -- | Bind a datatype declaration in a generator.
-bindDat :: Datatype TyName Name DefaultUni DefaultFun ()
+bindDat :: Datatype TyName Name DefaultUni ()
         -> GenTm a
         -> GenTm a
 bindDat dat@(Datatype _ (TyVarDecl _ a k) _ _ _) cont =

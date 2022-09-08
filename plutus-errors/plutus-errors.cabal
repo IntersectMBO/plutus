@@ -61,7 +61,7 @@ library
     , plutus-tx-plugin  ^>=1.0
     , prettyprinter     >=1.1.0.1
     , template-haskell  >=2.16
-    , th-abstraction    <0.4
+    , th-abstraction    <0.5
 
 executable plutus-errors-next
   import:         lang
@@ -84,4 +84,4 @@ executable plutus-errors-bootstrap
     , plutus-core
     , plutus-errors
     , template-haskell  >=2.16
-    , th-abstraction    <0.4
+    , th-abstraction    <0.5

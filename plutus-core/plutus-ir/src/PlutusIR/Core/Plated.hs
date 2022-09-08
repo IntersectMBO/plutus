@@ -38,6 +38,7 @@ import PlutusIR.Core.Type
 
 import Control.Lens hiding (Strict, (<.>))
 import Data.Functor.Apply
+import Data.Functor.Bind.Class
 
 infixr 6 <^>
 
@@ -55,7 +56,7 @@ bindingSubterms f = \case
 
 {-# INLINE datatypeSubtypes #-}
 -- | Get all the direct child 'Type's of the given 'Datatype'.
-datatypeSubtypes :: Traversal' (Datatype tyname name uni fun a) (Type tyname uni a)
+datatypeSubtypes :: Traversal' (Datatype tyname name uni a) (Type tyname uni a)
 datatypeSubtypes f (Datatype a n vs m cs) = Datatype a n vs m <$> (traverse . varDeclSubtypes) f cs
 
 {-# INLINE bindingSubtypes #-}
@@ -68,7 +69,7 @@ bindingSubtypes f = \case
 
 {-# INLINE datatypeSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Datatype'.
-datatypeSubkinds :: Traversal' (Datatype tyname name uni fun a) (Kind a)
+datatypeSubkinds :: Traversal' (Datatype tyname name uni a) (Kind a)
 datatypeSubkinds f (Datatype a n vs m cs) = do
     n' <- tyVarDeclSubkinds f n
     vs' <- traverse (tyVarDeclSubkinds f) vs
@@ -76,7 +77,7 @@ datatypeSubkinds f (Datatype a n vs m cs) = do
 
 {-# INLINE datatypeTyNames #-}
 -- | Get all the type-names introduces by a datatype
-datatypeTyNames :: Traversal' (Datatype tyname name uni fun a) tyname
+datatypeTyNames :: Traversal' (Datatype tyname name uni a) tyname
 datatypeTyNames f (Datatype a2 tvdecl tvdecls n vdecls) =
     Datatype a2
         <$> PLC.tyVarDeclName f tvdecl
@@ -105,18 +106,6 @@ bindingIds f = \case
                     <.*> traverse1Maybe ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
                     <.> PLC.theUnique f n
                     <.*> traverse1Maybe ((PLC.varDeclName . PLC.theUnique) f) vdecls)
-  where
-    -- | Traverse using 'Apply', but getting back the result in 'MaybeApply f' instead of in 'f'.
-    traverse1Maybe :: (Apply f, Traversable t) => (a -> f b) -> t a -> MaybeApply f (t b)
-    traverse1Maybe f' = traverse (MaybeApply . Left . f')
-
-    -- | Apply a non-empty container of functions to a possibly-empty-with-unit container of values.
-    -- Taken from: <https://github.com/ekmett/semigroupoids/issues/66#issue-271899630>
-    (<.*>) :: (Apply f) => f (a -> b) -> MaybeApply f a -> f b
-    ff <.*> MaybeApply (Left fa) = ff <.> fa
-    ff <.*> MaybeApply (Right a) = ($ a) <$> ff
-    infixl 4 <.*>
-
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.

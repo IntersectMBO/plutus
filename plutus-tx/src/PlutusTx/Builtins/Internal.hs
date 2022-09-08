@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE KindSignatures     #-}
@@ -28,14 +27,14 @@ import Data.Data
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
-import Data.Maybe (fromMaybe)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Utils (mustBeReplaced)
-import Prettyprinter (Pretty (..), viaShow)
+import Prettyprinter (viaShow)
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -241,8 +240,12 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
-verifyEd25519Signature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
-  BuiltinBool (fromMaybe False (Crypto.verifyEd25519Signature pubKey message signature))
+verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
+  case Crypto.verifyEd25519Signature_V1 vk msg sig of
+    Emitter f -> case runWriter f of
+      (res, logs) -> traceAll logs $ case res of
+        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        EvaluationSuccess b -> BuiltinBool b
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::

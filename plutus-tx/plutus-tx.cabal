@@ -33,7 +33,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags: 
+  -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -76,6 +76,8 @@ library
     PlutusTx.Prelude
     PlutusTx.Ratio
     PlutusTx.Semigroup
+    PlutusTx.Show
+    PlutusTx.Show.TH
     PlutusTx.Sqrt
     PlutusTx.TH
     PlutusTx.These
@@ -95,6 +97,8 @@ library
     , bytestring
     , containers
     , deepseq
+    , deriving-compat
+    , extra
     , flat
     , ghc-prim
     , hashable
@@ -138,6 +142,7 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    Show.Spec
     Suites.Laws
     Suites.Laws.Additive
     Suites.Laws.Construction
@@ -154,15 +159,19 @@ test-suite plutus-tx-test
   build-tool-depends: doctest:doctest
   build-depends:
     , aeson
-    , base            >=4.9 && <5
+    , base                                            >=4.9 && <5
+    , base16-bytestring
     , bytestring
     , cborg
+    , filepath
     , hedgehog
     , hedgehog-fn
-    , plutus-core     ^>=1.0
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
     , plutus-tx
     , pretty-show
     , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , text
+    , transformers

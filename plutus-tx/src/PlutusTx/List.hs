@@ -14,15 +14,17 @@ module PlutusTx.List (
     (++),
     (!!),
     head,
-    take,
     tail,
+    take,
+    drop,
+    splitAt,
     nub,
     nubBy,
     zipWith,
     dropWhile,
     partition,
     sort,
-    sortBy
+    sortBy,
     ) where
 
 import PlutusTx.Bool (Bool (..), otherwise, (||))
@@ -117,7 +119,6 @@ _        !! n | n < 0 = traceError negativeIndexError
     then x
     else xs !! Builtins.subtractInteger i 1
 
-
 {-# INLINABLE reverse #-}
 -- | Plutus Tx version of 'Data.List.reverse'.
 reverse :: [a] -> [a]
@@ -152,6 +153,27 @@ take :: Integer -> [a] -> [a]
 take n _      | n <= 0 =  []
 take _ []              =  []
 take n (x:xs)          =  x : take (Builtins.subtractInteger n 1) xs
+
+{-# INLINABLE drop #-}
+-- | Plutus Tx version of 'Data.List.drop'.
+drop :: Integer -> [a] -> [a]
+drop n xs     | n <= 0 = xs
+drop _ []              = []
+drop n (_:xs)          = drop (Builtins.subtractInteger n 1) xs
+
+{-# INLINABLE splitAt #-}
+-- | Plutus Tx version of 'Data.List.splitAt'.
+splitAt :: Integer -> [a] -> ([a], [a])
+splitAt n xs
+  | n <= 0    = ([], xs)
+  | otherwise = go n xs
+  where
+    go :: Integer -> [a] -> ([a], [a])
+    go _ []     = ([], [])
+    go m (y:ys)
+      | m == 1 = ([y], ys)
+      | otherwise = case go (Builtins.subtractInteger m 1) ys of
+          (zs, ws) -> (y:zs, ws)
 
 {-# INLINABLE nub #-}
 -- | Plutus Tx version of 'Data.List.nub'.

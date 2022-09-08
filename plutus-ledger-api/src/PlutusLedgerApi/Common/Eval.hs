@@ -1,15 +1,17 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-
 {-# LANGUAGE StrictData        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module PlutusLedgerApi.Common.Eval where
 
+import Control.Lens
 import PlutusCore
 import PlutusCore as ScriptPlutus (Version, defaultVersion)
 import PlutusCore.Data as Plutus
+import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
@@ -25,11 +27,8 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 
-import Codec.CBOR.Read qualified as CBOR
 import Control.Monad.Except
 import Control.Monad.Writer
-import Data.ByteString.Lazy (fromStrict)
-import Data.ByteString.Short
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
@@ -39,11 +38,15 @@ import Prettyprinter
 data EvaluationError =
     CekError (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
-    | CodecError CBOR.DeserialiseFailure -- ^ A serialisation error
+    | CodecError ScriptDecodeError -- ^ A deserialisation error
     | IncompatibleVersionError (ScriptPlutus.Version ()) -- ^ An error indicating a version tag that we don't support
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
     deriving stock (Show, Eq)
+makeClassyPrisms ''EvaluationError
+
+instance AsScriptDecodeError EvaluationError where
+    _ScriptDecodeError = _CodecError
 
 instance Pretty EvaluationError where
     pretty (CekError e)      = prettyClassicDef e
@@ -69,7 +72,7 @@ mkTermToEvaluate
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    (_, ScriptForExecution (UPLC.Program _ v t)) <- liftEither $ first CodecError $ CBOR.deserialiseFromBytes (scriptCBORDecoder lv pv) $ fromStrict $ fromShort bs
+    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
     unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
@@ -81,8 +84,8 @@ mkTermToEvaluate lv pv bs args = do
 -- so as to correctly construct the machine's parameters
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
-    -- This just changes once in version 7.0
-    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingImmediate
+    -- This just changes once in vasil hf version 7.0
+    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
 
 toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters pv = case unliftingModeIn pv of
@@ -110,11 +113,11 @@ data EvaluationContext = EvaluationContext
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
 -}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext newCMP =
+mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
+mkDynEvaluationContext ver newCMP =
     EvaluationContext
-        <$> immediateMachineParameters newCMP
-        <*> deferredMachineParameters newCMP
+        <$> immediateMachineParameters ver newCMP
+        <*> deferredMachineParameters ver newCMP
 
 -- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

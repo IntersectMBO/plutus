@@ -307,11 +307,10 @@ instance ( Closed uni
         Builtin  ann bn        -> getSize ann + getSize bn
 
 instance ( Closed uni
-         , Flat fun
          , Flat ann
          , Flat tyname
          , Flat name
-         ) => Flat (VarDecl tyname name uni fun ann) where
+         ) => Flat (VarDecl tyname name uni ann) where
     encode (VarDecl t name tyname ) = encode t <> encode name <> encode tyname
     decode = VarDecl <$> decode <*> decode <*> decode
 

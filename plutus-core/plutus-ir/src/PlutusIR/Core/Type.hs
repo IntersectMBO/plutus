@@ -33,6 +33,7 @@ import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
@@ -49,16 +50,16 @@ the underlying representation can vary. The `Generic` instances of the
 terms can thus be used as backwards compatibility is not required.
 -}
 
-data Datatype tyname name uni fun a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni fun a]
+data Datatype tyname name uni a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
     deriving stock (Functor, Show, Generic)
 
-varDeclNameString :: VarDecl tyname Name uni fun a -> String
+varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC._nameText . _varDeclName
 
 tyVarDeclNameString :: TyVarDecl TyName a -> String
 tyVarDeclNameString = T.unpack . PLC._nameText . PLC.unTyName . _tyVarDeclName
 
-datatypeNameString :: Datatype TyName Name uni fun a -> String
+datatypeNameString :: Datatype TyName name uni a -> String
 datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
@@ -80,9 +81,9 @@ instance Semigroup Recursivity where
 data Strictness = NonStrict | Strict
     deriving stock (Show, Eq, Generic)
 
-data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni fun a) (Term tyname name uni fun a)
+data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
-                           | DatatypeBind a (Datatype tyname name uni fun a)
+                           | DatatypeBind a (Datatype tyname name uni a)
     deriving stock (Functor, Show, Generic)
 
 -- Terms
@@ -127,6 +128,11 @@ data Term tyname name uni fun a =
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
                         deriving stock (Functor, Show, Generic)
+
+-- See Note [ExMemoryUsage instances for non-constants].
+instance ExMemoryUsage (Term tyname name uni fun ann) where
+    memoryUsage =
+        Prelude.error "Internal error: 'memoryUsage' for IR 'Term' is not supposed to be forced"
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 

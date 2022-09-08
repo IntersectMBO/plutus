@@ -10,5 +10,5 @@ type PIRProgram uni fun = PIR.Program PIR.TyName PIR.Name uni fun ()
 
 type PIRBinding uni fun = PIR.Binding PIR.TyName PIR.Name uni fun Ann
 
-type PIRVar uni fun = PIR.VarDecl PIR.TyName PIR.Name uni fun Ann
+type PIRVar uni = PIR.VarDecl PIR.TyName PIR.Name uni Ann
 type PIRTyVar = PIR.TyVarDecl PIR.TyName Ann

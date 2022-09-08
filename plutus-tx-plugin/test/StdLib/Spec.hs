@@ -9,35 +9,36 @@
 
 module StdLib.Spec where
 
-import Control.DeepSeq
-import Control.Exception
-import Control.Monad.IO.Class
+import Control.DeepSeq (NFData, force)
+import Control.Exception (SomeException, evaluate, try)
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Ratio ((%))
+import GHC.Exts (fromString)
 import GHC.Real (reduce)
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test
-import PlutusTx.Test
+import PlutusCore.Test (TestNested, goldenUEval, testNested)
+import PlutusTx.Test (goldenPir)
 import Test.Tasty (TestName)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Ord qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio qualified as Ratio
 
-import PlutusTx.Builtins.Internal (BuiltinData (..))
-import PlutusTx.Code
+import PlutusTx.Builtins.Internal (BuiltinData (BuiltinData))
+import PlutusTx.Code (CompiledCode, getPlc)
 import PlutusTx.Lift qualified as Lift
-import PlutusTx.Plugin
+import PlutusTx.Plugin (plc)
 
 import PlutusCore.Data qualified as PLC
 
-import Data.Proxy
+import Data.Proxy (Proxy (Proxy))
 import Data.Ratio qualified as GHCRatio
-import PlutusPrelude
+import PlutusPrelude (reoption)
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round
@@ -49,11 +50,11 @@ tests =
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs
-    , pure $ testProperty "ord" testOrd
-    , pure $ testProperty "divMod" testDivMod
-    , pure $ testProperty "quotRem" testQuotRem
-    , pure $ testProperty "reduce" testReduce
-    , pure $ testProperty "Eq @Data" eqData
+    , pure $ testPropertyNamed "ord" "testOrd" testOrd
+    , pure $ testPropertyNamed "divMod" "testDivMod" testDivMod
+    , pure $ testPropertyNamed "quotRem" "testQuotRem" testQuotRem
+    , pure $ testPropertyNamed "reduce" "testReduce" testReduce
+    , pure $ testPropertyNamed "Eq @Data" "eqData" eqData
     , goldenPir "errorTrace" errorTrace
     ]
 
@@ -62,7 +63,7 @@ tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
 tryHard a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
-testRatioProperty nm plutusFunc ghcFunc = pure $ testProperty nm $ Hedgehog.property $ do
+testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
     rat <- Hedgehog.forAll $ Gen.realFrac_ (Range.linearFrac (-10000) 100000)
     let ghcResult = ghcFunc rat
         plutusResult = plutusFunc $ Ratio.fromGHC rat
@@ -144,5 +145,5 @@ genData =
             , PLC.List <$> genList genData
             ]
 
-errorTrace :: CompiledCode (Integer)
+errorTrace :: CompiledCode Integer
 errorTrace = plc (Proxy @"errorTrace") (PlutusTx.traceError "")

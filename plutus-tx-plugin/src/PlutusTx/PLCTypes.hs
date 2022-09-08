@@ -10,7 +10,7 @@ type PLCType uni = PLC.Type PLC.TyName uni Ann
 type PLCTerm uni fun = PLC.Term PLC.TyName PLC.Name uni fun Ann
 type PLCProgram uni fun = PLC.Program PLC.TyName PLC.Name uni fun ()
 
-type PLCVar uni fun = PLC.VarDecl PLC.TyName PLC.Name uni fun Ann
+type PLCVar uni = PLC.VarDecl PLC.TyName PLC.Name uni Ann
 type PLCTyVar = PLC.TyVarDecl PLC.TyName Ann
 
 type UPLCProgram uni fun = UPLC.Program UPLC.NamedDeBruijn uni fun ()

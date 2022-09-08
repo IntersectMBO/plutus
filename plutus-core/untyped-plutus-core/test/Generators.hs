@@ -1,29 +1,34 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeOperators     #-}
 
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
-import PlutusPrelude
+import PlutusPrelude (display, fold, on, void)
 
 import PlutusCore (Name, _nameText)
-import PlutusCore.Compiler.Erase
-import PlutusCore.Default
+import PlutusCore.Compiler.Erase (eraseProgram)
+import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
 import PlutusCore.Error (ParserErrorBundle)
-import PlutusCore.Generators
-import PlutusCore.Generators.AST as AST
+import PlutusCore.Generators (forAllPretty)
+import PlutusCore.Generators.AST (AstGen, runAstGen)
+import PlutusCore.Generators.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
-import PlutusCore.Pretty
-import PlutusCore.Quote
-import UntypedPlutusCore.Core.Type
-import UntypedPlutusCore.Parser
+import PlutusCore.Pretty (displayPlcDef)
+import PlutusCore.Quote (QuoteT, runQuoteT)
+import UntypedPlutusCore.Core.Type (Program (Program),
+                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var))
+import UntypedPlutusCore.Parser (SourcePos, parseProgram, parseTerm)
 
+import Data.Text (Text)
 import Data.Text qualified as T
 
 import Hedgehog (property, tripping)
-import Test.Tasty
-import Test.Tasty.HUnit
-import Test.Tasty.Hedgehog
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 import Flat qualified
 
@@ -60,19 +65,19 @@ genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program Name Defaul
 genProgram = fmap eraseProgram AST.genProgram
 
 propFlat :: TestTree
-propFlat = testProperty "Flat" $ property $ do
+propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
     prog <- forAllPretty $ runAstGen (Generators.genProgram @DefaultFun)
     tripping prog Flat.flat Flat.unflat
 
 propParser :: TestTree
-propParser = testProperty "Parser" $ property $ do
+propParser = testPropertyNamed "Parser" "parser" $ property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen Generators.genProgram)
     tripping prog (displayPlcDef . unTextualProgram)
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg
             :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
-        parseProg p = runQuoteT $ parseProgram p
+        parseProg = runQuoteT . parseProgram
 
 propUnit :: TestTree
 propUnit = testCase "Unit" $ fold
@@ -88,6 +93,7 @@ propUnit = testCase "Unit" $ fold
         @?= "(con string \"abc\")"
     ]
     where
+        pTerm :: String -> Text
         pTerm
             = either (error . display) display
             . runQuoteT
@@ -105,6 +111,7 @@ propDefaultUni = testCase "DefaultUni" $ fold
     , pDefaultUni "(pair unit (pair bool integer))" @?= "(pair unit (pair bool integer))"
     ]
     where
+        pDefaultUni :: String -> Text
         pDefaultUni
             = either (error . display) display
             . runQuoteT

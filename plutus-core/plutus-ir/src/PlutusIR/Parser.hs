@@ -15,7 +15,7 @@ module PlutusIR.Parser
     ) where
 
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
-import PlutusCore.Parser hiding (parseProgram)
+import PlutusCore.Parser hiding (parseProgram, program)
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
@@ -37,13 +37,13 @@ recursivity = inParens $ (wordPos "rec" >> return Rec) <|> (wordPos "nonrec" >> 
 strictness :: Parser Strictness
 strictness = inParens $ (wordPos "strict" >> return Strict) <|> (wordPos "nonstrict" >> return NonStrict)
 
-varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni SourcePos)
 varDecl = inParens $ VarDecl <$> wordPos "vardecl" <*> name <*> pType
 
 tyVarDecl :: Parser (TyVarDecl TyName SourcePos)
 tyVarDecl = inParens $ TyVarDecl <$> wordPos "tyvardecl" <*> tyName <*> kind
 
-datatype :: Parser (Datatype TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+datatype :: Parser (Datatype TyName Name PLC.DefaultUni SourcePos)
 datatype = inParens $ Datatype <$> wordPos "datatype"
     <*> tyVarDecl
     <*> many tyVarDecl
@@ -129,8 +129,12 @@ program = whitespace >> do
     notFollowedBy anySingle
     return prog
 
--- | Parse a PIR program. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+-- | Parse a PIR program. The resulting program will have fresh names. The
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    => Text
+    -> m (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program

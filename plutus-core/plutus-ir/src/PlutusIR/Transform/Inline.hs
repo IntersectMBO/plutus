@@ -24,10 +24,11 @@ import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin.Meaning qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
+import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
 
 import Control.Lens hiding (Strict)
@@ -35,6 +36,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Algebra.Graph qualified as G
+import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable
@@ -117,12 +119,12 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 
 -- 'SubstRng' in the paper, no 'Susp' case
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni fun a = Done (Term tyname name uni fun a)
+newtype InlineTerm tyname name uni fun a = Done (Dupable (Term tyname name uni fun a))
 
 newtype TermEnv tyname name uni fun a = TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
-newtype TypeEnv tyname uni a = TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Type tyname uni a) }
+newtype TypeEnv tyname uni a = TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
 data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
@@ -138,6 +140,7 @@ makeLenses ''Subst
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
+    , Eq name
     , PLC.ToBuiltinMeaning uni fun
     , MonadQuote m
     )
@@ -145,18 +148,21 @@ type ExternalConstraints tyname name uni fun m =
 type InliningConstraints tyname name uni fun =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
+    , Eq name
     , PLC.ToBuiltinMeaning uni fun
     )
 
 
-data InlineInfo name a = InlineInfo
-    { _strictnessMap :: Deps.StrictnessMap
-    , _usages        :: Usages.Usages
-    , _hints         :: InlineHints name a
+data InlineInfo name fun a = InlineInfo
+    { _iiStrictnessMap :: Deps.StrictnessMap
+    , _iiUsages        :: Usages.Usages
+    , _iiHints         :: InlineHints name a
+    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
     }
+makeLenses ''InlineInfo
 
 -- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
-type InlineM tyname name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst tyname name uni fun a) Quote)
+type InlineM tyname name uni fun a = ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -177,7 +183,7 @@ lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
     -> Subst tyname name uni fun a
-    -> Maybe (Type tyname uni a)
+    -> Maybe (Dupable (Type tyname uni a))
 lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
@@ -189,7 +195,7 @@ extendType
     -> Type tyname uni a
     -> Subst tyname name uni fun a
     -> Subst tyname name uni fun a
-extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn ty
+extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
 {- Note [Inlining and global uniqueness]
 Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
@@ -206,14 +212,15 @@ inline
     :: forall tyname name uni fun a m
     . ExternalConstraints tyname name uni fun m
     => InlineHints name a
+    -> PLC.BuiltinVersion fun
     -> Term tyname name uni fun a
     -> m (Term tyname name uni fun a)
-inline hints t = let
-        inlineInfo :: InlineInfo name a
-        inlineInfo = InlineInfo (snd deps) usgs hints
+inline hints ver t = let
+        inlineInfo :: InlineInfo name fun a
+        inlineInfo = InlineInfo (snd deps) usgs hints ver
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
-        deps = Deps.runTermDeps t
+        deps = Deps.runTermDeps ver t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
@@ -245,7 +252,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- Note that we don't *remove* the bindings or scope the state, so the state will carry over
             -- into "sibling" terms. This is fine because we have global uniqueness
             -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
-            bs' <- wither processSingleBinding (toList bs)
+            bs' <- wither (processSingleBinding t) (toList bs)
             t' <- processTerm t
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might actually
             -- have got rid of all of them!
@@ -267,7 +274,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         _    -> typeSubstTyNamesM substTyName t
     -- See Note [Renaming strategy]
     substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-    substTyName tyname = gets (lookupType tyname) >>= traverse PLC.rename
+    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
     -- See Note [Renaming strategy]
     substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
@@ -276,7 +283,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     renameTerm = \case
         -- Already processed term, just rename and put it in, don't do any
         -- further optimization here.
-        Done t -> PLC.rename t
+        Done t -> liftDupable t
 
 {- Note [Renaming strategy]
 Since we assume global uniqueness, we can take a slightly different approach to
@@ -289,11 +296,12 @@ We rename both terms and types as both may have binders in them.
 
 processSingleBinding
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Binding tyname name uni fun a
+    => Term tyname name uni fun a
+    -> Binding tyname name uni fun a
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
-processSingleBinding = \case
+processSingleBinding body = \case
     TermBind a s v@(VarDecl _ n _) rhs -> do
-        maybeRhs' <- maybeAddSubst a s n rhs
+        maybeRhs' <- maybeAddSubst body a s n rhs
         pure $ TermBind a s v <$> maybeRhs'
     TypeBind a v@(TyVarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddTySubst n rhs
@@ -306,26 +314,27 @@ processSingleBinding = \case
 --   * we are removing the binding (hence we return Nothing)
 maybeAddSubst
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => a
+    => Term tyname name uni fun a
+    -> a
     -> Strictness
     -> name
     -> Term tyname name uni fun a
     -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-maybeAddSubst a s n rhs = do
+maybeAddSubst body a s n rhs = do
     rhs' <- processTerm rhs
 
     -- Check whether we've been told specifically to inline this
-    hints <- asks _hints
+    hints <- view iiHints
     let hinted = shouldInline hints a n
 
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
-    then extendAndDrop (Done rhs')
+    then extendAndDrop (Done $ dupable rhs')
     else do
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postUnconditional <- postInlineUnconditional rhs'
         if hinted || postUnconditional
-        then extendAndDrop (Done rhs')
+        then extendAndDrop (Done $ dupable rhs')
         else pure $ Just rhs'
     where
         extendAndDrop :: forall b . InlineTerm tyname name uni fun a -> InlineM tyname name uni fun a (Maybe b)
@@ -333,18 +342,29 @@ maybeAddSubst a s n rhs = do
 
         checkPurity :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         checkPurity t = do
-            strctMap <- asks _strictnessMap
+            strctMap <- view iiStrictnessMap
+            builtinVer <- view iiBuiltinVer
             let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-            pure $ isPure strictnessFun t
+            pure $ isPure builtinVer strictnessFun t
 
         preInlineUnconditional :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         preInlineUnconditional t = do
-            usgs <- asks _usages
+            usgs <- view iiUsages
             -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
             let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
-            pure $ termUsedAtMostOnce && case s of { Strict -> termIsPure; NonStrict -> True; }
+            -- This can in the worst case traverse a lot of the term, which could lead to us
+            -- doing ~quadratic work as we process the program. However in practice most term
+            -- types will make it give up, so it's not too bad.
+            let immediatelyEvaluated = case firstEffectfulTerm body of
+                 Just (Var _ n') -> n == n'
+                 _               -> False
+                effectSafe = case s of
+                    Strict    -> termIsPure || immediatelyEvaluated
+                    NonStrict -> True
+
+            pure $ termUsedAtMostOnce && effectSafe
 
         -- | Should we inline? Should only inline things that won't duplicate work or code.
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -353,8 +373,47 @@ maybeAddSubst a s n rhs = do
             -- See Note [Inlining criteria]
             let acceptable = costIsAcceptable t && sizeIsAcceptable t
             -- See Note [Inlining and purity]
+            -- This is the case where we don't know that the number of occurences is exactly one,
+            -- so there's no point checking if the term is immediately evaluated.
             termIsPure <- checkPurity t
-            pure $ acceptable && case s of { Strict -> termIsPure; NonStrict -> True; }
+
+            pure $ acceptable && termIsPure
+
+{- |
+Try to identify the first sub term which will be evaluated in the given term and
+which could have an effect. 'Nothing' indicates that we don't know, this function
+is conservative.
+-}
+firstEffectfulTerm :: Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+firstEffectfulTerm = goTerm
+    where
+      goTerm = \case
+        Let _ NonRec bs b -> case goBindings (NE.toList bs) of
+            Just t' -> Just t'
+            Nothing -> goTerm b
+
+        Apply _ l _ -> goTerm l
+        TyInst _ t _ -> goTerm t
+        IWrap _ _ _ t -> goTerm t
+        Unwrap _ t -> goTerm t
+
+        t@Var{} -> Just t
+        t@Error{} -> Just t
+        t@Builtin{} -> Just t
+
+        -- Hard to know what gets evaluted first in a recursive let-binding,
+        -- just give up and say nothing
+        (Let _ Rec _ _) -> Nothing
+        TyAbs{} -> Nothing
+        LamAbs{} -> Nothing
+        Constant{} -> Nothing
+
+      goBindings :: [Binding tyname name uni fun a] -> Maybe (Term tyname name uni fun a)
+      goBindings [] = Nothing
+      goBindings (b:bs) = case b of
+        -- Only strict term bindings can cause effects
+        TermBind _ Strict _ rhs -> goTerm rhs
+        _                       -> goBindings bs
 
 {- Note [Inlining criteria]
 What gets inlined? Our goals are simple:
@@ -378,7 +437,11 @@ When can we inline something that might have effects? We must remember that we o
 remove a binding that we inline.
 
 For strict bindings, the answer is that we can't: we will delay the effects to the use site,
-so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure.
+so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure,
+or if we can prove that the effects don't change. We take a conservative view on this,
+saying that no effects change if:
+- The variable is clearly the first possibly-effectful term evaluated in the body
+- The variable is used exactly once (so we won't duplicate or remove effects)
 
 For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
 unconditionally.
@@ -390,7 +453,7 @@ maybeAddTySubst
     -> Type tyname uni a
     -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
 maybeAddTySubst tn rhs = do
-    usgs <- asks _usages
+    usgs <- view iiUsages
     -- No need for multiple phases here
     let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
     if typeUsedAtMostOnce || trivialType rhs

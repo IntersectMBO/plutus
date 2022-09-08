@@ -20,8 +20,6 @@ import Control.Lens
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 
-import Data.Default.Class
-
 data ShowKinds
     = ShowKindsYes
     | ShowKindsNonType

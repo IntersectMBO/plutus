@@ -5,6 +5,7 @@
 
 module PlutusCore.Parser
     ( module Export
+    , program
     , parseProgram
     , parseTerm
     , parseType
@@ -78,10 +79,14 @@ term = choice $ map try
     , varTerm
     ]
 
--- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+-- | Parse a PLC program. The resulting program will have fresh names. The
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    => Text
+    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parser for PLC programs.

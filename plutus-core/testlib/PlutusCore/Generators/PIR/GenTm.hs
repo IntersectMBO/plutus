@@ -67,7 +67,7 @@ type GenTm = GenT (Reader GenEnv)
 data GenEnv = GenEnv
   { geSize               :: Int
   -- ^ Generator size bound. See Note [Recursion Control and geSize]
-  , geDatas              :: Map TyName (Datatype TyName Name DefaultUni DefaultFun ())
+  , geDatas              :: Map TyName (Datatype TyName Name DefaultUni ())
   -- ^ Datatype context
   , geTypes              :: Map TyName (Kind ())
   -- ^ Type context

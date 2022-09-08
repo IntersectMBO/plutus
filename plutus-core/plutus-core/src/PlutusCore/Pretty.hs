@@ -56,6 +56,7 @@ module PlutusCore.Pretty
     , ConstConfig (..)
     , PrettyConst
     , prettyConst
+    , displayConst
     ) where
 
 import PlutusCore.Pretty.Classic

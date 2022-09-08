@@ -26,16 +26,16 @@ import Raw hiding (TypeError, tynames)
 import Debug.Trace
 
 main :: IO ()
-main = defaultMain $ allTests defaultGenOptions
+main = defaultMain allTests
 
-allTests :: GenOptions -> TestTree
-allTests genOpts = testGroup "NEAT"
-  [ bigTest "type-level"
-      genOpts {genDepth = 12}
+allTests :: TestTree
+allTests = testGroup "NEAT"
+  [ localOption (GenDepth 12) $
+    bigTest "type-level"
       (Type ())
       (packAssertion prop_Type)
-  , bigTest "term-level"
-      genOpts {genDepth = 18}
+  , localOption (GenDepth 18) $
+    bigTest "term-level"
       (TyBuiltinG TyUnitG)
       (packAssertion prop_Term)
   ]
@@ -126,11 +126,14 @@ prop_Term tyG tmG = do
   -- turn it into an untyped de Bruijn term
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
-  tmUDB' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))) $ liftEither $ runUAgda tmUDB
+  tmUDB' <- case runUAgda tmUDB of
+      Left (RuntimeError UserError) -> pure $ U.Error ()
+      _ -> withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))
+          $ liftEither $ runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
   -- reduce the original de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> (Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG))) $
+  tmDB'' <- withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
     liftEither $ runTCEKAgda tmDB
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''

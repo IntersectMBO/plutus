@@ -1,3 +1,6 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+
 module Suites.Laws.Serialization (serializationLaws) where
 
 import Data.Aeson (decode, encode)
@@ -6,13 +9,13 @@ import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinD
 import Prelude
 import Suites.Laws.Helpers (forAllWithPP, genRational)
 import Test.Tasty (TestTree)
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 serializationLaws :: [TestTree]
 serializationLaws = [
-  testProperty "FromBuiltinData-ToBuiltinData roundtrip" propIsDataRound,
-  testProperty "unsafeFromBuiltinData . toBuiltinData = id" propUnsafeIsData,
-  testProperty "FromJSON-ToJSON roundtrip" propIsJSONRound
+  testPropertyNamed "FromBuiltinData-ToBuiltinData roundtrip" "propIsDataRound" propIsDataRound,
+  testPropertyNamed "unsafeFromBuiltinData . toBuiltinData = id" "propUnsafeIsData" propUnsafeIsData,
+  testPropertyNamed "FromJSON-ToJSON roundtrip" "propIsJSONRound" propIsJSONRound
   ]
 
 -- Helpers

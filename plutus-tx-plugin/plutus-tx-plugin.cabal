@@ -68,6 +68,8 @@ library
     PlutusTx.PIRTypes
     PlutusTx.PLCTypes
 
+  -- this comment should be by the dep, but cabal-fmt moves it :(
+  -- Newer PyF is mysteriously broken, hence the bound: https://github.com/guibou/PyF/issues/111
   build-depends:
     , array
     , base              >=4.9 && <5
@@ -82,7 +84,7 @@ library
     , plutus-core       ^>=1.0
     , plutus-tx         ^>=1.0
     , prettyprinter
-    , PyF
+    , PyF               <0.11
     , template-haskell
     , text
     , transformers

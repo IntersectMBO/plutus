@@ -26,7 +26,7 @@ import UntypedPlutusCore.Rename (Rename (rename))
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)
-import PlutusCore.Parser hiding (parseProgram, parseTerm)
+import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 
 -- Parsers for UPLC terms
 
@@ -83,9 +83,14 @@ program = whitespace >> do
 parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m PTerm
 parseTerm = parseGen term
 
--- | Parse a UPLC program. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+-- | Parse a UPLC program. The resulting program will have fresh names. The
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.`
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m)
+    => Text
+    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within

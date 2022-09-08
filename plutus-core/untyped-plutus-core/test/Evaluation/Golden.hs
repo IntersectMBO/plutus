@@ -191,12 +191,24 @@ iteAtIntegerWithCond :: Term TyName Name DefaultUni DefaultFun ()
 iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 
 -- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" ] :
--- IllTypedFails.  This is ill-typed because the first term argument is a string
--- and a boolean is expected. Even though it's not saturated, it won't execute succefully,
--- because the builtin application machinery unlifts an argument the moment it gets it,
+-- IllTypedRuns.  This is ill-typed because the first term argument is a string
+-- and a boolean is expected.
+-- At execution time the default unlifting mode (Deferred) dictates
+-- that builtin has to be saturated before it can runtime check for its types.
+-- This is contrary to the older unlfiting mode (Immediate)
+-- the builtin application machinery unlifts an argument and checks its type the moment it gets it,
 -- without waiting for full saturation.
-iteAtIntegerWrongCondType :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerWrongCondType = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
+iteAtIntegerWrongCondTypeUnSat :: Term TyName Name DefaultUni DefaultFun ()
+iteAtIntegerWrongCondTypeUnSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
+
+-- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" "¬(11<=22)" ] :
+-- IllTypedFails. This is ill-typed because the first term argument is a string
+-- and a boolean is expected. At execution time,
+-- the default unlifting mode (Deferred) can finally check for the types of the arguments to
+-- builtin function, since the builtin application is fully saturated. The older unlifting
+-- mode would also fail, but earlier before the builtin call got even saturated, see `iteAtIntegerWrongCondTypeUnSat`.
+iteAtIntegerWrongCondTypeSat :: Term TyName Name DefaultUni DefaultFun ()
+iteAtIntegerWrongCondTypeSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ] :
 -- IllTypedRuns.  We're instantiating at `integer` but returning a string: at
@@ -374,7 +386,8 @@ namesAndTests =
    , ("iteUninstantiatedFullyApplied", iteUninstantiatedFullyApplied)
    , ("iteAtInteger", iteAtInteger)
    , ("iteAtIntegerWithCond", iteAtIntegerWithCond)
-   , ("iteAtIntegerWrongCondType", iteAtIntegerWrongCondType)
+   , ("iteAtIntegerWrongCondTypeUnSat", iteAtIntegerWrongCondTypeUnSat)
+   , ("iteAtIntegerWrongCondTypeSat", iteAtIntegerWrongCondTypeSat)
    , ("iteAtIntegerFullyApplied", iteAtIntegerFullyApplied)
    , ("diFullyApplied", diFullyApplied)
    , ("iteAtString", iteAtString)

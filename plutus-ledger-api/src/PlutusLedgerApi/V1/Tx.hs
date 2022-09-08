@@ -27,23 +27,12 @@ module PlutusLedgerApi.V1.Tx
     , txOutPubKey
     ,txOutDatum
     ,pubKeyHashTxOut
-    -- * Transaction inputs
-    , TxInType(..)
-    , TxIn(..)
-    , inRef
-    , inType
-    , inScripts
-    , pubKeyTxIn
-    , scriptTxIn
-    , pubKeyTxIns
-    , scriptTxIns
     ) where
 
 import Control.DeepSeq (NFData)
 import Control.Lens
 import Data.Map (Map)
 import Data.Maybe (isJust)
-import Data.Set qualified as Set
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import Prettyprinter
@@ -59,32 +48,41 @@ import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
+{- | A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.
 
--- | A transaction ID, using a SHA256 hash as the transaction id.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+-}
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.Eq, PlutusTx.Ord)
-    deriving (Show, Pretty, IsString) via LedgerBytes
+    deriving
+        (IsString        -- ^ from hex encoding
+        , Show           -- ^ using hex encoding
+        , Pretty         -- ^ using hex encoding
+        ) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
--- | A redeemer pointer is a pair of a script type tag t and an index i, picking out the ith
--- script of type t in the transaction.
+-- | A redeemer pointer is a pair of a script type tag ('ScriptTag') `t` and an index `i`,
+-- picking out the i-th script of type `t` in the transaction.
 data RedeemerPtr = RedeemerPtr ScriptTag Integer
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
 
+-- | Redeemers is a `Map` of redeemer pointer ('RedeemerPtr') and its 'Redeemer'.
 type Redeemers = Map RedeemerPtr Redeemer
 
 -- | A reference to a transaction output. This is a
--- pair of a transaction reference, and an index indicating which of the outputs
+-- pair of a transaction ID (`TxId`), and an index indicating which of the outputs
 -- of that transaction we are referring to.
 data TxOutRef = TxOutRef {
-    txOutRefId  :: TxId,
+    txOutRefId  :: TxId, -- ^ The transaction ID.
     txOutRefIdx :: Integer -- ^ Index into the referenced transaction's outputs
     }
     deriving stock (Show, Eq, Ord, Generic)
@@ -98,69 +96,8 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
-
--- | The type of a transaction input.
-data TxInType =
-      -- TODO: these should all be hashes, with the validators and data segregated to the side
-      ConsumeScriptAddress !Validator !Redeemer !Datum -- ^ A transaction input that consumes a script address with the given validator, redeemer, and datum.
-    | ConsumePublicKeyAddress -- ^ A transaction input that consumes a public key address.
-    | ConsumeSimpleScriptAddress -- ^ Consume a simple script
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData)
-
--- | A transaction input, consisting of a transaction output reference and an input type.
-data TxIn = TxIn {
-    txInRef  :: !TxOutRef,
-    txInType :: Maybe TxInType
-    }
-    deriving stock (Show, Eq, Ord, Generic)
-    deriving anyclass (NFData)
-
-instance Pretty TxIn where
-    pretty TxIn{txInRef,txInType} =
-                let rest =
-                        case txInType of
-                            Just (ConsumeScriptAddress _ redeemer _) ->
-                                pretty redeemer
-                            _ -> mempty
-                in hang 2 $ vsep ["-" <+> pretty txInRef, rest]
-
--- | The 'TxOutRef' spent by a transaction input.
-inRef :: Lens' TxIn TxOutRef
-inRef = lens txInRef s where
-    s txi r = txi { txInRef = r }
-
--- | The type of a transaction input.
-inType :: Lens' TxIn (Maybe TxInType)
-inType = lens txInType s where
-    s txi t = txi { txInType = t }
-
--- | Validator, redeemer, and data scripts of a transaction input that spends a
---   "pay to script" output.
-inScripts :: TxIn -> Maybe (Validator, Redeemer, Datum)
-inScripts TxIn{ txInType = t } = case t of
-    Just (ConsumeScriptAddress v r d) -> Just (v, r, d)
-    _                                 -> Nothing
-
--- | A transaction input that spends a "pay to public key" output, given the witness.
-pubKeyTxIn :: TxOutRef -> TxIn
-pubKeyTxIn r = TxIn r (Just ConsumePublicKeyAddress)
-
--- | A transaction input that spends a "pay to script" output, given witnesses.
-scriptTxIn :: TxOutRef -> Validator -> Redeemer -> Datum -> TxIn
-scriptTxIn ref v r d = TxIn ref . Just $ ConsumeScriptAddress v r d
-
--- | Filter to get only the pubkey inputs.
-pubKeyTxIns :: Fold (Set.Set TxIn) TxIn
-pubKeyTxIns = folding (Set.filter (\TxIn{ txInType = t } -> t == Just ConsumePublicKeyAddress))
-
--- | Filter to get only the script inputs.
-scriptTxIns :: Fold (Set.Set TxIn) TxIn
-scriptTxIns = (\x -> folding x) . Set.filter $ \case
-    TxIn{ txInType = Just ConsumeScriptAddress{} } -> True
-    _                                              -> False
-
--- | A transaction output, consisting of a target address, a value, and optionally a datum hash.
+-- | A transaction output, consisting of a target address ('Address'), a value ('Value'),
+-- and optionally a datum hash ('DatumHash').
 data TxOut = TxOut {
     txOutAddress   :: Address,
     txOutValue     :: Value,
@@ -189,8 +126,8 @@ txOutPubKey :: TxOut -> Maybe PubKeyHash
 txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
 -- | The validator hash attached to a 'TxOut', if there is one.
-txOutValidatorHash :: TxOut -> Maybe ValidatorHash
-txOutValidatorHash TxOut{txOutAddress} = toValidatorHash txOutAddress
+txOutScriptHash :: TxOut -> Maybe ScriptHash
+txOutScriptHash TxOut{txOutAddress} = toScriptHash txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
@@ -209,7 +146,7 @@ isPubKeyOut = isJust . txOutPubKey
 
 -- | Whether the output is a pay-to-script output.
 isPayToScriptOut :: TxOut -> Bool
-isPayToScriptOut = isJust . txOutValidatorHash
+isPayToScriptOut = isJust . txOutScriptHash
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut

@@ -44,8 +44,6 @@ Vasil
 
 All of the built-in types and functions from ``PlutusV1`` were added to ``PlutusV2``.
 
-The following built-in functions were added to ``PlutusV2`` only (i.e. they are not available in ``PlutusV1``).
+The following built-in function was added to ``PlutusV2`` only (i.e., it is not available in ``PlutusV1``).
 
 - ``serializeData`` (proposed in CIP-42)
-- ``verifyEcdsaSecp256k1Signature`` (proposed in CIP-49)
-- ``verifySchnorrSecp256k1Signature`` (proposed in CIP-49)

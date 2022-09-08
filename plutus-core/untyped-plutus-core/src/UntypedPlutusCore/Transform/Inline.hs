@@ -23,6 +23,7 @@ See Note [The problem of inlining destructors].
 -}
 module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 
+import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
 import UntypedPlutusCore.Core.Plated
@@ -41,7 +42,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import Witherable
+import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
 
@@ -53,7 +54,7 @@ is actively harmful, so we don't include it.
 5. Simplistic purity analysis, in particular we don't try to be clever about builtins (should mostly be handled in PIR).
 -}
 
-newtype InlineTerm name uni fun a = Done (Term name uni fun a)
+newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
 
 newtype TermEnv name uni fun a = TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
     deriving newtype (Semigroup, Monoid)
@@ -68,12 +69,14 @@ makeLenses ''Subst
 
 type ExternalConstraints name uni fun m =
     ( HasUnique name TermUnique
+    , Eq name
     , PLC.ToBuiltinMeaning uni fun
     , MonadQuote m
     )
 
 type InliningConstraints name uni fun =
     ( HasUnique name TermUnique
+    , Eq name
     , PLC.ToBuiltinMeaning uni fun
     )
 
@@ -152,7 +155,7 @@ processTerm = handleTerm where
         v@(Var _ n) -> fromMaybe v <$> substName n
         -- See Note [Differences from PIR inliner] 3
         (extractApps -> Just (bs, t)) -> do
-            bs' <- wither processSingleBinding bs
+            bs' <- wither (processSingleBinding t) bs
             t' <- processTerm t
             pure $ restoreApps bs' t'
         t -> forMOf termSubterms t processTerm
@@ -165,11 +168,15 @@ processTerm = handleTerm where
     renameTerm = \case
         -- Already processed term, just rename and put it in, don't do any
         -- further optimization here.
-        Done t -> PLC.rename t
+        Done t -> liftDupable t
 
-processSingleBinding :: InliningConstraints name uni fun => UTermDef name uni fun a -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
-processSingleBinding (Def vd@(UVarDecl a n) rhs) = do
-    rhs' <- maybeAddSubst a n rhs
+processSingleBinding
+  :: InliningConstraints name uni fun
+  => Term name uni fun a
+  -> UTermDef name uni fun a
+  -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
+processSingleBinding body (Def vd@(UVarDecl a n) rhs) = do
+    rhs' <- maybeAddSubst body a n rhs
     pure $ Def vd <$> rhs'
 
 -- NOTE:  Nothing means that we are inlining the term:
@@ -177,11 +184,12 @@ processSingleBinding (Def vd@(UVarDecl a n) rhs) = do
 --   * we are removing the binding (hence we return Nothing)
 maybeAddSubst
     :: forall name uni fun a. InliningConstraints name uni fun
-    => a
+    => Term name uni fun a
+    -> a
     -> name
     -> Term name uni fun a
     -> InlineM name uni fun a (Maybe (Term name uni fun a))
-maybeAddSubst a n rhs = do
+maybeAddSubst body a n rhs = do
     rhs' <- processTerm rhs
 
     -- Check whether we've been told specifically to inline this
@@ -190,12 +198,12 @@ maybeAddSubst a n rhs = do
 
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
-    then extendAndDrop (Done rhs')
+    then extendAndDrop (Done $ dupable rhs')
     else do
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postUnconditional <- postInlineUnconditional rhs'
         if hinted || postUnconditional
-        then extendAndDrop (Done rhs')
+        then extendAndDrop (Done $ dupable rhs')
         else pure $ Just rhs'
     where
         extendAndDrop :: forall b . InlineTerm name uni fun a -> InlineM name uni fun a (Maybe b)
@@ -211,7 +219,14 @@ maybeAddSubst a n rhs = do
             let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
-            pure $ termUsedAtMostOnce && termIsPure
+            -- This can in the worst case traverse a lot of the term, which could lead to us
+            -- doing ~quadratic work as we process the program. However in practice most term
+            -- types will make it give up, so it's not too bad.
+            let immediatelyEvaluated = case firstEffectfulTerm body of
+                 Just (Var _ n') -> n == n'
+                 _               -> False
+                effectSafe = termIsPure || immediatelyEvaluated
+            pure $ termUsedAtMostOnce && effectSafe
 
         -- | Should we inline? Should only inline things that won't duplicate work or code.
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -222,6 +237,27 @@ maybeAddSubst a n rhs = do
             -- See Note [Inlining and purity]
             termIsPure <- checkPurity t
             pure $ acceptable && termIsPure
+
+{- |
+Try to identify the first sub term which will be evaluated in the given term and
+which could have an effect. 'Nothing' indicates that we don't know, this function
+is conservative.
+-}
+firstEffectfulTerm :: Term name uni fun a -> Maybe (Term name uni fun a)
+firstEffectfulTerm = goTerm
+    where
+      goTerm = \case
+
+        Apply _ l _ -> goTerm l
+        Force _ t   -> goTerm t
+
+        t@Var{}     -> Just t
+        t@Error{}   -> Just t
+        t@Builtin{} -> Just t
+
+        LamAbs{}    -> Nothing
+        Constant{}  -> Nothing
+        Delay{}     -> Nothing
 
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?

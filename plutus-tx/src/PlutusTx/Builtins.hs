@@ -172,13 +172,38 @@ decodeUtf8 = BI.decodeUtf8
 -- and an ECDSA SECP256k1 message hash (all as 'BuiltinByteString's), verify the
 -- hash with that key and signature.
 --
--- = Important note
+-- = Note
 --
--- The verification key, the signature, and the message hash must all be of
--- appropriate form and length. This function will error if any of
--- these are not the case.
+-- There are additional well-formation requirements for the arguments beyond
+-- their length:
+--
+-- * The first byte of the public key must correspond to the sign of the /y/
+-- coordinate: this is @0x02@ if /y/ is even, and @0x03@ otherwise.
+-- * The remaining bytes of the public key must correspond to the /x/
+-- coordinate, as a big-endian integer.
+-- * The first 32 bytes of the signature must correspond to the big-endian
+-- integer representation of _r_.
+-- * The last 32 bytes of the signature must correspond to the big-endian
+-- integer representation of _s_.
+--
+-- While this primitive /accepts/ a hash, any caller should only pass it hashes
+-- that they computed themselves: specifically, they should receive the
+-- /message/ from a sender and hash it, rather than receiving the /hash/ from
+-- said sender. Failure to do so can be
+-- [dangerous](https://bitcoin.stackexchange.com/a/81116/35586). Other than
+-- length, we make no requirements of what hash gets used.
+--
+-- = See also
+--
+-- *
+-- [@secp256k1_ec_pubkey_serialize@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1.h#L394);
+-- this implements the format for the verification key that we accept, given a
+-- length argument of 33 and the @SECP256K1_EC_COMPRESSED@ flag.
+-- *
+-- [@secp256k1_ecdsa_serialize_compact@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1.h#L487);
+-- this implements the format for the signature that we accept.
 verifyEcdsaSecp256k1Signature
-  :: BuiltinByteString -- ^ Verification key (64 bytes)
+  :: BuiltinByteString -- ^ Verification key (33 bytes)
   -> BuiltinByteString -- ^ Message hash (32 bytes)
   -> BuiltinByteString -- ^ Signature (64 bytes)
   -> Bool
@@ -190,13 +215,30 @@ verifyEcdsaSecp256k1Signature vk msg sig =
 -- and a message (all as 'BuiltinByteString's), verify the message with that key
 -- and signature.
 --
--- = Important note
+-- = Note
 --
--- The verification key and signature must all be of appropriate form and
--- length. This function will error if this is not the case.
+-- There are additional well-formation requirements for the arguments beyond
+-- their length. Throughout, we refer to co-ordinates of the point @R@.
+--
+-- * The bytes of the public key must correspond to the /x/ coordinate, as a
+-- big-endian integer, as specified in BIP-340.
+-- * The first 32 bytes of the signature must correspond to the /x/ coordinate,
+-- as a big-endian integer, as specified in BIP-340.
+-- * The last 32 bytes of the signature must correspond to the bytes of /s/, as
+-- a big-endian integer, as specified in BIP-340.
+--
+-- = See also
+--
+-- * [BIP-340](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
+-- *
+-- [@secp256k1_xonly_pubkey_serialize@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_extrakeys.h#L61);
+-- this implements the format for the verification key that we accept.
+-- *
+-- [@secp256k1_schnorrsig_sign@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_schnorrsig.h#L129);
+-- this implements the signing logic for signatures this builtin can verify.
 verifySchnorrSecp256k1Signature
-  :: BuiltinByteString -- ^ Verification key (64 bytes)
-  -> BuiltinByteString -- ^ Message
+  :: BuiltinByteString -- ^ Verification key (32 bytes)
+  -> BuiltinByteString -- ^ Message (arbitrary length)
   -> BuiltinByteString -- ^ Signature (64 bytes)
   -> Bool
 verifySchnorrSecp256k1Signature vk msg sig =

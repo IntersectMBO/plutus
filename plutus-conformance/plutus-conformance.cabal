@@ -54,6 +54,7 @@ library
     , plutus-core
     , tasty
     , tasty-expected-failure
+    , tasty-golden
     , text
     , witherable
 

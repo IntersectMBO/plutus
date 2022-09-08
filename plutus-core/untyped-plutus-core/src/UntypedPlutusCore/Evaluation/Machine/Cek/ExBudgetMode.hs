@@ -98,7 +98,7 @@ instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
         ]
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
-tallying :: (Eq fun, Hashable fun) => ExBudgetMode (TallyingSt fun) uni fun
+tallying :: (Hashable fun) => ExBudgetMode (TallyingSt fun) uni fun
 tallying =
     monoidalBudgeting $ \key budgetToSpend ->
         TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend

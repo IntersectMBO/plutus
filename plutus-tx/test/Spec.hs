@@ -10,21 +10,24 @@ import Codec.Serialise qualified as Serialise
 import Control.Exception (ErrorCall, catch)
 import Data.ByteString qualified as BS
 import Data.Either (isLeft)
-import Data.Word
+import Data.Word (Word64)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Data (Data (..))
+import PlutusCore.Data (Data (B, Constr, I, List, Map))
+import PlutusTx.Enum (Enum (..))
 import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
-import PlutusTx.Sqrt (Sqrt (..), isqrt, rsqrt)
-import Prelude hiding (Rational, negate, recip)
+import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
+import Prelude hiding (Enum (..), Rational, negate, recip)
+import Show.Spec qualified
 import Suites.Laws (lawsTests)
-import Test.Tasty
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Extras (runTestNestedIn)
 import Test.Tasty.HUnit (Assertion, testCase, (@?=))
-import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.Hedgehog (testPropertyNamed)
 
 main :: IO ()
 main = defaultMain tests
@@ -35,15 +38,18 @@ tests = testGroup "plutus-tx" [
     , sqrtTests
     , ratioTests
     , bytestringTests
+    , enumTests
     , listTests
     , lawsTests
+    , Show.Spec.propertyTests
+    , runTestNestedIn ["test"] Show.Spec.goldenTests
     ]
 
 sqrtTests :: TestTree
 sqrtTests = testGroup "isqrt/rsqrt tests"
-  [ testProperty "isqrt x^2 = x" isqrtRoundTrip
-  , testProperty "rsqrt (a/b)^2 = integer part of a/b" rsqrtRoundTrip
-  , testProperty "rsqrt (-x/b) = Imaginary" rsqrtRoundTripImaginary
+  [ testPropertyNamed "isqrt x^2 = x" "isqrtRoundTrip" isqrtRoundTrip
+  , testPropertyNamed "rsqrt (a/b)^2 = integer part of a/b" "rsqrtRoundTrip" rsqrtRoundTrip
+  , testPropertyNamed "rsqrt (-x/b) = Imaginary" "rsqrtRoundTripImaginary" rsqrtRoundTripImaginary
   ]
 
 rsqrtRoundTripImaginary :: Property
@@ -104,9 +110,9 @@ isqrtRoundTrip = property $ do
 
 serdeTests :: TestTree
 serdeTests = testGroup "Data serialisation"
-    [ testProperty "data round-trip" dataRoundTrip
-    , testProperty "no big bytestrings" noBigByteStrings
-    , testProperty "no big integers" noBigIntegers
+    [ testPropertyNamed "data round-trip" "dataRoundTrip" dataRoundTrip
+    , testPropertyNamed "no big bytestrings" "noBigByteStrings" noBigByteStrings
+    , testPropertyNamed "no big integers" "noBigIntegers" noBigIntegers
     ]
 
 dataRoundTrip :: Property
@@ -169,9 +175,9 @@ noBigIntegers = property $ do
 
 ratioTests :: TestTree
 ratioTests = testGroup "Ratio"
-  [ testProperty "reciprocal ordering 1" reciprocalOrdering1
-  , testProperty "reciprocal ordering 2" reciprocalOrdering2
-  , testProperty "reciprocal ordering 3" reciprocalOrdering3
+  [ testPropertyNamed "reciprocal ordering 1" "reciprocalOrdering1" reciprocalOrdering1
+  , testPropertyNamed "reciprocal ordering 2" "reciprocalOrdering2" reciprocalOrdering2
+  , testPropertyNamed "reciprocal ordering 3" "reciprocalOrdering3" reciprocalOrdering3
   , testCase "recip 0 % 2 fails" reciprocalFailsZeroNumerator
   ]
 
@@ -242,6 +248,17 @@ dropByteStringTests = testGroup "dropByteString"
   , testCase "drop 1" $ dropByteString 1 "hello" @?= "ello"
   , testCase "drop 3" $ dropByteString 3 "hello" @?= "lo"
   , testCase "drop 10" $ dropByteString 10 "hello" @?= ""
+  ]
+
+enumTests :: TestTree
+enumTests = testGroup "Enum"
+  [ enumFromToTests ]
+
+enumFromToTests :: TestTree
+enumFromToTests = testGroup "enumFromTo"
+  [ testCase "enumFromTo (-2) 2 == [-2..2]" $ enumFromTo @Integer (-2) 2 @?= [-2..2]
+  , testCase "enumFromTo 2 (-2) == []" $ enumFromTo @Integer 2 (-2) @?= []
+  , testCase "enumFromTo 42 42 == [42]" $ enumFromTo @Integer 42 42 @?= [42]
   ]
 
 listTests :: TestTree
