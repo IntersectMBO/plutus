@@ -6,13 +6,14 @@ What are Plutus language versions?
 The Cardano ledger tags scripts with a *language*. This determines what the ledger 
 will do with the script.
 
-For example, the "simple" script language introduced in Allegra allows for a few basic 
-kinds of checks to be made, such as time locks. In order to interpret simple scripts, 
-the ledger must (among other things) extract the validation interval information 
-from the transaction in order to check the conditions imposed by the script.
+For example, the "simple" script language introduced in the Allegra era allows for 
+a few basic kinds of checks to be made, such as time locks. In order to interpret 
+simple scripts, the ledger must (among other things) extract the validation interval 
+information from the transaction in order to check the conditions imposed by the script.
 
-Plutus scripts have a more complex interface than simple scripts. Plutus scripts are 
-programs written in the Plutus Core programming language that receive three arguments: 
+Plutus scripts, introduced in the Alonzo era, have a more complex interface than 
+simple scripts. Plutus scripts are programs written in the Plutus Core programming 
+language that receive three arguments: 
 
    1. the datum, 
    2. the redeemer, and 
@@ -22,13 +23,13 @@ The *context* contains all the information about the transaction which is curren
 being validated. (See :ref:`Scripts and the Extended UTXO model <scripts_and_the_eutxo_model>` 
 for more details). 
 
-Languages must continue to behave the same forever, otherwise we could change the 
+Languages must continue to behave the same forever; otherwise, we could change the 
 behaviour of existing scripts, potentially making outputs un-spendable and breaking 
 users' assumptions. That means that many kinds of changes to the behaviour of the 
 language instead require a "new" language. This includes changes to the interface 
 of the language. 
 
-For example, if we want to put more information in the context (e.g., in order to 
+For example, if we want to put more information in the *context* (e.g., in order to 
 convey information about new fields that have been added to transactions), then 
 we need a new language, because old scripts would not be able to understand the new information. 
 
