@@ -7,8 +7,11 @@ How to export scripts, datums and redeemers
 .. note::
     This guide uses the scripts from the :ref:`basic validators tutorial <basic_validators_tutorial>`.
 
-Since scripts must match their on-chain hashes exactly, it is important that the scripts which an application uses do not accidentally change.
-For example, changing the source code or updating dependencies or tooling may lead to small changes in the script - but since the hashes must match exactly, even small changes can be problematic.
+Since scripts must match their on-chain hashes exactly, it is important that the 
+scripts which an application uses do not accidentally change. For example, changing 
+the source code or updating dependencies or tooling may lead to small changes in 
+the script. As a result, the hash will change. In cases where the hashes must match 
+exactly, even changes which do not alter the functionality of the script can be problematic.
 
 For this reason, once you expect that you will not modify the on-chain part of your application more, it is sensible to *freeze* it by saving the final Plutus Core to a file.
 

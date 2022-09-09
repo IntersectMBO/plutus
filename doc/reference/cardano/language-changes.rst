@@ -46,4 +46,4 @@ All of the built-in types and functions from ``PlutusV1`` were added to ``Plutus
 
 The following built-in function was added to ``PlutusV2`` only (i.e., it is not available in ``PlutusV1``).
 
-- ``serializeData`` (proposed in CIP-42)
+- ``serializeData`` (proposed in `CIP-42 <https://cips.cardano.org/cips/cip42/>`_)
