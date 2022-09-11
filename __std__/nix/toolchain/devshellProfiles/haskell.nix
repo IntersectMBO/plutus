@@ -20,9 +20,8 @@ _: {
     cell.packages.cabal-fmt
     cell.packages.nixpkgs-fmt
 
-    # TODO(std) This was originally in the shell, but it doesn't come from haskell-nix.
-    # Is it even used?
-    # inputs.nixpkgs.ghcid
+    # TODO(std) check if this is used 
+    inputs.nixpkgs.ghcid
 
     # TODO(std) move these 3 into devops shell or script when we have one
     inputs.nixpkgs.awscli2
