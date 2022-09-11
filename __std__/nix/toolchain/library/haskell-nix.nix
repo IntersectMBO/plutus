@@ -2,5 +2,7 @@
 
 # TODO(std)
 {
-  haskellLib = {};
+  haskellLib = {
+    collectComponents' = _: _: {};
+  };
 }
