@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-# TODO(std) 
+# TODO(std)
 {
   haskellLib = {};
 }

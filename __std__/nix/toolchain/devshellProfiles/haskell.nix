@@ -20,7 +20,7 @@ _: {
     cell.packages.cabal-fmt
     cell.packages.nixpkgs-fmt
 
-    # TODO(std) check if this is used 
+    # TODO(std) check if this is used
     inputs.nixpkgs.ghcid
 
     # TODO(std) move these 3 into devops shell or script when we have one
