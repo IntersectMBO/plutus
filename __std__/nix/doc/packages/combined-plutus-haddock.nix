@@ -9,7 +9,7 @@ let
       inputs.cells.plutus.packages.all-components-with-haddock;
 in
 
-inputs.cells.toolchain.library.haddock-combine {
+inputs.cells.toolchain.library.combine-haddock {
 
   hspkgs = builtins.attrValues toHaddock;
   

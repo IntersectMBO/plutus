@@ -4,5 +4,5 @@
 
   haskell-nix = import ./haskell-nix.nix organelle;
 
-  join-haddock = import ./join-haddock.nix organelle;
+  combine-haddock = import ./combine-haddock.nix organelle;
 }
