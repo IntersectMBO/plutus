@@ -39,7 +39,7 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-    inputs.cells.toolchain.agda-with-stdlib
+    inputs.cells.toolchain.packages.agda-with-stdlib
 
     inputs.nixpkgs.zip
   ];
@@ -49,7 +49,8 @@ cell.library.build-latex {
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
   preBuild = ''
-    echo FIXME && exit 0 
+    # FIXME
+    return
 
     for file in *.lagda; do
       agda --latex $file --latex-dir .
