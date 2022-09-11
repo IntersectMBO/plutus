@@ -24,5 +24,5 @@
 
   cost-model-notes = import ./cost-model-notes.nix organelle;
 
-  combined-haddock = import ./combined-haddock.nix organelle;
+  combined-plutus-haddock = import ./combined-plutus-haddock.nix organelle;
 }

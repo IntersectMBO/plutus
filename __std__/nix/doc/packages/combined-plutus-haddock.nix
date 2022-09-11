@@ -2,14 +2,13 @@
 
 # TODO(std) need haskell-nix for this
 
-# # editorconfig-checker-disable-file
-{ haddock-combine, haskell, haskell-nix, writeTextFile }:
 let
   toHaddock = 
     inputs.cells.toolchain.library.haskell-nix.haskellLib.collectComponents' 
       "library" 
-      inputs.cells.plutus.packages.all-packages-with-haddock;
+      inputs.cells.plutus.packages.all-components-with-haddock;
 in
+
 inputs.cells.toolchain.library.haddock-combine {
 
   hspkgs = builtins.attrValues toHaddock;
