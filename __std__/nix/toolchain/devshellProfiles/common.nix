@@ -18,4 +18,14 @@ _: {
       help = "builds everything in the flake";
     }
   ];
+
+  packages = [
+    inputs.nixpkgs.editorconfig-core-c
+    inputs.nixpkgs.editorconfig-checker
+    inputs.nixpkgs.jq
+    inputs.nixpkgs.pre-commit
+    inputs.nixpkgs.shellcheck
+    inputs.nixpkgs.yq
+    inputs.nixpkgs.zlib
+  ];
 }

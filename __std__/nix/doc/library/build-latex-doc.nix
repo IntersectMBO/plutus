@@ -30,10 +30,7 @@ cell.library.build-latex {
       scheme-small;
   };
 
-  # TODO(std) needs agda 
   preBuild = lib.optionalString withAgda ''
-    echo FIXME 
-    return 
     agda --latex ${agdaFile} --latex-dir .
   '';
 
