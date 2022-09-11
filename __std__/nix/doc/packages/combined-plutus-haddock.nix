@@ -1,11 +1,13 @@
+# editorconfig-checker-disable-file 
+
 { inputs, cell }:
 
 # TODO(std) need haskell-nix for this
 
 let
-  toHaddock = 
-    inputs.cells.toolchain.library.haskell-nix.haskellLib.collectComponents' 
-      "library" 
+  toHaddock =
+    inputs.cells.toolchain.library.haskell-nix.haskellLib.collectComponents'
+      "library"
       inputs.cells.plutus.packages.all-components-with-haddock;
 in
 

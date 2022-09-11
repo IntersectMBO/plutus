@@ -7,11 +7,11 @@
   # applied consistently, since we're reusing the already built Haddock for the packages.
   hspkgs
   # Optionally, a file to be used for the Haddock "--prologue" option.
-, prologue ? null 
+, prologue ? null
 }:
 
 let
-  lib = inputs.nixpkgs.lib; 
+  lib = inputs.nixpkgs.lib;
 
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in

@@ -16,7 +16,7 @@ inputs.nixpkgs.stdenv.mkDerivation {
 
   # TODO(std) needs haskell-nix
   buildPhase = ''
-    echo FIXME > $out && exit 0 
+    echo FIXME > $out && exit 0
 
     cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
