@@ -1,5 +1,6 @@
 { inputs, cell }:
 
+
 inputs.nixpkgs.stdenv.mkDerivation {
   name = "read-the-docs-site";
 
@@ -13,14 +14,13 @@ inputs.nixpkgs.stdenv.mkDerivation {
 
   dontInstall = true;
 
-  # TODO(std) cannot be built until we std'ize the haskell packages.
-  # Original:
-  # cp -aR ${plutus.plutus-haddock-combined}/share/doc haddock
-  # -n gives warnings on missing link targets, -W makes warnings into errors
-  # SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out
-  # cp -aR haddock $out
+  # TODO(std) needs haskell-nix
   buildPhase = ''
-    mkdir -p $out
-    touch $out/todo
+    echo FIXME > $out && exit 0 
+
+    cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
+    # -n gives warnings on missing link targets, -W makes warnings into errors
+    SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out
+    cp -aR haddock $out
   '';
 }

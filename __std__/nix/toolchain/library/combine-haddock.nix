@@ -16,7 +16,7 @@ let
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in
 
-inputs.nixpkgs.runCommand "haddock-join"
+inputs.nixpkgs.runCommand "combine-haddock"
 {
   buildInputs = [ hsdocs ];
 
@@ -28,6 +28,8 @@ inputs.nixpkgs.runCommand "haddock-join"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
+  echo FIXME > $out && exit 0
+
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
   # Merge all the docs from the packages and their doc dependencies.
   # We don't use symlinkJoin because:
