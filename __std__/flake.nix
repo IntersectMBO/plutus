@@ -42,6 +42,7 @@
     # };
     gitignore-nix = {
       url = "github:hercules-ci/gitignore.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     # haskell-language-server = {
     #   # Pinned to a release

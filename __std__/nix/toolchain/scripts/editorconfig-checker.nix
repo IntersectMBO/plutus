@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let src = inputs.gitignore-nix.gitignoreSource inputs.self; in
+let src = cell.library.gitignore-source.gitignoreSource inputs.self; in
 
 inputs.nixpkgs.runCommand "editorconfig-checker"
 {

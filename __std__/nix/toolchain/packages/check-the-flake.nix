@@ -6,6 +6,8 @@ inputs.nixpkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [ inputs.nixpkgs.nix ];
   text = ''
+    set -e 
+    
     root="$(repo-root)"
 
     shell_fragments=$(

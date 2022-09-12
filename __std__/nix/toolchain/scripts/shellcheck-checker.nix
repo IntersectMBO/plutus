@@ -2,7 +2,7 @@
 
 let
   src = inputs.nixpkgs.lib.sourceFilesBySuffices
-    (inputs.gitignore-nix.gitignoreSource inputs.self)
+    (cell.library.gitignore-source.gitignoreSource inputs.self)
     [ ".sh" ];
 in
 
