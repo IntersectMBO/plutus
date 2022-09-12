@@ -1,6 +1,7 @@
 { inputs, cell }:
 
-# TODO(std) we need stylish-haskell for this
+# TODO(std) we need stylish-haskell for this 
+# change stylish-haskell.enable = true;
 
 # Configure project pre-commit hooks
 inputs.pre-commit-hooks-nix.lib.run {
@@ -15,7 +16,7 @@ inputs.pre-commit-hooks-nix.lib.run {
   };
 
   hooks = {
-    stylish-haskell.enable = true;
+    stylish-haskell.enable = false;
     cabal-fmt.enable = true;
     shellcheck.enable = true;
 
