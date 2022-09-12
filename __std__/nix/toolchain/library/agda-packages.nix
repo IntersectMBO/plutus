@@ -21,12 +21,15 @@ let
   frankenAgda = (inputs.nixpkgs.symlinkJoin {
     name = "agda";
     paths = [
-      cell.packages.agda.components.exes.agda
-      cell.packages.agda.components.exes.agda-mode
+      # TODO(std) fixme 
+      # cell.packages.agda.components.exes.agda
+      # cell.packages.agda.components.exes.agda-mode
     ];
   }) // 
   { 
-    version = cell.packages.agda.identifier.version; 
+    # TODO(std) fixme 
+    # version = cell.packages.agda.identifier.version; 
+    version = "FIXME"; 
   };
 
   frankenPkgs =
@@ -40,7 +43,10 @@ let
     };
 in
 
-  inputs.nixpkgs.agdaPackages.override { 
-    Agda = frankenAgda; 
-    pkgs = frankenPkgs; 
-  }
+  cell.packages.todo-derivation
+
+  # TODO(std) fixme 
+  # inputs.nixpkgs.agdaPackages.override { 
+  #   Agda = frankenAgda; 
+  #   pkgs = frankenPkgs; 
+  # }

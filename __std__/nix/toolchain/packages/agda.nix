@@ -21,8 +21,8 @@ let
       # - turn off the custom setup
       # - manually compile the executable (fortunately it has no extra
       # dependencies!) and do the compilation at the end of the library derivation.
-      packages.Agda.package.buildType = lib.mkForce "Simple";
-      packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
+      packages.Agda.package.buildType = inputs.nixpkgs.lib.mkForce "Simple";
+      packages.Agda.components.library.enableSeparateDataOutput = inputs.nixpkgs.lib.mkForce true;
       packages.Agda.components.library.postInstall = ''
         # Compile the executable using the package DB we've just made, which contains
         # the main Agda library
