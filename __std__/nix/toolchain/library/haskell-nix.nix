@@ -6,7 +6,7 @@
     collectComponents' = _: _: { };
   };
 
-  cabalProject' = _: { };
+  cabalProject' = _: cell.packages.todo-derivation;
 
-  hackage-project = _: { };
+  hackage-project = _: cell.packages.todo-derivation;
 }

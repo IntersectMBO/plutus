@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "cardano-repo-tool": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1660911178,
+        "narHash": "sha256-CHKM2WQL7kj6aQ4afuXHvXOc7HUsAS1pXz/1fr+Dbv0=",
+        "owner": "input-output-hk",
+        "repo": "cardano-repo-tool",
+        "rev": "b90fbb2319ebb7aaec8f1baa90d5d7a7bea7905b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "cardano-repo-tool",
+        "type": "github"
+      }
+    },
     "constraints-extras": {
       "flake": false,
       "locked": {
@@ -492,6 +508,7 @@
     },
     "root": {
       "inputs": {
+        "cardano-repo-tool": "cardano-repo-tool",
         "gitignore-nix": "gitignore-nix",
         "hackage-nix": "hackage-nix",
         "haskell-language-server": "haskell-language-server",

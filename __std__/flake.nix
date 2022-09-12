@@ -34,10 +34,10 @@
       url = "github:michaelpj/sphinxcontrib-haddock";
       flake = false;
     };
-    # cardano-repo-tool = {
-    #   url = "github:input-output-hk/cardano-repo-tool";
-    #   flake = false;
-    # };
+    cardano-repo-tool = {
+      url = "github:input-output-hk/cardano-repo-tool";
+      flake = false;
+    };
     gitignore-nix = {
       url = "github:hercules-ci/gitignore.nix";
       inputs.nixpkgs.follows = "nixpkgs";

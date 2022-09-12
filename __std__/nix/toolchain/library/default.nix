@@ -9,4 +9,6 @@
   r-packages = import ./r-packages.nix organelle;
 
   ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix organelle;
+
+  cabal-project-index-state = import ./ghc-compiler-nix-name.nix organelle;
 }
