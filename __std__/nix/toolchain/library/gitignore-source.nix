@@ -1,3 +1,3 @@
 { inputs, cell }:
 
-inputs.gitignore-nix.lib.gitignoreSource 
+inputs.gitignore-nix.lib.gitignoreSource

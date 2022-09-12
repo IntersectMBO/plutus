@@ -6,14 +6,14 @@
 cell.library.pre-commit-hooks-nix.run {
 
   src = inputs.nixpkgs.lib.cleanSource inputs.self;
-  
+
   tools = {
     shellcheck = inputs.nixpkgs.shellcheck;
     stylish-haskell = cell.packages.stylish-haskell;
     nixpkgs-fmt = cell.packages.nixpkgs-fmt;
     cabal-fmt = cell.packages.cabal-fmt;
   };
-  
+
   hooks = {
     stylish-haskell.enable = true;
     cabal-fmt.enable = true;

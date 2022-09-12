@@ -15,7 +15,7 @@ inputs.nixpkgs.runCommand "stylish-haskell-checker"
     inputs.nixpkgs.glibcLocales
   ];
 } ''
-  echo FIXME > $out && exit 0 
+  echo FIXME > $out && exit 0
 
   set +e
   cp -a ${src} orig
