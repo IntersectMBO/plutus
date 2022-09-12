@@ -2,7 +2,8 @@
 
 { inputs, cell }:
 
-{ # Haskell packages to make documentation for. Only those with a "doc" output will be used.
+{
+  # Haskell packages to make documentation for. Only those with a "doc" output will be used.
   # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
   hspkgs

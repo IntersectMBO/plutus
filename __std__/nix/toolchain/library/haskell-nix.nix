@@ -3,6 +3,6 @@
 # TODO(std)
 {
   haskellLib = {
-    collectComponents' = _: _: {};
+    collectComponents' = _: _: { };
   };
 }

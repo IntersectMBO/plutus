@@ -14,7 +14,7 @@ in
 inputs.cells.toolchain.library.combine-haddock {
 
   hspkgs = builtins.attrValues toHaddock;
-  
+
   prologue = inputs.nixpkgs.writeTextFile {
     name = "prologue";
     text = ''
