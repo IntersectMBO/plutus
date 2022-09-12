@@ -42,7 +42,6 @@
     # };
     gitignore-nix = {
       url = "github:hercules-ci/gitignore.nix";
-      flake = false;
     };
     # haskell-language-server = {
     #   # Pinned to a release

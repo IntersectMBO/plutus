@@ -3,7 +3,7 @@
 # TODO(std) need stylish-haskell for this
 let
   src = inputs.nixpkgs.lib.sourceFilesBySuffices
-    (cell.library.gitignore-nix.gitignoreSource inputs.self)
+    (inputs.gitignore-nix.gitignoreSource inputs.self)
     [ ".hs" ".yaml" ];
 in
 
@@ -16,7 +16,7 @@ inputs.nixpkgs.runCommand "stylish-haskell-checker"
   ];
 } ''
   echo FIXME > $out && exit 0 
-  
+
   set +e
   cp -a ${src} orig
   cp -a ${src} stylish

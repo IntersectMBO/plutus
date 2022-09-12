@@ -1,6 +1,6 @@
 { inputs, cell }@organelle:
 {
-  gitignore-nix = import ./gitignore-nix.nix organelle;
+  # gitignore-nix = import ./gitignore-nix.nix organelle;
 
   pre-commit-hooks-nix = import ./pre-commit-hooks-nix.nix organelle;
 

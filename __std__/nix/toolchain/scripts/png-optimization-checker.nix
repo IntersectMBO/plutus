@@ -2,7 +2,7 @@
 
 let
   src = inputs.nixpkgs.lib.sourceFilesBySuffices
-    (cell.library.gitignore-nix.gitignoreSource inputs.self)
+    (inputs.gitignore-nix.gitignoreSource inputs.self)
     [ ".png" ];
 in
 
