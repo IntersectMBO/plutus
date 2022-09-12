@@ -14,12 +14,12 @@ inputs.std.std.lib.mkShell {
 
   commands = [
     {
-      package = cell.scripts.sphinx-build-doc-site;
+      package = cell.scripts.sphinx-build-readthedocs-site;
       category = "doc";
       help = "Build the docs locally with output in doc/_build";
     }
     {
-      package = cell.scripts.sphinx-autobuild-doc-site;
+      package = cell.scripts.sphinx-autobuild-readthedocs-site;
       category = "doc";
       help = "Start the autobuild server with output in doc/_build";
     }
