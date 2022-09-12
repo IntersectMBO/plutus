@@ -8,5 +8,9 @@
 
   cabalProject' = _: cell.packages.todo-derivation;
 
-  hackage-project = _: cell.packages.todo-derivation;
+  hackage-project = _: { 
+    hsPkgs = {
+      Agda = cell.packages.todo-derivation;
+    };
+  }; 
 }

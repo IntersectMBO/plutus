@@ -13,4 +13,6 @@
   cabal-project-index-state = import ./cabal-project-index-state.nix organelle;
 
   agda-packages = import ./agda-packages.nix organelle;
+
+  haskell-language-server-project = import ./haskell-language-server-project.nix organelle;
 }
