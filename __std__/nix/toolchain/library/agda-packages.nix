@@ -21,20 +21,21 @@ let
   frankenAgda = (inputs.nixpkgs.symlinkJoin {
     name = "agda";
     paths = [
-      haskellNixAgda.components.exes.agda
-      haskellNixAgda.components.exes.agda-mode
+      cell.packages.agda.components.exes.agda
+      cell.packages.agda.components.exes.agda-mode
     ];
   }) // 
   { 
-    version = haskellNixAgda.identifier.version; 
+    version = cell.packages.agda.identifier.version; 
   };
 
   frankenPkgs =
     inputs.nixpkgs //
     {
       haskellPackages = inputs.nixpkgs.haskellPackages // 
-      { 
-        ghcWithPackages = haskell.project.ghcWithPackages; 
+      {   
+        # TODO(std) this references the plutus project, move to plutus cell
+        #ghcWithPackages = haskell.project.ghcWithPackages; 
       };
     };
 in

@@ -2,4 +2,4 @@
 
 # TODO(std) we need haskell-nix for this
 
-cell.library.haskell-langauge-server-project.hsPkgs.haskell-language-server
+cell.library.haskell-language-server-project.hsPkgs.haskell-language-server
