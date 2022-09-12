@@ -17,8 +17,11 @@ cell.library.haskell-nix.cabalProject' {
   cabalProjectLocal = ''
     constraints: stylish-haskell==0.13.0.0, hlint==3.2.8
   '';
-  src = sources.haskell-language-server;
-  inherit compiler-nix-name;
+  
+  src = inputs.haskell-language-server;
+  
+  compiler-nix-name = cell.library.ghc-compiler-nix-name;
+
   modules = [{
     # See https://github.com/haskell/haskell-language-server/pull/1382#issuecomment-780472005
     packages.ghcide.flags.ghc-patched-unboxed-bytecode = true;

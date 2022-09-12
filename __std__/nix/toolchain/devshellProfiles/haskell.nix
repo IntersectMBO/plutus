@@ -27,14 +27,6 @@ _: {
     inputs.nixpkgs.awscli2
     inputs.nixpkgs.bzip2
     inputs.nixpkgs.cacert
-
-    inputs.nixpkgs.editorconfig-core-c
-    inputs.nixpkgs.editorconfig-checker
-    inputs.nixpkgs.jq
-    inputs.nixpkgs.pre-commit
-    inputs.nixpkgs.shellcheck
-    inputs.nixpkgs.yq
-    inputs.nixpkgs.zlib
   ]
   ++ inputs.nixpkgs.lib.optionals (!inputs.nixpkgs.stdenv.isDarwin)
     [

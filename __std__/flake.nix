@@ -42,11 +42,10 @@
       url = "github:hercules-ci/gitignore.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # haskell-language-server = {
-    #   # Pinned to a release
-    #   url = "github:haskell/haskell-language-server?ref=1.7.0.0";
-    #   flake = false;
-    # };
+    haskell-language-server = {
+      # Pinned to a release
+      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
+    };
     # iohk-nix = {
     #   url = "github:input-output-hk/iohk-nix";
     #   flake = false;

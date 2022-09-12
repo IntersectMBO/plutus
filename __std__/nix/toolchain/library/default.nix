@@ -7,4 +7,6 @@
   combine-haddock = import ./combine-haddock.nix organelle;
 
   r-packages = import ./r-packages.nix organelle;
+
+  ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix organelle;
 }
