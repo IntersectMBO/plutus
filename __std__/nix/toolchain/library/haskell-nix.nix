@@ -6,7 +6,7 @@
     collectComponents' = _: _: { };
   };
 
-  cabalProject' = _: {};
+  cabalProject' = _: { };
 
-  hackage-project = _: {};
+  hackage-project = _: { };
 }
