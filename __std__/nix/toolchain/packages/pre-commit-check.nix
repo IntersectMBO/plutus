@@ -1,8 +1,8 @@
 { inputs, cell }:
 
-# TODO(std) we need stylish-haskell for this 
-# change stylish-haskell.enable = true;
-# shellcheck fails on notes/fomega/lazy-machine/benchmarking/run-fib 
+# TODO(std) we need stylish-haskell for this
+# change stylish-haskell.enable = true; and also cabal-fmt
+# shellcheck fails on notes/fomega/lazy-machine/benchmarking/run-fib
 # png-optimization fails with:
 # notes/fomega/evaluation/figures/tri-times+ck.png is already optimized.
 
@@ -20,7 +20,7 @@ inputs.pre-commit-hooks-nix.lib.run {
 
   hooks = {
     stylish-haskell.enable = false;
-    cabal-fmt.enable = true;
+    cabal-fmt.enable = false;
     shellcheck.enable = false;
 
     nixpkgs-fmt = {
