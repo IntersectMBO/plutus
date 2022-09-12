@@ -3,7 +3,7 @@
 # TODO(std) need stylish-haskell for this
 let
   src = inputs.nixpkgs.lib.sourceFilesBySuffices
-    (cell.library.gitignore-source.gitignoreSource inputs.self)
+    (cell.library.gitignore-source inputs.self)
     [ ".hs" ".yaml" ];
 in
 

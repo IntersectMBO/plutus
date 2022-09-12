@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let src = cell.library.gitignore-source.gitignoreSource inputs.self; in
+let src = cell.library.gitignore-source inputs.self; in
 
 # Runs `nixpkgs-fmt --check` on ${src}. If nixpkgs-fmt
   # reports that files need to be re-formatted details are
