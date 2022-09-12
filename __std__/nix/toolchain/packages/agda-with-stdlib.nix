@@ -28,5 +28,6 @@ let
   });
 
 in 
-  
-  cell.library.agda-packages.agda.withPackages [ stdlib ]
+  cell.packages.todo-derivation
+  # TODO(std) fixme
+  # cell.library.agda-packages.agda.withPackages [ stdlib ]

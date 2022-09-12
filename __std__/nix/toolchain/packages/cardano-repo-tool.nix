@@ -1,6 +1,7 @@
 { inputs, cell }:
 
 # TODO(std) we need haskell-nix for this
+# TODO(std) actually delete this if nothing breaks
 
 let 
   project = cell.library.haskell-nix.cabalProject' {
