@@ -2,9 +2,7 @@
 {
   r-lang = import ./r-lang.nix organelle;
 
-  agda-packages = import ./agda-packages.nix organelle;
-
-  agda-project = import ./agda-project.nix organelle;
+  agda = import ./agda.nix organelle;
 
   agda-with-stdlib = import ./agda-with-stdlib.nix organelle;
 

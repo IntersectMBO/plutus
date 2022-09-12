@@ -10,5 +10,7 @@
 
   ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix organelle;
 
-  cabal-project-index-state = import ./ghc-compiler-nix-name.nix organelle;
+  cabal-project-index-state = import ./cabal-project-index-state.nix organelle;
+
+  agda-packages = import ./agda-packages.nix organelle;
 }
