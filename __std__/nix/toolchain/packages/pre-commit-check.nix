@@ -19,6 +19,8 @@ inputs.pre-commit-hooks-nix.lib.run {
   };
 
   hooks = {
+    # TODO(std) add editorconfig-checker 
+    
     stylish-haskell.enable = false;
     cabal-fmt.enable = false;
     shellcheck.enable = false;

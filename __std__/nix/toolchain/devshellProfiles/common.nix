@@ -1,6 +1,8 @@
 { inputs, cell }:
 
 _: {
+  # TODO(std) add cell.packages.pre-commit-check.shellHook to shellHook
+
   commands = [
     {
       package = cell.packages.git-work-in-progress;
