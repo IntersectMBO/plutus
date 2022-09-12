@@ -1,8 +1,6 @@
 { inputs, cell }@organelle:
 {
-  R-lang = import ./R-lang.nix organelle;
-
-  R-packages = import ./R-packages.nix organelle;
+  r-lang = import ./r-lang.nix organelle;
 
   agda-packages = import ./agda-packages.nix organelle;
 
