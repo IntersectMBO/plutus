@@ -9,10 +9,10 @@ in
 
 inputs.nixpkgs.runCommand "stylish-haskell-checker"
 {
-  buildInputs = [ 
-    cell.packages.fix-stylish-haskell 
-    inputs.nixpkgs.diffutils 
-    inputs.nixpkgs.glibcLocales 
+  buildInputs = [
+    cell.packages.fix-stylish-haskell
+    inputs.nixpkgs.diffutils
+    inputs.nixpkgs.glibcLocales
   ];
 } ''
   echo FIXME > $out && exit 0 

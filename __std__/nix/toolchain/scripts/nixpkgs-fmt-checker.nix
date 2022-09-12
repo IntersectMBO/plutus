@@ -3,8 +3,8 @@
 let src = cell.library.gitignore-nix.gitignoreSource inputs.self; in
 
 # Runs `nixpkgs-fmt --check` on ${src}. If nixpkgs-fmt
-# reports that files need to be re-formatted details are
-# written to `$out/nix-support/hydra-build-products`
+  # reports that files need to be re-formatted details are
+  # written to `$out/nix-support/hydra-build-products`
 inputs.nixpkgs.runCommand "nixpkgs-fmt-checker"
 {
   buildInputs = [ cell.packages.nixpkgs-fmt ];
