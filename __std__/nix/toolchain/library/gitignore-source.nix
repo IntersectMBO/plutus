@@ -1,3 +1,3 @@
 { inputs, cell }:
 
-cell.library.gitignore-source.lib.gitignoreSource 
+inputs.gitignore-nix.lib.gitignoreSource 
