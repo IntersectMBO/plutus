@@ -1,8 +1,8 @@
 { inputs, cell }:
 
-# TODO(std) fill the stubs 
+# TODO(std) fill the stubs
 
-let 
+let
   stubs = {
     Agda = cell.packages.todo-derivation;
     cabal-install = cell.packages.todo-derivation;
@@ -14,18 +14,18 @@ let
     cabal-fmt = cell.packages.todo-derivation;
   };
 
-in 
+in
 
-  {
-    haskellLib = {
-      collectComponents' = _: _: { };
-    };
+{
+  haskellLib = {
+    collectComponents' = _: _: { };
+  };
 
-    cabalProject' = _: {
-      hsPkgs = stubs;
-    };
+  cabalProject' = _: {
+    hsPkgs = stubs;
+  };
 
-    hackage-project = _: { 
-      hsPkgs = stubs;
-    }; 
-  }
+  hackage-project = _: {
+    hsPkgs = stubs;
+  };
+}

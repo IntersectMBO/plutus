@@ -2,7 +2,7 @@
 
 # TODO(std) we need haskell-nix for this
 
-let  
+let
   project = cell.library.haskell-nix.hackage-project {
     name = "cabal-install";
 
@@ -12,5 +12,5 @@ let
 
     index-state = cell.library.cabal-project-index-state;
   };
-in 
-  project.hsPkgs.cabal-install
+in
+project.hsPkgs.cabal-install

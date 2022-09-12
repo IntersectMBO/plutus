@@ -21,32 +21,32 @@ let
   frankenAgda = (inputs.nixpkgs.symlinkJoin {
     name = "agda";
     paths = [
-      # TODO(std) fixme 
+      # TODO(std) fixme
       # cell.packages.agda.components.exes.agda
       # cell.packages.agda.components.exes.agda-mode
     ];
-  }) // 
-  { 
-    # TODO(std) fixme 
-    # version = cell.packages.agda.identifier.version; 
-    version = "FIXME"; 
+  }) //
+  {
+    # TODO(std) fixme
+    # version = cell.packages.agda.identifier.version;
+    version = "FIXME";
   };
 
   frankenPkgs =
     inputs.nixpkgs //
     {
-      haskellPackages = inputs.nixpkgs.haskellPackages // 
-      {   
+      haskellPackages = inputs.nixpkgs.haskellPackages //
+      {
         # TODO(std) this references the plutus project, move to plutus cell
-        #ghcWithPackages = haskell.project.ghcWithPackages; 
+        #ghcWithPackages = haskell.project.ghcWithPackages;
       };
     };
 in
 
-  cell.packages.todo-derivation
+cell.packages.todo-derivation
 
-  # TODO(std) fixme 
-  # inputs.nixpkgs.agdaPackages.override { 
-  #   Agda = frankenAgda; 
-  #   pkgs = frankenPkgs; 
-  # }
+# TODO(std) fixme
+# inputs.nixpkgs.agdaPackages.override {
+#   Agda = frankenAgda;
+#   pkgs = frankenPkgs;
+# }

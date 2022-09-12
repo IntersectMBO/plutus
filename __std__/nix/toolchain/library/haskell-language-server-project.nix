@@ -17,9 +17,9 @@ cell.library.haskell-nix.cabalProject' {
   cabalProjectLocal = ''
     constraints: stylish-haskell==0.13.0.0, hlint==3.2.8
   '';
-  
+
   src = inputs.haskell-language-server.${cell.library.ghc-compiler-nix-name};
-  
+
   compiler-nix-name = cell.library.ghc-compiler-nix-name;
 
   modules = [{

@@ -14,8 +14,6 @@
 
   check-the-flake = import ./check-the-flake.nix organelle;
 
-  default = import ./default.nix organelle;
-
   fix-cabal-fmt = import ./fix-cabal-fmt.nix organelle;
 
   fix-png-optimization = import ./fix-png-optimization.nix organelle;

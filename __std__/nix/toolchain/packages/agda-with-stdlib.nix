@@ -3,11 +3,11 @@
 # TODO(std) we need haskell-nix for this
 
 # Need a newer version for 2.6.2 compatibility
-let 
+let
   stdlib = cell.library.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
     version = "1.7";
-    
+
     src = inputs.nixpkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
@@ -27,7 +27,7 @@ let
     '';
   });
 
-in 
-  cell.packages.todo-derivation
-  # TODO(std) fixme
-  # cell.library.agda-packages.agda.withPackages [ stdlib ]
+in
+cell.packages.todo-derivation
+# TODO(std) fixme
+# cell.library.agda-packages.agda.withPackages [ stdlib ]

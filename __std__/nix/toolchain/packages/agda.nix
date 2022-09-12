@@ -2,14 +2,14 @@
 
 # TODO(std) we need haskell-nix for this
 
-let 
+let
   project = cell.library.haskell-nix.hackage-project {
     name = "Agda";
 
     version = "2.6.2.1";
-    
+
     compiler-nix-name = cell.library.ghc-compiler-nix-name;
-    
+
     modules = [{
       # Agda is a huge pain. They have a special custom setup that compiles the
       # interface files for the Agda that ships with the compiler. These go in
@@ -39,5 +39,5 @@ let
       '';
     }];
   };
-in 
-  project.hsPkgs.Agda
+in
+project.hsPkgs.Agda

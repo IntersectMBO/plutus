@@ -4,7 +4,7 @@
 
 # TODO Remove this patch once the PR gets merged upstream.
 # See https://github.com/phadej/cabal-fmt/pull/45
-let 
+let
   project = cell.library.haskell-nix.cabalProject' {
 
     src = inputs.nixpkgs.fetchgit {
@@ -23,4 +23,4 @@ let
     index-state = cell.library.cabal-project-index-state;
   };
 in
-  project.hsPkgs.cabal-fmt
+project.hsPkgs.cabal-fmt

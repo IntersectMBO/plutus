@@ -2,6 +2,7 @@
 
 # TODO(std) path must be fixed once __std__ is brought to the toplevel.
 # TODO(std) make this part of CI
+# TODO(std) turn this into a single derivation using recurseForDerivations
 inputs.nixpkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [ inputs.nixpkgs.nix ];
