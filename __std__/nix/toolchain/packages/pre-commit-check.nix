@@ -3,7 +3,7 @@
 # TODO(std) we need stylish-haskell for this
 
 # Configure project pre-commit hooks
-cell.packages.pre-commit-hooks-nix.run {
+cell.library.pre-commit-hooks-nix.run {
 
   src = inputs.nixpkgs.lib.cleanSource inputs.self;
   
