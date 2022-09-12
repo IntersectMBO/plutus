@@ -53,10 +53,10 @@
     #   url = "github:input-output-hk/iohk-nix";
     #   flake = false;
     # };
-    # pre-commit-hooks-nix = {
-    #   url = "github:cachix/pre-commit-hooks.nix";
-    #   flake = false;
-    # };
+    pre-commit-hooks-nix = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      flake = false;
+    };
   };
 
   # The flake outputs are managed by std.
