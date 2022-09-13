@@ -118,24 +118,30 @@ main = do
                         do
                             -- specifying parsed to ParserError for the compiler
                             -- warn the user that the file failed to parse
-                            putStrLn $ inputFile <> " failed to parse. Error written to " <> outFilePath
+                            putStrLn $
+                                inputFile <> " failed to parse. Error written to " <> outFilePath
                             T.writeFile outFilePath shownParseError
-                    _ -> pure () -- for debug mode we don't want to see the failed to parse case.
+                    _ -> pure () -- for debug mode we don't want to see the failed to parse cases.
             Right pro -> do
                 case run of
                     GenTestOutput Eval ->
                         case evalUplcProg (() <$ pro) of
                             (Just prog) -> do
                                 T.writeFile outFilePath (render $ pretty prog)
-                                putStrLn $ inputFile <> " evaluated; result written to " <> outFilePath
+                                putStrLn $
+                                    inputFile <> " evaluated; result written to " <> outFilePath
                             Nothing -> do
                                 -- warn the user that the file failed to evaluate
                                 T.writeFile outFilePath shownEvaluationFailure
-                                putStrLn $ inputFile <> " failed to evaluate. Failure written to " <> outFilePath
+                                putStrLn $
+                                    inputFile
+                                        <> " failed to evaluate. Failure written to "
+                                        <> outFilePath
                     GenTestOutput Typecheck ->
                         putStrLn $
                             "typechecking has not been implemented yet."
-                                <> "Only evaluation tests (eval) or debugging (debug) are supported."
+                                <> "Only evaluation tests (eval) "
+                                <> "or debugging (debug) are supported."
                     Debug ->
                         case agdaEvalUplcProgDebug (() <$ pro) of
                             (Right _prog) -> pure ()
