@@ -1,0 +1,62 @@
+name: Haskell CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash
+
+    strategy:
+      fail-fast: false
+      matrix:
+        ghc: ["8.10.7", "9.2.4"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: haskell/actions/setup@v2
+      id: setup-haskell
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: 3.6.2.0
+
+    - name: Haskell versions
+      run: |
+        ghc --version
+        cabal --version
+
+    - name: Cabal update
+      run: cabal update
+
+    - name: Cabal Configure
+      run: cabal configure --enable-tests --enable-benchmarks --write-ghc-environment-files=always
+
+    - name: Record dependencies
+      run: |
+        cat dist-newstyle/cache/plan.json | jq -r '."install-plan"[].id' | sort | uniq > dependencies.txt
+
+    - name: Set cache version
+      run: echo "CACHE_VERSION=9w76Z3Q" >> $GITHUB_ENV
+
+    - uses: actions/cache@v2
+      name: Cache cabal store
+      with:
+        path: ${{ steps.setup-haskell.outputs.cabal-store }}
+        key: cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}
+        restore-keys: |
+          cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('dependencies.txt') }}
+          cache-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.ghc }}-
+
+    - name: Install dependencies
+      run: cabal build all --only-dependencies
+
+    - name: Build
+      run: cabal build all
+
+    - name: Run tests
+      run: cabal test all
