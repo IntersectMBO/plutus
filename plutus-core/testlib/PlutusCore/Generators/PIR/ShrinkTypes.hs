@@ -7,7 +7,6 @@
 -- this module or reverse-engineer the shrinker and fix the problem.
 module PlutusCore.Generators.PIR.ShrinkTypes where
 
-import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
@@ -68,6 +67,7 @@ minimalType = go . argsKind where
 
 -- | Take a type in a context and a new target kind
 --   Precondition: new kind is smaller or equal to old kind of the type.
+--   Complies with the implicit shrinking order.
 --   TODO (later): also allow changing which context it's valid in
 fixKind :: HasCallStack
         => TypeCtx
@@ -177,6 +177,12 @@ shrinkKindAndType ctx (k0, ty) =
       where ka = unsafeInferKind ctx a
     -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
     TyLam _ x ka b -> concat
+        -- We could've used @fixKind (Map.insert x ka' ctx) (TyVar () x) ka)@ here instead of
+        -- @minimalType ka@, so that the usages of @x@ are preserved when possible, but that would
+        -- mean fixing a kind to a bigger one (because @ka'@ has to be smaller than @ka@ and we'd go
+        -- in the opposite direction), which is not supported by 'fixKind' (even though just
+        -- commenting out the relevant check and making the change here does seem to give us
+        -- better shrinking that still properly terminates, 'cause why would it not).
         [ [ (KindArrow () ka' kb, TyLam () x ka' $ typeSubstClosedType x (minimalType ka) b)
           | ka' <- shrink ka
           ]
@@ -195,6 +201,8 @@ shrinkKindAndType ctx (k0, ty) =
           | not $ Set.member x (setOf ftvTy b)
           ]
         , -- We can always just shrink the bound variable to a smaller kind and ignore it
+          -- Similarly to 'TyLam', we could've used 'fixKind' here, but we don't do it for the same
+          -- reason.
           [ (k0, TyForall () x ka' $ typeSubstClosedType x (minimalType ka) b)
           | ka' <- shrink ka
           ]
