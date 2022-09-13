@@ -27,17 +27,27 @@ There is also an executable (`test-utils`) for adding/updating test output to a 
 
 E.g., run
 
-`cabal run test-utils .uplc plutus-conformance/uplc/ eval`
+`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
 
 to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
 
 Or, to update and add outputs to all files in the /uplc directory, run
 
-`cabal run test-utils .uplc plutus-conformance/uplc/ eval`
+`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
 
 For the manual, run:
 
 `cabal run test-utils -- -h`
+
+## Debugging mode for Agda's implementation of the UPLC evaluator
+
+One can run the following command to get more detailed error messages on the test cases that fail to evaluate in the Agda implementation:
+
+`cabal run test-utils .uplc [targeted directory/test cases] debug`
+
+For example, to debug the test cases related to builtins, run
+
+`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation/builtin debug`
 
 ## Executable for Haskell implementation
 

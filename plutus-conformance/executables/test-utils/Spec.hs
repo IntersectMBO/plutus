@@ -3,7 +3,7 @@
 {- | This executable is for
 (1) easy addition/updates of tests of a chosen directory.
 One can also use the golden test accept option to update all tests in a test suite.
-(2) debugging failed tests (Agda UPLC evaluator)
+(2) debugging failed Agda UPLC evaluator tests of a chosen directory.
 -}
 module Main (
     main,
@@ -106,6 +106,7 @@ helpText =
 main :: IO ()
 main = do
     MkArgs extension directory run <- customExecParser (prefs showHelpOnEmpty) args
+    -- the files of the directory chosen by the user
     inputFiles <- findByExtension [extension] directory
     for_ inputFiles $ \inputFile -> do
         inputTxt <- T.readFile inputFile
