@@ -56,6 +56,8 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Subst
 
+import PlutusCore.Generators.PIR.Common
+
 instance MonadReader r m => MonadReader r (GenT m) where
     ask = lift ask
     local f (GenT k) = GenT $ \qc size -> local f $ k qc size
@@ -69,7 +71,7 @@ data GenEnv = GenEnv
   -- ^ Generator size bound. See Note [Recursion Control and geSize]
   , geDatas              :: Map TyName (Datatype TyName Name DefaultUni ())
   -- ^ Datatype context
-  , geTypes              :: Map TyName (Kind ())
+  , geTypes              :: TypeCtx
   -- ^ Type context
   , geTerms              :: Map Name (Type TyName DefaultUni ())
   -- ^ Term context

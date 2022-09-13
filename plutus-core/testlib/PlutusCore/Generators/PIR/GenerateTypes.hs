@@ -174,15 +174,15 @@ genClosedTypeDebug_ :: Kind () -> Gen (Type TyName DefaultUni ())
 genClosedTypeDebug_ = genTypeWithCtxDebug mempty
 
 -- | Generate a type in the given context with the given kind.
-genTypeWithCtx :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
+genTypeWithCtx :: TypeCtx -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtx ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (genType k)
 
 -- | Generate a type in the given context with the given kind.
-genTypeWithCtxDebug :: Map TyName (Kind ()) -> Kind () -> Gen (Type TyName DefaultUni ())
+genTypeWithCtxDebug :: TypeCtx -> Kind () -> Gen (Type TyName DefaultUni ())
 genTypeWithCtxDebug ctx k = runGenTm $ local (\ e -> e { geTypes = ctx }) (withDebug $ genType k)
 
 -- | Generate a well-kinded type and its kind in a given context
-genKindAndTypeWithCtx :: Map TyName (Kind ()) -> Gen (Kind(), Type TyName DefaultUni ())
+genKindAndTypeWithCtx :: TypeCtx -> Gen (Kind(), Type TyName DefaultUni ())
 genKindAndTypeWithCtx ctx = do
   k <- arbitrary
   runGenTm $ local (\ e -> e { geTypes = ctx }) ((k,) <$> genType k)
@@ -210,7 +210,7 @@ normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy = unNormalized . runQuote . normalizeType
 
 -- | Generate a context of free type variables with kinds
-genCtx :: Gen (Map TyName (Kind ()))
+genCtx :: Gen TypeCtx
 genCtx = do
   let m = 20
   n <- choose (0, m)

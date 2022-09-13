@@ -4,6 +4,8 @@ module PlutusCore.Generators.PIR.Substitutions where
 
 import Control.Monad.Except
 
+import Control.Monad.Reader
+import Control.Monad.State.Strict
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe
@@ -33,8 +35,10 @@ lazy, so maybe it's not a big deal in the end. Although even with laziness, we s
 behavior currently.
 -}
 
-unificationFailure :: (Pretty a, Pretty b) => a -> b -> Either String any
-unificationFailure x y = Left $ concat
+type TypeSub = Map TyName (Type TyName DefaultUni ())
+
+unificationFailure :: (MonadError String m, Pretty a, Pretty b) => a -> b -> m any
+unificationFailure x y = throwError $ concat
     [ "Failed to unify\n\n  "
     , display x
     , "\n\nand\n\n  "
@@ -42,8 +46,8 @@ unificationFailure x y = Left $ concat
     , "\n\n"
     ]
 
-resolutionFailure :: TyName -> Type TyName DefaultUni () -> String -> Either String any
-resolutionFailure name1 ty2 reason = Left $ concat
+resolutionFailure :: MonadError String m => TyName -> Type TyName DefaultUni () -> String -> m any
+resolutionFailure name1 ty2 reason = throwError $ concat
     [ "Unification failure: cannot resolve '"
     , display name1
     , " as\n\n  "
@@ -53,69 +57,79 @@ resolutionFailure name1 ty2 reason = Left $ concat
     ]
 
 -- | Perform unification. Sound but not complete.
-unifyType :: Map TyName (Kind ())
+unifyType :: TypeCtx
           -- ^ Type context
           -> Set TyName
           -- ^ @flex@, the flexible variables (those that can be unified)
-          -> Map TyName (Type TyName DefaultUni ())
+          -> TypeSub
           -- ^ Existing substitution (usually empty)
           -> Type TyName DefaultUni ()
           -- ^ @t1@
           -> Type TyName DefaultUni ()
           -- ^ @t2@
-          -> Either String (Map TyName (Type TyName DefaultUni ()))
+          -> Either String TypeSub
           -- ^ Either an error or a substitution (from a subset of @flex@) unifying @t1@ and @t2@
-unifyType ctx flex sub0 a0 b0 = goType sub0 Set.empty (normalizeTy a0) (normalizeTy b0)
+unifyType ctx flex sub0 a0 b0 =
+    execStateT (runReaderT (goType (normalizeTy a0) (normalizeTy b0)) Set.empty) sub0
   where
-    goTyName sub locals name1 ty2 = case Map.lookup name1 sub of
-      Just ty1' -> goType sub locals ty1' ty2
-      Nothing   -> case ty2 of
-        TyVar _ name2 | name1 == name2 -> pure sub
-        _                              -> Map.insert name1 ty2 sub <$ do
-          let fvs = fvTypeR sub ty2
-          when (not $ Set.member name1 flex) $
-            resolutionFailure name1 ty2 "the variable is not meta"
-          -- Covers situations like @(\x -> x) =?= (\x -> integer)@.
-          when (Set.member name1 locals) $
-            resolutionFailure name1 ty2 "the variable is bound"
-          -- Covers situations like @_x =?= _x -> integer@.
-          -- Note that our occurs check is pretty naive, e.g. we could've solved @_x =?= _f _x@ as
-          -- @[_f := \x -> x]@ or @[_f := \_ -> _x]@.
-          when (Set.member name1 fvs) $
-            resolutionFailure name1 ty2 "the variable appears free in the type"
-          case checkKind ctx ty2 (ctx Map.! name1) of
-              Left msg -> resolutionFailure name1 ty2 $ "of kind mismatch:\n\n" ++ msg
-              Right () -> Right ()
-          -- Covers situations like @(\x -> _y) =?= (\x -> x)@.
-          -- As naive as the occurs check.
-          when (not . null $ Set.intersection fvs locals) $
-            resolutionFailure name1 ty2 $
-              "the type contains bound variables: " ++ display (Set.toList locals)
+    goTyName :: TyName
+             -> Type TyName DefaultUni ()
+             -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+    goTyName name1 ty2 =
+      -- If the variable is resolved as itself, we don't need to do anything else.
+      when (TyVar () name1 /= ty2) $ do
+        locals <- ask
+        sub <- get
+        case Map.lookup name1 sub of
+          Just ty1' -> goType ty1' ty2
+          Nothing   -> do
+            let fvs = fvTypeR sub ty2
+            when (not $ Set.member name1 flex) $
+              resolutionFailure name1 ty2 "the variable is not meta"
+            -- Covers situations like @(\x -> x) =?= (\x -> integer)@.
+            when (Set.member name1 locals) $
+              resolutionFailure name1 ty2 "the variable is bound"
+            -- Covers situations like @_x =?= _x -> integer@.
+            -- Note that our occurs check is pretty naive, e.g. we could've solved @_x =?= _f _x@ as
+            -- @[_f := \x -> x]@ or @[_f := \_ -> _x]@, but we don't attempt to cover the
+            -- higher-order case.
+            when (Set.member name1 fvs) $
+              resolutionFailure name1 ty2 "the variable appears free in the type"
+            case checkKind ctx ty2 (ctx Map.! name1) of
+                Left msg -> resolutionFailure name1 ty2 $ "of kind mismatch:\n\n" ++ msg
+                Right () -> pure ()
+            -- Covers situations like @(\x -> _y) =?= (\x -> x)@.
+            -- As naive as the occurs check.
+            when (not . null $ Set.intersection fvs locals) $
+              resolutionFailure name1 ty2 $
+                "the type contains bound variables: " ++ display (Set.toList locals)
+            put $ Map.insert name1 ty2 sub
 
-    goType sub locals a b =
-      case (a, b) of
-        (TyVar _ x    , _)               -> goTyName sub locals x b
-        (_            , TyVar _ y)       -> goTyName sub locals y a
-        (TyFun _ a1 a2, TyFun _ b1 b2)   -> unifies sub locals [(a1, b1), (a2, b2)]
-        (TyApp _ a1 a2, TyApp _ b1 b2)   -> unifies sub locals [(a1, b1), (a2, b2)]
-        (TyBuiltin _ c1, TyBuiltin _ c2) -> sub <$ when (c1 /= c2) (unificationFailure c1 c2)
-        (TyForall _ x k a', TyForall _ y k' b') | k == k' ->
-          let z = freshenTyName (locals <> Map.keysSet ctx) x in
-            goType sub (Set.insert z locals) (renameType x z a') (renameType y z b')
-        (TyLam _ x k a', TyLam _ y k' b') | k == k' ->
-          let z = freshenTyName (locals <> Map.keysSet ctx) x in
-            -- See Note [Renaming during unification].
-            goType sub (Set.insert z locals) (renameType x z a') (renameType y z b')
-        (TyIFix _ a1 a2, TyIFix _ b1 b2) -> unifies sub locals [(a1, b1), (a2, b2)]
-        _ -> unificationFailure a b
-
-    unifies sub _ [] = pure sub
-    unifies sub locals ((a, b) : tys) = do
-      sub1 <- goType sub locals a b
-      unifies sub1 locals tys
+    goType :: Type TyName DefaultUni ()
+           -> Type TyName DefaultUni ()
+           -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+    goType (TyVar _ x)         b                   = goTyName x b
+    goType a                   (TyVar _ y)         = goTyName y a
+    goType (TyFun _ a1 a2)     (TyFun _ b1 b2)     = goType a1 b1 *> goType a2 b2
+    goType (TyApp _ a1 a2)     (TyApp _ b1 b2)     = goType a1 b1 *> goType a2 b2
+    goType (TyBuiltin _ c1)    (TyBuiltin _ c2)    = when (c1 /= c2) $ unificationFailure c1 c2
+    goType (TyIFix _ a1 a2)    (TyIFix _ b1 b2)    = goType a1 b1 *> goType a2 b2
+    goType (TyForall _ x k a') (TyForall _ y l b') = do
+      when (k /= l) $ unificationFailure k l
+      locals <- ask
+      let z = freshenTyName (locals <> Map.keysSet ctx) x
+      -- See Note [Renaming during unification].
+      local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
+    goType (TyLam _ x k a')    (TyLam _ y l b')    = do
+      when (k /= l) $ unificationFailure k l
+      locals <- ask
+      let z = freshenTyName (locals <> Map.keysSet ctx) x
+      -- See Note [Renaming during unification].
+      local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
+    goType a b = unificationFailure a b
 
 -- | Parallel substitution
-parSubstType :: Map TyName (Type TyName DefaultUni ())
+parSubstType :: TypeSub
              -> Type TyName DefaultUni ()
              -> Type TyName DefaultUni ()
 parSubstType = substType' False
@@ -129,7 +143,7 @@ parSubstType = substType' False
 -- of declarations and datatype declarations weren't in terms.
 -- TODO: Is this actually doing anything other than what we already do in other substitution functions?!
 substEscape :: Set TyName
-            -> Map TyName (Type TyName DefaultUni ())
+            -> TypeSub
             -> Type TyName DefaultUni ()
             -> Type TyName DefaultUni ()
 substEscape fv sub ty = case ty of
@@ -147,7 +161,7 @@ renameType x y | x == y    = id
                | otherwise = substType (Map.singleton x (TyVar () y))
 
 substType :: HasCallStack
-          => Map TyName (Type TyName DefaultUni ())
+          => TypeSub
           -> Type TyName DefaultUni ()
           -> Type TyName DefaultUni ()
 substType = substType' True
@@ -156,7 +170,7 @@ substType = substType' True
 substType' :: HasCallStack
            => Bool
            -- ^ Nested (True) or parallel (False)
-           -> Map TyName (Type TyName DefaultUni ())
+           -> TypeSub
            -> Type TyName DefaultUni ()
            -> Type TyName DefaultUni ()
 substType' nested sub0 ty0 = go fvs0 Set.empty sub0 ty0
@@ -166,7 +180,7 @@ substType' nested sub0 ty0 = go fvs0 Set.empty sub0 ty0
     go :: HasCallStack
        => Set TyName
        -> Set TyName
-       -> Map TyName (Type TyName DefaultUni ())
+       -> TypeSub
        -> Type TyName DefaultUni ()
        -> Type TyName DefaultUni ()
     go fvs seen sub ty = case ty of
@@ -191,7 +205,7 @@ substType' nested sub0 ty0 = go fvs0 Set.empty sub0 ty0
 -- | Find all free type variables of type `a` given substitution `sub`. If variable `x` is
 -- free in `a` but in the domain of `sub` we look up `x` in `sub` and get all the free type
 -- variables of the result - up to the substitution.
-fvTypeR :: Map TyName (Type TyName DefaultUni ()) -> Type TyName DefaultUni () -> Set TyName
+fvTypeR :: TypeSub -> Type TyName DefaultUni () -> Set TyName
 fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (Set.toList freeButInSub)
       where
           fvs = setOf ftvTy a
@@ -202,7 +216,7 @@ fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (
 -- * Generators for substitutions
 
 -- | Generate a type substitution that is valid in a given context.
-genSubst :: Map TyName (Kind ()) -> Gen (Map TyName (Type TyName DefaultUni ()))
+genSubst :: TypeCtx -> Gen TypeSub
 genSubst ctx0 = do
   xks <- sublistOf <=< shuffle $ Map.toList ctx0
   go ctx0 Map.empty xks
@@ -221,9 +235,7 @@ genSubst ctx0 = do
       Map.insert x ty <$> go ctx' counts' xs
 
 
-shrinkSubst :: Map TyName (Kind ())
-            -> Map TyName (Type TyName DefaultUni ())
-            -> [Map TyName (Type TyName DefaultUni ())]
+shrinkSubst :: TypeCtx -> TypeSub -> [TypeSub]
 shrinkSubst ctx0 = map Map.fromList . liftShrink shrinkTy . Map.toList
   where
     shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx0 ty) k ty

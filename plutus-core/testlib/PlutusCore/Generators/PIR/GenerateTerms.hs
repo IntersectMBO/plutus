@@ -104,7 +104,7 @@ instance PrettyBy config (Type TyName DefaultUni ()) => PrettyBy config TyInst w
 --   `InstArg`s such that `x` instantiated (type application for `InstApp` and applied to a term of
 --   the given type for `InstArg`) at the `TyInsts`s has type `target`
 findInstantiation :: HasCallStack
-                  => Map TyName (Kind ())
+                  => TypeCtx
                   -> Int
                   -> Type TyName DefaultUni ()
                   -> Type TyName DefaultUni ()
@@ -475,7 +475,7 @@ shrinkClosedTypedTerm :: (Type TyName DefaultUni (), Term TyName Name DefaultUni
                       -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
 shrinkClosedTypedTerm = shrinkTypedTerm mempty mempty
 
-scopeCheckTyVars :: Map TyName (Kind ())
+scopeCheckTyVars :: TypeCtx
                  -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                  -> Bool
 scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (setOf ftvTy ty)
@@ -493,7 +493,7 @@ mkHelp _ ty                       = Error () ty
 -- NOTE: if you want to understand what's going on in this function it's a good
 -- idea to look at how we do this for types first (it's a lot simpler).
 shrinkTypedTerm :: HasCallStack
-                => Map TyName (Kind ())
+                => TypeCtx
                 -> Map Name (Type TyName DefaultUni ())
                 -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                 -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
@@ -644,7 +644,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
 -- | Try to infer the type of an expression in a given type and term context.
 -- NOTE: one can't just use out-of-the-box type inference here because the
 -- `inferType` algorithm happy renames things.
-inferTypeInContext :: Map TyName (Kind ())
+inferTypeInContext :: TypeCtx
                    -> Map Name (Type TyName DefaultUni ())
                    -> Term TyName Name DefaultUni DefaultFun ()
                    -> Either String (Type TyName DefaultUni ())
@@ -724,9 +724,9 @@ findHelp ctx =
 
 -- | Try to take a term from an old context to a new context and a new type.
 -- If we can't do the new type we might return a different type.
-fixupTerm_ :: Map TyName (Kind ())
+fixupTerm_ :: TypeCtx
            -> Map Name (Type TyName DefaultUni ())
-           -> Map TyName (Kind ())
+           -> TypeCtx
            -> Map Name (Type TyName DefaultUni ())
            -> Type TyName DefaultUni ()
            -> Term TyName Name DefaultUni DefaultFun ()
@@ -745,9 +745,9 @@ fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
     Right ty -> (ty, tm)
 
 -- | Try to take a term from an old context to a new context and a new type - default to `mkHelp`.
-fixupTerm :: Map TyName (Kind ())
+fixupTerm :: TypeCtx
           -> Map Name (Type TyName DefaultUni ())
-          -> Map TyName (Kind ())
+          -> TypeCtx
           -> Map Name (Type TyName DefaultUni ())
           -> Type TyName DefaultUni ()
           -> Term TyName Name DefaultUni DefaultFun ()
@@ -774,7 +774,7 @@ minimalBuiltin (SomeTypeIn b) = case toSingKind b of
 
 shrinkBind :: HasCallStack
            => Recursivity
-           -> Map TyName (Kind ())
+           -> TypeCtx
            -> Map Name (Type TyName DefaultUni ())
            -> Binding TyName Name DefaultUni DefaultFun ()
            -> [Binding TyName Name DefaultUni DefaultFun ()]
@@ -794,7 +794,7 @@ shrinkBind _ tyctx ctx bind =
                                         | (k', ty') <- shrinkKindAndType tyctx (k, ty) ]
     DatatypeBind _ dat               -> [ DatatypeBind () dat' | dat' <- shrinkDat tyctx dat ]
 
-shrinkDat :: Map TyName (Kind ())
+shrinkDat :: TypeCtx
           -> Datatype TyName Name DefaultUni ()
           -> [Datatype TyName Name DefaultUni ()]
 shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
@@ -846,7 +846,7 @@ genFullyApplied typ trm = runGenTm $ go trm
     genArgsApps ty trm = return (ty, trm)
 
 -- | Generate a term of a specific type given a type and term context
-genTermInContext_ :: Map TyName (Kind ())
+genTermInContext_ :: TypeCtx
                   -> Map Name (Type TyName DefaultUni ())
                   -> Type TyName DefaultUni ()
                   -> Gen (Term TyName Name DefaultUni DefaultFun ())
@@ -859,7 +859,7 @@ typeCheckTerm :: Term TyName Name DefaultUni DefaultFun ()
               -> Either String ()
 typeCheckTerm = typeCheckTermInContext Map.empty Map.empty
 
-typeCheckTermInContext :: Map TyName (Kind ())
+typeCheckTermInContext :: TypeCtx
                        -> Map Name (Type TyName DefaultUni ())
                        -> Term TyName Name DefaultUni DefaultFun ()
                        -> Type TyName DefaultUni ()

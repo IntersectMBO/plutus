@@ -92,8 +92,10 @@ argsKind :: Kind ann -> [Kind ann]
 argsKind Type{}            = []
 argsKind (KindArrow _ k l) = k : argsKind l
 
+type TypeCtx = Map TyName (Kind ())
+
 -- | Infer the kind of a type in a given kind context
-inferKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Either String (Kind ())
+inferKind :: TypeCtx -> Type TyName DefaultUni () -> Either String (Kind ())
 inferKind ctx ty =
     first display . runTypeCheckM defKindCheckConfig $
         foldr
@@ -103,14 +105,14 @@ inferKind ctx ty =
 
 -- | Partial unsafeInferKind, useful for context where invariants are set up to guarantee
 -- that types are well-kinded.
-unsafeInferKind :: HasCallStack => Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind ()
+unsafeInferKind :: HasCallStack => TypeCtx -> Type TyName DefaultUni () -> Kind ()
 unsafeInferKind ctx ty =
   case inferKind ctx ty of
     Left msg -> error msg
     Right k  -> k
 
 -- | Check well-kindedness of a type in a context
-checkKind :: Map TyName (Kind ()) -> Type TyName DefaultUni () -> Kind () -> Either String ()
+checkKind :: TypeCtx -> Type TyName DefaultUni () -> Kind () -> Either String ()
 checkKind ctx ty kExp =
     if kInf == Right kExp
       then Right ()

@@ -70,7 +70,7 @@ minimalType = go . argsKind where
 --   Precondition: new kind is smaller or equal to old kind of the type.
 --   TODO (later): also allow changing which context it's valid in
 fixKind :: HasCallStack
-        => Map TyName (Kind ())
+        => TypeCtx
         -> Type TyName DefaultUni ()
         -> Kind ()
         -> Type TyName DefaultUni ()
@@ -111,7 +111,7 @@ fixKind ctx ty k
 -- TODO: also shrink to new context
 --       need old context and new context
 shrinkKindAndType :: HasCallStack
-                  => Map TyName (Kind ())
+                  => TypeCtx
                   -> (Kind (), Type TyName DefaultUni ())
                   -> [(Kind (), Type TyName DefaultUni ())]
 shrinkKindAndType ctx (k0, ty) =
@@ -224,14 +224,14 @@ shrinkKindAndType ctx (k0, ty) =
 
 -- | Shrink a type in a context assuming that it is of kind *.
 shrinkType :: HasCallStack
-           => Map TyName (Kind ())
+           => TypeCtx
            -> Type TyName DefaultUni ()
            -> [Type TyName DefaultUni ()]
 shrinkType ctx ty = map snd $ shrinkKindAndType ctx (Star, ty)
 
 -- | Shrink a type of a given kind in a given context in a way that keeps its kind
 shrinkTypeAtKind :: HasCallStack
-                 => Map TyName (Kind ())
+                 => TypeCtx
                  -> Kind ()
                  -> Type TyName DefaultUni ()
                  -> [Type TyName DefaultUni ()]
