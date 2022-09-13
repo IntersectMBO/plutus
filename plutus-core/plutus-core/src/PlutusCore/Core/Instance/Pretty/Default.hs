@@ -13,10 +13,17 @@ import PlutusPrelude
 
 import PlutusCore.Core.Instance.Pretty.Classic ()
 import PlutusCore.Core.Type
+import PlutusCore.Name
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
 
 import Universe
+
+instance Pretty TyName where
+    pretty = prettyClassicDef
+
+instance Pretty Name where
+    pretty = prettyClassicDef
 
 instance Pretty ann => Pretty (Kind ann) where
     pretty = prettyClassicDef

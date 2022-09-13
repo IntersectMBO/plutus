@@ -12,6 +12,9 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
+-- We rely on things from this module being lazy (e.g. the PIR generators rely on types being lazy),
+-- so don't use @StrictData@ in this module.
+
 module PlutusCore.Core.Type
     ( Kind (..)
     , Type (..)
