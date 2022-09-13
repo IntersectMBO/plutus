@@ -86,7 +86,7 @@ helpText = string $ unlines
   , "or typecheck (for typechecking tests),"
   , "or debug (for debugging failed tests)."
   , "E.g. run \n"
-  , "cabal run test-utils .uplc plutus-conformance/test-cases/uplc/ eval -- --missing \n"
+  , "`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/ eval`\n"
   , "to have the executable search for files with extension `.uplc`"
   , "in the /uplc directory."
   , "It will evaluate and create output files for them."
