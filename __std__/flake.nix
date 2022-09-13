@@ -24,9 +24,7 @@
     };
     haskell-nix = {
       url = "github:input-output-hk/haskell.nix";
-      inputs = {
-        hackage.follows = "hackage-nix";
-      };
+      inputs.hackage.follows = "hackage-nix";
     };
     hackage-nix = {
       url = "github:input-output-hk/hackage.nix";
@@ -36,27 +34,26 @@
       url = "github:michaelpj/sphinxcontrib-haddock";
       flake = false;
     };
-    # cardano-repo-tool = {
-    #   url = "github:input-output-hk/cardano-repo-tool";
-    #   flake = false;
-    # };
-    # gitignore-nix = {
-    #   url = "github:hercules-ci/gitignore.nix";
-    #   flake = false;
-    # };
-    # haskell-language-server = {
-    #   # Pinned to a release
-    #   url = "github:haskell/haskell-language-server?ref=1.7.0.0";
-    #   flake = false;
-    # };
+    cardano-repo-tool = {
+      url = "github:input-output-hk/cardano-repo-tool";
+      flake = false;
+    };
+    gitignore-nix = {
+      url = "github:hercules-ci/gitignore.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    haskell-language-server = {
+      # Pinned to a release
+      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
+    };
     # iohk-nix = {
     #   url = "github:input-output-hk/iohk-nix";
     #   flake = false;
     # };
-    # pre-commit-hooks-nix = {
-    #   url = "github:cachix/pre-commit-hooks.nix";
-    #   flake = false;
-    # };
+    pre-commit-hooks-nix = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # The flake outputs are managed by std.
@@ -77,7 +74,7 @@
         # In this repository we have three cells:
         #   doc
         #     Develop and build all the documentation artifacts
-        #   haskell
+        #   plutus
         #     Develop and build all haskell components
         #   toolchain
         #     Common tools and functions shared across multiple cells
@@ -103,7 +100,8 @@
         #     Generally these are available as commands inside the development shell
         #     These are very repository specific, and are not exposed to the flake
         #   library :: functions
-        #     Functions and derivations shared across the current cell
+        #     Functions and non-derivation values (e.g. attrs of derivations) shared
+        #     across the current cell.
         #     These are very repository specific, and are not exposed to the flake
         #
         # std provides a TUI to interact with the organelles.
@@ -139,13 +137,19 @@
         packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
       }
       {
+        packages = inputs.std.harvest inputs.self [ "doc" "scripts" ];
+      }
+      {
         # The devshells inside the haskell cells will be added to the ones
         # already harvested from the doc shell. Same for packages.
-        devShells = inputs.std.harvest inputs.self [ "haskell" "devshells" ];
-        packages = inputs.std.harvest inputs.self [ "haskell" "packages" ];
+        devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
+        packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
+      }
+      {
+        packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       };
 
   # TODO(std) move this part of the doc (which doesn't need to reference the code
@@ -170,7 +174,7 @@
   #     Provides access to all cells.
   #     Remember that a cell is named after its folder.
   #     The full format is inputs.cells.<cell>.<organelle>.value
-  #     e.g.: inputs.cells.doc.packages.doc-site
+  #     e.g.: inputs.cells.doc.packages.read-the-docs-site
   #     e.g.: inputs.cells.toolchain.devshellsProfiles.common
   #     e.g.: inputs.cells.haskell.devshells.haskell-shell
   #
@@ -182,8 +186,8 @@
   #
   #   cell.*organelle*
   #     The cell value gives access to all its organelles:
-  #     e.g.: cell.scripts.build-and-server-doc-site (only works for code in /nix/scripts)
-  #       Alternatively: inputs.cells.doc.scripts.build-and-server-doc-site (works everywhere)
+  #     e.g.: cell.scripts.serve-read-the-docs-site (only works for code in /nix/scripts)
+  #       Alternatively: inputs.cells.doc.scripts.serve-read-the-docs-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
 

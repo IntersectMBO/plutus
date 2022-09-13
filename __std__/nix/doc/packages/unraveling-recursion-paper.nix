@@ -1,5 +1,7 @@
 { inputs, cell }:
 
+# TODO(std) needs agda
+
 let
 
   artifacts = inputs.nixpkgs.runCommand
@@ -37,8 +39,7 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-
-    inputs.cells.toolchain.agda-with-stdlib
+    inputs.cells.toolchain.packages.agda-with-stdlib
 
     inputs.nixpkgs.zip
   ];
@@ -48,6 +49,9 @@ cell.library.build-latex {
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
   preBuild = ''
+    # FIXME
+    return
+
     for file in *.lagda; do
       agda --latex $file --latex-dir .
     done
@@ -56,6 +60,8 @@ cell.library.build-latex {
   '';
 
   postInstall = ''
+    echo FIXME > $out && exit 0
+
     cp ${artifacts}/* $out
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';

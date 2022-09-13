@@ -1,29 +1,44 @@
 { inputs, cell }:
 
+# TODO(std) path must be fixed once __std__ is brought to the toplevel.
+# TODO(std) make this part of CI
+# TODO(std) turn this into a single derivation using recurseForDerivations
 inputs.nixpkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [ inputs.nixpkgs.nix ];
   text = ''
-    nix develop .#haskell-shell --build
-    nix develop .#doc-shell --build
+    set -e
 
-    nix build .#cost-model-notes
-    nix build .#doc-site
-    nix build .#eutxo-paper
-    nix build .#eutxoma-paper
-    nix build .#extended-utxo-spec
-    nix build .#repo-root
-    nix build .#git-work-in-progress
-    nix build .#lazy-machine-notes
-    nix build .#multi-currency-notes
-    nix build .#plutus-core-spec
-    nix build .#plutus-report
-    nix build .#sphinx-markdown-tables
-    nix build .#sphinxcontrib-domaintools
-    nix build .#sphinxcontrib-haddock
-    nix build .#sphinxemoji
-    nix build .#sphobjinv
-    nix build .#utxoma-paper
+    root="$(repo-root)"
+
+    shell_fragments=$(
+      find \
+        "$root/__std__/nix" \
+        -name "*.nix" \
+        -and -not -name "*default.nix" \
+        -and -path "*devshells*" \
+        -exec basename {} .nix \;
+    )
+
+    for fragment in $shell_fragments; do
+      echo building "$fragment"
+      nix develop ".#$fragment" --build
+    done
+
+    derivation_fragments=$(
+      find \
+        "$(repo-root)/__std__/nix" \
+        -name "*.nix" \
+        -and -not -name "*default.nix" \
+        -and -not -path "*library*" \
+        -and -not -path "*devshells*" \
+        -and -not -path "*devshellProfiles*" \
+        -exec basename {} .nix \;
+    )
+
+    for fragment in $derivation_fragments; do
+      echo building "$fragment"
+      nix build ".#$fragment"
+    done
   '';
 }
-
