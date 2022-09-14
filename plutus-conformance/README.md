@@ -29,11 +29,7 @@ E.g., run
 
 `cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
 
-to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
-
-Or, to update and add outputs to all files in the /uplc directory, run
-
-`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
+to have the executable search for files with extension `.uplc` in the /uplc directory. It will evaluate and create/update output files for them.
 
 For the manual, run:
 

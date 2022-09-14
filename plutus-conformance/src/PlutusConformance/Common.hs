@@ -61,7 +61,7 @@ type UplcEvaluator = UplcProg -> Maybe UplcProg
 -- and test cases for directories without.
 discoverTests :: UplcEvaluator -- ^ The evaluator to be tested.
     -> (FilePath -> Bool)
-    -- ^ A function that takes a test name and returned
+    -- ^ A function that takes a test name and returns
     -- whether it should be labelled as `ExpectedFailure`.
     -> FilePath -- ^ The directory to search for tests.
     -> IO TestTree
@@ -132,8 +132,8 @@ compareAlphaEq ::
     Either T.Text UplcProg -- ^ golden value
     -> Either T.Text UplcProg -- ^ tested value
     -> Maybe String
-    -- ^ If two values are the same, it returned `Nothing`.
-    -- If they are different, it returned an error that will be printed to the user.
+    -- ^ If two values are the same, it returns `Nothing`.
+    -- If they are different, it returns an error that will be printed to the user.
 compareAlphaEq (Left expectedTxt) (Left actualTxt) =
     if actualTxt == expectedTxt
     then Nothing
@@ -195,7 +195,7 @@ evalUplcProg = traverseOf UPLC.progTerm eval
 runUplcEvalTests ::
     UplcEvaluator -- ^ The action to run the input through for the tests.
     -> (FilePath -> Bool)
-    -- ^ A function that takes a test name and returned
+    -- ^ A function that takes a test name and returns
     -- whether it should labelled as `ExpectedFailure`.
     -> IO ()
 runUplcEvalTests eval expectedFailTests = do
