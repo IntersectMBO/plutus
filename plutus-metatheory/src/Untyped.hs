@@ -45,7 +45,8 @@ uconv ::  Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
 uconv i (UVar x)     = Var
   ()
   (NamedDeBruijn (T.pack [tmnames !! (i - 1 - fromInteger x)])
-                 (Index (fromInteger x)))
+                -- PLC's debruijn starts counting from 1, while in the metatheory it starts from 0.
+                 (Index (fromInteger x + 1)))
 uconv i (ULambda t)  = LamAbs
   ()
   (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
