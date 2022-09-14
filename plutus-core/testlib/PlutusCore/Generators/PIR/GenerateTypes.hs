@@ -32,7 +32,6 @@ module PlutusCore.Generators.PIR.GenerateTypes where
 
 import Control.Monad.Reader
 
-import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.String
 import Test.QuickCheck (shuffle)
