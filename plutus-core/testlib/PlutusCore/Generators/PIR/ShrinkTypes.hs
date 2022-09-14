@@ -8,7 +8,6 @@
 module PlutusCore.Generators.PIR.ShrinkTypes where
 
 import Data.Map qualified as Map
-import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import GHC.Stack
 
@@ -148,8 +147,8 @@ shrinkKindAndType ctx (k0, ty) =
         [ [ (ka, a)
           | ka `leKind` k0
           ]
-        , [ (k0, b)
-          | TyLam _ x _ b <- [f], not $ Set.member x (setOf ftvTy b)
+        , [ (k0, typeSubstClosedType x (minimalType ka) b)
+          | TyLam _ x _ b <- [f]
           ]
         , [ (k0, typeSubstClosedType x a b)
           | TyLam _ x _ b <- [f], null (setOf ftvTy a)
@@ -177,13 +176,16 @@ shrinkKindAndType ctx (k0, ty) =
       where ka = unsafeInferKind ctx a
     -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
     TyLam _ x ka b -> concat
+        [ -- We can simply get rid of the binding by instantiating the variable.
+          [ (kb, typeSubstClosedType x (minimalType ka) b)
+          ]
         -- We could've used @fixKind (Map.insert x ka' ctx) (TyVar () x) ka)@ here instead of
         -- @minimalType ka@, so that the usages of @x@ are preserved when possible, but that would
         -- mean fixing a kind to a bigger one (because @ka'@ has to be smaller than @ka@ and we'd go
         -- in the opposite direction), which is not supported by 'fixKind' (even though just
         -- commenting out the relevant check and making the change here does seem to give us
         -- better shrinking that still properly terminates, 'cause why would it not).
-        [ [ (KindArrow () ka' kb, TyLam () x ka' $ typeSubstClosedType x (minimalType ka) b)
+        , [ (KindArrow () ka' kb, TyLam () x ka' $ typeSubstClosedType x (minimalType ka) b)
           | ka' <- shrink ka
           ]
         , [ (KindArrow () ka kb', TyLam () x ka b')
@@ -196,9 +198,8 @@ shrinkKindAndType ctx (k0, ty) =
               _                ->
                   error $ "Internal error: " ++ display k0 ++ " is not a 'KindArrow'"
     TyForall _ x ka b -> concat
-        [ -- If the bound variable doesn't matter we get rid of the binding.
-          [ (k0, b)
-          | not $ Set.member x (setOf ftvTy b)
+        [ -- We can simply get rid of the binding by instantiating the variable.
+          [ (k0, typeSubstClosedType x (minimalType ka) b)
           ]
         , -- We can always just shrink the bound variable to a smaller kind and ignore it
           -- Similarly to 'TyLam', we could've used 'fixKind' here, but we don't do it for the same
