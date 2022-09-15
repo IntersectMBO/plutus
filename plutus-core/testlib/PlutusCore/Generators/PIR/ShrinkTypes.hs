@@ -244,4 +244,6 @@ shrinkTypeAtKind :: HasCallStack
                  -> Kind ()
                  -> Type TyName DefaultUni ()
                  -> [Type TyName DefaultUni ()]
+-- It is unfortunate that we need to produce all those shrunk types just to filter out a lot of them
+-- afterwards. But we still should get good coverage in the end.
 shrinkTypeAtKind ctx k ty = [ ty' | (k', ty') <- shrinkKindAndType ctx (k, ty), k == k' ]

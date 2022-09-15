@@ -204,7 +204,7 @@ genKindAndTypeDebug = do
   t <- genClosedTypeDebug_ k
   return (k, t)
 
--- | Normalize a type, throw an error if normalization fails due to e.g. wellkindedness issues.
+-- | Normalize a type.
 normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy = unNormalized . runQuote . normalizeType
 

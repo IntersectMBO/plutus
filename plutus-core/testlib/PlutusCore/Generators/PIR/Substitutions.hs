@@ -7,7 +7,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Map (Map)
-import Data.Map qualified as Map
+import Data.Map.Internal qualified as Map
 import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -33,6 +33,9 @@ can proceed. This is inefficient, instead we could do the same thing that we do 
 equality and keep two separate maps tracking renamings of local variables. Although the types AST is
 lazy, so maybe it's not a big deal in the end. Although even with laziness, we still have quadratic
 behavior currently.
+
+Note that generating a new name is also a rather expensive operation requiring to traverse the whole
+context, so that's another source of inefficiency.
 -}
 
 type TypeSub = Map TyName (Type TyName DefaultUni ())
@@ -111,20 +114,21 @@ unifyType ctx flex sub0 a0 b0 =
     goType (TyVar _ x)         b                   = goTyName x b
     goType a                   (TyVar _ y)         = goTyName y a
     goType (TyFun _ a1 a2)     (TyFun _ b1 b2)     = goType a1 b1 *> goType a2 b2
+    -- This is only structural recursion, because we don't attempt to do higher-order unification.
     goType (TyApp _ a1 a2)     (TyApp _ b1 b2)     = goType a1 b1 *> goType a2 b2
     goType (TyBuiltin _ c1)    (TyBuiltin _ c2)    = when (c1 /= c2) $ unificationFailure c1 c2
     goType (TyIFix _ a1 a2)    (TyIFix _ b1 b2)    = goType a1 b1 *> goType a2 b2
     goType (TyForall _ x k a') (TyForall _ y l b') = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
-      let z = freshenTyName (locals <> Map.keysSet ctx) x
       -- See Note [Renaming during unification].
+      let z = freshenTyName (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
     goType (TyLam _ x k a')    (TyLam _ y l b')    = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
-      let z = freshenTyName (locals <> Map.keysSet ctx) x
       -- See Note [Renaming during unification].
+      let z = freshenTyName (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
     goType a b = unificationFailure a b
 
@@ -206,12 +210,8 @@ substType' nested sub0 ty0 = go fvs0 Set.empty sub0 ty0
 -- free in `a` but in the domain of `sub` we look up `x` in `sub` and get all the free type
 -- variables of the result - up to the substitution.
 fvTypeR :: TypeSub -> Type TyName DefaultUni () -> Set TyName
-fvTypeR sub a = Set.unions $ freeAndNotInSub : map (fvTypeR sub . (Map.!) sub) (Set.toList freeButInSub)
-      where
-          fvs = setOf ftvTy a
-          subDom = Map.keysSet sub
-          freeButInSub = Set.intersection subDom fvs
-          freeAndNotInSub = Set.difference fvs subDom
+fvTypeR sub = go where
+    go = foldMap (\v -> maybe (Set.singleton v) go $ Map.lookup v sub) . setOf ftvTy
 
 -- * Generators for substitutions
 
@@ -240,5 +240,4 @@ shrinkSubst ctx0 = map Map.fromList . liftShrink shrinkTy . Map.toList
   where
     shrinkTy (x, ty) = (,) x <$> shrinkTypeAtKind (pruneCtx ctx0 ty) k ty
       where k = fromMaybe (error $ "internal error: " ++ show x ++ " not found") $ Map.lookup x ctx0
-    pruneCtx ctx ty = Map.filterWithKey (\ x _ -> Set.member x fvs) ctx
-      where fvs = setOf ftvTy ty
+    pruneCtx ctx ty = ctx `Map.restrictKeys` setOf ftvTy ty
