@@ -16,7 +16,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
-import PlutusCore.Error (AsUniqueError, ParserErrorBundle, UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..), UniqueError)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -24,6 +24,7 @@ import PlutusCore.Generators qualified as Gen
 import PlutusCore.Generators.Interesting qualified as Gen
 import PlutusCore.Generators.Test qualified as Gen
 import PlutusCore.Normalize (normalizeType)
+import PlutusCore.Parser qualified as PLC (program)
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Rename (rename)
 import PlutusCore.StdLib.Data.Bool qualified as StdLib
@@ -50,11 +51,12 @@ import Prettyprinter ((<+>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parseProgram)
+import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
+import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- Executable type class -----------
@@ -70,10 +72,10 @@ type UplcProg =
 
 class Executable p where
 
-  -- | Parse a program.
-  parseProgram ::
-    T.Text ->
-      Either ParserErrorBundle (p PLC.SourcePos)
+  -- | Parse a program.  The first argument (normally the file path) describes
+  -- the input stream, the second is the program text.
+  parseNamedProgram ::
+    String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
@@ -92,7 +94,7 @@ class Executable p where
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
-  parseProgram = PLC.runQuoteT . PLC.parseProgram
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
   checkProgram = PLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -103,7 +105,7 @@ instance Executable PlcProg where
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
-  parseProgram = PLC.runQuoteT . UPLC.parseProgram
+  parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
   checkProgram = UPLC.checkProgram
   serialiseProgramFlat nameType p =
       case nameType of
@@ -218,6 +220,10 @@ instance PrintBudgetState Cek.RestrictingSt where
 ---------------- Types for commands and arguments ----------------
 
 data Input       = FileInput FilePath | StdInput
+instance Show Input where
+    show (FileInput path) = show path
+    show StdInput         = "<stdin>"
+
 data Output      = FileOutput FilePath | StdOutput
 data TimingMode  = NoTiming | Timing Integer deriving stock (Eq)  -- Report program execution time?
 data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
@@ -282,10 +288,10 @@ parseInput ::
 parseInput inp = do
     contents <- getInput inp
     -- parse the UPLC program
-    case parseProgram contents of
+    case parseNamedProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
-      Left (err :: ParserErrorBundle) ->
-        errorWithoutStackTrace $ show err
+      Left (ParseErrorB err) ->
+          errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right p -> do
         -- run @rename@ through the program

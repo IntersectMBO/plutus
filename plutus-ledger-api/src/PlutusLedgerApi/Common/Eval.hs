@@ -84,8 +84,8 @@ mkTermToEvaluate lv pv bs args = do
 -- so as to correctly construct the machine's parameters
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
-    -- This just changes once in version 7.0
-    if pv >= ProtocolVersion 7 0 then UnliftingDeferred else UnliftingImmediate
+    -- This just changes once in vasil hf version 7.0
+    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
 
 toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters pv = case unliftingModeIn pv of

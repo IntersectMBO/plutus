@@ -52,20 +52,21 @@ library
     , lens
     , megaparsec
     , plutus-core
+    , plutus-metatheory
     , tasty
     , tasty-expected-failure
     , tasty-golden
     , text
+    , transformers
     , witherable
 
-executable add-test-output
+executable test-utils
   import:         lang
   main-is:        Spec.hs
-  hs-source-dirs: executables/add-test-output/
+  hs-source-dirs: executables/test-utils/
   other-modules:
   build-depends:
     , base                  >=4.9 && <5
-    , directory
     , optparse-applicative
     , plutus-conformance
     , plutus-core

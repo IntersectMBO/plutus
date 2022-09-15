@@ -2,9 +2,11 @@
 
 **Note: This package is a work-in-progress.**
 
-This package aims to provide an official and comprehensive test suite that checks that the behaviour of Plutus conforms with the specified behaviour. We run all the tests in our CI to ensure continuous conformance. Users are encourage to contribute test cases to this collection of tests and utilize the suite (e.g., running the tests on alternative implementations of Plutus Core).
+This package aims to provide an official and comprehensive test suite that checks that the behaviour of Plutus conforms with the specified behaviour. We run all the tests in our CI to ensure continuous conformance. Users are encouraged to contribute test cases to this collection of tests and utilize the suite (e.g., running the tests on alternative implementations of Plutus Core).
 
 ## Specification
+
+This suite tests the latest version of Plutus. Testing of older versions may be added in the future.
 
 The tests currently cover or will cover the Haskell and Agda implementation of:
 
@@ -21,21 +23,27 @@ To update or add test outputs, use the accept test option of the tests. E.g., to
 
 `cabal test haskell-conformance --test-options=--accept`
 
-There is also an executable (`add-test-output`) for adding test output to a specific directory:
+There is also an executable (`test-utils`) for adding/updating test output to a specific directory:
 
 E.g., run
 
-`cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --missing`
+`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
 
-to have the executable search for files with extension `.uplc` in the /uplc directory that are missing output files. It will evaluate and create output files for them.
-
-Or, to update and add outputs to all files in the /uplc directory, run
-
-cabal run add-test-output .uplc plutus-conformance/uplc/ eval -- --all
+to have the executable search for files with extension `.uplc` in the /uplc directory. It will evaluate and create/update output files for them.
 
 For the manual, run:
 
-`cabal run add-test-output -- -h`
+`cabal run test-utils -- -h`
+
+## Debugging mode for Agda's implementation of the UPLC evaluator
+
+One can run the following command to get more detailed error messages on the test cases that fail to evaluate in the Agda implementation:
+
+`cabal run test-utils .uplc [targeted directory/test cases] debug`
+
+For example, to debug the test cases related to builtins, run
+
+`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation/builtin debug`
 
 ## Executable for Haskell implementation
 
