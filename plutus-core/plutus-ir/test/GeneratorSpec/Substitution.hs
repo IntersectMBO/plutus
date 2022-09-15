@@ -14,7 +14,7 @@ import PlutusIR.Subst
 
 import Control.Monad
 import Data.Either
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import Data.String

@@ -6,8 +6,8 @@ import Control.Monad.Except
 
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Map (Map)
-import Data.Map.Internal qualified as Map
+import Data.Map.Strict (Map)
+import Data.Map.Strict.Internal qualified as Map
 import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set

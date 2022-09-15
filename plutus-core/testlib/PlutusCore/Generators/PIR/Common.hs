@@ -31,8 +31,8 @@
 module PlutusCore.Generators.PIR.Common where
 
 import Data.Bifunctor
-import Data.Map (Map)
-import Data.Map qualified as Map
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.String
 import GHC.Stack
 import Test.QuickCheck.Modifiers (NonNegative (..))

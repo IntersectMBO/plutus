@@ -40,8 +40,8 @@ import Control.Monad.Except
 import Control.Monad.Reader
 
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.Map (Map)
-import Data.Map qualified as Map
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)

@@ -14,7 +14,7 @@ import Data.Char
 import Data.Either
 import Data.List hiding (insert)
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import Text.Printf
 
 import PlutusCore.Name

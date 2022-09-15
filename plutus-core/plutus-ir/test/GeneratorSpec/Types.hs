@@ -7,7 +7,7 @@
 module GeneratorSpec.Types where
 
 import Data.Either
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import PlutusCore.Generators.PIR
 import Test.QuickCheck
 

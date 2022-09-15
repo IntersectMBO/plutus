@@ -7,7 +7,7 @@
 -- this module or reverse-engineer the shrinker and fix the problem.
 module PlutusCore.Generators.PIR.ShrinkTypes where
 
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import Data.Set.Lens (setOf)
 import GHC.Stack
 

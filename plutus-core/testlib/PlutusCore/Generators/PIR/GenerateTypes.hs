@@ -32,7 +32,7 @@ module PlutusCore.Generators.PIR.GenerateTypes where
 
 import Control.Monad.Reader
 
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import Data.String
 import Test.QuickCheck (shuffle)
 import Test.QuickCheck.GenT
@@ -71,6 +71,7 @@ import PlutusCore.Generators.PIR.GenerateKinds ()
 
 -- * Generators for well-kinded types
 
+-- TODO: make this a proper generator running in 'GenTm'.
 -- | Get the types of builtins at a given kind
 builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
 builtinTysAt Star =

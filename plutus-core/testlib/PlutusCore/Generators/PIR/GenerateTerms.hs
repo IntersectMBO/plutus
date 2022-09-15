@@ -38,8 +38,8 @@ import Control.Monad.Reader
 import Data.Bifunctor
 import Data.Either
 import Data.List.NonEmpty (NonEmpty (..))
-import Data.Map (Map)
-import Data.Map qualified as Map
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.Proxy
 import Data.Set qualified as Set
