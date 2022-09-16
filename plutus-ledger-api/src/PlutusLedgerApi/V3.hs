@@ -4,8 +4,9 @@
 module PlutusLedgerApi.V3 (
     -- * Scripts
       SerialisedScript
-    , Script
-    , fromCompiledCode
+    , serialiseCompiledCode
+    , serialiseUPLC
+    , deserialiseUPLC
     -- * Validating scripts
     , assertScriptWellFormed
     -- * Running scripts

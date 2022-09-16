@@ -9,12 +9,8 @@ import PlutusCore.MkPlc
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.V1 as Api
-import PlutusLedgerApi.V1.Scripts as Scripts
 import UntypedPlutusCore as UPLC
 
-import Codec.Serialise qualified as CBOR
-import Data.ByteString.Lazy qualified as BSL
-import Data.ByteString.Short qualified as BSS
 import Data.Either
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -128,7 +124,7 @@ testAPI = "v1-api" `testWith` evalAPI vasilPV
 evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
-    let s :: SerialisedScript = BSS.toShort . BSL.toStrict . CBOR.serialise $ Script $ UPLC.mkDefaultProg t
+    let s :: SerialisedScript = serialiseUPLC $ UPLC.mkDefaultProg t
     in isRight $ snd $ Api.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 -- Test a given eval function against the expected results.
