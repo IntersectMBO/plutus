@@ -39,8 +39,8 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
 failingTests :: [FilePath]
 failingTests = [
+    -- the metatheory for list and pair is not done
     "test-cases/uplc/evaluation/builtin/mkNilPairData"
-    , "test-cases/uplc/evaluation/builtin/chooseUnit"
     , "test-cases/uplc/evaluation/builtin/mkNilData"
     -- this is because agda has the BuiltinVersion=V1; haskell defaults to latest BuilinVersion
     , "test-cases/uplc/evaluation/builtin/consByteString"
