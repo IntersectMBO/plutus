@@ -14,8 +14,9 @@ open import Builtin
 open import Algorithmic using (arity;Term;Type) -- TODO: move this stuff
 
 
+open import Function
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Data.Bool using (true;false)
+open import Data.Bool using (true;false;if_then_else_)
 open import Data.Empty
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Relation.Nullary
@@ -106,77 +107,239 @@ V-I b {a = Term} p vs = V-I⇒ b p vs
 V-I b {a = Type} p vs = V-IΠ b p vs
 
 BUILTIN : ∀ b → BApp b (saturated (arity b)) → Either RuntimeError Value
-BUILTIN addInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
-BUILTIN subtractInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
-BUILTIN multiplyInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
-BUILTIN divideInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ userError)
-  (inj₂ (V-con (integer (div i i'))))
-BUILTIN quotientInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ userError)
-  (inj₂ (V-con (integer (quot i i'))))
-BUILTIN remainderInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ userError)
-  (inj₂ (V-con (integer (rem i i'))))
-BUILTIN modInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ userError)
-  (inj₂ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
-BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
-BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₂ (V-con
-  (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
-  inj₂ (V-con (bytestring (SHA3-256 b)))
-BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
-  inj₂ (V-con (bytestring (BLAKE2B-256 b)))
-BUILTIN verifyEd25519Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
-... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ userError
-BUILTIN verifyEcdsaSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
-... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ userError
-BUILTIN verifySchnorrSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
-... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ userError
-BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
-  inj₂ (V-con (bytestring (ENCODEUTF8 s)))
-BUILTIN decodeUtf8 (app _ base (V-con (bytestring b))) with DECODEUTF8 b
-... | nothing = inj₁ userError
-... | just s  = inj₂ (V-con (string s))
-BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base) (V-con (bool false))) vt) vf) = inj₂ vf
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base) (V-con (bool true))) vt) vf) = inj₂ vt
-BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (string (primStringAppend s s')))
-BUILTIN trace (app _ (app _ (app⋆ _ base) (V-con (string s))) v) =
-  inj₂ (TRACE s v)
-BUILTIN iData (app _ base (V-con (integer i))) =
-  inj₂ (V-con (Data (iDATA i)))
-BUILTIN bData (app _ base (V-con (bytestring b))) =
-  inj₂ (V-con (Data (bDATA b)))
-BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
-BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
-BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
-  inj₂ (V-con (integer (length b)))
-BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = inj₁ userError
-... | yes _ with i <? length b
-... | no _  = inj₁ userError
-... | yes _ = inj₂ (V-con (integer (index b i)))
-BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
-BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₂ (V-con (integer i))
-BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
-  inj₂ (V-con (bytestring b))
-BUILTIN serialiseData (app _ base (V-con (Data d))) =
-  inj₂ (V-con (bytestring (serialiseDATA d)))
-BUILTIN _ _ = inj₁ userError
+BUILTIN addInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i + i')))  ; _ -> inj₁ userError
+  }
+BUILTIN subtractInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i - i')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN multiplyInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i ** i')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN divideInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf
+      (i' ≟ ℤ.pos 0)
+      (inj₁ userError)
+      (inj₂ (V-con (integer (div i i'))))
+  ; _ -> inj₁ userError
+  }
+BUILTIN quotientInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf
+      (i' ≟ ℤ.pos 0)
+      (inj₁ userError)
+      (inj₂ (V-con (integer (quot i i'))))
+  ; _ -> inj₁ userError
+  }
+BUILTIN remainderInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf
+      (i' ≟ ℤ.pos 0)
+      (inj₁ userError)
+      (inj₂ (V-con (integer (rem i i'))))
+  ; _ -> inj₁ userError
+  }
+BUILTIN modInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf
+      (i' ≟ ℤ.pos 0)
+      (inj₁ userError)
+      (inj₂ (V-con (integer (mod i i'))))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lessThanInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lessThanEqualsInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN equalsInteger = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) -> decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN appendByteString = λ
+  { (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) -> inj₂ (V-con (bytestring (concat b b')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lessThanByteString = λ
+  { (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) -> inj₂ (V-con (bool (B< b b')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lessThanEqualsByteString = λ
+  { (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) -> inj₂ (V-con (bool (B<= b b')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN sha2-256 = λ
+  { (app _ base (V-con (bytestring b))) -> inj₂ (V-con
+      (bytestring (SHA2-256 b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN sha3-256 = λ
+  { (app _ base (V-con (bytestring b))) ->
+      inj₂ (V-con (bytestring (SHA3-256 b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN blake2b-256 = λ
+  { (app _ base (V-con (bytestring b))) ->
+      inj₂ (V-con (bytestring (BLAKE2B-256 b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN verifyEd25519Signature = λ
+  { (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) -> case verifyEd25519Sig k d c of λ
+      { (just b) -> inj₂ (V-con (bool b))
+      ; nothing -> inj₁ userError
+      }
+  ; _ -> inj₁ userError
+  }
+BUILTIN verifyEcdsaSecp256k1Signature = λ
+  { (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) -> case verifyEcdsaSecp256k1Sig k d c of λ
+      { (just b) -> inj₂ (V-con (bool b))
+      ; nothing -> inj₁ userError
+      }
+  ; _ -> inj₁ userError
+  }
+BUILTIN verifySchnorrSecp256k1Signature = λ
+  { (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) -> case verifySchnorrSecp256k1Sig k d c of λ
+      { (just b) -> inj₂ (V-con (bool b))
+      ; nothing -> inj₁ userError
+      }
+  ; _ -> inj₁ userError
+  }
+BUILTIN encodeUtf8 = λ
+  { (app _ base (V-con (string s))) ->
+      inj₂ (V-con (bytestring (ENCODEUTF8 s)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN decodeUtf8 = λ
+  { (app _ base (V-con (bytestring b))) ->
+      case DECODEUTF8 b of λ
+        { (just s) -> inj₂ (V-con (string s))
+        ; nothing -> inj₁ userError
+        }
+  ; _ -> inj₁ userError
+  }
+BUILTIN equalsByteString = λ
+  { (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) -> inj₂ (V-con (bool (equals b b')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN ifThenElse = λ
+  { (app _ (app _ (app _ (app⋆ _ base) (V-con (bool b))) vt) vf) -> inj₂ $ if b then vt else vf
+  ; _ -> inj₁ userError
+  }
+BUILTIN appendString = λ
+  { (app _ (app _ base (V-con (string s))) (V-con (string s'))) -> inj₂ (V-con (string (primStringAppend s s')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN trace = λ
+  { (app _ (app _ (app⋆ _ base) (V-con (string s))) v) -> inj₂ (TRACE s v)
+  ; _ -> inj₁ userError
+  }
+BUILTIN iData = λ
+  { (app _ base (V-con (integer i))) -> inj₂ (V-con (Data (iDATA i)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bData = λ
+  { (app _ base (V-con (bytestring b))) -> inj₂ (V-con (Data (bDATA b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN consByteString = λ
+  { (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) -> inj₂ (V-con (bytestring (cons i b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN sliceByteString = λ
+  { (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) -> inj₂ (V-con (bytestring (slice st n b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN lengthOfByteString = λ
+  { (app _ base (V-con (bytestring b))) -> inj₂ (V-con (integer (length b)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN indexByteString = λ
+  { (app _ (app _ base (V-con (bytestring b))) (V-con (integer i))) ->
+      case Data.Integer.ℤ.pos 0 ≤? i of λ
+        { (no  _) -> inj₁ userError
+        ; (yes _) -> case i <? length b of λ
+          { (no _)  -> inj₁ userError
+          ; (yes _) -> inj₂ (V-con (integer (index b i)))
+          }
+        }
+  ; _ -> inj₁ userError
+  }
+BUILTIN equalsString = λ
+  { (app _ (app _ base (V-con (string s))) (V-con (string s'))) -> inj₂ (V-con (bool (primStringEquality s s')))
+  ; _ -> inj₁ userError
+  }
+BUILTIN unIData = λ
+  { (app _ base (V-con (Data (iDATA i)))) -> inj₂ (V-con (integer i))
+  ; _ -> inj₁ userError
+  }
+BUILTIN unBData = λ
+  { (app _ base (V-con (Data (bDATA b)))) -> inj₂ (V-con (bytestring b))
+  ; _ -> inj₁ userError
+  }
+BUILTIN serialiseData = λ
+  { (app _ base (V-con (Data d))) -> inj₂ (V-con (bytestring (serialiseDATA d)))
+  ; _ -> inj₁ userError
+  }
+BUILTIN chooseUnit = λ
+  { (app _ (app _ (app⋆ _ base) (V-con unit)) v) -> inj₂ v
+  ; _ -> inj₁ userError
+  }
+BUILTIN fstPair = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN sndPair = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN chooseList = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN mkCons = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN headList = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN tailList = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN nullList = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN chooseData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN constrData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN mapData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN listData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN unConstrData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN unMapData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN unListData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN equalsData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN mkPairData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN mkNilData = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN mkNilPairData = λ
+  { _ -> inj₁ userError
+  }
 
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
   → BApp b p
