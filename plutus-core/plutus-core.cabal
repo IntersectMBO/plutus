@@ -246,7 +246,7 @@ library
         GHC.Natural.Extras
     build-depends:
         aeson -any,
-        algebraic-graphs >= 0.3,
+        algebraic-graphs >= 0.3 && < 0.7,
         array -any,
         barbies -any,
         base >=4.9 && <5,
