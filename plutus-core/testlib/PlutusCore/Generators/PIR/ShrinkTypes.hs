@@ -11,13 +11,13 @@ import Data.Map.Strict qualified as Map
 import Data.Set.Lens (setOf)
 import GHC.Stack
 
+import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Generators.PIR.Common
 import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst
-import PlutusIR
 
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateKinds
@@ -209,34 +209,30 @@ shrinkKindAndType ctx (k0, ty) =
           ]
         , [ (k0, TyForall () x ka b')
             -- or we shrink the body.
-          | (_, b') <- shrinkKindAndType (Map.insert x ka ctx) (Star, b)
+          | (_, b') <- shrinkKindAndType (Map.insert x ka ctx) (Type (), b)
           ]
         ]
     TyBuiltin{}       -> []
     TyIFix _ pat arg  -> concat
-        [ [ (Star, fixKind ctx pat Star), (Star, fixKind ctx arg Star)
+        [ [ (Type (), fixKind ctx pat $ Type ()), (Type (), fixKind ctx arg $ Type ())
           ]
-        , [ (Star, TyIFix () pat' (fixKind ctx arg kArg'))
-          | (kPat', pat') <- shrinkKindAndType ctx (toPatKind kArg, pat),
-            Just kArg' <- [fromPatKind kPat']
+        , [ (Type (), TyIFix () pat' (fixKind ctx arg kArg'))
+          | (kPat', pat') <- shrinkKindAndType ctx (toPatFuncKind kArg, pat),
+            Just kArg' <- [fromPatFuncKind kPat']
           ]
-        , [ (Star, TyIFix () (fixKind ctx pat $ toPatKind kArg') arg')
+        , [ (Type (), TyIFix () (fixKind ctx pat $ toPatFuncKind kArg') arg')
           | (kArg', arg') <- shrinkKindAndType ctx (kArg, arg)
           ]
         ]
       where
         kArg = unsafeInferKind ctx arg
-        toPatKind k = (k :-> Star) :-> k :-> Star
-
-        fromPatKind ((k1 :-> Star) :-> k2 :-> Star) | k1 == k2 = Just k1
-        fromPatKind _                                          = Nothing
 
 -- | Shrink a type in a context assuming that it is of kind *.
 shrinkType :: HasCallStack
            => TypeCtx
            -> Type TyName DefaultUni ()
            -> [Type TyName DefaultUni ()]
-shrinkType ctx ty = map snd $ shrinkKindAndType ctx (Star, ty)
+shrinkType ctx ty = map snd $ shrinkKindAndType ctx (Type (), ty)
 
 -- | Shrink a type of a given kind in a given context in a way that keeps its kind
 shrinkTypeAtKind :: HasCallStack

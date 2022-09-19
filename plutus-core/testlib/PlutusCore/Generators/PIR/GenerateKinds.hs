@@ -40,9 +40,10 @@ ltKind k k' = k /= k' && leKind k k'
 instance Arbitrary (Kind ()) where
   arbitrary = sized $ arb . (`div` 3)
     where
-      arb 0 = pure $ Star
-      arb n = frequency [(4, pure $ Star),
-                         (1, (:->) <$> arb (div n 6) <*> arb (div (5 * n) 6))]
-  shrink Star      = []
-  shrink (a :-> b) = [b] ++ [a' :-> b' | (a', b') <- shrink (a, b)]
+      arb 0 = pure $ Type ()
+      arb n = frequency [(4, pure $ Type ()),
+                         (1, KindArrow () <$> arb (div n 6) <*> arb (div (5 * n) 6))]
+
+  shrink (Type _)          = []
+  shrink (KindArrow _ a b) = [b] ++ [KindArrow () a' b' | (a', b') <- shrink (a, b)]
     -- Note: `a` can have bigger arity than `a -> b` so don't shrink to it!

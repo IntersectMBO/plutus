@@ -53,28 +53,6 @@ instance Testable (Either String ()) where
         Left err -> failed { reason = err }
         Right () -> succeeded
 
--- Some convenience definitions that make the code slightly more readable.
-{-# COMPLETE Star, (:->) #-}
-pattern Star :: Kind ()
-pattern Star  = Type ()
-
-pattern (:->) :: Kind () -> Kind () -> Kind ()
-pattern (:->) a b = KindArrow () a b
-infixr 3 :->
-
-pattern BIF_Trace :: Term tyname name uni DefaultFun ()
-pattern BIF_Trace = Builtin () Trace
-
-pattern BIF_If :: Term tyname name uni DefaultFun ()
-pattern BIF_If = Builtin () IfThenElse
-
-pattern Const :: DefaultUni (Esc a) -> a -> Term tyname name DefaultUni fun ()
-pattern Const b a = Constant () (Some (ValueOf b a))
-
-infixr 3 ->>
-(->>) :: (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ()) -> (Type TyName DefaultUni ())
-(->>) = TyFun ()
-
 -- CODE REVIEW: Do these functions exist in a convenient package anywhere?
 var :: String -> Int -> Name
 var s i = Name (fromString s) (toEnum i)

@@ -72,9 +72,9 @@ prop_shrinkTermSound =
 -- | Test that `findInstantiation` results in a well-typed instantiation.
 prop_findInstantiation :: Property
 prop_findInstantiation =
-  forAllDoc "ctx"    genCtx                      (const [])       $ \ ctx ->
-  forAllDoc "ty"     (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ ty ->
-  forAllDoc "target" (genTypeWithCtx ctx $ Star) (shrinkType ctx) $ \ target ->
+  forAllDoc "ctx"    genCtx                         (const [])       $ \ ctx ->
+  forAllDoc "ty"     (genTypeWithCtx ctx $ Type ()) (shrinkType ctx) $ \ ty ->
+  forAllDoc "target" (genTypeWithCtx ctx $ Type ()) (shrinkType ctx) $ \ target ->
   assertNoCounterexamples $ lefts
     [ (n ,) <$> errOrFine
     | n <- [0..arity ty+3]
@@ -145,7 +145,7 @@ prop_inhabited =
     -- of debugging "clever hacks" in `inhabitType`.
     genInhab ctx = runGenTm $ local (\ e -> e { geTypes = ctx }) $
       genDatatypeLets $ \ dats -> do
-        ty <- genType Star
+        ty <- genType $ Type ()
         tm <- inhabitType ty
         return (ty, foldr (\ dat -> Let () NonRec (DatatypeBind () dat :| [])) tm dats)
 

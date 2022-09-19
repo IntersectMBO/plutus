@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PatternSynonyms          #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
@@ -17,6 +18,8 @@
 
 module PlutusCore.Core.Type
     ( Kind (..)
+    , toPatFuncKind
+    , fromPatFuncKind
     , Type (..)
     , Term (..)
     , Version (..)
@@ -66,6 +69,18 @@ data Kind ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving stock (Eq, Show, Functor, Generic, Lift)
     deriving anyclass (NFData, Hashable)
+
+-- | The kind of a pattern functor (the first 'Type' argument of 'TyIFix') at a given kind (of the
+-- second 'Type' argument of 'TyIFix'):
+--
+-- > toPatFuncKind k = (k -> *) -> k -> *
+toPatFuncKind :: Kind () -> Kind ()
+toPatFuncKind k = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+
+fromPatFuncKind :: Kind () -> Maybe (Kind ())
+fromPatFuncKind (KindArrow () (KindArrow () k1 (Type ())) (KindArrow () k2 (Type ())))
+    | k1 == k2 = Just k1
+fromPatFuncKind _ = Nothing
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type

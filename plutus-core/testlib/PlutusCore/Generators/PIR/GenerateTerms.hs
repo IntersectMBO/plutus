@@ -36,6 +36,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 
 import Data.Bifunctor
+import Data.Default.Class
 import Data.Either
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict (Map)
@@ -54,7 +55,7 @@ import Text.PrettyBy
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkTyBuiltin)
+import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Rename
@@ -133,11 +134,12 @@ findInstantiation ctx n target ty = do
 
 genConstant :: SomeTypeIn DefaultUni -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 genConstant (SomeTypeIn b) = case toSingKind b of
-    SingType -> Const b <$> bring (Proxy @ArbitraryBuiltin) b (liftGen arbitraryBuiltin)
+    SingType -> mkConstantOf () b <$> bring (Proxy @ArbitraryBuiltin) b (liftGen arbitraryBuiltin)
     _        -> error "Higher-kinded built-in types cannot be used here"
 
 shrinkConstant :: DefaultUni (Esc a) -> a -> [Term TyName Name DefaultUni DefaultFun ()]
-shrinkConstant uni x = map (Const uni) $ bring (Proxy @ArbitraryBuiltin) uni $ shrinkBuiltin x
+shrinkConstant uni x =
+    map (mkConstantOf () uni) $ bring (Proxy @ArbitraryBuiltin) uni $ shrinkBuiltin x
 
 -- | Try to inhabit a given type in as simple a way as possible,
 -- prefers to not default to `error`
@@ -268,8 +270,11 @@ genTerm mty = checkInvariants $ do
   let (letF, lamF, varAppF) = if Map.size vars < 20
                               then (30, 50, 10)
                               else (10, 30, 40)
-      atomic | Just ty <- mty = (ty,) <$> genAtomicTerm ty
-             | otherwise      = do ty <- genType Star; (ty,) <$> genAtomicTerm ty
+      atomic
+          | Just ty <- mty = (ty,) <$> genAtomicTerm ty
+          | otherwise      = do
+              ty <- genType $ Type ()
+              (ty,) <$> genAtomicTerm ty
   ifSizeZero atomic $
     frequency $
       [ (10, atomic) ]                                             ++
@@ -308,17 +313,11 @@ genTerm mty = checkInvariants $ do
 
     -- Generate builtin ifthenelse and trace calls
     genIfTrace = do
-      a <- genFreshTyName "a"
-      let a' = TyVar () a
-      liftGen $ elements [(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniBool)
-                                                  ->> a' ->> a' ->> a'
-                          , BIF_If)
-                         ,(TyForall () a Star $ TyBuiltin () (SomeTypeIn DefaultUniString)
-                                                  ->> a' ->> a'
-                          , BIF_Trace)]
+      fun <- liftGen $ elements [IfThenElse, Trace]
+      pure (typeOfBuiltinFunction def fun, Builtin () fun)
 
     genError Nothing = do
-      ty <- genType Star
+      ty <- genType $ Type ()
       return (ty, Error () ty)
     genError (Just ty) = return (ty, Error () ty)
 
@@ -327,7 +326,7 @@ genTerm mty = checkInvariants $ do
     canConst (Just _)           = False
 
     genConst Nothing = do
-      b <- liftGen $ elements $ builtinTysAt Star
+      b <- liftGen $ elements $ builtinTysAt $ Type ()
       (TyBuiltin () b,) <$> genConstant b
     genConst (Just ty@(TyBuiltin _ b)) = (ty,) <$> genConstant b
     genConst _ = error "genConst: impossible"
@@ -345,7 +344,7 @@ genTerm mty = checkInvariants $ do
       xs  <- genFreshNames $ replicate n "f"
       -- Types of the bound terms
       -- TODO: generate something that matches the target type
-      as  <- onSize (`div` 8) $ vectorOf n $ genType Star
+      as  <- onSize (`div` 8) $ vectorOf n $ genType (Type ())
       -- Strictness
       ss  <- vectorOf n $ liftGen $ elements [Strict, NonStrict]
       -- Recursive?
@@ -373,7 +372,7 @@ genTerm mty = checkInvariants $ do
       x <- genFreshName "x"
       (a, (b, body)) <-
         sizeSplit 1 7
-          (maybe (genType Star) return ma)
+          (maybe (genType $ Type ()) return ma)
           (\ a -> bindTmName x a . withNoEscape $ genTerm mb)
       pure (TyFun () a b, LamAbs () x a body)
 
@@ -384,7 +383,7 @@ genTerm mty = checkInvariants $ do
           TyFun _ _ resTy -> pure (resTy, Apply () fun arg)
           _               -> error $ display toResTy ++ "\n\n is not a 'TyFun'"
       where
-        genFun argTy mty = genTerm . Just . TyFun () argTy =<< maybe (genType Star) pure mty
+        genFun argTy mty = genTerm . Just . TyFun () argTy =<< maybe (genType (Type ())) pure mty
 
     genVarApp :: HasCallStack => _
     genVarApp Nothing = withNoEscape $ do
@@ -410,7 +409,7 @@ genTerm mty = checkInvariants $ do
             onSize (`div` n) $ appl n (Var () x) ty
       asks (Map.toList . geTerms) >>= \ case
         []   -> do
-          ty <- genType Star
+          ty <- genType $ Type ()
           (ty,) <$> inhabitType ty
         vars -> oneof $ map genV vars
 
@@ -440,9 +439,7 @@ scaledListOf g = do
 genDatatypeLet :: Bool -> (Datatype TyName Name DefaultUni () -> GenTm a) -> GenTm a
 genDatatypeLet rec cont = do
     k <- liftGen arbitrary
-    let kindArgs (k :-> k') = k : kindArgs k'
-        kindArgs Star       = []
-        ks = kindArgs k
+    let ks = argsKind k
     n <- liftGen $ choose (1, 3)
     ~(d : xs) <- genFreshTyNames $ "d" : replicate (length ks) "a"
     ~(m : cs) <- genFreshNames   $ "m" : replicate n "c"
@@ -453,9 +450,9 @@ genDatatypeLet rec cont = do
     conArgss <- bty d $ bindTyNames (zip xs ks) $
                   -- Using 'listOf' instead if 'scaledListOf' makes the code slower by several
                   -- times (didn't check how exactly it affects the generated types).
-                  onSize (`div` n) $ replicateM n $ scaledListOf (genType Star)
+                  onSize (`div` n) $ replicateM n $ scaledListOf (genType $ Type ())
     let dat = Datatype () (TyVarDecl () d k) [TyVarDecl () x k | (x, k) <- zip xs ks] m
-                       [ VarDecl () c (foldr (->>) dTy conArgs)
+                       [ VarDecl () c (foldr (TyFun ()) dTy conArgs)
                        | (c, conArgs) <- zip cs conArgss ]
                        -- TODO: it might make sense to do a negativity test here -
                        -- but not clear how important that is.
@@ -499,7 +496,7 @@ shrinkTypedTerm :: HasCallStack
                 -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
 shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
   where
-    isHelp _ (Const _ _)              = True
+    isHelp _ (Constant _ _)           = True
     isHelp ctx (TyInst _ (Var _ x) _) = Just x == findHelp ctx
     isHelp _ (Error _ _)              = True
     isHelp _ _                        = False
@@ -567,7 +564,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           ]
 
         -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
-        Const uni _ -> case uni of
+        Constant _ (Some (ValueOf uni _)) -> case uni of
             DefaultUniUnit -> []
             _              -> [(mkTyBuiltin @_ @() (), mkConstant () ())]
 
@@ -637,7 +634,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
           , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
           ]
 
-        Const uni x -> map ((,) ty) $ shrinkConstant uni x
+        Constant _ (Some (ValueOf uni x)) -> map ((,) ty) $ shrinkConstant uni x
 
         _ -> []
 
@@ -719,8 +716,8 @@ findHelp ctx =
     []         -> Nothing
     (x, _) : _ -> Just x
   where
-    isHelpType (TyForall _ x Star (TyVar _ x')) = x == x'
-    isHelpType _                                = False
+    isHelpType (TyForall _ x (Type ()) (TyVar _ x')) = x == x'
+    isHelpType _                                     = False
 
 -- | Try to take a term from an old context to a new context and a new type.
 -- If we can't do the new type we might return a different type.
@@ -734,12 +731,12 @@ fixupTerm_ :: TypeCtx
 fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm =
   case inferTypeInContext tyctxNew ctxNew tm of
     Left _ -> case tm of
-      LamAbs _ x a tm | TyFun () _ b <- tyNew -> bimap (a ->>) (LamAbs () x a)
+      LamAbs _ x a tm | TyFun () _ b <- tyNew -> bimap (TyFun () a) (LamAbs () x a)
                                               $ fixupTerm_ tyctxOld (Map.insert x a ctxOld)
                                                            tyctxNew (Map.insert x a ctxNew) b tm
-      Apply _ (Apply _ (TyInst _ BIF_Trace _) s) tm ->
+      Apply _ (Apply _ (TyInst _ (Builtin _ Trace) _) s) tm ->
         let (ty', tm') = fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm
-        in (ty', Apply () (Apply () (TyInst () BIF_Trace ty') s) tm')
+        in (ty', Apply () (Apply () (TyInst () (Builtin () Trace) ty') s) tm')
       _ | TyBuiltin _ b <- tyNew -> (tyNew, minimalBuiltin b)
         | otherwise -> (tyNew, mkHelp ctxNew tyNew)
     Right ty -> (ty, tm)
@@ -758,7 +755,7 @@ fixupTerm _ _ tyctxNew ctxNew tyNew tm
 
 minimalBuiltin :: SomeTypeIn DefaultUni -> Term TyName Name DefaultUni DefaultFun ()
 minimalBuiltin (SomeTypeIn b) = case toSingKind b of
-    SingType -> Const b $ go b
+    SingType -> mkConstantOf () b $ go b
     _        -> error "Higher-kinded built-in types cannot be used here"
   where
     go :: DefaultUni (Esc a) -> a

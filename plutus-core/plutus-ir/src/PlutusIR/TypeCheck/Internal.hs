@@ -34,7 +34,7 @@ import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
-import PlutusCore (tyVarDeclName, typeAnn)
+import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
 import PlutusCore.Error as PLC
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
@@ -195,7 +195,7 @@ inferTypeM (TyInst ann body ty)     = do
 -- [infer| G !- iwrap pat arg term : ifix vPat vArg]
 inferTypeM (IWrap ann pat arg term) = do
     k <- inferKindM arg
-    checkKindOfPatternFunctorM ann pat k
+    checkKindM ann pat $ toPatFuncKind k
     vPat <- normalizeTypeM $ void pat
     vArg <- normalizeTypeM $ void arg
     checkTypeM ann term =<< unfoldIFixOf vPat vArg k

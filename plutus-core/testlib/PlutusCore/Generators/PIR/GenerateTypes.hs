@@ -38,6 +38,7 @@ import Test.QuickCheck (shuffle)
 import Test.QuickCheck.GenT
 
 import PlutusCore.Builtin
+import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Generators.PIR.Common
 import PlutusCore.Name
@@ -45,7 +46,6 @@ import PlutusCore.Normalize
 import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
-import PlutusIR.Error
 
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateKinds ()
@@ -74,7 +74,7 @@ import PlutusCore.Generators.PIR.GenerateKinds ()
 -- TODO: make this a proper generator running in 'GenTm'.
 -- | Get the types of builtins at a given kind
 builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
-builtinTysAt Star =
+builtinTysAt (Type _) =
   -- TODO: add 'DefaultUniData' once it has a non-throwing 'ArbitraryBuiltin' instance.
   [ SomeTypeIn DefaultUniInteger
   , SomeTypeIn DefaultUniUnit
@@ -84,11 +84,12 @@ builtinTysAt Star =
   -- TODO: should we have more examples of lists and pairs here?
   , SomeTypeIn $ DefaultUniList DefaultUniBool
   , SomeTypeIn $ DefaultUniPair DefaultUniInteger DefaultUniUnit]
-builtinTysAt (Star :-> Star) =
+builtinTysAt (KindArrow _ (Type _) (Type _)) =
   [ SomeTypeIn DefaultUniProtoList
   , SomeTypeIn $ DefaultUniProtoPair `DefaultUniApply` DefaultUniString
   ]
-builtinTysAt (Star :-> Star :-> Star) = [SomeTypeIn DefaultUniProtoPair]
+builtinTysAt (KindArrow _ (Type _) (KindArrow () (Type _) (Type _))) =
+  [SomeTypeIn DefaultUniProtoPair]
 builtinTysAt _ = []
 
 -- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
@@ -116,9 +117,9 @@ genType k = checkInvariants $ onSize (min 10) $
   ifSizeZero (genAtomicType k) $
     frequency $
       [ (5, genAtomicType k) ] ++
-      [ (10, genFun) | k == Star ] ++
-      [ (5, genForall) | k == Star ] ++
-      [ (1, genIFix) | k == Star ] ++
+      [ (10, genFun) | k == Type () ] ++
+      [ (5, genForall) | k == Type () ] ++
+      [ (1, genIFix) | k == Type () ] ++
       [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
       [ (5, genApp) ]
   where
@@ -149,7 +150,7 @@ genType k = checkInvariants $ onSize (min 10) $
     genForall = do
       x <- genMaybeFreshTyName "a"
       k <- liftGen arbitrary
-      fmap (TyForall () x k) $ onSize (subtract 1) $ bindTyName x k $ genType Star
+      fmap (TyForall () x k) $ onSize (subtract 1) $ bindTyName x k $ genType $ Type ()
 
     genLam k1 k2 = do
         x <- genMaybeFreshTyName "a"
@@ -162,7 +163,7 @@ genType k = checkInvariants $ onSize (min 10) $
     genIFix = do
       k' <- liftGen arbitrary
       uncurry (TyIFix ()) <$> sizeSplit_ 5 2
-        (genType $ (k' :-> Star) :-> k' :-> Star)
+        (genType $ toPatFuncKind k')
         (genType k')
 
 -- | Generate a closed type at a given kind

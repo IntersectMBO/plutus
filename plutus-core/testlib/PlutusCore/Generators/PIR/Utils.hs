@@ -43,7 +43,6 @@ import Data.String
 import Test.QuickCheck
 
 import PlutusCore.Default
-import PlutusCore.Generators.PIR.Common
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusIR
@@ -120,7 +119,8 @@ matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
           mconcat [setOf ftvTy ty | VarDecl _ _ ty <- cs]
     pars = [TyVar () x | TyVarDecl _ x _ <- xs]
     dtyp = foldl (TyApp ()) (TyVar () a) pars
-    matchType = abstr $ dtyp ->> TyForall () r Star (foldr ((->>) . conArg) (TyVar () r) cs)
+    matchType =
+        abstr . TyFun () dtyp $ TyForall () r (Type ()) (foldr (TyFun () . conArg) (TyVar () r) cs)
       where r = freshenTyName fvs $ TyName $ Name "r" (toEnum 0)
             conArg (VarDecl _ _ ty) = setTarget ty
             setTarget (TyFun _ a b) = TyFun () a (setTarget b)
