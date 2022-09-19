@@ -1,28 +1,25 @@
 name: Haskell CI
 
 on:
-  push:
-    branches: [ '*' ]
   pull_request:
-    branches: [ "master", "release/*" ]
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
-        shell: bash
-
     strategy:
       fail-fast: false
       matrix:
         ghc: ["ghc8107", "ghc924"]
         os: [ubuntu-latest, macos-latest]
 
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash
+
     steps:
-    - uses: actions/checkout@v1
-    - uses: cachix/install-nix-action
-    - run: |
+     - uses: actions/checkout@v1
+     - uses: cachix/install-nix-action
+     - run: |
       nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${matrix.ghc} --no-write-lock-file --command cabal update
       nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${matrix.ghc} --no-write-lock-file --command cabal build all
