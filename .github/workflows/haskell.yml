@@ -17,5 +17,5 @@ jobs:
       - uses: actions/checkout@v1
       - uses: cachix/install-nix-action
       - run: |
-        nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal update
-        nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build all
+          nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal update
+          nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build all
