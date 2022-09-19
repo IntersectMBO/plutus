@@ -20,6 +20,11 @@ jobs:
           extra_nix_config: |
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
             substituters = https://cache.iog.io/ https://cache.zw3rk.com/ https://cache.nixos.org/
-      - run: |
-          nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal update
-          nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build all
+      - name: Prepare dev shell
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command true
+      - name: Update Cabal Index
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal update
+      - name: Build dependencies
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build cabal build all --only-dependencies -j 
+      - name: Build project
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build cabal build all -j 
