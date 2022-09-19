@@ -25,6 +25,6 @@ jobs:
       - name: Update Cabal Index
         run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal update
       - name: Build dependencies
-        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build cabal build all --only-dependencies -j 
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build all --only-dependencies -j 
       - name: Build project
-        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build cabal build all -j 
+        run: nix develop github:input-output-hk/iohk-nix?rev=80aaf3d9b0ac0ea3f7c668ce01573d37326376d5#${{ matrix.ghc }} --no-write-lock-file --command cabal build all -j 
