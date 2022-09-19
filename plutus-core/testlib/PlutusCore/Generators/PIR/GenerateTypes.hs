@@ -140,12 +140,12 @@ genType k = checkInvariants $ onSize (min 10) $
         (genType k')
 
 -- | Generate a closed type at a given kind
-genClosedType_ :: Kind () -> Gen (Type TyName DefaultUni ())
-genClosedType_ = genTypeWithCtx mempty
+genClosedType :: Kind () -> Gen (Type TyName DefaultUni ())
+genClosedType = genTypeWithCtx mempty
 
 -- | Generate a closed type at a given kind
-genClosedTypeDebug_ :: Kind () -> Gen (Type TyName DefaultUni ())
-genClosedTypeDebug_ = genTypeWithCtxDebug mempty
+genClosedTypeDebug :: Kind () -> Gen (Type TyName DefaultUni ())
+genClosedTypeDebug = genTypeWithCtxDebug mempty
 
 -- | Generate a type in the given context with the given kind.
 genTypeWithCtx :: TypeCtx -> Kind () -> Gen (Type TyName DefaultUni ())
@@ -169,14 +169,14 @@ builtinKind (SomeTypeIn t) = kindOfBuiltinType t
 genKindAndType :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndType = do
   k <- arbitrary
-  t <- genClosedType_ k
+  t <- genClosedType k
   return (k, t)
 
 -- | Generate an arbitrary kind and closed type of that kind.
 genKindAndTypeDebug :: Gen (Kind (), Type TyName DefaultUni ())
 genKindAndTypeDebug = do
   k <- arbitrary
-  t <- genClosedTypeDebug_ k
+  t <- genClosedTypeDebug k
   return (k, t)
 
 -- | Normalize a type.

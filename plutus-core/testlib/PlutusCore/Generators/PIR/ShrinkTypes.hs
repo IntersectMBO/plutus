@@ -76,8 +76,12 @@ fixKind :: HasCallStack
 fixKind ctx ty k
   -- Nothing to do if we already have the right kind
   | unsafeInferKind ctx ty == k = ty
-  | not $ k `leKind` unsafeInferKind ctx ty =
-      error "fixKind not smaller"
+  | not $ k `leKind` unsafeInferKind ctx ty = error $ concat
+      [ "Internal error. New kind: "
+      , display k
+      , "\nis not smaller than the old one: "
+      , display $ unsafeInferKind ctx ty
+      ]
   | otherwise = case ty of
     -- Switch a variable out for a different variable of the right kind
     TyVar _ _ -> case [y | (y, k') <- Map.toList ctx, k == k'] of
@@ -103,7 +107,10 @@ fixKind ctx ty k
               kb'  = unsafeInferKind ctx' b'
     -- Ill-kinded builtins just go to minimal types
     TyBuiltin{} -> minimalType k
-    _ -> error "fixKind"
+    -- Unreachable, because there's no kind that is smaller than @Type ()@.
+    TyFun{} -> error "Internal error: unreachable clause."
+    TyIFix{} -> error "Internal error: unreachable clause."
+    TyForall{} -> error "Internal error: unreachable clause."
 
 -- | Shrink a well-kinded type in a context to new types, possibly with new kinds.
 -- The new kinds are guaranteed to be smaller than or equal to the old kind.
