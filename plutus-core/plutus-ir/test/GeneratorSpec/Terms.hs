@@ -1,8 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module GeneratorSpec.Terms where
 
@@ -63,8 +61,8 @@ prop_shrinkTermSound =
   -- up and print an error if the shrinker returns the empty list too often.
   not (null shrinks) ==>
   assertNoCounterexamples $ lefts
-    [ ((ty, tm), scopeCheckTyVars Map.empty (ty, tm), ) <$> typeCheckTerm tm ty
-    | (ty, tm) <- shrinks
+    [ ((ty', tm'), scopeCheckTyVars Map.empty (ty, tm), ) <$> typeCheckTerm tm ty
+    | (ty', tm') <- shrinks
     ]
 
 -- * Utility tests for debugging generators that behave weirdly
@@ -72,30 +70,30 @@ prop_shrinkTermSound =
 -- | Test that `findInstantiation` results in a well-typed instantiation.
 prop_findInstantiation :: Property
 prop_findInstantiation =
-  forAllDoc "ctx"    genCtx                         (const [])       $ \ ctx ->
-  forAllDoc "ty"     (genTypeWithCtx ctx $ Type ()) (shrinkType ctx) $ \ ty ->
-  forAllDoc "target" (genTypeWithCtx ctx $ Type ()) (shrinkType ctx) $ \ target ->
+  forAllDoc "ctx"    genCtx                          (const [])        $ \ ctx0 ->
+  forAllDoc "ty"     (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ ty0 ->
+  forAllDoc "target" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ target ->
   assertNoCounterexamples $ lefts
     [ (n ,) <$> errOrFine
-    | n <- [0..arity ty+3]
+    | n <- [0 .. arity ty0 + 3]
     , let errOrFine = do
-            insts <- findInstantiation ctx n target ty
-            checkInst ctx x ty insts target
+            insts <- findInstantiation ctx0 n target ty0
+            checkInst ctx0 x0 ty0 insts target
     ]
   where
-    x = Name "x" (toEnum 0)
+    x0 = Name "x" (toEnum 0)
     arity (TyForall _ _ _ a) = arity a
     arity (TyFun _ _ b)      = 1 + arity b
     arity _                  = 0
 
     -- Check that building a "minimal" term that performs the instantiations in
     -- `insts` produces a well-typed term.
-    checkInst ctx x ty insts target = typeCheckTermInContext ctx tmCtx tm target
+    checkInst ctx1 x1 ty1 insts1 target = typeCheckTermInContext ctx1 tmCtx1 tm1 target
       where
         -- Build a term and a context from `insts` that consists of
         -- `tm @ty` for every `InstApp ty` in `insts` and `tm y` for
         -- a fresh variable `y : ty` for every `InstArg ty` in `insts`.
-        (tmCtx, tm) = go (toEnum 1) (Map.singleton x ty) (Var () x) insts
+        (tmCtx1, tm1) = go (toEnum 1) (Map.singleton x1 ty1) (Var () x1) insts1
         go _ tmCtx tm [] = (tmCtx, tm)
         go i tmCtx tm (InstApp ty : insts) = go i tmCtx (TyInst () tm ty) insts
         go i tmCtx tm (InstArg ty : insts) = go (succ i) (Map.insert y ty tmCtx)

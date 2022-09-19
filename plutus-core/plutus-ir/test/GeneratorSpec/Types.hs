@@ -1,8 +1,4 @@
--- editorconfig-checker-disable-file
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# LANGUAGE TupleSections #-}
 
 module GeneratorSpec.Types where
 
@@ -30,8 +26,8 @@ prop_shrinkTypeSound =
   -- See discussion about the same trick in `prop_shrinkTermSound`
   isRight (checkKind ctx ty k) ==>
   assertNoCounterexamples $ lefts
-    [ (k, ty, ) <$> checkKind ctx ty k
-    | (k, ty) <- shrinkKindAndType ctx (k, ty)
+    [ (k', ty', ) <$> checkKind ctx ty k
+    | (k', ty') <- shrinkKindAndType ctx (k, ty)
     ]
 
 -- Utility tests for debugging

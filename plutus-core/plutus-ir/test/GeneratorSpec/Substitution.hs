@@ -1,8 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-
 module GeneratorSpec.Substitution where
 
 import PlutusCore.Generators.PIR

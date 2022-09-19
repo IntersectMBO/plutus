@@ -1,39 +1,16 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveFunctor         #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE ImportQualifiedPost   #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NumericUnderscores    #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusCore.Generators.PIR.Common where
 
 import Data.Bifunctor
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
-import Data.String
 import GHC.Stack
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
@@ -52,13 +29,6 @@ instance Testable (Either String ()) where
     property = property . \case
         Left err -> failed { reason = err }
         Right () -> succeeded
-
--- CODE REVIEW: Do these functions exist in a convenient package anywhere?
-var :: String -> Int -> Name
-var s i = Name (fromString s) (toEnum i)
-
-tyvar :: String -> Int -> TyName
-tyvar s i = TyName (var s i)
 
 deriving newtype instance Pretty i => Pretty (NonNegative i)
 instance PrettyBy config i => DefaultPrettyBy config (NonNegative i)

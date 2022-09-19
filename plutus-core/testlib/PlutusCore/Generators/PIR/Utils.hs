@@ -1,32 +1,4 @@
--- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveFunctor         #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE ImportQualifiedPost   #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NumericUnderscores    #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-{-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Generators.PIR.Utils where
 
@@ -113,18 +85,18 @@ constrTypes (Datatype _ _ xs _ cs) = [ (c, abstr ty) | VarDecl _ c ty <- cs ]
 
 -- | Get the name and type of the match function for a given datatype.
 matchType :: Datatype TyName Name DefaultUni () -> (Name, Type TyName DefaultUni ())
-matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchType)
+matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchTy)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
           mconcat [setOf ftvTy ty | VarDecl _ _ ty <- cs]
     pars = [TyVar () x | TyVarDecl _ x _ <- xs]
     dtyp = foldl (TyApp ()) (TyVar () a) pars
-    matchType =
+    matchTy =
         abstr . TyFun () dtyp $ TyForall () r (Type ()) (foldr (TyFun () . conArg) (TyVar () r) cs)
       where r = freshenTyName fvs $ TyName $ Name "r" (toEnum 0)
             conArg (VarDecl _ _ ty) = setTarget ty
-            setTarget (TyFun _ a b) = TyFun () a (setTarget b)
-            setTarget _             = TyVar () r
+            setTarget (TyFun _ a' b) = TyFun () a' (setTarget b)
+            setTarget _              = TyVar () r
     abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
 
 -- | Bind a datatype declaration in a generator.
