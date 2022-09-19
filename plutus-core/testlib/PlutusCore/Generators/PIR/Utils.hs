@@ -15,9 +15,11 @@ import Data.String
 import Test.QuickCheck
 
 import PlutusCore.Default
+import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusIR
+import PlutusIR.Compiler.Datatype
 import PlutusIR.Subst
 
 import PlutusCore.Generators.PIR.GenTm
@@ -79,25 +81,16 @@ freshenTyName fvs (TyName (Name x j)) = TyName (Name x i)
 
 -- | Get the names and types of the constructors of a datatype.
 constrTypes :: Datatype TyName Name DefaultUni () -> [(Name, Type TyName DefaultUni ())]
-constrTypes (Datatype _ _ xs _ cs) = [ (c, abstr ty) | VarDecl _ c ty <- cs ]
-  where
-    abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
+constrTypes (Datatype _ _ xs _ cs) = [ (c, mkIterTyForall xs ty) | VarDecl _ c ty <- cs ]
 
 -- | Get the name and type of the match function for a given datatype.
 matchType :: Datatype TyName Name DefaultUni () -> (Name, Type TyName DefaultUni ())
-matchType (Datatype _ (TyVarDecl _ a _) xs m cs) = (m, matchTy)
+matchType d@(Datatype _ (TyVarDecl _ a _) xs m cs) = (m, mkDestructorTy (mkScottTy () d out) d)
   where
     fvs = Set.fromList (a : [x | TyVarDecl _ x _ <- xs]) <>
           mconcat [setOf ftvTy ty | VarDecl _ _ ty <- cs]
-    pars = [TyVar () x | TyVarDecl _ x _ <- xs]
-    dtyp = foldl (TyApp ()) (TyVar () a) pars
-    matchTy =
-        abstr . TyFun () dtyp $ TyForall () r (Type ()) (foldr (TyFun () . conArg) (TyVar () r) cs)
-      where r = freshenTyName fvs $ TyName $ Name "r" (toEnum 0)
-            conArg (VarDecl _ _ ty) = setTarget ty
-            setTarget (TyFun _ a' b) = TyFun () a' (setTarget b)
-            setTarget _              = TyVar () r
-    abstr ty = foldr (\ (TyVarDecl _ x k) -> TyForall () x k) ty xs
+    outName = "out_" <> _nameText (unTyName a)
+    out = freshenTyName fvs $ TyName $ Name outName (toEnum 0)
 
 -- | Bind a datatype declaration in a generator.
 bindDat :: Datatype TyName Name DefaultUni ()

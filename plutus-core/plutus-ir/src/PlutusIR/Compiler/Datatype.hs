@@ -13,6 +13,7 @@ module PlutusIR.Compiler.Datatype
     , funResultType
     , mkDatatypeValueType
     , mkDestructorTy
+    , mkScottTy
     , replaceFunTyTarget
     , resultTypeName
     ) where
@@ -260,23 +261,15 @@ For a (self-)recursive datatype we have to change three things:
 -- See note [Scott encoding of datatypes]
 -- | Make the "Scott-encoded" type for a 'Datatype', with type variables free.
 -- @mkScottTy Maybe = forall out_Maybe. out_Maybe -> (a -> out_Maybe) -> out_Maybe@
-mkScottTy :: MonadQuote m => ann -> Datatype TyName Name uni ann -> m (Type TyName uni ann)
-mkScottTy ann d@(Datatype _ _ _ _ constrs) = do
-    resultType <- resultTypeName d
+mkScottTy :: ann -> Datatype TyName Name uni ann -> TyName -> Type TyName uni ann
+mkScottTy ann (Datatype _ _ _ _ constrs) res =
+      -- forall res.
+      TyForall ann res (Type ann) $
+          -- c_1 -> ... -> c_n -> res
+          PIR.mkIterTyFun ann caseTys (TyVar ann res)
+  where
      -- FIXME: normalize datacons' types also here
-    let caseTys = fmap (constructorCaseType (TyVar ann resultType)) constrs
-    pure $
-        -- forall resultType
-        TyForall ann resultType (Type ann) $
-        -- c_1 -> .. -> c_n -> resultType
-        PIR.mkIterTyFun ann caseTys (TyVar ann resultType)
-
--- | Make the "pattern functor" of a 'Datatype'. This is just the normal type, but with the
--- type variable for the type itself free and its type variables free.
--- @mkDatatypePatternFunctor List = forall (r :: *) . r -> (a -> List a -> r) -> r@
--- FIXME: inline this
-mkDatatypePatternFunctor :: MonadQuote m => ann -> Datatype TyName Name uni ann -> m (Type TyName uni ann)
-mkDatatypePatternFunctor ann d = mkScottTy ann d
+    caseTys = fmap (constructorCaseType (TyVar ann res)) constrs
 
 -- | Make the real PLC type corresponding to a 'Datatype' with the given pattern functor.
 -- @
@@ -401,7 +394,7 @@ mkDestructor dty (Datatype ann _ tvs _ _) = do
 --         = forall (a :: *) . (List a) -> (<pattern functor of List>)
 --         = forall (a :: *) . (List a) -> (forall (out_List :: *) . (out_List -> (a -> List a -> out_List) -> out_List))
 -- @
-mkDestructorTy :: PIRType uni a -> Datatype TyName Name uni (Provenance a) -> PIRType uni a
+mkDestructorTy :: Type TyName uni a -> Datatype TyName Name uni a -> Type TyName uni a
 mkDestructorTy pf dt@(Datatype ann _ tvs _ _) =
     -- we essentially "unveil" the abstract type, so this
     -- is a function from the (instantiated) abstract type
@@ -414,8 +407,7 @@ mkDestructorTy pf dt@(Datatype ann _ tvs _ _) =
     -- t t_1 .. t_n
     let appliedAbstract = mkDatatypeValueType ann dt
     -- forall t_1 .. t_n
-        destrTy = PIR.mkIterTyForall tvs $ TyFun ann appliedAbstract pf
-    in fmap (\a -> DatatypeComponent DestructorType a) destrTy
+    in PIR.mkIterTyForall tvs $ TyFun ann appliedAbstract pf
 
 -- The main function
 
@@ -442,7 +434,7 @@ compileDatatypeDefs  :: MonadQuote m => Recursivity
                           PLC.Def (VarDecl TyName Name uni (Provenance a)) (PIRTerm uni fun a))
 compileDatatypeDefs r d@(Datatype ann tn _ destr constrs) = do
     -- we compute the pattern functor and pass it around to avoid recomputing it
-    pf <- mkDatatypePatternFunctor ann d
+    pf <- mkScottTy ann d <$> resultTypeName d
     concreteTyDef <- PIR.Def tn <$> mkDatatypeType r pf d
 
     constrDefs <- for (zip constrs [0..]) $ \(c, i) -> do
@@ -450,7 +442,7 @@ compileDatatypeDefs r d@(Datatype ann tn _ destr constrs) = do
         PIR.Def (VarDecl (DatatypeComponent Constructor ann) (_varDeclName c) constrTy) <$> mkConstructor (PIR.defVal concreteTyDef) d i
 
     destrDef <- do
-        let destTy = mkDestructorTy pf d
+        let destTy = DatatypeComponent DestructorType <$> mkDestructorTy pf d
         PIR.Def (VarDecl (DatatypeComponent Destructor ann) destr destTy) <$> mkDestructor (PIR.defVal concreteTyDef) d
 
     pure (concreteTyDef, constrDefs, destrDef)

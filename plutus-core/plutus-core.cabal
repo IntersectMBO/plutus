@@ -131,6 +131,7 @@ library
     PlutusIR
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Compiler
+    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
     PlutusIR.Core
@@ -227,7 +228,6 @@ library
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
-    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
