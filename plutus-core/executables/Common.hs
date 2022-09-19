@@ -39,7 +39,7 @@ import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
-import Data.List (intercalate, nub)
+import Data.List (intercalate, nub, sortOn)
 import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
@@ -59,8 +59,27 @@ import System.Mem (performGC)
 import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
+import Control.Lens hiding (argument, set', (<.>))
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Reader
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy.Char8 qualified as BSL
+import Data.Coerce
+import Data.Csv qualified as Csv
+import Data.IntMap qualified as IM
+import GHC.Generics
+import Options.Applicative
+import PlutusCore.Quote (runQuoteT)
+import PlutusIR.Analysis.RetainedSize qualified as PIR
+import PlutusIR.Compiler qualified as PIR
+import PlutusIR.Core.Plated
+import PlutusIR.Core.Type qualified as PIR
+
 ----------- Executable type class -----------
--- currently we only have PLC and UPLC. PIR will be added later on.
+
+-- | PIR program type.
+type PirProg =
+  PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | PLC program type.
 type PlcProg =
