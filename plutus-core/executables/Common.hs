@@ -32,6 +32,14 @@ import PlutusCore.StdLib.Data.ChurchNat qualified as StdLib
 import PlutusCore.StdLib.Data.Integer qualified as StdLib
 import PlutusCore.StdLib.Data.Unit qualified as StdLib
 
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
+
+import PlutusIR.Core.Type qualified as PIR
+import PlutusIR.Parser qualified as PIR (parse, program)
+
 import Control.DeepSeq (rnf)
 import Control.Lens hiding (ix, op)
 import Control.Monad.Except
@@ -39,7 +47,7 @@ import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
-import Data.List (intercalate, nub, sortOn)
+import Data.List (intercalate, nub)
 import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
@@ -48,32 +56,12 @@ import Data.Text.IO qualified as T
 import Flat (Flat, flat, unflat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter ((<+>))
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
 import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
-
-import Control.Lens hiding (argument, set', (<.>))
-import Control.Monad.Trans.Except
-import Control.Monad.Trans.Reader
-import Data.ByteString qualified as BS
-import Data.ByteString.Lazy.Char8 qualified as BSL
-import Data.Coerce
-import Data.Csv qualified as Csv
-import Data.IntMap qualified as IM
-import GHC.Generics
-import Options.Applicative
-import PlutusCore.Quote (runQuoteT)
-import PlutusIR.Analysis.RetainedSize qualified as PIR
-import PlutusIR.Compiler qualified as PIR
-import PlutusIR.Core.Plated
-import PlutusIR.Core.Type qualified as PIR
 
 ----------- Executable type class -----------
 
@@ -108,19 +96,30 @@ class Executable p where
   -- | Convert names to de Bruijn indices and then serialise
   serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
 
-  -- | Read and deserialise a Flat-encoded UPLC AST
+  -- | Read and deserialise a Flat-encoded AST
   loadASTfromFlat :: AstNameType -> Input -> IO (p ())
+
+-- For PIR and PLC
+serialiseTProgramFlat :: Flat a => AstNameType -> a -> IO BSL.ByteString
+serialiseTProgramFlat nameType p =
+      case nameType of
+        Named         -> pure $ BSL.fromStrict $ flat p
+        DeBruijn      -> typedDeBruijnNotSupportedError
+        NamedDeBruijn -> typedDeBruijnNotSupportedError
+
+-- | Instance for PIR program.
+instance Executable PirProg where
+  parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
+  checkProgram = undefined --TODO PLC.checkProgram
+  serialiseProgramFlat = serialiseTProgramFlat
+  loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for PLC program.
 instance Executable PlcProg where
   parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
   checkProgram = PLC.checkProgram
-  serialiseProgramFlat nameType p =
-      case nameType of
-        Named         -> pure $ BSL.fromStrict $ flat p
-        DeBruijn      -> typedDeBruijnNotSupportedError
-        NamedDeBruijn -> typedDeBruijnNotSupportedError
-  loadASTfromFlat = loadPlcASTfromFlat
+  serialiseProgramFlat = serialiseTProgramFlat
+  loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for UPLC program.
 instance Executable UplcProg where
@@ -347,9 +346,9 @@ fromDeBruijn prog = do
       Left e  -> errorWithoutStackTrace $ show e
       Right p -> return p
 
--- | Read and deserialise a Flat-encoded PLC AST
-loadPlcASTfromFlat :: AstNameType -> Input -> IO (PlcProg ())
-loadPlcASTfromFlat flatMode inp =
+-- | Read and deserialise a Flat-encoded PIR/PLC AST
+loadTplcASTfromFlat :: Flat a => AstNameType -> Input -> IO a
+loadTplcASTfromFlat flatMode inp =
   case flatMode of
     Named         -> getBinaryInput inp >>= handleResult . unflat
     DeBruijn      -> typedDeBruijnNotSupportedError
@@ -389,7 +388,6 @@ getProgram fmt inp =
       Flat flatMode -> do
                prog <- loadASTfromFlat flatMode inp
                return $ PLC.topSourcePos <$ prog  -- No source locations in Flat, so we have to make them up.
-
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 

@@ -9,14 +9,12 @@ import Common
 import Control.Lens hiding (argument, set', (<.>))
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
-import Data.ByteString qualified as BS
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Data.Coerce
 import Data.Csv qualified as Csv
 import Data.IntMap qualified as IM
 import Data.List (sortOn)
 import Data.Text qualified as T
-import Flat (unflat)
 import GHC.Generics
 import Options.Applicative
 import Parsers
@@ -87,6 +85,11 @@ type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.
 type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
 type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
 
+
+-- | Load flat pir and deserialize it
+loadPir :: Input -> IO (PirProg ())
+loadPir = loadASTfromFlat Named
+
 compile :: COpts -> PIRTerm -> Either PIRError PLCTerm
 compile opts pirT = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
@@ -103,7 +106,7 @@ compile opts pirT = do
 
 loadPirAndCompile :: COpts -> IO ()
 loadPirAndCompile copts = do
-    pirT <- loadPir $ cIn copts
+    (PIR.Program _ pirT) <- loadPir $ cIn copts
     putStrLn "!!! Compiling"
     case compile copts pirT of
         Left pirError -> error $ show pirError
@@ -112,7 +115,7 @@ loadPirAndCompile copts = do
 loadPirAndAnalyse :: AOpts -> IO ()
 loadPirAndAnalyse aopts = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    pirT <- PLC.runQuote . PLC.rename <$> loadPir (aIn aopts)
+    (PIR.Program _ pirT) <- PLC.runQuote . PLC.rename <$> loadPir (aIn aopts)
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
@@ -146,18 +149,6 @@ loadPirAndPrint popts = do
     case pOut popts of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
-
--- | Load flat pir and deserialize it
-loadPir :: Input -> IO PIRTerm
-loadPir inp =do
-    bs <- case inp of
-             FileInput path -> do
-                 putStrLn $ "!!! Loading file " ++ path
-                 BS.readFile path
-             StdInput -> BS.getContents
-    case unflat bs of
-        Left decodeErr -> error $ show decodeErr
-        Right pirT     -> pure pirT
 
 main :: IO ()
 main = do
