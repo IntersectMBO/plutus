@@ -372,6 +372,7 @@ library plutus-core-testlib
     , megaparsec
     , mmorph
     , mtl
+    , multiset
     , plutus-core
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable

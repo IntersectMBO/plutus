@@ -5,7 +5,8 @@ module PlutusCore.Generators.PIR.Utils where
 import Prettyprinter
 
 import Data.Map.Strict (Map)
-import Data.Map.Strict qualified as Map
+import Data.MultiSet (toMap)
+import Data.MultiSet.Lens
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
@@ -61,14 +62,7 @@ assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
 -- times they occur. The elements of the map are guaranteed to be
 -- non-zero.
 fvTypeBag :: Type TyName DefaultUni () -> Map TyName Int
-fvTypeBag ty = case ty of
-  TyVar _ x        -> Map.singleton x 1
-  TyFun _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
-  TyApp _ a b      -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
-  TyLam _ x _ b    -> Map.delete x (fvTypeBag b)
-  TyForall _ x _ b -> Map.delete x (fvTypeBag b)
-  TyBuiltin{}      -> Map.empty
-  TyIFix _ a b     -> Map.unionWith (+) (fvTypeBag a) (fvTypeBag b)
+fvTypeBag = toMap . multiSetOf ftvTy
 
 -- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName
