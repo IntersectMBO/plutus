@@ -4,8 +4,6 @@ module PlutusCore.Generators.PIR.Utils where
 
 import Prettyprinter
 
-import Control.Monad.Reader
-
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Set (Set)
@@ -22,7 +20,6 @@ import PlutusIR
 import PlutusIR.Compiler.Datatype
 import PlutusIR.Subst
 
-import PlutusCore.Generators.PIR.GenTm
 import PlutusIR.Core.Instance.Pretty.Readable
 
 -- | Show a `Doc` when a property fails.
@@ -91,25 +88,3 @@ matchType d@(Datatype _ (TyVarDecl _ a _) xs m cs) = (m, mkDestructorTy (mkScott
           mconcat [setOf ftvTy ty | VarDecl _ _ ty <- cs]
     outName = "out_" <> _nameText (unTyName a)
     out = freshenTyName fvs $ TyName $ Name outName (toEnum 0)
-
--- | Bind a datatype declaration in a generator.
-bindDat :: Datatype TyName Name DefaultUni ()
-        -> GenTm a
-        -> GenTm a
-bindDat dat@(Datatype _ (TyVarDecl _ a k) _ _ _) cont =
-  bindTyName a k $
-  local (\ e -> e { geDatas = Map.insert a dat (geDatas e) }) $
-  foldr (uncurry bindTmName) cont (matchType dat : constrTypes dat)
-
--- | Bind a binding.
-bindBind :: Binding TyName Name DefaultUni DefaultFun ()
-         -> GenTm a
-         -> GenTm a
-bindBind (DatatypeBind _ dat)              = bindDat dat
-bindBind (TermBind _ _ (VarDecl _ x ty) _) = bindTmName x ty
--- TODO: We should generate type bindings
-bindBind _                                 = error "unreachable"
-
--- | Bind multiple bindings
-bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
-bindBinds = flip (foldr bindBind)

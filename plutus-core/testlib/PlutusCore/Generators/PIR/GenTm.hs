@@ -35,6 +35,7 @@ import PlutusIR.Compiler
 import PlutusIR.Subst
 
 import PlutusCore.Generators.PIR.Common
+import PlutusCore.Generators.PIR.Utils
 
 instance MonadReader r m => MonadReader r (GenT m) where
     ask = lift ask
@@ -265,6 +266,28 @@ bindFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> G
 bindFreshTmName name ty k = do
   x <- genFreshName name
   bindTmName x ty (k x)
+
+-- | Bind a datatype declaration in a generator.
+bindDat :: Datatype TyName Name DefaultUni ()
+        -> GenTm a
+        -> GenTm a
+bindDat dat@(Datatype _ (TyVarDecl _ a k) _ _ _) cont =
+  bindTyName a k $
+  local (\ e -> e { geDatas = Map.insert a dat (geDatas e) }) $
+  foldr (uncurry bindTmName) cont (matchType dat : constrTypes dat)
+
+-- | Bind a binding.
+bindBind :: Binding TyName Name DefaultUni DefaultFun ()
+         -> GenTm a
+         -> GenTm a
+bindBind (DatatypeBind _ dat)              = bindDat dat
+bindBind (TermBind _ _ (VarDecl _ x ty) _) = bindTmName x ty
+-- TODO: We should generate type bindings
+bindBind _                                 = error "unreachable"
+
+-- | Bind multiple bindings
+bindBinds :: Foldable f => f (Binding TyName Name DefaultUni DefaultFun ()) -> GenTm a -> GenTm a
+bindBinds = flip (foldr bindBind)
 
 -- * Containers (zipper-ish, very useful for shrinking.)
 
