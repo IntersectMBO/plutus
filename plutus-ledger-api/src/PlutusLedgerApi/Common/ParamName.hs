@@ -60,7 +60,9 @@ instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
     gshowParamName (R1 x) = gshowParamName x
 
 -- | Given an ordered list of parameter values, tag them with their parameter names.
--- See Note [Cost model parameters from the ledger's point of view]
+-- If the passed parameter values are more than expected: the function will ignore the extraneous values at the tail of the list,
+-- if the passed values are less than expected: the function will throw an error; for more information,
+-- see Note [Cost model parameters from the ledger's point of view]
 tagWithParamNames :: forall k m. (Enum k, Bounded k,
                             MonadError CostModelApplyError m,
                             -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
@@ -76,9 +78,8 @@ tagWithParamNames ledgerParams =
             pure $ zip paramNames ledgerParams
         LT -> do
             -- See Note [Cost model parameters from the ledger's point of view]
-            when (lenActual > lenExpected) $
-                tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
-            -- zip will truncate any extraneous params
+            tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
+            -- zip will truncate/ignore any extraneous parameter values
             pure $ zip paramNames ledgerParams
         GT ->
             -- See Note [Cost model parameters from the ledger's point of view]
