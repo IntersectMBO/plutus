@@ -6,6 +6,7 @@ module PlutusCore.Generators.PIR.GenerateTypes where
 import Control.Monad.Reader
 
 import Data.Map.Strict qualified as Map
+import Data.Maybe
 import Data.String
 import Test.QuickCheck (shuffle)
 import Test.QuickCheck.GenT
@@ -20,6 +21,7 @@ import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
+import PlutusCore.Generators.PIR.Builtin
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateKinds ()
 
@@ -44,27 +46,6 @@ import PlutusCore.Generators.PIR.GenerateKinds ()
 
 -- * Generators for well-kinded types
 
--- TODO: make this a proper generator running in 'GenTm'.
--- | Get the types of builtins at a given kind
-builtinTysAt :: Kind () -> [SomeTypeIn DefaultUni]
-builtinTysAt (Type _) =
-  -- TODO: add 'DefaultUniData' once it has a non-throwing 'ArbitraryBuiltin' instance.
-  [ SomeTypeIn DefaultUniInteger
-  , SomeTypeIn DefaultUniUnit
-  , SomeTypeIn DefaultUniBool
-  , SomeTypeIn DefaultUniByteString
-  , SomeTypeIn DefaultUniString
-  -- TODO: should we have more examples of lists and pairs here?
-  , SomeTypeIn $ DefaultUniList DefaultUniBool
-  , SomeTypeIn $ DefaultUniPair DefaultUniInteger DefaultUniUnit]
-builtinTysAt (KindArrow _ (Type _) (Type _)) =
-  [ SomeTypeIn DefaultUniProtoList
-  , SomeTypeIn $ DefaultUniProtoPair `DefaultUniApply` DefaultUniString
-  ]
-builtinTysAt (KindArrow _ (Type _) (KindArrow () (Type _) (Type _))) =
-  [SomeTypeIn DefaultUniProtoPair]
-builtinTysAt _ = []
-
 -- | Generate "small" types at a given kind such as builtins, bound variables, bound datatypes,
 -- and lambda abstractions \ t0 ... tn. T
 genAtomicType :: Kind () -> GenTm (Type TyName DefaultUni ())
@@ -73,15 +54,15 @@ genAtomicType k = do
   dts <- asks geDatas
   let atoms = [ TyVar () x | (x, k') <- Map.toList tys, k == k' ] ++
               [ TyVar () x | (x, Datatype _ (TyVarDecl _ _ k') _ _ _) <- Map.toList dts, k == k' ]
-      builtins = map (TyBuiltin ()) $ builtinTysAt k
+      genBuiltin = fmap (TyBuiltin ()) <$> genBuiltinTypeOf k
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
-  -- TODO: probably should be 'frequencyTm'?
-  oneof $ concat
-    [ map pure atoms
-    , [elements builtins | not $ null builtins]
-    , [lam k1 k2 | KindArrow _ k1 k2 <- [k]]
+  -- There's always an atomic type of a given type, hence the usage of 'deliverOneof'.
+  deliver $ frequency
+    [ (7, if null atoms then pure Nothing else Just <$> elements atoms)
+    , (1, liftGen genBuiltin)
+    , (3, sequence $ listToMaybe [lam k1 k2 | KindArrow _ k1 k2 <- [k]])
     ]
 
 -- | Generate a type at a given kind

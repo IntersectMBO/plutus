@@ -313,8 +313,8 @@ genTerm mty = checkInvariants $ do
     canConst (Just _)           = False
 
     genConst Nothing = do
-      b <- liftGen $ elements $ builtinTysAt $ Type ()
-      (TyBuiltin () b,) <$> genConstant b
+      b <- deliver . liftGen . genBuiltinTypeOf $ Type ()
+      (TyBuiltin () b, ) <$> genConstant b
     genConst (Just ty@(TyBuiltin _ b)) = (ty,) <$> genConstant b
     genConst _ = error "genConst: impossible"
 

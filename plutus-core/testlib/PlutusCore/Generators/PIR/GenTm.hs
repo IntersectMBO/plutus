@@ -19,6 +19,7 @@ import Control.Monad.Reader
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Maybe
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
@@ -111,6 +112,12 @@ runGenTmCustom f cg g = do
           , geDebug              = False
           }
     flip runReader env <$> runGenT g
+
+suchThatMap :: Monad m => GenT m a -> (a -> Maybe b) -> GenT m b
+gen `suchThatMap` f = fmap fromJust $ fmap f gen `suchThat` isJust
+
+deliver :: Monad m => GenT m (Maybe a) -> GenT m a
+deliver gen = gen `suchThatMap` id
 
 -- * Utility functions
 

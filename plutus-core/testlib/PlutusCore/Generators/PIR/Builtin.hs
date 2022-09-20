@@ -1,4 +1,6 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -7,11 +9,15 @@ module PlutusCore.Generators.PIR.Builtin where
 
 import Data.ByteString (ByteString)
 import Data.Coerce
+import Data.Kind qualified as GHC
+import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Test.QuickCheck
 
+import PlutusCore
+import PlutusCore.Builtin
 import PlutusCore.Data
 
 instance Arbitrary Data where
@@ -62,3 +68,77 @@ instance ArbitraryBuiltin a => ArbitraryBuiltin [a] where
 instance (ArbitraryBuiltin a, ArbitraryBuiltin b) => ArbitraryBuiltin (a, b) where
     arbitraryBuiltin = coerce $ arbitrary @(AsArbitraryBuiltin a, AsArbitraryBuiltin b)
     shrinkBuiltin = coerce $ shrink @(AsArbitraryBuiltin a, AsArbitraryBuiltin b)
+
+-- | Either a fail to generate anything or a built-in type of a given kind.
+data MaybeSomeTypeOf k
+    = NothingSomeType
+    | forall (a :: k). JustSomeType (DefaultUni (Esc a))
+
+-- | Generate a 'DefaultUniApply' if possible.
+genDefaultUniApply :: KnownKind k => Gen (MaybeSomeTypeOf k)
+genDefaultUniApply = do
+    mayFun <- scale (`div` 2) arbitrary
+    mayArg <- scale (`div` 2) arbitrary :: Gen (MaybeSomeTypeOf GHC.Type)
+    pure $ case (mayFun, mayArg) of
+        (JustSomeType fun, JustSomeType arg) -> JustSomeType $ fun `DefaultUniApply` arg
+        _                                    -> NothingSomeType
+
+-- | Shrink a 'DefaultUniApply' to one of the elements of the spine and throw away the head
+-- (because the head of an application can't be of the same kind as the whole application).
+-- We don't have higher-kinded built-in types, so we don't do this kind of shrinking for any kinds
+-- other than *.
+shrinkDefaultUniApplyStar :: DefaultUni (Esc b) -> [MaybeSomeTypeOf GHC.Type]
+shrinkDefaultUniApplyStar (fun `DefaultUniApply` arg) =
+    [JustSomeType arg | SingType <- [toSingKind arg]] ++ shrinkDefaultUniApplyStar fun
+shrinkDefaultUniApplyStar _ = []
+
+instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
+   arbitrary = do
+       size <- getSize
+       oneof $ case knownKind @k of
+           SingType ->
+               [genDefaultUniApply | size > 10] ++
+               [ pure $ JustSomeType DefaultUniInteger
+               , pure $ JustSomeType DefaultUniByteString
+               , pure $ JustSomeType DefaultUniString
+               , pure $ JustSomeType DefaultUniUnit
+               , pure $ JustSomeType DefaultUniBool
+               -- Commented out, because the 'Arbitrary' instance for 'Data' isn't implemented
+               -- (errors out).
+               -- , pure $ JustSomeType DefaultUniData
+               ]
+           SingType `SingKindArrow` SingType ->
+               [genDefaultUniApply | size > 10] ++
+               [pure $ JustSomeType DefaultUniProtoList]
+           SingType `SingKindArrow` SingType `SingKindArrow` SingType ->
+               -- No 'genDefaultUniApply', because we don't have any built-in type constructors
+               -- taking three or more arguments.
+               [pure $ JustSomeType DefaultUniProtoPair]
+           _ -> [pure NothingSomeType]
+
+   -- No shrinks if you don't have anything to shrink.
+   shrink NothingSomeType    = []
+   shrink (JustSomeType uni) =
+       case knownKind @k of
+           SingType -> case uni of
+               -- 'DefaultUniUnit' is the "minimal" built-in type, can't shrink it any further.
+               DefaultUniUnit -> []
+               -- Any other built-in type of kind * shrinks to 'DefaultUniUnit' and if it happens to
+               -- be a built-in type application, then also all suitable arguments of the
+               -- application.
+               _              -> JustSomeType DefaultUniUnit : shrinkDefaultUniApplyStar uni
+           -- No suitable builtins to shrink to for non-* kinds.
+           _ -> []
+
+-- | Convert a @MaybeSomeTypeOf kind@ to a @Maybe (SomeTypeIn DefaultUni)@ and forget the @kind@
+-- (which was only used for generating well-kinded built-in type applications, which we have to do
+-- due to having intrinsic kinding of builtins).
+fromMaybeSomeTypeOf :: MaybeSomeTypeOf kind -> Maybe (SomeTypeIn DefaultUni)
+fromMaybeSomeTypeOf NothingSomeType    = Nothing
+fromMaybeSomeTypeOf (JustSomeType uni) = Just $ SomeTypeIn uni
+
+-- | Generate a built-in type of a given kind.
+genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))
+genBuiltinTypeOf kind =
+    withKnownKind kind $ \(_ :: Proxy kind) ->
+        fromMaybeSomeTypeOf <$> arbitrary @(MaybeSomeTypeOf kind)
