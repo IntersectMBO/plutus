@@ -23,5 +23,5 @@ let
       };
     };
 in
-inputs.nixpkgs.python3Packages.callPackage package { }
+cell.library.pkgs.python3Packages.callPackage package { }
 

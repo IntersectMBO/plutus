@@ -1,5 +1,3 @@
 { inputs, cell }:
 
-# TODO(std) we need haskell-nix for this
-
-cell.library.haskell-language-server-project.hsPkgs.haskell-language-server
+cell.library.haskell-language-server-project.hsPkgs.haskell-language-server.components.exes.haskell-language-server # editorconfig-checker-disable-line

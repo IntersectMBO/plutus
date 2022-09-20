@@ -1,25 +1,27 @@
 { inputs, cell }:
 
-let texlive = inputs.nixpkgs.texlive; in
+let
+  inherit (inputs.cells.toolchain.library) pkgs;
+in
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]
 , # The specific tex files to build, will try and build all of them if absent
-  texInputs ? { inherit (texlive) scheme-small; }
+  texInputs ? { inherit (pkgs.texlive) scheme-small; }
 , # Tex dependencies as an attrset
   buildInputs ? [ ]
 , # Additional build inputs
   ...
 }@attrs:
 let
-  tex = texlive.combine (texInputs // { inherit (texlive) latexmk; });
+  tex = pkgs.texlive.combine (texInputs // { inherit (pkgs.texlive) latexmk; });
 
   # mkDerivation doesn't like having this as an attr, and we don't need to pass it through
   filteredAttrs = builtins.removeAttrs attrs [ "texInputs" ];
 
   buildDir = ".nix-build";
 in
-inputs.nixpkgs.stdenv.mkDerivation (filteredAttrs // {
+pkgs.stdenv.mkDerivation (filteredAttrs // {
 
   buildInputs = [ tex ] ++ buildInputs;
 

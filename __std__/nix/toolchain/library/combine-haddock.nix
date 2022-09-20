@@ -1,23 +1,21 @@
-# TODO(std) we need ghc for this
-
 { inputs, cell }:
 
-{
+{ ghc
   # Haskell packages to make documentation for. Only those with a "doc" output will be used.
   # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
-  hspkgs
+, hspkgs
   # Optionally, a file to be used for the Haddock "--prologue" option.
 , prologue ? null
 }:
 
 let
-  lib = inputs.nixpkgs.lib;
+  lib = cell.library.pkgs.lib;
 
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in
 
-inputs.nixpkgs.runCommand "combine-haddock"
+cell.library.pkgs.runCommand "combine-haddock"
 {
   buildInputs = [ hsdocs ];
 
@@ -29,15 +27,21 @@ inputs.nixpkgs.runCommand "combine-haddock"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
-  echo FIXME > $out && exit 0
+  # FIXME
+  # https://input-output.atlassian.net/browse/PLT-789
+  # https://hydra.iohk.io/build/18701775/nixlog/1
+  mkdir -p $out/share/doc
+  exit 0
 
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
+
   # Merge all the docs from the packages and their doc dependencies.
   # We don't use symlinkJoin because:
   # - We are going to want to redistribute this, so we don't want any symlinks.
   # - We want to be selective about what we copy (we don't need the hydra
   #   tarballs from the other packages, for example.
   mkdir -p "$out/share/doc"
+
   for pkg in $hsdocsRec; do
     files=($pkg/share/doc/*)
     if [ ''${#files[@]} -gt 0 ]; then
@@ -84,7 +88,7 @@ inputs.nixpkgs.runCommand "combine-haddock"
   done
 
   # Generate the contents and index
-  ${cell.packages.ghc}/bin/haddock \
+  ${ghc}/bin/haddock \
     --gen-contents \
     --gen-index \
     --quickjump \
@@ -103,7 +107,7 @@ inputs.nixpkgs.runCommand "combine-haddock"
   echo "[]" > "doc-index.json"
   for file in $(ls **/doc-index.json); do
     project=$(dirname $file);
-    ${inputs.nixpkgs.jq}/bin/jq -s \
+    ${cell.library.pkgs.jq}/bin/jq -s \
       ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
       "doc-index.json" \
       $file \

@@ -1,14 +1,14 @@
 { inputs, cell }:
 
 let
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = cell.library.pkgs.lib.sourceFilesBySuffices
     (cell.library.gitignore-source inputs.self)
     [ ".sh" ];
 in
 
-inputs.nixpkgs.runCommand "shellcheck-checker"
+cell.library.pkgs.runCommand "shellcheck-checker"
 {
-  buildInputs = [ inputs.nixpkgs.shellcheck ];
+  buildInputs = [ cell.library.pkgs.shellcheck ];
 }
   ''
     EXIT_STATUS=0

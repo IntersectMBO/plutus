@@ -1,7 +1,5 @@
 { inputs, cell }:
 
-# TODO(std) we need haskell-nix for this
-
 cell.library.haskell-nix.cabalProject' {
   # See https://github.com/haskell/haskell-language-server/issues/411.
   # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools
@@ -18,7 +16,7 @@ cell.library.haskell-nix.cabalProject' {
     constraints: stylish-haskell==0.13.0.0, hlint==3.2.8
   '';
 
-  src = inputs.haskell-language-server.${cell.library.ghc-compiler-nix-name};
+  src = inputs.haskell-language-server;
 
   compiler-nix-name = cell.library.ghc-compiler-nix-name;
 

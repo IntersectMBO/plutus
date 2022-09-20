@@ -2,20 +2,22 @@
 
 { inputs, cell }:
 
-# TODO(std) need haskell-nix for this
-
 let
-  toHaddock =
-    inputs.cells.toolchain.library.haskell-nix.haskellLib.collectComponents'
-      "library"
-      inputs.cells.plutus.packages.all-components-with-haddock;
+
+  inherit (inputs.cells.toolchain.library.haskell-nix) haskellLib;
+
+  toHaddock = haskellLib.collectComponents' "library"
+    (haskellLib.selectProjectPackages inputs.cells.plutus.library.plutus-project.hsPkgs);
+
 in
 
 inputs.cells.toolchain.library.combine-haddock {
 
+  ghc = inputs.cells.plutus.packages.ghc;
+
   hspkgs = builtins.attrValues toHaddock;
 
-  prologue = inputs.nixpkgs.writeTextFile {
+  prologue = inputs.cells.toolchain.library.pkgs.writeTextFile {
     name = "prologue";
     text = ''
       = Combined documentation for all the public Plutus libraries

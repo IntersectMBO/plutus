@@ -2,9 +2,9 @@
 
 let src = cell.library.gitignore-source inputs.self; in
 
-inputs.nixpkgs.runCommand "editorconfig-checker"
+cell.library.pkgs.runCommand "editorconfig-checker"
 {
-  buildInputs = [ inputs.nixpkgs.editorconfig-checker ];
+  buildInputs = [ cell.library.pkgs.editorconfig-checker ];
 }
   ''
     mkdir -p "$out/nix-support"

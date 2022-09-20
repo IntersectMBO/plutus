@@ -1,8 +1,6 @@
 { inputs, cell }:
 
 _: {
-  # TODO(std) add cell.packages.pre-commit-check.shellHook to shellHook
-
   commands = [
     {
       package = cell.packages.git-work-in-progress;
@@ -21,13 +19,15 @@ _: {
     }
   ];
 
+  devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
+
   packages = [
-    inputs.nixpkgs.editorconfig-core-c
-    inputs.nixpkgs.editorconfig-checker
-    inputs.nixpkgs.jq
-    inputs.nixpkgs.pre-commit
-    inputs.nixpkgs.shellcheck
-    inputs.nixpkgs.yq
-    inputs.nixpkgs.zlib
+    cell.library.pkgs.editorconfig-core-c
+    cell.library.pkgs.editorconfig-checker
+    cell.library.pkgs.jq
+    cell.library.pkgs.pre-commit
+    cell.library.pkgs.shellcheck
+    cell.library.pkgs.yq
+    cell.library.pkgs.zlib
   ];
 }

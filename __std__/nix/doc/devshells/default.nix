@@ -1,4 +1,4 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  doc-shell = import ./doc-shell.nix organelle;
+  doc-shell = import ./doc-shell.nix block;
 }

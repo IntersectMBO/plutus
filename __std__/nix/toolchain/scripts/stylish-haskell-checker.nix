@@ -1,18 +1,17 @@
 { inputs, cell }:
 
-# TODO(std) need stylish-haskell for this
 let
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = cell.library.pkgs.lib.sourceFilesBySuffices
     (cell.library.gitignore-source inputs.self)
     [ ".hs" ".yaml" ];
 in
 
-inputs.nixpkgs.runCommand "stylish-haskell-checker"
+cell.library.pkgs.runCommand "stylish-haskell-checker"
 {
   buildInputs = [
     cell.packages.fix-stylish-haskell
-    inputs.nixpkgs.diffutils
-    inputs.nixpkgs.glibcLocales
+    cell.library.pkgs.diffutils
+    cell.library.pkgs.glibcLocales
   ];
 } ''
   echo FIXME > $out && exit 0

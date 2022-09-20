@@ -1,10 +1,13 @@
 { inputs, cell }:
 
+let
+  inherit (inputs.cells.toolchain.library) pkgs;
+in
 
-inputs.nixpkgs.stdenv.mkDerivation {
+pkgs.stdenv.mkDerivation {
   name = "read-the-docs-site";
 
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = pkgs.lib.sourceFilesBySuffices
     (inputs.self + /doc)
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
 
@@ -14,9 +17,12 @@ inputs.nixpkgs.stdenv.mkDerivation {
 
   dontInstall = true;
 
-  # TODO(std) needs haskell-nix
   buildPhase = ''
-    echo FIXME > $out && exit 0
+    # FIXME
+    # https://input-output.atlassian.net/browse/PLT-789
+    # https://hydra.iohk.io/build/18701775/nixlog/1
+    mkdir -p $out
+    exit 0
 
     cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors

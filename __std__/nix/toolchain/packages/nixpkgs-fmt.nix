@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let pkgs = inputs.nixpkgs; in
+let pkgs = cell.library.pkgs; in
 
 pkgs.rustPlatform.buildRustPackage rec {
 

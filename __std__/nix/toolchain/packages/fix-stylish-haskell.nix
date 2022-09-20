@@ -1,11 +1,11 @@
 { inputs, cell }:
 
-inputs.nixpkgs.writeShellApplication {
+cell.library.pkgs.writeShellApplication {
 
   name = "fix-stylish-haskell";
 
   runtimeInputs = [
-    inputs.nixpkgs.fd
+    cell.library.pkgs.fd
     cell.packages.stylish-haskell
   ];
 
