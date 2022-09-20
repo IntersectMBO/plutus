@@ -12,7 +12,7 @@ self: super: {
   };
 
   R = super.R.overrideAttrs (oldAttrs: {
-    # TODO(std) see if this is still needed 
+    # TODO(std) see if this is still needed
     # Backport https://github.com/NixOS/nixpkgs/pull/99570
     prePatch = super.lib.optionalString super.stdenv.isDarwin ''
       substituteInPlace configure --replace \
