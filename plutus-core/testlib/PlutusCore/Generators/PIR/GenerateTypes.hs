@@ -58,7 +58,7 @@ genAtomicType k = do
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
-  -- There's always an atomic type of a given type, hence the usage of 'deliverOneof'.
+  -- There's always an atomic type of a given type, hence the usage of 'deliver'.
   deliver $ frequency
     [ (7, if null atoms then pure Nothing else Just <$> elements atoms)
     , (1, liftGen genBuiltin)
