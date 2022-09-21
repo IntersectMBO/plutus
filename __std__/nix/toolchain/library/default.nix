@@ -1,18 +1,18 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  gitignore-source = import ./gitignore-source.nix organelle;
+  gitignore-source = import ./gitignore-source.nix block;
 
-  haskell-nix = import ./haskell-nix.nix organelle;
+  haskell-nix = import ./haskell-nix.nix block;
 
-  combine-haddock = import ./combine-haddock.nix organelle;
+  combine-haddock = import ./combine-haddock.nix block;
 
-  r-packages = import ./r-packages.nix organelle;
+  r-overlay = import ./r-overlay.nix block;
 
-  ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix organelle;
+  ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix block;
 
-  cabal-project-index-state = import ./cabal-project-index-state.nix organelle;
+  cabal-project-index-state = import ./cabal-project-index-state.nix block;
 
-  agda-packages = import ./agda-packages.nix organelle;
+  haskell-language-server-project = import ./haskell-language-server-project.nix block;
 
-  haskell-language-server-project = import ./haskell-language-server-project.nix organelle;
+  pkgs = import ./pkgs.nix block;
 }

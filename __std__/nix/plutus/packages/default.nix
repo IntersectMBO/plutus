@@ -1,4 +1,6 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  all-components-with-haddock = import ./all-components-with-haddock.nix organelle;
+  ghc = import ./ghc.nix block;
+
+  agda-with-stdlib = import ./agda-with-stdlib.nix block;
 }

@@ -1,8 +1,8 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  sphinx-build-readthedocs-site = import ./sphinx-build-readthedocs-site.nix organelle;
+  sphinx-build-readthedocs-site = import ./sphinx-build-readthedocs-site.nix block;
 
-  sphinx-autobuild-readthedocs-site = import ./sphinx-autobuild-readthedocs-site.nix organelle;
+  sphinx-autobuild-readthedocs-site = import ./sphinx-autobuild-readthedocs-site.nix block;
 
-  serve-readthedocs-site = import ./serve-readthedocs-site.nix organelle;
+  serve-readthedocs-site = import ./serve-readthedocs-site.nix block;
 }

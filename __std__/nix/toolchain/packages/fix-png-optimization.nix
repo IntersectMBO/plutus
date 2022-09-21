@@ -1,12 +1,12 @@
 { inputs, cell }:
 
-inputs.nixpkgs.writeShellApplication {
+cell.library.pkgs.writeShellApplication {
 
   name = "fix-png-optimization";
 
   runtimeInputs = [
-    inputs.nixpkgs.fd
-    inputs.nixpkgs.optipng
+    cell.library.pkgs.fd
+    cell.library.pkgs.optipng
   ];
 
   text = ''

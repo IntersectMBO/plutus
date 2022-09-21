@@ -1,13 +1,12 @@
 { inputs, cell }:
 
-# TODO(std) needs agda
-
 let
+  inherit (inputs.cells.toolchain.library) pkgs;
 
-  artifacts = inputs.nixpkgs.runCommand
+  artifacts = pkgs.runCommand
     "FIR-compiler"
     {
-      buildInputs = [ inputs.nixpkgs.zip ];
+      buildInputs = [ pkgs.zip ];
       src = inputs.self + /papers/unraveling-recursion/code;
     }
     ''
@@ -24,7 +23,7 @@ cell.library.build-latex {
 
   texInputs = {
     # more than we need at the moment, but doesn't cost much to include it
-    inherit (inputs.nixpkgs.texlive)
+    inherit (pkgs.texlive)
       scheme-small
       collection-bibtexextra
       collection-latex
@@ -39,12 +38,12 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-    inputs.cells.toolchain.packages.agda-with-stdlib
+    inputs.cells.plutus.packages.agda-with-stdlib
 
-    inputs.nixpkgs.zip
+    pkgs.zip
   ];
 
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = pkgs.lib.sourceFilesBySuffices
     (inputs.self + /papers/unraveling-recursion)
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 

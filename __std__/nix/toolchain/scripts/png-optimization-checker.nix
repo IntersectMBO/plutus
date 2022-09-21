@@ -1,17 +1,17 @@
 { inputs, cell }:
 
 let
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = cell.library.pkgs.lib.sourceFilesBySuffices
     (cell.library.gitignore-source inputs.self)
     [ ".png" ];
 in
 
-inputs.nixpkgs.runCommand "png-optimization-checker"
+cell.library.pkgs.runCommand "png-optimization-checker"
 {
   buildInputs = [
     cell.packages.fix-png-optimization
-    inputs.nixpkgs.diffutils
-    inputs.nixpkgs.glibcLocales
+    cell.library.pkgs.diffutils
+    cell.library.pkgs.glibcLocales
   ];
 }
   ''

@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.nixpkgs.writeShellApplication {
+inputs.cells.toolchain.library.pkgs.writeShellApplication {
   name = "autobuild";
   runtimeInputs = [
     inputs.cells.toolchain.packages.repo-root

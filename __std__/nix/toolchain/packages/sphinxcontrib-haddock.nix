@@ -1,5 +1,5 @@
 { inputs, cell }:
 
-inputs.nixpkgs.callPackage inputs.sphinxcontrib-haddock {
-  pythonPackages = inputs.nixpkgs.python3Packages;
+cell.library.pkgs.callPackage inputs.sphinxcontrib-haddock {
+  pythonPackages = cell.library.pkgs.python3Packages;
 }

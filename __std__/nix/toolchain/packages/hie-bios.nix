@@ -1,5 +1,3 @@
 { inputs, cell }:
 
-# TODO(std) we need haskell-nix for this
-
-cell.library.haskell-language-server-project.hsPkgs.hie-bios
+cell.library.haskell-language-server-project.hsPkgs.hie-bios.components.exes.hie-bios

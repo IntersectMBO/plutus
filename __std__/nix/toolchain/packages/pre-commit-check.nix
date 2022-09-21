@@ -1,29 +1,20 @@
 { inputs, cell }:
 
-# TODO(std) we need stylish-haskell for this
-# change stylish-haskell.enable = true; and also cabal-fmt
-# shellcheck fails on notes/fomega/lazy-machine/benchmarking/run-fib
-# png-optimization fails with:
-# notes/fomega/evaluation/figures/tri-times+ck.png is already optimized.
-
-# Configure project pre-commit hooks
 inputs.pre-commit-hooks-nix.lib.run {
 
-  src = inputs.nixpkgs.lib.cleanSource inputs.self;
+  src = cell.library.pkgs.lib.cleanSource inputs.self;
 
   tools = {
-    shellcheck = inputs.nixpkgs.shellcheck;
+    shellcheck = cell.library.pkgs.shellcheck;
     stylish-haskell = cell.packages.stylish-haskell;
     nixpkgs-fmt = cell.packages.nixpkgs-fmt;
     cabal-fmt = cell.packages.cabal-fmt;
   };
 
   hooks = {
-    # TODO(std) add editorconfig-checker
-
-    stylish-haskell.enable = false;
-    cabal-fmt.enable = false;
-    shellcheck.enable = false;
+    stylish-haskell.enable = true;
+    cabal-fmt.enable = true;
+    shellcheck.enable = true;
 
     nixpkgs-fmt = {
       enable = true;
@@ -39,10 +30,10 @@ inputs.pre-commit-hooks-nix.lib.run {
     };
 
     png-optimization = {
-      enable = false;
+      enable = true;
       name = "png-optimization";
       description = "Ensure that PNG files are optimized";
-      entry = "${inputs.nixpkgs.optipng}/bin/optipng";
+      entry = "${cell.library.pkgs.optipng}/bin/optipng";
       files = "\\.png$";
     };
   };

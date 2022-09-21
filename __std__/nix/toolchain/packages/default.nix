@@ -1,52 +1,40 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  r-lang = import ./r-lang.nix organelle;
+  cabal-fmt = import ./cabal-fmt.nix block;
 
-  agda = import ./agda.nix organelle;
+  cabal-install = import ./cabal-install.nix block;
 
-  agda-with-stdlib = import ./agda-with-stdlib.nix organelle;
+  cabal-install-alt = import ./cabal-install-alt.nix block;
 
-  cabal-fmt = import ./cabal-fmt.nix organelle;
+  check-the-flake = import ./check-the-flake.nix block;
 
-  cabal-install = import ./cabal-install.nix organelle;
+  fix-cabal-fmt = import ./fix-cabal-fmt.nix block;
 
-  cardano-repo-tool = import ./cardano-repo-tool.nix organelle;
+  fix-png-optimization = import ./fix-png-optimization.nix block;
 
-  check-the-flake = import ./check-the-flake.nix organelle;
+  fix-stylish-haskell = import ./fix-stylish-haskell.nix block;
 
-  fix-cabal-fmt = import ./fix-cabal-fmt.nix organelle;
+  git-work-in-progress = import ./git-work-in-progress.nix block;
 
-  fix-png-optimization = import ./fix-png-optimization.nix organelle;
+  haskell-language-server = import ./haskell-language-server.nix block;
 
-  fix-stylish-haskell = import ./fix-stylish-haskell.nix organelle;
+  hie-bios = import ./hie-bios.nix block;
 
-  ghc = import ./ghc.nix organelle;
+  hlint = import ./hlint.nix block;
 
-  git-work-in-progress = import ./git-work-in-progress.nix organelle;
+  nixpkgs-fmt = import ./nixpkgs-fmt.nix block;
 
-  haddock-combine = import ./haddock-combine.nix organelle;
+  pre-commit-check = import ./pre-commit-check.nix block;
 
-  haskell-language-server = import ./haskell-language-server.nix organelle;
+  repo-root = import ./repo-root.nix block;
 
-  hie-bios = import ./hie-bios.nix organelle;
+  sphinx-markdown-tables = import ./sphinx-markdown-tables.nix block;
 
-  hlint = import ./hlint.nix organelle;
+  sphinx-toolchain = import ./sphinx-toolchain.nix block;
 
-  nix-flakes-alias = import ./nix-flakes-alias.nix organelle;
+  sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix block;
 
-  nixpkgs-fmt = import ./nixpkgs-fmt.nix organelle;
-
-  pre-commit-check = import ./pre-commit-check.nix organelle;
-
-  repo-root = import ./repo-root.nix organelle;
-
-  sphinx-markdown-tables = import ./sphinx-markdown-tables.nix organelle;
-
-  sphinx-toolchain = import ./sphinx-toolchain.nix organelle;
-
-  sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix organelle;
-
-  inherit (import ./sphinxcontrib-haddock.nix organelle)
+  inherit (import ./sphinxcontrib-haddock.nix block)
 
     sphinxcontrib-domaintools
 
@@ -54,11 +42,9 @@
 
     sphobjinv;
 
-  sphinxemoji = import ./sphinxemoji.nix organelle;
+  sphinxemoji = import ./sphinxemoji.nix block;
 
-  stylish-haskell = import ./stylish-haskell.nix organelle;
+  stylish-haskell = import ./stylish-haskell.nix block;
 
-  gitignore-nix = import ./gitignore-nix.nix organelle;
-
-  todo-derivation = import ./todo-derivation.nix organelle;
+  todo-derivation = import ./todo-derivation.nix block;
 }

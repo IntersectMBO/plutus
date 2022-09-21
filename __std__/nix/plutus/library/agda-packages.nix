@@ -1,7 +1,5 @@
 { inputs, cell }:
 
-# TODO(std) we need haskell-nix for this
-
 # We want to keep control of which version of Agda we use, so we supply our own and override
 # the one from nixpkgs.
 #
@@ -18,35 +16,32 @@
 # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
 # we have a few extra packages that it uses in our Haskell package set.
 let
-  frankenAgda = (inputs.nixpkgs.symlinkJoin {
+  inherit (inputs.cells.toolchain.library) pkgs;
+
+  Agda = cell.library.agda-project.hsPkgs.Agda;
+
+  frankenAgda = (pkgs.symlinkJoin {
     name = "agda";
     paths = [
-      # TODO(std) fixme
-      # cell.packages.agda.components.exes.agda
-      # cell.packages.agda.components.exes.agda-mode
+      Agda.components.exes.agda
+      Agda.components.exes.agda-mode
     ];
   }) //
   {
-    # TODO(std) fixme
-    # version = cell.packages.agda.identifier.version;
-    version = "FIXME";
+    version = Agda.identifier.version;
   };
 
   frankenPkgs =
-    inputs.nixpkgs //
+    pkgs //
     {
-      haskellPackages = inputs.nixpkgs.haskellPackages //
+      haskellPackages = pkgs.haskellPackages //
       {
-        # TODO(std) this references the plutus project, move to plutus cell
-        #ghcWithPackages = haskell.project.ghcWithPackages;
+        ghcWithPackages = cell.library.plutus-project.ghcWithPackages;
       };
     };
 in
 
-cell.packages.todo-derivation
-
-# TODO(std) fixme
-# inputs.nixpkgs.agdaPackages.override {
-#   Agda = frankenAgda;
-#   pkgs = frankenPkgs;
-# }
+pkgs.agdaPackages.override {
+  Agda = frankenAgda;
+  pkgs = frankenPkgs;
+}

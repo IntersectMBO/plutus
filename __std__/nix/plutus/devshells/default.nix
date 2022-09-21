@@ -1,4 +1,7 @@
-{ inputs, cell }@organelle:
-{
-  plutus-shell = import ./plutus-shell.nix organelle;
+{ inputs, cell }@block:
+
+rec {
+  plutus-shell = import ./plutus-shell.nix block;
+
+  default = plutus-shell;
 }

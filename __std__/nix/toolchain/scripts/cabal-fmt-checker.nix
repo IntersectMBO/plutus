@@ -1,17 +1,17 @@
 { inputs, cell }:
 
 let
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = cell.library.pkgs.lib.sourceFilesBySuffices
     (cell.library.gitignore-source inputs.self)
     [ ".cabal" ];
 in
 
-inputs.nixpkgs.runCommand "cabal-fmt-checker"
+cell.library.pkgs.runCommand "cabal-fmt-checker"
 {
   buildInputs = [
     cell.packages.fix-cabal-fmt
-    inputs.nixpkgs.diffutils
-    inputs.nixpkgs.glibcLocales
+    cell.library.pkgs.diffutils
+    cell.library.pkgs.glibcLocales
   ];
 } ''
   set +e
