@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -147,7 +146,8 @@ toDeBruijn prog =
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
 -- | Convert an untyped program to one where the 'name' type is textual names with de Bruijn indices.
-toNamedDeBruijn :: UplcProg ann -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
+toNamedDeBruijn :: UplcProg ann
+  -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
 toNamedDeBruijn prog =
   case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
     Left e  -> errorWithoutStackTrace $ show e
@@ -166,7 +166,8 @@ printBudgetStateBudget model b =
               putStrLn $ "Memory budget: " ++ show mem
 
 printBudgetStateTally :: (Cek.Hashable fun, Show fun)
-       => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel ->  Cek.CekExTally fun -> IO ()
+       => UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun ()
+       -> CekModel ->  Cek.CekExTally fun -> IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
   putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
   putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
@@ -184,35 +185,49 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
   case model of
     Default ->
         do
-          putStrLn $ printf "Time spent executing builtins:  %4.2f%%\n" (100*(getCPU builtinCosts)/totalTime)
+          putStrLn $
+            printf
+              "Time spent executing builtins:  %4.2f%%\n"
+              (100*(getCPU builtinCosts)/totalTime)
           putStrLn ""
-          traverse_ (\(b,cost) -> putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+          traverse_ (\(b,cost) ->
+            putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
           putStrLn ""
           putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
           putStrLn $ "Predicted execution time: " ++ formatTimePicoseconds totalTime
     Unit -> do
           putStrLn ""
-          traverse_ (\(b,cost) -> putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
+          traverse_ (\(b,cost) ->
+            putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)) builtinsAndCosts
 
   where
         getSpent k =
             case H.lookup k costs of
               Just v  -> v
               Nothing -> ExBudget 0 0
-        allNodeTags = fmap Cek.BStep [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
-        totalComputeCost = mconcat $ map getSpent allNodeTags  -- For unitCekCosts this will be the total number of compute steps
+        allNodeTags =
+          fmap
+            Cek.BStep
+            [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
+        totalComputeCost =
+          -- For unitCekCosts this will be the total number of compute steps
+          mconcat $ map getSpent allNodeTags
         budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
             case model of
-              Default -> printf "%15s  %15s" (show cpu) (show mem) :: String -- Not %d: doesn't work when CostingInteger is SatInt.
-              Unit    -> printf "%15s" (show cpu) :: String  -- Memory usage figures are meaningless in this case
+              -- Not %d: doesn't work when CostingInteger is SatInt.
+              Default -> printf "%15s  %15s" (show cpu) (show mem) :: String
+              -- Memory usage figures are meaningless in this case
+              Unit    -> printf "%15s" (show cpu) :: String
         pbudget = budgetToString . getSpent
         f l e = case e of {(Cek.BBuiltinApp b, cost)  -> (b,cost):l; _ -> l}
         builtinsAndCosts = List.foldl f [] (H.toList costs)
         builtinCosts = mconcat (map snd builtinsAndCosts)
-        -- ^ Total builtin evaluation time (according to the models) in picoseconds (units depend on BuiltinCostModel.costMultiplier)
+        -- ^ Total builtin evaluation time (according to the models) in picoseconds
+        -- (units depend on BuiltinCostModel.costMultiplier)
         getCPU b = let ExCPU b' = exBudgetCPU b in fromIntegral b'::Double
         totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-        totalTime = (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
+        totalTime =
+          (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
     printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
@@ -291,7 +306,7 @@ helpText lang =
 
 ---------------- Reading programs from files ----------------
 
--- Read a PLC source program
+-- Read a source program
 getInput :: Input -> IO T.Text
 getInput (FileInput file) = T.readFile file
 getInput StdInput         = T.getContents
@@ -301,7 +316,7 @@ parseInput ::
   (Executable p, PLC.Rename (p PLC.SourcePos) ) =>
   -- | The source program
   Input ->
-  -- | The output is either a UPLC or PLC program with annotation
+  -- | The output is either a UPLC/PLC/PIR program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
     contents <- getInput inp
@@ -342,7 +357,9 @@ type UntypedProgramDeBruijn ann = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni
 -- with a Unique for disambiguation).  Again, we don't support typed programs.
 fromDeBruijn :: UntypedProgramDeBruijn ann -> IO (UplcProg ann)
 fromDeBruijn prog = do
-    case PLC.runQuote $ runExceptT @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
+    case PLC.runQuote $
+      runExceptT @UPLC.FreeVariableError $
+      traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
       Left e  -> errorWithoutStackTrace $ show e
       Right p -> return p
 
@@ -376,7 +393,7 @@ loadUplcASTfromFlat flatMode inp = do
                Left e  -> errorWithoutStackTrace $ "Flat deserialisation failure: " ++ show e
                Right r -> return r
 
--- Read either a PLC file or a Flat file, depending on 'fmt'
+-- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
 getProgram ::
   (Executable p,
    Functor p,
@@ -387,14 +404,16 @@ getProgram fmt inp =
       Textual  -> parseInput inp
       Flat flatMode -> do
                prog <- loadASTfromFlat flatMode inp
-               return $ PLC.topSourcePos <$ prog  -- No source locations in Flat, so we have to make them up.
+               -- No source locations in Flat, so we have to make them up.
+               return $ PLC.topSourcePos <$ prog
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
 writeFlat ::
   (Executable p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
-  flatProg <- serialiseProgramFlat flatMode (() <$ prog) -- Change annotations to (): see Note [Annotation types].
+  -- Change annotations to (): see Note [Annotation types].
+  flatProg <- serialiseProgramFlat flatMode (() <$ prog)
   case outp of
     FileOutput file -> BSL.writeFile file flatProg
     StdOutput       -> BSL.putStr flatProg
@@ -463,14 +482,16 @@ prettyExample =
          SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
              PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion ()) term
 
-toTypedTermExample :: PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
+toTypedTermExample ::
+  PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
 toTypedTermExample term = TypedTermExample ty term where
     program = PLC.Program () (PLC.defaultVersion ()) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
         PLC.inferTypeOfProgram tcConfig program
     ty = case errOrTy of
-        Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) -> errorWithoutStackTrace $ PP.displayPlcDef err
+        Left (err :: PLC.Error PLC.DefaultUni PLC.DefaultFun ()) ->
+          errorWithoutStackTrace $ PP.displayPlcDef err
         Right vTy                                                -> PLC.unNormalized vTy
 
 getInteresting :: IO [(ExampleName, PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ())]
@@ -517,7 +538,8 @@ getUplcExamples =
                 \case
                   SomeTypeExample _ -> Nothing
                   SomeTypedTermExample (TypedTermExample _ e) ->
-                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $ PLC.eraseTerm e
+                      Just . SomeUntypedExample . SomeUntypedTermExample . UntypedTermExample $
+                        PLC.eraseTerm e
             mapMaybeSnd _ []     = []
             mapMaybeSnd f ((a,b):r) =
                 case f b of
@@ -548,7 +570,8 @@ timeEval :: NFData a => Integer -> (t -> a) -> t -> IO [a]
 timeEval n evaluate prog
     | n <= 0 = errorWithoutStackTrace "Error: the number of repetitions should be at least 1"
     | otherwise = do
-  (results, times) <- unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
+  (results, times) <-
+    unzip . tail <$> for (replicate (fromIntegral (n+1)) prog) (timeOnce evaluate)
   let mean = fromIntegral (sum times) / fromIntegral n :: Double
       runs :: String = if n==1 then "run" else "runs"
   printf "Mean evaluation time (%d %s): %s\n" n runs (formatTimePicoseconds mean)
@@ -574,7 +597,8 @@ handleTimingResults _ results =
     case nub results of
       [Right _]  -> exitSuccess -- We don't want to see the result here
       [Left err] -> print err >> exitFailure
-      _          -> error "Timing evaluations returned inconsistent results" -- Should never happen
+      -- Should never happen
+      _          -> error "Timing evaluations returned inconsistent results"
 
 ----------------- Print examples -----------------------
 
@@ -649,6 +673,8 @@ runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
   let builtins = enumerate @UPLC.DefaultFun
   mapM_ (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x))) builtins
-      where getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) = typeSchemeToSignature sch
+      where
+        getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) =
+          typeSchemeToSignature sch
 
 
