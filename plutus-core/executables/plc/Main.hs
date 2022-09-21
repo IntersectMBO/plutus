@@ -16,7 +16,7 @@ import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
-import Control.Lens
+import Control.Lens ((&), (^.))
 import Options.Applicative
 import System.Exit (exitSuccess)
 

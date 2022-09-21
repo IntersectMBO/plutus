@@ -109,7 +109,7 @@ serialiseTProgramFlat nameType p =
 -- | Instance for PIR program.
 instance Executable PirProg where
   parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-  checkProgram = undefined --TODO PLC.checkProgram
+  checkProgram _ _ = pure () -- should I add this?
   serialiseProgramFlat = serialiseTProgramFlat
   loadASTfromFlat = loadTplcASTfromFlat
 
@@ -230,7 +230,8 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
           (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
 
 class PrintBudgetState cost where
-    printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun () -> CekModel -> cost -> IO ()
+    printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
+      -> CekModel -> cost -> IO ()
     -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
     -- here, but we only need them in tallying mode (where we need the term so
     -- we can print out the AST size and we need the model type to decide how
@@ -311,16 +312,16 @@ getInput :: Input -> IO T.Text
 getInput (FileInput file) = T.readFile file
 getInput StdInput         = T.getContents
 
--- | Read and parse a source program
+-- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
 parseInput ::
   (Executable p, PLC.Rename (p PLC.SourcePos) ) =>
   -- | The source program
   Input ->
-  -- | The output is either a UPLC/PLC/PIR program with annotation
+  -- | The output is either a UPLC or PLC program with annotation
   IO (p PLC.SourcePos)
 parseInput inp = do
     contents <- getInput inp
-    -- parse the UPLC program
+    -- parse the program
     case parseNamedProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
       Left (ParseErrorB err) ->
@@ -553,7 +554,7 @@ getUplcExamples =
 
 ---------------- Timing ----------------
 
--- Convert a time in picoseconds into a readble format with appropriate units
+-- Convert a time in picoseconds into a readable format with appropriate units
 formatTimePicoseconds :: Double -> String
 formatTimePicoseconds t
     | t >= 1e12 = printf "%.3f s"  (t/1e12)
