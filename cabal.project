@@ -55,3 +55,7 @@ allow-newer:
    *:Cabal,
    *:ghc,
    *:template-haskell,
+   *:th-desugar,
+   *:singletons,
+   *:process
+
