@@ -9,6 +9,8 @@ import Control.Monad.State.Strict
 import Data.Map.Strict (Map)
 import Data.Map.Strict.Internal qualified as Map
 import Data.Maybe
+import Data.MultiSet (toMap)
+import Data.MultiSet.Lens
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens
@@ -215,25 +217,39 @@ fvTypeR sub = go where
 
 -- * Generators for substitutions
 
--- | Generate a type substitution that is valid in a given context.
+-- | Get the free type variables in a type along with how many
+-- times they occur. The elements of the map are guaranteed to be
+-- non-zero.
+fvTypeBag :: Type TyName DefaultUni () -> Map TyName Int
+fvTypeBag = toMap . multiSetOf ftvTy
+
+-- | Generate a type substitution mapping some of the variables in the given context to some
+-- arbitrary types (valid in the context).
 genSubst :: TypeCtx -> Gen TypeSub
 genSubst ctx0 = do
   xks <- sublistOf <=< shuffle $ Map.toList ctx0
-  go ctx0 Map.empty xks
+  go ctx0 Map.empty Map.empty xks
   where
-    -- Counts is used to balance the ratio between the number
-    -- of times a variable `x` appears in the substitution and
-    -- the size of the type it maps to - the more times `x` appears
-    -- the smaller the type it maps to needs to be to avoid blowup.
-    go _ _ [] = return mempty
-    go ctx counts ((x, k) : xs) = do
-      let ctx' = Map.delete x ctx
-          w    = fromMaybe 1 $ Map.lookup x counts
-      ty <- sized $ \ n -> resize (div n w) $ genTypeWithCtx ctx' k
-      let moreCounts = fmap (* w) $ fvTypeBag ty
+    -- Counts is used to balance the ratio between the number of times a variable @x@ occurs in the
+    -- substitution and the size of the type it maps to - the more times @x@ occurs the smaller the
+    -- type it maps to needs to be to avoid blowup.
+    go _   sub _      []            = pure sub
+    go ctx sub counts ((x, k) : xs) = do
+      let
+          -- @x@ is taken out from the context, because we're going to map it to a type valid in the
+          -- context without @x@.
+          ctx' = Map.delete x ctx
+          -- How many times @x@ occurs in all the so far generated types (the ones that are in the
+          -- codomain of @sub@).
+          w = fromMaybe 1 $ Map.lookup x counts
+      ty <- sized $ \ n -> resize (n `div` w) $ genTypeWithCtx ctx' k
+      let -- Scale occurrences of all free variables of @ty@ according to how many times @x@
+          -- (the variables that is being substituted for) occurs in the so far generated
+          -- substitution.
+          moreCounts = fmap (* w) $ fvTypeBag ty
+          sub'       = Map.insert x ty sub
           counts'    = Map.unionWith (+) counts moreCounts
-      Map.insert x ty <$> go ctx' counts' xs
-
+      go ctx' sub' counts' xs
 
 shrinkSubst :: TypeCtx -> TypeSub -> [TypeSub]
 shrinkSubst ctx0 = map Map.fromList . liftShrink shrinkTy . Map.toList

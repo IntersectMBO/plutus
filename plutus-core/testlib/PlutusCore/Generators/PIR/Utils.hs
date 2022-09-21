@@ -4,9 +4,6 @@ module PlutusCore.Generators.PIR.Utils where
 
 import Prettyprinter
 
-import Data.Map.Strict (Map)
-import Data.MultiSet (toMap)
-import Data.MultiSet.Lens
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
@@ -57,12 +54,6 @@ assertNoCounterexamples []  = property True
 assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
 
 -- * Dealing with fresh names
-
--- | Get the free type variables in a type along with how many
--- times they occur. The elements of the map are guaranteed to be
--- non-zero.
-fvTypeBag :: Type TyName DefaultUni () -> Map TyName Int
-fvTypeBag = toMap . multiSetOf ftvTy
 
 -- | Freshen a TyName so that it does not equal any of the names in the set.
 freshenTyName :: Set TyName -> TyName -> TyName
