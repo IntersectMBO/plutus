@@ -84,7 +84,7 @@ library
     , plutus-core       ^>=1.0
     , plutus-tx         ^>=1.0
     , prettyprinter
-    , PyF               <0.11
+    , PyF               
     , template-haskell
     , text
     , transformers
