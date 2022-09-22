@@ -47,6 +47,7 @@ builtinCostModelNames = BuiltinCostModelBase
   { paramAddInteger                      = "addIntegerModel"
   , paramSubtractInteger                 = "subtractIntegerModel"
   , paramMultiplyInteger                 = "multiplyIntegerModel"
+  , paramMultiplyIntegerV2               = "multiplyIntegerV2Model"
   , paramDivideInteger                   = "divideIntegerModel"
   , paramQuotientInteger                 = "quotientIntegerModel"
   , paramRemainderInteger                = "remainderIntegerModel"
@@ -126,6 +127,7 @@ createBuiltinCostModel bmfile rfile = do
     paramAddInteger                      <- getParams addInteger                paramAddInteger
     paramSubtractInteger                 <- getParams subtractInteger           paramSubtractInteger
     paramMultiplyInteger                 <- getParams multiplyInteger           paramMultiplyInteger
+    paramMultiplyIntegerV2               <- getParams multiplyInteger           paramMultiplyIntegerV2
     paramDivideInteger                   <- getParams divideInteger             paramDivideInteger
     paramQuotientInteger                 <- getParams quotientInteger           paramQuotientInteger
     paramRemainderInteger                <- getParams remainderInteger          paramRemainderInteger
@@ -313,6 +315,12 @@ multiplyInteger cpuModelR = do
   -- GMP requires multiplication (mpn_mul) to have x + y space.
   -- x + y
   let memModel = ModelTwoArgumentsAddedSizes $ ModelAddedSizes 0 1
+  pure $ CostingFun (cpuModel) memModel
+
+multiplyIntegerV2 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+multiplyIntegerV2 cpuModelR = do
+  cpuModel <- ModelTwoArgumentsMultipliedSizes <$> readModelMultipliedSizes cpuModelR
+  let memModel = ModelTwoArgumentsMultipliedSizes $ ModelMultipliedSizes 0 1
   pure $ CostingFun (cpuModel) memModel
 
 divideInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

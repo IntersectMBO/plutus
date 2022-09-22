@@ -446,6 +446,22 @@
             "type": "added_sizes"
         }
     },
+    "multiplyIntegerV2": {
+        "cpu": {
+            "arguments": {
+                "intercept": 69522,
+                "slope": 11687
+            },
+            "type": "multiplied_sizes"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "multiplied_sizes"
+        }
+    },
     "nullList": {
         "cpu": {
             "arguments": 60091,

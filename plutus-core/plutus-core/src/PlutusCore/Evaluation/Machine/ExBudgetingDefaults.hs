@@ -113,6 +113,7 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
       paramAddInteger                      = unitCostTwoArguments
     , paramSubtractInteger                 = unitCostTwoArguments
     , paramMultiplyInteger                 = unitCostTwoArguments
+    , paramMultiplyIntegerV2               = unitCostTwoArguments
     , paramDivideInteger                   = unitCostTwoArguments
     , paramQuotientInteger                 = unitCostTwoArguments
     , paramRemainderInteger                = unitCostTwoArguments

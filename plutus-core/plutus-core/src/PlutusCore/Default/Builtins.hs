@@ -1025,10 +1025,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((-) @Integer)
             (runCostingFunTwoArguments . paramSubtractInteger)
-    toBuiltinMeaning _ver MultiplyInteger =
+    toBuiltinMeaning ver MultiplyInteger =
         makeBuiltinMeaning
             ((*) @Integer)
-            (runCostingFunTwoArguments . paramMultiplyInteger)
+            (runCostingFunTwoArguments . budgetMultiplyInteger)
+      where
+        budgetMultiplyInteger = case ver of
+            DefaultFunV1 -> paramMultiplyInteger
+            _            -> paramMultiplyIntegerV2
     toBuiltinMeaning _ver DivideInteger =
         makeBuiltinMeaning
             (nonZeroArg div)
