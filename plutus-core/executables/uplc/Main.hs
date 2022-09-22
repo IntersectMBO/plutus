@@ -1,7 +1,5 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE OverloadedStrings         #-}
 
 module Main (main) where
@@ -38,9 +36,12 @@ uplcInfoCommand = plutus uplcHelpText
 data BudgetMode  = Silent
                  | Verbose SomeBudgetMode
 
-data SomeBudgetMode = forall cost. (Eq cost, NFData cost, PrintBudgetState cost) => SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
+data SomeBudgetMode =
+    forall cost. (Eq cost, NFData cost, PrintBudgetState cost) =>
+        SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 
-data EvalOptions = EvalOptions Input Format PrintMode BudgetMode TraceMode Output TimingMode CekModel
+data EvalOptions =
+    EvalOptions Input Format PrintMode BudgetMode TraceMode Output TimingMode CekModel
 
 ---------------- Main commands -----------------
 
@@ -55,15 +56,18 @@ data Command = Apply     ApplyOptions
 ---------------- Option parsers ----------------
 
 cekmodel :: Parser CekModel
-cekmodel = flag Default Unit
-           (  short '1'
-           <> long "unit-cek-model"
-           <> help "Use unit AST node costs and builtin costs for CEK cost model (tallying mode only)"
-           )
+cekmodel =
+    flag Default Unit
+        (  short '1'
+        <> long "unit-cek-model"
+        <> help "Use unit AST node costs and builtin costs for CEK cost model (tallying mode only)"
+        )
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> budgetmode <*> tracemode <*> output <*> timingmode <*> cekmodel
+  EvalOptions <$>
+    input <*> inputformat <*>
+        printmode <*> budgetmode <*> tracemode <*> output <*> timingmode <*> cekmodel
 
 -- Reader for budget.  The --restricting option requires two integer arguments
 -- and the easiest way to do this is to supply a colon-separated pair of
@@ -79,18 +83,20 @@ exbudgetReader = do
     where badfmt = "Invalid budget (expected eg 10000:50000)"
 
 restrictingbudgetEnormous :: Parser BudgetMode
-restrictingbudgetEnormous = flag' (Verbose $ SomeBudgetMode Cek.restrictingEnormous)
-                            (  long "restricting-enormous"
-                            <> short 'r'
-                            <> help "Run the machine in restricting mode with an enormous budget" )
+restrictingbudgetEnormous =
+    flag' (Verbose $ SomeBudgetMode Cek.restrictingEnormous)
+        (  long "restricting-enormous"
+        <> short 'r'
+        <> help "Run the machine in restricting mode with an enormous budget" )
 
 restrictingbudget :: Parser BudgetMode
-restrictingbudget = Verbose . SomeBudgetMode . Cek.restricting . ExRestrictingBudget
-                    <$> option exbudgetReader
-                            (  long "restricting"
-                            <> short 'R'
-                            <> metavar "ExCPU:ExMemory"
-                            <> help "Run the machine in restricting mode with the given limits" )
+restrictingbudget =
+    Verbose . SomeBudgetMode . Cek.restricting . ExRestrictingBudget
+        <$> option exbudgetReader
+                (  long "restricting"
+                <> short 'R'
+                <> metavar "ExCPU:ExMemory"
+                <> help "Run the machine in restricting mode with the given limits" )
 
 countingbudget :: Parser BudgetMode
 countingbudget = flag' (Verbose $ SomeBudgetMode Cek.counting)
@@ -126,8 +132,10 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser (
        command "apply"
            (info (Apply <$> applyOpts)
-            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'uplc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, " <>
+            "output a script consisting of (... ((f g1) g2) ... gn); " <>
+            "for example, 'uplc apply --if " <>
+            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -157,7 +165,8 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.SourcePos)) . FileInput) inputfiles
+  scripts <-
+    mapM ((getProgram ifmt ::  Input -> IO (UplcProg PLC.SourcePos)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -172,9 +181,11 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
-                    Default -> PLC.defaultCekParameters  -- AST nodes are charged according to the default cost model
-                    Unit    -> PLC.unitCekParameters     -- AST nodes are charged one unit each, so we can see how many times each node
-                                                         -- type is encountered.  This is useful for calibrating the budgeting code
+                    -- AST nodes are charged according to the default cost model
+                    Default -> PLC.defaultCekParameters
+                    -- AST nodes are charged one unit each, so we can see how many times each node
+                    -- type is encountered.  This is useful for calibrating the budgeting code
+                    Unit    -> PLC.unitCekParameters
     let budgetM = case budgetMode of
             Silent     -> SomeBudgetMode Cek.restrictingEnormous
             Verbose bm -> bm
@@ -224,7 +235,6 @@ runConvert :: ConvertOptions -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program <- (getProgram ifmt inp :: IO (UplcProg PLC.SourcePos))
     writeProgram outp ofmt mode program
-
 
 ---------------- Driver ----------------
 

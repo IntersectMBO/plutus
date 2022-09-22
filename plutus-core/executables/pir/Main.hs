@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
@@ -89,10 +88,12 @@ compile opts (PIR.Program _ pirT) = do
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-    set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
+    set' :: Lens' (PIR.CompilationOpts a) b
+      -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
-    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
+    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+      -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
       & set' PIR.coOptimize                     cOptimize
@@ -125,7 +126,8 @@ loadPirAndAnalyse aopts = do
 
         -- change uniques to texts and use csv-outputtable records
         sortedRecords :: [RetentionRecord]
-        sortedRecords = (\(i,s) -> RetentionRecord (IM.findWithDefault "???" i nameTable) i s) <$> sortedRetained
+        sortedRecords =
+          (\(i,s) -> RetentionRecord (IM.findWithDefault "???" i nameTable) i s) <$> sortedRetained
 
     -- encode to csv and output it
     Csv.encodeDefaultOrderedByName sortedRecords &
@@ -137,7 +139,7 @@ loadPirAndAnalyse aopts = do
 -- This option for PIR source file does NOT check for @UniqueError@'s.
 -- Only the print option for PLC or UPLC files check for them.
 runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) = do
+runPrint (PrintOptions inp _mode) = do
     contents <- getInput inp
     -- parse the program
     case parseNamedProgram (show inp) contents of
@@ -146,18 +148,8 @@ runPrint (PrintOptions inp mode) = do
           errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right (p::PirProg PLC.SourcePos) ->
-        -- should I add instances for (getPrintMethod mode p)?
+        -- pretty print the program. Print mode may be added later on.
         print $ pretty p
-
--- loadPirAndPrint :: POpts -> IO ()
--- loadPirAndPrint popts = do
---     pirT <- loadPir $ pIn popts
---     let
---         printed :: String
---         printed = show $ pretty pirT
---     case pOut popts of
---         FileOutput path -> writeFile path printed
---         StdOutput       -> putStrLn printed
 
 main :: IO ()
 main = do
