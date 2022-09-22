@@ -27,8 +27,9 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
 import GhcPlugins qualified as GHC
+import NeatInterpolation (text)
 import Prettyprinter
-import PyF (fmt)
+
 import Text.Read (readMaybe)
 import Type.Reflection
 
@@ -88,27 +89,24 @@ newtype ParseErrors = ParseErrors (NonEmpty ParseError)
     deriving newtype (Semigroup)
 
 instance Show ParseErrors where
-    show (ParseErrors errs) =
-        [fmt|PlutusTx.Plugin: failed to parse options:
-{Text.intercalate "\n" (fmap renderParseError (toList errs))}|]
+    show (ParseErrors errs) = Text.unpack
+        [text|PlutusTx.Plugin: failed to parse options:
+${Text.intercalate "\n" (fmap renderParseError (toList errs))}|]
 
 instance Exception ParseErrors
 
 renderParseError :: ParseError -> Text
 renderParseError = \case
     CannotParseValue k v tr ->
-        [fmt|Cannot parse value {v} for option {k} into type {show tr}.|]
+        [text|Cannot parse value $v for option $k into type ${show tr}.|]
     UnexpectedValue k v ->
-        [fmt|Option {k} is a flag and does not take a value, but was given {v}.|]
+        [text|Option $k is a flag and does not take a value, but was given $v.|]
     MissingValue k ->
-        [fmt|Option {k} needs a value.|]
+        [text|Option $k needs a value.|]
     UnrecognisedOption k suggs ->
-        [fmt|Unrecgonised option: {k}.|] <> case suggs of
+        [text|Unrecgonised option: $k.|] <> case suggs of
             [] -> ""
-            _ ->
-                [fmt|
-Did you mean one of:
-{Text.intercalate "\n" suggs}|]
+            _  -> [text|Did you mean one of:\n${Text.intercalate "\n" suggs}|]
 
 {- | Definition of plugin options.
 

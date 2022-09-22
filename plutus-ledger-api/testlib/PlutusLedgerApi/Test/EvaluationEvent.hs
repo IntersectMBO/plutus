@@ -29,8 +29,8 @@ import Data.ByteString.Short qualified as BS
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
+import NeatInterpolation (text)
 import Prettyprinter
-import PyF (fmt)
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Show, Generic)
@@ -144,16 +144,16 @@ renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
     MissingCostParametersFor ver ->
-        [fmt|
-Missing cost parameters for {show ver}. Report this as a bug
+        [text|
+Missing cost parameters for ${show ver}. Report this as a bug
 against the script dumper in plutus-apps."
 |]
 
 renderTestFailures :: NonEmpty TestFailure -> String
 renderTestFailures xs =
-    [fmt|
-Number of failed test cases: {length xs}
-{unlines . fmap renderTestFailure $ toList xs}
+    [text|
+Number of failed test cases: ${length xs}
+${unlines . fmap renderTestFailure $ toList xs}
 |]
 
 -- | Re-evaluate an on-chain script evaluation event.

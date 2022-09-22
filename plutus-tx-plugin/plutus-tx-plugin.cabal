@@ -68,11 +68,9 @@ library
     PlutusTx.PIRTypes
     PlutusTx.PLCTypes
 
-  -- this comment should be by the dep, but cabal-fmt moves it :(
-  -- Newer PyF is mysteriously broken, hence the bound: https://github.com/guibou/PyF/issues/111
   build-depends:
     , array
-    , base              >=4.9      && <5
+    , base                >=4.9 && <5
     , bytestring
     , containers
     , either
@@ -81,10 +79,10 @@ library
     , ghc-prim
     , lens
     , mtl
-    , plutus-core       ^>=1.0
-    , plutus-tx         ^>=1.0
+    , neat-interpolation
+    , plutus-core         ^>=1.0
+    , plutus-tx           ^>=1.0
     , prettyprinter
-    , PyF               >=0.11.0.0
     , template-haskell
     , text
     , transformers
@@ -103,13 +101,13 @@ executable gen-plugin-opts-doc
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                  >=4.7      && <5
+    , base                  >=4.7 && <5
     , containers
     , lens
+    , neat-interpolation
     , optparse-applicative
     , plutus-tx-plugin
     , prettyprinter
-    , PyF                   >=0.11.0.0
     , text
 
   default-language: Haskell2010
