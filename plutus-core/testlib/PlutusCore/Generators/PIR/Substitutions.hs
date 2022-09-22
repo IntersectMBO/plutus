@@ -125,20 +125,52 @@ unifyType ctx flex sub0 a0 b0 =
       locals <- ask
       -- See Note [Renaming during unification].
       let z = freshenTyName (locals <> Map.keysSet ctx) x
-      local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
+      local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
     goType (TyLam _ x k a')    (TyLam _ y l b')    = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
       -- See Note [Renaming during unification].
       let z = freshenTyName (locals <> Map.keysSet ctx) x
-      local (Set.insert z) $ goType (renameType x z a') (renameType y z b')
+      local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
     goType a b = unificationFailure a b
 
--- | Parallel substitution
-parSubstType :: TypeSub
-             -> Type TyName DefaultUni ()
-             -> Type TyName DefaultUni ()
-parSubstType = substType' False
+-- CODE REVIEW: does this exist anywhere?
+renameVar :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
+renameVar x y
+    | x == y    = id
+    | otherwise = substType $ Map.singleton x (TyVar () y)
+
+-- | The most general substitution worker.
+substTypeCustomGo
+    :: HasCallStack
+    => Bool                       -- ^ Nested ('True') or parallel ('False')
+    -> Set TyName                 -- ^ Variables that are considered free.
+    -> TypeSub                    -- ^ Type substitution to use.
+    -> Type TyName DefaultUni ()  -- ^ Type to substitute in.
+    -> Type TyName DefaultUni ()
+substTypeCustomGo nested fvs0 = go fvs0 Set.empty where
+    go fvs seen sub ty = case ty of
+        TyVar _ x | Set.member x seen -> error "substType' loop"
+        -- In the case where we do nested substitution we just continue, in parallel substitution
+        -- we never go below a substitution.
+        TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
+                  | otherwise -> maybe ty id $ Map.lookup x sub
+        TyFun _ a b -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
+        TyApp _ a b -> TyApp () (go fvs seen sub a) (go fvs seen sub b)
+        TyLam _ x k b
+          | Set.member x fvs ->
+              TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameVar x x' b)
+          | otherwise ->
+              TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
+          where x' = freshenTyName (fvs <> setOf ftvTy b) x
+        TyForall _ x k b
+          | Set.member x fvs ->
+              TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameVar x x' b)
+          | otherwise ->
+              TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
+          where x' = freshenTyName (fvs <> setOf ftvTy b) x
+        TyBuiltin{} -> ty
+        TyIFix _ a b -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
 
 -- CODE REVIEW: this function is a bit strange and I don't like it. Ideas welcome for how to
 -- do this better. It basically deals with the fact that we want to be careful when substituting
@@ -147,66 +179,37 @@ parSubstType = substType' False
 -- This might not be a welcome opinion, but working with this stuff exposes some of
 -- the shortcomings of the current PIR design. It would be cleaner if a PIR program was a list
 -- of declarations and datatype declarations weren't in terms.
--- TODO: Is this actually doing anything other than what we already do in other substitution functions?!
 substEscape :: Set TyName
             -> TypeSub
             -> Type TyName DefaultUni ()
             -> Type TyName DefaultUni ()
-substEscape fv sub ty = case ty of
-  TyVar _ x        -> maybe ty (substEscape fv sub) (Map.lookup x sub)
-  TyFun _ a b      -> TyFun () (substEscape fv sub a) (substEscape fv sub b)
-  TyApp _ a b      -> TyApp () (substEscape fv sub a) (substEscape fv sub b)
-  TyLam _ x k b    -> TyLam () x k $ substEscape (Set.insert x fv) sub b
-  TyForall _ x k b -> TyForall () x k $ substEscape (Set.insert x fv) sub b
-  TyBuiltin{}      -> ty
-  TyIFix _ a b     -> TyIFix () (substEscape fv sub a) (substEscape fv sub b)
-
--- CODE REVIEW: does this exist anywhere?
-renameType :: TyName -> TyName -> Type TyName DefaultUni () -> Type TyName DefaultUni ()
-renameType x y | x == y    = id
-               | otherwise = substType (Map.singleton x (TyVar () y))
-
-substType :: HasCallStack
-          => TypeSub
-          -> Type TyName DefaultUni ()
-          -> Type TyName DefaultUni ()
-substType = substType' True
+substEscape = substTypeCustomGo True
 
 -- | Generalized substitution algorithm
-substType' :: HasCallStack
-           => Bool
-           -- ^ Nested (True) or parallel (False)
-           -> TypeSub
-           -> Type TyName DefaultUni ()
-           -> Type TyName DefaultUni ()
-substType' nested sub0 ty0 = go fvs0 Set.empty sub0 ty0
-  where
+substTypeCustom
+    :: HasCallStack
+    => Bool
+    -- ^ Nested (True) or parallel (False)
+    -> TypeSub
+    -> Type TyName DefaultUni ()
+    -> Type TyName DefaultUni ()
+substTypeCustom nested sub0 ty0 = substTypeCustomGo nested fvs0 sub0 ty0 where
     fvs0 = Set.unions $ Map.keysSet sub0 : map (setOf ftvTy) (Map.elems sub0)
 
-    go :: HasCallStack
-       => Set TyName
-       -> Set TyName
-       -> TypeSub
-       -> Type TyName DefaultUni ()
-       -> Type TyName DefaultUni ()
-    go fvs seen sub ty = case ty of
-      TyVar _ x | Set.member x seen -> error "substType' loop"
-      -- In the case where we do nested substitution we just continue, in parallel substitution
-      -- we never go below a substitution.
-      TyVar _ x | nested    -> maybe ty (go fvs (Set.insert x seen) sub) $ Map.lookup x sub
-                | otherwise -> maybe ty id $ Map.lookup x sub
-      TyFun _ a b      -> TyFun () (go fvs seen sub a) (go fvs seen sub b)
-      TyApp _ a b      -> TyApp () (go fvs seen sub a) (go fvs seen sub b)
-      TyLam _ x k b
-        | Set.member x fvs -> TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
-        | otherwise        -> TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> setOf ftvTy b) x
-      TyForall _ x k b
-        | Set.member x fvs -> TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameType x x' b)
-        | otherwise        -> TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-        where x' = freshenTyName (fvs <> setOf ftvTy b) x
-      TyBuiltin{}      -> ty
-      TyIFix _ a b     -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
+-- | Regular (i.e. nested type substitution).
+substType
+    :: HasCallStack
+    => TypeSub
+    -> Type TyName DefaultUni ()
+    -> Type TyName DefaultUni ()
+substType = substTypeCustom True
+
+-- | Parallel substitution
+substTypeParallel
+    :: TypeSub
+    -> Type TyName DefaultUni ()
+    -> Type TyName DefaultUni ()
+substTypeParallel = substTypeCustom False
 
 -- | Find all free type variables of type `a` given substitution `sub`. If variable `x` is
 -- free in `a` but in the domain of `sub` we look up `x` in `sub` and get all the free type

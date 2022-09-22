@@ -114,7 +114,7 @@ findInstantiation ctx n target ty = do
     view ctx' flex insts n fvs (TyForall _ x k b) = view (Map.insert x' k ctx') (Set.insert x' flex)
                                                          (InstApp (TyVar () x') : insts) n
                                                          (Set.insert x' fvs) b'
-      where (x', b') | Set.member x fvs = let x' = freshenTyName fvs x in (x', renameType x x' b)
+      where (x', b') | Set.member x fvs = let x' = freshenTyName fvs x in (x', renameVar x x' b)
                      | otherwise        = (x, b)
     view ctx' flex insts n fvs (TyFun _ a b) | n > 0 = view ctx' flex (InstArg a : insts) (n - 1) fvs b
     view ctx' flex insts _ _ a = (ctx', flex, reverse insts, a)
@@ -352,8 +352,8 @@ genTerm mty = checkInvariants $ do
     genForall x k a = do
       -- TODO: this freshenTyName here might be a bit paranoid
       y <- freshenTyName (setOf ftvTy a) <$> genFreshTyName "a"
-      let ty = TyForall () y k $ renameType x y a
-      (ty,) . TyAbs () y k <$> (withNoEscape . bindTyName y k . genTermOfType $ renameType x y a)
+      let ty = TyForall () y k $ renameVar x y a
+      (ty,) . TyAbs () y k <$> (withNoEscape . bindTyName y k . genTermOfType $ renameVar x y a)
 
     genLam ma mb = do
       x <- genFreshName "x"
@@ -384,7 +384,7 @@ genTerm mty = checkInvariants $ do
           appl n tm (TyForall _ x k b) = do
             ty <- genType k
             x' <- genFreshTyName "x"
-            appl (n - 1) (TyInst () tm ty) (substType (Map.singleton x' ty) $ renameType x x' b)
+            appl (n - 1) (TyInst () tm ty) (substType (Map.singleton x' ty) $ renameVar x x' b)
           appl n tm (TyFun _ a b) = do
             (_, arg) <- genTerm (Just a)
             appl (n - 1) (Apply () tm arg) b
@@ -566,7 +566,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
       case tm of
 
         Let _ rec binds body ->
-          [ (parSubstType subst ty', Let () rec binds body')
+          [ (substTypeParallel subst ty', Let () rec binds body')
           | (ty', body') <- go tyctxInner ctxInner (ty, body) ] ++
           [ fix $ second (Let () rec binds') $ fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
             | (context@(NonEmptyContext before _), bind) <- oneHoleContexts binds,
@@ -595,7 +595,7 @@ shrinkTypedTerm tyctx ctx (ty, tm) = go tyctx ctx (ty, tm)
         TyAbs _ x _ body | not $ Map.member x tyctx ->
           [ (TyForall () x k tyInner', TyAbs () x k body')
           | TyForall _ y k tyInner <- [ty]
-          , (tyInner', body') <- go (Map.insert x k tyctx) ctx (renameType y x tyInner, body)
+          , (tyInner', body') <- go (Map.insert x k tyctx) ctx (renameVar y x tyInner, body)
           ]
 
         LamAbs _ x a body ->
@@ -670,7 +670,7 @@ inferTypeInContext tyctx ctx tm = first display
     addLams [] tm             = tm
     addLams ((x, ty) : xs) tm = LamAbs () x ty $ addLams xs tm
 
-    stripForalls sub [] ty                            = parSubstType sub ty
+    stripForalls sub [] ty                            = substTypeParallel sub ty
     stripForalls sub ((x, _) : xs) (TyForall _ y _ b) = stripForalls (Map.insert y (TyVar () x) sub) xs b
     stripForalls _ _ _                                = error "stripForalls"
 
