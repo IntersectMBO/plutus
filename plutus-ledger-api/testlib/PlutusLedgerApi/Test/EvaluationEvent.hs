@@ -27,10 +27,11 @@ import Codec.Serialise (Serialise (..))
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Short qualified as BS
 import Data.List.NonEmpty (NonEmpty, toList)
+import Data.String.Interpolate (__i)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
-import NeatInterpolation (text)
 import Prettyprinter
+
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Show, Generic)
@@ -143,17 +144,15 @@ data TestFailure
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor ver ->
-        [text|
-Missing cost parameters for ${show ver}. Report this as a bug
-against the script dumper in plutus-apps."
-|]
+    MissingCostParametersFor ver -> [__i|
+        Missing cost parameters for #{show ver}.
+        Report this as a bug against the script dumper in plutus-apps.
+    |]
 
 renderTestFailures :: NonEmpty TestFailure -> String
-renderTestFailures xs =
-    [text|
-Number of failed test cases: ${length xs}
-${unlines . fmap renderTestFailure $ toList xs}
+renderTestFailures xs = [__i|
+    Number of failed test cases: #{length xs}
+    #{unlines . fmap renderTestFailure $ toList xs}
 |]
 
 -- | Re-evaluate an on-chain script evaluation event.

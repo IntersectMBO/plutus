@@ -79,10 +79,10 @@ library
     , ghc-prim
     , lens
     , mtl
-    , neat-interpolation
     , plutus-core         ^>=1.0
     , plutus-tx           ^>=1.0
     , prettyprinter
+    , string-interpolate
     , template-haskell
     , text
     , transformers
@@ -104,10 +104,10 @@ executable gen-plugin-opts-doc
     , base                  >=4.7 && <5
     , containers
     , lens
-    , neat-interpolation
     , optparse-applicative
     , plutus-tx-plugin
     , prettyprinter
+    , string-interpolate
     , text
 
   default-language: Haskell2010

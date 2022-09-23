@@ -23,11 +23,11 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Proxy
+import Data.String.Interpolate (__i)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
 import GhcPlugins qualified as GHC
-import NeatInterpolation (text)
 import Prettyprinter
 
 import Text.Read (readMaybe)
@@ -89,24 +89,25 @@ newtype ParseErrors = ParseErrors (NonEmpty ParseError)
     deriving newtype (Semigroup)
 
 instance Show ParseErrors where
-    show (ParseErrors errs) = Text.unpack
-        [text|PlutusTx.Plugin: failed to parse options:
-${Text.intercalate "\n" (fmap renderParseError (toList errs))}|]
+    show (ParseErrors errs) = [__i|
+        PlutusTx.Plugin: failed to parse options:
+        #{Text.intercalate "\n" (fmap renderParseError (toList errs))}
+    |]
 
 instance Exception ParseErrors
 
 renderParseError :: ParseError -> Text
 renderParseError = \case
     CannotParseValue k v tr ->
-        [text|Cannot parse value $v for option $k into type ${show tr}.|]
+        [__i|Cannot parse value #{v} for option #{k} into type #{show tr}.|]
     UnexpectedValue k v ->
-        [text|Option $k is a flag and does not take a value, but was given $v.|]
+        [__i|Option #{k} is a flag and does not take a value, but was given #{v}.|]
     MissingValue k ->
-        [text|Option $k needs a value.|]
+        [__i|Option #{k} needs a value.|]
     UnrecognisedOption k suggs ->
-        [text|Unrecgonised option: $k.|] <> case suggs of
+        [__i|Unrecognised option: #{k}.|] <> case suggs of
             [] -> ""
-            _  -> [text|Did you mean one of:\n${Text.intercalate "\n" suggs}|]
+            _  -> [__i|\nDid you mean one of:\n#{Text.intercalate "\n" suggs}|]
 
 {- | Definition of plugin options.
 

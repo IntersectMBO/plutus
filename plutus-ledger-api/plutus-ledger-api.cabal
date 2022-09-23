@@ -117,12 +117,12 @@ library plutus-ledger-api-testlib
     , base                >=4.9 && <5
     , base64-bytestring
     , bytestring
-    , neat-interpolation
     , plutus-core         ^>=1.0
     , plutus-ledger-api
     , plutus-tx           ^>=1.0
     , prettyprinter
     , serialise
+    , string-interpolate
     , text
 
 test-suite plutus-ledger-api-test
