@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 
 -- | Common option parsers for executables
@@ -9,7 +8,8 @@ import Common
 
 import Options.Applicative
 
--- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
+-- | Parser for an input stream. If none is specified,
+-- default to stdin for ease of use in pipeline.
 input :: Parser Input
 input = fileInput <|> stdInput <|> pure StdInput
 
@@ -25,7 +25,8 @@ stdInput = flag' StdInput
   (  long "stdin"
   <> help "Read from stdin (default)" )
 
--- | Parser for an output stream. If none is specified, default to stdout: this makes use in pipelines easier
+-- | Parser for an output stream. If none is specified,
+-- default to stdout for ease of use in pipeline.
 output :: Parser Output
 output = fileOutput <|> stdOutput <|> pure StdOutput
 
@@ -40,6 +41,9 @@ stdOutput :: Parser Output
 stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
+
+ioSpec :: Parser IOSpec
+ioSpec = MkIOSpec <$> input <*> output
 
 formatHelp :: String
 formatHelp =
@@ -118,7 +122,7 @@ printmode = option auto
         ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> input <*> printmode
+printOpts = PrintOptions <$> ioSpec <*> printmode
 
 convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode

@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
-import Common
+import Common hiding (runPrint)
 import Control.Lens hiding (argument, set', (<.>))
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
@@ -30,25 +30,14 @@ import Text.Megaparsec (errorBundlePretty)
 type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
 type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
 type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
-data Command = Analyse AOpts
+data Command = Analyse IOSpec
              | Compile COpts
              | Print PrintOptions
-
-data AOpts = AOpts
-  {
-    aIn  :: Input
-  , aOut :: Output
-  }
 
 data COpts = COpts
   { cIn       :: Input
   , cOptimize :: Bool
   }
-
-pAOpts :: Parser AOpts
-pAOpts = AOpts
-    <$> input
-    <*> output
 
 pCOpts :: Parser COpts
 pCOpts = COpts
@@ -63,7 +52,7 @@ pCOpts = COpts
 pPirOpts :: Parser Command
 pPirOpts = hsubparser $
     command "analyse"
-        (info (Analyse <$> pAOpts) $
+        (info (Analyse <$> ioSpec) $
             progDesc $
               "Given a PIR program in flat format, deserialise and analyse the program, " <>
               "looking for variables with the largest retained size.")
@@ -106,10 +95,10 @@ loadPirAndCompile copts = do
         Left pirError -> error $ show pirError
         Right _       -> putStrLn "!!! Compilation successful"
 
-loadPirAndAnalyse :: AOpts -> IO ()
-loadPirAndAnalyse aopts = do
+loadPirAndAnalyse :: IOSpec -> IO ()
+loadPirAndAnalyse ioSpecs = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    (PIR.Program _ pirT) <- PLC.runQuote . PLC.rename <$> loadPir (aIn aopts)
+    (PIR.Program _ pirT) <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
@@ -131,7 +120,7 @@ loadPirAndAnalyse aopts = do
 
     -- encode to csv and output it
     Csv.encodeDefaultOrderedByName sortedRecords &
-        case aOut aopts of
+        case outputSpec ioSpecs of
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
 
@@ -139,17 +128,23 @@ loadPirAndAnalyse aopts = do
 -- This option for PIR source file does NOT check for @UniqueError@'s.
 -- Only the print option for PLC or UPLC files check for them.
 runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp _mode) = do
-    contents <- getInput inp
+runPrint (PrintOptions iospec _mode) = do
+    let inputPath = inputSpec iospec
+    contents <- getInput inputPath
     -- parse the program
-    case parseNamedProgram (show inp) contents of
+    case parseNamedProgram (show inputPath) contents of
       -- when fail, pretty print the parse errors.
       Left (ParseErrorB err) ->
           errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
-      Right (p::PirProg PLC.SourcePos) ->
+      Right (p::PirProg PLC.SourcePos) -> do
         -- pretty print the program. Print mode may be added later on.
-        print $ pretty p
+        let
+            printed :: String
+            printed = show $ pretty p
+        case outputSpec iospec of
+            FileOutput path -> writeFile path printed
+            StdOutput       -> putStrLn printed
 
 main :: IO ()
 main = do

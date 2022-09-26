@@ -259,6 +259,9 @@ instance Show Input where
     show StdInput         = "<stdin>"
 
 data Output      = FileOutput FilePath | StdOutput
+data IOSpec      = MkIOSpec
+  { inputSpec  :: Input
+  , outputSpec :: Output}
 data TimingMode  = NoTiming | Timing Integer deriving stock (Eq)  -- Report program execution time?
 data CekModel    = Default | Unit   -- Which cost model should we use for CEK machine steps?
 data PrintMode   = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)
@@ -286,7 +289,7 @@ instance Show Format where
     show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
 
 data ConvertOptions   = ConvertOptions Input Format Output Format PrintMode
-data PrintOptions     = PrintOptions Input PrintMode
+data PrintOptions     = PrintOptions IOSpec PrintMode
 newtype ExampleOptions   = ExampleOptions ExampleMode
 data ApplyOptions     = ApplyOptions Files Format Output Format PrintMode
 
@@ -648,7 +651,7 @@ instance Show Signature where
                         _                 -> show $ PP.pretty ty
                   unwrapTyApp ty =
                       case ty of
-                        PLC.TyApp _ t1 t2 -> (unwrapTyApp t1) ++ [t2]
+                        PLC.TyApp _ t1 t2 -> unwrapTyApp t1 ++ [t2]
                         -- Assumes iterated built-in type applications all associate to the left;
                         -- if not, we'll just get some odd formatting.
                         _                 -> [ty]
@@ -679,3 +682,12 @@ runPrintBuiltinSignatures = do
           typeSchemeToSignature sch
 
 
+---------------- Parse and print a PLC/UPLC source file ----------------
+
+runPrint :: PrintOptions -> IO ()
+runPrint (PrintOptions iospec mode) = do
+    parsed <- (parseInput (inputSpec iospec) :: IO (PlcProg PLC.SourcePos) )
+    let printed = show $ getPrintMethod mode parsed
+    case outputSpec iospec of
+      FileOutput path -> writeFile path printed
+      StdOutput       -> putStrLn printed

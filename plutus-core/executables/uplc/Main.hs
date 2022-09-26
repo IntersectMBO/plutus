@@ -222,12 +222,6 @@ runUplcPrintExample ::
     ExampleOptions -> IO ()
 runUplcPrintExample = runPrintExample getUplcExamples
 
----------------- Parse and print a UPLC source file ----------------
-
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (UplcProg PLC.SourcePos)) >>= print . getPrintMethod mode
-
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.

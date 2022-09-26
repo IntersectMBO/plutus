@@ -155,12 +155,6 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
----------------- Parse and print a PLC source file ----------------
-
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
-
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
