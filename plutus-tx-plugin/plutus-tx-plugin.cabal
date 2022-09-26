@@ -82,7 +82,7 @@ library
     , plutus-core         ^>=1.0
     , plutus-tx           ^>=1.0
     , prettyprinter
-    , string-interpolate
+    , PyF >=0.11.1.0
     , template-haskell
     , text
     , transformers
@@ -107,7 +107,7 @@ executable gen-plugin-opts-doc
     , optparse-applicative
     , plutus-tx-plugin
     , prettyprinter
-    , string-interpolate
+    , PyF >=0.11.1.0
     , text
 
   default-language: Haskell2010

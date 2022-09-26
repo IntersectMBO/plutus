@@ -23,7 +23,7 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Proxy
-import Data.String.Interpolate (__i)
+import PyF (fmt)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
@@ -89,9 +89,9 @@ newtype ParseErrors = ParseErrors (NonEmpty ParseError)
     deriving newtype (Semigroup)
 
 instance Show ParseErrors where
-    show (ParseErrors errs) = [__i|
+    show (ParseErrors errs) = [fmt|
         PlutusTx.Plugin: failed to parse options:
-        #{Text.intercalate "\n" (fmap renderParseError (toList errs))}
+        {Text.intercalate "\n" (fmap renderParseError (toList errs))}
     |]
 
 instance Exception ParseErrors
@@ -99,15 +99,15 @@ instance Exception ParseErrors
 renderParseError :: ParseError -> Text
 renderParseError = \case
     CannotParseValue k v tr ->
-        [__i|Cannot parse value #{v} for option #{k} into type #{show tr}.|]
+        [fmt|Cannot parse value {v} for option {k} into type {show tr}.|]
     UnexpectedValue k v ->
-        [__i|Option #{k} is a flag and does not take a value, but was given #{v}.|]
+        [fmt|Option {k} is a flag and does not take a value, but was given {v}.|]
     MissingValue k ->
-        [__i|Option #{k} needs a value.|]
+        [fmt|Option {k} needs a value.|]
     UnrecognisedOption k suggs ->
-        [__i|Unrecognised option: #{k}.|] <> case suggs of
+        [fmt|Unrecognised option: {k}.|] <> case suggs of
             [] -> ""
-            _  -> [__i|\nDid you mean one of:\n#{Text.intercalate "\n" suggs}|]
+            _  -> [fmt|\nDid you mean one of:\n{Text.intercalate "\n" suggs}|]
 
 {- | Definition of plugin options.
 
