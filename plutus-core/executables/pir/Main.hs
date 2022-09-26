@@ -33,6 +33,7 @@ type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
 data Command = Analyse IOSpec
              | Compile COpts
              | Print PrintOptions
+             | Convert ConvertOptions
 
 data COpts = COpts
   { cIn       :: Input
@@ -153,6 +154,7 @@ main = do
         Analyse opts -> loadPirAndAnalyse opts
         Compile opts -> loadPirAndCompile opts
         Print opts   -> runPrint opts
+        Convert opts -> runConvert opts
   where
     infoOpts =
       info (pPirOpts <**> helper)

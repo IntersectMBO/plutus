@@ -222,14 +222,6 @@ runUplcPrintExample ::
     ExampleOptions -> IO ()
 runUplcPrintExample = runPrintExample getUplcExamples
 
----------------- Conversions ----------------
-
--- | Convert between textual and FLAT representations.
-runConvert :: ConvertOptions -> IO ()
-runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (UplcProg PLC.SourcePos))
-    writeProgram outp ofmt mode program
-
 ---------------- Driver ----------------
 
 main :: IO ()

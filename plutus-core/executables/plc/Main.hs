@@ -155,14 +155,6 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
----------------- Conversions ----------------
-
--- | Convert between textual and FLAT representations.
-runConvert :: ConvertOptions -> IO ()
-runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
-    writeProgram outp ofmt mode program
-
 ---------------- Driver ----------------
 
 main :: IO ()
