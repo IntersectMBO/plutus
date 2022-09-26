@@ -114,15 +114,15 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Scripts
 
   build-depends:
-    , base                >=4.9 && <5
+    , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
-    , plutus-core         ^>=1.0
+    , plutus-core        ^>=1.0
     , plutus-ledger-api
-    , plutus-tx           ^>=1.0
+    , plutus-tx          ^>=1.0
     , prettyprinter
+    , PyF                >=0.11.1.0
     , serialise
-    , PyF >=0.11.1.0
     , text
 
 test-suite plutus-ledger-api-test
