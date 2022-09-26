@@ -98,7 +98,7 @@ findInstantiation :: HasCallStack
                   -> Type TyName DefaultUni ()
                   -> Either String [TyInst]
 findInstantiation ctx n target ty = do
-  sub <- unifyType (ctx <> ctx') flex Map.empty target b
+  sub <- unifyType (ctx <> ctx') flex target b
       -- We map any unsolved flexible variables to ∀ a. a
   let defaultSub = minimalType <$> ctx'
       doSub :: HasCallStack => _
@@ -850,4 +850,4 @@ typeCheckTermInContext :: TypeCtx
                        -> Either String ()
 typeCheckTermInContext tyctx ctx tm ty = void $ do
     ty' <- inferTypeInContext tyctx ctx tm
-    unifyType tyctx mempty mempty ty' ty
+    unifyType tyctx mempty ty' ty

@@ -54,7 +54,7 @@ prop_unify =
     (shrinkKindAndType ctx)                $ \ (_, ty2) ->
   letCE "nty1" (normalizeTy ty1)           $ \ nty1 ->
   letCE "nty2" (normalizeTy ty2)           $ \ nty2 ->
-  letCE "res" (unifyType ctx (Set.fromList $ take nSub xVars) Map.empty ty1 ty2) $ \ res ->
+  letCE "res" (unifyType ctx (Set.fromList $ take nSub xVars) ty1 ty2) $ \ res ->
   isRight res ==>
   let sub = fromRight (error "impossible") res
       checkSub (x, ty) = letCE "x,ty" (x, ty)    $ \ _ ->
@@ -76,7 +76,7 @@ prop_unifyRename :: Property
 prop_unifyRename =
   forAllDoc "_, ty" genKindAndType (shrinkKindAndType mempty) $ \ (_, ty) ->
   letCE "rename ty" (runQuote $ rename ty) $ \ rnty ->
-  void $ unifyType mempty mempty mempty ty rnty
+  void $ unifyType mempty mempty ty rnty
 
 -- | Check that substitution gets rid of all the right variables
 prop_substType :: Property
