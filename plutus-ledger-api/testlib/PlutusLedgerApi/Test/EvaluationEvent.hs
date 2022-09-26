@@ -27,10 +27,10 @@ import Codec.Serialise (Serialise (..))
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Short qualified as BS
 import Data.List.NonEmpty (NonEmpty, toList)
-import PyF (fmt)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Prettyprinter
+import PyF (fmt)
 
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure

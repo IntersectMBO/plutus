@@ -9,12 +9,12 @@ import PlutusTx.Options qualified as O
 
 import Control.Lens
 import Data.Map qualified as Map
-import PyF (fmt)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
 import Options.Applicative qualified as OA
 import Prettyprinter
+import PyF (fmt)
 
 
 newtype Params = Params

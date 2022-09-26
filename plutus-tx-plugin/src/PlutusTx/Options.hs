@@ -23,12 +23,12 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Proxy
-import PyF (fmt)
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
 import GhcPlugins qualified as GHC
 import Prettyprinter
+import PyF (fmt)
 
 import Text.Read (readMaybe)
 import Type.Reflection
