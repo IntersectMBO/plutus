@@ -9,12 +9,11 @@ module Crypto (
   ) where
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Control.Applicative (Alternative (empty))
 import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
 import Crypto.Error (maybeCryptoError)
-import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
 import Data.Text (Text)
@@ -52,7 +51,7 @@ verifyEcdsaSecp256k1Signature pk msg sig =
     Nothing -> failWithMessage loc "Invalid verification key."
     Just pk' -> case DSIGN.rawDeserialiseSigDSIGN @EcdsaSecp256k1DSIGN sig of
       Nothing -> failWithMessage loc "Invalid signature."
-      Just sig' -> case SECP.msg msg of
+      Just sig' -> case toMessageHash msg of
         Nothing -> failWithMessage loc "Invalid message hash."
         Just msg' -> pure . pure $ case DSIGN.verifyDSIGN () pk' msg' sig' of
           Left _   -> False

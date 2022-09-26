@@ -9,6 +9,7 @@
 , z3
 , R
 , libsodium-vrf
+, secp256k1
 , checkMaterialization
 , compiler-nix-name
 , enableHaskellProfiling
@@ -43,7 +44,7 @@ let
     inherit checkMaterialization;
     sha256map = {
       "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm";
-      "https://github.com/input-output-hk/cardano-base"."1587462ac8b2e50af2691f5ad93d3c2aa4674ed1" = "sha256-jrSDD2fXgHf4wo5THzfK/6tolvt8y9rNuJWYfBooqaQ=";
+      "https://github.com/input-output-hk/cardano-base"."cc049d7c9b9a0129c15b1355fd1dff9e1a1a551c" = "sha256-Ckbl3QkKOuMkIuTsSIWxWly6NNuhGP53q+nwYyBXzz8=";
       "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3";
       "https://github.com/input-output-hk/cardano-prelude"."fd773f7a58412131512b9f694ab95653ac430852" = "02jddik1yw0222wd6q0vv10f7y8rdgrlqaiy83ph002f9kjx7mh6";
       "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx";
@@ -77,26 +78,8 @@ let
         };
       })
       ({ pkgs, ... }:
-        let
-          # Add symlinks to the DLLs used by executable code to the `bin` directory
-          # of the components with we are going to run.
-          # We should try to find a way to automate this will in haskell.nix.
-          symlinkDlls = ''
-            ln -s ${libsodium-vrf}/bin/libsodium-23.dll $out/bin/libsodium-23.dll
-            ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libgcc_s_seh-1.dll $out/bin/libgcc_s_seh-1.dll
-            ln -s ${pkgs.buildPackages.gcc.cc}/x86_64-w64-mingw32/lib/libstdc++-6.dll $out/bin/libstdc++-6.dll
-            ln -s ${pkgs.windows.mcfgthreads}/bin/mcfgthread-12.dll $out/bin/mcfgthread-12.dll
-            ln -s ${pkgs.secp256k1}/bin/libsecp256k1-0.dll $out/bin/libsecp256k1-0.dll
-          '';
-        in
         lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
           packages = {
-            # Add dll symlinks to the compoents we want to run.
-            plutus-core.components.tests.plutus-core-test.postInstall = symlinkDlls;
-            plutus-core.components.tests.plutus-ir-test.postInstall = symlinkDlls;
-            plutus-core.components.tests.untyped-plutus-core-test.postInstall = symlinkDlls;
-            plutus-ledger-api.components.tests.plutus-ledger-api-test.postInstall = symlinkDlls;
-
             # These three tests try to use `diff` and the following could be used to make the
             # linux version of diff available.  Unfortunately the paths passed to it are windows style.
             # plutus-core.components.tests.plutus-core-test.build-tools = [ pkgs.buildPackages.diffutils ];
@@ -168,7 +151,7 @@ let
 
           # See https://github.com/input-output-hk/iohk-nix/pull/488
           cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
-          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
+          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf secp256k1 ] ];
         };
       })
     ] ++ lib.optional enableHaskellProfiling {

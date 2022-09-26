@@ -13,14 +13,14 @@ module Evaluation.Builtins.SECP256k1 (
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
                                    rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
                                    rawSerialiseVerKeyDSIGN, signDSIGN)
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, SigDSIGN, VerKeyDSIGN)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, MessageHash, SigDSIGN, VerKeyDSIGN, fromMessageHash,
+                                            toMessageHash)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 import Control.Lens.Extras (is)
 import Control.Lens.Fold (preview)
 import Control.Lens.Prism (Prism', prism')
 import Control.Lens.Review (review)
-import Crypto.Secp256k1 qualified as SECP
 import Data.ByteString (ByteString)
 import Data.Kind (Type)
 import Data.Maybe (isNothing)
@@ -42,7 +42,7 @@ ecdsaSecp256k1Prop = do
   cover 14 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 14 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 14 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith testCase SECP.getMsg VerifyEcdsaSecp256k1Signature
+  runTestDataWith testCase fromMessageHash VerifyEcdsaSecp256k1Signature
 
 schnorrSecp256k1Prop :: PropertyT IO ()
 schnorrSecp256k1Prop = do
@@ -222,7 +222,7 @@ getCaseData f = \case
 
 -- Generators
 
-genEcdsaErrorCase :: Gen (ErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaErrorCase :: Gen (ErrorCase EcdsaSecp256k1DSIGN MessageHash)
 genEcdsaErrorCase =
   Gen.prune . Gen.choice $ [
     review _BadVerKey <$> mkBadVerKeyBits,
@@ -231,7 +231,7 @@ genEcdsaErrorCase =
     ]
   where
     mkBadVerKeyBits :: Gen (ByteString,
-                            SECP.Msg,
+                            MessageHash,
                             SigDSIGN EcdsaSecp256k1DSIGN)
     mkBadVerKeyBits = (,,) <$> genBadVerKey @EcdsaSecp256k1DSIGN <*>
                                genEcdsaMsg <*>
@@ -241,7 +241,7 @@ genEcdsaErrorCase =
                              SigDSIGN EcdsaSecp256k1DSIGN)
     mkBadMessageBits = (,,) <$> genVerKey <*> genBadEcdsaMsg <*> genEcdsaSig
     mkBadSignatureBits :: Gen (VerKeyDSIGN EcdsaSecp256k1DSIGN,
-                               SECP.Msg,
+                               MessageHash,
                                ByteString)
     mkBadSignatureBits = (,,) <$> genVerKey <*>
                                   genEcdsaMsg <*>
@@ -266,7 +266,7 @@ genSchnorrErrorCase = Gen.choice [
                                   (Gen.bytes . Range.linear 0 $ 64) <*>
                                   genBadSig @SchnorrSecp256k1DSIGN
 
-genEcdsaNoErrorCase :: Gen (NoErrorCase EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaNoErrorCase :: Gen (NoErrorCase EcdsaSecp256k1DSIGN MessageHash)
 genEcdsaNoErrorCase = do
   sk <- genSignKey
   let vk = deriveVerKeyDSIGN sk
@@ -280,9 +280,9 @@ genEcdsaNoErrorCase = do
     mkWrongSignatureBits ::
       SignKeyDSIGN EcdsaSecp256k1DSIGN ->
       VerKeyDSIGN EcdsaSecp256k1DSIGN ->
-      SECP.Msg ->
+      MessageHash ->
       Gen (VerKeyDSIGN EcdsaSecp256k1DSIGN,
-           SECP.Msg,
+           MessageHash,
            SigDSIGN EcdsaSecp256k1DSIGN)
     mkWrongSignatureBits sk vk msg = do
       msgBad <- Gen.filter (/= msg) genEcdsaMsg
@@ -310,7 +310,7 @@ genSchnorrNoErrorCase = do
       msgBad <- Gen.filter (/= msg) (Gen.bytes . Range.linear 0 $ 64)
       pure (vk, msg, signDSIGN () msgBad sk)
 
-genEcdsaCase :: Gen (Case EcdsaSecp256k1DSIGN SECP.Msg)
+genEcdsaCase :: Gen (Case EcdsaSecp256k1DSIGN MessageHash)
 genEcdsaCase = Gen.prune . Gen.choice $ [
   review _Shouldn'tError <$> genEcdsaNoErrorCase,
   review _ShouldError <$> genEcdsaErrorCase
@@ -337,8 +337,8 @@ genBadVerKey :: forall (a :: Type) .
 genBadVerKey = Gen.filter (isNothing . rawDeserialiseVerKeyDSIGN @a)
                           (Gen.bytes . Range.linear 0 $ 64)
 
-genEcdsaMsg :: Gen SECP.Msg
-genEcdsaMsg = Gen.mapMaybe SECP.msg (Gen.bytes . Range.singleton $ 32)
+genEcdsaMsg :: Gen MessageHash
+genEcdsaMsg = Gen.mapMaybe toMessageHash (Gen.bytes . Range.singleton $ 32)
 
 genEcdsaSig :: Gen (SigDSIGN EcdsaSecp256k1DSIGN)
 genEcdsaSig = do
@@ -356,7 +356,7 @@ genVerKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (VerKeyDSIGN a)
 genVerKey = deriveVerKeyDSIGN <$> genSignKey
 
 genBadEcdsaMsg :: Gen ByteString
-genBadEcdsaMsg = Gen.filter (isNothing . SECP.msg) (Gen.bytes . Range.linear 0 $ 64)
+genBadEcdsaMsg = Gen.filter (isNothing . toMessageHash) (Gen.bytes . Range.linear 0 $ 64)
 
 genBadSig :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen ByteString
 genBadSig = Gen.filter (isNothing . rawDeserialiseSigDSIGN @a)
