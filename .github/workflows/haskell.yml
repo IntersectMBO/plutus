@@ -1,7 +1,8 @@
 name: Haskell CI
 
 on:
-  pull_request:
+  - pull_request
+  - workflow_dispatch
 
 jobs:
   build:
