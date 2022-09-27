@@ -37,7 +37,7 @@ import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
 {- | This module is supposed to test that the R cost models for built-in functions
-   defined in models.R (using the CSV output from 'cost-model-budgeting-bench;))
+   defined in models.R (using the CSV output from 'cost-model-budgeting-bench'))
    produce the same results as the Haskell versions. However there are a couple
    of subtleties.  (A) The R models use floating point numbers and the Haskell
    versions use CostingIntegers, and there will be some difference in precision
@@ -51,15 +51,16 @@ import Hedgehog.Range qualified as Range
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
-   'CreateBuiltinCostModel.hs') which are loaded directly from R.  The costing
-   functions we use in practice are read from 'builtinCostModel.json', which
-   contains JSON-serialised versions of the Haskell costing functions.  Perhaps
-   the tests should be reading the Haskell costing functions from the JSON file
-   as well; there shouldn't really be any problem because the functions should
-   be the same as the ones we construct from R here (they're essentially the
-   contents of 'costModelsR' converted to JSON), but it wouldn't do any harm to
-   include any possible loss of accuracy due to serialisation/deserialisation in
-   the tests as well.
+   'CreateBuiltinCostModel.hs') which are loaded directly from R, based purely
+   on the contents of benching.csv, which must be present in
+   plutus-core/cost-model/data.  The costing functions we use in practice are
+   read from 'builtinCostModel.json', which contains JSON-serialised versions of
+   the Haskell costing functions.  Perhaps the tests should be reading the
+   Haskell costing functions from the JSON file as well; there shouldn't really
+   be any problem because the functions should be the same as the ones we
+   construct from R here (they're essentially the contents of 'costModelsR'
+   converted to JSON), but it wouldn't do any harm to include any possible loss
+   of accuracy due to serialisation/deserialisation in the tests as well.
 
 -}
 
