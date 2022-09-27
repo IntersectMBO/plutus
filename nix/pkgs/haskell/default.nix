@@ -5,7 +5,6 @@
 , haskell-nix
 , buildPackages
 , writeShellScript
-, checkMaterialization
 , gitignore-nix
 , R
 , libsodium-vrf
@@ -37,7 +36,7 @@ let
     { deferPluginErrors }:
     import ./haskell.nix {
       inherit lib haskell-nix R libsodium-vrf secp256k1 rPackages z3;
-      inherit agdaWithStdlib checkMaterialization compiler-nix-name gitignore-nix;
+      inherit agdaWithStdlib compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;
       inherit deferPluginErrors;
     };
@@ -55,7 +54,7 @@ let
 
   extraPackages = import ./extra.nix {
     inherit stdenv lib haskell-nix sources buildPackages writeShellScript;
-    inherit index-state checkMaterialization compiler-nix-name;
+    inherit index-state compiler-nix-name;
   };
 
 in

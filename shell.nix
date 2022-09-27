@@ -78,7 +78,6 @@ let
     hie-bios
     hlint
     stylish-haskell
-    updateMaterialized
     docs.build-and-serve-docs
   ]);
 

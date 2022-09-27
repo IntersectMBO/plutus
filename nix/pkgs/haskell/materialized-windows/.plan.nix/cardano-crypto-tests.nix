@@ -8,7 +8,7 @@
   , config
   , ... }:
   {
-    flags = { development = false; };
+    flags = { development = false; secp256k1-support = true; };
     package = {
       specVersion = "2.2";
       identifier = { name = "cardano-crypto-tests"; version = "2.0.0"; };
@@ -47,8 +47,8 @@
           (hsPkgs."pretty-show" or (errorHandler.buildDepError "pretty-show"))
           (hsPkgs."QuickCheck" or (errorHandler.buildDepError "QuickCheck"))
           (hsPkgs."quickcheck-instances" or (errorHandler.buildDepError "quickcheck-instances"))
-          (hsPkgs."secp256k1-haskell" or (errorHandler.buildDepError "secp256k1-haskell"))
           (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+          (hsPkgs."tasty-hunit" or (errorHandler.buildDepError "tasty-hunit"))
           (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
           (hsPkgs."criterion" or (errorHandler.buildDepError "criterion"))
           ];
@@ -59,6 +59,7 @@
           "Test/Crypto/KES"
           "Test/Crypto/Util"
           "Test/Crypto/VRF"
+          "Test/Crypto/Regressions"
           "Test/Crypto/Instances"
           "Bench/Crypto/VRF"
           "Bench/Crypto/KES"

@@ -29,8 +29,8 @@
       extraSrcFiles = [
         "README.md"
         "cbits/crypto_vrf.h"
-        "cbits/crypto_vrf_ietfdraft03.h"
-        "cbits/vrf_ietfdraft03.h"
+        "cbits/vrf03/crypto_vrf_ietfdraft03.h"
+        "cbits/vrf03/vrf_ietfdraft03.h"
         "cbits/private/common.h"
         "cbits/private/quirks.h"
         "cbits/private/ed25519_ref10.h"
@@ -63,14 +63,14 @@
           (pkgconfPkgs."libsodium" or (errorHandler.pkgConfDepError "libsodium"))
           ];
         buildable = true;
-        modules = [ "Cardano/Crypto/VRF/Praos" ];
+        modules = [ "Cardano/Crypto/VRF/Praos" "Cardano/Crypto/RandomBytes" ];
         cSources = (pkgs.lib).optionals (!flags.external-libsodium-vrf) [
           "cbits/crypto_vrf.c"
-          "cbits/convert.c"
-          "cbits/keypair.c"
-          "cbits/prove.c"
-          "cbits/verify.c"
-          "cbits/vrf.c"
+          "cbits/vrf03/convert.c"
+          "cbits/vrf03/keypair.c"
+          "cbits/vrf03/prove.c"
+          "cbits/vrf03/verify.c"
+          "cbits/vrf03/vrf.c"
           "cbits/private/ed25519_ref10.c"
           ];
         hsSourceDirs = [ "src" ];

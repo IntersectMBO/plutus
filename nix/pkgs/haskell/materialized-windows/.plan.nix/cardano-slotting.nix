@@ -10,7 +10,7 @@
   {
     flags = { development = false; };
     package = {
-      specVersion = "2.2";
+      specVersion = "3.0";
       identifier = { name = "cardano-slotting"; version = "0.1.0.0"; };
       license = "Apache-2.0";
       copyright = "IOHK";
@@ -50,11 +50,27 @@
           "Cardano/Slotting/Block"
           "Cardano/Slotting/EpochInfo"
           "Cardano/Slotting/EpochInfo/API"
+          "Cardano/Slotting/EpochInfo/Extend"
           "Cardano/Slotting/EpochInfo/Impl"
           "Cardano/Slotting/Slot"
           "Cardano/Slotting/Time"
           ];
         hsSourceDirs = [ "src" ];
+        };
+      tests = {
+        "tests" = {
+          depends = [
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."base" or (errorHandler.buildDepError "base"))
+            (hsPkgs."cardano-slotting" or (errorHandler.buildDepError "cardano-slotting"))
+            (hsPkgs."tasty" or (errorHandler.buildDepError "tasty"))
+            (hsPkgs."tasty-quickcheck" or (errorHandler.buildDepError "tasty-quickcheck"))
+            ];
+          buildable = true;
+          modules = [ "Test/Cardano/Slotting/EpochInfo" ];
+          hsSourceDirs = [ "test" ];
+          mainPath = [ "Main.hs" ];
+          };
         };
       };
     } // {

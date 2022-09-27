@@ -8,7 +8,7 @@
   , config
   , ... }:
   {
-    flags = { development = false; };
+    flags = { development = false; secp256k1-support = true; };
     package = {
       specVersion = "2.2";
       identifier = { name = "cardano-crypto-class"; version = "2.0.0"; };
@@ -40,7 +40,6 @@
           (hsPkgs."bytestring" or (errorHandler.buildDepError "bytestring"))
           (hsPkgs."cardano-binary" or (errorHandler.buildDepError "cardano-binary"))
           (hsPkgs."cardano-prelude" or (errorHandler.buildDepError "cardano-prelude"))
-          (hsPkgs."cereal" or (errorHandler.buildDepError "cereal"))
           (hsPkgs."cryptonite" or (errorHandler.buildDepError "cryptonite"))
           (hsPkgs."deepseq" or (errorHandler.buildDepError "deepseq"))
           (hsPkgs."ghc-prim" or (errorHandler.buildDepError "ghc-prim"))
@@ -48,7 +47,6 @@
           (hsPkgs."memory" or (errorHandler.buildDepError "memory"))
           (hsPkgs."nothunks" or (errorHandler.buildDepError "nothunks"))
           (hsPkgs."primitive" or (errorHandler.buildDepError "primitive"))
-          (hsPkgs."secp256k1-haskell" or (errorHandler.buildDepError "secp256k1-haskell"))
           (hsPkgs."serialise" or (errorHandler.buildDepError "serialise"))
           (hsPkgs."text" or (errorHandler.buildDepError "text"))
           (hsPkgs."transformers" or (errorHandler.buildDepError "transformers"))
@@ -56,20 +54,16 @@
           ];
         pkgconfig = [
           (pkgconfPkgs."libsodium" or (errorHandler.pkgConfDepError "libsodium"))
-          (pkgconfPkgs."libsecp256k1" or (errorHandler.pkgConfDepError "libsecp256k1"))
-          ];
+          ] ++ (pkgs.lib).optional (flags.secp256k1-support) (pkgconfPkgs."libsecp256k1" or (errorHandler.pkgConfDepError "libsecp256k1"));
         buildable = true;
         modules = [
           "Cardano/Crypto/PackedBytes"
-          "Cardano/Crypto/Schnorr"
           "Cardano/Crypto/DSIGN"
           "Cardano/Crypto/DSIGN/Class"
-          "Cardano/Crypto/DSIGN/EcdsaSecp256k1"
           "Cardano/Crypto/DSIGN/Ed25519"
           "Cardano/Crypto/DSIGN/Ed448"
           "Cardano/Crypto/DSIGN/Mock"
           "Cardano/Crypto/DSIGN/NeverUsed"
-          "Cardano/Crypto/DSIGN/SchnorrSecp256k1"
           "Cardano/Crypto/Hash"
           "Cardano/Crypto/Hash/Blake2b"
           "Cardano/Crypto/Hash/Class"
@@ -78,6 +72,7 @@
           "Cardano/Crypto/Hash/SHA256"
           "Cardano/Crypto/Hash/SHA3_256"
           "Cardano/Crypto/Hash/Short"
+          "Cardano/Crypto/Init"
           "Cardano/Crypto/KES"
           "Cardano/Crypto/KES/Class"
           "Cardano/Crypto/KES/CompactSingle"
@@ -106,6 +101,11 @@
           "Cardano/Crypto/VRF/NeverUsed"
           "Cardano/Crypto/VRF/Simple"
           "Cardano/Foreign"
+          ] ++ (pkgs.lib).optionals (flags.secp256k1-support) [
+          "Cardano/Crypto/DSIGN/EcdsaSecp256k1"
+          "Cardano/Crypto/DSIGN/SchnorrSecp256k1"
+          "Cardano/Crypto/SECP256K1/Constants"
+          "Cardano/Crypto/SECP256K1/C"
           ];
         hsSourceDirs = [ "src" ];
         };

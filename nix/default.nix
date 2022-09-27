@@ -5,7 +5,6 @@
 , sourcesOverride ? { }
 , sources
 , haskellNix
-, checkMaterialization ? false
 , enableHaskellProfiling ? false
 }:
 let
@@ -37,7 +36,7 @@ let
     config = haskellNix.nixpkgsArgs.config // config;
   };
 
-  plutus = import ./pkgs { inherit pkgs checkMaterialization enableHaskellProfiling sources; };
+  plutus = import ./pkgs { inherit pkgs enableHaskellProfiling sources; };
 
 in
 {
