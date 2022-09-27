@@ -18,7 +18,6 @@ module PlutusCore.Evaluation.Machine.ExMemory
 ) where
 
 import PlutusCore.Data
-import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusPrelude
 
@@ -183,11 +182,6 @@ class ExMemoryUsage a where
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
     {-# INLINE memoryUsage #-}
-instance ExMemoryUsage SatInt where
-    memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
-    {-# INLINE memoryUsage #-}
-
-deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
