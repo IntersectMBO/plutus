@@ -6,8 +6,8 @@ on:
 
 jobs:
   build:
+    name: "Build ${{ matrix.ghc }} on ${{ matrix.os }}"
     strategy:
-      fail-fast: false
       matrix:
         ghc: ["ghc8107", "ghc924"]
         os: [ubuntu-latest, macos-latest]
@@ -15,7 +15,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: input-output-hk/devx/actions/haskell/nix-shell@v1
+      - name: "Use haskell/nix-shell"
+        uses: input-output-hk/devx/haskell-nix-shell@v1
         with:
           compiler: ${{ matrix.ghc }}
-      - run: echo "hi"
+      - name: Say something
+        run: echo "hi"
