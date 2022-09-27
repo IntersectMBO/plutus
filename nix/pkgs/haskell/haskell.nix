@@ -102,7 +102,7 @@ let
           plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
 
           # Relies on cabal-doctest, just turn it off in the Nix build
-          prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
+          #prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
 
           plutus-core.components.benchmarks.update-cost-model = {
             build-tools = r-packages;
@@ -125,7 +125,7 @@ let
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
-          prettyprinter-configurable.ghcOptions = [ "-Werror" ];
+          #prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           word-array.ghcOptions = [ "-Werror" ];
 
           # External package settings
