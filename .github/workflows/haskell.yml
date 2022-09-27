@@ -16,8 +16,6 @@ jobs:
 
     steps:
       - name: "Use haskell/nix-shell"
-        uses: input-output-hk/devx/haskell-nix-shell@v1
+        uses: input-output-hk/devx/haskell/nix-shell@v1
         with:
           compiler: ${{ matrix.ghc }}
-      - name: Say something
-        run: echo "hi"
