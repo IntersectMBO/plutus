@@ -18,3 +18,4 @@ jobs:
       - uses: input-output-hk/devx/actions/haskell/nix-shell@v1
         with:
           compiler: ${{ matrix.ghc }}
+      - run: echo "hi"
