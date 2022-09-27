@@ -126,6 +126,19 @@ propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegio
     unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
     unsafeHoist nt = hoist (unsafeCoerce nt)
 
+{- The runCostingFun<N>Arguments functions take objects as arguments, calculate
+   the size measures (memoryUsage) of those objects, and then apply the actual
+   costing functions to those sizes.  Here we want to feed sizes directly to the
+   costing functions (no intermediate objects), so given a size n we wrap it the
+   type below which has an ExMemoryUsage instance which returns n, _not_ the
+   size of n (which would usually be 1).  This type should not be used outside
+   this module because the memoryUsage function doesn't accurately reflect
+   sizes.
+-}
+newtype ExM = ExM CostingInteger
+instance ExMemoryUsage ExM where
+    memoryUsage (ExM n) = ExMemory n
+
 -- Creates the model on the R side, loads the parameters over to Haskell, and
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
@@ -144,7 +157,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
-    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
+    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExM x)
     sizeGen = memUsageGen
   x <- forAll sizeGen
   byR <- lift $ predictR x
@@ -169,7 +182,7 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
       in
         microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
+    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExM x) (ExM y)
     sizeGen = case domain of
                 Everywhere    -> twoArgs
                 OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
@@ -197,7 +210,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
       in
         microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
+    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z) <- forAll sizeGen
   byR <- lift $ predictR x y z
@@ -228,7 +241,7 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
-                                                     (ExMemory x) (ExMemory y) (ExMemory z) (ExMemory u) (ExMemory v) (ExMemory w)
+                                                     (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
     sizeGen = (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z, u, v, w) <- forAll sizeGen
   byR <- lift $ predictR x y z u v w
@@ -304,7 +317,8 @@ main =
                     , $(genTest 1 "sha2_256")
                     , $(genTest 1 "sha3_256")
                     , $(genTest 1 "blake2b_256")
-                    , $(genTest 3 "verifyEd25519Signature")
+                    -- , $(genTest 3 "verifyEd25519Signature")
+                    -- ^ Disabled for the time being: see the comment in CreateBuiltinCostModel.hs
                     , $(genTest 3 "verifyEcdsaSecp256k1Signature")
                     , $(genTest 3 "verifySchnorrSecp256k1Signature")
 
