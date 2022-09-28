@@ -7,7 +7,6 @@ module PlutusLedgerApi.Common
     , mkDynEvaluationContext
     , assertScriptWellFormed
     , assertWellFormedCostModelParams
-    , toMachineParameters
     , SerialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
