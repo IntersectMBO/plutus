@@ -43,7 +43,17 @@ This also means that as long as `blocks-per-file` and `events-per-file` remain t
 
 ## Running the Tests
 
-To run the tests, first download the dump files from S3 to a local directory. Then run the following in the nix shell of plutus:
+To run the tests, first download the dump files from S3 to a local directory:
+
+```
+AWS_ACCESS_KEY_ID=plutus \
+AWS_SECRET_ACCESS_KEY=plutuskey \
+AWS_DEFAULT_REGION=us-east-1 \
+aws --endpoint-url https://s3.devx.iog.io \
+s3 sync s3://plutus/mainnet-script-dump/ $HOME/mainnet-script-dump-downloaded
+```
+
+Then unzip all `.bz2` files, and run the following in the nix shell of plutus:
 
 ```
 EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal run plutus-ledger-api:evaluation-test -- --num-threads=1
