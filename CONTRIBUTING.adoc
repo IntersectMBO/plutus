@@ -411,7 +411,7 @@ Use whichever you deem appropriate.
 As said before, sometimes people use a single PR with multiple commits for their work; other times they create multiple small PRs.
 The best merge method is different for different cases.
 
-That being said, there are not many cases where "rebase and merge" is appropriate.
+That being said, there are not many cases where "rebase and merge" is appropriate, you might as well rebase it yourself.
 And if you use this method, your PR must have a clean commit history: every commit should have a meaningful message, and should be buildable.
 You don't want to have commits like "fix a typo", "this may work" or "wip, done for the day" in master with a linear history.
 And if some of these commits are non-buildable, it can create problems for "git bisect".
