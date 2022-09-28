@@ -120,8 +120,8 @@ import PlutusTx.AssocMap (Map, fromList)
 
 -- | An alias to the language version this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-thisPlutusVersion :: LedgerPlutusVersion
-thisPlutusVersion = PlutusV2
+_THIS_PLUTUS_VERSION :: LedgerPlutusVersion
+_THIS_PLUTUS_VERSION = PlutusV2
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
@@ -129,7 +129,7 @@ assertScriptWellFormed :: MonadError ScriptDecodeError  m
                        => ProtocolVersion
                        -> SerialisedScript
                        -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
+assertScriptWellFormed = Common.assertScriptWellFormed _THIS_PLUTUS_VERSION
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
@@ -142,7 +142,7 @@ evaluateScriptCounting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting = Common.evaluateScriptCounting _THIS_PLUTUS_VERSION
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -158,4 +158,4 @@ evaluateScriptRestricting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting = Common.evaluateScriptRestricting _THIS_PLUTUS_VERSION

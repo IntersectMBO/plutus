@@ -4,8 +4,6 @@ module PlutusLedgerApi.V1.EvaluationContext
     , mkEvaluationContext
     , CostModelParams
     , assertWellFormedCostModelParams
-    , machineParametersImmediate
-    , machineParametersDeferred
     , CostModelApplyError (..)
     ) where
 

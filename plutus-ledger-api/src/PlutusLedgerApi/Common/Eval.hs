@@ -5,7 +5,16 @@
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module PlutusLedgerApi.Common.Eval where
+module PlutusLedgerApi.Common.Eval
+    ( EvaluationError(..)
+    , EvaluationContext
+    , VerboseMode (..)
+    , LogOutput
+    , evaluateScriptCounting
+    , evaluateScriptRestricting
+    , mkDynEvaluationContext
+    , assertWellFormedCostModelParams
+    ) where
 
 import Control.Lens
 import PlutusCore
@@ -25,7 +34,6 @@ import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
 
 import Control.Monad.Except
 import Control.Monad.Writer
@@ -56,41 +64,13 @@ instance Pretty EvaluationError where
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | The type of log output: just a list of 'Text'.
+--
+-- TODO: api-user does not depend on it, so move it to plutus-core and also perhaps rename it
 type LogOutput = [Text.Text]
 
 -- | A simple toggle indicating whether or not we should produce logs.
 data VerboseMode = Verbose | Quiet
     deriving stock (Eq)
-
--- | Shared helper for the evaluation functions, deserialises the 'SerialisedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
-mkTermToEvaluate
-    :: (MonadError EvaluationError m)
-    => LedgerPlutusVersion
-    -> ProtocolVersion
-    -> SerialisedScript
-    -> [Plutus.Data]
-    -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
-mkTermToEvaluate lv pv bs args = do
-    -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
-    let termArgs = fmap (UPLC.mkConstant ()) args
-        appliedT = UPLC.mkIterApp () t termArgs
-
-    -- make sure that term is closed, i.e. well-scoped
-    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
-
--- | Which unlifting mode should we use in the given 'ProtocolVersion'
--- so as to correctly construct the machine's parameters
-unliftingModeIn :: ProtocolVersion -> UnliftingMode
-unliftingModeIn pv =
-    -- This just changes once in vasil hf version 7.0
-    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
-
-toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv = case unliftingModeIn pv of
-    UnliftingImmediate -> machineParametersImmediate
-    UnliftingDeferred  -> machineParametersDeferred
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script.  This is so that they can be computed once and cached, rather than recomputed on every
@@ -119,7 +99,7 @@ mkDynEvaluationContext ver newCMP =
         <$> immediateMachineParameters ver newCMP
         <*> deferredMachineParameters ver newCMP
 
--- | Comparably expensive to `mkEvaluationContext`, so it should only be used sparingly.
+-- | Comparably expensive to `mkDynEvaluationContext`, so it should only be used sparingly.
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
@@ -185,3 +165,34 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
     tell logs
     liftEither $ first CekError $ void res
     pure final
+
+-- | Which unlifting mode should we use in the given 'ProtocolVersion'
+-- so as to correctly construct the machine's parameters
+unliftingModeIn :: ProtocolVersion -> UnliftingMode
+unliftingModeIn pv =
+    -- This just changes once in vasil hf version 7.0
+    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
+
+toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
+toMachineParameters pv = case unliftingModeIn pv of
+    UnliftingImmediate -> machineParametersImmediate
+    UnliftingDeferred  -> machineParametersDeferred
+
+-- | Shared helper for the evaluation functions, deserialises the 'SerialisedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
+mkTermToEvaluate
+    :: (MonadError EvaluationError m)
+    => LedgerPlutusVersion
+    -> ProtocolVersion
+    -> SerialisedScript
+    -> [Plutus.Data]
+    -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+mkTermToEvaluate lv pv bs args = do
+    -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
+    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
+    unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
+    let termArgs = fmap (UPLC.mkConstant ()) args
+        appliedT = UPLC.mkIterApp () t termArgs
+
+    -- make sure that term is closed, i.e. well-scoped
+    through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
+
