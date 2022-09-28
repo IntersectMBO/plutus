@@ -15,7 +15,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
-import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..), UniqueError)
+import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -62,7 +62,7 @@ import System.Mem (performGC)
 import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
------------ Executable type class -----------
+----------- PlutusProgram type class -----------
 
 -- | PIR program type.
 type PirProg =
@@ -76,7 +76,7 @@ type PlcProg =
 type UplcProg =
   UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
 
-class Executable p where
+class PlutusProgram p where
 
   -- | Parse a program.  The first argument (normally the file path) describes
   -- the input stream, the second is the program text.
@@ -85,11 +85,10 @@ class Executable p where
 
   -- | Check a program for unique names.
   -- Throws a @UniqueError@ when not all names are unique.
-  checkProgram ::
+  checkUnique ::
      (Ord ann, AsUniqueError e ann,
        MonadError e m)
-    => (UniqueError ann -> Bool)
-    -> p ann
+    => p ann
     -> m ()
 
   -- | Convert names to de Bruijn indices and then serialise
@@ -107,23 +106,23 @@ serialiseTProgramFlat nameType p =
         NamedDeBruijn -> typedDeBruijnNotSupportedError
 
 -- | Instance for PIR program.
-instance Executable PirProg where
+instance PlutusProgram PirProg where
   parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-  checkProgram _ _ = pure () -- should I add this?
+  checkUnique _ = pure () -- decided that it's not worth implementing since it's checked in PLC.
   serialiseProgramFlat = serialiseTProgramFlat
   loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for PLC program.
-instance Executable PlcProg where
+instance PlutusProgram PlcProg where
   parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
-  checkProgram = PLC.checkProgram
+  checkUnique = PLC.checkProgram (const True)
   serialiseProgramFlat = serialiseTProgramFlat
   loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for UPLC program.
-instance Executable UplcProg where
+instance PlutusProgram UplcProg where
   parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
-  checkProgram = UPLC.checkProgram
+  checkUnique = UPLC.checkProgram (const True)
   serialiseProgramFlat nameType p =
       case nameType of
         Named         -> pure $ BSL.fromStrict $ flat p
@@ -145,7 +144,8 @@ toDeBruijn prog =
     Left e  -> errorWithoutStackTrace $ show e
     Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
 
--- | Convert an untyped program to one where the 'name' type is textual names with de Bruijn indices.
+-- | Convert an untyped program to one where the 'name' type is
+-- textual names with de Bruijn indices.
 toNamedDeBruijn :: UplcProg ann
   -> IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
 toNamedDeBruijn prog =
@@ -317,7 +317,7 @@ getInput StdInput         = T.getContents
 
 -- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
 parseInput ::
-  (Executable p, PLC.Rename (p PLC.SourcePos) ) =>
+  (PlutusProgram p, PLC.Rename (p PLC.SourcePos) ) =>
   -- | The source program
   Input ->
   -- | The output is either a UPLC or PLC program with annotation
@@ -334,12 +334,11 @@ parseInput inp = do
         -- run @rename@ through the program
         renamed <- PLC.runQuoteT $ rename p
         -- check the program for @UniqueError@'s
-        let checked = through (Common.checkProgram (const True)) renamed
+        let checked = through (Common.checkUnique) renamed
         case checked of
           -- pretty print the error
           Left (err :: PLC.UniqueError PLC.SourcePos) ->
             errorWithoutStackTrace $ PP.render $ pretty err
-          -- if there's no errors, return the parsed program
           Right _ -> pure p
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
@@ -399,7 +398,7 @@ loadUplcASTfromFlat flatMode inp = do
 
 -- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
 getProgram ::
-  (Executable p,
+  (PlutusProgram p,
    Functor p,
    PLC.Rename (p PLC.SourcePos)) =>
   Format -> Input -> IO (p PLC.SourcePos)
@@ -414,7 +413,7 @@ getProgram fmt inp =
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
 writeFlat ::
-  (Executable p, Functor p) => Output -> AstNameType -> p ann -> IO ()
+  (PlutusProgram p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
   -- Change annotations to (): see Note [Annotation types].
   flatProg <- serialiseProgramFlat flatMode (() <$ prog)
@@ -433,7 +432,7 @@ getPrintMethod = \case
       ReadableDebug -> PP.prettyPlcReadableDebug
 
 writeProgram ::
-  (Executable p,
+  (PlutusProgram p,
    Functor p,
    PP.PrettyBy PP.PrettyConfigPlc (p ann)) =>
    Output -> Format -> PrintMode -> p ann -> IO ()
