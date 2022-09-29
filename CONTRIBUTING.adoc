@@ -283,19 +283,20 @@ When developing a non-trivial new feature, usually the best way to get the code 
 Unfortunately GitHub doesn't have good support for this.
 You basically have three options:
 
-- Open the first PR against master, the second PR against the first PR, and so on.
+- Open the first PR against master, the second PR against the first PR's branch, and so on.
   Merging a stack of PRs created this way into master can be non-trivial.
 - Wait until one PR is merged before opening the next PR.
 - Use a single PR for the whole feature that contains multiple small commits.
   The problem is that Github doesn't support approving, rejecting or merging individual commits in a PR.
   You can look at each individual commit, but it's not necessarily useful or even appropriate - many PRs have quite messy commits, and commits are sometimes overwritten via force push.
 
-The first two options are often referred to as "trunk-based development", while the third "long-lived feature branches".
+The first two options are often referred to as ["trunk-based development"](https://trunkbaseddevelopment.com/), while the third "long-lived feature branches".
 There is no single best option for all cases, although in general we encourage adopting trunk-based development styles.
 Long-lived feature branches with too many commits are harmful because
-(1) they are difficult to review - the PR can be quite large, and it is hard to review it incrementally;
-(2) it can be difficult to resolve merge conflicts;
-(3) they make it more likely that other people need to depend on your unmerged changes.
+
+1. they are difficult to review - the PR can be quite large, and it is hard to review it incrementally;
+2. it can be difficult to resolve merge conflicts;
+3. they make it more likely that other people need to depend on your unmerged changes.
 
 It is fine to have partially implemented features or not well-tested features in master.
 You can simply not turn them on until they are ready, or guard them with conditinal flags.
@@ -331,7 +332,7 @@ Use the Github "draft" feature for this.
 Force pushing to master (or any other protected branch) is never allowed.
 There is no exception to this rule.
 
-Rebasing and force pushing to other branches you own is fine.
+Rebasing and force pushing to other branches you own is fine, even when you have an open PR on the branch.
 Indeed, if you need to update your branch with changes from master, rebasing is typically better than merging.
 
 Some projects do not allow force pushing to any remote branch.
@@ -411,7 +412,7 @@ Use whichever you deem appropriate.
 As said before, sometimes people use a single PR with multiple commits for their work; other times they create multiple small PRs.
 The best merge method is different for different cases.
 
-That being said, there are not many cases where "rebase and merge" is appropriate, you might as well rebase it yourself.
+That being said, there are not many cases where "rebase and merge" is appropriate, and you might as well rebase it yourself.
 And if you use this method, your PR must have a clean commit history: every commit should have a meaningful message, and should be buildable.
 You don't want to have commits like "fix a typo", "this may work" or "wip, done for the day" in master with a linear history.
 And if some of these commits are non-buildable, it can create problems for "git bisect".
@@ -432,7 +433,7 @@ There are ways to guarantee master never breaks, such as GitHub's [merge queue](
 
 We don't use the merge queue because
 
-- Historically, plutus master rarely breaks.
+- A broken master has historically been quite infrequent.
 - The merge queue increases the time it takes to merge a PR, which causes productivity loss if you are waiting to create the next PR after merging the current one (which happens often).
 
 However, if your PR branch has diverged too much from master, it is recommended that you rebase or merge master into the PR branch before merging.
@@ -476,11 +477,6 @@ Pull requests cannot be merged without at least the Hydra CI check being green.
 
 NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
 If you really need this, ask.
-
-CI checks are run on the tip of the PR branch, not on the merge commit that is created with master.
-As a result, it's possible to create a "semantic" merge commit where the CI passes on commits C1 and C2, but not on the merge of C1 and C2.
-In this circumstance we can end up with the CI checks being broken on master.
-However, this is sufficiently infrequent that we just live with the possibility, since eliminating it is quite awkward.
 
 ==== Hydra
 
