@@ -47,7 +47,8 @@ ioSpec = MkIOSpec <$> input <*> output
 
 formatHelp :: String
 formatHelp =
-  "textual, flat-named (names), flat (de Bruijn indices), or flat-namedDeBruijn (names and de Bruijn indices)"
+  "textual, flat-named (names), flat (de Bruijn indices), "
+  <> "or flat-namedDeBruijn (names and de Bruijn indices)"
 
 formatReader :: String -> Maybe Format
 formatReader =
@@ -90,7 +91,8 @@ timing2 = Timing <$> option auto
   (  long "time-execution"
   <> short 'X'
   <> metavar "N"
-  <> help "Report mean execution time of program over N repetitions. Use a large value of N if possible to get accurate results."
+  <> help ("Report mean execution time of program over N repetitions. "
+  <> " Use a large value of N if possible to get accurate results.")
   )
 
 -- We really do need two separate parsers here.
@@ -104,7 +106,7 @@ tracemode = option auto
   <> metavar "MODE"
   <> value None
   <> showDefault
-  <> help "Mode for trace ouptupt.")
+  <> help "Mode for trace output.")
 
 files :: Parser Files
 files = some (argument str (metavar "[FILES...]"))
@@ -118,8 +120,10 @@ printmode = option auto
   <> metavar "MODE"
   <> value Debug
   <> showDefault
-  <> help ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, Debug -> plcPrettyClassicDebug, "
-        ++ "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
+  <> help
+    ("Print mode for textual output (ignored elsewhere): Classic -> plcPrettyClassicDef, "
+     <> "Debug -> plcPrettyClassicDebug, "
+     <> "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
 printOpts = PrintOptions <$> ioSpec <*> printmode

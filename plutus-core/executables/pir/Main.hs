@@ -159,8 +159,11 @@ main = do
     infoOpts =
       info (pPirOpts <**> helper)
            ( fullDesc
-           <> progDesc "Load a flat pir term from file and run the compiler on it"
-           <> header "pir - a small tool for loading pir from flat representation for analysis or compilation to PLC")
+          --  <> progDesc "Load a flat pir term from file and run the compiler on it"
+           <> header "PIR tool"
+           <> progDesc ("This program provides a number of utilities for dealing with "
+           <> "PIR programs, including print, analysis, compilation to PLC, "
+           <> "and conversion between a number of different formats. "))
 
 -- | a csv-outputtable record row of {name,unique,size}
 data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}
