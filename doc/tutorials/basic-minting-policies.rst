@@ -19,15 +19,18 @@ The minting policy is a function which receives these two inputs as *arguments*.
 The validating node is responsible for passing them in and running the minting policy.
 As with validator scripts, the arguments are passed encoded as :hsobj:`PlutusCore.Data.Data`.
 
-Using the script context
-------------------------
+Plutus V1 and V2 script context
+------------------------------------
 
 Minting policies have access to the :term:`script context` as their second argument.
-This will always be a value of type :hsobj:``PlutusLedgerApi.V1.Contexts.ScriptContext`` encoded as ``Data``.
+Plutus V1 and V2 minting policy scripts are differentiated only by their ``ScriptContext``. 
+
+   See this example of `two minting policies defined and compiled as both Plutus V1 and V2 <https://github.com/james-iohk/plutus-scripts/blob/master/src/TokenNamePolicy.hs>`_. 
+
 Minting policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
 
 It is also important for a minting policy to look at the tokens in the ``mint`` field that are part of its own asset group.
-This requires the policy to refer to its own hash -- fortunately this is provided for us in the script context of a minting policy.
+This requires the policy to refer to its own hash --- fortunately this is provided for us in the script context of a minting policy.
 
 Writing minting policies
 ------------------------
