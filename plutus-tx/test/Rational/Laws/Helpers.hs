@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-orphans #-} -- We need Arg Rational instance
 
-module Suites.Laws.Helpers (
+module Rational.Laws.Helpers (
   genRational,
   varyRational,
   genInteger,

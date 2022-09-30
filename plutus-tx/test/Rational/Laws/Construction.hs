@@ -2,14 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
-module Suites.Laws.Construction (constructionLaws) where
+module Rational.Laws.Construction (constructionLaws) where
 
 import Hedgehog (Gen, Property, cover, property, (===))
 import Hedgehog.Gen qualified as Gen
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
 import Prelude
-import Suites.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, normalAndEquivalentToMaybe, testCoverProperty)
+import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, normalAndEquivalentToMaybe, testCoverProperty)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

@@ -1,13 +1,13 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-module Suites.Laws.Serialization (serializationLaws) where
+module Rational.Laws.Serialization (serializationLaws) where
 
 import Data.Aeson (decode, encode)
 import Hedgehog (Property, property, tripping, (===))
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import Prelude
-import Suites.Laws.Helpers (forAllWithPP, genRational)
+import Rational.Laws.Helpers (forAllWithPP, genRational)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
