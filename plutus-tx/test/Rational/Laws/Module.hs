@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Suites.Laws.Module (moduleLaws) where
+module Rational.Laws.Module (moduleLaws) where
 
 import Hedgehog (Property, property)
 import PlutusTx.Prelude qualified as Plutus
 import Prelude
-import Suites.Laws.Helpers (forAllWithPP, genInteger, genRational, normalAndEquivalentTo)
+import Rational.Laws.Helpers (forAllWithPP, genInteger, genRational, normalAndEquivalentTo)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

@@ -1,14 +1,14 @@
-module Suites.Laws (lawsTests) where
+module Rational.Laws (lawsTests) where
 
-import Suites.Laws.Additive (additiveLaws)
-import Suites.Laws.Construction (constructionLaws)
-import Suites.Laws.Eq (eqLaws)
-import Suites.Laws.Module (moduleLaws)
-import Suites.Laws.Multiplicative (multiplicativeLaws)
-import Suites.Laws.Ord (ordLaws)
-import Suites.Laws.Other (otherLaws)
-import Suites.Laws.Ring (ringLaws)
-import Suites.Laws.Serialization (serializationLaws)
+import Rational.Laws.Additive (additiveLaws)
+import Rational.Laws.Construction (constructionLaws)
+import Rational.Laws.Eq (eqLaws)
+import Rational.Laws.Module (moduleLaws)
+import Rational.Laws.Multiplicative (multiplicativeLaws)
+import Rational.Laws.Ord (ordLaws)
+import Rational.Laws.Other (otherLaws)
+import Rational.Laws.Ring (ringLaws)
+import Rational.Laws.Serialization (serializationLaws)
 import Test.Tasty (TestTree, testGroup)
 
 lawsTests :: TestTree

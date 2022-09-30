@@ -1,13 +1,13 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-module Suites.Laws.Eq (eqLaws) where
+module Rational.Laws.Eq (eqLaws) where
 
 import Hedgehog (Property, PropertyT, property, success, (===))
 import Hedgehog.Function (fnWith, forAllFn)
 import PlutusTx.Prelude qualified as Plutus
 import Prelude
-import Suites.Laws.Helpers (forAllWithPP, genInteger, genRational, testEntangled, testEntangled3, varyRational)
+import Rational.Laws.Helpers (forAllWithPP, genInteger, genRational, testEntangled, testEntangled3, varyRational)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 
