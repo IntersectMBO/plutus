@@ -5,7 +5,6 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
 module PlutusTx.Lift (
-    makeLift,
     safeLift,
     safeLiftProgram,
     safeLiftCode,
@@ -14,12 +13,15 @@ module PlutusTx.Lift (
     liftProgramDef,
     liftCode,
     typeCheckAgainst,
-    typeCode) where
+    typeCode,
+    makeTypeable,
+    makeLift,
+    LiftError(..)) where
 
 import PlutusTx.Code
-import PlutusTx.Lift.Class (makeLift)
 import PlutusTx.Lift.Class qualified as Lift
 import PlutusTx.Lift.Instances ()
+import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
 import Data.Bifunctor
 import PlutusIR

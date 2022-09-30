@@ -13,7 +13,7 @@ import PlutusCore.Evaluation.Machine.Exception qualified as PLC
 import PlutusIR.Error qualified as PIR
 import PlutusTx.Code qualified as PTX
 import PlutusTx.Compiler.Error qualified as PTX
-import PlutusTx.Lift.Class qualified as PTX
+import PlutusTx.Lift qualified as PTX
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as PLC
 
 {- | A collection of error instances which are obsolete, together with their error codes bundled to one instance.
