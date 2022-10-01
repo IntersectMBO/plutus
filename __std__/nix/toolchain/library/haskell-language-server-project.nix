@@ -1,5 +1,7 @@
 { inputs, cell }:
 
+# TODO(std) upgrade to 1.8.0.0 (see master)
+
 cell.library.haskell-nix.cabalProject' {
   # See https://github.com/haskell/haskell-language-server/issues/411.
   # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools
