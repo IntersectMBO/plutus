@@ -7,7 +7,7 @@ let
   inherit (library.pkgs) lib;
 
   r-packages = with library.pkgs.rPackages; [
-    R
+    library.pkgs.R
     tidyverse
     dplyr
     stringr

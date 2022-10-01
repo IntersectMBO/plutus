@@ -22,11 +22,8 @@ _: {
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
 
   packages = [
-    cell.library.pkgs.editorconfig-core-c
-    cell.library.pkgs.editorconfig-checker
     cell.library.pkgs.jq
     cell.library.pkgs.pre-commit
-    cell.library.pkgs.shellcheck
     cell.library.pkgs.yq
     cell.library.pkgs.zlib
   ];

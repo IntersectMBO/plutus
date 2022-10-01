@@ -2,7 +2,7 @@
 # in a flake.lock.
 { system }:
 let
-  lock = builtins.fromJSON (builtins.readFile ../flake.lock);
+  lock = builtins.fromJSON (builtins.readFile ../old.flake.lock);
 
   inherit (lock.nodes.${lock.root}) inputs;
 
@@ -19,7 +19,7 @@ let
   # we can use the fetcher defined in nixpkgs for all other fetching.
   pkgs = import
     (builtins.fetchTarball
-      (fetcher-args lock.nodes.${inputs.nixpkgs}.locked))
+      (fetcher-args lock.nodes.${inputs.nixpkgs-flakefree}.locked))
     {
       inherit system;
     };

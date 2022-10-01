@@ -3,10 +3,11 @@
   # you're evaluting on a machine with e.g. no way to build the Darwin IFDs you need!
   supportedSystems ? [ "x86_64-linux" "x86_64-darwin" ]
 , rootsOnly ? false
+, system
 }:
 let
   inherit
-    (import ./nix/lib/ci.nix)
+    (import ./nix/lib/ci.nix { inherit system; })
     dimension
     platformFilterGeneric
     filterAttrsOnlyRecursive
@@ -15,7 +16,7 @@ let
   # currently that is linux and darwin.
   systems = filterSystems supportedSystems;
   crossSystems =
-    let pkgs = (import ./default.nix { }).pkgs;
+    let pkgs = (import ./default.nix { inherit system; }).pkgs;
     in { inherit (pkgs.lib.systems.examples) mingwW64; };
 
   # Collects haskell derivations and builds an attrset:

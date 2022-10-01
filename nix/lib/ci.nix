@@ -1,6 +1,7 @@
+{ system }:
 let
   # Generic nixpkgs, use *only* for lib functions that are stable across versions
-  pkgs = import (import ../sources.nix { system = builtins.currentSystem; }).nixpkgs { };
+  pkgs = import (import ../sources.nix { inherit system; }).nixpkgs { };
   lib = pkgs.lib;
 in
 rec {
