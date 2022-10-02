@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=all
+
 plc=../result/bin/plc
 size=4
 n=1000000
