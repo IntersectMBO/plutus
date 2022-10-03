@@ -171,7 +171,7 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
 unliftingModeIn :: ProtocolVersion -> UnliftingMode
 unliftingModeIn pv =
     -- This just changes once in vasil hf version 7.0
-    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
+    if pv >= VasilPV then UnliftingDeferred else UnliftingImmediate
 
 toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters pv = case unliftingModeIn pv of

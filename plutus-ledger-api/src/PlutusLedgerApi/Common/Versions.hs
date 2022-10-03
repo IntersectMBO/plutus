@@ -56,7 +56,7 @@ See Note [New builtins and protocol versions]
 builtinsIntroducedIn :: Map.Map (LedgerPlutusVersion, ProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn = Map.fromList [
   -- Alonzo is protocolversion=5.0
-  ((PlutusV1, alonzoPV), Set.fromList [
+  ((PlutusV1, AlonzoPV), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
           AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
           Sha2_256, Sha3_256, Blake2b_256, VerifyEd25519Signature,
@@ -70,11 +70,11 @@ builtinsIntroducedIn = Map.fromList [
           MkPairData, MkNilData, MkNilPairData
           ]),
   -- Vasil is protocolversion=7.0
-  ((PlutusV2, vasilPV), Set.fromList [
+  ((PlutusV2, VasilPV), Set.fromList [
           SerialiseData
           ]),
   -- Chang is protocolversion=8.0
-  ((PlutusV2, changPV), Set.fromList [
+  ((PlutusV2, ChangPV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
           ])
   ]
@@ -83,9 +83,9 @@ builtinsIntroducedIn = Map.fromList [
 -- 'Introduction' in this context means the enablement/allowance of scripts of that language version to be executed on-chain.
 languageIntroducedIn :: LedgerPlutusVersion -> ProtocolVersion
 languageIntroducedIn = \case
-    PlutusV1 -> alonzoPV
-    PlutusV2 -> vasilPV
-    PlutusV3 -> changPV
+    PlutusV1 -> AlonzoPV
+    PlutusV2 -> VasilPV
+    PlutusV3 -> ChangPV
 
 -- | Given a protocol version return a set of all available plutus languages that are enabled/allowed to run.
 -- Assumes that languages once introduced/enabled, will never be disabled in the future.

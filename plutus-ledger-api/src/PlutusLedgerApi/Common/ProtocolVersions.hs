@@ -22,21 +22,21 @@ instance Pretty ProtocolVersion where
 
 -- Based on https://github.com/input-output-hk/cardano-ledger/wiki/First-Block-of-Each-Era
 
-shelleyPV :: ProtocolVersion
-shelleyPV = ProtocolVersion 2 0
+pattern ShelleyPV :: ProtocolVersion
+pattern ShelleyPV = ProtocolVersion 2 0
 
-allegraPV :: ProtocolVersion
-allegraPV = ProtocolVersion 3 0
+pattern AllegraPV :: ProtocolVersion
+pattern AllegraPV = ProtocolVersion 3 0
 
-maryPV :: ProtocolVersion
-maryPV = ProtocolVersion 4 0
+pattern MaryPV :: ProtocolVersion
+pattern MaryPV = ProtocolVersion 4 0
 
-alonzoPV :: ProtocolVersion
-alonzoPV = ProtocolVersion 5 0
+pattern AlonzoPV :: ProtocolVersion
+pattern AlonzoPV = ProtocolVersion 5 0
 
-vasilPV :: ProtocolVersion
-vasilPV = ProtocolVersion 7 0
+pattern VasilPV :: ProtocolVersion
+pattern VasilPV = ProtocolVersion 7 0
 
-changPV :: ProtocolVersion
+pattern ChangPV :: ProtocolVersion
 -- FIXME: exact version number TBD
-changPV = ProtocolVersion 1000 0
+pattern ChangPV = ProtocolVersion 1000 0

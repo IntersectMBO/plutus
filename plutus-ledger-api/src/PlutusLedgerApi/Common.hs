@@ -2,7 +2,7 @@
 module PlutusLedgerApi.Common
     ( evaluateScriptCounting
     , evaluateScriptRestricting
-    , EvaluationContext (..)
+    , EvaluationContext
     , ScriptDecodeError (..)
     , mkDynEvaluationContext
     , assertScriptWellFormed

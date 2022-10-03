@@ -113,13 +113,13 @@ illTypedPartialBuiltin = Apply () (Builtin () AddInteger) (mkConstant () True)
 
 -- Evaluates using the Scripts module.
 testScripts :: TestTree
-testScripts = "v1-scripts" `testWith` evalAPI vasilPV
+testScripts = "v1-scripts" `testWith` evalAPI VasilPV
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serialising and deserialising the program, so we can see any errors that might arise from that.
 -}
 testAPI :: TestTree
-testAPI = "v1-api" `testWith` evalAPI vasilPV
+testAPI = "v1-api" `testWith` evalAPI VasilPV
 
 evalAPI :: ProtocolVersion -> UPLC.Term DeBruijn DefaultUni DefaultFun () -> Bool
 evalAPI pv t =
@@ -143,8 +143,8 @@ testWith str evalFn = testCase str $ do
 
 testUnlifting :: TestTree
 testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
-    evalAPI alonzoPV illTypedPartialBuiltin @?= False
-    evalAPI vasilPV illTypedPartialBuiltin @?= True
+    evalAPI AlonzoPV illTypedPartialBuiltin @?= False
+    evalAPI VasilPV illTypedPartialBuiltin @?= True
 
 tests :: TestTree
 tests = testGroup "eval"

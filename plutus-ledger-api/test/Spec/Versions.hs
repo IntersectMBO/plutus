@@ -44,9 +44,9 @@ tests = testGroup "versions"
 
 testLangVersions :: TestTree
 testLangVersions = testGroup "langs"
-    [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.assertScriptWellFormed alonzoPV
-    , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.assertScriptWellFormed vasilPV
-    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed changPV
+    [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.assertScriptWellFormed AlonzoPV
+    , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.assertScriptWellFormed VasilPV
+    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed ChangPV
     , testProperty "protocol-versions can add but not remove language versions" $
         \pvA pvB -> pvA < pvB ==> languagesAvailableIn pvA `Set.isSubsetOf` languagesAvailableIn pvB
     ]
@@ -75,19 +75,19 @@ testBuiltinVersions = testGroup "builtins"
             let allPvBuiltins = fold $ Map.elems builtinsIntroducedIn
                 allBuiltins = enumerate @DefaultFun
             in for_ allBuiltins $ \f -> assertBool (show f) (f `Set.member` allPvBuiltins)
-    , testCase "builtins aren't available before Alonzo" $ assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 maryPV) -- l1 valid, p4 invalid
+    , testCase "builtins aren't available before Alonzo" $ assertBool "empty" (Set.null $ builtinsAvailableIn PlutusV1 MaryPV) -- l1 valid, p4 invalid
     , testCase "serializeData is only available in l2,Vasil and after" $ do
-         assertBool "in l1,Alonzo" $ isLeft $ V1.assertScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "in l1,Vasil" $ isLeft $ V1.assertScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "in l2,Alonzo" $ isLeft $ V2.assertScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "in l3,Alonzo" $ isLeft $ V3.assertScriptWellFormed alonzoPV serialiseDataExScript
-         assertBool "not in l2,Vasil" $ isRight $ V2.assertScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "not in l3,Chang" $ isRight $ V3.assertScriptWellFormed changPV serialiseDataExScript
-         assertBool "remdr1" $ isRight $ V1.assertScriptWellFormed changPV $ errorScript <> "remdr1"
-         assertBool "remdr2" $ isRight $ V2.assertScriptWellFormed changPV $ errorScript <> "remdr2"
-         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed changPV $ errorScript <> "remdr3"
-    , testProperty "remdr1gen"$ \remdr -> isRight $ V1.assertScriptWellFormed changPV $ errorScript <> BSS.pack remdr
-    , testProperty "remdr2gen"$ \remdr -> isRight $ V2.assertScriptWellFormed changPV $ errorScript <> BSS.pack remdr
+         assertBool "in l1,Alonzo" $ isLeft $ V1.assertScriptWellFormed AlonzoPV serialiseDataExScript
+         assertBool "in l1,Vasil" $ isLeft $ V1.assertScriptWellFormed VasilPV serialiseDataExScript
+         assertBool "in l2,Alonzo" $ isLeft $ V2.assertScriptWellFormed AlonzoPV serialiseDataExScript
+         assertBool "in l3,Alonzo" $ isLeft $ V3.assertScriptWellFormed AlonzoPV serialiseDataExScript
+         assertBool "not in l2,Vasil" $ isRight $ V2.assertScriptWellFormed VasilPV serialiseDataExScript
+         assertBool "not in l3,Chang" $ isRight $ V3.assertScriptWellFormed ChangPV serialiseDataExScript
+         assertBool "remdr1" $ isRight $ V1.assertScriptWellFormed ChangPV $ errorScript <> "remdr1"
+         assertBool "remdr2" $ isRight $ V2.assertScriptWellFormed ChangPV $ errorScript <> "remdr2"
+         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed ChangPV $ errorScript <> "remdr3"
+    , testProperty "remdr1gen"$ \remdr -> isRight $ V1.assertScriptWellFormed ChangPV $ errorScript <> BSS.pack remdr
+    , testProperty "remdr2gen"$ \remdr -> isRight $ V2.assertScriptWellFormed ChangPV $ errorScript <> BSS.pack remdr
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]
