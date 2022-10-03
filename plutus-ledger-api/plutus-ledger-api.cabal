@@ -78,7 +78,7 @@ library
   other-modules:
     Codec.CBOR.Extras
     PlutusLedgerApi.Common.Eval
-    PlutusLedgerApi.Common.ParamName
+    PlutusLedgerApi.Internal.ParamName
     PlutusLedgerApi.Common.ProtocolVersions
     PlutusLedgerApi.Common.SerialisedScript
     Prettyprinter.Extras

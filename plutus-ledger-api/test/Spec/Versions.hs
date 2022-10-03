@@ -8,7 +8,6 @@ import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
 import PlutusLedgerApi.Common
-import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3

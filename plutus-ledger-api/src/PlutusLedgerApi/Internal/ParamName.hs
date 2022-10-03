@@ -2,8 +2,13 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
-
-module PlutusLedgerApi.Common.ParamName where
+module PlutusLedgerApi.Internal.ParamName
+    ( IsParamName (showParamName)
+    , GIsParamName (gshowParamName)
+    , GenericParamName (..)
+    , tagWithParamNames
+    , unTagParamNames
+    ) where
 
 import PlutusCore.Evaluation.Machine.CostModelInterface
 
@@ -16,19 +21,20 @@ import Data.Map as Map
 import Data.Text qualified as Text
 import GHC.Generics
 
-{-| A valid parameter name has to be enumeration, bounded, ordered, and
+{-| A valid parameter name has to be enumeration, bounded, and
 prettyprintable in a "lowerKebab" way.
 
 Each API version should expose such an enumeration as an ADT and create
 an instance of ParamName out of it.
 -}
-class IsParamName a where
+class (Enum a, Bounded a) => IsParamName a where
    showParamName :: a -> String
 
 -- | A Generic wrapper for use with deriving via
 newtype GenericParamName a = GenericParamName a
+    deriving newtype (Enum, Bounded)
 
-instance (Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
+instance (Generic a, GIsParamName (Rep a), Bounded a, Enum a) => IsParamName (GenericParamName a) where
    showParamName (GenericParamName a) = gshowParamName $ from a
 
 -- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.
@@ -85,7 +91,6 @@ tagWithParamNames ledgerParams =
             -- See Note [Cost model parameters from the ledger's point of view]
             throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
 
--- | Essentially untag the association of param names to values
--- so that CostModelInterface can make use of it.
-toCostModelParams :: IsParamName k => [(k, Integer)] -> CostModelParams
-toCostModelParams = Map.fromList . fmap (first $ Text.pack . showParamName)
+-- | Untag the association of param names to values so that CostModelInterface can make use of it.
+unTagParamNames :: IsParamName k => [(k, Integer)] -> CostModelParams
+unTagParamNames = Map.fromList . fmap (first $ Text.pack . showParamName)

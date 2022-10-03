@@ -1,12 +1,12 @@
 {-# LANGUAGE DerivingVia #-}
 module PlutusLedgerApi.V1.ParamName
-    ( ParamName (..)
-    , tagWithParamNames
+    ( ParamName
+    , showParamName
     ) where
 
 import Data.Ix
 import GHC.Generics
-import PlutusLedgerApi.Common.ParamName
+import PlutusLedgerApi.Internal.ParamName
 
 {-| The enumeration of all possible cost model parameter names for this language version.
 IMPORTANT: The order of appearance of the data constructors here matters. DO NOT REORDER.

@@ -1,30 +1,16 @@
 -- | Common types and functions used across all the ledger API modules.
 module PlutusLedgerApi.Common
-    ( evaluateScriptCounting
-    , evaluateScriptRestricting
-    , EvaluationContext
-    , ScriptDecodeError (..)
-    , mkDynEvaluationContext
-    , assertScriptWellFormed
-    , assertWellFormedCostModelParams
-    , SerialisedScript
-    , serialiseCompiledCode
-    , serialiseUPLC
-    , deserialiseUPLC
-    , VerboseMode (..)
-    , LogOutput
-    , EvaluationError (..)
-    , ProtocolVersion (..)
-    , LedgerPlutusVersion (..)
-    , builtinsIntroducedIn
-    , builtinsAvailableIn
-    , IsParamName
-    , GenericParamName
-    , toCostModelParams
-    , showParamName
+    ( module PlutusLedgerApi.Common.Eval
+    , module PlutusLedgerApi.Common.SerialisedScript
+    , module PlutusLedgerApi.Common.Versions
+    , module PlutusLedgerApi.Internal.ParamName
     ) where
 
 import PlutusLedgerApi.Common.Eval
-import PlutusLedgerApi.Common.ParamName
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
+
+import PlutusLedgerApi.Internal.ParamName
+    (IsParamName (showParamName)
+    )
+

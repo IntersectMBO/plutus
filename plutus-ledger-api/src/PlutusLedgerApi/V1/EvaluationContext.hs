@@ -8,6 +8,7 @@ module PlutusLedgerApi.V1.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Internal.ParamName
 import PlutusLedgerApi.V1.ParamName as V1
 
 import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV1))
@@ -25,5 +26,5 @@ are expected to appear in correct order.
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
                     => [Integer] -> m EvaluationContext
 mkEvaluationContext = tagWithParamNames @V1.ParamName
-                    >=> pure . toCostModelParams
+                    >=> pure . unTagParamNames
                     >=> mkDynEvaluationContext Plutus.DefaultFunV1
