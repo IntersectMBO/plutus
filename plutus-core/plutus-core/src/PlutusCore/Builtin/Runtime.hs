@@ -53,7 +53,7 @@ instance NoThunks (BuiltinRuntime val) where
 
 -- | A 'BuiltinRuntimeOptions' is a precursor to 'BuiltinRuntime'. One gets the latter from the
 -- former by applying a function returning the runtime denotation of the builtin.
-data BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions (cost -> BuiltinRuntime val)
+newtype BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions (cost -> BuiltinRuntime val)
 
 -- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given a cost
 -- model.

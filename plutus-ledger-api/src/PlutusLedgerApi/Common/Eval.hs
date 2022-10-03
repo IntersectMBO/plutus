@@ -109,7 +109,7 @@ toMachineParameters _ = machineParameters
 script.  This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
 -}
-data EvaluationContext = EvaluationContext
+newtype EvaluationContext = EvaluationContext
     { machineParameters :: DefaultMachineParameters
     }
     deriving stock Generic

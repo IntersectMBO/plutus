@@ -176,7 +176,7 @@ into a single 'BuiltinRuntime'.
 -}
 
 -- | A class that allows us to derive a monotype for a builtin.
--- We could've computed the runtime denotations ('toMonoF' and 'toPolyF') from the
+-- We could've computed the runtime denotation from the
 -- 'TypeScheme' and the denotation of the builtin, but not statically (due to unfolding not working
 -- for recursive functions and 'TypeScheme' being recursive, i.e. requiring the conversion function
 -- to be recursive), and so it would cause us to retain a lot of evaluation-irrelevant stuff in the
