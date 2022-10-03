@@ -472,7 +472,6 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , megaparsec
-    , mtl
     , plutus-core
     , plutus-core-testlib
     , QuickCheck

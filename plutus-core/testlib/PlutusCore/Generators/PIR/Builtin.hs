@@ -53,7 +53,7 @@ instance ArbitraryBuiltin ByteString where
 -- the 'Arbitrary' class and the logic for handling elements from 'ArbitraryBuiltin'.
 newtype AsArbitraryBuiltin a = AsArbitraryBuiltin
     { unAsArbitraryBuiltin :: a
-    }
+    } deriving newtype (Show)
 
 instance ArbitraryBuiltin a => Arbitrary (AsArbitraryBuiltin a) where
     arbitrary = coerce $ arbitraryBuiltin @a
