@@ -74,11 +74,13 @@ library
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
+    PlutusLedgerApi.Common.Eval
+    PlutusLedgerApi.Common.CostModelParams
 
   other-modules:
     Codec.CBOR.Extras
-    PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Internal.ParamName
+    PlutusLedgerApi.Internal.EvaluationContext
     PlutusLedgerApi.Common.ProtocolVersions
     PlutusLedgerApi.Common.SerialisedScript
     Prettyprinter.Extras

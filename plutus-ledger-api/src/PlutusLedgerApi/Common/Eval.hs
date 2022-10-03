@@ -1,32 +1,21 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
-
 module PlutusLedgerApi.Common.Eval
-    ( EvaluationError(..)
+    ( EvaluationError (..)
     , EvaluationContext
     , VerboseMode (..)
     , LogOutput
     , evaluateScriptCounting
     , evaluateScriptRestricting
-    , mkDynEvaluationContext
-    , assertWellFormedCostModelParams
     ) where
 
-import Control.Lens
 import PlutusCore
 import PlutusCore as ScriptPlutus (Version, defaultVersion)
 import PlutusCore.Data as Plutus
-import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
-import PlutusCore.Evaluation.Machine.MachineParameters.Default
-import PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
-import PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common.SerialisedScript
@@ -34,13 +23,14 @@ import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+import PlutusLedgerApi.Internal.EvaluationContext
 
 import Control.Monad.Except
 import Control.Monad.Writer
 import Data.Text as Text
 import Data.Tuple
-import NoThunks.Class
 import Prettyprinter
+import Control.Lens
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
@@ -71,37 +61,6 @@ type LogOutput = [Text.Text]
 -- | A simple toggle indicating whether or not we should produce logs.
 data VerboseMode = Verbose | Quiet
     deriving stock (Eq)
-
-{-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
-script.  This is so that they can be computed once and cached, rather than recomputed on every
-evaluation.
-
-There are two sets of parameters: one is with immediate unlifting and the other one is with
-deferred unlifting. We have to keep both of them, because depending on the language version
- either one has to be used or the other. We also compile them separately due to all the inlining
- and optimization that need to happen for things to be efficient.
--}
-data EvaluationContext = EvaluationContext
-    { machineParametersImmediate :: DefaultMachineParameters
-    , machineParametersDeferred  :: DefaultMachineParameters
-    }
-    deriving stock Generic
-    deriving anyclass (NFData, NoThunks)
-
-{-|  Build the 'EvaluationContext'.
-
-The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
-See Note [Inlining meanings of builtins].
--}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext ver newCMP =
-    EvaluationContext
-        <$> immediateMachineParameters ver newCMP
-        <*> deferredMachineParameters ver newCMP
-
--- | Comparably expensive to `mkDynEvaluationContext`, so it should only be used sparingly.
-assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
-assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
 {-|
 Evaluates a script, with a cost model and a budget that restricts how many
@@ -165,18 +124,6 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
     tell logs
     liftEither $ first CekError $ void res
     pure final
-
--- | Which unlifting mode should we use in the given 'ProtocolVersion'
--- so as to correctly construct the machine's parameters
-unliftingModeIn :: ProtocolVersion -> UnliftingMode
-unliftingModeIn pv =
-    -- This just changes once in vasil hf version 7.0
-    if pv >= VasilPV then UnliftingDeferred else UnliftingImmediate
-
-toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv = case unliftingModeIn pv of
-    UnliftingImmediate -> machineParametersImmediate
-    UnliftingDeferred  -> machineParametersDeferred
 
 -- | Shared helper for the evaluation functions, deserialises the 'SerialisedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
 mkTermToEvaluate

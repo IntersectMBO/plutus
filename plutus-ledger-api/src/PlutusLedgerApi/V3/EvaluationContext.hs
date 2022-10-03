@@ -3,12 +3,9 @@
 module PlutusLedgerApi.V3.EvaluationContext
     ( EvaluationContext
     , mkEvaluationContext
-    , CostModelParams
-    , assertWellFormedCostModelParams
-    , CostModelApplyError (..)
     ) where
 
-import PlutusLedgerApi.Common
+import PlutusLedgerApi.Internal.EvaluationContext
 import PlutusLedgerApi.Internal.ParamName
 import PlutusLedgerApi.V3.ParamName as V3
 

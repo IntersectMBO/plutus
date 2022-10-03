@@ -1,6 +1,14 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
-module PlutusLedgerApi.Common.ProtocolVersions where
+module PlutusLedgerApi.Common.ProtocolVersions
+    ( ProtocolVersion (..)
+    , pattern ShelleyPV
+    , pattern AllegraPV
+    , pattern MaryPV
+    , pattern AlonzoPV
+    , pattern VasilPV
+    , pattern ChangPV
+    ) where
 
 import Codec.Serialise (Serialise)
 import GHC.Generics (Generic)

@@ -103,10 +103,16 @@ import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
-                                         evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
-                                                   evaluateScriptRestricting)
+import PlutusLedgerApi.Common as Common
+    hiding ( assertScriptWellFormed
+           , evaluateScriptCounting
+           , evaluateScriptRestricting
+           )
+import PlutusLedgerApi.Common qualified as Common
+    ( assertScriptWellFormed
+    , evaluateScriptCounting
+    , evaluateScriptRestricting
+    )
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Contexts
