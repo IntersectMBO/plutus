@@ -111,7 +111,6 @@ module PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
-    , UnliftingMode (..)
     -- * Combining programs
     , applyProgram
     -- * Benchmarking

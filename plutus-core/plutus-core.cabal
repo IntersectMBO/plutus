@@ -98,8 +98,6 @@ library
     PlutusCore.Evaluation.Machine.ExMemory
     PlutusCore.Evaluation.Machine.MachineParameters
     PlutusCore.Evaluation.Machine.MachineParameters.Default
-    PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
-    PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
     PlutusCore.Evaluation.Result
     PlutusCore.Examples.Builtins
     PlutusCore.Examples.Data.Data

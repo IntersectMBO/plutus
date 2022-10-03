@@ -40,10 +40,9 @@ inlining).
 
 mkMachineParametersFor :: (MonadError CostModelApplyError m)
                        => BuiltinVersion DefaultFun
-                       -> UnliftingMode
                        -> CostModelParams
                        -> m DefaultMachineParameters
-mkMachineParametersFor ver unlMode newCMP =
-    inline mkMachineParameters ver unlMode <$>
+mkMachineParametersFor ver newCMP =
+    inline mkMachineParameters ver <$>
         applyCostModelParams defaultCekCostModel newCMP
 {-# INLINE mkMachineParametersFor #-}

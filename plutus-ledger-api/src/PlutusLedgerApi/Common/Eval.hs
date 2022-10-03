@@ -27,8 +27,6 @@ import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
-import PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
-import PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common.SerialisedScript
@@ -104,31 +102,15 @@ mkTermToEvaluate lv pv bs args = do
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
--- | Which unlifting mode should we use in the given 'ProtocolVersion'
--- so as to correctly construct the machine's parameters
-unliftingModeIn :: ProtocolVersion -> UnliftingMode
-unliftingModeIn pv =
-    -- This just changes once in vasil hf version 7.0
-    if pv >= vasilPV then UnliftingDeferred else UnliftingImmediate
-
--- | Get the raw machine parameters (as understood by the CEK evaluator) stored inside an 'EvaluationContext'.
 toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters pv = case unliftingModeIn pv of
-    UnliftingImmediate -> machineParametersImmediate
-    UnliftingDeferred  -> machineParametersDeferred
+toMachineParameters _ = machineParameters
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script.  This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
-
-There are two sets of parameters: one is with immediate unlifting and the other one is with
-deferred unlifting. We have to keep both of them, because depending on the language version
- either one has to be used or the other. We also compile them separately due to all the inlining
- and optimization that need to happen for things to be efficient.
 -}
 data EvaluationContext = EvaluationContext
-    { machineParametersImmediate :: DefaultMachineParameters
-    , machineParametersDeferred  :: DefaultMachineParameters
+    { machineParameters :: DefaultMachineParameters
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
@@ -143,9 +125,7 @@ with the updated cost model parameters.
 -}
 mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
 mkDynEvaluationContext ver newCMP =
-    EvaluationContext
-        <$> immediateMachineParameters ver newCMP
-        <*> deferredMachineParameters ver newCMP
+    EvaluationContext <$> mkMachineParametersFor ver newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
