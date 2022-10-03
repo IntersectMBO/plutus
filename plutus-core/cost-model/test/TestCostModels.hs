@@ -14,7 +14,7 @@
 
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExMemory
 
 import CreateBuiltinCostModel
@@ -37,7 +37,7 @@ import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
 {- | This module is supposed to test that the R cost models for built-in functions
-   defined in models.R (using the CSV output from 'cost-model-budgeting-bench;))
+   defined in models.R (using the CSV output from 'cost-model-budgeting-bench'))
    produce the same results as the Haskell versions. However there are a couple
    of subtleties.  (A) The R models use floating point numbers and the Haskell
    versions use CostingIntegers, and there will be some difference in precision
@@ -51,15 +51,16 @@ import Hedgehog.Range qualified as Range
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
-   'CreateBuiltinCostModel.hs') which are loaded directly from R.  The costing
-   functions we use in practice are read from 'builtinCostModel.json', which
-   contains JSON-serialised versions of the Haskell costing functions.  Perhaps
-   the tests should be reading the Haskell costing functions from the JSON file
-   as well; there shouldn't really be any problem because the functions should
-   be the same as the ones we construct from R here (they're essentially the
-   contents of 'costModelsR' converted to JSON), but it wouldn't do any harm to
-   include any possible loss of accuracy due to serialisation/deserialisation in
-   the tests as well.
+   'CreateBuiltinCostModel.hs') which are loaded directly from R, based purely
+   on the contents of benching.csv, which must be present in
+   plutus-core/cost-model/data.  The costing functions we use in practice are
+   read from 'builtinCostModel.json', which contains JSON-serialised versions of
+   the Haskell costing functions.  Perhaps the tests should be reading the
+   Haskell costing functions from the JSON file as well; there shouldn't really
+   be any problem because the functions should be the same as the ones we
+   construct from R here (they're essentially the contents of 'costModelsR'
+   converted to JSON), but it wouldn't do any harm to include any possible loss
+   of accuracy due to serialisation/deserialisation in the tests as well.
 
 -}
 
@@ -126,6 +127,19 @@ propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegio
     unsafeHoist :: (MFunctor t, Monad m) => (m () -> n ()) -> t m () -> t n ()
     unsafeHoist nt = hoist (unsafeCoerce nt)
 
+{- The runCostingFun<N>Arguments functions take objects as arguments, calculate
+   the size measures (memoryUsage) of those objects, and then apply the actual
+   costing functions to those sizes.  Here we want to feed sizes directly to the
+   costing functions (no intermediate objects), so given a size n we wrap it the
+   type below which has an ExMemoryUsage instance which returns n, _not_ the
+   size of n (which would usually be 1).  This type should not be used outside
+   this module because the memoryUsage function doesn't accurately reflect
+   sizes.
+-}
+newtype ExM = ExM CostingInteger
+instance ExMemoryUsage ExM where
+    memoryUsage (ExM n) = ExMemory n
+
 -- Creates the model on the R side, loads the parameters over to Haskell, and
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
@@ -144,7 +158,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
-    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExMemory x)
+    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExM x)
     sizeGen = memUsageGen
   x <- forAll sizeGen
   byR <- lift $ predictR x
@@ -169,7 +183,7 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
       in
         microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExMemory x) (ExMemory y)
+    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExM x) (ExM y)
     sizeGen = case domain of
                 Everywhere    -> twoArgs
                 OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
@@ -197,7 +211,7 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
       in
         microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExMemory x) (ExMemory y) (ExMemory z)
+    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z) <- forAll sizeGen
   byR <- lift $ predictR x y z
@@ -228,7 +242,7 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
-                                                     (ExMemory x) (ExMemory y) (ExMemory z) (ExMemory u) (ExMemory v) (ExMemory w)
+                                                     (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
     sizeGen = (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z, u, v, w) <- forAll sizeGen
   byR <- lift $ predictR x y z u v w
@@ -304,7 +318,8 @@ main =
                     , $(genTest 1 "sha2_256")
                     , $(genTest 1 "sha3_256")
                     , $(genTest 1 "blake2b_256")
-                    , $(genTest 3 "verifyEd25519Signature")
+                    -- , $(genTest 3 "verifyEd25519Signature")
+                    -- ^ Disabled for the time being: see the comment in CreateBuiltinCostModel.hs
                     , $(genTest 3 "verifyEcdsaSecp256k1Signature")
                     , $(genTest 3 "verifySchnorrSecp256k1Signature")
 

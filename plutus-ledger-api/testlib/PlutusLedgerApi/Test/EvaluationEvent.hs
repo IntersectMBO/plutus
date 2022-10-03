@@ -32,6 +32,7 @@ import GHC.Generics (Generic)
 import Prettyprinter
 import PyF (fmt)
 
+
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Show, Generic)
     deriving anyclass (Serialise)
@@ -143,17 +144,15 @@ data TestFailure
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor ver ->
-        [fmt|
-Missing cost parameters for {show ver}. Report this as a bug
-against the script dumper in plutus-apps."
-|]
+    MissingCostParametersFor ver -> [fmt|
+        Missing cost parameters for {show ver}.
+        Report this as a bug against the script dumper in plutus-apps.
+    |]
 
 renderTestFailures :: NonEmpty TestFailure -> String
-renderTestFailures xs =
-    [fmt|
-Number of failed test cases: {length xs}
-{unlines . fmap renderTestFailure $ toList xs}
+renderTestFailures xs = [fmt|
+    Number of failed test cases: {length xs}
+    {unlines . fmap renderTestFailure $ toList xs}
 |]
 
 -- | Re-evaluate an on-chain script evaluation event.

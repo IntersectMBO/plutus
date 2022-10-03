@@ -6,4 +6,5 @@ Plutus on Cardano
    :titlesonly:
    
    language-changes
+   upgr-vasil-plutus-script-addresses
    cost-model-parameters

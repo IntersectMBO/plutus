@@ -1,10 +1,40 @@
-{ inputs, cell }@organelle:
+{ inputs, cell }@block:
 {
-  sphinx-markdown-tables = import ./sphinx-markdown-tables.nix organelle;
+  cabal-fmt = import ./cabal-fmt.nix block;
 
-  sphinxemoji = import ./sphinxemoji.nix organelle;
+  cabal-install = import ./cabal-install.nix block;
 
-  inherit (import ./sphinxcontrib-haddock.nix organelle)
+  cabal-install-alt = import ./cabal-install-alt.nix block;
+
+  check-the-flake = import ./check-the-flake.nix block;
+
+  fix-cabal-fmt = import ./fix-cabal-fmt.nix block;
+
+  fix-png-optimization = import ./fix-png-optimization.nix block;
+
+  fix-stylish-haskell = import ./fix-stylish-haskell.nix block;
+
+  git-work-in-progress = import ./git-work-in-progress.nix block;
+
+  haskell-language-server = import ./haskell-language-server.nix block;
+
+  hie-bios = import ./hie-bios.nix block;
+
+  hlint = import ./hlint.nix block;
+
+  nixpkgs-fmt = import ./nixpkgs-fmt.nix block;
+
+  pre-commit-check = import ./pre-commit-check.nix block;
+
+  repo-root = import ./repo-root.nix block;
+
+  sphinx-markdown-tables = import ./sphinx-markdown-tables.nix block;
+
+  sphinx-toolchain = import ./sphinx-toolchain.nix block;
+
+  sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix block;
+
+  inherit (import ./sphinxcontrib-haddock.nix block)
 
     sphinxcontrib-domaintools
 
@@ -12,17 +42,9 @@
 
     sphobjinv;
 
-  sphinxcontrib-bibtex = import ./sphinxcontrib-bibtex.nix organelle;
+  sphinxemoji = import ./sphinxemoji.nix block;
 
-  sphinx-toolchain = import ./sphinx-toolchain.nix organelle;
+  stylish-haskell = import ./stylish-haskell.nix block;
 
-  git-work-in-progress = import ./git-work-in-progress.nix organelle;
-
-  repo-root = import ./repo-root.nix organelle;
-
-  # TODO(std) uncomment once we've done haskell.nix
-  #agda-with-stdlib = import ./agda-with-stdlib.nix organelle;
-
-  # TODO(std) make this part of CI
-  check-the-flake = import ./check-the-flake.nix organelle;
+  todo-derivation = import ./todo-derivation.nix block;
 }

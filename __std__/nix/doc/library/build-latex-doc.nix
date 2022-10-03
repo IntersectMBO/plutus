@@ -1,7 +1,9 @@
 { inputs, cell }:
+
 let
-  inherit (inputs.nixpkgs) lib;
+  inherit (inputs.cells.toolchain.library) pkgs;
 in
+
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
 cell.library.build-latex {
@@ -12,12 +14,12 @@ cell.library.build-latex {
 
   src = cell.library.filter-latex-sources src;
 
-  buildInputs = lib.optionals withAgda [
-    inputs.cells.toolchain.packages.agda-with-stdlib
+  buildInputs = pkgs.lib.optionals withAgda [
+    inputs.cells.plutus.packages.agda-with-stdlib
   ];
 
   texInputs = {
-    inherit (inputs.nixpkgs.texlive)
+    inherit (pkgs.texlive)
       acmart
       bibtex biblatex
       collection-bibtexextra
@@ -30,11 +32,11 @@ cell.library.build-latex {
       scheme-small;
   };
 
-  preBuild = lib.optionalString withAgda ''
+  preBuild = pkgs.lib.optionalString withAgda ''
     agda --latex ${agdaFile} --latex-dir .
   '';
 
-  meta = with lib; {
+  meta = with pkgs.lib; {
     inherit description;
     license = licenses.asl20;
   };

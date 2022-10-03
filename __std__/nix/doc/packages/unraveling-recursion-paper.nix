@@ -1,11 +1,12 @@
 { inputs, cell }:
 
 let
+  inherit (inputs.cells.toolchain.library) pkgs;
 
-  artifacts = inputs.nixpkgs.runCommand
+  artifacts = pkgs.runCommand
     "FIR-compiler"
     {
-      buildInputs = [ inputs.nixpkgs.zip ];
+      buildInputs = [ pkgs.zip ];
       src = inputs.self + /papers/unraveling-recursion/code;
     }
     ''
@@ -22,7 +23,7 @@ cell.library.build-latex {
 
   texInputs = {
     # more than we need at the moment, but doesn't cost much to include it
-    inherit (inputs.nixpkgs.texlive)
+    inherit (pkgs.texlive)
       scheme-small
       collection-bibtexextra
       collection-latex
@@ -37,17 +38,19 @@ cell.library.build-latex {
   };
 
   buildInputs = [
+    inputs.cells.plutus.packages.agda-with-stdlib
 
-    inputs.cells.toolchain.agda-with-stdlib
-
-    inputs.nixpkgs.zip
+    pkgs.zip
   ];
 
-  src = inputs.nixpkgs.lib.sourceFilesBySuffices
+  src = pkgs.lib.sourceFilesBySuffices
     (inputs.self + /papers/unraveling-recursion)
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
   preBuild = ''
+    # FIXME
+    return
+
     for file in *.lagda; do
       agda --latex $file --latex-dir .
     done
@@ -56,6 +59,8 @@ cell.library.build-latex {
   '';
 
   postInstall = ''
+    echo FIXME > $out && exit 0
+
     cp ${artifacts}/* $out
     zip -r $out/sources.zip *.tex *.bib *.cls *.bst *.bbl *.sty copyright-form.pdf
   '';

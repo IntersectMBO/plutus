@@ -4,6 +4,7 @@ let
   package = { lib, buildPythonPackage, fetchPypi, sphinx }:
     buildPythonPackage rec {
       pname = "sphinxemoji";
+
       version = "0.1.6";
 
       src = fetchPypi {
@@ -22,5 +23,5 @@ let
       };
     };
 in
-inputs.nixpkgs.python3Packages.callPackage package { }
+cell.library.pkgs.python3Packages.callPackage package { }
 

@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -11,15 +10,12 @@ import PlutusCore.MkPlc as PLC
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1 qualified as V1
-import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
 
-import Codec.Serialise
 import Control.Monad.Except
-import Data.ByteString.Lazy as BSL
 import Data.ByteString.Short as BSS
 import Data.Either
 import Data.Foldable (for_)
@@ -30,17 +26,15 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
 serialiseDataExScript :: SerialisedScript
-serialiseDataExScript = toShort . toStrict $ serialise serialiseDataEx
+serialiseDataExScript = serialiseUPLC serialiseDataEx
     where
-      serialiseDataEx :: Script
-      serialiseDataEx = Script $ UPLC.Program () (PLC.defaultVersion ()) $
+      serialiseDataEx = UPLC.Program () (PLC.defaultVersion ()) $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
 
 errorScript :: SerialisedScript
-errorScript = toShort . toStrict $ serialise errorEx
+errorScript = serialiseUPLC errorEx
     where
-      errorEx :: Script
-      errorEx = Script $ UPLC.Program () (PLC.defaultVersion ()) $ UPLC.Error ()
+      errorEx = UPLC.Program () (PLC.defaultVersion ()) $ UPLC.Error ()
 
 tests :: TestTree
 tests = testGroup "versions"

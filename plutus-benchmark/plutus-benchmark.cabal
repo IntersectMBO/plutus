@@ -247,7 +247,6 @@ benchmark validation-decode
     , plutus-benchmark-common
     , plutus-core              ^>=1.0
     , plutus-ledger-api        ^>=1.0
-    , serialise
 
 ---------------- validation-full ----------------
 
@@ -268,7 +267,6 @@ benchmark validation-full
     , plutus-benchmark-common
     , plutus-core                                                       ^>=1.0
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.0
-    , serialise
 
 ---------------- Cek cost model calibration ----------------
 

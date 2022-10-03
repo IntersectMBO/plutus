@@ -29,6 +29,7 @@ import Data.Type.Equality
 import GhcPlugins qualified as GHC
 import Prettyprinter
 import PyF (fmt)
+
 import Text.Read (readMaybe)
 import Type.Reflection
 
@@ -88,9 +89,10 @@ newtype ParseErrors = ParseErrors (NonEmpty ParseError)
     deriving newtype (Semigroup)
 
 instance Show ParseErrors where
-    show (ParseErrors errs) =
-        [fmt|PlutusTx.Plugin: failed to parse options:
-{Text.intercalate "\n" (fmap renderParseError (toList errs))}|]
+    show (ParseErrors errs) = [fmt|
+        PlutusTx.Plugin: failed to parse options:
+        {Text.intercalate "\n" (fmap renderParseError (toList errs))}
+    |]
 
 instance Exception ParseErrors
 
@@ -103,12 +105,9 @@ renderParseError = \case
     MissingValue k ->
         [fmt|Option {k} needs a value.|]
     UnrecognisedOption k suggs ->
-        [fmt|Unrecgonised option: {k}.|] <> case suggs of
+        [fmt|Unrecognised option: {k}.|] <> case suggs of
             [] -> ""
-            _ ->
-                [fmt|
-Did you mean one of:
-{Text.intercalate "\n" suggs}|]
+            _  -> [fmt|\nDid you mean one of:\n{Text.intercalate "\n" suggs}|]
 
 {- | Definition of plugin options.
 

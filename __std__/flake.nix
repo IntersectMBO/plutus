@@ -23,46 +23,39 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
-      inputs = {
-        hackage.follows = "hackage-nix";
-      };
+      url = "github:input-output-hk/haskell.nix/e36a34c4abc02287ec79bf88a0c993f6b66f9945";
     };
     hackage-nix = {
-      url = "github:input-output-hk/hackage.nix";
+      url = "github:input-output-hk/hackage.nix/d2077b0703f10ab08a071669729805d3bfea340d";
       flake = false;
     };
     sphinxcontrib-haddock = {
       url = "github:michaelpj/sphinxcontrib-haddock";
       flake = false;
     };
-    # cardano-repo-tool = {
-    #   url = "github:input-output-hk/cardano-repo-tool";
-    #   flake = false;
-    # };
-    # gitignore-nix = {
-    #   url = "github:hercules-ci/gitignore.nix";
-    #   flake = false;
-    # };
-    # haskell-language-server = {
-    #   # Pinned to a release
-    #   url = "github:haskell/haskell-language-server?ref=1.7.0.0";
-    #   flake = false;
-    # };
-    # iohk-nix = {
-    #   url = "github:input-output-hk/iohk-nix";
-    #   flake = false;
-    # };
-    # pre-commit-hooks-nix = {
-    #   url = "github:cachix/pre-commit-hooks.nix";
-    #   flake = false;
-    # };
+    gitignore-nix = {
+      url = "github:hercules-ci/gitignore.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    haskell-language-server = {
+      # Pinned to a release
+      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
+      flake = false;
+    };
+    pre-commit-hooks-nix = {
+      url = "github:cachix/pre-commit-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    iohk-nix = {
+      url = "github:input-output-hk/iohk-nix/6a5b69dc042f521db028fed68799eb460bce05a7";
+      flake = false;
+    };
   };
 
   # The flake outputs are managed by std.
   outputs = inputs:
 
-    # The growOn function accepts a first argument defining the organelles.
+    # The growOn function accepts a first argument defining the cell blocks.
     inputs.std.growOn
       {
 
@@ -77,21 +70,21 @@
         # In this repository we have three cells:
         #   doc
         #     Develop and build all the documentation artifacts
-        #   haskell
+        #   plutus
         #     Develop and build all haskell components
         #   toolchain
         #     Common tools and functions shared across multiple cells
         cellsFrom = ./nix;
 
-        # Each cell contains arbitrary "organelles".
-        # Each organelle must be either:
-        #   A nix file named after the organelle
-        #   A directory named after the organelle and containing a default.nix
-        # Organelles have types.
-        # Not all cells have the same organelles.
-        # All organelles belong in a cell.
+        # Each cell contains arbitrary "cell blocks".
+        # Each cell block must be either:
+        #   A nix file named after the cell block
+        #   A directory named after the cell block and containing a default.nix
+        # Cell blocks have types.
+        # Not all cells have the same cell blocks.
+        # All cell blocks belong in a cell.
         #
-        # In this repository we have five organelles, listed below with their type:
+        # In this repository we have five cell blocks, listed below with their type:
         #   devshells :: devshells
         #     Development shells available via nix develop
         #   packages :: installables
@@ -101,15 +94,16 @@
         #   scripts :: functions
         #     Bash scripts simplifying or automating a variety of tasks
         #     Generally these are available as commands inside the development shell
-        #     These are very repository specific, and are not exposed to the flake
+        #     These are very repository specific but are exposed to the flake nonetheless
         #   library :: functions
-        #     Functions and derivations shared across the current cell
-        #     These are very repository specific, and are not exposed to the flake
+        #     Everything that is not a derivation goes here
+        #     Includes functions, attrsets and simple literal values shared across cells
+        #     These are not exposed to the flake
         #
-        # std provides a TUI to interact with the organelles.
-        # Available interactions are determined by the organelle's type.
+        # std provides a TUI to interact with the cell blocks.
+        # Available interactions are determined by the cell block's type.
         # Because this repository does not yet use the TUI, the type is mostly irrelevant.
-        organelles = [
+        cellBlocks = [
           (inputs.std.devshells "devshells")
           (inputs.std.installables "packages")
           (inputs.std.functions "devshellProfiles")
@@ -119,33 +113,39 @@
       }
 
       # The growOn function will then accept an arbitrary number of "soil" attrs.
-      # This is where we translate cells and organelles into a standard nix flake
+      # This is where we translate cells and cell blocks into a standard nix flake
       # outputs attrs.
       #
-      # This is where we also decide which cells and which organelles will
+      # This is where we also decide which cells and which cell blocks will
       # make it into the flake. To exclude stuff from the flake, we simply
       # do not "harvest" it.
       #
       # The attrs will be recursively merged in the order in which they appear.
       {
-        # Here we say that we want the devshells organelle of the doc cell
+        # Here we say that we want the devshells cell block of the doc cell
         # (which contains a number of shell-able derivations) to be exposed
         # by the flake and accessible via nix develop.
         devShells = inputs.std.harvest inputs.self [ "doc" "devshells" ];
 
-        # Here we say that we want the packages organelle of the doc cell
+        # Here we say that we want the packages cell block of the doc cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
         packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
       }
       {
+        packages = inputs.std.harvest inputs.self [ "doc" "scripts" ];
+      }
+      {
         # The devshells inside the haskell cells will be added to the ones
         # already harvested from the doc shell. Same for packages.
-        devShells = inputs.std.harvest inputs.self [ "haskell" "devshells" ];
-        packages = inputs.std.harvest inputs.self [ "haskell" "packages" ];
+        devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
+        packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
+      }
+      {
+        packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       };
 
   # TODO(std) move this part of the doc (which doesn't need to reference the code
@@ -169,8 +169,8 @@
   #   inputs.cells
   #     Provides access to all cells.
   #     Remember that a cell is named after its folder.
-  #     The full format is inputs.cells.<cell>.<organelle>.value
-  #     e.g.: inputs.cells.doc.packages.doc-site
+  #     The full format is inputs.cells.<cell>.<cell-block>.value
+  #     e.g.: inputs.cells.doc.packages.read-the-docs-site
   #     e.g.: inputs.cells.toolchain.devshellsProfiles.common
   #     e.g.: inputs.cells.haskell.devshells.haskell-shell
   #
@@ -180,10 +180,10 @@
   #     e.g.: inputs.nixpkgs
   #     e.g.: inputs.sphinxcontrib-haddock
   #
-  #   cell.*organelle*
-  #     The cell value gives access to all its organelles:
-  #     e.g.: cell.scripts.build-and-server-doc-site (only works for code in /nix/scripts)
-  #       Alternatively: inputs.cells.doc.scripts.build-and-server-doc-site (works everywhere)
+  #   cell.*cell block*
+  #     The cell value gives access to all its cell blocks:
+  #     e.g.: cell.scripts.serve-read-the-docs-site (only works for code in /nix/scripts)
+  #       Alternatively: inputs.cells.doc.scripts.serve-read-the-docs-site (works everywhere)
   #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
   #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
 
@@ -194,20 +194,20 @@
   # This is currently applied *without exception*.
   #
   # This means that every single nix file in this repository is either:
-  # - A default.nix organelle importing and thus grouping all files in its folder
+  # - A default.nix cell block importing and thus grouping all files in its folder
   # - A file evaluating to a single derivation
   #
   # Further, we enforce that the nix fragment name be equal to the file name.
   # This means that if one looks at the fully expanded structure of the cellsFrom folder,
   # one will conclude that there are exactly as many fragments as there are nix files
-  # (excluding the default.nix files, which again merely act as a grouper for the organelle).
+  # (excluding the default.nix files, which again merely act as a grouper for the cell block).
   #
   # Finally this means that for each nix file "some-fragment.nix", one can run:
   # nix (develop|build|run) .#some-fragment
-  # That is unless the relevant organelle was not exposed by the flake.
+  # That is unless the relevant cell block was not exposed by the flake.
   #
   # Also note that while virtually all nix files evaluate to derivations, some
-  # (like the ones in the library organelle) actually evaluate to functions.
+  # (like the ones in the library cell block) actually evaluate to functions.
   # So it is more accurate to say that the convention is to export one
   # (non-attribute-set!) nix value per nix file.
 
@@ -219,7 +219,7 @@
   # - /doc is the cell name
   # - /doc is accessible via cell.* from { inputs, cell } (while inside /nix/doc)
   # - /doc is accessible via inputs.cells.doc (everywhere)
-  # - /packages is the organelle name
+  # - /packages is the cell block name
   # - /packages is accessible via cell.packages (while inside /nix/doc)
   # - /packages is accessible via inputs.cells.doc.packages (everywhere)
   # - /eutxo-paper.nix contains a *single derivation*
@@ -233,7 +233,7 @@
   # - /toolchain is the cell name
   # - /toolchain is accessible via cell.* from { inputs, cell } (while inside /nix/toolchain)
   # - /toolchain is accessible via inputs.cells.toolchain (everywhere)
-  # - /packages is the organelle name
+  # - /packages is the cell block name
   # - /packages is accessible via cell.packages (while inside /nix/toolchain)
   # - /packages is accessible via inputs.cells.toolchain.packages (everywhere)
   # - /default.nix imports every file in its directory
