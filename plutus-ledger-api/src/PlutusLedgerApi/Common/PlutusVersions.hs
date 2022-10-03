@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
-module PlutusLedgerApi.Common.Versions
+module PlutusLedgerApi.Common.PlutusVersions
     ( module PlutusLedgerApi.Common.ProtocolVersions
     , LedgerPlutusVersion (..)
     , languageIntroducedIn

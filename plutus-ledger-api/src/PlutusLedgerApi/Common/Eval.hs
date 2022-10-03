@@ -19,7 +19,7 @@ import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common.SerialisedScript
-import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Common.PlutusVersions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC

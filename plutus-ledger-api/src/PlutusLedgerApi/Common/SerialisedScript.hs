@@ -15,7 +15,7 @@ module PlutusLedgerApi.Common.SerialisedScript
     ) where
 
 import PlutusCore
-import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Common.PlutusVersions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
 

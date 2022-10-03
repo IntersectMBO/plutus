@@ -51,7 +51,12 @@ library
   default-language: Haskell2010
   exposed-modules:
     PlutusLedgerApi.Common
-    PlutusLedgerApi.Common.Versions
+    PlutusLedgerApi.Common.Eval
+    PlutusLedgerApi.Common.CostModelParams
+    PlutusLedgerApi.Common.ProtocolVersions
+    PlutusLedgerApi.Common.PlutusVersions
+    PlutusLedgerApi.Common.SerialisedScript
+
     PlutusLedgerApi.V1
     PlutusLedgerApi.V1.Address
     PlutusLedgerApi.V1.Bytes
@@ -66,23 +71,22 @@ library
     PlutusLedgerApi.V1.Time
     PlutusLedgerApi.V1.Tx
     PlutusLedgerApi.V1.Value
+
     PlutusLedgerApi.V2
     PlutusLedgerApi.V2.Contexts
     PlutusLedgerApi.V2.EvaluationContext
     PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Tx
+
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
-    PlutusLedgerApi.Common.Eval
-    PlutusLedgerApi.Common.CostModelParams
 
   other-modules:
-    Codec.CBOR.Extras
     PlutusLedgerApi.Internal.ParamName
     PlutusLedgerApi.Internal.EvaluationContext
-    PlutusLedgerApi.Common.ProtocolVersions
-    PlutusLedgerApi.Common.SerialisedScript
+
+    Codec.CBOR.Extras
     Prettyprinter.Extras
 
   build-depends:
