@@ -13,6 +13,6 @@ import PlutusLedgerApi.Common.Eval
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
 
-import PlutusLedgerApi.Internal.ParamName
+import PlutusLedgerApi.Internal.IsParamName
     (IsParamName (showParamName)
     )

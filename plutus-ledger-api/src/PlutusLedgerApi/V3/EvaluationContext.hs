@@ -6,7 +6,6 @@ module PlutusLedgerApi.V3.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Internal.EvaluationContext
-import PlutusLedgerApi.Internal.ParamName
 import PlutusLedgerApi.V3.ParamName as V3
 
 import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV2))

@@ -65,7 +65,6 @@ library
     PlutusLedgerApi.V1.DCert
     PlutusLedgerApi.V1.EvaluationContext
     PlutusLedgerApi.V1.Interval
-    PlutusLedgerApi.V1.ParamName
     PlutusLedgerApi.V1.Scripts
     PlutusLedgerApi.V1.Time
     PlutusLedgerApi.V1.Tx
@@ -74,18 +73,21 @@ library
     PlutusLedgerApi.V2
     PlutusLedgerApi.V2.Contexts
     PlutusLedgerApi.V2.EvaluationContext
-    PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Tx
 
     PlutusLedgerApi.V3
     PlutusLedgerApi.V3.EvaluationContext
-    PlutusLedgerApi.V3.ParamName
 
   other-modules:
-    PlutusLedgerApi.Internal.ParamName
+    PlutusLedgerApi.Internal.IsParamName
     PlutusLedgerApi.Internal.EvaluationContext
     PlutusLedgerApi.Internal.SerialisedScript
     PlutusLedgerApi.Internal.VersioningRules
+
+    PlutusLedgerApi.V1.ParamName
+    PlutusLedgerApi.V2.ParamName
+    PlutusLedgerApi.V3.ParamName
+
 
     Codec.CBOR.Extras
     Prettyprinter.Extras

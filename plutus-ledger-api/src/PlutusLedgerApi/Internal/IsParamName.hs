@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
-module PlutusLedgerApi.Internal.ParamName
+module PlutusLedgerApi.Internal.IsParamName
     ( IsParamName (showParamName)
     , GIsParamName (gshowParamName)
     , GenericParamName (..)
