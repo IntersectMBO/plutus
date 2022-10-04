@@ -6,7 +6,7 @@ let
   inherit (inputs.cells.toolchain) library;
   inherit (library.pkgs) lib;
 
-  r-packages = with library.pkgs.rPackages; [
+  r-packages = with library.pkgs; with library.pkgs.rPackages; [
     R
     tidyverse
     dplyr
@@ -31,6 +31,11 @@ let
       # Otherwise this depends on the name in the parent directory, which reduces caching, and is
       # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
       name = "plutus";
+    };
+
+    shell = {
+      # We don't currently use this.
+      withHoogle = false;
     };
 
     # for the source repository package stanzas
@@ -191,4 +196,6 @@ let
 
 in
 
-project 
+project.appendOverlays [
+  library.haskell-nix.haskellLib.projectOverlays.devshell
+]

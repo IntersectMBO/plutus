@@ -11,33 +11,17 @@
 
 let
 
-  haskell-nix-bootstrap = import inputs.haskell-nix {
-
-    pkgs = import inputs.nixpkgs.path {
-      system = inputs.nixpkgs.system;
-    };
-
-    sourcesOverride = {
-      hackage = inputs.hackage-nix;
-    };
-  };
-
-  iohk-nix = import inputs.iohk-nix { };
-
-
   pkgs = import inputs.nixpkgs.path {
 
-    config = haskell-nix-bootstrap.nixpkgsArgs.config;
+    config = inputs.haskell-nix.config;
 
     system = inputs.nixpkgs.system;
 
-    overlays =
-
-      haskell-nix-bootstrap.nixpkgsArgs.overlays ++
-
-      iohk-nix.overlays.crypto ++
-
-      [ cell.library.r-overlay ];
+    overlays = [
+      inputs.haskell-nix.overlay
+      inputs.iohk-nix.overlays.crypto
+      cell.library.r-overlay
+    ];
 
   };
 

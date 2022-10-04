@@ -16,17 +16,21 @@
   # { inputs, cell }: inputs.nixpkgs, inputs.haskell-nix
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/34e4df55664c24df350f59adba8c7a042dece61e";
+      url = "github:NixOS/nixpkgs";
     };
     std = {
       url = "github:divnix/std";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/e36a34c4abc02287ec79bf88a0c993f6b66f9945";
+      url = "github:input-output-hk/haskell.nix";
+      inputs = {
+        hackage.follows = "hackage-nix";
+        nixpkgs.follows = "nixpkgs";
+      };
     };
     hackage-nix = {
-      url = "github:input-output-hk/hackage.nix/d2077b0703f10ab08a071669729805d3bfea340d";
+      url = "github:input-output-hk/hackage.nix";
       flake = false;
     };
     sphinxcontrib-haddock = {
@@ -39,7 +43,7 @@
     };
     haskell-language-server = {
       # Pinned to a release
-      url = "github:haskell/haskell-language-server?ref=1.7.0.0";
+      url = "github:haskell/haskell-language-server?ref=1.8.0.0";
       flake = false;
     };
     pre-commit-hooks-nix = {
@@ -47,8 +51,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     iohk-nix = {
-      url = "github:input-output-hk/iohk-nix/6a5b69dc042f521db028fed68799eb460bce05a7";
-      flake = false;
+      url = "github:input-output-hk/iohk-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
