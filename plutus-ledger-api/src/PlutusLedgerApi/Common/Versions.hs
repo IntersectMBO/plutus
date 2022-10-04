@@ -1,7 +1,10 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE OverloadedStrings #-}
-module PlutusLedgerApi.Common.ProtocolVersions
-    ( ProtocolVersion (..)
+module PlutusLedgerApi.Common.Versions
+    ( PlutusVersion (..)
+    , ProtocolVersion (..)
     , pattern ShelleyPV
     , pattern AllegraPV
     , pattern MaryPV
@@ -12,7 +15,16 @@ module PlutusLedgerApi.Common.ProtocolVersions
 
 import Codec.Serialise (Serialise)
 import GHC.Generics (Generic)
-import Prettyprinter
+import Prettyprinter.Extras
+
+-- | The plutus language version as seen from the ledger's side.
+-- Note: the ordering of constructors matters for deriving Ord
+data PlutusVersion =
+      PlutusV1
+    | PlutusV2
+    | PlutusV3
+   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
+   deriving Pretty via (PrettyShow PlutusVersion)
 
 -- | This represents the Cardano protocol version, with its major and minor components.
 -- This relies on careful understanding between us and the ledger as to what this means.

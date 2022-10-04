@@ -131,7 +131,7 @@ import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
 
 -- | An alias to the language version this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-pattern THIS_PLUTUS_VERSION :: LedgerPlutusVersion
+pattern THIS_PLUTUS_VERSION :: PlutusVersion
 pattern THIS_PLUTUS_VERSION = PlutusV1
 
 {- Note [Abstract types in the ledger API]

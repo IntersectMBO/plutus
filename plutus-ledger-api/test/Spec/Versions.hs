@@ -90,3 +90,18 @@ testBuiltinVersions = testGroup "builtins"
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]
+
+-- helper
+-- | Given a protocol version return a set of all available plutus languages that are enabled/allowed to run.
+-- Assumes that languages once introduced/enabled, will never be disabled in the future.
+languagesAvailableIn :: ProtocolVersion -> Set.Set PlutusVersion
+languagesAvailableIn searchPv =
+    foldMap ledgerVersionToSet enumerate
+  where
+    -- OPTIMIZE: could be done faster using takeWhile
+    ledgerVersionToSet :: PlutusVersion -> Set.Set PlutusVersion
+    ledgerVersionToSet lv
+        | introducedIn lv <= searchPv = Set.singleton lv
+        | otherwise = mempty
+
+

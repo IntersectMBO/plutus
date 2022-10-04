@@ -121,7 +121,7 @@ import PlutusTx.AssocMap (Map, fromList)
 
 -- | An alias to the language version this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-pattern THIS_PLUTUS_VERSION :: LedgerPlutusVersion
+pattern THIS_PLUTUS_VERSION :: PlutusVersion
 pattern THIS_PLUTUS_VERSION = PlutusV3
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular

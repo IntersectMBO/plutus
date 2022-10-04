@@ -53,8 +53,7 @@ library
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Common.CostModelParams
-    PlutusLedgerApi.Common.ProtocolVersions
-    PlutusLedgerApi.Common.PlutusVersions
+    PlutusLedgerApi.Common.Versions
     PlutusLedgerApi.Common.SerialisedScript
 
     PlutusLedgerApi.V1
@@ -86,6 +85,7 @@ library
     PlutusLedgerApi.Internal.ParamName
     PlutusLedgerApi.Internal.EvaluationContext
     PlutusLedgerApi.Internal.SerialisedScript
+    PlutusLedgerApi.Internal.VersioningRules
 
     Codec.CBOR.Extras
     Prettyprinter.Extras

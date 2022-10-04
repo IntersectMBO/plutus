@@ -7,7 +7,7 @@ module PlutusLedgerApi.Internal.EvaluationContext
     , toMachineParameters
     ) where
 
-import PlutusLedgerApi.Common.ProtocolVersions
+import PlutusLedgerApi.Common.Versions
 
 import PlutusCore
 import PlutusCore.Evaluation.Machine.MachineParameters.Default

@@ -11,7 +11,8 @@ module PlutusLedgerApi.Internal.SerialisedScript
     ) where
 
 import PlutusCore
-import PlutusLedgerApi.Common.PlutusVersions
+import PlutusLedgerApi.Common.Versions
+import PlutusLedgerApi.Internal.VersioningRules
 import UntypedPlutusCore qualified as UPLC
 
 import Codec.CBOR.Decoding qualified as CBOR
@@ -32,7 +33,7 @@ data ScriptDecodeError =
       CBORDeserialiseError CBOR.DeserialiseFailure
     | RemainderError BSL.ByteString
     | LanguageNotAvailableError
-        { sdeAffectedLang :: LedgerPlutusVersion
+        { sdeAffectedLang :: PlutusVersion
         , sdeIntroPv      :: ProtocolVersion
         , sdeCurrentPv    :: ProtocolVersion
         }
@@ -77,7 +78,7 @@ for CBOR's ability to self-describe it's format.
 This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialised form of a `Script`.
 Rather than traversing the term and inserting fake names after deserialising, this lets us do at the same time as deserialising.
 -}
-scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s ScriptForExecution
+scriptCBORDecoder :: PlutusVersion -> ProtocolVersion -> CBOR.Decoder s ScriptForExecution
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
@@ -93,22 +94,22 @@ scriptCBORDecoder lv pv =
 -- | The deserialization from a serialised script to a Script (for execution).
 -- Called inside phase-1 validation (assertScriptWellFormed) and inside phase-2's `mkTermToEvaluate`
 deserialiseScriptForExecution :: forall e m. (AsScriptDecodeError e, MonadError e m)
-                     => LedgerPlutusVersion
+                     => PlutusVersion
                      -> ProtocolVersion
                      -> SerialisedScript
                      -> m ScriptForExecution
-deserialiseScriptForExecution lv currentPv sScript = do
-    when (introPv > currentPv)  $
-        throwing _ScriptDecodeError $ LanguageNotAvailableError lv introPv currentPv
+deserialiseScriptForExecution langVer currentProtVer sScript = do
+    when (introProtVer > currentProtVer)  $
+        throwing _ScriptDecodeError $ LanguageNotAvailableError langVer introProtVer currentProtVer
     (remderBS, script) <- deserialiseSScript sScript
-    when (lv /= PlutusV1 && lv /= PlutusV2 && remderBS /= mempty) $
+    when (langVer /= PlutusV1 && langVer /= PlutusV2 && remderBS /= mempty) $
         throwing _ScriptDecodeError $ RemainderError remderBS
     pure script
   where
-    introPv = languageIntroducedIn lv
+    introProtVer = languageIntroducedAt langVer
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptForExecution)
     deserialiseSScript = fromShort
                        >>> fromStrict
-                       >>> CBOR.deserialiseFromBytes (scriptCBORDecoder lv currentPv)
+                       >>> CBOR.deserialiseFromBytes (scriptCBORDecoder langVer currentProtVer)
                        -- lift the underlying cbor error to our custom error
                        >>> either (throwing _ScriptDecodeError . CBORDeserialiseError) pure

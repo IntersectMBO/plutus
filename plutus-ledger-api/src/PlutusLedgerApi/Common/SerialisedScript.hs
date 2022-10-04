@@ -12,7 +12,7 @@ module PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Internal.SerialisedScript
 
 import PlutusCore
-import PlutusLedgerApi.Common.PlutusVersions
+import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
 
@@ -51,7 +51,7 @@ implies that it is (almost certainly) an encoded script and the script does not 
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => LedgerPlutusVersion
+                       => PlutusVersion
                        -> ProtocolVersion
                        -> SerialisedScript
                        -> m ()

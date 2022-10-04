@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingVia #-}
 module PlutusLedgerApi.V3.ParamName
     ( ParamName
-    , showParamName
+    , IsParamName (showParamName)
     ) where
 
 import Data.Ix

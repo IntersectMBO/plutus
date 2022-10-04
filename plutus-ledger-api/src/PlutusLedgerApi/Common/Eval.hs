@@ -20,7 +20,7 @@ import PlutusCore.Evaluation.Machine.ExBudget as Plutus
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common.SerialisedScript
-import PlutusLedgerApi.Common.PlutusVersions
+import PlutusLedgerApi.Common.Versions
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -75,7 +75,7 @@ a limit to guard against scripts that run for a long time or loop.
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 evaluateScriptRestricting
-    :: LedgerPlutusVersion
+    :: PlutusVersion
     -> ProtocolVersion
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
@@ -106,7 +106,7 @@ also returns the used budget.
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 evaluateScriptCounting
-    :: LedgerPlutusVersion
+    :: PlutusVersion
     -> ProtocolVersion
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
@@ -130,7 +130,7 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
 -- | Shared helper for the evaluation functions, deserialises the 'SerialisedScript' , applies it to its arguments, puts fakenamedebruijns, and scope-checks it.
 mkTermToEvaluate
     :: (MonadError EvaluationError m)
-    => LedgerPlutusVersion
+    => PlutusVersion
     -> ProtocolVersion
     -> SerialisedScript
     -> [Plutus.Data]
