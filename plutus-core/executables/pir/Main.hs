@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE TypeApplications  #-}
 module Main where
 
 import Common hiding (runPrint)
@@ -34,7 +33,6 @@ type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
 data Command = Analyse IOSpec
              | Compile COpts
              | Print PrintOptions
-             | Convert ConvertOptions
 
 data COpts = COpts
   { cIn       :: Input
@@ -158,15 +156,13 @@ main = do
         Analyse opts -> loadPirAndAnalyse opts
         Compile opts -> loadPirAndCompile opts
         Print opts   -> runPrint opts
-        Convert opts -> runConvert @PirProg opts
   where
     infoOpts =
       info (pPirOpts <**> helper)
            ( fullDesc
            <> header "PIR tool"
            <> progDesc ("This program provides a number of utilities for dealing with "
-           <> "PIR programs, including print, analysis, compilation to PLC, "
-           <> "and conversion between a number of different formats. "))
+           <> "PIR programs, including print, analysis, and compilation to PLC."))
 
 -- | a csv-outputtable record row of {name,unique,size}
 data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}
