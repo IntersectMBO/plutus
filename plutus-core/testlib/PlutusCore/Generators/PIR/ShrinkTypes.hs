@@ -64,10 +64,11 @@ minimalType = go . argsKind where
   list = mkTyBuiltin @_ @[] ()
   pair = mkTyBuiltin @_ @(,) ()
 
--- | Take a type in a context and a new target kind
---   Precondition: new kind is smaller or equal to old kind of the type.
---   Complies with the implicit shrinking order.
---   TODO (later): also allow changing which context it's valid in
+-- | Take a type in a context and a target kind and try adjust the type to have the target kind.
+-- If can't make the adjusting successful, return the 'minimalType' of the target kind.
+-- Precondition: new kind is smaller or equal to old kind of the type.
+-- Complies with the implicit shrinking order.
+-- TODO (later): also allow changing which context it's valid in
 fixKind :: HasCallStack
         => TypeCtx
         -> Type TyName DefaultUni ()
@@ -75,8 +76,8 @@ fixKind :: HasCallStack
         -> Type TyName DefaultUni ()
 fixKind ctx ty k
   -- Nothing to do if we already have the right kind
-  | unsafeInferKind ctx ty == k = ty
-  | not $ k `leKind` unsafeInferKind ctx ty = error $ concat
+  | origK == k = ty
+  | not $ k `leKind` origK = error $ concat
       [ "Internal error. New kind: "
       , display k
       , "\nis not smaller than the old one: "
@@ -111,6 +112,7 @@ fixKind ctx ty k
     TyFun{} -> error "Internal error: unreachable clause."
     TyIFix{} -> error "Internal error: unreachable clause."
     TyForall{} -> error "Internal error: unreachable clause."
+  where origK = unsafeInferKind ctx ty
 
 -- | Shrink a well-kinded type in a context to new types, possibly with new kinds.
 -- The new kinds are guaranteed to be smaller than or equal to the old kind.

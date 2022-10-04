@@ -9,6 +9,8 @@ import Test.Tasty.QuickCheck
 import GeneratorSpec.Substitution
 import GeneratorSpec.Types
 
+-- | The PIR generators test suite. The argument allows the caller to scale the number of tests.
+-- The default for the argument is @1@.
 generators :: Int -> TestNested
 generators factor = return $ testGroup "generators"
   [ testProperty "prop_genKindCorrect"  $ withMaxSuccess (factor*100000) (prop_genKindCorrect False)

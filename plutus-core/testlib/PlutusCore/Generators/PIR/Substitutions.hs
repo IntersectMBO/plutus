@@ -149,7 +149,7 @@ unifyType ctx flex a0 b0 =
             when (Set.member name1 fvs) $
               resolutionFailure name1 ty2 "the variable appears free in the type"
             -- Cannot resolve a meta to an ill-kinded type.
-            case checkKind ctx ty2 (ctx Map.! name1) of
+            case checkKind ctx ty2 (Map.findWithDefault (error "impossible") name1 ctx ) of
                 Left msg -> resolutionFailure name1 ty2 $ "of kind mismatch:\n\n" ++ msg
                 Right () -> pure ()
             -- Cannot capture a locally bound variable.

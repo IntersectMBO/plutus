@@ -41,7 +41,9 @@ prop_unify :: Property
 prop_unify =
   forAllDoc "n"   arbitrary shrink         $ \ (NonNegative n) ->
   forAllDoc "nSub" (choose (0, n)) shrink  $ \ nSub ->
-  letCE "xVars" (take n allTheVarsCalledX) $ \ xVars ->
+  let xVars = [TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..n]] in
+  -- Just for displaying @xVars@ in case of error.
+  letCE "xVars" xVars                      $ \ _ ->
   forAllDoc "kinds"
     (vectorOf n arbitrary)
     (filter ((== n) . length) . shrink)    $ \ kinds ->
@@ -57,8 +59,10 @@ prop_unify =
   letCE "res" (unifyType ctx (Set.fromList $ take nSub xVars) ty1 ty2) $ \ res ->
   isRight res ==>
   let sub = fromRight (error "impossible") res
-      checkSub (x, ty) = letCE "x,ty" (x, ty)    $ \ _ ->
-                         letCE "k" (ctx Map.! x) $ \ k -> checkKind ctx ty k
+      checkSub (x, ty) =
+          letCE "x,ty" (x, ty)    $ \ _ ->
+          letCE "k" (Map.findWithDefault (error "impossible") x ctx) $ \ k ->
+          checkKind ctx ty k
   in
   letCE "sty1" (substType sub ty1) $ \ sty1 ->
   letCE "sty2" (substType sub ty2) $ \ sty2 ->
@@ -68,8 +72,6 @@ prop_unify =
   -- normalized types here.
   tabulate "sizes" [show $ min (Set.size $ setOf ftvTy nty1) (Set.size $ setOf ftvTy nty2)] $
   foldr (.&&.) (property $ nsty1 == nsty2) (map checkSub (Map.toList sub))
-  where
-    allTheVarsCalledX = [ TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..] ]
 
 -- | Check that a type unifies with a renaming of itself
 prop_unifyRename :: Property
@@ -88,7 +90,6 @@ prop_substType =
   forAllDoc "ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \ (k, ty) ->
   forAllDoc "sub" (genSubst ctx) (shrinkSubst ctx) $ \ sub ->
   letCE "res" (substType sub ty) $ \ res -> do
-    -- TODO: be more precise.
     let fv1 = fvTypeR sub ty
         fv2 = setOf ftvTy res
     unless (fv1 == fv2) . Left $ concat

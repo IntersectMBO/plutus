@@ -5,6 +5,7 @@ module PlutusCore.Generators.PIR.GenerateTypes where
 
 import Control.Monad.Reader
 
+import Data.Foldable
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String
@@ -67,32 +68,29 @@ genAtomicType k = do
 
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
-genType k = checkInvariants $ onSize (min 10) $
-  ifSizeZero (genAtomicType k) $
-    frequency $
-      [ (5, genAtomicType k) ] ++
-      [ (10, genFun) | k == Type () ] ++
-      [ (5, genForall) | k == Type () ] ++
-      [ (1, genIFix) | k == Type () ] ++
-      [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
-      [ (5, genApp) ]
-  where
-
-    checkInvariants gen = do
-      ty <- gen
-      debug <- asks geDebug
+genType k = do
+    ty <- onSize (min 10) $ ifSizeZero (genAtomicType k) $
+        frequency $
+          [ (5, genAtomicType k) ] ++
+          [ (10, genFun) | k == Type () ] ++
+          [ (5, genForall) | k == Type () ] ++
+          [ (1, genIFix) | k == Type () ] ++
+          [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
+          [ (5, genApp) ]
+    debug <- asks geDebug
+    when debug $ do
       ctx <- asks geTypes
-      if debug then
-        case checkKind ctx ty k of
+      case checkKind ctx ty k of
+          Right _  -> pure ()
           Left err ->
-             (error . show $ "genType - checkInvariants: type " <> prettyPirReadable ty
-                           <> " does not match kind " <> prettyPirReadable k
-                           <> " in context " <> prettyPirReadable ctx
-                           <> " with error message " <> fromString err)
-          _ -> return ty
-      else
-        return ty
-
+              error . show $ fold
+                  [ "genType - checkInvariants: type " <> prettyPirReadable ty
+                  , " does not match kind " <> prettyPirReadable k
+                  , " in context " <> prettyPirReadable ctx
+                  , " with error message " <> fromString err
+                  ]
+    pure ty
+  where
     -- this size split keeps us from generating riddiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the
     -- genApp case below). This ratio of 1:7 was not scientifically
@@ -102,13 +100,13 @@ genType k = checkInvariants $ onSize (min 10) $
     genFun = uncurry (TyFun ()) <$> sizeSplit_ 1 7 (genType k) (genType k)
 
     genForall = do
-      x <- genMaybeFreshTyName "a"
+      a <- genMaybeFreshTyName "a"
       k' <- liftGen arbitrary
-      fmap (TyForall () x k') $ onSize (subtract 1) $ bindTyName x k' $ genType $ Type ()
+      fmap (TyForall () a k') $ onSize (subtract 1) $ bindTyName a k' $ genType $ Type ()
 
     genLam k1 k2 = do
-        x <- genMaybeFreshTyName "a"
-        fmap (TyLam () x k1) $ onSize (subtract 1) $ bindTyName x k1 (genType k2)
+        a <- genMaybeFreshTyName "a"
+        fmap (TyLam () a k1) $ onSize (subtract 1) $ bindTyName a k1 (genType k2)
 
     genApp = do
       k' <- liftGen arbitrary
@@ -169,8 +167,8 @@ genCtx :: Gen TypeCtx
 genCtx = do
   let m = 20
   n <- choose (0, m)
-  let allTheVarsCalledX = [ TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..m] ]
-  shuf <- shuffle allTheVarsCalledX
+  let xVars = [TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..m]]
+  shuf <- shuffle xVars
   let xs = take n shuf
   ks <- vectorOf n arbitrary
   return $ Map.fromList $ zip xs ks

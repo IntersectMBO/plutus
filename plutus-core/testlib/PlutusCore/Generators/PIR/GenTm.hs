@@ -54,8 +54,6 @@ data GenEnv = GenEnv
   -- ^ Type context
   , geTerms              :: Map Name (Type TyName DefaultUni ())
   -- ^ Term context
-  , geUnboundUsedTyNames :: Set TyName
-  -- ^ Names that we have generated and don't want to shadow but haven't bound yet.
   , geEscaping           :: AllowEscape
   -- ^ Are we in a place where we are allowed to generate a datatype binding?
   , geCustomGen          :: Maybe (Type TyName DefaultUni ())
@@ -102,21 +100,24 @@ runGenTmCustom :: Int
 runGenTmCustom f cg g = do
   sized $ \ n -> do
     let env = GenEnv
-          { geSize               = n
-          , geDatas              = Map.empty
-          , geTypes              = Map.empty
-          , geTerms              = Map.empty
-          , geUnboundUsedTyNames = Set.empty
-          , geEscaping           = YesEscape
-          , geCustomGen          = cg
-          , geCustomFreq         = f
-          , geDebug              = False
+          { geSize       = n
+          , geDatas      = Map.empty
+          , geTypes      = Map.empty
+          , geTerms      = Map.empty
+          , geEscaping   = YesEscape
+          , geCustomGen  = cg
+          , geCustomFreq = f
+          , geDebug      = False
           }
     flip runReader env <$> runGenT g
 
+-- | Create a generator that runs the given generator and applies the given function to produced
+-- values until the result is a @Just y@, returning the @y@.
 suchThatMap :: Monad m => GenT m a -> (a -> Maybe b) -> GenT m b
 gen `suchThatMap` f = fmap fromJust $ fmap f gen `suchThat` isJust
 
+-- | Create a generator that runs the given generator until the result is a @Just x@,
+-- returning the @x@.
 deliver :: Monad m => GenT m (Maybe a) -> GenT m a
 deliver gen = gen `suchThatMap` id
 
@@ -164,33 +165,30 @@ sizeSplit a b ga gb = do
 -- | Get all uniques we have generated and are used in the current context.
 getUniques :: GenTm (Set Unique)
 getUniques = do
-  GenEnv{geDatas = dts, geTypes = tys, geTerms = tms, geUnboundUsedTyNames = used} <- ask
-  return $ Set.mapMonotonic (_nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys <> used) <>
+  GenEnv{geDatas = dts, geTypes = tys, geTerms = tms} <- ask
+  return $ Set.mapMonotonic (_nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys) <>
            Set.mapMonotonic _nameUnique (Map.keysSet tms) <>
            Set.unions [ names d | d <- Map.elems dts ]
   where
     names (Datatype _ _ _ m cs) = Set.fromList $ _nameUnique m : [ _nameUnique c | VarDecl _ c _ <- cs ]
 
-{- Note [Warning about generating fresh names]: because `GenTm` is a *reader* monad
-   names are not immediately put into any state when generated. There is *no guarantee*
-   that in this situation:
-   ```
-   do nms <- genFreshNames ss
-      nms' <- genFreshNames ss
-   ```
-   the names in `nms` and `nms'` don't overlap.
+{- Note [Warning about generating fresh names]
+Since 'GenTm' is a *reader* monad names are not immediately put into any state when generated.
+There is *no guarantee* that in this situation:
 
-   Instead, what you are supposed to do is locally use the names in `nms` and `nms'` to
-   define generators that use them. This is done with functions like `bindTyName` and `bindTmName`:
-   ```
-   genLam ma mb = do
-      x <- genFreshName "x"
-      sizeSplit 1 7 (maybe (genType Star) return ma)
-                    --      v--- LOOK HERE!
-                    (\ a -> bindTmName x a . withNoEscape $ genTerm mb) $ \ a (b, body) ->
-                    --      ^--- LOOK HERE!
-                    TyFun () a b, LamAbs () x a body)
-   ```
+    do
+        nms <- genFreshNames ss
+        nms' <- genFreshNames ss
+
+the names in @nms@ and @nms'@ don't overlap.
+
+Instead, what you are supposed to do is locally use the names in `nms` and `nms'` to
+define generators that use them. This is done with functions like `bindTyName` and `bindTmName`:
+
+    genLam k1 k2 = do
+        x <- genMaybeFreshTyName "a"
+        --                                           v--- LOOK HERE!
+        fmap (TyLam () x k1) $ onSize (subtract 1) $ bindTyName x k1 (genType k2)
 -}
 
 -- | Generate a fresh name. See Note [Warning about generating fresh names].
@@ -247,11 +245,6 @@ bindTyName x k = local $ \ e -> e
 -- | Bind type names
 bindTyNames :: [(TyName, Kind ())] -> GenTm a -> GenTm a
 bindTyNames = flip $ foldr (uncurry bindTyName)
-
--- | Remember that we have generated a type name locally but don't bind it.
--- Useful for non-recursive definitions where we want to control name overlap.
-registerTyName :: TyName -> GenTm a -> GenTm a
-registerTyName n = local $ \ e -> e { geUnboundUsedTyNames = Set.insert n (geUnboundUsedTyNames e) }
 
 -- | Bind a term to a type in a generator.
 bindTmName :: Name -> Type TyName DefaultUni () -> GenTm a -> GenTm a
