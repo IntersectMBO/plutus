@@ -22,6 +22,8 @@ let
 
     compiler-nix-name = library.ghc-compiler-nix-name;
 
+    evalPackages = library.pkgs;
+
     # This is incredibly difficult to get right, almost everything goes wrong,
     # see https://github.com/input-output-hk/haskell.nix/issues/496
     src = library.haskell-nix.haskellLib.cleanSourceWith {
@@ -149,7 +151,7 @@ let
             platforms = lib.platforms.linux;
           };
 
-          # Werror everything. 
+          # Werror everything.
           # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
 
@@ -191,4 +193,4 @@ let
 
 in
 
-project 
+project
