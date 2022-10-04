@@ -16,8 +16,7 @@ import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
--- builtin with no arguments) by instantiating (via 'fromBuiltinRuntimeOptions') a
--- 'BuiltinRuntimeOptions'.
+-- builtin with no arguments) by instantiating.
 --
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.
@@ -50,17 +49,6 @@ instance NoThunks (BuiltinRuntime val) where
         BuiltinExpectForce runtime -> noThunks ctx runtime
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
-
--- | A 'BuiltinRuntimeOptions' is a precursor to 'BuiltinRuntime'. One gets the latter from the
--- former by applying a function returning the runtime denotation of the builtin.
-newtype BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions (cost -> BuiltinRuntime val)
-
--- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given a cost
--- model.
-fromBuiltinRuntimeOptions
-    :: cost -> BuiltinRuntimeOptions val cost -> BuiltinRuntime val
-fromBuiltinRuntimeOptions cost (BuiltinRuntimeOptions denot) = denot cost
-{-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where
     -- 'BuiltinRuntime' is strict (verified by the 'NoThunks' tests), hence we only need to force

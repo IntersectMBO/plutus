@@ -49,7 +49,7 @@ type family FoldArgs args res where
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
--- its Haskell denotation and a 'BuiltinRuntimeOptions'.
+-- its Haskell denotation and a costing function.
 --
 -- The 'TypeScheme' of a built-in function is used for example for
 --
@@ -64,7 +64,7 @@ data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
         ~(FoldArgs args res)
-        (BuiltinRuntimeOptions val cost)
+        (cost -> BuiltinRuntime val)
 
 -- | Constraints available when defining a built-in function.
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
@@ -345,15 +345,14 @@ instance
     makeBuiltinMeaning f toExF =
         BuiltinMeaning (knownPolytype @binds @val @args @res) f $
             -- See Note [Optimizations of runCostingFun*] for why we use strict @case@.
-            BuiltinRuntimeOptions $ \cost ->
+            \cost ->
                 case toExF cost of
                     !exF -> toPolyF @binds @val @args @res $ pure (f, exF)
     {-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
 toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime cost (BuiltinMeaning _ _ runtimeOpts) =
-    fromBuiltinRuntimeOptions cost runtimeOpts
+toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
 {-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].

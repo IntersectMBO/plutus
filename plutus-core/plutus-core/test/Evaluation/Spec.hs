@@ -134,8 +134,8 @@ prop_builtinEvaluation ver bn costModel mkGen f = property $ do
             -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
-        BuiltinMeaning _ _ opts = toBuiltinMeaning ver bn
-        runtime0 = fromBuiltinRuntimeOptions costModel opts
+        BuiltinMeaning _ _ denot = toBuiltinMeaning ver bn
+        runtime0 = denot costModel
     f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
 
 genArgsWellTyped ::
