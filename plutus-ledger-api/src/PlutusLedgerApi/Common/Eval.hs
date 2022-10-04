@@ -3,6 +3,7 @@
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 module PlutusLedgerApi.Common.Eval
     ( EvaluationError (..)
     , EvaluationContext
@@ -24,6 +25,7 @@ import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 import PlutusLedgerApi.Internal.EvaluationContext
+import PlutusLedgerApi.Internal.SerialisedScript
 
 import Control.Monad.Except
 import Control.Monad.Writer
@@ -135,7 +137,7 @@ mkTermToEvaluate
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
+    ScriptForExecution (UPLC.Program _ v t) <- deserialiseScriptForExecution lv pv bs
     unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs

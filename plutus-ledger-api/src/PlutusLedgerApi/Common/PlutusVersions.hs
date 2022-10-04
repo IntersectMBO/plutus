@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE LambdaCase #-}
 module PlutusLedgerApi.Common.PlutusVersions
     ( module PlutusLedgerApi.Common.ProtocolVersions
@@ -15,7 +16,7 @@ import PlutusPrelude
 
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import Prettyprinter
+import Prettyprinter.Extras
 
 {- Note [New builtins and protocol versions]
 When we add a new builtin to the language, that is a *backwards-compatible* change.
@@ -44,9 +45,7 @@ data LedgerPlutusVersion =
     | PlutusV2
     | PlutusV3
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
-
-instance Pretty LedgerPlutusVersion where
-    pretty = viaShow
+   deriving Pretty via (PrettyShow LedgerPlutusVersion)
 
 {-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
 
