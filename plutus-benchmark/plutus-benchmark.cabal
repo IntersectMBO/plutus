@@ -288,3 +288,24 @@ benchmark cek-calibration
     , plutus-core       ^>=1.0
     , plutus-tx         ^>=1.0
     , plutus-tx-plugin  ^>=1.0
+
+---------------- Signature verification throughput ----------------
+executable signatures
+  import:           lang
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  main-is:          Main.hs
+  hs-source-dirs:   signatures
+  build-depends:
+    , base                  >=4.9     && <5
+    , bytestring
+    , cardano-crypto-class
+    , criterion             >=1.5.9.0
+    , flat
+    , hedgehog
+    , lens
+    , mtl
+    , plutus-core           ^>=1.0
+    , plutus-tx             ^>=1.0
+    , plutus-tx-plugin      ^>=1.0
+    , random
