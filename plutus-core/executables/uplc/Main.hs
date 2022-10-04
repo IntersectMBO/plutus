@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TypeApplications          #-}
 
 module Main (main) where
 
@@ -232,6 +233,6 @@ main = do
         Eval      opts         -> runEval         opts
         Example   opts         -> runUplcPrintExample opts
         Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert      opts
+        Convert   opts         -> runConvert @UplcProg     opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

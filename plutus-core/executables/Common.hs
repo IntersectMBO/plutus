@@ -1,11 +1,12 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module Common where
 
@@ -62,7 +63,7 @@ import System.Mem (performGC)
 import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
------------ PlutusProgram type class -----------
+----------- ProgramLike type class -----------
 
 -- | PIR program type.
 type PirProg =
@@ -76,7 +77,7 @@ type PlcProg =
 type UplcProg =
   UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
 
-class PlutusProgram p where
+class ProgramLike p where
 
   -- | Parse a program.  The first argument (normally the file path) describes
   -- the input stream, the second is the program text.
@@ -106,21 +107,21 @@ serialiseTProgramFlat nameType p =
         NamedDeBruijn -> typedDeBruijnNotSupportedError
 
 -- | Instance for PIR program.
-instance PlutusProgram PirProg where
+instance ProgramLike PirProg where
   parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
   checkUnique _ = pure () -- decided that it's not worth implementing since it's checked in PLC.
   serialiseProgramFlat = serialiseTProgramFlat
   loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for PLC program.
-instance PlutusProgram PlcProg where
+instance ProgramLike PlcProg where
   parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
   checkUnique = PLC.checkProgram (const True)
   serialiseProgramFlat = serialiseTProgramFlat
   loadASTfromFlat = loadTplcASTfromFlat
 
 -- | Instance for UPLC program.
-instance PlutusProgram UplcProg where
+instance ProgramLike UplcProg where
   parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
   checkUnique = UPLC.checkProgram (const True)
   serialiseProgramFlat nameType p =
@@ -231,7 +232,9 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
 
 class PrintBudgetState cost where
     printBudgetState :: UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-      -> CekModel -> cost -> IO ()
+      -> CekModel
+      -> cost
+      -> IO ()
     -- TODO: Tidy this up.  We're passing in the term and the CEK cost model
     -- here, but we only need them in tallying mode (where we need the term so
     -- we can print out the AST size and we need the model type to decide how
@@ -317,7 +320,7 @@ getInput StdInput         = T.getContents
 
 -- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
 parseInput ::
-  (PlutusProgram p, PLC.Rename (p PLC.SourcePos) ) =>
+  (ProgramLike p, PLC.Rename (p PLC.SourcePos) ) =>
   -- | The source program
   Input ->
   -- | The output is either a UPLC or PLC program with annotation
@@ -334,7 +337,7 @@ parseInput inp = do
         -- run @rename@ through the program
         renamed <- PLC.runQuoteT $ rename p
         -- check the program for @UniqueError@'s
-        let checked = through (Common.checkUnique) renamed
+        let checked = through Common.checkUnique renamed
         case checked of
           -- pretty print the error
           Left (err :: PLC.UniqueError PLC.SourcePos) ->
@@ -398,7 +401,7 @@ loadUplcASTfromFlat flatMode inp = do
 
 -- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
 getProgram ::
-  (PlutusProgram p,
+  (ProgramLike p,
    Functor p,
    PLC.Rename (p PLC.SourcePos)) =>
   Format -> Input -> IO (p PLC.SourcePos)
@@ -413,7 +416,7 @@ getProgram fmt inp =
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
 writeFlat ::
-  (PlutusProgram p, Functor p) => Output -> AstNameType -> p ann -> IO ()
+  (ProgramLike p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
   -- Change annotations to (): see Note [Annotation types].
   flatProg <- serialiseProgramFlat flatMode (() <$ prog)
@@ -432,7 +435,7 @@ getPrintMethod = \case
       ReadableDebug -> PP.prettyPlcReadableDebug
 
 writeProgram ::
-  (PlutusProgram p,
+  (ProgramLike p,
    Functor p,
    PP.PrettyBy PP.PrettyConfigPlc (p ann)) =>
    Output -> Format -> PrintMode -> p ann -> IO ()
@@ -694,7 +697,14 @@ runPrint (PrintOptions iospec mode) = do
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
-runConvert :: ConvertOptions -> IO ()
+runConvert ::
+  forall (p :: * -> *) .
+  (ProgramLike p,
+   Functor p,
+   PLC.Rename (p PLC.SourcePos),
+   PP.PrettyBy PP.PrettyConfigPlc (p PLC.SourcePos))
+  => ConvertOptions
+  -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
+    program :: p PLC.SourcePos <- getProgram ifmt inp
     writeProgram outp ofmt mode program

@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
@@ -167,6 +168,6 @@ main = do
         Example   opts         -> runPlcPrintExample opts
         Erase     opts         -> runErase        opts
         Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert      opts
+        Convert   opts         -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

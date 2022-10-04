@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE TypeApplications  #-}
 module Main where
 
 import Common hiding (runPrint)
@@ -79,7 +80,9 @@ compile opts (PIR.Program _ pirT) = do
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
     set' :: Lens' (PIR.CompilationOpts a) b
-      -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
+      -> (COpts -> b)
+      -> PIRCompilationCtx a
+      -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
     defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
@@ -117,7 +120,8 @@ loadPirAndAnalyse ioSpecs = do
         -- change uniques to texts and use csv-outputtable records
         sortedRecords :: [RetentionRecord]
         sortedRecords =
-          (\(i,s) -> RetentionRecord (IM.findWithDefault "???" i nameTable) i s) <$> sortedRetained
+          flip fmap sortedRetained $ \(i, s) ->
+            RetentionRecord (IM.findWithDefault "???" i nameTable) i s
 
     -- encode to csv and output it
     Csv.encodeDefaultOrderedByName sortedRecords &
@@ -154,12 +158,11 @@ main = do
         Analyse opts -> loadPirAndAnalyse opts
         Compile opts -> loadPirAndCompile opts
         Print opts   -> runPrint opts
-        Convert opts -> runConvert opts
+        Convert opts -> runConvert @PirProg opts
   where
     infoOpts =
       info (pPirOpts <**> helper)
            ( fullDesc
-          --  <> progDesc "Load a flat pir term from file and run the compiler on it"
            <> header "PIR tool"
            <> progDesc ("This program provides a number of utilities for dealing with "
            <> "PIR programs, including print, analysis, compilation to PLC, "
