@@ -91,15 +91,22 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
 -}
 
 
+data Inputs = Inputs [(BuiltinByteString, BuiltinByteString, BuiltinByteString, BuiltinByteString)]
+type HashFun = ByteString -> ByteString
+type BuiltinHashFun = BuiltinByteString -> BuiltinByteString
+
+haskellHash :: HashFun
+haskellHash = Hash.sha2_256
+
+{-# INLINEABLE builtinHash #-}
+builtinHash :: BuiltinHashFun
+builtinHash = Tx.sha2_256
+
 -- Create a list containing n bytestrings of length l.  This could be better.
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
 listOfSizedByteStrings n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
-
-data Inputs = Inputs [(BuiltinByteString, BuiltinByteString, BuiltinByteString, BuiltinByteString)]
-type HashFun = ByteString -> ByteString
-type BuiltinHashFun = BuiltinByteString -> BuiltinByteString
 
 {- | Create a list of valid (verification key, message, signature, data key)
    quadruples.  The DSIGN infrastructure lets us do this in a fairly generic
@@ -147,13 +154,13 @@ verifyInputs hash d =
                 verify (i:is) acc = verify is (acc && checkInput i)
                 checkInput (vk, sg, dkhash, dk) =
                     let dkhash' = hash dk
-                    in dkhash == dkhash' && Tx.verifyEd25519Signature vk dkhash sg
+                    in Tx.verifyEd25519Signature vk dkhash sg && dkhash == dkhash'
 
 -- | Create the input data, convert it to BuiltinData, and apply the
 -- verification script to that.
 mkSigCheckScript :: Integer -> UProg
 mkSigCheckScript n =
-    Tx.getPlc $ $$(Tx.compile [|| verifyInputs Tx.sha2_256 ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n Hash.sha2_256)
+    Tx.getPlc $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n haskellHash)
 
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double
@@ -189,8 +196,16 @@ printStatistics n = do
            cpu  (percentTxt cpu  max_tx_ex_steps)
            mem  (percentTxt mem  max_tx_ex_mem)
 
+-- | Check that the Haskell version succeeds on a list of inputs.
+testHaskell :: Integer -> IO ()
+testHaskell n =
+    if verifyInputs builtinHash $ mkInputsAsData n haskellHash
+    then printf "Off-chain version succeeded on %d inputs\n\n" n
+    else printf "Off-chain version failed\n\n"
+
 main :: IO ()
 main = do
+  testHaskell 100
   printf "    n     script size             CPU usage               Memory usage\n"
   printf "  ----------------------------------------------------------------------\n"
   mapM_ printStatistics [0, 10..150]
