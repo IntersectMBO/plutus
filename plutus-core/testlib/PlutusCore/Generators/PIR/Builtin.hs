@@ -1,5 +1,6 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -9,6 +10,7 @@ module PlutusCore.Generators.PIR.Builtin where
 
 import Data.ByteString (ByteString)
 import Data.Coerce
+import Data.Functor
 import Data.Int
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -110,6 +112,19 @@ shrinkDefaultUniApplyStar (fun `DefaultUniApply` arg) =
     [JustSomeType arg | SingType <- [toSingKind arg]] ++ shrinkDefaultUniApplyStar fun
 shrinkDefaultUniApplyStar _ = []
 
+{- Note [Kind-driven generation of built-in types]
+The @Arbitrary (MaybeSomeTypeOf k)@ instance is responsible for generating built-in types.
+
+We reflect the kind at the type-level, so that
+
+1. generation of built-in types can be kind-driven
+2. and we don't need to do any kind checking at runtime (or 'unsafeCoerce'-ing) in order to
+   things into our intrisically kinded representation of built-in types
+
+I.e. we have a correct-by-construction built-in type generator.
+-}
+
+-- See Note [Kind-driven generation of built-in types].
 instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
    arbitrary = do
        size <- getSize
@@ -148,15 +163,11 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
            -- No suitable builtins to shrink to for non-* kinds.
            _ -> []
 
--- | Convert a @MaybeSomeTypeOf kind@ to a @Maybe (SomeTypeIn DefaultUni)@ and forget the @kind@
--- (which was only used for generating well-kinded built-in type applications, which we have to do
--- due to having intrinsic kinding of builtins).
-fromMaybeSomeTypeOf :: MaybeSomeTypeOf kind -> Maybe (SomeTypeIn DefaultUni)
-fromMaybeSomeTypeOf NothingSomeType    = Nothing
-fromMaybeSomeTypeOf (JustSomeType uni) = Just $ SomeTypeIn uni
-
 -- | Generate a built-in type of a given kind.
 genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))
 genBuiltinTypeOf kind =
+    -- See Note [Kind-driven generation of built-in types].
     withKnownKind kind $ \(_ :: Proxy kind) ->
-        fromMaybeSomeTypeOf <$> arbitrary @(MaybeSomeTypeOf kind)
+        arbitrary @(MaybeSomeTypeOf kind) <&> \case
+            NothingSomeType  -> Nothing
+            JustSomeType uni -> Just $ SomeTypeIn uni
