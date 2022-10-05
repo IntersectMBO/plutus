@@ -60,25 +60,25 @@ library
     , transformers
     , witherable
 
-executable test-utils
-  import:         lang
-  main-is:        Spec.hs
-  hs-source-dirs: executables/test-utils/
-  other-modules:
-  build-depends:
-    , base                  >=4.9 && <5
-    , optparse-applicative
-    , plutus-conformance
-    , plutus-core
-    , tasty-golden
-    , text
+-- executable test-utils
+--   import:         lang
+--   main-is:        Spec.hs
+--   hs-source-dirs: executables/test-utils/
+--   other-modules:
+--   build-depends:
+--     , base                  >=4.9 && <5
+--     , optparse-applicative
+--     , plutus-conformance
+--     , plutus-core
+--     , tasty-golden
+--     , text
 
-executable haskell-implementation
-  import:         lang
-  main-is:        Spec.hs
-  hs-source-dirs: executables/haskell-implementation
-  other-modules:
-  build-depends:  base >=4.9 && <5
+-- executable haskell-implementation
+--   import:         lang
+--   main-is:        Spec.hs
+--   hs-source-dirs: executables/haskell-implementation
+--   other-modules:
+--   build-depends:  base >=4.9 && <5
 
 test-suite haskell-conformance
   import:         lang
@@ -90,15 +90,15 @@ test-suite haskell-conformance
     , base                >=4.9 && <5
     , plutus-conformance
 
-test-suite agda-conformance
-  import:         lang
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: agda test-cases
-  other-modules:
-  build-depends:
-    , base                >=4.9 && <5
-    , plutus-conformance
-    , plutus-core
-    , plutus-metatheory
-    , transformers
+-- test-suite agda-conformance
+--   import:         lang
+--   type:           exitcode-stdio-1.0
+--   main-is:        Spec.hs
+--   hs-source-dirs: agda test-cases
+--   other-modules:
+--   build-depends:
+--     , base                >=4.9 && <5
+--     , plutus-conformance
+--     , plutus-core
+--     , plutus-metatheory
+--     , transformers

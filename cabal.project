@@ -19,11 +19,11 @@ index-state: cardano-haskell-packages 2022-10-10T00:00:00Z
 
 packages: doc
           plutus-benchmark
-          plutus-conformance
+          -- plutus-conformance
           plutus-core
           plutus-errors
           plutus-ledger-api
-          plutus-metatheory
+          -- plutus-metatheory
           plutus-tx
           plutus-tx-plugin
           prettyprinter-configurable
