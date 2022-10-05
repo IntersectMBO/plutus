@@ -1,5 +1,3 @@
--- editorconfig-checker-disable-file
-
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
@@ -37,21 +35,35 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Flat qualified
-import Hedgehog qualified as H (Seed (..))
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
-import Hedgehog.Internal.Tree qualified as T
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Printf (printf)
 
-import Prelude (Double, IO, Integral, String, error, fromIntegral, maybe, (*), (/))
+import Prelude (Double, IO, Integral, String, fromIntegral, (*), (/))
+
+-- Protocol parameters (November 2022)
+
+-- | This is the "maximum transaction size".  We're just comparing the size of
+-- the script with this, so our results may be a little optimistic if the
+-- transaction includes other stuff (I'm not sure exactly what "maximum
+-- transaction size" means).
+max_tx_size :: Integer
+max_tx_size = 16384
+
+max_tx_ex_steps :: Integer
+max_tx_ex_steps = 10_000_000_000
+
+max_tx_ex_mem :: Integer
+max_tx_ex_mem = 14_000_000
+
+
+-------------------------------- PLC stuff--------------------------------
 
 type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 type UProg   = UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
 
-
--------------------------------- PLC stuff--------------------------------
 
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
@@ -78,12 +90,6 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
    the size, cpu cost, and memory cost of the script.
 -}
 
-
-seedA :: H.Seed
-seedA = H.Seed 42 43
-
-genSample :: H.Seed -> G.Gen a -> a
-genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (R.Size 1) seed gen
 
 -- Create a list containing m bytestrings of length n (also terrible)
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
@@ -112,9 +118,7 @@ mkInputs :: forall v msg .
 mkInputs n toMsg hash =
     Inputs $ map mkOneInput (zip seeds1 seeds2)
     where seedSize = 128
-          seeds = listOfSizedByteStrings (2*n) seedSize
-          seeds1 = take n seeds
-          seeds2 = drop n seeds
+          (seeds1, seeds2) = splitAt n $ listOfSizedByteStrings (2*n) seedSize
           -- ^ Seeds for key generation. For some algorithms the seed has to be
           -- a certain minimal size and there's a SeedBytesExhausted error if
           -- it's not big enough; 128 is big enough for everything here though.
@@ -130,9 +134,9 @@ mkInputs n toMsg hash =
 mkInputsAsData :: Integer -> HashFun -> BuiltinData
 mkInputsAsData n hash = Tx.dataToBuiltinData $ toData (mkInputs @Ed25519DSIGN n id hash)
 
--- Check conditions (1) and (2) mentioned above.  We check these for all of the
--- inputs and return True if everything succeeds and False if there's at least
--- one failure.
+-- | Check conditions (1) and (2) mentioned above.  We check these for all of
+-- the inputs and return True if everything succeeds and False if there's at
+-- least one failure.
 {-# INLINEABLE verifyInputs #-}
 verifyInputs :: BuiltinHashFun -> BuiltinData -> Bool
 verifyInputs hash d =
@@ -145,28 +149,11 @@ verifyInputs hash d =
                     let dkhash' = hash dk
                     in dkhash == dkhash' && Tx.verifyEd25519Signature vk dkhash sg
 
--- Create the input data, convert it to BuiltinData, and apply the verification
--- script to that.
+-- | Create the input data, convert it to BuiltinData, and apply the
+-- verification script to that.
 mkSigCheckScript :: Integer -> UProg
 mkSigCheckScript n =
     Tx.getPlc $ $$(Tx.compile [|| verifyInputs Tx.sha2_256 ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n Hash.sha2_256)
-
-
--- Protocol parameters (November 2022)
-
--- This is the "maximum transaction size".  We're just comparing the size of the
--- script with this, so our results may be a little optimistic if the
--- transaction includes other stuff (I'm not sure exactly what "maximum
--- transaction size" means).
-max_tx_size :: Integer
-max_tx_size = 16384
-
-max_tx_ex_mem :: Integer
-max_tx_ex_mem = 14_000_000
-
-max_tx_ex_steps :: Integer
-max_tx_ex_steps = 10_000_000_000
-
 
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double
@@ -178,7 +165,7 @@ percentage a b =
 percentTxt :: (Integral a, Integral b) => a -> b -> String
 percentTxt a b = printf "(%.1f%%)" (percentage a b)
 
--- Evaluate a script and return the CPU and memory costs (according to the cost model)
+-- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 evaluate :: UProg -> (Integer, Integer)
 evaluate (UPLC.Program _ _ prog) =
     case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
@@ -187,7 +174,7 @@ evaluate (UPLC.Program _ _ prog) =
               ExMemory mem = exBudgetMemory budget
           in (fromIntegral cpu, fromIntegral mem)
 
--- Evaluate a script and print out the serialised size and the CPU and memory
+-- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
 -- protocol parameters.
 printStatistics :: Integer -> IO ()
@@ -196,7 +183,7 @@ printStatistics n = do
         serialised = Flat.flat (toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
-    printf "%3d %7d %8s %15d %8s %15d %8s \n"
+    printf "  %3d %7d %8s %15d %8s %15d %8s \n"
            n
            size (percentTxt size max_tx_size)
            cpu  (percentTxt cpu  max_tx_ex_steps)
@@ -204,8 +191,8 @@ printStatistics n = do
 
 main :: IO ()
 main = do
-  printf "  n        size                    CPU                      Memory\n"
-  printf "----------------------------------------------------------------------\n"
+  printf "    n     script size             CPU usage               Memory usage\n"
+  printf "  ----------------------------------------------------------------------\n"
   mapM_ printStatistics [0, 10..150]
 
 unstableMakeIsData ''Inputs
