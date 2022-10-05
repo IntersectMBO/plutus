@@ -161,7 +161,7 @@ data Program tyname name uni fun ann = Program
     { _progAnn  :: ann
     , _progTerm :: Term tyname name uni fun ann
     }
-    deriving stock Generic
+    deriving stock (Show, Functor, Generic)
 makeLenses ''Program
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
