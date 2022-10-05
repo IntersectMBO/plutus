@@ -100,7 +100,7 @@ loadPirAndCompile copts = do
 loadPirAndAnalyse :: IOSpec -> IO ()
 loadPirAndAnalyse ioSpecs = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    (PIR.Program _ pirT) <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
+    PIR.Program _ pirT <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
@@ -118,8 +118,8 @@ loadPirAndAnalyse ioSpecs = do
         -- change uniques to texts and use csv-outputtable records
         sortedRecords :: [RetentionRecord]
         sortedRecords =
-          flip fmap sortedRetained $ \(i, s) ->
-            RetentionRecord (IM.findWithDefault "???" i nameTable) i s
+          sortedRetained <&> \(i, s) ->
+            RetentionRecord (IM.findWithDefault "given key is not in map" i nameTable) i s
 
     -- encode to csv and output it
     Csv.encodeDefaultOrderedByName sortedRecords &
