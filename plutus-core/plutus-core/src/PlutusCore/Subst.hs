@@ -148,9 +148,10 @@ termSubstFreeNames
     -> Term tyname name uni fun ann
 termSubstFreeNames = purely termSubstFreeNamesA
 
--- | Substitute a closed 'Type' for a type variable in a 'Type'. Does not descend under binders that
--- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
--- will not satisfy global uniqueness.
+-- | Substitute the given closed 'Type' for the given type variable in the given 'Type'. Does not
+-- descend under binders that bind the same variable as the one we're substituting for (since from
+-- there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+-- global uniqueness.
 typeSubstClosedType
     :: Eq tyname
     => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
@@ -165,9 +166,10 @@ typeSubstClosedType tn0 ty0 = go where
          bt@TyBuiltin{}      -> bt
     goUnder tn ty = if tn == tn0 then ty else go ty
 
--- | Substitute a closed 'Type' for a type variable in a 'Term'. Does not descend under binders that
--- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
--- will not satisfy global uniqueness.
+-- | Substitute the given closed 'Type' for the given type variable in the given 'Term'. Does not
+-- descend under binders that bind the same variable as the one we're substituting for (since from
+-- there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+-- global uniqueness.
 termSubstClosedType
     :: Eq tyname
     => tyname -> Type tyname uni () -> Term tyname name uni fun () -> Term tyname name uni fun ()
@@ -186,9 +188,10 @@ termSubstClosedType tn0 ty0 = go where
     goUnder tn term = if tn == tn0 then term else go term
     goTy = typeSubstClosedType tn0 ty0
 
--- | Substitute a closed 'Term' for a term variable in a 'Term'. Does not descend under binders that
--- bind the same variable as the one we're substituting for. The resulting 'Term' may and likely
--- will not satisfy global uniqueness.
+-- | Substitute the given closed 'Term' for the given term variable in the given 'Term'. Does not
+-- descend under binders that bind the same variable as the one we're substituting for (since from
+-- there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
+-- global uniqueness.
 termSubstClosedTerm
     :: Eq name
     => name -> Term tyname name uni fun () -> Term tyname name uni fun () -> Term tyname name uni fun ()
