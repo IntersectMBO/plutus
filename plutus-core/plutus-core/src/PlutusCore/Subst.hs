@@ -12,8 +12,6 @@ module PlutusCore.Subst
     , termSubstNames
     , termSubstTyNames
     , typeSubstTyNames
-    , termSubstFreeNamesA
-    , termSubstFreeNames
     , typeSubstClosedType
     , termSubstClosedType
     , termSubstClosedTerm
@@ -29,7 +27,6 @@ module PlutusCore.Subst
 import PlutusPrelude
 
 import PlutusCore.Core
-import PlutusCore.Name
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
@@ -119,42 +116,12 @@ termSubstTyNames
     -> Term tyname name uni fun ann
 termSubstTyNames = purely termSubstTyNamesM
 
--- | Applicatively substitute *free* names using the given function.
-termSubstFreeNamesA
-    :: (Applicative f, HasUnique name TermUnique)
-    => (name -> f (Maybe (Term tyname name uni fun ann)))
-    -> Term tyname name uni fun ann
-    -> f (Term tyname name uni fun ann)
-termSubstFreeNamesA f = go Set.empty where
-    go bvs var@(Var _ name)           =
-        if (name ^. unique) `member` bvs
-            then pure var
-            else fromMaybe var <$> f name
-    go bvs (TyAbs ann name kind body) = TyAbs ann name kind <$> go bvs body
-    go bvs (LamAbs ann name ty body)  = LamAbs ann name ty <$> go (insert (name ^. unique) bvs) body
-    go bvs (Apply ann fun arg)        = Apply ann <$> go bvs fun <*> go bvs arg
-    go bvs (TyInst ann term ty)       = go bvs term <&> \term' -> TyInst ann term' ty
-    go bvs (Unwrap ann term)          = Unwrap ann <$> go bvs term
-    go bvs (IWrap ann pat arg term)   = IWrap ann pat arg <$> go bvs term
-    go _   term@Constant{}            = pure term
-    go _   term@Builtin{}             = pure term
-    go _   term@Error{}               = pure term
-
--- | Substitute *free* names using the given function.
-termSubstFreeNames
-    :: HasUnique name TermUnique
-    => (name -> Maybe (Term tyname name uni fun ann))
-    -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
-termSubstFreeNames = purely termSubstFreeNamesA
-
 -- | Substitute the given closed 'Type' for the given type variable in the given 'Type'. Does not
 -- descend under binders that bind the same variable as the one we're substituting for (since from
 -- there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
 -- global uniqueness.
 typeSubstClosedType
-    :: Eq tyname
-    => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
+    :: Eq tyname => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
 typeSubstClosedType tn0 ty0 = go where
     go = \case
          TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
@@ -194,7 +161,10 @@ termSubstClosedType tn0 ty0 = go where
 -- global uniqueness.
 termSubstClosedTerm
     :: Eq name
-    => name -> Term tyname name uni fun () -> Term tyname name uni fun () -> Term tyname name uni fun ()
+    => name
+    -> Term tyname name uni fun ()
+    -> Term tyname name uni fun ()
+    -> Term tyname name uni fun ()
 termSubstClosedTerm varFor new = go where
     go = \case
          Var      () var          -> if var == varFor then new else Var () var
