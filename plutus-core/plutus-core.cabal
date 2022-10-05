@@ -358,7 +358,6 @@ library plutus-core-testlib
     , integer-gmp
     , lazy-search
     , lens
-    , megaparsec
     , mmorph
     , mtl
     , plutus-core
@@ -740,7 +739,6 @@ library index-envs
     , extra
     , nonempty-vector
     , ral              ^>=0.2
-    , vector
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 benchmark index-envs-bench

@@ -43,7 +43,6 @@ library
     , base              >=4.13 && <5.0
     , deepseq
     , mono-traversable
-    , primitive
 
   hs-source-dirs:  src
   ghc-options:     -O2
