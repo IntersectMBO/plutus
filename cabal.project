@@ -1,14 +1,15 @@
 -- Bump this if you need newer packages
 index-state: 2022-09-15T00:00:00Z
 
-packages: doc
-          plutus-benchmark
+packages:
+          -- doc
+          -- plutus-benchmark
           plutus-core
-          plutus-errors
+          -- plutus-errors
           plutus-ledger-api
           plutus-metatheory
           plutus-tx
-          plutus-tx-plugin
+          -- plutus-tx-plugin
           prettyprinter-configurable
           word-array
           stubs/plutus-ghc-stub
