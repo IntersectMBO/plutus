@@ -91,11 +91,11 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
 -}
 
 
--- Create a list containing m bytestrings of length n (also terrible)
+-- Create a list containing n bytestrings of length l.  This could be better.
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
-listOfSizedByteStrings m n = unsafePerformIO . G.sample $
-                             G.list (R.singleton $ fromIntegral m)
-                                  (G.bytes (R.singleton $ fromIntegral n))
+listOfSizedByteStrings n l = unsafePerformIO . G.sample $
+                             G.list (R.singleton $ fromIntegral n)
+                                  (G.bytes (R.singleton $ fromIntegral l))
 
 data Inputs = Inputs [(BuiltinByteString, BuiltinByteString, BuiltinByteString, BuiltinByteString)]
 type HashFun = ByteString -> ByteString
@@ -142,9 +142,9 @@ verifyInputs :: BuiltinHashFun -> BuiltinData -> Bool
 verifyInputs hash d =
     case Tx.fromBuiltinData d of
       Nothing              -> Tx.error ()
-      Just (Inputs inputs) -> ver inputs True
-          where ver [] acc     = acc
-                ver (i:is) acc = ver is (acc && checkInput i)
+      Just (Inputs inputs) -> verify inputs True
+          where verify [] acc     = acc
+                verify (i:is) acc = verify is (acc && checkInput i)
                 checkInput (vk, sg, dkhash, dk) =
                     let dkhash' = hash dk
                     in dkhash == dkhash' && Tx.verifyEd25519Signature vk dkhash sg
