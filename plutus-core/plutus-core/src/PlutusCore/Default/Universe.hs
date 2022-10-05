@@ -102,6 +102,8 @@ pattern DefaultUniPair uniA uniB =
 deriveGEq ''DefaultUni
 deriveGCompare ''DefaultUni
 
+instance GEq DefaultUni where -- TODO why does deriveGEq not derive an instance?
+
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f
