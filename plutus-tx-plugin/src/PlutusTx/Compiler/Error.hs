@@ -38,6 +38,15 @@ makeClassyPrisms ''WithContext
 
 type CompileError uni fun = WithContext T.Text (Error uni fun ())
 
+instance HasErrorCode (Error _a _b _c) where
+      errorCode CompilationError {}    = ErrorCode 41
+      errorCode UnsupportedError {}    = ErrorCode 42
+      errorCode FreeVariableError {}   = ErrorCode 43
+      errorCode InvalidMarkerError {}  = ErrorCode 49
+      errorCode CoreNameLookupError {} = ErrorCode 50
+      errorCode (PLCError e)           = errorCode e
+      errorCode (PIRError e)           = errorCode e
+
 instance HasErrorCode (CompileError _a _b) where
     errorCode (NoContext e)        = errorCode e
     errorCode (WithContextC _ _ w) = errorCode w
@@ -75,15 +84,6 @@ data Error uni fun a = PLCError (PLC.Error uni fun a)
                  | InvalidMarkerError String
                  | CoreNameLookupError TH.Name
 makeClassyPrisms ''Error
-
-instance HasErrorCode (Error _a _b _c) where
-      errorCode CompilationError {}    = ErrorCode 41
-      errorCode UnsupportedError {}    = ErrorCode 42
-      errorCode FreeVariableError {}   = ErrorCode 43
-      errorCode InvalidMarkerError {}  = ErrorCode 49
-      errorCode CoreNameLookupError {} = ErrorCode 50
-      errorCode (PLCError e)           = errorCode e
-      errorCode (PIRError e)           = errorCode e
 
 instance (PLC.GShow uni, PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where
