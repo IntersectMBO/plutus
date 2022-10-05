@@ -80,7 +80,8 @@ prop_unifyRename =
   letCE "rename ty" (runQuote $ rename ty) $ \ rnty ->
   void $ unifyType mempty mempty ty rnty
 
--- | Check that substitution gets rid of all the right variables
+-- | Check that substitution eliminates from the type all free occurrences of variables present in
+-- the domain of the substitution.
 prop_substType :: Property
 prop_substType =
   -- No shrinking because every nested shrink makes properties harder to shrink (because you'd need

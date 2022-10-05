@@ -9,6 +9,7 @@ module PlutusCore.Generators.PIR.Builtin where
 
 import Data.ByteString (ByteString)
 import Data.Coerce
+import Data.Int
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Text (Text)
@@ -37,8 +38,25 @@ class ArbitraryBuiltin a where
 
 instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
-instance ArbitraryBuiltin Integer
 instance ArbitraryBuiltin Data
+
+-- | The 'Arbitrary' instance for 'Integer' only generates small integers:
+--
+-- >>> :set -XTypeApplications
+-- >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
+-- False
+--
+-- We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
+-- instance for 'Int64' does:
+--
+-- >>> import Data.Int
+-- >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
+-- True
+instance ArbitraryBuiltin Integer where
+    arbitraryBuiltin = frequency
+        [ (4, arbitrary @Integer)
+        , (1, fromIntegral <$> arbitrary @Int64)
+        ]
 
 instance ArbitraryBuiltin Text where
     arbitraryBuiltin = Text.pack . getPrintableString <$> arbitrary
