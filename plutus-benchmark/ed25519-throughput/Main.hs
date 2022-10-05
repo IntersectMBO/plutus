@@ -143,7 +143,12 @@ mkInputsAsData n hash = Tx.dataToBuiltinData $ toData (mkInputs @Ed25519DSIGN n 
 
 -- | Check conditions (1) and (2) mentioned above.  We check these for all of
 -- the inputs and return True if everything succeeds and False if there's at
--- least one failure.
+-- least one failure.  We're being a little careful with the computation of the
+-- arguments to the two occurrences of && in this function to defeat the
+-- short-circuiting and make sure that the amount of computation is the same
+-- whether verification succeeds or fails.  If the inputs are generated
+-- correctly (which is checked by testHaskell when we run `main`) then
+-- verification always succeeds, but let's be careful just in case.
 {-# INLINEABLE verifyInputs #-}
 verifyInputs :: BuiltinHashFun -> BuiltinData -> Bool
 verifyInputs hash d =
@@ -151,10 +156,11 @@ verifyInputs hash d =
       Nothing              -> Tx.error ()
       Just (Inputs inputs) -> verify inputs True
           where verify [] acc     = acc
-                verify (i:is) acc = verify is (acc && checkInput i)
+                verify (i:is) acc = verify is (checkInput i && acc) -- checkInput first
                 checkInput (vk, sg, dkhash, dk) =
                     let dkhash' = hash dk
-                    in Tx.verifyEd25519Signature vk dkhash sg && dkhash == dkhash'
+                        hashesEq = dkhash == dkhash'
+                    in Tx.verifyEd25519Signature vk dkhash sg && hashesEq
 
 -- | Create the input data, convert it to BuiltinData, and apply the
 -- verification script to that.
@@ -211,5 +217,3 @@ main = do
   mapM_ printStatistics [0, 10..150]
 
 unstableMakeIsData ''Inputs
-
-
