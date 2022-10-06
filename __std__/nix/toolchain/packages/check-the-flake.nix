@@ -33,6 +33,7 @@ cell.library.pkgs.writeShellApplication {
         "$(repo-root)/__std__/nix" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
+        -and -not -path "*automation*" \
         -and -not -path "*library*" \
         -and -not -path "*devshells*" \
         -and -not -path "*devshellProfiles*" \

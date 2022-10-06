@@ -4,8 +4,6 @@
 
   cabal-install = import ./cabal-install.nix block;
 
-  cabal-install-alt = import ./cabal-install-alt.nix block;
-
   check-the-flake = import ./check-the-flake.nix block;
 
   fix-cabal-fmt = import ./fix-cabal-fmt.nix block;
