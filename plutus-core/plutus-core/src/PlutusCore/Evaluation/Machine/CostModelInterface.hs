@@ -152,7 +152,7 @@ extractParams cm = case toJSON cm of
     _ -> Nothing
 
 
--- | The type of errors that 'applyParams' can throw.
+-- | A fatal error when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyError =
       CMUnknownParamError Text.Text
       -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
@@ -165,9 +165,12 @@ data CostModelApplyError =
     deriving stock Show
     deriving anyclass Exception
 
+-- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
     CMTooManyParamsWarn { cmTooManyExpected :: Int, cmTooManyActual :: Int }
-    -- ^ See Note [Cost model parameters from the ledger's point of view]
+    -- ^ More costmodel parameters given, than expected
+    --
+    -- See Note [Cost model parameters from the ledger's point of view]
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case

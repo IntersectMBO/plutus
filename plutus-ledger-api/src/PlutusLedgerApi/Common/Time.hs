@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | UTCTime and UTCTime ranges.
-module PlutusLedgerApi.V1.Time
+module PlutusLedgerApi.Common.Time
     ( POSIXTime(..)
     , POSIXTimeRange
     , DiffMilliSeconds(..)
@@ -19,7 +19,7 @@ module PlutusLedgerApi.V1.Time
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Interval
+import PlutusLedgerApi.Common.Interval
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude

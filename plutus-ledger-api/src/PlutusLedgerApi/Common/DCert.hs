@@ -7,14 +7,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | Digests of certificates that are included in transactions.
-module PlutusLedgerApi.V1.DCert
+module PlutusLedgerApi.Common.DCert
     ( DCert(..)
     ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Credential (StakingCredential)
-import PlutusLedgerApi.V1.Crypto (PubKeyHash)
+import PlutusLedgerApi.Common.Credential (StakingCredential)
+import PlutusLedgerApi.Common.Crypto (PubKeyHash)
 import PlutusTx qualified
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras

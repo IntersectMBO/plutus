@@ -5,7 +5,7 @@
 
 {-# OPTIONS_GHC -Wno-orphans            #-}
 
-module PlutusLedgerApi.V1.Bytes
+module PlutusLedgerApi.Common.Bytes
     ( LedgerBytes (..)
     , fromHex
     , bytes

@@ -52,41 +52,45 @@ library
   exposed-modules:
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Eval
-    PlutusLedgerApi.Common.CostModelParams
     PlutusLedgerApi.Common.Versions
     PlutusLedgerApi.Common.SerialisedScript
+    PlutusLedgerApi.Common.Address
+    PlutusLedgerApi.Common.Bytes
+    PlutusLedgerApi.Common.Credential
+    PlutusLedgerApi.Common.Crypto
+    PlutusLedgerApi.Common.DCert
+    PlutusLedgerApi.Common.Interval
+    PlutusLedgerApi.Common.Scripts
+    PlutusLedgerApi.Common.Time
+    PlutusLedgerApi.Common.Value
 
     PlutusLedgerApi.V1
-    PlutusLedgerApi.V1.Address
-    PlutusLedgerApi.V1.Bytes
+    PlutusLedgerApi.V1.Eval
     PlutusLedgerApi.V1.Contexts
-    PlutusLedgerApi.V1.Credential
-    PlutusLedgerApi.V1.Crypto
-    PlutusLedgerApi.V1.DCert
-    PlutusLedgerApi.V1.EvaluationContext
-    PlutusLedgerApi.V1.Interval
-    PlutusLedgerApi.V1.Scripts
-    PlutusLedgerApi.V1.Time
+    PlutusLedgerApi.V1.ParamName
+    PlutusLedgerApi.V1.SerialisedScript
     PlutusLedgerApi.V1.Tx
-    PlutusLedgerApi.V1.Value
 
     PlutusLedgerApi.V2
+    PlutusLedgerApi.V2.Eval
+    PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Contexts
-    PlutusLedgerApi.V2.EvaluationContext
+    PlutusLedgerApi.V2.SerialisedScript
     PlutusLedgerApi.V2.Tx
 
+
     PlutusLedgerApi.V3
-    PlutusLedgerApi.V3.EvaluationContext
+    PlutusLedgerApi.V3.Eval
+    PlutusLedgerApi.V3.ParamName
+    PlutusLedgerApi.V3.Contexts
+    PlutusLedgerApi.V3.SerialisedScript
+    PlutusLedgerApi.V3.Tx
 
   other-modules:
     PlutusLedgerApi.Internal.IsParamName
-    PlutusLedgerApi.Internal.EvaluationContext
+    PlutusLedgerApi.Internal.Eval
     PlutusLedgerApi.Internal.SerialisedScript
     PlutusLedgerApi.Internal.VersioningRules
-
-    PlutusLedgerApi.V1.ParamName
-    PlutusLedgerApi.V2.ParamName
-    PlutusLedgerApi.V3.ParamName
 
 
     Codec.CBOR.Extras

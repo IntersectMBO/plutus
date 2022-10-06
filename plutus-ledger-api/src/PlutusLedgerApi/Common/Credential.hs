@@ -8,15 +8,15 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | Address and staking address credentials for outputs.
-module PlutusLedgerApi.V1.Credential
+module PlutusLedgerApi.Common.Credential
     ( StakingCredential(..)
     , Credential(..)
     ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusLedgerApi.V1.Scripts (ScriptHash)
+import PlutusLedgerApi.Common.Crypto (PubKeyHash)
+import PlutusLedgerApi.Common.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx

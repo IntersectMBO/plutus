@@ -43,15 +43,16 @@ import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude hiding (toList)
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
-import PlutusLedgerApi.V1.Address (Address (..))
-import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..))
-import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
-import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
-import PlutusLedgerApi.V1.DCert (DCert (..))
-import PlutusLedgerApi.V1.Scripts
-import PlutusLedgerApi.V1.Time (POSIXTimeRange)
-import PlutusLedgerApi.V1.Value (CurrencySymbol, Value)
 import PlutusLedgerApi.V2.Tx (TxId (..), TxOut (..), TxOutRef (..))
+import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..))
+
+import PlutusLedgerApi.Common.Address (Address (..))
+import PlutusLedgerApi.Common.Credential (Credential (..), StakingCredential)
+import PlutusLedgerApi.Common.Crypto (PubKeyHash (..))
+import PlutusLedgerApi.Common.DCert (DCert (..))
+import PlutusLedgerApi.Common.Scripts
+import PlutusLedgerApi.Common.Time (POSIXTimeRange)
+import PlutusLedgerApi.Common.Value (CurrencySymbol, Value)
 
 import Prelude qualified as Haskell
 

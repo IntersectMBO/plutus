@@ -14,7 +14,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Value(
+module PlutusLedgerApi.Common.Value(
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
@@ -57,7 +57,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
+import PlutusLedgerApi.Common.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)

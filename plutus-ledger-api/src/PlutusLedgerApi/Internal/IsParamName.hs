@@ -22,7 +22,7 @@ import Data.Text qualified as Text
 import GHC.Generics
 
 {-| A valid parameter name has to be enumeration, bounded, and
-prettyprintable in a "lowerKebab" way.
+prettyprintable in a "lower-Kebab" way.
 
 Each API version should expose such an enumeration as an ADT and create
 an instance of ParamName out of it.
@@ -46,7 +46,7 @@ instance (GIsParamName a) => GIsParamName (M1 D i a) where
 
 {- Note [Quotation marks in cost model parameter constructors]
 We use the quotation mark <'> inside each nullary constructor of
-a cost parameter name as a delimiter of sections when lowerKebab-prettyprinting.
+a cost parameter name as a delimiter of sections when lower-Kebab prettyprinting.
 The character <_> cannot be used as a delimiter because it may be part of the builtin's name (sha2_256,etc).
 -}
 

@@ -5,14 +5,14 @@
 
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusLedgerApi.V1.Crypto
+module PlutusLedgerApi.Common.Crypto
     ( PubKeyHash(..)
     ) where
 
 import Control.DeepSeq (NFData)
 import Data.String
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
+import PlutusLedgerApi.Common.Bytes (LedgerBytes (..))
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx

@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusLedgerApi.V1.Address
+module PlutusLedgerApi.Common.Address
     ( Address (..)
     , pubKeyHashAddress
     , scriptHashAddress
@@ -23,9 +23,9 @@ import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter
 
-import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
-import PlutusLedgerApi.V1.Crypto
-import PlutusLedgerApi.V1.Scripts
+import PlutusLedgerApi.Common.Credential (Credential (..), StakingCredential)
+import PlutusLedgerApi.Common.Crypto
+import PlutusLedgerApi.Common.Scripts
 
 -- | Address with two kinds of credentials, normal and staking.
 data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }

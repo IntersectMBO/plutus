@@ -10,7 +10,7 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 -- | Functions for working with scripts on the ledger.
-module PlutusLedgerApi.V1.Scripts
+module PlutusLedgerApi.Common.Scripts
     (
     ScriptError (..)
     , Redeemer(..)
@@ -28,7 +28,7 @@ import Control.DeepSeq (NFData)
 import Data.String
 import Data.Text (Text)
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
+import PlutusLedgerApi.Common.Bytes (LedgerBytes (..))
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI

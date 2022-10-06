@@ -43,11 +43,11 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Ord qualified as PlutusTx
 
-import PlutusLedgerApi.V1.Address
-import PlutusLedgerApi.V1.Bytes
-import PlutusLedgerApi.V1.Crypto
-import PlutusLedgerApi.V1.Scripts
-import PlutusLedgerApi.V1.Value
+import PlutusLedgerApi.Common.Address
+import PlutusLedgerApi.Common.Bytes
+import PlutusLedgerApi.Common.Crypto
+import PlutusLedgerApi.Common.Scripts
+import PlutusLedgerApi.Common.Value
 {- | A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.
 
 This is a simple type without any validation, __use with caution__.

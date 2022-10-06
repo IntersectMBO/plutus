@@ -9,7 +9,7 @@
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | A type for intervals and associated functions.
-module PlutusLedgerApi.V1.Interval
+module PlutusLedgerApi.Common.Interval
     ( Interval(..)
     , UpperBound(..)
     , LowerBound(..)
@@ -21,7 +21,7 @@ module PlutusLedgerApi.V1.Interval
     , to
     , always
     , never
-    , singleton
+    , discrete
     , hull
     , intersection
     , overlaps
@@ -201,9 +201,9 @@ instance Eq a => Eq (Interval a) where
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 
-{-# INLINABLE singleton #-}
-singleton :: a -> Interval a
-singleton s = interval s s
+{-# INLINABLE discrete  #-}
+discrete :: a -> Interval a
+discrete s = interval s s
 
 {-# INLINABLE from #-}
 -- | @from a@ is an 'Interval' that includes all values that are
@@ -230,7 +230,7 @@ never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
 {-# INLINABLE member #-}
 -- | Check whether a value is in an interval.
 member :: Ord a => a -> Interval a -> Bool
-member a i = i `contains` singleton a
+member a i = i `contains` discrete a
 
 {-# INLINABLE overlaps #-}
 -- | Check whether two intervals overlap, that is, whether there is a value that
