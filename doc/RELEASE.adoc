@@ -1,0 +1,120 @@
+= Plutus Release Process
+:toc: left
+:reproducible:
+:figure-caption!:
+
+== Packages
+
+The following packages are versioned and released:
+
+- Libraries:
+* plutus-core:plutus-core
+* plutus-ledger-api:plutus-ledger-api
+* plutus-tx:plutus-tx
+* plutus-tx-plugin:plutus-tx-plugin
+- Executables:
+* plutus-core:pir
+* plutus-core:plc
+* plutus-core:uplc
+
+.Dependencies among Plutus packages
+image::plutus-packages.png[Plutus packages,500]
+
+== Version Scheme
+
+All above packages are versioned and released in sync. That is, whenever one package releases version X, so do all other packages. This greatly simplifies the release process compared to versioning and releasing the pacakges independently.
+
+We follow https://semver.org[semantic versioning] for the packages, where version numbers have a `major.minor.patch` pattern with the following semantics:
+
+- A major release (e.g., 3.5.2 -> 4.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
+- A minor release (e.g., 3.5.2 -> 3.6.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
++
+A minor release is also allowed to change the observable behaviors of functions that users should not rely on. For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
+- A patch release (e.g., 3.5.2 -> 3.5.3) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
+
+=== Version Qualifiers
+
+Version qualifiers, also known as pre-release versions, usually refer to alpha, beta, and release candidate. Typically, alpha and beta are pre-feature complete, while release candidates are post-feature complete.
+
+We do not tag or publish alpha or beta verions for libraries. Libraries are published on Hackage, and Hackage does not support version qualifiers. It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
+However, we may annotate individual functions in a library as alpha or beta if we deem it appropriate.
+
+We do tag release candidates, e.g,. 3.5.2-rc1, because additional non-CI tests and checks may need to be carried out.
+These tests and checks either are too expensive to run in CI, or require manual steps (e.g., security audit), but are prerequisites of making a release.
+Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
+
+For executables, we may publish alpha, beta or release candidates at our discretion.
+
+== Release Frequency
+
+We will begin by making a new major or minor release every 4 weeks, and evaluate and adjust the frequency in the future.
+Ad-hoc releases can be made upon request.
+
+We only make patch releases for version `x.y`, if a cardano-node release candidate depends on `x.y.z`, and an issue is found during the node release process that requires patching plutus.
+In all other cases, we always start a new major or minor release from master.
+
+== Release Process
+
+=== Major and Minor Releases
+
+Suppose we are releasing version `x.y.0`.
+
+1. Update version numbers in cabal files to `x.y.0` (if it is not already the case).
+- Version bounds for packages in the same repo should be set to `==x.y.*`.
+2. Make sure the change log is up to date.
+3. Tag `x.y.0-rc1` on master.
+4. Run all tests and checks.
+- This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
+- This does not include tests that require building a new node, or integrating with other downstream projects.
+- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin). The right group of people should be involved and sign off on the tests and checks.
+5. If no release blocking issue is found, do a formal release and upload the packages to Hackage.
+- If issues are found, create a release branch `release/x.y`, fix the issues on master, backport the fixes to `release/x.y`, tag `x.y.0-rc2`, and go to step 4.
+- Why not just fix the issues on master and tag `x.y.0-rc2` from master?
+It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
+For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
+Another example is if a security audit is done on `rc1`, and the changes in `rc2` does not modify the audited code, then the audit does not need to be re-done.
+
+6. After the release, update version numbers in cabal files to `x.y+1.0`.
+- This may not be the actual version of the next release - it could be `x+1.0.0`. We don't need to be precise here; we just need a version number higher than the latest release.
+
+=== Patch Releases
+
+1. If it is the first time we are making a patch release for version `x.y` (i.e., `x.y.0` -> `x.y.1`), a release branch may not exist for `x.y`. If so, create branch `release/x.y` from the `x.y.0` tag.
+- We create release branches lazily, because we do not expect to make many patch releases.
+2. Backport the needed fixes from master to `release/x.y`.
+3. Run all tests and checks.
+4. If no release blocking issue is found, do a formal release and upload the packages to Hackage.
+- If issues are found, fix them on master, backport the fixes to `release/x.y`, and go to step 3.
+
+== Backwards Compatibility
+
+Plutus releases should meet two backwards compatibility criteria:
+
+1. *Each Plutus release should build with the latest version of Cardano API.*
++
+This makes it possible for Plutus Tools to upgrade to the new Plutus release, without needing a new Cardano API release.
++
+To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we should temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
++
+This requirement will likely go away once Cardano API starts to make more frequent releases.
+
+2. *Plutus language behaviors should be preserved.*
++
+When we start developing a new Plutus language version (e.g., Plutus V3), initially the language version is considered "unreleased", and should be guarded behind a flag to make it unusable.
+At this stage, changes to language behaviors can be made.
+Once it is ready to be used, we remove the flag in a Plutus release, making it usable.
+After this point, no more behavior changes (that is, the kind of changes marked "LV" in https://cips.cardano.org/cips/cip35[CIP-35]) are allowed.
++
+If a change does not require LV, but requires HF per CIP-35, then it is allowed, but it must be guarded behind an appropriate protocol version condition.
++
+Note that Plutus language versions are unrelated to package versions used for identifying releases.
+
+== Downstream Integration
+
+Some Plutus features and changes require integration testing on devnets and testnets. Such tests are typically performed by the node QA team or the ecosystem collaborators. Test scenarios related to the Plutus changes should be reviewed and signed off by the Plutus team.
+
+As stated before, if a bug is found at the integration test stage that requires fixes in Plutus, we should make a patch release using the process described above, as opposed to a major or a minor one. This is because integration tests are most likely done against a Cardano node release branch, and the only changes that should be merged into a release branch are fixes to release blocking bugs.
+
+The Plutus team should also reserve some additional capacity in supporting the QA team, ecosystem collaborators, and other open source issues and requests.
+
+Lastly, we should publish a mapping from each Cardano node version to the Plutus version used by the node version. This helps identify which Plutus changes require a hard fork, and it also makes it easier for downstream projects to determine which Plutus version to depend on.
