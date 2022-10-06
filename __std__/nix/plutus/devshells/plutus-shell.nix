@@ -9,6 +9,7 @@ inputs.std.std.lib.mkShell {
   name = "plutus-shell";
 
   imports = [
+    cell.library.plutus-project.devshell
     inputs.cells.toolchain.devshellProfiles.haskell
   ];
 
@@ -16,4 +17,5 @@ inputs.std.std.lib.mkShell {
     pkgs.rPackages.plotly
     pkgs.R
   ];
+
 }
