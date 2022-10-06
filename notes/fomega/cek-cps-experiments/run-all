@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=all
 
 plutus_root=$HOME/plutus/plutus
 # Change this to point to the root of the plutus repository if necessary
