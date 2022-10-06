@@ -17,15 +17,16 @@ index-state: 2022-09-26T00:00:00Z
 -- Bump this if you need newer packages from CHaP
 index-state: cardano-haskell-packages 2022-10-10T00:00:00Z
 
-packages: doc
-          plutus-benchmark
+packages:
+          -- doc
+          -- plutus-benchmark
           -- plutus-conformance
           plutus-core
-          plutus-errors
+          -- plutus-errors
           plutus-ledger-api
           -- plutus-metatheory
           plutus-tx
-          plutus-tx-plugin
+          -- plutus-tx-plugin
           prettyprinter-configurable
           word-array
           stubs/plutus-ghc-stub
