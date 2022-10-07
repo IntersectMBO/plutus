@@ -1,4 +1,10 @@
+# Normally we'd name this file default.nix and put it into a hydraJobs folder.
+# However this causes all hydra job names to contain an extra string (the flake fragment name)
+# in the final attribute path.
+
 { inputs, cell }:
+
+# TODO(std) Keep an eye on input-output-hk/haskell.nix#1743 for new utility functions.
 
 let
   inherit (inputs.cells.toolchain.library) pkgs haskell-nix;
@@ -25,36 +31,33 @@ let
 
   windows-plutus-jobs = make-haskell-jobs plutus-project.projectCross.mingwW64;
 
-  other-jobs = {
-    plutus.shells = inputs.cells.plutus.devshells;
-    doc.shells = inputs.cells.doc.devshells;
-    doc.packages = inputs.cells.doc.packages;
-    doc.scripts = inputs.cells.doc.scripts;
-    toolchain.packages = inputs.cells.toolchain.packages;
-  };
+  other-jobs =
+    inputs.cells.plutus.devshells //
+    inputs.cells.doc.devshells //
+    inputs.cells.doc.packages //
+    inputs.cells.doc.scripts //
+    inputs.cells.toolchain.packages;
 
   jobs =
-    if system == "x86_64-linux" then {
-      plutus.windows = windows-plutus-jobs;
-      plutus.native = native-plutus-jobs;
-      other = other-jobs;
-    } else if system == "x86_64-darwin" then {
-      plutus.native = native-plutus-jobs;
-      other = other-jobs;
-    } else { };
+    if system == "x86_64-linux" then
+      { native = native-plutus-jobs; windows = windows-plutus-jobs; } // other-jobs
+    else if system == "x86_64-darwin" then
+      { native = native-plutus-jobs; } // other-jobs
+    else
+      { };
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
+  # filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
 
   required-job = pkgs.releaseTools.aggregate {
     name = "required-plutus";
     meta.description = "All jobs required to pass CI";
-    constituents = lib.collect lib.isDerivation filtered-jobs;
+    constituents = lib.collect lib.isDerivation jobs;
   };
 
   final-jobset =
     if system == "x86_64-linux" || system == "x86_64-darwin" then
-      filtered-jobs // { required = required-job; }
+      jobs // { required = required-job; }
     else { };
 
 in
