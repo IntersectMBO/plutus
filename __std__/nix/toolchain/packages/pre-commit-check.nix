@@ -16,6 +16,11 @@ inputs.pre-commit-hooks-nix.lib.run {
     cabal-fmt.enable = true;
     shellcheck.enable = true;
 
+    editorconfig-checker = {
+      enable = true;
+      entry = "${cell.library.pkgs.editorconfig-checker}/bin/editorconfig-checker";
+    };
+
     nixpkgs-fmt = {
       enable = true;
       # While nixpkgs-fmt does exclude patterns specified in `.ignore` this

@@ -1,4 +1,3 @@
-# editorconfig-checker-disable-file
 { inputs, cell }:
 
 let
@@ -6,8 +5,8 @@ let
   inherit (inputs.cells.toolchain) library;
   inherit (library.pkgs) lib;
 
-  r-packages = with library.pkgs; with library.pkgs.rPackages; [
-    R
+  r-packages = with library.pkgs.rPackages; [
+    library.pkgs.R
     tidyverse
     dplyr
     stringr
@@ -103,10 +102,11 @@ let
       # Darwin
       (lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin) {
         packages = {
-          # This fails on Darwin with strange errors and I don't know why
+          # These fail on Darwin with strange errors and I don't know why
           # > Error: C stack usage  17556409549320 is too close to the limit
           # > Fatal error: unable to initialize the JI
           plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
+          plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
         };
       })
 
@@ -137,7 +137,7 @@ let
           # I can't figure out a way to apply this as a blanket change for all the
           # components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ cell.packages.agda-with-stdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ cell.packages.agda-with-stdlib ];
+          plutus-metatheory.components.exes.plc-agda.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
           plutus-metatheory.components.tests.test1.build-tools = [ cell.packages.agda-with-stdlib ];
           plutus-metatheory.components.tests.test2.build-tools = [ cell.packages.agda-with-stdlib ];
           plutus-metatheory.components.tests.test3.build-tools = [ cell.packages.agda-with-stdlib ];
@@ -154,7 +154,7 @@ let
             platforms = lib.platforms.linux;
           };
 
-          # Werror everything. 
+          # Werror everything.
           # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
 
