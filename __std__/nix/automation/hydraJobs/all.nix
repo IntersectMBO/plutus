@@ -31,7 +31,6 @@ let
     doc.packages = inputs.cells.doc.packages;
     doc.scripts = inputs.cells.doc.scripts;
     toolchain.packages = inputs.cells.toolchain.packages;
-    toolchain.scripts = inputs.cells.toolchain.scripts;
   };
 
   jobs =

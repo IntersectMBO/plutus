@@ -195,7 +195,6 @@
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
-        library = inputs.std.harvest inputs.self [ "toolchain" "library" ];
       };
 
   # TODO(std) move this part of the doc (which doesn't need to reference the code
@@ -299,6 +298,5 @@
       "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
     ];
     allow-import-from-derivation = true;
-    accept-flake-config = true;
   };
 }
