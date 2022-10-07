@@ -38,8 +38,9 @@ let
     };
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
-    # No source-repository-packages right now
-    sha256map = { };
+    # for the source repository package stanzas
+    sha256map = {
+    };
 
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied

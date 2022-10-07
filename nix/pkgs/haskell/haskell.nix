@@ -33,8 +33,8 @@ let
         name = "plutus";
       };
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
-    # No source-repository-packages right now
-    sha256map = { };
+    sha256map = {
+    };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
     # after cabal has been configured.
