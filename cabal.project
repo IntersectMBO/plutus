@@ -48,8 +48,8 @@ package plutus-core
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
 
--- Needed when actually building on windows (not for windows cross)
+-- Needed for ghc-9.2.4
 source-repository-package
   type: git
-  location: https://github.com/input-output-hk/Win32-network
-  tag: 3825d3abf75f83f406c1f7161883c438dac7277d
+  location: https://github.com/input-output-hk/int-cast
+  tag: 20cc3a95383fc8d1c2ea3b3d691700036cecdeac

@@ -34,6 +34,7 @@ let
       };
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
     sha256map = {
+      "https://github.com/input-output-hk/int-cast"."20cc3a95383fc8d1c2ea3b3d691700036cecdeac" = "1kxxibz2x1qs1jl4d27afjh27fyyzxbrs27zx2s6bg027fgwmv05"; # editorconfig-checker-disable-line
     };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
