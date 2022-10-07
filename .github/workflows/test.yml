@@ -28,4 +28,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: nixbuild/nix-quick-install-action@v17
-      - run: nix build .#pre-commit-check 
+      - run: nix build .#pre-commit-check --extra-experimental-features nix-command
