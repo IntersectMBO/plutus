@@ -129,7 +129,3 @@ Note that Plutus language versions are unrelated to package versions used for id
 Some Plutus features and changes require integration testing on devnets and testnets. Such tests are typically performed by the node QA team or the ecosystem collaborators. Test scenarios related to the Plutus changes should be reviewed and signed off by the Plutus team.
 
 As stated before, if a bug is found during the node release process that requires fixes in Plutus, we should make a patch release using the process described above, as opposed to a major or a minor one. That is because we want to minimize the changes to downstream, since this will occur when the Cardano node is already progressing through its release process.
-
-The Plutus team should also reserve some additional capacity in supporting the QA team, ecosystem collaborators, and other open source issues and requests.
-
-Lastly, we should publish a mapping from each Cardano node version to the Plutus version used by the node version. This helps identify which Plutus changes require a hard fork, and it also makes it easier for downstream projects to determine which Plutus version to depend on.
