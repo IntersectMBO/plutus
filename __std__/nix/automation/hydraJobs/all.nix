@@ -21,6 +21,8 @@ let
 
   plutus-project = inputs.cells.plutus.library.plutus-project;
 
+  plutus-project-with-coverage = plutus-project.appendModule { coverage = true; };
+
   native-plutus-jobs = make-haskell-jobs plutus-project;
 
   windows-plutus-jobs = make-haskell-jobs plutus-project.projectCross.mingwW64;
@@ -38,6 +40,7 @@ let
       plutus.windows = windows-plutus-jobs;
       plutus.native = native-plutus-jobs;
       other = other-jobs;
+      coverage = plutus-project-with-coverage.projectCoverageReport;
     } else if system == "x86_64-darwin" then {
       plutus.native = native-plutus-jobs;
       other = other-jobs;
