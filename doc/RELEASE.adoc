@@ -5,7 +5,7 @@
 
 == Packages
 
-The following packages are versioned and released:
+The following packages are versioned:
 
 - Libraries:
 * plutus-core:plutus-core
@@ -16,9 +16,6 @@ The following packages are versioned and released:
 * plutus-core:pir
 * plutus-core:plc
 * plutus-core:uplc
-
-.Dependencies among Plutus packages
-image::plutus-packages.png[Plutus packages,500]
 
 == Version Scheme
 
@@ -77,13 +74,13 @@ A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need t
 - In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
 The right group of people should be involved and sign off on the tests and checks.
 5. If no release blocking issue is found, tag `x.y.z.0` and upload the packages to https://github.com/input-output-hk/cardano-haskell-packages[CHaP].
-- If issues are found, create a release branch `release/x.y`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
+- If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
 
-6. After the release, update version numbers in cabal files to `x.y+1.0`.
+6. After the release, update version numbers in cabal files to `x.y.z+1.0`.
 - This may not be the actual version of the next release - it could be `x+1.0.0`.
 We don't need to be precise here; we just need a version number higher than the latest release.
 
@@ -91,13 +88,14 @@ We don't need to be precise here; we just need a version number higher than the 
 
 Suppose we are releasing version `x.y.z.w`.
 
-1. If it is the first time we are making a patch release for version `x.y.z` (i.e., `x.y.z.0` -> `x.y.z.1`), a release branch may not exist for `x.y`. If so, create branch `release/x.y` from the `x.y.0` tag.
+1. If it is the first time we are making a patch release for version `x.y.z` (i.e., `x.y.z.0` -> `x.y.z.1`), a release branch may not exist for `x.y`.
+If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
-2. Backport the needed fixes from master to `release/x.y`.
+2. Backport the needed fixes from master to `release/x.y.z`.
 3. Tag `x.y.z.w-rc1` on the release branch.
 4. Run all tests and checks.
 5. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
-- If issues are found, fix them on master, backport the fixes to `release/x.y`, and go to step 3.
+- If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 3.
 
 == Backwards Compatibility with Cardano API
 
@@ -126,6 +124,9 @@ Note that Plutus language versions are unrelated to package versions used for id
 
 == Downstream Integration
 
-Some Plutus features and changes require integration testing on devnets and testnets. Such tests are typically performed by the node QA team or the ecosystem collaborators. Test scenarios related to the Plutus changes should be reviewed and signed off by the Plutus team.
+Some Plutus features and changes require integration testing on devnets and testnets.
+Such tests are typically performed by the node QA team or the ecosystem collaborators.
+Test scenarios related to the Plutus changes should be reviewed and signed off by the Plutus team.
 
-As stated before, if a bug is found during the node release process that requires fixes in Plutus, we should make a patch release using the process described above, as opposed to a major or a minor one. That is because we want to minimize the changes to downstream, since this will occur when the Cardano node is already progressing through its release process.
+As stated before, if a bug is found during the node release process that requires fixes in Plutus, we should make a patch release using the process described above, as opposed to a major or a minor one.
+That is because we want to minimize the changes to downstream, since this will occur when the Cardano node is already progressing through its release process.
