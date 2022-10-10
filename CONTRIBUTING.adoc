@@ -474,12 +474,14 @@ We have a few sources of CI checks at the moment:
 - ReadTheDocs
 - Github Actions
 - Buildkite
+- Cicero
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
 
 NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
 If you really need this, ask.
+
 
 ==== Hydra
 
@@ -513,3 +515,12 @@ These perform some of the same checks as Hydra, but Github Actions is often more
 ==== Buildkite
 
 Buildkite is used to run the benchmarking job.
+
+==== Cicero
+
+("Cicero")[https://github.com/input-output-hk/cicero] actions are setup to build everything in the project.
+It's planned to be a general alternative to Hydra.
+
+Each build is created as a task and all the tasks are run by the plutus/ci action which can be found in https://cicero.ci.iog.io (not publicly accessible for now).
+Tasks will each report a GitHub status success or failure.
+The "details" link for the task goes to a page for the entire action and you will have to scroll to the point where that task is run.
