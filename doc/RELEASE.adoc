@@ -72,7 +72,7 @@ Suppose we are releasing version `x.y.0`.
 - Why not just fix the issues on master and tag `x.y.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
-Another example is if a security audit is done on `rc1`, and the changes in `rc2` does not modify the audited code, then the audit does not need to be re-done.
+Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
 
 6. After the release, update version numbers in cabal files to `x.y+1.0`.
 - This may not be the actual version of the next release - it could be `x+1.0.0`. We don't need to be precise here; we just need a version number higher than the latest release.
