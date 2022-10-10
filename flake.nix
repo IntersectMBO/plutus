@@ -92,6 +92,10 @@
       url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    tullia = {
+      url = "github:input-output-hk/tullia";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   # The flake outputs are managed by std.
@@ -158,6 +162,8 @@
           (inputs.std.functions "scripts")
           (inputs.std.functions "library")
           (inputs.std.installables "hydraJobs")
+          (inputs.tullia.tasks "pipelines")
+          (inputs.std.functions "actions")
         ];
       }
 
@@ -199,7 +205,11 @@
       }
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
-      };
+      }
+      (inputs.tullia.fromStd {
+        actions = inputs.std.harvest inputs.self [ "automation" "actions" ];
+        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
+      });
 
   nixConfig = {
     extra-substituters = [
