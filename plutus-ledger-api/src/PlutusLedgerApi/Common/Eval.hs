@@ -40,8 +40,6 @@ data EvaluationError =
     | DeBruijnError FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError ScriptDecodeError -- ^ A deserialisation error
     | IncompatibleVersionError (ScriptPlutus.Version ()) -- ^ An error indicating a version tag that we don't support
-    -- TODO: make this error more informative when we have more information about what went wrong
-    | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
     deriving stock (Show, Eq)
 makeClassyPrisms ''EvaluationError
 
@@ -53,7 +51,6 @@ instance Pretty EvaluationError where
     pretty (DeBruijnError e) = pretty e
     pretty (CodecError e) = viaShow e
     pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
-    pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | The type of log output: just a list of 'Text'.
 type LogOutput = [Text.Text]

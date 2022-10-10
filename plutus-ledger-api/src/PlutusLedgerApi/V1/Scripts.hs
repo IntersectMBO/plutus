@@ -12,8 +12,7 @@
 -- | Functions for working with scripts on the ledger.
 module PlutusLedgerApi.V1.Scripts
     (
-    ScriptError (..)
-    , Redeemer(..)
+      Redeemer(..)
     , Datum(..)
     , Context(..)
     , DatumHash(..)
@@ -26,7 +25,6 @@ import Prelude qualified as Haskell
 import Codec.Serialise (Serialise (..))
 import Control.DeepSeq (NFData)
 import Data.String
-import Data.Text (Text)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
@@ -44,12 +42,6 @@ The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
 - The encoders and decoders are annoying to implement downstream, because one would
   have to import `BuiltinData` which is from a different package.
 -}
-
-data ScriptError =
-    EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
-    | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
-    deriving stock (Haskell.Show, Haskell.Eq, Generic)
-    deriving anyclass (NFData)
 
 -- | 'Datum' is a wrapper around 'Data' values which are used as data in transaction outputs.
 newtype Datum = Datum { getDatum :: BuiltinData  }
