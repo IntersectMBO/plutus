@@ -22,24 +22,30 @@ image::plutus-packages.png[Plutus packages,500]
 
 == Version Scheme
 
-All above packages are versioned and released in sync. That is, whenever one package releases version X, so do all other packages. This greatly simplifies the release process compared to versioning and releasing the pacakges independently.
+All above packages are versioned and released in sync.
+That is, whenever one package releases version X, so do all other packages.
+This greatly simplifies the release process compared to versioning and releasing the packages independently.
 
-We follow https://semver.org[semantic versioning] for the packages, where version numbers have a `major.minor.patch` pattern with the following semantics:
+We follow https://pvp.haskell.org/[the PVP version scheme] for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
 
-- A major release (e.g., 3.5.2 -> 4.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
-- A minor release (e.g., 3.5.2 -> 3.6.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
+- A major release (e.g., 3.5.2.1 -> 3.6.0.0 or 4.0.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
+- A minor release (e.g., 3.5.2.1 -> 3.5.3.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
 +
-A minor release is also allowed to change the observable behaviors of functions that users should not rely on. For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
-- A patch release (e.g., 3.5.2 -> 3.5.3) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
+A minor release is also allowed to change the observable behaviors of functions that users should not rely on.
+For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
+- A patch release (e.g., 3.5.2.1 -> 3.5.2.2) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
 
 === Version Qualifiers
 
-Version qualifiers, also known as pre-release versions, usually refer to alpha, beta, and release candidate. Typically, alpha and beta are pre-feature complete, while release candidates are post-feature complete.
+Version qualifiers, also known as pre-release versions, usually refer to alpha, beta, and release candidate.
+Typically, alpha and beta are pre-feature complete, while release candidates are post-feature complete.
 
-We do not tag or publish alpha or beta verions for libraries. Libraries are published on Hackage, and Hackage does not support version qualifiers. It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
+We do not tag or publish alpha or beta versions for libraries.
+Depending on an alpha or beta version of a library requires `source-repository-package`, which is quite inconvenient.
+It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
 However, we may annotate individual functions in a library as alpha or beta if we deem it appropriate.
 
-We do tag release candidates, e.g,. 3.5.2-rc1, because additional non-CI tests and checks may need to be carried out.
+We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out.
 These tests and checks either are too expensive to run in CI, or require manual steps (e.g., security audit), but are prerequisites of making a release.
 Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
 
@@ -50,40 +56,47 @@ For executables, we may publish alpha, beta or release candidates at our discret
 We will begin by making a new major or minor release every 4 weeks, and evaluate and adjust the frequency in the future.
 Ad-hoc releases can be made upon request.
 
-We only make patch releases for version `x.y`, if a cardano-node release candidate depends on `x.y.z`, and an issue is found during the node release process that requires patching plutus.
+We only make patch releases for version `x.y.z`, if a cardano-node release candidate depends on `x.y.z.w`, and an issue is found during the node release process that requires patching plutus.
 In all other cases, we always start a new major or minor release from master.
 
 == Release Process
 
 === Major and Minor Releases
 
-Suppose we are releasing version `x.y.0`.
+Suppose we are releasing version `x.y.z.0`.
 
-1. Update version numbers in cabal files to `x.y.0` (if it is not already the case).
-- Version bounds for packages in the same repo should be set to `==x.y.*`.
-2. Make sure the change log is up to date.
-3. Tag `x.y.0-rc1` on master.
+1. Update version numbers in cabal files to `x.y.z.0` (if it is not already the case).
+- Version bounds for packages in the same repo should be set to `==x.y.z.*`.
+2. Make sure the change log is up-to-date.
+3. Tag `x.y.z.0-rc1` on master.
+- There's no need to create a release branch at this point.
+A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
 4. Run all tests and checks.
 - This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
 - This does not include tests that require building a new node, or integrating with other downstream projects.
-- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin). The right group of people should be involved and sign off on the tests and checks.
-5. If no release blocking issue is found, do a formal release and upload the packages to Hackage.
-- If issues are found, create a release branch `release/x.y`, fix the issues on master, backport the fixes to `release/x.y`, tag `x.y.0-rc2`, and go to step 4.
-- Why not just fix the issues on master and tag `x.y.0-rc2` from master?
+- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
+The right group of people should be involved and sign off on the tests and checks.
+5. If no release blocking issue is found, tag `x.y.z.0` and upload the packages to https://github.com/input-output-hk/cardano-haskell-packages[CHaP].
+- If issues are found, create a release branch `release/x.y`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
+- Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
 
 6. After the release, update version numbers in cabal files to `x.y+1.0`.
-- This may not be the actual version of the next release - it could be `x+1.0.0`. We don't need to be precise here; we just need a version number higher than the latest release.
+- This may not be the actual version of the next release - it could be `x+1.0.0`.
+We don't need to be precise here; we just need a version number higher than the latest release.
 
 === Patch Releases
 
-1. If it is the first time we are making a patch release for version `x.y` (i.e., `x.y.0` -> `x.y.1`), a release branch may not exist for `x.y`. If so, create branch `release/x.y` from the `x.y.0` tag.
+Suppose we are releasing version `x.y.z.w`.
+
+1. If it is the first time we are making a patch release for version `x.y.z` (i.e., `x.y.z.0` -> `x.y.z.1`), a release branch may not exist for `x.y`. If so, create branch `release/x.y` from the `x.y.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
 2. Backport the needed fixes from master to `release/x.y`.
-3. Run all tests and checks.
-4. If no release blocking issue is found, do a formal release and upload the packages to Hackage.
+3. Tag `x.y.z.w-rc1` on the release branch.
+4. Run all tests and checks.
+5. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
 - If issues are found, fix them on master, backport the fixes to `release/x.y`, and go to step 3.
 
 == Backwards Compatibility
