@@ -1,4 +1,11 @@
+# TODO(std) replace all occurrences of hydra with cicero once hydra is gone.
+# Normally we'd name this file default.nix and put it into a hydraJobs folder.
+# However that causes all hydra job names to contain an extra string (the flake fragment name)
+# in the final attribute path. To make job names shorter we name this file hydraJobs.nix instead.
+
 { inputs, cell }:
+
+# TODO(std) Keep an eye on input-output-hk/haskell.nix#1743 for new utility functions.
 
 let
   inherit (inputs.cells.toolchain.library) pkgs haskell-nix;
@@ -25,25 +32,23 @@ let
 
   windows-plutus-jobs = make-haskell-jobs plutus-project.projectCross.mingwW64;
 
-  other-jobs = {
-    plutus.shells = inputs.cells.plutus.devshells;
-    doc.shells = inputs.cells.doc.devshells;
-    doc.packages = inputs.cells.doc.packages;
-    doc.scripts = inputs.cells.doc.scripts;
-    toolchain.packages = inputs.cells.toolchain.packages;
-  };
+  other-jobs =
+    inputs.cells.plutus.devshells //
+    inputs.cells.doc.devshells //
+    inputs.cells.doc.packages //
+    inputs.cells.doc.scripts //
+    inputs.cells.toolchain.packages;
 
   jobs =
-    if system == "x86_64-linux" then {
-      plutus.windows = windows-plutus-jobs;
-      plutus.native = native-plutus-jobs;
-      other = other-jobs;
-    } else if system == "x86_64-darwin" then {
-      plutus.native = native-plutus-jobs;
-      other = other-jobs;
-    } else { };
+    if system == "x86_64-linux" then
+      { mingwW64 = windows-plutus-jobs; } // native-plutus-jobs // other-jobs
+    else if system == "x86_64-darwin" then
+      native-plutus-jobs // other-jobs
+    else
+      { };
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
+  # TODO(std) hydra will be gone by the end of month. Remove this stuff when that happens.
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
 
   required-job = pkgs.releaseTools.aggregate {
