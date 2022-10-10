@@ -39,13 +39,15 @@ If you're not using `nix develop` all the time and you want to run one of these,
 The `nix develop` environment has the correct GHC with all the external Haskell dependencies of the project.
 From here you can build the project packages directly with `cabal`.
 
-NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-index-state[we have pinned].
+NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-haskell-deps[we have pinned].
 
 [WARNING]
 ====
 You can also use `cabal` outside the `nix develop` environment to build the project.
 _However_ there are two caveats:
 
+* We rely on forked or new versions of some system libraries.
+** You can read the https://github.com/input-output-hk/cardano-node/blob/master/doc/getting-started/install.md[Cardano node documentation] to find out how to install these.
 * You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
@@ -123,14 +125,36 @@ You need to do a few things when adding a new package, in the following order:
 . Add the package to link:cabal.project[`cabal.project`].
 . Check that you can run `nix build -f default.nix plutus.haskell.projectPackages.<package name>` successfully.
 
-[[update-haskell-pins]]
-=== How to update our pinned Haskell dependencies
+[[update-haskell-deps]]
+=== How to update our Haskell dependencies
 
-We have pinned versions of some Haskell packages specified via the usual `source-repository-package` (Cabal) mechanism.
+Our Haskell packages come from two package repositories:
+- Hackage
+- https://github.com/input-output-hk/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
 
-These can be managed normally, but ensure that:
+The "index state" of each repository is pinned to a particular time in `cabal.project`.
+This tells Cabal to treat the repository "as if" it was the specified time, ensuring reproducibility.
+If you want to use a package version from repository X which was added after the pinned index state time, you need to bump the index state for X.
+This is not a big deal, since all it does is change what packages `cabal` considers to be available when doing solving, but it will change what package versions cabal picks for the plan, and so will likely result in significant recompilation, and potentially some breakage.
+That typically just means that we need to fix the breakage (and add a lower-bound on the problematic package), or add an upper-bound on the problematic package.
 
-* If it is an `source-repository-package`/`extra-dep` from Git, you update the `sha256` mapping in `nix/pkgs/haskell/haskell.nix`.
+Note that `cabal` itself keeps track of what index states it knows about, so when you bump the pinned index state you may need call `cabal update` in order for `cabal` to be happy.
+
+The Nix code which builds our packages also cares about the index state.
+This is represented by some pinned inputs in our flake (see xref:update-nix-pins[here] for more details)
+You can update these by running:
+- `nix flake lock --update-input hackage-nix` for Hackage
+- `nix flake lock --update-input CHaP` for CHaP
+
+==== Use of `source-repository-package`s
+
+We *can* use Cabal's `source-repository-package` mechanism to pull in un-released package versions.
+However, we should try and avoid this.
+In particular, we should not release our packages while we depend on a `source-repository-package`.
+
+If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/input-output-hk/cardano-haskell-packages[CHaP README] for more).
+
+If you do add a `source-repository-package`, you need to update the `sha256` mapping in `nix/pkgs/haskell/haskell.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
 
 [[update-nix-pins]]
@@ -145,21 +169,6 @@ and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.ht
 
 Specifically, you will probably want to say `nix flake lock --update-input <input-name>`.
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
-
-[[update-index-state]]
-=== How to update the Hackage index state
-
-The Hackage index state is pinned to a particular time in `cabal.project`.
-This helps with reproducibility: alongside using the same version of `cabal`, this ensures that everyone will get the same result from the `cabal` version solver.
-If you want to use a Hackage package from after the pinned index state time, you need to bump it.
-This is not a big deal, since all it does is change what packages `cabal` considers to be available when doing solving, but it *may* result in different versions being picked, so it's not completely safe.
-
-Note that `cabal` itself keeps track of what index states it knows about, so you may need to update this with `cabal update` in order for `cabal` to be happy.
-
-The Nix code which builds our packages also cares about the index state.
-The set of index states which it knows about is controlled by `hackage.nix`, which is a Nix representation of Hackage.
-This therefore needs to be newer than the index state.
-You can update it xref:update-nix-pins[with the Nix flake commands].
 
 == Working conventions
 

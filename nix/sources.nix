@@ -34,6 +34,7 @@ let
     cardano-repo-tool = tmpSources.__old__cardano-repo-tool;
     gitignore-nix = tmpSources.__old__gitignore-nix;
     hackage-nix = tmpSources.__old__hackage-nix;
+    CHaP = tmpSources.CHaP;
     iohk-nix = tmpSources.__old__iohk-nix;
     pre-commit-hooks-nix = tmpSources.__old__pre-commit-hooks-nix;
     inherit (tmpSources) haskell-language-server sphinxcontrib-haddock;

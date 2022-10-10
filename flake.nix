@@ -65,6 +65,10 @@
       url = "github:input-output-hk/hackage.nix";
       flake = false;
     };
+    CHaP = {
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      flake = false;
+    };
     sphinxcontrib-haddock = {
       url = "github:michaelpj/sphinxcontrib-haddock";
       flake = false;
