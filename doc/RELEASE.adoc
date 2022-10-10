@@ -115,7 +115,7 @@ This will not be needed once Cardano API starts to make more frequent releases.
 
 == Plutus ledger language behaviors should be preserved.
 
-When we start developing a new Plutus language version (e.g., Plutus V3), initially the language version is considered "unreleased", and should be guarded behind a flag to make it unusable.
+When we start developing a new Plutus ledger language version (e.g., Plutus V3), initially the language version is considered "unreleased", and should be guarded behind a flag to make it unusable.
 At this stage, changes to language behaviors can be made.
 Once it is ready to be used, we remove the flag in a Plutus release, making it usable.
 After this point, no more behavior changes (that is, the kind of changes marked "LV" in https://cips.cardano.org/cips/cip35[CIP-35]) are allowed.
