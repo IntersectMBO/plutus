@@ -8,6 +8,8 @@ let
 
     compiler-nix-name = cell.library.ghc-compiler-nix-name;
 
+    index-state = cell.library.cabal-project-index-state;
+
     # The test suite depends on a nonexistent package...
     configureArgs = "--disable-tests";
   };

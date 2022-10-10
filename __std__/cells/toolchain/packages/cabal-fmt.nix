@@ -17,6 +17,8 @@ let
     modules = [{ reinstallableLibGhc = true; }];
 
     compiler-nix-name = cell.library.ghc-compiler-nix-name;
+
+    index-state = cell.library.cabal-project-index-state;
   };
 in
 project.hsPkgs.cabal-fmt.components.exes.cabal-fmt
