@@ -10,8 +10,6 @@ library.haskell-nix.hackage-project {
 
   version = "2.6.2.1";
 
-  index-state = "2022-08-31T00:00:00Z";
-
   compiler-nix-name = library.ghc-compiler-nix-name;
 
   modules = [{

@@ -52,21 +52,21 @@
     # { inputs, cell }: inputs.nixpkgs, inputs.haskell-nix
     # inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/e14f9fb57315f0d4abde222364f19f88c77d2b79";
+      url = "github:NixOS/nixpkgs";
     };
     std = {
-      url = "github:divnix/std/a32f17f7f51166d6f11d3f7852f5078dc6cd8685";
+      url = "github:divnix/std";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/11f6d7ae562f4f13e5965a1684fce714a498ede8";
+      url = "github:input-output-hk/haskell.nix";
       inputs = {
         hackage.follows = "hackage-nix";
         nixpkgs.follows = "nixpkgs";
       };
     };
     hackage-nix = {
-      url = "github:input-output-hk/hackage.nix/3c491f25bd4fc1138ea4350ede0ec876fc4df7c4";
+      url = "github:input-output-hk/hackage.nix";
       flake = false;
     };
     sphinxcontrib-haddock = {
@@ -74,7 +74,7 @@
       flake = false;
     };
     gitignore-nix = {
-      url = "github:hercules-ci/gitignore.nix/a20de23b925fd8264fd7fad6454652e142fd7f73";
+      url = "github:hercules-ci/gitignore.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     haskell-language-server = {
@@ -83,11 +83,13 @@
       flake = false;
     };
     pre-commit-hooks-nix = {
-      url = "github:cachix/pre-commit-hooks.nix/60cad1a326df17a8c6cf2bb23436609fdd83024e";
+      url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # TODO(std) update to latest version to fix:
+    # warning: String 'configureFlags' is deprecated and will be removed in release 23.05.
     iohk-nix = {
-      url = "github:input-output-hk/iohk-nix/e936cc0972fceb544dd7847e39fbcace1c9c00de";
+      url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -116,7 +118,7 @@
         #     Develop and build all haskell components
         #   toolchain
         #     Common tools and functions shared across multiple cells
-        cellsFrom = ./__std__/nix;
+        cellsFrom = ./__std__/cells;
 
         # Each cell contains arbitrary "cell blocks".
         # Each cell block must be either:
@@ -196,98 +198,6 @@
       {
         packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       };
-
-  # TODO(std) move this part of the doc (which doesn't need to reference the code
-  # in flake.nix) into the README or in a separate doc.
-
-  # # # # # THE STANDARD FORMAT OF NIX FILES
-  #
-  # Notice how *every single nix file* in this repository (with the exception
-  # of flake.nix) has the same format:
-  #
-  # { inputs, cell }: ...
-  #
-  # There is no escaping this.
-  # A description of the arguments follows:
-  #
-  #   inputs.self
-  #     This is a path pointing to the top level of the repository.
-  #     It is the *only* way to reference source files inside the repository.
-  #     e.g.: { src = inputs.self + /plutus-core-spec; }
-  #
-  #   inputs.cells
-  #     Provides access to all cells.
-  #     Remember that a cell is named after its folder.
-  #     The full format is inputs.cells.<cell>.<cell-block>.value
-  #     e.g.: inputs.cells.doc.packages.read-the-docs-site
-  #     e.g.: inputs.cells.toolchain.devshellsProfiles.common
-  #     e.g.: inputs.cells.haskell.devshells.haskell-shell
-  #
-  #   inputs.*flakeInput*
-  #     The flake inputs proper.
-  #     e.g.: inputs.std
-  #     e.g.: inputs.nixpkgs
-  #     e.g.: inputs.sphinxcontrib-haddock
-  #
-  #   cell.*cell block*
-  #     The cell value gives access to all its cell blocks:
-  #     e.g.: cell.scripts.serve-read-the-docs-site (only works for code in /nix/scripts)
-  #       Alternatively: inputs.cells.doc.scripts.serve-read-the-docs-site (works everywhere)
-  #     e.g.: cell.packages.repo-root.nix (only works for code in /nix/toolchain)
-  #       Alternatively: inputs.cells.toolchain.packages.repo-root (works everywhere)
-
-
-  # # # # # ONE DERIVATION PER NIX FILE
-  #
-  # To enforce further discipline, we enact a one-derivation-per-file policy.
-  # This is currently applied *without exception*.
-  #
-  # This means that every single nix file in this repository is either:
-  # - A default.nix cell block importing and thus grouping all files in its folder
-  # - A file evaluating to a single derivation
-  #
-  # Further, we enforce that the nix fragment name be equal to the file name.
-  # This means that if one looks at the fully expanded structure of the cellsFrom folder,
-  # one will conclude that there are exactly as many fragments as there are nix files
-  # (excluding the default.nix files, which again merely act as a grouper for the cell block).
-  #
-  # Finally this means that for each nix file "some-fragment.nix", one can run:
-  # nix (develop|build|run) .#some-fragment
-  # That is unless the relevant cell block was not exposed by the flake.
-  #
-  # Also note that while virtually all nix files evaluate to derivations, some
-  # (like the ones in the library cell block) actually evaluate to functions.
-  # So it is more accurate to say that the convention is to export one
-  # (non-attribute-set!) nix value per nix file.
-
-
-  # # # # # REFERENCE EXAMPLE
-  #
-  # As an example, consider the file /nix/doc/packages/eutxo-paper.nix:
-  #
-  # - /doc is the cell name
-  # - /doc is accessible via cell.* from { inputs, cell } (while inside /nix/doc)
-  # - /doc is accessible via inputs.cells.doc (everywhere)
-  # - /packages is the cell block name
-  # - /packages is accessible via cell.packages (while inside /nix/doc)
-  # - /packages is accessible via inputs.cells.doc.packages (everywhere)
-  # - /eutxo-paper.nix contains a *single derivation*
-  # - eutxo-paper is the name of the flake fragment
-  # - A derivation named eutxo-paper is accessible via cell.packages.eutxo-paper
-  # - And also accessible via inputs.cells.doc.packages.eutxo-paper
-  # - And also buildable via nix build .#eutxo-paper
-  #
-  # As another example, consider the file /nix/toolchain/packages/default.nix
-  #
-  # - /toolchain is the cell name
-  # - /toolchain is accessible via cell.* from { inputs, cell } (while inside /nix/toolchain)
-  # - /toolchain is accessible via inputs.cells.toolchain (everywhere)
-  # - /packages is the cell block name
-  # - /packages is accessible via cell.packages (while inside /nix/toolchain)
-  # - /packages is accessible via inputs.cells.toolchain.packages (everywhere)
-  # - /default.nix imports every file in its directory
-  # - /default.nix contains a derivation for each file in its directory
-  # - Each attrs field in /default.nix is named after the file it imports (minus the .nix)
 
   nixConfig = {
     extra-substituters = [

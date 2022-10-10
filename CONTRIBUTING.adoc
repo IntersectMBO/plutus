@@ -8,7 +8,7 @@ Make sure you have set up the link:./README{outfilesuffix}#prerequisites[prerequ
 
 === How to get a shell environment with tools
 
-You can get an environment for developing the entire project using `nix-shell` in the root directory.
+You can get an environment for developing the entire project using `nix develop` in the root directory.
 This includes a variety of useful tools:
 
 * The right version of GHC with all the external Haskell dependencies in its package database.
@@ -19,12 +19,10 @@ This includes a variety of useful tools:
 * `editorconfig-checker`
 * ... and more
 
-Have a look in `shell.nix` to see what's there.
-
 We rely heavily on this approach to ensure that everyone has consistent versions of the tools that we use.
 Please do make use of this, since problems due to mismatched versions of tools are particularly annoying to fix!
 
-NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a convenient alternative to running `nix-shell` directly.
+NOTE: You may want to consider using https://github.com/target/lorri[lorri] as a convenient alternative to running `nix develop` directly.
 
 === How to use helper scripts to fix some common issues
 
@@ -34,18 +32,18 @@ The shell comes with some tools for fixing various simple problems that the CI w
 - `fix-cabal-fmt` will re-format all the Cabal sources correctly.
 - `fix-png-optimization` will optimize all PNGs in the repository.
 
-If you're not using `nix-shell` all the time and you want to run one of these, you can use `nix-shell --run`.
+If you're not using `nix develop` all the time and you want to run one of these, you can use `nix develop --command`.
 
 === How to build the code during development
 
-The `nix-shell` environment has the correct GHC with all the external Haskell dependencies of the project.
+The `nix develop` environment has the correct GHC with all the external Haskell dependencies of the project.
 From here you can build the project packages directly with `cabal`.
 
 NOTE: You may need to run `cabal update` so that `cabal` knows about the index state xref:update-index-state[we have pinned].
 
 [WARNING]
 ====
-You can also use `cabal` outside the `nix-shell` environment to build the project.
+You can also use `cabal` outside the `nix develop` environment to build the project.
 _However_ there are two caveats:
 
 * You may get different versions of packages.
@@ -60,9 +58,7 @@ bug workarounds.
 
 === How to build the code with profiling
 
-If you launch `nix-shell` with the `enableHaskellProfiling` argument set to true, you will get a shell where all the dependencies have been built with profiling.
-
-Like this: `nix-shell --arg enableHaskellProfiling true`.
+If you launch `nix develop .#profiled-plutus` you will get a shell where all the dependencies have been built with profiling.
 
 [WARNING]
 ====
@@ -113,7 +109,7 @@ There are various tools for visualizing the resulting profile, e.g. https://hack
 
 === How to setup `haskell-language-server`
 
-The `nix-shell` environment has a `haskell-language-server` binary for the right version of GHC.
+The `nix develop` environment has a `haskell-language-server` binary for the right version of GHC.
 
 IMPORTANT: this binary is called `haskell-language-server`, rather than `haskell-language-server-wrapper`, which is what some of the editor integrations expect.
 
@@ -147,10 +143,8 @@ actually use flakes for normal Nix builds. To manage the dependencies,
 see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
 and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html[the Nix flake lock command].
 
-Specifically, you will probabl want to say `nix flake lock --update-input <input-name>`.
+Specifically, you will probably want to say `nix flake lock --update-input <input-name>`.
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
-
-Inside of the project nix-shell, a version of Nix with flakes is available under the alias `nix-flakes`.
 
 [[update-index-state]]
 === How to update the Hackage index state
@@ -226,7 +220,7 @@ We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal 
 They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
 To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `fix-stylish-haskell` or `fix-cabal-fmt` respectively.
-They are provided by the `nix-shell` environment.
+They are provided by the `nix develop` environment.
 
 === Code linting
 
@@ -499,7 +493,9 @@ The documentation site is built on ReadTheDocs.
 It will build a preview for each PR which is linked from the PR status.
 It's useful to take a look if you're changing any of the documentation.
 
-Run `build-and-serve-docs` in nix-shell to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
+Enter the custom shell using `nix develop .#doc-shell`
+
+Then you can run `serve` to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
 
 ==== Github Actions
 
