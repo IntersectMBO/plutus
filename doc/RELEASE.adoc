@@ -99,27 +99,29 @@ Suppose we are releasing version `x.y.z.w`.
 5. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
 - If issues are found, fix them on master, backport the fixes to `release/x.y`, and go to step 3.
 
-== Backwards Compatibility
+== Backwards Compatibility with Cardano API
 
-Plutus releases should meet two backwards compatibility criteria:
+It is a good idea to avoid breaking the latest version of Cardano API in a new Plutus release.
+This makes it easy for downstream projects to update Plutus version without needing a new Cardano API release.
 
-1. *Each Plutus release should build with the latest version of Cardano API.*
-+
-This makes it possible for Plutus Tools to upgrade to the new Plutus release, without needing a new Cardano API release.
-+
-To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we should temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
-+
-This requirement will likely go away once Cardano API starts to make more frequent releases.
+For example, suppose we make some improvements to `plutus-tx-plugin` and make a new major release.
+Since all packages are released in sync, we also make a new major release for `plutus-core`.
+Although it is a major release, we should avoid making changes that is incompatible with the latest version of Cardano API.
+Otherwise, downstream projects such as Plutus Tools won't be able to use the new Plutus version and take advantage of the plugin improvements, until a new Cardano API version is published.
 
-2. *Plutus language behaviors should be preserved.*
-+
+To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we can temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
+
+This will not be needed once Cardano API starts to make more frequent releases.
+
+== Plutus language behaviors should be preserved.
+
 When we start developing a new Plutus language version (e.g., Plutus V3), initially the language version is considered "unreleased", and should be guarded behind a flag to make it unusable.
 At this stage, changes to language behaviors can be made.
 Once it is ready to be used, we remove the flag in a Plutus release, making it usable.
 After this point, no more behavior changes (that is, the kind of changes marked "LV" in https://cips.cardano.org/cips/cip35[CIP-35]) are allowed.
-+
+
 If a change does not require LV, but requires HF per CIP-35, then it is allowed, but it must be guarded behind an appropriate protocol version condition.
-+
+
 Note that Plutus language versions are unrelated to package versions used for identifying releases.
 
 == Downstream Integration
