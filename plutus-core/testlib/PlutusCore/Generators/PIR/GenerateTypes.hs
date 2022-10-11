@@ -22,7 +22,7 @@ import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
-import PlutusCore.Generators.PIR.Builtin
+import PlutusCore.Generators.Internal.Builtin.QuickCheck
 import PlutusCore.Generators.PIR.GenTm
 import PlutusCore.Generators.PIR.GenerateKinds ()
 

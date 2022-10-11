@@ -4,7 +4,8 @@ module PlutusCore.Generators
     ( module Export
     ) where
 
-import PlutusCore.Generators.Internal.Builtin as Export
+import PlutusCore.Generators.Internal.Builtin.Hedgehog as Export
+import PlutusCore.Generators.Internal.Builtin.QuickCheck as Export
 import PlutusCore.Generators.Internal.Denotation as Export
 import PlutusCore.Generators.Internal.Entity as Export
 import PlutusCore.Generators.Internal.TypeEvalCheck as Export

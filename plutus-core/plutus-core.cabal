@@ -328,12 +328,13 @@ library plutus-core-testlib
     PlutusCore.Generators
     PlutusCore.Generators.AST
     PlutusCore.Generators.Interesting
+    PlutusCore.Generators.Internal.Builtin.Hedgehog
+    PlutusCore.Generators.Internal.Builtin.QuickCheck
     PlutusCore.Generators.NEAT.Common
     PlutusCore.Generators.NEAT.Spec
     PlutusCore.Generators.NEAT.Term
     PlutusCore.Generators.NEAT.Type
     PlutusCore.Generators.PIR
-    PlutusCore.Generators.PIR.Builtin
     PlutusCore.Generators.PIR.Common
     PlutusCore.Generators.PIR.GenerateKinds
     PlutusCore.Generators.PIR.GenerateTypes
@@ -348,7 +349,6 @@ library plutus-core-testlib
     Test.Tasty.Extras
 
   other-modules:
-    PlutusCore.Generators.Internal.Builtin
     PlutusCore.Generators.Internal.Denotation
     PlutusCore.Generators.Internal.Entity
     PlutusCore.Generators.Internal.TypedBuiltinGen

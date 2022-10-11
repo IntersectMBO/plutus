@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module PlutusCore.Generators.Internal.Builtin (
+module PlutusCore.Generators.Internal.Builtin.Hedgehog (
     GenTypedTerm (..),
     GenArbitraryTerm (..),
     genConstant,
