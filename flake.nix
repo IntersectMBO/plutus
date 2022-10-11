@@ -12,7 +12,7 @@
 {
   description = "Plutus Core";
 
-  # TODO(std) these are the onl inputs, remove once the new inputs are fully migrated.
+  # TODO(std) these are the old inputs, remove once the new inputs are fully migrated.
   inputs = {
     __old__nixpkgs = {
       type = "github";
@@ -104,7 +104,7 @@
         # Boilerplate
         inherit inputs;
 
-        # ALL nix files will reside inside this folder, no exception.
+        # All nix files will reside inside this folder, no exception.
         # Each subfolder is a "cell".
         # Cell names are arbitrary.
         # Cells are for highest-level organization and grouping of nix code.
@@ -120,11 +120,13 @@
         #     Common tools and functions shared across multiple cells
         cellsFrom = ./__std__/cells;
 
-        # Each cell contains arbitrary "cell blocks".
+        # Each cell contains "cell blocks".
+        # Block names are arbitrary.
+        # Each block can be thought of as providing a "feature" to its cell.
+        # Cell blocks have types.
         # Each cell block must be either:
         #   A nix file named after the cell block
         #   A directory named after the cell block and containing a default.nix
-        # Cell blocks have types.
         # Not all cells have the same cell blocks.
         # All cell blocks belong in a cell.
         #

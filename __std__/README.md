@@ -4,7 +4,7 @@ This readme provides documentation for the nix code.
 
 The target audience includes current and future maintainers.
 
-Start with the comments inside the [flake](./flake.nix) then continue reading here.
+Start with the comments inside the [flake](../flake.nix) then continue reading here.
 
 ## The standard format of nix files 
 
@@ -36,7 +36,7 @@ A description of the arguments follows:
   Examples: `inputs.std`, `inputs.nixpkgs`, `inputs.sphinxcontrib-haddock`
 
 - `cell.<cell-block>`\
-  The cell value gives access to its cell blocks:\
+  Provides access to the cell's blocks.\
   Examples:
   - `cell.scripts.serve-read-the-docs-site` only works for code in `/cells/scripts`\
     Alternatively `inputs.cells.doc.scripts.serve-read-the-docs-site` works everywhere
