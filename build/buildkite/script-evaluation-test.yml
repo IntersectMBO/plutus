@@ -3,6 +3,8 @@ steps:
   - label: "Download and unzip dump files"
     command: |
       nix-shell --run 'LOCAL_DIR=$HOME/mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ *.event.bz2'
+#     TODO(std) check that this works 
+#     nix develop --command 'LOCAL_DIR=$HOME/mainnet-script-dump-downloaded ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ *.event.bz2'
     concurrency: 1
     concurrency_group: "plutus-script-evaluation"
     agents:
@@ -15,6 +17,8 @@ steps:
     # the number of available processors.
     command: |
       nix-shell --run 'cabal update && EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test -- --num-threads=1'
+#     TODO(std) check that this works 
+#     nix develop --command 'cabal update && EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal v2-run plutus-ledger-api:evaluation-test -- --num-threads=1'
     concurrency: 1
     concurrency_group: "plutus-script-evaluation"
     agents:

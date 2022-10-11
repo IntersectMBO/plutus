@@ -10,9 +10,9 @@ library.haskell-nix.hackage-project {
 
   version = "2.6.2.1";
 
-  index-state = "2022-08-31T00:00:00Z";
-
   compiler-nix-name = library.ghc-compiler-nix-name;
+
+  index-state = library.cabal-project-index-state;
 
   modules = [{
     # Agda is a huge pain. They have a special custom setup that compiles the

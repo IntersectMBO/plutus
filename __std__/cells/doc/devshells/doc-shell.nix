@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.std.std.lib.mkShell {
+inputs.std.lib.dev.mkShell {
 
   name = "doc-shell";
 
