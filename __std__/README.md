@@ -37,7 +37,7 @@ A description of the arguments follows:
 
 - `cell.<cell-block>`\
   Provides access to the cell's blocks.\
-  This is a shorthand for `inputs.cells.<cell>.<cell-block>`, where `<cell>` evaluates to the cell housing this nix file.\ 
+  This is a shorthand for `inputs.cells.<cell>.<cell-block>`, where `<cell>` evaluates to the cell housing this nix file.\
   Examples:
   - `cell.scripts.serve-read-the-docs-site` only works for code in `/cells/doc`\
     Alternatively `inputs.cells.doc.scripts.serve-read-the-docs-site` works everywhere
