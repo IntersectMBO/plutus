@@ -43,7 +43,6 @@ A description of the arguments follows:
   - `cell.packages.repo-root` only works for code in `/cells/toolchain`\
     Alternatively `inputs.cells.toolchain.packages.repo-root` works everywhere
 
-
 ## One derivation per nix file
 
 To enforce further discipline, we enact a one-derivation-per-file policy.
@@ -70,13 +69,14 @@ Indeed the `library` block hosts nix files that evaluate to functions, literal v
 
 ## Reference example
 
-As an example, consider the file `/nix/doc/packages/eutxo-paper.nix`:
+As an example, consider the file `__std__/cells/doc/packages/eutxo-paper.nix`:
 
+- `__std__cells` is the `cellsFrom` value in `flake.nix`
 - `/doc` is the cell name
-- `/doc` is accessible via `cell.*` from `{ inputs, cell }` (while inside `/nix/doc`)
+- `/doc` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
 - `/doc` is accessible via `inputs.cells.doc` (everywhere)
 - `/packages` is the cell block name
-- `/packages` is accessible via `cell.packages` (while inside `/nix/doc`)
+- `/packages` is accessible via `cell.packages` (while inside `cells/doc`)
 - `/packages` is accessible via `inputs.cells.doc.packages` (everywhere)
 - `/eutxo-paper.nix` contains a *single derivation*
 - `eutxo-paper` is the name of the flake fragment
@@ -84,13 +84,14 @@ As an example, consider the file `/nix/doc/packages/eutxo-paper.nix`:
 - And also accessible via `inputs.cells.doc.packages.eutxo-paper`
 - And also buildable via `nix build .#eutxo-paper`
 
-As another example, consider the file `/nix/toolchain/packages/default.nix`
+As another example, consider the file `__std__/cells/toolchain/packages/default.nix`
 
+- `__std__cells` is the `cellsFrom` value in `flake.nix`
 - `/toolchain` is the cell name
-- `/toolchain` is accessible via `cell.*` from `{ inputs, cell }` (while inside `/nix/toolchain`)
+- `/toolchain` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
 - `/toolchain` is accessible via `inputs.cells.toolchain` (everywhere)
 - `/packages` is the cell block name
-- `/packages` is accessible via `cell.packages` (while inside `/nix/toolchain`)
+- `/packages` is accessible via `cell.packages` (while inside `cells/toolchain`)
 - `/packages` is accessible via `inputs.cells.toolchain.packages` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
@@ -101,6 +102,6 @@ As another example, consider the file `/nix/toolchain/packages/default.nix`
 
 Migration to `std` will be 100% complete once all these are done:
 
-- Rename `__std__` to `nix`
+- Replace all occurrences of `__std__` to `nix`
 - Remove *every* nix files not in `nix` 
 - Do all remaining `TODO(std)`s 
