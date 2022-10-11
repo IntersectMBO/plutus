@@ -1,6 +1,6 @@
-{
-  cell,
-  inputs,
+{ cell
+, inputs
+,
 }:
 {
   "plutus/ci" = {

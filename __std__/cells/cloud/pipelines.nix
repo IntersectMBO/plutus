@@ -1,10 +1,10 @@
-{
-  cell,
-  inputs
+{ cell
+, inputs
 }:
 let
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
   inherit (inputs.nixpkgs.stdenv) system;
+  inherit (inputs.cells.automation) ciJobs;
 
   common =
     { config
@@ -34,7 +34,7 @@ let
       memory = 1024 * 8;
       nomad.resources.cpu = 10000;
     })
-    (flakeOutputTasks [ system "ciJobs" ] { outputs.${system}.ciJobs = cell.ciJobs; });
+    (flakeOutputTasks [ system "ciJobs" ] { outputs.${system}.ciJobs = ciJobs; });
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
@@ -47,4 +47,4 @@ if system == "x86_64-linux" then
       after = __attrNames ciTasksSeq;
     };
   }
-else {}
+else { }

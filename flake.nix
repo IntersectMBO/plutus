@@ -115,7 +115,7 @@
         #
         # In this repository we have four cells:
         #   automation
-        #     Hydra jobsets and GHA tasks
+        #     Hydra jobsets, Cicero tasks, and GHA tasks
         #   doc
         #     Develop and build all the documentation artifacts
         #   plutus
@@ -207,8 +207,8 @@
         packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       }
       (inputs.tullia.fromStd {
-        actions = inputs.std.harvest inputs.self [ "automation" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
+        actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
+        tasks = inputs.std.harvest inputs.self [ "cloud" "pipelines" ];
       });
 
   nixConfig = {
