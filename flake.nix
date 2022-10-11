@@ -1,14 +1,14 @@
 # The flake.nix is the entrypoint of all nix code.
 #
-# This repository uses the std tool https://github.com/divnix/std.
+# This repository uses the standard tool https://github.com/divnix/std.
 # Familiarity with std is required to be able to contribute effectively.
 # While official documentation for std can be found in its GitHub, this flake
 # has been thoroughly commented so as to quickstart new maintainers.
+# This flake can also be used as a template for new std-based projects.
+# Further documentation can be found in __std__/README.md
 #
-# Most of what there is to know about the nix code inside this repository
-# can be learned by reading this file. A second read will be needed as some
-# std-specific terms may be referenced first and defined later.
-# You may also refer to the glossary: https://divnix.github.io/std/glossary.html
+# You may want to refer to the standard glossary as you go along:
+# https://divnix.github.io/std/glossary.html
 {
   description = "Plutus Core";
 
@@ -47,10 +47,6 @@
     };
 
     # TODO(std) these are the new inputs: remove this comment once the old inputs are truly gone.
-
-    # The flake inputs will be accessible by name in each nix file like so:
-    # { inputs, cell }: inputs.nixpkgs, inputs.haskell-nix
-    # inputs = {
     nixpkgs = {
       url = "github:NixOS/nixpkgs";
     };
@@ -97,7 +93,7 @@
   # The flake outputs are managed by std.
   outputs = inputs:
 
-    # The growOn function accepts a first argument defining the cell blocks.
+    # The growOn function takes care of producing the flake outputs.
     inputs.std.growOn
       {
 
@@ -105,8 +101,8 @@
         inherit inputs;
 
         # All nix files will reside inside this folder, no exception.
-        # Each subfolder is a "cell".
-        # Cell names are arbitrary.
+        # Each subfolder of cellsFrom is a "cell".
+        # Cell names are arbitrary; a cell name is its folder name.
         # Cells are for highest-level organization and grouping of nix code.
         #
         # In this repository we have four cells:
@@ -171,12 +167,12 @@
       #
       # The attrs will be recursively merged in the order in which they appear.
       {
-        # Here we say that we want the devshells cell block of the doc cell
+        # Here we say that we want the "devshells" cell block of the doc cell
         # (which contains a number of shell-able derivations) to be exposed
         # by the flake and accessible via nix develop.
         devShells = inputs.std.harvest inputs.self [ "doc" "devshells" ];
 
-        # Here we say that we want the packages cell block of the doc cell
+        # Here we say that we want the "packages" cell block of the doc cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
         packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
@@ -185,7 +181,7 @@
         packages = inputs.std.harvest inputs.self [ "doc" "scripts" ];
       }
       {
-        # The devshells inside the haskell cells will be added to the ones
+        # The devshells inside the plutus cell will be added to the ones
         # already harvested from the doc shell. Same for packages.
         devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
         packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
