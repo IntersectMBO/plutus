@@ -34,7 +34,7 @@ let
       memory = 1024 * 8;
       nomad.resources.cpu = 10000;
     })
-    (flakeOutputTasks [ system "hydraJobs" ] { outputs.${system}.hydraJobs = cell.hydraJobs; });
+    (flakeOutputTasks [ system "ciJobs" ] { outputs.${system}.ciJobs = cell.ciJobs; });
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
