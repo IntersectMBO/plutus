@@ -74,11 +74,11 @@ As an example, consider the file `__std__/cells/doc/packages/eutxo-paper.nix`:
 
 - `__std__/cells` is the `cellsFrom` value in `flake.nix`
 - `/doc` is the cell name
-- `/doc/*` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
-- `/doc/*` is accessible via `inputs.cells.doc.*` (everywhere)
+- `/doc/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
+- `/doc/*` are accessible via `inputs.cells.doc.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages/*` is accessible via `cell.packages.*` (while inside `cells/doc`)
-- `/packages/*` is accessible via `inputs.cells.doc.packages.*` (everywhere)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/doc`)
+- `/packages/*` are accessible via `inputs.cells.doc.packages.*` (everywhere)
 - `/eutxo-paper.nix` contains a *single derivation*
 - `eutxo-paper` is the name of the flake fragment
 - A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `cells/doc`)
@@ -89,11 +89,11 @@ As another example, consider the file `__std__/cells/toolchain/packages/default.
 
 - `__std__/cells` is the `cellsFrom` value in `flake.nix`
 - `/toolchain` is the cell name
-- `/toolchain/*` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
-- `/toolchain/*` is accessible via `inputs.cells.toolchain.*` (everywhere)
+- `/toolchain/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
+- `/toolchain/*` are accessible via `inputs.cells.toolchain.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages/*` is accessible via `cell.packages.*` (while inside `cells/toolchain`)
-- `/packages/*` is accessible via `inputs.cells.toolchain.packages.*` (everywhere)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/toolchain`)
+- `/packages/*` are accessible via `inputs.cells.toolchain.packages.*` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
 - Each attrs field in `/default.nix` is named after the file it imports (minus the `.nix`)
