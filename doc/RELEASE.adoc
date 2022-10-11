@@ -122,7 +122,7 @@ If a change does not require LV, but requires HF per CIP-35, then it is allowed,
 
 Note that Plutus language versions are unrelated to package versions used for identifying releases.
 
-== Downstream Integration
+== Participation in the `cardano-node` release process
 
 Some Plutus features and changes require integration testing on devnets and testnets.
 Such tests are typically performed by the node QA team or the ecosystem collaborators.
