@@ -1,40 +1,46 @@
-############################################################################
-# Builds Haskell packages with Haskell.nix
-############################################################################
-{ lib
-, rPackages
-, CHaP
-, haskell-nix
-, agdaWithStdlib
-, gitignore-nix
-, z3
-, R
-, libsodium-vrf
-, secp256k1
-, compiler-nix-name
-, enableHaskellProfiling
-  # Whether to set the `defer-plugin-errors` flag on those packages that need
-  # it. If set to true, we will also build the haddocks for those packages.
-, deferPluginErrors
-}:
+{ inputs, cell }:
+
 let
-  r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
-  project = haskell-nix.cabalProject' ({ pkgs, ... }: {
-    inherit compiler-nix-name;
+
+  inherit (inputs.cells.toolchain) library;
+  inherit (library.pkgs) lib;
+
+  r-packages = with library.pkgs.rPackages; [
+    library.pkgs.R
+    tidyverse
+    dplyr
+    stringr
+    MASS
+    plotly
+    shiny
+    shinyjs
+    purrr
+  ];
+
+  project = library.haskell-nix.cabalProject' ({ pkgs, ... }: {
+
+    compiler-nix-name = library.ghc-compiler-nix-name;
 
     # This is incredibly difficult to get right, almost everything goes wrong,
     # see https://github.com/input-output-hk/haskell.nix/issues/496
-    src = let root = ../../../.; in
-      haskell-nix.haskellLib.cleanSourceWith {
-        filter = gitignore-nix.gitignoreFilter root;
-        src = root;
-        # Otherwise this depends on the name in the parent directory, which reduces caching, and is
-        # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
-        name = "plutus";
-      };
-    inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
+    src = library.haskell-nix.haskellLib.cleanSourceWith {
+
+      src = inputs.self.outPath;
+
+      # Otherwise this depends on the name in the parent directory, which reduces caching, and is
+      # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
+      name = "plutus";
+    };
+
+    shell = {
+      # We don't currently use this.
+      withHoogle = false;
+    };
+
+    inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
     # No source-repository-packages right now
     sha256map = { };
+
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
     # after cabal has been configured.
@@ -44,12 +50,15 @@ let
       package plutus-tx-plugin
         flags: +use-ghc-stub
 
-      -- Exlcude test that use `doctest`.  They will not work for windows
+      -- Exclude test that use `doctest`.  They will not work for windows
       -- cross compilation and `cabal` will not be able to make a plan.
       package prettyprinter-configurable
         tests: False
     '';
+
     modules = [
+
+      # Cross compiling
       ({ pkgs, ... }: lib.mkIf (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) {
         packages = {
           # Things that need plutus-tx-plugin
@@ -65,6 +74,8 @@ let
           plutus-conformance.package.buildable = false;
         };
       })
+
+      # Windows
       ({ pkgs, ... }:
         lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
           packages = {
@@ -81,21 +92,25 @@ let
             plutus-core.components.tests.plutus-ir-test.buildable = lib.mkForce false;
             plutus-core.components.tests.untyped-plutus-core-test.buildable = lib.mkForce false;
           };
-        }
-      )
+        })
+
+      # Darwin
       (lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin) {
         packages = {
-          # This fails on Darwin with strange errors and I don't know why
+          # These fail on Darwin with strange errors and I don't know why
           # > Error: C stack usage  17556409549320 is too close to the limit
           # > Fatal error: unable to initialize the JI
           plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
+          plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
         };
-      }
-      )
+      })
+
+      # Common
       ({ pkgs, config, ... }: {
         packages = {
           # Packages we just don't want docs for
           plutus-benchmark.doHaddock = false;
+
           # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
           plutus-tx-plugin.doHaddock = false;
 
@@ -109,16 +124,18 @@ let
               deps = cmp.executableToolDepends;
             in
             ''PATH=${lib.makeBinPath deps }:$PATH'';
+
           # FIXME: Somehow this is broken even with setting the path up as above
           plutus-metatheory.components.tests.test2.doCheck = false;
+
           # plutus-metatheory needs agda with the stdlib around for the custom setup
           # I can't figure out a way to apply this as a blanket change for all the
           # components in the package, oh well
-          plutus-metatheory.components.library.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test1.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test2.build-tools = [ agdaWithStdlib ];
-          plutus-metatheory.components.tests.test3.build-tools = [ agdaWithStdlib ];
+          plutus-metatheory.components.library.build-tools = [ cell.packages.agda-with-stdlib ];
+          plutus-metatheory.components.exes.plc-agda.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
+          plutus-metatheory.components.tests.test1.build-tools = [ cell.packages.agda-with-stdlib ];
+          plutus-metatheory.components.tests.test2.build-tools = [ cell.packages.agda-with-stdlib ];
+          plutus-metatheory.components.tests.test3.build-tools = [ cell.packages.agda-with-stdlib ];
 
           plutus-core.components.benchmarks.update-cost-model = {
             build-tools = r-packages;
@@ -132,16 +149,19 @@ let
             platforms = lib.platforms.linux;
           };
 
-          # Werror everything. This is a pain, see
-          # https://github.com/input-output-hk/haskell.nix/issues/519
+          # Werror everything.
+          # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
+
           # FIXME: has warnings in generated code
           #plutus-metatheory.package.ghcOptions = "-Werror";
+
           plutus-benchmark.ghcOptions = [ "-Werror" ];
           plutus-errors.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];
+
           # This package's tests require doctest, which generates Haskell source
           # code. However, it does not add derivation strategies in said code,
           # which will fail the build with -Werror. Furthermore, barring an
@@ -151,7 +171,6 @@ let
           word-array.ghcOptions = [ "-Werror" ];
 
           # External package settings
-
           inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
 
           # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
@@ -159,17 +178,19 @@ let
           ieee.components.library.libs = lib.mkForce [ ];
 
           # See https://github.com/input-output-hk/iohk-nix/pull/488
-          cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [ [ libsodium-vrf ] ];
+          cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [
+            [ pkgs.libsodium-vrf ]
+          ];
           cardano-crypto-class.components.library.pkgconfig = lib.mkForce [
-            [ libsodium-vrf secp256k1 ]
+            [ pkgs.libsodium-vrf pkgs.secp256k1 ]
           ];
         };
       })
-    ] ++ lib.optional enableHaskellProfiling {
-      enableLibraryProfiling = true;
-      enableProfiling = true;
-    };
+    ];
   });
 
 in
-project
+
+project.appendOverlays [
+  library.haskell-nix.haskellLib.projectOverlays.devshell
+]

@@ -1,4 +1,7 @@
+{ inputs, cell }:
+
 self: super: {
+
   rPackages = super.rPackages.override {
     overrides = ({
       hexbin = super.rPackages.hexbin.overrideDerivation (attrs: {
@@ -8,7 +11,8 @@ self: super: {
     });
   };
 
-  # inline-r only builds with an old version of R: https://github.com/tweag/HaskellR/issues/374
+  # haskell inline-r package fails to compile with more recent version of R:
+  # https://github.com/tweag/HaskellR/issues/374
   R = super.R.overrideAttrs (oldAttrs: rec {
     version = "4.1.3";
     src = self.fetchurl {

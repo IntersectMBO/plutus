@@ -2,12 +2,11 @@
 
 buildPythonPackage rec {
   pname = "sphinx-markdown-tables";
-  # For some reason the PyPI source for 0.0.15 seems to be missing
-  version = "0.0.14";
+  version = "0.0.17";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "16hsh254zjkb7ayhny69v7xpjim35linggadhiiyrnjx0qy8a16n";
+    sha256 = "a8bT1ADqzP7r0ohEa8CN2DCDNnxYuF1A/mwS1371kvE=";
   };
 
   propagatedBuildInputs = [ markdown ];
