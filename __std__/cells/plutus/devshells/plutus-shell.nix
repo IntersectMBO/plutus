@@ -14,6 +14,24 @@ inputs.std.lib.dev.mkShell {
     inputs.cells.toolchain.devshellProfiles.common
   ];
 
+  commands = [
+    {
+      package = inputs.cells.toolchain.packages.fix-cabal-fmt;
+      category = "plutus";
+      help = "Format all cabal files in-place";
+    }
+    {
+      package = inputs.cells.toolchain.packages.fix-png-optimization;
+      category = "plutus";
+      help = "Fix all PNG files in-place";
+    }
+    {
+      package = inputs.cells.toolchain.packages.fix-stylish-haskell;
+      category = "plutus";
+      help = "Run stylish-haskell on all haskell files in-place";
+    }
+  ];
+
   packages = [
 
     inputs.cells.toolchain.packages.cabal-install
