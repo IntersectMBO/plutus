@@ -42,8 +42,7 @@ Depending on an alpha or beta version of a library requires `source-repository-p
 It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
 However, we may annotate individual functions in a library as alpha or beta if we deem it appropriate.
 
-We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out.
-These tests and checks either are too expensive to run in CI, or require manual steps (e.g., security audit), but are prerequisites of making a release.
+We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out (see "Release QA Process").
 Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
 
 For executables, we may publish alpha, beta or release candidates at our discretion.
@@ -68,11 +67,7 @@ Suppose we are releasing version `x.y.z.0`.
 3. Tag `x.y.z.0-rc1` on master.
 - There's no need to create a release branch at this point.
 A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
-4. Run all tests and checks.
-- This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
-- This does not include tests that require building a new node, or integrating with other downstream projects.
-- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
-The right group of people should be involved and sign off on the tests and checks.
+4. Run the release QA process.
 5. If no release blocking issue is found, tag `x.y.z.0` and upload the packages to https://github.com/input-output-hk/cardano-haskell-packages[CHaP].
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
@@ -93,9 +88,17 @@ If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
 2. Backport the needed fixes from master to `release/x.y.z`.
 3. Tag `x.y.z.w-rc1` on the release branch.
-4. Run all tests and checks.
+4. Run the release QA process.
 5. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
 - If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 3.
+
+=== Release QA Process
+
+All applicable tests and checks should be carried out prior to tagging and publishing a release.
+- This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
+- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
+The right group of people should be involved and sign off on the tests and checks.
+- This does not include tests that require building a new node, or integrating with other downstream projects.
 
 == Backwards Compatibility with Cardano API
 
