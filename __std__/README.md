@@ -37,8 +37,9 @@ A description of the arguments follows:
 
 - `cell.<cell-block>`\
   Provides access to the cell's blocks.\
+  This is a shorthand for `inputs.cells.<cell>.<cell-block>`, where `<cell>` evaluates to the cell housing this nix file.\ 
   Examples:
-  - `cell.scripts.serve-read-the-docs-site` only works for code in `/cells/scripts`\
+  - `cell.scripts.serve-read-the-docs-site` only works for code in `/cells/doc`\
     Alternatively `inputs.cells.doc.scripts.serve-read-the-docs-site` works everywhere
   - `cell.packages.repo-root` only works for code in `/cells/toolchain`\
     Alternatively `inputs.cells.toolchain.packages.repo-root` works everywhere
@@ -63,36 +64,36 @@ Finally this means that for each nix file `some-fragment.nix`, one can run:
 
 That is unless the relevant cell block was not exposed as a flake output.
 
-Note however that what stated above doesn't hold for the `library` and `devshellProfiles` cell blocks.
+Note however that what stated above doesn't hold for the `library`, `devshellProfiles`, `hydraJobs` cell blocks.
 
-Indeed the `library` block hosts nix files that evaluate to functions, literal values, or more complex attribute sets, while `devshellProfiles` contains building blocks (functions) for `devshells`.
+Indeed the `library` block hosts nix files that evaluate to functions, literal values, or more complex attribute sets; `devshellProfiles` contains building blocks (functions) for `devshells`; `hydraJobs` contains hydra jobsets, which are nested attributes of derivations.
 
 ## Reference example
 
 As an example, consider the file `__std__/cells/doc/packages/eutxo-paper.nix`:
 
-- `__std__cells` is the `cellsFrom` value in `flake.nix`
+- `__std__/cells` is the `cellsFrom` value in `flake.nix`
 - `/doc` is the cell name
-- `/doc` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
-- `/doc` is accessible via `inputs.cells.doc` (everywhere)
+- `/doc/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
+- `/doc/*` are accessible via `inputs.cells.doc.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages` is accessible via `cell.packages` (while inside `cells/doc`)
-- `/packages` is accessible via `inputs.cells.doc.packages` (everywhere)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/doc`)
+- `/packages/*` are accessible via `inputs.cells.doc.packages.*` (everywhere)
 - `/eutxo-paper.nix` contains a *single derivation*
 - `eutxo-paper` is the name of the flake fragment
-- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper`
-- And also accessible via `inputs.cells.doc.packages.eutxo-paper`
+- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `cells/doc`)
+- And also accessible via `inputs.cells.doc.packages.eutxo-paper` (everywhere)
 - And also buildable via `nix build .#eutxo-paper`
 
 As another example, consider the file `__std__/cells/toolchain/packages/default.nix`
 
-- `__std__cells` is the `cellsFrom` value in `flake.nix`
+- `__std__/cells` is the `cellsFrom` value in `flake.nix`
 - `/toolchain` is the cell name
-- `/toolchain` is accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
-- `/toolchain` is accessible via `inputs.cells.toolchain` (everywhere)
+- `/toolchain/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
+- `/toolchain/*` are accessible via `inputs.cells.toolchain.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages` is accessible via `cell.packages` (while inside `cells/toolchain`)
-- `/packages` is accessible via `inputs.cells.toolchain.packages` (everywhere)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/toolchain`)
+- `/packages/*` are accessible via `inputs.cells.toolchain.packages.*` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
 - Each attrs field in `/default.nix` is named after the file it imports (minus the `.nix`)
@@ -105,3 +106,4 @@ Migration to `std` will be 100% complete once all these are done:
 - Replace all occurrences of `__std__` to `nix`
 - Remove *every* nix files not in `nix` 
 - Do all remaining `TODO(std)`s 
+- Check CONTRIBUTING.adoc for references to old nix files

@@ -12,8 +12,6 @@
 
   fix-stylish-haskell = import ./fix-stylish-haskell.nix block;
 
-  git-work-in-progress = import ./git-work-in-progress.nix block;
-
   haskell-language-server = import ./haskell-language-server.nix block;
 
   hie-bios = import ./hie-bios.nix block;
