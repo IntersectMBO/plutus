@@ -40,7 +40,6 @@ Typically, alpha and beta are pre-feature complete, while release candidates are
 We do not tag or publish alpha or beta versions for libraries.
 Depending on an alpha or beta version of a library requires `source-repository-package`, which is quite inconvenient.
 It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
-However, we may annotate individual functions in a library as alpha or beta if we deem it appropriate.
 
 We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out (see "Release QA Process").
 Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
@@ -111,19 +110,9 @@ Although it is a major release, we should avoid making changes that is incompati
 Otherwise, downstream projects such as Plutus Tools won't be able to use the new Plutus version and take advantage of the plugin improvements, until a new Cardano API version is published.
 
 To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we can temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
+This is not a hard rule, and does not need to be strictly adhered to if it is too much trouble for small or unclear benefits.
 
 This will not be needed once Cardano API starts to make more frequent releases.
-
-== Plutus ledger language behaviors should be preserved.
-
-When we start developing a new Plutus ledger language version (e.g., Plutus V3), initially the language version is considered "unreleased", and should be guarded behind a flag to make it unusable.
-At this stage, changes to language behaviors can be made.
-Once it is ready to be used, we remove the flag in a Plutus release, making it usable.
-After this point, no more behavior changes (that is, the kind of changes marked "LV" in https://cips.cardano.org/cips/cip35[CIP-35]) are allowed.
-
-If a change does not require LV, but requires HF per CIP-35, then it is allowed, but it must be guarded behind an appropriate protocol version condition.
-
-Note that Plutus language versions are unrelated to package versions used for identifying releases.
 
 == Participation in the `cardano-node` release process
 
