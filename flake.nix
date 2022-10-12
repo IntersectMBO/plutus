@@ -137,7 +137,7 @@
         # Not all cells have the same cell blocks.
         # All cell blocks belong in a cell.
         #
-        # In this repository we have five cell blocks, listed below with their type:
+        # In this repository we have eight cell blocks, listed below with their type:
         #   devshells :: devshells
         #     Development shells available via nix develop
         #   packages :: installables
@@ -154,6 +154,10 @@
         #     These are not exposed to the flake
         #   ciJobs :: installables
         #     Jobsets for our Hydra and Cicero CI
+        #   pipelines :: tullia tasks
+        #     Tasks called by Cicero actions written with tullia
+        #   actions :: functions
+        #     Actions added to Cicero with defined triggers, such as any git push
         #
         # std provides a TUI to interact with the cell blocks.
         # Available interactions are determined by the cell block's type.
