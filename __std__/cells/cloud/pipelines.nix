@@ -46,13 +46,11 @@ let
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
-if system == "x86_64-linux" then
-  ciTasks // # for running tasks separately
-  ciTasksSeq // # for running in an arbitrary sequence
-  {
-    "plutus/ci" = { lib, ... }: {
-      imports = [ common ];
-      after = __attrNames ciTasksSeq;
-    };
-  }
-else { }
+ciTasks // # for running tasks separately
+ciTasksSeq // # for running in an arbitrary sequence
+{
+  "ci" = { lib, ... }: {
+    imports = [ common ];
+    after = __attrNames ciTasksSeq;
+  };
+}
