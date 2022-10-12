@@ -50,11 +50,13 @@ let
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
-ciTasks // # for running tasks separately
-ciTasksSeq // # for running in an arbitrary sequence
-{
-  "ci" = { lib, ... }: {
-    imports = [ common ];
-    after = __attrNames ciTasksSeq;
-  };
-}
+if system == "x86_64-linux" then
+  ciTasks // # for running tasks separately
+  ciTasksSeq // # for running in an arbitrary sequence
+  {
+    "ci" = { lib, ... }: {
+      imports = [ common ];
+      after = __attrNames ciTasksSeq;
+    };
+  }
+else { }
