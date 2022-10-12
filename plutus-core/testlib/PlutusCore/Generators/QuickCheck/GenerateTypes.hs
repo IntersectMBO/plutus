@@ -23,7 +23,6 @@ import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String
 import Test.QuickCheck (shuffle)
-import Test.QuickCheck.GenT
 
 {- Note [Debugging generators that don't generate well-typed/kinded terms/types]
     This module implements generators for well-typed terms and well-kinded types.
