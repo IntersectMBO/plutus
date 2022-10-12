@@ -5,17 +5,17 @@
 
 == Packages
 
-The following packages are versioned:
+The following packages are versioned and released:
 
-- Libraries:
-* plutus-core:plutus-core
-* plutus-ledger-api:plutus-ledger-api
-* plutus-tx:plutus-tx
-* plutus-tx-plugin:plutus-tx-plugin
-- Executables:
-* plutus-core:pir
-* plutus-core:plc
-* plutus-core:uplc
+- `plutus-core`, which provides
+* The main library `plutus-core:plutus-core`
+* Three executables, `plutus-core:pir`, `plutus-core:plc`, `plutus-core:uplc`
+- `plutus-ledger-api`
+* The main library `plutus-ledger-api:plutus-ledger-api`
+- `plutus-tx`
+* The main library `plutus-tx:plutus-tx`
+- `plutus-tx-plugin`
+* The main library `plutus-tx-plugin:plutus-tx-plugin`
 
 == Version Scheme
 
