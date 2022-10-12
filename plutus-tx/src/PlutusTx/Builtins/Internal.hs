@@ -244,7 +244,7 @@ verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinBy
   case Crypto.verifyEd25519Signature_V1 vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
-        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        EvaluationFailure   -> mustBeReplaced "Ed25519 signature verification errored."
         EvaluationSuccess b -> BuiltinBool b
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}

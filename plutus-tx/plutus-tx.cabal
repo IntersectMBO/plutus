@@ -89,6 +89,7 @@ library
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
+    PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
 
   build-depends:
@@ -142,18 +143,18 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    Rational.Laws
+    Rational.Laws.Additive
+    Rational.Laws.Construction
+    Rational.Laws.Eq
+    Rational.Laws.Helpers
+    Rational.Laws.Module
+    Rational.Laws.Multiplicative
+    Rational.Laws.Ord
+    Rational.Laws.Other
+    Rational.Laws.Ring
+    Rational.Laws.Serialization
     Show.Spec
-    Suites.Laws
-    Suites.Laws.Additive
-    Suites.Laws.Construction
-    Suites.Laws.Eq
-    Suites.Laws.Helpers
-    Suites.Laws.Module
-    Suites.Laws.Multiplicative
-    Suites.Laws.Ord
-    Suites.Laws.Other
-    Suites.Laws.Ring
-    Suites.Laws.Serialization
 
   hs-source-dirs:     test
   build-tool-depends: doctest:doctest

@@ -7,7 +7,6 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RankNTypes         #-}
-{-# LANGUAGE TypeOperators      #-}
 module PlutusIR.TypeCheck.Internal
     ( BuiltinTypes (..)
     , TypeCheckConfig (..)
@@ -51,8 +50,8 @@ import Universe
 For PIR kind-checking, we reuse `checkKindM`, `inferKindM` directly from the PLC typechecker.
 For PIR type-checking, we port the `checkTypeM` and `inferTypeM` from PLC typechecker.
 The port is a direct copy, except for the modifications of `Term` to `PIR.Term`
-and error type signatures and `throwError` to accomodate for the new pir type-errors.
-These modifications are currently necesessary since PIR.Term ADT /= PLC.Term ADT.
+and error type signatures and `throwError` to accommodate for the new pir type-errors.
+These modifications are currently necessary since PIR.Term ADT /= PLC.Term ADT.
 We then extend this ported `PIR.inferTypeM` with cases for inferring type of LetRec and LetNonRec.
 
 See Note [Notation] of PlutusCore.TypeCheck.Internal for the notation of inference rules, which appear in the comments.

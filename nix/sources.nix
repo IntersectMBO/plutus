@@ -19,11 +19,25 @@ let
   # we can use the fetcher defined in nixpkgs for all other fetching.
   pkgs = import
     (builtins.fetchTarball
-      (fetcher-args lock.nodes.${inputs.nixpkgs}.locked))
+      (fetcher-args lock.nodes.${inputs.__old__nixpkgs}.locked))
     {
       inherit system;
     };
+
+  tmpSources = builtins.mapAttrs
+    (_: node-name: pkgs.fetchzip (fetcher-args lock.nodes.${node-name}.locked))
+    inputs;
+
+  finalSources = {
+    nixpkgs = tmpSources.__old__nixpkgs;
+    haskell-nix = tmpSources.__old__haskell-nix;
+    cardano-repo-tool = tmpSources.__old__cardano-repo-tool;
+    gitignore-nix = tmpSources.__old__gitignore-nix;
+    hackage-nix = tmpSources.__old__hackage-nix;
+    CHaP = tmpSources.CHaP;
+    iohk-nix = tmpSources.__old__iohk-nix;
+    pre-commit-hooks-nix = tmpSources.__old__pre-commit-hooks-nix;
+    inherit (tmpSources) haskell-language-server sphinxcontrib-haddock;
+  };
 in
-builtins.mapAttrs
-  (_: node-name: pkgs.fetchzip (fetcher-args lock.nodes.${node-name}.locked))
-  inputs
+finalSources

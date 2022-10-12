@@ -3,6 +3,7 @@
 ############################################################################
 { lib
 , rPackages
+, CHaP
 , haskell-nix
 , agdaWithStdlib
 , gitignore-nix
@@ -20,6 +21,7 @@ let
   r-packages = with rPackages; [ R tidyverse dplyr stringr MASS plotly shiny shinyjs purrr ];
   project = haskell-nix.cabalProject' ({ pkgs, ... }: {
     inherit compiler-nix-name;
+
     # This is incredibly difficult to get right, almost everything goes wrong,
     # see https://github.com/input-output-hk/haskell.nix/issues/496
     src = let root = ../../../.; in
@@ -30,13 +32,9 @@ let
         # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
         name = "plutus";
       };
-    sha256map = {
-      "https://github.com/Quid2/flat.git"."ee59880f47ab835dbd73bea0847dab7869fc20d8" = "1lrzknw765pz2j97nvv9ip3l1mcpf2zr4n56hwlz0rk7wq7ls4cm"; # editorconfig-checker-disable-line
-      "https://github.com/input-output-hk/cardano-base"."cc049d7c9b9a0129c15b1355fd1dff9e1a1a551c" = "sha256-Ckbl3QkKOuMkIuTsSIWxWly6NNuhGP53q+nwYyBXzz8="; # editorconfig-checker-disable-line
-      "https://github.com/input-output-hk/cardano-crypto.git"."07397f0e50da97eaa0575d93bee7ac4b2b2576ec" = "06sdx5ndn2g722jhpicmg96vsrys89fl81k8290b3lr6b1b0w4m3"; # editorconfig-checker-disable-line
-      "https://github.com/input-output-hk/cardano-prelude"."533aec85c1ca05c7d171da44b89341fb736ecfe5" = "0z2y3wzppc12bpn9bl48776ms3nszw8j58xfsdxf97nzjgrmd62g"; # editorconfig-checker-disable-line
-      "https://github.com/input-output-hk/Win32-network"."3825d3abf75f83f406c1f7161883c438dac7277d" = "19wahfv726fa3mqajpqdqhnl9ica3xmf68i254q45iyjcpj1psqx"; # editorconfig-checker-disable-line
-    };
+    inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
+    # No source-repository-packages right now
+    sha256map = { };
     # Configuration settings needed for cabal configure to work when cross compiling
     # for windows. We can't use `modules` for these as `modules` are only applied
     # after cabal has been configured.
