@@ -347,6 +347,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.GenTm
     PlutusCore.Generators.QuickCheck.ShrinkTypes
     PlutusCore.Generators.QuickCheck.Substitutions
+    PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
     PlutusCore.Test
     PlutusIR.Generators.AST
