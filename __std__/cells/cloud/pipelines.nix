@@ -42,7 +42,11 @@ let
       memory = 1024 * 8;
       nomad.resources.cpu = 10000;
     })
-    (flakeOutputTasks [ system "ciJobs" ] { outputs.${system}.ciJobs = ciJobs; });
+    (flakeOutputTasks [ system "automation" "ciJobs" ] {
+      # Replicate flake output structure here, so that the generated nix build
+      # commands reference the right output relative to the top-level of the flake.
+      outputs.${system}.automation.ciJobs = ciJobs;
+    });
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
