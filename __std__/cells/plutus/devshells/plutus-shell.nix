@@ -45,6 +45,9 @@ inputs.std.lib.dev.mkShell {
     inputs.cells.toolchain.packages.cabal-fmt
     inputs.cells.toolchain.packages.nixpkgs-fmt
 
+    # tullia input isn't de-systemized for some reason
+    inputs.tullia.packages.${pkgs.system}.tullia
+
     pkgs.ghcid
     pkgs.awscli2
     pkgs.bzip2
