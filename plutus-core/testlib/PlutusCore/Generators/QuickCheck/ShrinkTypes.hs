@@ -7,9 +7,9 @@
 -- this module or reverse-engineer the shrinker and fix the problem.
 module PlutusCore.Generators.QuickCheck.ShrinkTypes where
 
-import Data.Map.Strict qualified as Map
-import Data.Set.Lens (setOf)
-import GHC.Stack
+import PlutusCore.Generators.QuickCheck.Common
+import PlutusCore.Generators.QuickCheck.GenTm
+import PlutusCore.Generators.QuickCheck.GenerateKinds
 
 import PlutusCore.Core
 import PlutusCore.Default
@@ -18,9 +18,9 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst
 
-import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenTm
-import PlutusCore.Generators.QuickCheck.GenerateKinds
+import Data.Map.Strict qualified as Map
+import Data.Set.Lens (setOf)
+import GHC.Stack
 
 {- Note [Avoiding Shrinking Loops]
 

@@ -13,9 +13,17 @@ module PlutusCore.Generators.QuickCheck.GenTm
   , Gen
   ) where
 
+import PlutusCore.Generators.QuickCheck.Common
+import PlutusCore.Generators.QuickCheck.Utils
+
+import PlutusCore.Default
+import PlutusCore.Name
+import PlutusIR
+import PlutusIR.Compiler
+import PlutusIR.Subst
+
 import Control.Monad.Except
 import Control.Monad.Reader
-
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -27,15 +35,6 @@ import Data.String
 import Test.QuickCheck (Arbitrary (..), Gen)
 import Test.QuickCheck qualified as QC
 import Test.QuickCheck.GenT as Export hiding (var)
-
-import PlutusCore.Default
-import PlutusCore.Name
-import PlutusIR
-import PlutusIR.Compiler
-import PlutusIR.Subst
-
-import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.Utils
 
 instance MonadReader r m => MonadReader r (GenT m) where
     ask = lift ask

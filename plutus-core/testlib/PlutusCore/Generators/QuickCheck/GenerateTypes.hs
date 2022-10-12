@@ -3,14 +3,10 @@
 
 module PlutusCore.Generators.QuickCheck.GenerateTypes where
 
-import Control.Monad.Reader
-
-import Data.Foldable
-import Data.Map.Strict qualified as Map
-import Data.Maybe
-import Data.String
-import Test.QuickCheck (shuffle)
-import Test.QuickCheck.GenT
+import PlutusCore.Generators.QuickCheck.Builtin
+import PlutusCore.Generators.QuickCheck.Common
+import PlutusCore.Generators.QuickCheck.GenTm
+import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 
 import PlutusCore.Builtin
 import PlutusCore.Core
@@ -21,10 +17,13 @@ import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
-import PlutusCore.Generators.QuickCheck.Builtin
-import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenTm
-import PlutusCore.Generators.QuickCheck.GenerateKinds ()
+import Control.Monad.Reader
+import Data.Foldable
+import Data.Map.Strict qualified as Map
+import Data.Maybe
+import Data.String
+import Test.QuickCheck (shuffle)
+import Test.QuickCheck.GenT
 
 {- Note [Debugging generators that don't generate well-typed/kinded terms/types]
     This module implements generators for well-typed terms and well-kinded types.

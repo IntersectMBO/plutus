@@ -8,6 +8,13 @@
 
 module PlutusCore.Generators.QuickCheck.Common where
 
+import PlutusCore.Default
+import PlutusCore.Name
+import PlutusCore.TypeCheck (defKindCheckConfig)
+import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
+import PlutusIR
+import PlutusIR.Error
+
 import Data.Bifunctor
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
@@ -17,13 +24,6 @@ import Test.QuickCheck.Property
 import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Internal
-
-import PlutusCore.Default
-import PlutusCore.Name
-import PlutusCore.TypeCheck (defKindCheckConfig)
-import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
-import PlutusIR
-import PlutusIR.Error
 
 instance Testable (Either String ()) where
     property = property . \case

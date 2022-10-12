@@ -8,6 +8,10 @@
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
+import PlutusCore
+import PlutusCore.Builtin
+import PlutusCore.Data
+
 import Data.ByteString (ByteString)
 import Data.Coerce
 import Data.Functor
@@ -18,10 +22,6 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Test.QuickCheck
-
-import PlutusCore
-import PlutusCore.Builtin
-import PlutusCore.Data
 
 instance Arbitrary Data where
     arbitrary = error "implement me"

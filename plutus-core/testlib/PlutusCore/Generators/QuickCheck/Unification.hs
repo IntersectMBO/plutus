@@ -7,17 +7,17 @@ import PlutusCore.Generators.QuickCheck.GenerateTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Utils
 
+import PlutusCore.Default
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusIR
+
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Map.Strict.Internal qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
-
-import PlutusCore.Default
-import PlutusCore.Name
-import PlutusCore.Pretty
-import PlutusIR
 
 unificationFailure :: (MonadError String m, Pretty a, Pretty b) => a -> b -> m any
 unificationFailure x y = throwError $ concat

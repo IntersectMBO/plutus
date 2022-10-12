@@ -4,12 +4,10 @@
 
 module PlutusCore.Generators.QuickCheck.GenerateKinds where
 
-import Test.QuickCheck.GenT
-
 import PlutusCore.Generators.QuickCheck.Common
-import PlutusIR
-
 import PlutusCore.Generators.QuickCheck.GenTm
+
+import PlutusIR
 
 -- | Shriking-order on kinds.
 --
