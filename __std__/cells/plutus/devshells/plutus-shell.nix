@@ -50,9 +50,17 @@ inputs.std.lib.dev.mkShell {
     pkgs.bzip2
     pkgs.cacert
 
-  ] ++ pkgs.lib.optionals (!pkgs.stdenv.isDarwin) [
     pkgs.rPackages.plotly
     pkgs.R
   ];
 
+  env = [
+    # This is no longer set automatically as of more recent `haskell.nix` revisions,
+    # but is useful for users with LANG settings.
+    {
+      name = "LOCALE_ARCHIVE";
+      value = pkgs.lib.optionalString
+        (pkgs.stdenv.hostPlatform.libc == "glibc") "${pkgs.glibcLocales}/lib/locale/locale-archive";
+    }
+  ];
 }

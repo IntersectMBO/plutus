@@ -81,7 +81,9 @@ let
     shellcheck
     yq
     zlib
-  ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
+    rPackages.plotly
+    R
+  ]);
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
