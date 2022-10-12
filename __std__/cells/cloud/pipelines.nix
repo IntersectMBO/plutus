@@ -1,6 +1,14 @@
 { cell
 , inputs
 }:
+/*
+  This code needs to be separate from any of the cells it uses
+  to prevent infinite recursion. Specifically the `flakeOutputTasks`
+  call triggers the error when called with any attribute that relies
+  on the cell that the pipelines are defined in.
+  That is why this is currently located in a separate cloud cell
+  and not the automations cell.
+*/
 let
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
   inherit (inputs.nixpkgs.stdenv) system;

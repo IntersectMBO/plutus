@@ -115,7 +115,10 @@
         #
         # In this repository we have four cells:
         #   automation
-        #     Hydra jobsets, Cicero tasks, and GHA tasks
+        #     Hydra jobsets and GHA tasks
+        #   cloud
+        #     Cicero tasks
+        #     (top comment in pipelines.nix explains automation and cloud separation)
         #   doc
         #     Develop and build all the documentation artifacts
         #   plutus
