@@ -24,6 +24,21 @@ source-repository head
   type:     git
   location: https://github.com/input-output-hk/plutus
 
+-- inline-r is a problematic dependency. It doesn't build with newer
+-- versions of R, so if we depend on it then people need to install
+-- an old R. This is not so bad for people working on plutus itself 
+-- (use Nix or work it out), although we may want to eventually
+-- purge it. However, due to a cabal bug (https://github.com/haskell/cabal/issues/4087),
+-- in some cases cabal will require R to be installed _at solving time_,
+-- even though it never wants to build it. This means that the problem
+-- leaks into our downstream dependencies. So our solution is to guard
+-- the dependency behind a flag, off by default, and turn it on for
+-- ourselves locally.
+flag with-inline-r
+  description: Enable build of packages that use `inline-r`.
+  manual:      True
+  default:     False
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -358,7 +373,6 @@ library plutus-core-testlib
     , integer-gmp
     , lazy-search
     , lens
-    , megaparsec
     , mmorph
     , mtl
     , plutus-core
@@ -664,6 +678,10 @@ executable generate-cost-model
   main-is:        Main.hs
   hs-source-dirs: cost-model/create-cost-model
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+
+  if !flag(with-inline-r)
+    buildable: False
+
   build-depends:
     , aeson-pretty
     , barbies
@@ -696,6 +714,10 @@ benchmark cost-model-test
   main-is:        TestCostModels.hs
   other-modules:  TH
   hs-source-dirs: cost-model/test cost-model/create-cost-model
+
+  if !flag(with-inline-r)
+    buildable: False
+
   build-depends:
     , barbies
     , base              >=4.9 && <5
@@ -740,7 +762,6 @@ library index-envs
     , extra
     , nonempty-vector
     , ral              ^>=0.2
-    , vector
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 benchmark index-envs-bench
