@@ -40,17 +40,18 @@ module PlutusCore.Test
     , module TastyExtras
     ) where
 
+import Test.Tasty.Extras as TastyExtras
+
 import PlutusPrelude
 
-import Test.Tasty.Extras as TastyExtras
+import PlutusCore.Generators.Hedgehog.AST
+import PlutusCore.Generators.Hedgehog.Utils
 
 import PlutusCore qualified as TPLC
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
-import PlutusCore.Generators
-import PlutusCore.Generators.AST
 import PlutusCore.Pretty
 import PlutusCore.Rename.Monad qualified as TPLC
 

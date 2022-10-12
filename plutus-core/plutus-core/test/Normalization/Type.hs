@@ -6,7 +6,7 @@ module Normalization.Type
     ) where
 
 import PlutusCore
-import PlutusCore.Generators.AST
+import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 import PlutusCore.Normalize
 

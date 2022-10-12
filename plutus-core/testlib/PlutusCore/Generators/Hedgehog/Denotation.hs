@@ -5,7 +5,7 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE RankNTypes      #-}
 
-module PlutusCore.Generators.Internal.Denotation
+module PlutusCore.Generators.Hedgehog.Denotation
     ( KnownType
     , Denotation(..)
     , DenotationContextMember(..)

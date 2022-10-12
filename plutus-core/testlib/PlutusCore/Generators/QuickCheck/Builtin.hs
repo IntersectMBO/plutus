@@ -6,7 +6,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusCore.Generators.Internal.Builtin.QuickCheck where
+module PlutusCore.Generators.QuickCheck.Builtin where
 
 import Data.ByteString (ByteString)
 import Data.Coerce

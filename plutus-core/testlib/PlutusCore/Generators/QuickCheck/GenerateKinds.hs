@@ -2,14 +2,14 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusCore.Generators.PIR.GenerateKinds where
+module PlutusCore.Generators.QuickCheck.GenerateKinds where
 
 import Test.QuickCheck.GenT
 
-import PlutusCore.Generators.PIR.Common
+import PlutusCore.Generators.QuickCheck.Common
 import PlutusIR
 
-import PlutusCore.Generators.PIR.GenTm
+import PlutusCore.Generators.QuickCheck.GenTm
 
 -- | Shriking-order on kinds.
 --

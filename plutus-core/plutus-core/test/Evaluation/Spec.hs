@@ -16,7 +16,7 @@ import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
+import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude
 

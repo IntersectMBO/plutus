@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module PlutusCore.Generators.Internal.Entity
+module PlutusCore.Generators.Hedgehog.Entity
     ( PlcGenT
     , IterApp(..)
     , IterAppValue(..)
@@ -26,9 +26,9 @@ module PlutusCore.Generators.Internal.Entity
 
 import PlutusPrelude
 
-import PlutusCore.Generators.Internal.Denotation
-import PlutusCore.Generators.Internal.TypedBuiltinGen
-import PlutusCore.Generators.Internal.Utils
+import PlutusCore.Generators.Hedgehog.Denotation
+import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+import PlutusCore.Generators.Hedgehog.Utils
 
 import PlutusCore.Builtin
 import PlutusCore.Core

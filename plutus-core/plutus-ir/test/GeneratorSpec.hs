@@ -1,13 +1,13 @@
 -- editorconfig-checker-disable-file
 module GeneratorSpec where
 
+import GeneratorSpec.Substitution
+import GeneratorSpec.Types
+
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.QuickCheck
-
-import GeneratorSpec.Substitution
-import GeneratorSpec.Types
 
 -- | The PIR generators test suite. The argument allows the caller to scale the number of tests.
 -- The default for the argument is @1@.

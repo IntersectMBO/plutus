@@ -12,9 +12,9 @@ import PlutusCore (Name, _nameText)
 import PlutusCore.Compiler.Erase (eraseProgram)
 import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
 import PlutusCore.Error (ParserErrorBundle)
-import PlutusCore.Generators (forAllPretty)
-import PlutusCore.Generators.AST (AstGen, runAstGen)
-import PlutusCore.Generators.AST qualified as AST
+import PlutusCore.Generators.Hedgehog (forAllPretty)
+import PlutusCore.Generators.Hedgehog.AST (AstGen, runAstGen)
+import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)

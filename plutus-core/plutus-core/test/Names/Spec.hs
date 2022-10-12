@@ -15,9 +15,9 @@ import PlutusCore.Mark
 import PlutusCore.Pretty
 import PlutusCore.Rename.Internal
 
-import PlutusCore.Generators
-import PlutusCore.Generators.AST as AST
-import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Hedgehog
+import PlutusCore.Generators.Hedgehog.AST as AST
+import PlutusCore.Generators.Hedgehog.Interesting
 
 import GHC.Exts (fromString)
 import Hedgehog hiding (Var)

@@ -11,7 +11,7 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
-module PlutusCore.Generators.Internal.TypeEvalCheck
+module PlutusCore.Generators.Hedgehog.TypeEvalCheck
     ( TypeEvalCheckError (..)
     , TypeEvalCheckResult (..)
     , TypeEvalCheckM
@@ -21,8 +21,8 @@ module PlutusCore.Generators.Internal.TypeEvalCheck
 
 import PlutusPrelude
 
-import PlutusCore.Generators.Internal.TypedBuiltinGen
-import PlutusCore.Generators.Internal.Utils
+import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+import PlutusCore.Generators.Hedgehog.Utils
 
 import PlutusCore
 import PlutusCore.Builtin

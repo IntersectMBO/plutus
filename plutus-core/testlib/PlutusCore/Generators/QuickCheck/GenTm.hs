@@ -6,8 +6,8 @@
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusCore.Generators.PIR.GenTm
-  ( module PlutusCore.Generators.PIR.GenTm
+module PlutusCore.Generators.QuickCheck.GenTm
+  ( module PlutusCore.Generators.QuickCheck.GenTm
   , module Export
   , Arbitrary (..)
   , Gen
@@ -34,8 +34,8 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Subst
 
-import PlutusCore.Generators.PIR.Common
-import PlutusCore.Generators.PIR.Utils
+import PlutusCore.Generators.QuickCheck.Common
+import PlutusCore.Generators.QuickCheck.Utils
 
 instance MonadReader r m => MonadReader r (GenT m) where
     ask = lift ask

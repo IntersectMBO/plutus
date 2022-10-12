@@ -325,35 +325,33 @@ library plutus-core-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusCore.Generators
-    PlutusCore.Generators.AST
-    PlutusCore.Generators.Interesting
-    PlutusCore.Generators.Internal.Builtin.Hedgehog
-    PlutusCore.Generators.Internal.Builtin.QuickCheck
+    PlutusCore.Generators.Hedgehog
+    PlutusCore.Generators.Hedgehog.AST
+    PlutusCore.Generators.Hedgehog.Builtin
+    PlutusCore.Generators.Hedgehog.Denotation
+    PlutusCore.Generators.Hedgehog.Entity
+    PlutusCore.Generators.Hedgehog.Interesting
+    PlutusCore.Generators.Hedgehog.Test
+    PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+    PlutusCore.Generators.Hedgehog.TypeEvalCheck
+    PlutusCore.Generators.Hedgehog.Utils
     PlutusCore.Generators.NEAT.Common
     PlutusCore.Generators.NEAT.Spec
     PlutusCore.Generators.NEAT.Term
     PlutusCore.Generators.NEAT.Type
-    PlutusCore.Generators.PIR
-    PlutusCore.Generators.PIR.Common
-    PlutusCore.Generators.PIR.GenerateKinds
-    PlutusCore.Generators.PIR.GenerateTypes
-    PlutusCore.Generators.PIR.GenTm
-    PlutusCore.Generators.PIR.ShrinkTypes
-    PlutusCore.Generators.PIR.Substitutions
-    PlutusCore.Generators.PIR.Utils
-    PlutusCore.Generators.Test
+    PlutusCore.Generators.QuickCheck
+    PlutusCore.Generators.QuickCheck.Builtin
+    PlutusCore.Generators.QuickCheck.Common
+    PlutusCore.Generators.QuickCheck.GenerateKinds
+    PlutusCore.Generators.QuickCheck.GenerateTypes
+    PlutusCore.Generators.QuickCheck.GenTm
+    PlutusCore.Generators.QuickCheck.ShrinkTypes
+    PlutusCore.Generators.QuickCheck.Substitutions
+    PlutusCore.Generators.QuickCheck.Utils
     PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Test
     Test.Tasty.Extras
-
-  other-modules:
-    PlutusCore.Generators.Internal.Denotation
-    PlutusCore.Generators.Internal.Entity
-    PlutusCore.Generators.Internal.TypedBuiltinGen
-    PlutusCore.Generators.Internal.TypeEvalCheck
-    PlutusCore.Generators.Internal.Utils
 
   build-depends:
     , base                        >=4.9     && <5

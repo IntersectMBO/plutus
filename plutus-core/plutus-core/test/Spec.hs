@@ -26,8 +26,8 @@ import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.DeBruijn
 import PlutusCore.Error
-import PlutusCore.Generators
-import PlutusCore.Generators.AST as AST
+import PlutusCore.Generators.Hedgehog
+import PlutusCore.Generators.Hedgehog.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty

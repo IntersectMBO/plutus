@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusCore.Generators.PIR.Utils where
+module PlutusCore.Generators.QuickCheck.Utils where
 
 import Prettyprinter
 

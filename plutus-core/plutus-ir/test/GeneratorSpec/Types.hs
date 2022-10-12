@@ -2,9 +2,10 @@
 
 module GeneratorSpec.Types where
 
+import PlutusCore.Generators.QuickCheck
+
 import Data.Either
 import Data.Map.Strict qualified as Map
-import PlutusCore.Generators.PIR
 import Test.QuickCheck
 
 -- | Check that the types we generate are kind-correct

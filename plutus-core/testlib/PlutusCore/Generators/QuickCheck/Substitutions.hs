@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
 
-module PlutusCore.Generators.PIR.Substitutions where
+module PlutusCore.Generators.QuickCheck.Substitutions where
 
 import Control.Monad.Except
 
@@ -23,10 +23,10 @@ import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Subst
 
-import PlutusCore.Generators.PIR.Common
-import PlutusCore.Generators.PIR.GenerateTypes
-import PlutusCore.Generators.PIR.ShrinkTypes
-import PlutusCore.Generators.PIR.Utils
+import PlutusCore.Generators.QuickCheck.Common
+import PlutusCore.Generators.QuickCheck.GenerateTypes
+import PlutusCore.Generators.QuickCheck.ShrinkTypes
+import PlutusCore.Generators.QuickCheck.Utils
 
 type TypeSub = Map TyName (Type TyName DefaultUni ())
 

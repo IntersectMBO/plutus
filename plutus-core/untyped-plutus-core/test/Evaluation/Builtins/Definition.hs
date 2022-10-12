@@ -18,7 +18,7 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
 import PlutusPrelude
 

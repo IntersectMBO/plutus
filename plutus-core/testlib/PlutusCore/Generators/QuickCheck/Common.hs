@@ -6,7 +6,7 @@
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusCore.Generators.PIR.Common where
+module PlutusCore.Generators.QuickCheck.Common where
 
 import Data.Bifunctor
 import Data.Map.Strict (Map)
