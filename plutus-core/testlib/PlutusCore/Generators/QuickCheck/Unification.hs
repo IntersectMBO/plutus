@@ -53,7 +53,7 @@ their instantiations) and eventually that substitution is returned as a result o
 substitution is passed around in a state monad, since unification results in one part of the
 unification problem are relevant in all the other parts too (this is not in conflict with locals
 being scope-specific, because flexible variable resolution cannot capture a locally bound
-variable). Type unification could take a substitution as an input an extend it instead of always
+variable). Type unification could take a substitution as an input and extend it instead of always
 making the initial substitution empty, but we didn't need this extra functionality, so we didn't
 implement it for the sake of keeping the interface to the unifier simpler.
 
@@ -163,12 +163,12 @@ unifyType ctx flex a0 b0 =
       when (k /= l) $ unificationFailure k l
       locals <- ask
       -- See Note [Renaming during unification].
-      let z = freshenTyName (locals <> Map.keysSet ctx) x
+      let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
     goType (TyLam _ x k a')    (TyLam _ y l b')    = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
       -- See Note [Renaming during unification].
-      let z = freshenTyName (locals <> Map.keysSet ctx) x
+      let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
     goType a b = unificationFailure a b

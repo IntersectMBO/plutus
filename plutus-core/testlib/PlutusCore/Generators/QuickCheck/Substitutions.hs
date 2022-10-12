@@ -26,6 +26,16 @@ import Test.QuickCheck hiding (reason)
 
 type TypeSub = Map TyName (Type TyName DefaultUni ())
 
+{- Note [Substitution in generators]
+Generators define their own substitution algorithm. It's generally useful, however it's quite
+inefficient, since calling 'renameVar' in the worker when handling bindings makes the whole
+algorithm at least quadratic. Plus, it also very general, since it handles both nested and parallel
+substitution.
+
+So for now we've decided to keep it local to the generators and extract it into the main library
+once there's a specific reason to do that.
+-}
+
 -- | The most general substitution worker.
 substTypeCustomGo
     :: HasCallStack
@@ -49,14 +59,14 @@ substTypeCustomGo nested fvs0 = go fvs0 Set.empty where
               TyLam () x' k $ go (Set.insert x' fvs) seen sub (renameVar x x' b)
           | otherwise ->
               TyLam () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-          where x' = freshenTyName (fvs <> setOf ftvTy b) x
+          where x' = freshenTyNameWith (fvs <> setOf ftvTy b) x
         TyForall _ x k b
           | Set.member x fvs ->
               -- This 'renameVar' makes the complexity of this function at the very least quadratic.
               TyForall () x' k $ go (Set.insert x' fvs) seen sub (renameVar x x' b)
           | otherwise ->
               TyForall () x  k $ go (Set.insert x fvs) (Set.delete x seen) sub b
-          where x' = freshenTyName (fvs <> setOf ftvTy b) x
+          where x' = freshenTyNameWith (fvs <> setOf ftvTy b) x
         TyBuiltin{} -> ty
         TyIFix _ a b -> TyIFix () (go fvs seen sub a) (go fvs seen sub b)
 
@@ -73,7 +83,8 @@ substEscape :: Set TyName
             -> Type TyName DefaultUni ()
 substEscape = substTypeCustomGo True
 
--- | Generalized substitution algorithm
+-- See Note [Substitution in generators].
+-- | Generalized substitution algorithm.
 substTypeCustom
     :: HasCallStack
     => Bool
@@ -84,6 +95,7 @@ substTypeCustom
 substTypeCustom nested sub0 ty0 = substTypeCustomGo nested fvs0 sub0 ty0 where
     fvs0 = Set.unions $ Map.keysSet sub0 : map (setOf ftvTy) (Map.elems sub0)
 
+-- See Note [Substitution in generators].
 -- | Regular (i.e. nested type substitution).
 substType
     :: HasCallStack
@@ -92,7 +104,8 @@ substType
     -> Type TyName DefaultUni ()
 substType = substTypeCustom True
 
--- | Parallel substitution
+-- See Note [Substitution in generators].
+-- | Parallel substitution.
 substTypeParallel
     :: TypeSub
     -> Type TyName DefaultUni ()

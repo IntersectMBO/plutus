@@ -8,7 +8,7 @@ import Data.Either
 import Data.Map.Strict qualified as Map
 import Test.QuickCheck
 
--- | Check that the types we generate are kind-correct
+-- | Check that the types we generate are kind-correct.
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and see the utility tests below when this property fails.
 prop_genKindCorrect :: Bool -> Property
@@ -19,12 +19,12 @@ prop_genKindCorrect debug =
   forAllDoc "k,ty" (if debug then genKindAndTypeDebug else genKindAndType) (const []) $ \ (k, ty) ->
   checkKind ctx ty k
 
--- | Check that shrinking types maintains kinds
+-- | Check that shrinking types maintains kinds.
 prop_shrinkTypeSound :: Property
 prop_shrinkTypeSound =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->
   forAllDoc "k,ty" (genKindAndTypeWithCtx ctx) (shrinkKindAndType ctx) $ \ (k, ty) ->
-  -- See discussion about the same trick in `prop_shrinkTermSound`
+  -- See discussion about the same trick in 'prop_shrinkTermSound'.
   isRight (checkKind ctx ty k) ==>
   assertNoCounterexamples $ lefts
     [ (k', ty', ) <$> checkKind ctx ty k
@@ -43,13 +43,13 @@ prop_shrinkTypeSmallerKind =
     , not $ leKind k' k
     ]
 
--- | Test that shrinking kinds generates smaller kinds
+-- | Test that shrinking kinds generates smaller kinds.
 prop_shrinkKindSmaller :: Property
 prop_shrinkKindSmaller =
   forAllDoc "k" arbitrary shrink $ \ k ->
-  assertNoCounterexamples [ k' | k' <- shrink k, not $ leKind k' k ]
+  assertNoCounterexamples [k' | k' <- shrink k, not $ leKind k' k]
 
--- | Test that fixKind actually gives you something of the right kind
+-- | Test that fixKind actually gives you something of the right kind.
 prop_fixKind :: Property
 prop_fixKind =
   forAllDoc "ctx" genCtx (const []) $ \ ctx ->

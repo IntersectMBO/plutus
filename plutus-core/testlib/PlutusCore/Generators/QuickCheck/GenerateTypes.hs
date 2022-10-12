@@ -57,10 +57,14 @@ genAtomicType k = do
       lam k1 k2 = do
         x <- genMaybeFreshTyName "a"
         TyLam () x k1 <$> bindTyName x k1 (genAtomicType k2)
-  -- There's always an atomic type of a given type, hence the usage of 'deliver'.
+  -- There's always an atomic type of a given kind, hence the usage of 'deliver': we definitely have
+  -- builtin types of kind @*@, and for all other kinds we can generate type lambdas.
   deliver $ frequency
     [ (7, if null atoms then pure Nothing else Just <$> elements atoms)
     , (1, liftGen genBuiltin)
+      -- There may not be a type variable or a built-in type of the given type, hence we have to
+      -- resort to generating a lambda occasionally. Plus it's a lambda that ignores the bound
+      -- variable in its body, so it's fine to call it "atomic".
     , (3, sequence $ listToMaybe [lam k1 k2 | KindArrow _ k1 k2 <- [k]])
     ]
 

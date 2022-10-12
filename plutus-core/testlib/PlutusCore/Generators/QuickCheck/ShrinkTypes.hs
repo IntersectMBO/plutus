@@ -44,6 +44,9 @@ import GHC.Stack
      See e.g. `prop_noTermShrinkLoops` in module `GeneratorSpec`.
 -}
 
+-- Note that compared to 'genAtomicType' this one for, say, @* -> * -> *@ always gives @pair@, while
+-- 'genAtomicType' can give you a type variable, 'pair' or a type lambda returning a type variable,
+-- 'list' or a type lambda returning a type variable or a built-in type of kind @*@.
 -- | Give a unique "least" (intentionally vaguely specified by "shrinking order")
 -- type of that kind. Note: this function requires care and attention to not get
 -- a shrinking loop. If you think you need to mess with this function:
@@ -108,7 +111,10 @@ fixKind ctx ty k
               kb'  = unsafeInferKind ctx' b'
     -- Ill-kinded builtins just go to minimal types
     TyBuiltin{} -> minimalType k
-    -- Unreachable, because there's no kind that is smaller than @Type ()@.
+    -- Unreachable, because the target kind must be less than or equal to the original kind. We
+    -- handled the case where they are equal at the beginning of the function, so at this point the
+    -- target kind must be strictly less than the original kind, but for these types we know the
+    -- original kind is @*@, and there is no kind smaller than that.
     TyFun{} -> error "Internal error: unreachable clause."
     TyIFix{} -> error "Internal error: unreachable clause."
     TyForall{} -> error "Internal error: unreachable clause."
