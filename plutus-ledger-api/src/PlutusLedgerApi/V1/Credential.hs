@@ -26,7 +26,7 @@ import Prettyprinter (Pretty (..), (<+>))
 data StakingCredential
     -- | The staking hash is the `Credential` required to unlock a transaction output. Either
     -- a public key credential (`Crypto.PubKeyHash`) or
-    -- a script credential (`Scripts.ValidatorHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
+    -- a script credential (`ScriptHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
     = StakingHash Credential
     -- | The certificate pointer, constructed by the given
     -- slot number, transaction and certificate indices.
@@ -59,7 +59,7 @@ data Credential
     -- See `Crypto.PubKeyHash`.
     PubKeyCredential PubKeyHash
     -- | The transaction that spends this output must include the validator script and
-    -- be accepted by the validator. See `Scripts.ValidatorHash`.
+    -- be accepted by the validator. See `ScriptHash`.
   | ScriptCredential ScriptHash
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)

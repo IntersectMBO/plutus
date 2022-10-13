@@ -135,7 +135,12 @@ plutus-ledger-api.
 -}
 
 
--- See Note [Cost model parameters]
+{-| A raw representation of the ledger's cost model parameters.
+
+The associated keys/names to the parameter values are arbitrarily set by the plutus team; the ledger does not hold any such names.
+
+See Note [Cost model parameters]
+-}
 type CostModelParams = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
@@ -152,7 +157,7 @@ extractParams cm = case toJSON cm of
     _ -> Nothing
 
 
--- | The type of errors that 'applyParams' can throw.
+-- | A fatal error when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyError =
       CMUnknownParamError Text.Text
       -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
@@ -165,9 +170,13 @@ data CostModelApplyError =
     deriving stock Show
     deriving anyclass Exception
 
+-- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
     CMTooManyParamsWarn { cmTooManyExpected :: Int, cmTooManyActual :: Int }
-    -- ^ See Note [Cost model parameters from the ledger's point of view]
+    {- ^ More costmodel parameters given, than expected
+
+    See Note [Cost model parameters from the ledger's point of view]
+    -}
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
