@@ -457,9 +457,6 @@ instance Pretty CekUserError where
           ]
     pretty CekEvaluationFailure = "The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'."
 
-spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
-spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
-
 -- see Note [Scoping].
 -- | Instantiate all the free variables of a term by looking them up in an environment.
 -- Mutually recursive with dischargeCekVal.
@@ -610,6 +607,9 @@ spendAccumulatedBudget ::
     => WordArray
     -> CekM uni fun s ()
 spendAccumulatedBudget !unbudgetedSteps = iforWordArray unbudgetedSteps spend
+
+spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
+spendBudgetCek = let (CekBudgetSpender spent) = ?cekBudgetSpender in spent
 
 -- Making this a definition of its own causes it to inline better than actually writing it inline,
 -- for some reason.
@@ -784,16 +784,6 @@ applyEvaluateStep !unbudgetedSteps !ctx (VBuiltin fun term runtime) arg = do
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluateStep !_ !_ val _ =
     throwingDischarged _MachineError NonFunctionalApplicationMachineError val
-
-step :: forall uni fun s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
-    => CekState uni fun
-    -> CekM uni fun s (Either (CekState uni fun) (Term NamedDeBruijn uni fun ()))
-step (Computing !unbudgetedSteps ctx (Closure term env)) =
-    Left <$> computeCekStep unbudgetedSteps ctx env term
-step (Returning !unbudgetedSteps ctx val) =
-    Left <$> returnCekStep unbudgetedSteps ctx val
-step (Terminating term) = pure $ Right term
 
 continue :: forall uni fun s
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
