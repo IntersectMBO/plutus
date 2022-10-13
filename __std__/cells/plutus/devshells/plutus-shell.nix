@@ -52,6 +52,7 @@ inputs.std.lib.dev.mkShell {
     pkgs.awscli2
     pkgs.bzip2
     pkgs.cacert
+    pkgs.pkg-config # TODO(std) Keep an eye on https://github.com/input-output-hk/plutus/pull/4906
 
     pkgs.rPackages.plotly
     pkgs.R
