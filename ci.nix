@@ -15,7 +15,8 @@ let
   # currently that is linux and darwin.
   systems = filterSystems supportedSystems;
   crossSystems =
-    let pkgs = (import ./default.nix { }).pkgs;
+    # System doesn't matter as long as we only use lib
+    let pkgs = (import ./default.nix { system = "x86_64-linux"; }).pkgs;
     in { inherit (pkgs.lib.systems.examples) mingwW64; };
 
   # Collects haskell derivations and builds an attrset:

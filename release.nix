@@ -4,6 +4,8 @@
 , rootsOnly ? false
 }:
 let
+  pkgs = import (import ../sources.nix { system = builtins.currentSystem; }).nixpkgs { };
+
   traceNames = prefix: builtins.mapAttrs (n: v:
     if builtins.isAttrs v
     then if v ? type && v.type == "derivation"
@@ -20,4 +22,5 @@ let
   # Don't filter anyting out of required for now
   requiredJobsets = ciJobsets;
 in
-traceNames "" (ciJobsets // { required = derivationAggregate "required-plutus" requiredJobsets; })
+traceNames ""
+  (ciJobsets // { required = derivationAggregate pkgs "required-plutus" requiredJobsets; })

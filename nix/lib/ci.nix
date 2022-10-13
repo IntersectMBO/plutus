@@ -1,7 +1,11 @@
 let
-  # Generic nixpkgs, use *only* for lib functions that are stable across versions
-  pkgs = import (import ../sources.nix { system = builtins.currentSystem; }).nixpkgs { };
-  lib = pkgs.lib;
+  # System doesn't matter as long as we only use lib
+  lib = (import (import ../sources.nix {
+    system = "x86_64-linux";
+  }).nixpkgs
+    {
+      system = "x86_64-linux";
+    }).lib;
 in
 rec {
   # Borrowed from https://github.com/cachix/ghcide-nix/pull/4/files#diff-70bfff902f4dec33e545cac10ee5844d # editorconfig-checker-disable-line
@@ -132,7 +136,7 @@ rec {
               v = builtins.getAttr n attrs;
               newNameSections = nameSections ++ [ n ];
             in
-            if pkgs.lib.isDerivation v
+            if lib.isDerivation v
             then [ (builtins.concatStringsSep "." newNameSections) ]
             else if builtins.isAttrs v
             then go newNameSections v
@@ -143,7 +147,7 @@ rec {
     go [ ];
 
   # Creates an aggregate job with the given name from every derivation in the attribute set.
-  derivationAggregate = name: attrs: pkgs.releaseTools.aggregate {
+  derivationAggregate = pkgs: name: attrs: pkgs.releaseTools.aggregate {
     inherit name;
     constituents = derivationPaths attrs;
   };
