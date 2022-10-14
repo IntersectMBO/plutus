@@ -66,8 +66,6 @@ inputs.std.lib.dev.mkShell {
     pkgs.editorconfig-core-c
     pkgs.editorconfig-checker
     pkgs.jq
-    pkgs.fd
-    pkgs.optipng
     pkgs.pre-commit
     pkgs.shellcheck
     pkgs.yq
