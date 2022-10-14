@@ -2,5 +2,5 @@
 # This also includes files for cases where agda sources are being compiled.
 { inputs, cell }:
 
-src: inputs.cells.toolchain.library.pkgs.lib.sourceFilesBySuffices src
+src: cell.library.pkgs.lib.sourceFilesBySuffices src
   [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ]

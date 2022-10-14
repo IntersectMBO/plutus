@@ -8,11 +8,11 @@ Start with the comments inside the [flake](../flake.nix) then continue reading h
 
 ## The standard format of nix files 
 
-Note how *every single nix file* in this repository (with the exception
-of `flake.nix`) has the same format:
+Note how *every single nix file* in this repository (with the exception of `flake.nix`) has the same format:
 ```
 { inputs, cell }: ...
 ```
+
 **There is no escaping this**.
 
 A description of the arguments follows:
@@ -27,9 +27,9 @@ A description of the arguments follows:
   Remember that a cell is named after its folder.\
   The full format is: `inputs.cells.<cell>.<cell-block>.value`.\
   Examples:
-  - `inputs.cells.doc.packages.read-the-docs-site`
-  - `inputs.cells.toolchain.devshellsProfiles.common`
+  - `inputs.cells.plutus.packages.read-the-docs-site`
   - `inputs.cells.plutus.devshells.plutus-shell`
+  - `inputs.cells.plutus.library.agda-packages`
 
 - `inputs.<flake-input>`\
   The flake inputs proper.\
@@ -39,10 +39,10 @@ A description of the arguments follows:
   Provides access to the cell's blocks.\
   This is a shorthand for `inputs.cells.<cell>.<cell-block>`, where `<cell>` evaluates to the cell housing this nix file.\
   Examples:
-  - `cell.scripts.serve-read-the-docs-site` only works for code in `/cells/doc`\
-    Alternatively `inputs.cells.doc.scripts.serve-read-the-docs-site` works everywhere
-  - `cell.packages.repo-root` only works for code in `/cells/toolchain`\
-    Alternatively `inputs.cells.toolchain.packages.repo-root` works everywhere
+  - `cell.library.agda-packages` only works for code in `/cells/plutus`\
+    Alternatively `inputs.cells.plutus.library.agda-packages` works everywhere
+  - `cell.packages.hlint` only works for code in `/cells/plutus`\
+    Alternatively `inputs.cells.plutus.packages.hlint` works everywhere
 
 ## One derivation per nix file
 
@@ -53,6 +53,7 @@ This is currently applied *without exception*.
 This means that every single nix file in this repository is either:
 
 - A `default.nix` cell block importing and thus grouping all files in its folder
+- A `<cell-block>.nix` cell block exporting an attrs with a single derivation
 - A file evaluating to a single derivation
 
 Further, we enforce that the nix fragment name be equal to the file name.
@@ -62,38 +63,45 @@ This means that if one looks at the fully expanded structure of the `cellsFrom` 
 Finally this means that for each nix file `some-fragment.nix`, one can run:
 `nix (develop|build|run) .#some-fragment`
 
-That is unless the relevant cell block was not exposed as a flake output.
+That is unless the relevant cell block was not exposed in `flake.nix`.
 
-Note however that what stated above doesn't hold for the `library`, `devshellProfiles`, `hydraJobs` cell blocks.
+Note however that the one-derivation-per-file policy stated above only holds for the `packages` and `devshells` cell blocks.
 
-Indeed the `library` block hosts nix files that evaluate to functions, literal values, or more complex attribute sets; `devshellProfiles` contains building blocks (functions) for `devshells`; `hydraJobs` contains hydra jobsets, which are nested attributes of derivations.
+Other cell blocks (for example `library` or `pipelines`) host nix files that evaluate to functions, literal values, or more complex attribute sets.
+
+While these blocks are not exposed directly to the flake (they are not "harvested"), they can still be accessed using this syntax:
+
+`nix (develop|build|run) .#<system>.<cell>.<cell-block>.<valid.attr.path>` 
+
+For example:
+`nix run .#x86-64-darwin.plutus.library.agda-project.hsPkgs.Agda`
 
 ## Reference example
 
-As an example, consider the file `__std__/cells/doc/packages/eutxo-paper.nix`:
+As an example, consider the file `__std__/cells/plutus/packages/eutxo-paper.nix`:
 
 - `__std__/cells` is the `cellsFrom` value in `flake.nix`
-- `/doc` is the cell name
-- `/doc/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/doc`)
-- `/doc/*` are accessible via `inputs.cells.doc.*` (everywhere)
+- `/plutus` is the cell name
+- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
+- `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/doc`)
-- `/packages/*` are accessible via `inputs.cells.doc.packages.*` (everywhere)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/plutus`)
+- `/packages/*` are accessible via `inputs.cells.plutus.packages.*` (everywhere)
 - `/eutxo-paper.nix` contains a *single derivation*
 - `eutxo-paper` is the name of the flake fragment
-- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `cells/doc`)
-- And also accessible via `inputs.cells.doc.packages.eutxo-paper` (everywhere)
+- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `cells/plutus`)
+- And also accessible via `inputs.cells.plutus.packages.eutxo-paper` (everywhere)
 - And also buildable via `nix build .#eutxo-paper`
 
-As another example, consider the file `__std__/cells/toolchain/packages/default.nix`
+As another example, consider the file `__std__/cells/plutus/library/default.nix`
 
 - `__std__/cells` is the `cellsFrom` value in `flake.nix`
-- `/toolchain` is the cell name
-- `/toolchain/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/toolchain`)
-- `/toolchain/*` are accessible via `inputs.cells.toolchain.*` (everywhere)
-- `/packages` is the cell block name
-- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/toolchain`)
-- `/packages/*` are accessible via `inputs.cells.toolchain.packages.*` (everywhere)
+- `/plutus` is the cell name
+- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
+- `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
+- `/library` is the cell block name
+- `/library/*` are accessible via `cell.library.*` (while inside `cells/plutus`)
+- `/library/*` are accessible via `inputs.cells.library.devshellCommands.*` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
 - Each attrs field in `/default.nix` is named after the file it imports (minus the `.nix`)

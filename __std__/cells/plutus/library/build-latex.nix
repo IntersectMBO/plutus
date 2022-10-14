@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 in
 
 # Build a latex derivation using latexmk.

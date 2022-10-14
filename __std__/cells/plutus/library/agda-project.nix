@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain) library;
+  inherit (cell) library;
   inherit (library) pkgs;
 in
 

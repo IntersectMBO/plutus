@@ -113,18 +113,14 @@
         # Cell names are arbitrary; a cell name is its folder name.
         # Cells are for highest-level organization and grouping of nix code.
         #
-        # In this repository we have four cells:
+        # In this repository we have three cells:
         #   automation
         #     Hydra jobsets and GHA tasks
         #   cloud
         #     Cicero tasks
         #     (top comment in pipelines.nix explains automation and cloud separation)
-        #   doc
-        #     Develop and build all the documentation artifacts
         #   plutus
-        #     Develop and build all haskell components
-        #   toolchain
-        #     Common tools and functions shared across multiple cells
+        #     Devshell, tooling and packages for plutus and its documentation
         cellsFrom = ./__std__/cells;
 
         # Each cell contains "cell blocks".
@@ -137,17 +133,11 @@
         # Not all cells have the same cell blocks.
         # All cell blocks belong in a cell.
         #
-        # In this repository we have eight cell blocks, listed below with their type:
+        # In this repository we have six cell blocks, listed below with their type:
         #   devshells :: devshells
         #     Development shells available via nix develop
         #   packages :: installables
-        #     Packages available via nix build
-        #   devshellProfiles :: functions
-        #     Building blocks for devshells, not exposed to the flake
-        #   scripts :: functions
-        #     Bash scripts simplifying or automating a variety of tasks
-        #     Generally these are available as commands inside the development shell
-        #     These are very repository specific but are exposed to the flake nonetheless
+        #     Derivations available via nix build
         #   library :: functions
         #     Everything that is not a derivation goes here
         #     Includes functions, attrsets and simple literal values shared across cells
@@ -165,8 +155,6 @@
         cellBlocks = [
           (inputs.std.devshells "devshells")
           (inputs.std.installables "packages")
-          (inputs.std.functions "devshellProfiles")
-          (inputs.std.functions "scripts")
           (inputs.std.functions "library")
           (inputs.std.installables "ciJobs")
           (inputs.tullia.tasks "pipelines")
@@ -184,34 +172,18 @@
       #
       # The attrs will be recursively merged in the order in which they appear.
       {
-        # Here we say that we want the "devshells" cell block of the doc cell
+        # Here we say that we want the "devshells" cell block of the plutus cell
         # (which contains a number of shell-able derivations) to be exposed
         # by the flake and accessible via nix develop.
-        devShells = inputs.std.harvest inputs.self [ "doc" "devshells" ];
+        devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
 
-        # Here we say that we want the "packages" cell block of the doc cell
+        # Here we say that we want the "packages" cell block of the plutus cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
-        packages = inputs.std.harvest inputs.self [ "doc" "packages" ];
-      }
-      {
-        packages = inputs.std.harvest inputs.self [ "doc" "scripts" ];
-      }
-      {
-        # The devshells inside the plutus cell will be added to the ones
-        # already harvested from the doc shell. Same for packages.
-        devShells = inputs.std.harvest inputs.self [ "plutus" "devshells" ];
         packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
         ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
-        packages = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
-      }
-      {
-        packages = inputs.std.harvest inputs.self [ "toolchain" "packages" ];
-      }
-      {
-        packages = inputs.std.harvest inputs.self [ "toolchain" "scripts" ];
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];

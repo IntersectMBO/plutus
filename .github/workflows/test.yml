@@ -32,6 +32,4 @@ jobs:
             experimental-features = nix-command flakes
             accept-flake-config = true 
       - name: Pre Commit Check
-        run: nix build .#pre-commit-check  
-      - name: Plutus Shell 
-        run: nix develop .#plutus-shell --build 
+        run: nix build .#pre-commit-check 

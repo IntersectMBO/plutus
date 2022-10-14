@@ -1,8 +1,7 @@
 { inputs, cell }:
 
 # TODO(std) path must be fixed once __std__ is brought to the toplevel.
-# TODO(std) make this part of CI
-# TODO(std) turn this into a single derivation using recurseForDerivations
+
 cell.library.pkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [
@@ -16,7 +15,7 @@ cell.library.pkgs.writeShellApplication {
 
     shell_fragments=$(
       find \
-        "$root/__std__/nix" \
+        "$root/__std__/cells" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
         -and -path "*devshells*" \
@@ -25,24 +24,21 @@ cell.library.pkgs.writeShellApplication {
 
     for fragment in $shell_fragments; do
       echo building "$fragment"
-      nix develop ".#$fragment" --build
+      nix develop ".#$fragment" --build --no-warn-dirty --accept-flake-config
     done
 
     derivation_fragments=$(
       find \
-        "$(repo-root)/__std__/nix" \
+        "$(repo-root)/__std__/cells" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
-        -and -not -path "*automation*" \
-        -and -not -path "*library*" \
-        -and -not -path "*devshells*" \
-        -and -not -path "*devshellProfiles*" \
+        -and -path "*packages*" \
         -exec basename {} .nix \;
     )
 
     for fragment in $derivation_fragments; do
       echo building "$fragment"
-      nix build ".#$fragment"
+      nix build ".#$fragment" --no-warn-dirty --accept-flake-config
     done
   '';
 }

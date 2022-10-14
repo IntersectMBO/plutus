@@ -16,7 +16,7 @@
 # it into pkgs.haskellPackages in a fragile way. Annoyingly, this also means we have to ensure
 # we have a few extra packages that it uses in our Haskell package set.
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 
   Agda = cell.library.agda-project.hsPkgs.Agda;
 

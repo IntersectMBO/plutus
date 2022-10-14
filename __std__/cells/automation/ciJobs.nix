@@ -8,36 +8,34 @@
 # TODO(std) Keep an eye on input-output-hk/haskell.nix#1743 for new utility functions.
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs haskell-nix;
+
+  inherit (inputs.cells.plutus) library;
+  inherit (library) pkgs;
   inherit (pkgs.stdenv) system;
   inherit (pkgs) lib;
 
   make-haskell-jobs = project:
     let
-      packages = haskell-nix.haskellLib.selectProjectPackages project.hsPkgs;
+      packages = library.haskell-nix.haskellLib.selectProjectPackages project.hsPkgs;
     in
     {
-      exes = haskell-nix.haskellLib.collectComponents' "exes" packages;
-      tests = haskell-nix.haskellLib.collectComponents' "tests" packages;
-      benchmarks = haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
-      libraries = haskell-nix.haskellLib.collectComponents' "library" packages;
-      checks = haskell-nix.haskellLib.collectChecks' packages;
+      exes = library.haskell-nix.haskellLib.collectComponents' "exes" packages;
+      tests = library.haskell-nix.haskellLib.collectComponents' "tests" packages;
+      benchmarks = library.haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
+      libraries = library.haskell-nix.haskellLib.collectComponents' "library" packages;
+      checks = library.haskell-nix.haskellLib.collectChecks' packages;
       roots = project.roots;
       plan-nix = project.plan-nix;
     };
 
-  plutus-project = inputs.cells.plutus.library.plutus-project;
+  native-plutus-jobs = make-haskell-jobs library.plutus-project;
 
-  native-plutus-jobs = make-haskell-jobs plutus-project;
-
-  windows-plutus-jobs = make-haskell-jobs plutus-project.projectCross.mingwW64;
+  windows-plutus-jobs = make-haskell-jobs library.plutus-project.projectCross.mingwW64;
 
   other-jobs =
     inputs.cells.plutus.devshells //
-    inputs.cells.doc.devshells //
-    inputs.cells.doc.packages //
-    inputs.cells.doc.scripts //
-    inputs.cells.toolchain.packages;
+    inputs.cells.plutus.devshellCommands //
+    inputs.cells.plutus.packages;
 
   jobs =
     if system == "x86_64-linux" then
