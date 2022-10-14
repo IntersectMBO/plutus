@@ -48,6 +48,10 @@ flag use-ghc-stub
 
 library
   import:          lang
+
+  if impl(ghc >=9.0)
+    buildable: False
+
   hs-source-dirs:  src
   exposed-modules:
     PlutusTx.Compiler.Error
@@ -97,6 +101,10 @@ library
 
 executable gen-plugin-opts-doc
   import:           lang
+
+  if impl(ghc >=9.0)
+    buildable: False
+
   main-is:          GeneratePluginOptionsDoc.hs
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
@@ -114,6 +122,9 @@ executable gen-plugin-opts-doc
 
 test-suite plutus-tx-tests
   import:         lang
+
+  if impl(ghc >=9.0)
+    buildable: False
 
   if flag(use-ghc-stub)
     buildable: False
@@ -170,6 +181,9 @@ test-suite plutus-tx-tests
 
 test-suite size
   import:         lang
+
+  if impl(ghc >=9.0)
+    buildable: False
 
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:    -Wno-unused-packages

@@ -39,10 +39,6 @@ makeClassyPrisms ''WithContext
 
 type CompileError uni fun ann = WithContext T.Text (Error uni fun ann)
 
-instance HasErrorCode (CompileError _a _b _c) where
-    errorCode (NoContext e)        = errorCode e
-    errorCode (WithContextC _ _ w) = errorCode w
-
 withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
 
@@ -86,6 +82,10 @@ instance HasErrorCode (Error _a _b _c) where
       errorCode CoreNameLookupError {} = ErrorCode 50
       errorCode (PLCError e)           = errorCode e
       errorCode (PIRError e)           = errorCode e
+
+instance HasErrorCode (CompileError _a _b _c) where
+    errorCode (NoContext e)        = errorCode e
+    errorCode (WithContextC _ _ w) = errorCode w
 
 instance (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where

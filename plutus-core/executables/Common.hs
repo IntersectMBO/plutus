@@ -47,6 +47,7 @@ import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
 import Data.Foldable (traverse_)
 import Data.HashMap.Monoidal qualified as H
+import Data.Kind (Type)
 import Data.List (intercalate, nub)
 import Data.List qualified as List
 import Data.Maybe (fromJust)
@@ -741,7 +742,7 @@ runPrint (PrintOptions iospec mode) = do
 
 -- | Convert between textual and FLAT representations.
 runConvert ::
-    forall (p :: * -> *).
+    forall (p :: Type -> Type).
     ( ProgramLike p
     , Functor p
     , PLC.Rename (p PLC.SourcePos)

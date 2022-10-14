@@ -172,6 +172,18 @@ and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.ht
 Specifically, you will probably want to say `nix flake lock --update-input <input-name>`.
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
 
+== GHC versions
+
+=== 9.2 migration
+
+Our primary major version of GHC is 8.10. 
+However, the Cardano projects are in the process of moving to 9.2.
+We have CI for 9.2 and many of our packages build with it.
+The ones that do not build (mostly, the plugin and anything that depends on it) are explicitly marked as unbuildable in the cabal files.
+
+We will try to move to primarily 9.2 and drop 8.10 soon.
+To facilitate working on 9.2 in the interim, there is a devshell which you can use with `nix develop .#plutus-shell-924`.
+
 == Working conventions
 
 === Style guide

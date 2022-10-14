@@ -305,7 +305,6 @@ library
     , hedgehog                    >=1.0
     , index-envs
     , int-cast
-    , integer-gmp
     , lens
     , megaparsec
     , mmorph
@@ -333,6 +332,9 @@ library
     , unordered-containers
     , witherable
     , word-array
+
+  if impl(ghc <9.0)
+    build-depends: integer-gmp
 
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
@@ -362,24 +364,20 @@ library plutus-core-testlib
     PlutusCore.Generators.Internal.Utils
 
   build-depends:
-    , base                        >=4.9     && <5
+    , base            >=4.9     && <5
     , bifunctors
     , bytestring
     , containers
-    , dependent-map               >=0.4.0.0
+    , dependent-map   >=0.4.0.0
     , filepath
-    , ghc-prim
-    , hedgehog                    >=1.0
-    , integer-gmp
+    , hedgehog        >=1.0
     , lazy-search
     , lens
     , mmorph
     , mtl
     , plutus-core
-    , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable
+    , prettyprinter   >=1.1.0.1
     , size-based
-    , some
     , Stream
     , tagged
     , tasty
@@ -387,7 +385,6 @@ library plutus-core-testlib
     , tasty-hedgehog
     , tasty-hunit
     , text
-    , transformers
 
 test-suite satint-test
   import:           lang
@@ -430,12 +427,10 @@ test-suite plutus-core-test
     , bytestring
     , containers
     , data-default-class
-    , extra
     , filepath
     , flat
     , hedgehog
     , hex-text
-    , megaparsec
     , mmorph
     , mtl
     , plutus-core
@@ -450,7 +445,6 @@ test-suite plutus-core-test
     , text
     , th-lift-instances
     , th-utilities
-    , transformers
 
 test-suite plutus-ir-test
   import:         lang
@@ -540,7 +534,6 @@ executable plc
     , plutus-core-testlib
     , prettyprinter
     , text
-    , transformers
 
 executable uplc
   import:         lang
@@ -566,7 +559,6 @@ executable uplc
     , prettyprinter
     , split
     , text
-    , transformers
 
 executable pir
   import:         lang
@@ -604,7 +596,6 @@ executable traceToStacks
     , base                  >=4.9 && <5
     , bytestring
     , cassava
-    , integer-gmp
     , optparse-applicative
     , text
     , vector
