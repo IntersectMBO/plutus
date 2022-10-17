@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 in
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
@@ -15,7 +15,7 @@ cell.library.build-latex {
   src = cell.library.filter-latex-sources src;
 
   buildInputs = pkgs.lib.optionals withAgda [
-    inputs.cells.plutus.packages.agda-with-stdlib
+    cell.packages.agda-with-stdlib
   ];
 
   texInputs = {

@@ -5,7 +5,7 @@
 # `inputs.nixpkgs` directly -- more precisely we reference `inputs.nixpkgs.path`
 # because std treats nixpkgs specially, and already `import`s it under the hood.
 # This also means that *everywhere else* in nix code we use
-# `inputs.cells.toolchain.library.pkgs` to access our overlaid nixpkgs.
+# `cell.library.pkgs` to access our overlaid nixpkgs.
 # Attempting to maintain two nixpkgs -- one coming from inputs.nixpkgs and one
 # coming from haskell-nix -- has resulted in segfaults.
 

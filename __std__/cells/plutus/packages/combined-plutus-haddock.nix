@@ -4,20 +4,20 @@
 
 let
 
-  inherit (inputs.cells.toolchain.library.haskell-nix) haskellLib;
+  inherit (cell.library.haskell-nix) haskellLib;
 
   toHaddock = haskellLib.collectComponents' "library"
-    (haskellLib.selectProjectPackages inputs.cells.plutus.library.plutus-project.hsPkgs);
+    (haskellLib.selectProjectPackages cell.library.plutus-project.hsPkgs);
 
 in
 
-inputs.cells.toolchain.library.combine-haddock {
+cell.library.combine-haddock {
 
-  ghc = inputs.cells.plutus.packages.ghc;
+  ghc = cell.packages.ghc;
 
   hspkgs = builtins.attrValues toHaddock;
 
-  prologue = inputs.cells.toolchain.library.pkgs.writeTextFile {
+  prologue = cell.library.pkgs.writeTextFile {
     name = "prologue";
     text = ''
       = Combined documentation for all the public Plutus libraries

@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 
   artifacts = pkgs.runCommand
     "FIR-compiler"
@@ -38,7 +38,7 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-    inputs.cells.plutus.packages.agda-with-stdlib
+    cell.packages.agda-with-stdlib
 
     pkgs.zip
   ];

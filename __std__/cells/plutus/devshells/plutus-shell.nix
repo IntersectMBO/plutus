@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 in
 
 inputs.std.lib.dev.mkShell {
@@ -10,44 +10,66 @@ inputs.std.lib.dev.mkShell {
 
   imports = [
     cell.library.plutus-project.devshell
-
-    inputs.cells.toolchain.devshellProfiles.common
   ];
 
   commands = [
     {
-      package = inputs.cells.toolchain.packages.fix-cabal-fmt;
+      package = cell.packages.check-the-flake;
+      category = "general commands";
+      help = "For nix maintainers: build everything in the flake";
+    }
+    {
+      package = cell.packages.fix-cabal-fmt;
       category = "plutus";
       help = "Format all cabal files in-place";
     }
     {
-      package = inputs.cells.toolchain.packages.fix-png-optimization;
+      package = cell.packages.fix-png-optimization;
       category = "plutus";
       help = "Fix all PNG files in-place";
     }
     {
-      package = inputs.cells.toolchain.packages.fix-stylish-haskell;
+      package = cell.packages.fix-stylish-haskell;
       category = "plutus";
       help = "Run stylish-haskell on all haskell files in-place";
+    }
+    {
+      package = cell.packages.sphinx-build-readthedocs-site;
+      category = "docs";
+      help = "Build the docs locally with output in doc/_build";
+    }
+    {
+      package = cell.packages.sphinx-autobuild-readthedocs-site;
+      category = "docs";
+      help = "Start the autobuild server with output in doc/_build";
+    }
+    {
+      package = cell.packages.serve-readthedocs-site;
+      category = "docs";
+      help = "nix build and serve the doc site on port 3000";
     }
   ];
 
   packages = [
-
-    inputs.cells.toolchain.packages.cabal-install
-    inputs.cells.toolchain.packages.fix-png-optimization
-    inputs.cells.toolchain.packages.fix-stylish-haskell
-    inputs.cells.toolchain.packages.fix-cabal-fmt
-    inputs.cells.toolchain.packages.haskell-language-server
-    inputs.cells.toolchain.packages.hie-bios
-    inputs.cells.toolchain.packages.hlint
-    inputs.cells.toolchain.packages.stylish-haskell
-    inputs.cells.toolchain.packages.cabal-fmt
-    inputs.cells.toolchain.packages.nixpkgs-fmt
+    cell.packages.sphinx-toolchain
+    cell.packages.cabal-install
+    cell.packages.haskell-language-server
+    cell.packages.hie-bios
+    cell.packages.hlint
+    cell.packages.stylish-haskell
+    cell.packages.cabal-fmt
+    cell.packages.nixpkgs-fmt
 
     # tullia input isn't de-systemized for some reason
     inputs.tullia.packages.${pkgs.system}.tullia
 
+    pkgs.editorconfig-core-c
+    pkgs.editorconfig-checker
+    pkgs.jq
+    pkgs.pre-commit
+    pkgs.shellcheck
+    pkgs.yq
+    pkgs.zlib
     pkgs.ghcid
     pkgs.awscli2
     pkgs.bzip2
@@ -57,6 +79,8 @@ inputs.std.lib.dev.mkShell {
     pkgs.rPackages.plotly
     pkgs.R
   ];
+
+  devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
 
   env = [
     # This is no longer set automatically as of more recent `haskell.nix` revisions,

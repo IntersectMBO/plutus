@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.toolchain.library) pkgs;
+  inherit (cell.library) pkgs;
 in
 
 pkgs.stdenv.mkDerivation {
@@ -12,7 +12,7 @@ pkgs.stdenv.mkDerivation {
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
 
   buildInputs = [
-    inputs.cells.toolchain.packages.sphinx-toolchain
+    cell.packages.sphinx-toolchain
   ];
 
   dontInstall = true;

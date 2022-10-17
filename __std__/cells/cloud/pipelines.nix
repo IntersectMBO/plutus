@@ -11,7 +11,7 @@
 */
 let
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
-  inherit (inputs.nixpkgs.stdenv) system;
+  inherit (inputs.cells.plutus.library.pkgs.stdenv) system;
   inherit (inputs.cells.automation) ciJobs;
 
   common =
