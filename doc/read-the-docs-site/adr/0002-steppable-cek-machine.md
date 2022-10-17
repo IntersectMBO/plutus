@@ -1,31 +1,41 @@
-ADR 2: Steppable CEK machine
-=======================================
+# ADR 2: Steppable CEK machine
 
 Date: 2022-10
 
-Authors
----------
+## Authors
 
 Marty Stumpf <marty.stumpf@iohk.io>  
 Ziyang Liu <ziyang.liu@iohk.io>
 
-Status
-------
+## Status
 
 Draft
 
-Context
--------
+## Context
 
+In order to have a minimal viable product of a debugger for Plutus, we need a CEK machine that will give us more information for debugging than our current one.
 
+Implementing the steppable CEK machine is a non-trivial task and involves some design decisions:
 
-Decision
---------
+- should the debugging machine be a separate one?
+- should we modify the existing CEK machine to support stepping, or implement something entirely new?
+- how do we ensure performance and conformance?
 
+## Decision: A separate machine
 
+We came to the conclusion that the debugging machine should be a separate one. The main reason is that we don't want to slow down the production machine.
 
-Argument
-------------
+## Argument: A separate machine
+
+The debugging machine will give the most accurate information if it was the one in production. However, the drawback of that is that we have to care about its performance.
+
+We only care about performance if the steppable CEK machine will *replace* the production machine instead of being a separate one.
+
+Our current CEK machine's performance is sensitive to changes. For example, exporting the `computeCek` function from the module causes the CEK machine to become slower by up to 25%. Refactoring the machine in preparation for the stepper also shows significant slow downs. See [PR#4909](https://github.com/input-output-hk/plutus/pull/4909). We have enough evidence to show that replacing the machine without slow downs is impossible.
+
+We consciously chose to keep up the production CEK machine's performance by adding a separate machine for debugging. We will mitigate the drawback of this by keeping the implementation as close to the production machine as possible.
+
+## Decision: implementing it as a coroutine system
 
 ### Coroutines in Haskell
 
@@ -117,5 +127,4 @@ userComputation programToDebug = do
     ...
 ```
 
-Implications
-------------
+## Implications
