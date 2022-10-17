@@ -214,7 +214,10 @@ genFreshTyNames ss = map TyName <$> genFreshNames ss
 -- | Generate a name that likely overlaps with existing names on purpose. If there are no existing
 -- names, generate a fresh name. This function doesn't distinguish between the type- and term-level
 -- scopes, hence it may generate a 'Name' \"clashing\" with a previously generated 'TyName' and not
--- clashing with any previously generated 'Name'.
+-- clashing with any previously generated 'Name'. Which is a good thing, because we want to check
+-- that Plutus is able to handle such spurious name clashes. Generating weird stuff is useful for a
+-- testing machinery! We don't need any \"definitely non-fresh name\" anyway, since we get enough
+-- non-fresh names already.
 genLikelyNotFreshName :: String -> GenTm Name
 genLikelyNotFreshName s = do
   used <- Set.toList <$> getUniques

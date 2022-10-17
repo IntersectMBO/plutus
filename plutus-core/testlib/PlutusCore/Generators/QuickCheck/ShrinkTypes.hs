@@ -131,8 +131,6 @@ shrinkKindAndType :: HasCallStack
 shrinkKindAndType ctx (k0, ty) =
   -- If we are not already minimal, add the minial type as a possible shrink.
   [(k, m) | k <- k0 : shrink k0, let m = minimalType k, m /= ty] ++
-  -- TODO: it might be worth-while to refactor this to the structural + nonstructural
-  -- style we use below. Unsure if that's more readable. CODE REVIEW: what do you think?
   case ty of
     -- Variables shrink to arbitrary "smaller" variables
     -- Note: the order on variable names here doesn't matter,
