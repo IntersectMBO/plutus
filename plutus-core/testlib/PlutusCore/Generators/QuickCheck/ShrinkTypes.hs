@@ -56,7 +56,7 @@ import GHC.Stack
 --    test the shrinking to make sure you don't get in a loop.
 -- 3. Finally, you *must* read the note Note [Avoiding Shrinking Loops]
 minimalType :: Kind () -> Type TyName DefaultUni ()
-minimalType = go . argsKind where
+minimalType = go . argsFunKind where
   go = \case
     []               -> unit
     [Type{}]         -> list

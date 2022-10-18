@@ -71,7 +71,7 @@ genAtomicType k = do
 -- | Generate a type at a given kind
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = do
-    ty <- onSize (min 10) $ ifSizeZero (genAtomicType k) $
+    ty <- onAstSize (min 10) $ ifAstSizeZero (genAtomicType k) $
         frequency $
           [ (5, genAtomicType k) ] ++
           [ (10, genFun) | k == Type () ] ++
@@ -99,24 +99,24 @@ genType k = do
     -- established, if you are unhappy about the compleixty of the
     -- type of arguments that are generated tweaking this might
     -- be a good idea.
-    genFun = uncurry (TyFun ()) <$> sizeSplit_ 1 7 (genType k) (genType k)
+    genFun = uncurry (TyFun ()) <$> astSizeSplit_ 1 7 (genType k) (genType k)
 
     genForall = do
       a <- genMaybeFreshTyName "a"
       k' <- liftGen arbitrary
-      fmap (TyForall () a k') $ onSize (subtract 1) $ bindTyName a k' $ genType $ Type ()
+      fmap (TyForall () a k') $ onAstSize (subtract 1) $ bindTyName a k' $ genType $ Type ()
 
     genLam k1 k2 = do
         a <- genMaybeFreshTyName "a"
-        fmap (TyLam () a k1) $ onSize (subtract 1) $ bindTyName a k1 (genType k2)
+        fmap (TyLam () a k1) $ onAstSize (subtract 1) $ bindTyName a k1 (genType k2)
 
     genApp = do
       k' <- liftGen arbitrary
-      uncurry (TyApp ()) <$> sizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k')
+      uncurry (TyApp ()) <$> astSizeSplit_ 1 7 (genType $ KindArrow () k' k) (genType k')
 
     genIFix = do
       k' <- liftGen arbitrary
-      uncurry (TyIFix ()) <$> sizeSplit_ 5 2
+      uncurry (TyIFix ()) <$> astSizeSplit_ 5 2
         (genType $ toPatFuncKind k')
         (genType k')
 

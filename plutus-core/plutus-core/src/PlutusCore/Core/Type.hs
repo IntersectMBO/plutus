@@ -20,6 +20,7 @@ module PlutusCore.Core.Type
     ( Kind (..)
     , toPatFuncKind
     , fromPatFuncKind
+    , argsFunKind
     , Type (..)
     , Term (..)
     , Version (..)
@@ -81,6 +82,11 @@ fromPatFuncKind :: Kind () -> Maybe (Kind ())
 fromPatFuncKind (KindArrow () (KindArrow () k1 (Type ())) (KindArrow () k2 (Type ())))
     | k1 == k2 = Just k1
 fromPatFuncKind _ = Nothing
+
+-- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
+argsFunKind :: Kind ann -> [Kind ann]
+argsFunKind Type{}            = []
+argsFunKind (KindArrow _ k l) = k : argsFunKind l
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type

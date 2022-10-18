@@ -35,11 +35,6 @@ instance PrettyBy config i => DefaultPrettyBy config (NonNegative i)
 deriving via PrettyCommon (NonNegative i)
     instance PrettyDefaultBy config (NonNegative i) => PrettyBy config (NonNegative i)
 
--- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
-argsKind :: Kind ann -> [Kind ann]
-argsKind Type{}            = []
-argsKind (KindArrow _ k l) = k : argsKind l
-
 type TypeCtx = Map TyName (Kind ())
 
 -- | Infer the kind of a type in a given kind context

@@ -43,10 +43,12 @@ instance MonadReader r m => MonadReader r (GenT m) where
 type GenTm = GenT (Reader GenEnv)
 
 data GenEnv = GenEnv
-  { geSize               :: Int
-  -- ^ Generator size bound. See Note [Recursion Control and geSize]
+  { geAstSize            :: Int
+  -- ^ Generator size bound. See Note [Recursion Control and geAstSize]
   , geDatas              :: Map TyName (Datatype TyName Name DefaultUni ())
-  -- ^ Datatype context
+  -- ^ Datatype context.
+  -- TODO: it's a little weird, 'cause it maps the datatype name to the datatype and the datatype
+  -- introduces multiple names. It's probably fine to have something like that, though.
   , geTypes              :: TypeCtx
   -- ^ Type context
   , geTerms              :: Map Name (Type TyName DefaultUni ())
@@ -67,15 +69,15 @@ data GenEnv = GenEnv
   -- ^ Are we currently running in debug-mode (to debug our generators)
   }
 
-{- Note [Recursion Control and geSize]
-One would be forgiven for thinking that you don't need `geSize` in `GenTm` because size is built-in
-to 'Gen'. However, if you use 'Gen's built-in size to control the size of both the terms you
-generate *and* the size of the constants in the terms you will end up with skewed terms. Constants
-near the top of the term will be big and constants near the bottom of the term will be small. For
-this reason we follow QuickCheck best practise and keep track of the "recursion control size"
-separately from 'Gen's size in the 'geSize' field of the 'GenEnv' environment. I.e. we let the
-QuickCheck's size parameter to be responsible for the size of constants at the leaves of the AST
-and use 'geSize' to control the size of the AST itself.
+{- Note [Recursion Control and geAstSize]
+One would be forgiven for thinking that you don't need `geAstSize` in `GenTm` because size is
+built-in to 'Gen'. However, if you use 'Gen's built-in size to control the size of both the terms
+you generate *and* the size of the constants in the terms you will end up with skewed
+terms. Constants near the top of the term will be big and constants near the bottom of the term will
+be small. For this reason we follow QuickCheck best practise and keep track of the "recursion
+control size" separately from 'Gen's size in the 'geAstSize' field of the 'GenEnv'
+environment. I.e. we let the QuickCheck's size parameter to be responsible for the size of constants
+at the leaves of the AST and use 'geAstSize' to control the size of the AST itself.
 -}
 
 -- | Run a generator in debug-mode.
@@ -97,7 +99,9 @@ runGenTmCustom :: Int
 runGenTmCustom f cg g = do
   sized $ \ n -> do
     let env = GenEnv
-          { geSize       = n
+          { -- Duplicating the QC size parameter that we use to control the size of constants as
+            -- the initial AST size parameter.
+            geAstSize    = n
           , geDatas      = Map.empty
           , geTypes      = Map.empty
           , geTerms      = Map.empty
@@ -127,35 +131,35 @@ withNoEscape = local $ \env -> env { geEscaping = NoEscape }
 -- * Dealing with size
 
 -- | Map a function over the generator size
-onSize :: (Int -> Int) -> GenTm a -> GenTm a
-onSize f = local $ \ env -> env { geSize = f (geSize env) }
+onAstSize :: (Int -> Int) -> GenTm a -> GenTm a
+onAstSize f = local $ \ env -> env { geAstSize = f (geAstSize env) }
 
 -- | Default to the first generator if the size is zero (or negative),
 -- use the second generator otherwise.
-ifSizeZero :: GenTm a -> GenTm a -> GenTm a
-ifSizeZero ifZ nonZ = do
-  n <- asks geSize
+ifAstSizeZero :: GenTm a -> GenTm a -> GenTm a
+ifAstSizeZero ifZ nonZ = do
+  n <- asks geAstSize
   if n <= 0 then ifZ else nonZ
 
 -- | Locally set the size in a generator
-withSize :: Int -> GenTm a -> GenTm a
-withSize = onSize . const
+withAstSize :: Int -> GenTm a -> GenTm a
+withAstSize = onAstSize . const
 
 -- | Split the size between two generators in the ratio specified by
 -- the first two arguments.
-sizeSplit_ :: Int -> Int -> GenTm a -> GenTm b -> GenTm (a, b)
-sizeSplit_ a b ga gb = sizeSplit a b ga (const gb)
+astSizeSplit_ :: Int -> Int -> GenTm a -> GenTm b -> GenTm (a, b)
+astSizeSplit_ a b ga gb = astSizeSplit a b ga (const gb)
 
 -- | Split the size between two generators in the ratio specified by
 -- the first two arguments and use the result of the first generator
 -- in the second.
-sizeSplit :: Int -> Int -> GenTm a -> (a -> GenTm b) -> GenTm (a, b)
-sizeSplit a b ga gb = do
-  n <- asks geSize
+astSizeSplit :: Int -> Int -> GenTm a -> (a -> GenTm b) -> GenTm (a, b)
+astSizeSplit a b ga gb = do
+  n <- asks geAstSize
   let na = (a * n) `div` (a + b)
       nb = (b * n) `div` (a + b)
-  x <- withSize na ga
-  (,) x <$> withSize nb (gb x)
+  x <- withAstSize na ga
+  (,) x <$> withAstSize nb (gb x)
 
 -- * Names
 
@@ -184,8 +188,8 @@ define generators that use them. This is done with functions like `bindTyName` a
 
     genLam k1 k2 = do
         x <- genMaybeFreshTyName "a"
-        --                                           v--- LOOK HERE!
-        fmap (TyLam () x k1) $ onSize (subtract 1) $ bindTyName x k1 (genType k2)
+        --                                              v--- LOOK HERE!
+        fmap (TyLam () x k1) $ onAstSize (subtract 1) $ bindTyName x k1 (genType k2)
 -}
 
 -- | Generate a fresh name. See Note [Warning about generating fresh names].

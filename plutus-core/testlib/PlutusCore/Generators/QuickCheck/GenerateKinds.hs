@@ -4,10 +4,9 @@
 
 module PlutusCore.Generators.QuickCheck.GenerateKinds where
 
-import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenTm
 
-import PlutusIR
+import PlutusCore
 
 {- Note [Shriking order on kinds]
 A kind @k1 = foldr (->) * ks1@ is less than or equal to a kind @k2 = foldr (->) * ks2@ when @ks1@
@@ -24,7 +23,7 @@ and cause a shrink-loop.
 
 -- See Note [Shriking order on kinds].
 leKind :: Kind () -> Kind () -> Bool
-leKind k1 k2 = go (reverse $ argsKind k1) (reverse $ argsKind k2)
+leKind k1 k2 = go (reverse $ argsFunKind k1) (reverse $ argsFunKind k2)
   where
     go [] _                = True
     go _ []                = False

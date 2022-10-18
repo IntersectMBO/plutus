@@ -47,6 +47,7 @@ module PlutusCore
     , Kind (..)
     , toPatFuncKind
     , fromPatFuncKind
+    , argsFunKind
     , ParserError (..)
     , Version (..)
     , Program (..)
