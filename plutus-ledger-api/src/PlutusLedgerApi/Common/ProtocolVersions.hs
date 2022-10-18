@@ -38,5 +38,4 @@ vasilPV :: ProtocolVersion
 vasilPV = ProtocolVersion 7 0
 
 changPV :: ProtocolVersion
--- FIXME: exact version number TBD
-changPV = ProtocolVersion 1000 0
+changPV = ProtocolVersion 8 0
