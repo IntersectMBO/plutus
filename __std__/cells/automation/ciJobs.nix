@@ -32,10 +32,7 @@ let
 
   windows-plutus-jobs = make-haskell-jobs library.plutus-project.projectCross.mingwW64;
 
-  other-jobs =
-    inputs.cells.plutus.devshells //
-    inputs.cells.plutus.devshellCommands //
-    inputs.cells.plutus.packages;
+  other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
 
   jobs =
     if system == "x86_64-linux" then

@@ -526,3 +526,6 @@ It's planned to be a general alternative to Hydra.
 Each build is created as a task and all the tasks are run by the plutus/ci action which can be found in https://cicero.ci.iog.io (not publicly accessible for now).
 Tasks will each report a GitHub status success or failure.
 The "details" link for the task goes to a page for the entire action and you will have to scroll to the point where that task is run.
+
+If no GitHub statuses are shown, this might indicate that the invocation itself has failed.
+Check the (plutus action page)[https://cicero.ci.iog.io/action/53f25880-8fde-4e24-8ce7-6b7568777e00] for details, including logs and the full GitHub event payload.
