@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=all
 
 plc=$plc
 TIME=/usr/bin/time

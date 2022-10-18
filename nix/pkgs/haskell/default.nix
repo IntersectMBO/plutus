@@ -35,6 +35,7 @@ let
   baseProject =
     { deferPluginErrors }:
     import ./haskell.nix {
+      inherit (sources) CHaP;
       inherit lib haskell-nix R libsodium-vrf secp256k1 rPackages z3;
       inherit agdaWithStdlib compiler-nix-name gitignore-nix;
       inherit enableHaskellProfiling;

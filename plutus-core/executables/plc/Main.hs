@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
@@ -16,7 +17,7 @@ import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
-import Control.Lens
+import Control.Lens ((&), (^.))
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -155,20 +156,6 @@ runErase (EraseOptions inp ifmt outp ofmt mode) = do
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
 
----------------- Parse and print a PLC source file ----------------
-
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
-
----------------- Conversions ----------------
-
--- | Convert between textual and FLAT representations.
-runConvert :: ConvertOptions -> IO ()
-runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
-    writeProgram outp ofmt mode program
-
 ---------------- Driver ----------------
 
 main :: IO ()
@@ -181,6 +168,6 @@ main = do
         Example   opts         -> runPlcPrintExample opts
         Erase     opts         -> runErase        opts
         Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert      opts
+        Convert   opts         -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

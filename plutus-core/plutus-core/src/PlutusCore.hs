@@ -137,6 +137,7 @@ import PlutusCore.Rename
 import PlutusCore.Size
 import PlutusCore.TypeCheck as TypeCheck
 
+
 -- | Take one PLC program and apply it to another.
 applyProgram
     :: Monoid a

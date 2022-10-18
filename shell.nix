@@ -81,7 +81,9 @@ let
     shellcheck
     yq
     zlib
-  ] ++ (lib.optionals (!stdenv.isDarwin) [ rPackages.plotly R ]));
+    rPackages.plotly
+    R
+  ]);
 
   # local build inputs ( -> ./nix/pkgs/default.nix )
   localInputs = (with plutus; [
@@ -98,6 +100,15 @@ let
     docs.build-and-serve-docs
   ]);
 
+  deprecation-warning = ''
+    echo -e "\033[0;33m*********************************************************************"
+    echo -e "* nix-shell is deprecated and will be gone by the end of the month. *"
+    echo -e "* Please exit this shell and run 'nix develop' instead.             *"
+    echo -e "* If that breaks please notify @zeme-iohk immediately,              *"
+    echo -e "* and revert to using 'nix-shell' until it's fixed.                 *"
+    echo -e "*********************************************************************\033[0m"
+  '';
+
 in
 haskell.project.shellFor {
   nativeBuildInputs = nixpkgsInputs ++ localInputs ++ [ agdaWithStdlib sphinxTools ];
@@ -107,6 +118,7 @@ haskell.project.shellFor {
 
   shellHook = ''
     ${pre-commit-check.shellHook}
+    ${deprecation-warning}
   '';
 
   # This is no longer set automatically as of more recent `haskell.nix` revisions,

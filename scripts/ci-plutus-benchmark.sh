@@ -78,6 +78,8 @@ echo -e "</details>"
 } > bench-compare-result.log
 
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
+# TODO(std) check that this works 
+# jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
 curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
