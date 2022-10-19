@@ -175,16 +175,7 @@ getUniques = do
 
 {- Note [Warning about generating fresh names]
 Since 'GenTm' is a *reader* monad names are not immediately put into any state when generated.
-There is *no guarantee* that in this situation:
-
-    do
-        nms <- genFreshNames ss
-        nms' <- genFreshNames ss
-
-the names in @nms@ and @nms'@ don't overlap.
-
-Instead, what you are supposed to do is locally use the names in `nms` and `nms'` to
-define generators that use them. This is done with functions like `bindTyName` and `bindTmName`:
+In order to bind generated names you need to use functions like 'bindTyName' and 'bindTmName', e.g.
 
     genLam k1 k2 = do
         x <- genMaybeFreshTyName "a"
@@ -192,14 +183,14 @@ define generators that use them. This is done with functions like `bindTyName` a
         fmap (TyLam () x k1) $ onAstSize (subtract 1) $ bindTyName x k1 (genType k2)
 -}
 
--- | Generate a fresh name. See Note [Warning about generating fresh names].
-genFreshName :: String -> GenTm Name
-genFreshName s = head <$> genFreshNames [s]
+-- | Generate a likely fresh name. See Note [Warning about generating fresh names].
+genLikelyFreshName :: String -> GenTm Name
+genLikelyFreshName s = head <$> genLikelyFreshNames [s]
 
--- | Generate one fresh name per string in the input list.
+-- | Generate one likely fresh name per string in the input list.
 -- names don't overlap. See Note [Warning about generating fresh names].
-genFreshNames :: [String] -> GenTm [Name]
-genFreshNames ss = do
+genLikelyFreshNames :: [String] -> GenTm [Name]
+genLikelyFreshNames ss = do
   used <- getUniques
   let i = fromEnum $ Set.findMax $ Set.insert (Unique 0) used
       js = [ j | j <- [1..i], not $ Unique j `Set.member` used ]
@@ -207,13 +198,13 @@ genFreshNames ss = do
   is' <- liftGen $ QC.shuffle is
   return [Name (fromString $ s ++ show j) (toEnum j) | (s, j) <- zip ss is']
 
--- | See `genFreshName`
-genFreshTyName :: String -> GenTm TyName
-genFreshTyName s = TyName <$> genFreshName s
+-- | Same as 'genLikelyFreshName', except gives you a 'TyName'.
+genLikelyFreshTyName :: String -> GenTm TyName
+genLikelyFreshTyName s = TyName <$> genLikelyFreshName s
 
--- | See `genFreshNames`
-genFreshTyNames :: [String] -> GenTm [TyName]
-genFreshTyNames ss = map TyName <$> genFreshNames ss
+-- | Same as 'genLikelyFreshNames', except gives you 'TyName's.
+genLikelyFreshTyNames :: [String] -> GenTm [TyName]
+genLikelyFreshTyNames ss = map TyName <$> genLikelyFreshNames ss
 
 -- | Generate a name that likely overlaps with existing names on purpose. If there are no existing
 -- names, generate a fresh name. This function doesn't distinguish between the type- and term-level
@@ -226,13 +217,13 @@ genLikelyNotFreshName :: String -> GenTm Name
 genLikelyNotFreshName s = do
   used <- Set.toList <$> getUniques
   case used of
-    [] -> genFreshName s
+    [] -> genLikelyFreshName s
     _  -> liftGen $ elements [ Name (fromString $ s ++ show (unUnique i)) i | i <- used ]
 
--- | Generate a fresh name most (a bit more than 75%) of the time and otherwise
+-- | Generate a fresh name most (roughly 75%) of the time and otherwise
 -- generate an already bound name. When there are no bound names generate a fresh name.
 genMaybeFreshName :: String -> GenTm Name
-genMaybeFreshName s = frequency [(3, genFreshName s), (1, genLikelyNotFreshName s)]
+genMaybeFreshName s = frequency [(3, genLikelyFreshName s), (1, genLikelyNotFreshName s)]
 
 -- | See `genMaybeFreshName`
 genMaybeFreshTyName :: String -> GenTm TyName
@@ -259,9 +250,9 @@ bindTmNames :: [(Name, Type TyName DefaultUni ())] -> GenTm a -> GenTm a
 bindTmNames = flip $ foldr (uncurry bindTmName)
 
 -- | Create a fresh term name, bind it to a type, and use it in a generator.
-bindFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> GenTm a
-bindFreshTmName name ty k = do
-  x <- genFreshName name
+bindLikelyFreshTmName :: String -> Type TyName DefaultUni () -> (Name -> GenTm a) -> GenTm a
+bindLikelyFreshTmName name ty k = do
+  x <- genLikelyFreshName name
   bindTmName x ty (k x)
 
 -- | Bind a datatype declaration in a generator.
