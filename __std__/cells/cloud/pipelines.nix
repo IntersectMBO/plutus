@@ -12,6 +12,7 @@
 let
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
   inherit (inputs.cells.plutus.library.pkgs.stdenv) system;
+  inherit (inputs.cells.plutus.library.pkgs.lib) filterAttrs;
   inherit (inputs.cells.automation) ciJobs;
 
   common =
@@ -35,7 +36,7 @@ let
       };
     };
 
-  ciTasks = __mapAttrs
+  ciTasks = filterAttrs (n: _: n != "required") (__mapAttrs
     (_: flakeOutputTask: { ... }: {
       imports = [ common flakeOutputTask ];
 
@@ -46,7 +47,7 @@ let
       # Replicate flake output structure here, so that the generated nix build
       # commands reference the right output relative to the top-level of the flake.
       outputs.${system}.automation.ciJobs = ciJobs;
-    });
+    }));
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
