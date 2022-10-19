@@ -42,6 +42,7 @@ custom-setup
     , base           >=4.9 && <5
     , Cabal
     , cabal-doctest
+    , doctest
 
 library
   import:          lang

@@ -150,12 +150,6 @@ let
           # prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           word-array.ghcOptions = [ "-Werror" ];
 
-          # doctests just never work well
-          prettyprinter-configurable = {
-            components.tests.prettyprinter-configurable-doctest.buildable =
-              lib.mkForce false;
-          };
-
           # External package settings
 
           inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
