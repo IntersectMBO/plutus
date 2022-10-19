@@ -151,7 +151,10 @@ let
           word-array.ghcOptions = [ "-Werror" ];
 
           # doctests just never work well
-          prettyprinter-configurable.components.tests.prettyprinter-configurable-doctest.buildable = lib.mkForce false;
+          prettyprinter-configurable = {
+            components.tests.prettyprinter-configurable-doctest.buildable =
+              lib.mkForce false;
+          };
 
           # External package settings
 
