@@ -72,8 +72,7 @@ computeCekStep
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
     => WordArray
     -> Context uni fun
-    -> CekValEnv uni fun
-    -> Term NamedDeBruijn uni fun ()
+    -> Closure uni fun
     -> CekM uni fun s (CekState uni fun)
 ```
 
@@ -193,3 +192,13 @@ enterDebug termToDebug = do
 ```
 
 ## Implications
+
+## Alternatives: polymorphic compute/return steps
+
+This approach has been suggested to potentially not introduce slow downs while not having a separate debugging CEK machine.
+
+As long as the debugging machine has the same type, we can alter `computeCek`/`returnCek` to be polymorphic over a type-level `Bool` specifying if we’re in debug mode or not. Then we demote it to the term level in the definition of `computeCek`/`returnCek` and branch on the `Bool` thus implementing different logic depending on whether we're in debug mode or not. This promotion to the type level allows us to statically instantiate the `Bool` in an instance and thus make GHC compile the whole worker of the CEK machine twice: once in debug mode and once in production mode. Theoretically, GHC will take care to remove all the dead debug code when in production mode.
+
+Some slowdown may still happen due to GHC optimizations being very unreliable. It's also difficult to detect slow downs due to this as we add more builtin functions.
+
+We currently chose to not risk slowing down the production CEK machine and implement a separate machine altogether. If the proposed approach turns out to not provide correct debugging information, we may revisit this option again.
