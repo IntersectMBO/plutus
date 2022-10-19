@@ -35,18 +35,21 @@ let
       };
     };
 
-  ciTasks = __mapAttrs
-    (_: flakeOutputTask: { ... }: {
-      imports = [ common flakeOutputTask ];
+  # The 'required' job masks everything else, which isn't helpful, so we rmeove it
+  # for cicero
+  ciTasks = builtins.removeAttrs
+    (__mapAttrs
+      (_: flakeOutputTask: { ... }: {
+        imports = [ common flakeOutputTask ];
 
-      memory = 1024 * 8;
-      nomad.resources.cpu = 10000;
-    })
-    (flakeOutputTasks [ system "automation" "ciJobs" ] {
-      # Replicate flake output structure here, so that the generated nix build
-      # commands reference the right output relative to the top-level of the flake.
-      outputs.${system}.automation.ciJobs = ciJobs;
-    });
+        memory = 1024 * 8;
+        nomad.resources.cpu = 10000;
+      })
+      (flakeOutputTasks [ system "automation" "ciJobs" ] {
+        # Replicate flake output structure here, so that the generated nix build
+        # commands reference the right output relative to the top-level of the flake.
+        outputs.${system}.automation.ciJobs = ciJobs;
+      })) [ "required" ];
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in

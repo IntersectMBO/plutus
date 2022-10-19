@@ -41,13 +41,13 @@ import Prettyprinter.Render.Text
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Typeable uni, Typeable fun, Ord a
+         , Typeable a, Ord a
          ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
     toTPlc = asIfThrown . fmap (PLC.Program () (PLC.defaultVersion ()) . void) . compileAndMaybeTypecheck True
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Typeable uni, Typeable fun, Ord a
+         , Typeable a, Ord a
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t

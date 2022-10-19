@@ -52,7 +52,7 @@ common lang
 executable doc-doctests
   import:             lang
 
-  if (impl(ghcjs) || os(windows))
+  if ((impl(ghcjs) || os(windows)) || impl(ghc >=9.0))
     buildable: False
 
   hs-source-dirs:     tutorials howtos

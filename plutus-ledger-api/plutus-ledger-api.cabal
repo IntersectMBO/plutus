@@ -99,9 +99,7 @@ library
     , prettyprinter
     , serialise
     , tagged
-    , template-haskell
     , text
-    , transformers
 
 library plutus-ledger-api-testlib
   import:          lang

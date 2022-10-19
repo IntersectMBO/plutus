@@ -29,18 +29,18 @@ let
     };
 
   native-plutus-jobs = make-haskell-jobs library.plutus-project;
+  native-plutus-924-jobs = make-haskell-jobs library.plutus-project-924;
 
   windows-plutus-jobs = make-haskell-jobs library.plutus-project.projectCross.mingwW64;
 
   other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
 
-  jobs =
-    if system == "x86_64-linux" then
-      { mingwW64 = windows-plutus-jobs; } // native-plutus-jobs // other-jobs
-    else if system == "x86_64-darwin" then
-      native-plutus-jobs // other-jobs
-    else
-      { };
+  jobs = native-plutus-jobs //
+    # Temporary jobs until we switch to 9.2.4 by default
+    { ghc924 = native-plutus-924-jobs; } //
+    # Only cross-compile to windows from linux
+    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-jobs; } //
+    other-jobs;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
   # TODO(std) hydra will be gone by the end of month. Remove this stuff when that happens.

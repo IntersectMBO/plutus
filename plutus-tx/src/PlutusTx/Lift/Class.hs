@@ -86,7 +86,7 @@ class Lift uni a where
 
 -- This instance ensures that we can apply typeable type constructors to typeable arguments and get a typeable
 -- type. We need the kind variable, so that partial application of type constructors works.
-instance (Typeable uni (f :: * -> k), Typeable uni (a :: *)) => Typeable uni (f a) where
+instance (Typeable uni (f :: GHC.Type -> k), Typeable uni (a :: GHC.Type)) => Typeable uni (f a) where
     typeRep _ = TyApp () <$> typeRep (Proxy :: Proxy f) <*> typeRep (Proxy :: Proxy a)
 
 {- Note [Typeable instances for function types]

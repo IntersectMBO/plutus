@@ -5,6 +5,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+
+-- This fires on GHC-9.2.4 for some reason, not entirely sure
+-- what's going on
+{-# OPTIONS_GHC -Wno-identities #-}
 -- | Support for using de Bruijn indices for term and type names.
 module PlutusCore.DeBruijn.Internal
     ( Index (..)

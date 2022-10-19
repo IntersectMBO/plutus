@@ -11,6 +11,10 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE UnboxedTuples      #-}
+
+-- This fires on GHC-9.2.4, may indicate a real problem,
+-- but putting it off for now.
+{-# OPTIONS_GHC -Wno-inline-rule-shadowing #-}
 module Data.SatInt (SatInt) where
 
 import Codec.Serialise (Serialise)
@@ -23,8 +27,9 @@ import GHC.Base
 import GHC.Generics
 #if MIN_VERSION_base(4,16,0)
 import GHC.Integer (smallInteger)
+#else
+import GHC.Num (smallInteger)
 #endif
-import GHC.Num
 import GHC.Real
 import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
