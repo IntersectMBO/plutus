@@ -590,16 +590,25 @@ evalBuiltinApp fun term runtime = case runtime of
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
+data CekState uni fun =
+    -- the next state is computing
+    Computing WordArray (Context uni fun) (Closure uni fun)
+    -- the next state is returning
+    | Returning WordArray (Context uni fun) (CekValue uni fun)
+    -- evaluation finished
+    | Terminating (Term NamedDeBruijn uni fun ())
+
+data Closure uni fun = Closure (Term NamedDeBruijn uni fun ()) (CekValEnv uni fun)
+
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun s
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
     => Context uni fun
-    -> CekValEnv uni fun
-    -> Term NamedDeBruijn uni fun ()
+    -> Closure uni fun
     -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-enterComputeCek ctx env term = continue $ Computing (toWordArray 0) ctx (Closure term env)
+enterComputeCek ctx (Closure term env) = continue $ Computing (toWordArray 0) ctx (Closure term env)
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
 spendAccumulatedBudget ::
@@ -647,52 +656,41 @@ computeCekStep
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
     => WordArray
     -> Context uni fun
-    -> CekValEnv uni fun
-    -> Term NamedDeBruijn uni fun ()
+    -> Closure uni fun
     -> CekM uni fun s (CekState uni fun)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-computeCekStep !unbudgetedSteps !ctx !env (Var _ varName) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (Var _ varName) !env) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BVar unbudgetedSteps
     val <- lookupVarName varName env
     pure $ Returning unbudgetedSteps' ctx val
-computeCekStep !unbudgetedSteps !ctx !_ (Constant _ val) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (Constant _ val) !_) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BConst unbudgetedSteps
     pure $ Returning unbudgetedSteps' ctx (VCon val)
-computeCekStep !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (LamAbs _ name body) !env) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
     pure $ Returning unbudgetedSteps' ctx (VLamAbs name body env)
-computeCekStep !unbudgetedSteps !ctx !env (Delay _ body) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (Delay _ body) !env) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
     pure $ Returning unbudgetedSteps' ctx (VDelay body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-computeCekStep !unbudgetedSteps !ctx !env (Force _ body) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (Force _ body) !env) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps
     pure $ Computing unbudgetedSteps' (FrameForce ctx) (Closure body env)
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-computeCekStep !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
+computeCekStep !unbudgetedSteps !ctx (Closure (Apply _ fun arg) !env) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
     pure $ Computing unbudgetedSteps' (FrameApplyArg env arg ctx) (Closure fun env)
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-computeCekStep !unbudgetedSteps !ctx !_ term@(Builtin _ bn) = do
+computeCekStep !unbudgetedSteps !ctx (Closure term@(Builtin _ bn) !_) = do
     !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
     meaning <- lookupBuiltin bn ?cekRuntime
     -- The @term@ is a 'Builtin', so it's fully discharged.
     pure $ Returning unbudgetedSteps' ctx (VBuiltin bn term meaning)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCekStep !_ !_ !_ (Error _) =
+computeCekStep !_ !_ (Closure (Error _) !_) =
     throwing_ _EvaluationFailure
-
-data CekState uni fun =
-    -- the next state is computing
-    Computing WordArray (Context uni fun) (Closure uni fun)
-    -- the next state is returning
-    | Returning WordArray (Context uni fun) (CekValue uni fun)
-    -- evaluation finished
-    | Terminating (Term NamedDeBruijn uni fun ())
-
-data Closure uni fun = Closure (Term NamedDeBruijn uni fun ()) (CekValEnv uni fun)
 
 returnCekStep
     :: forall uni fun s
@@ -790,13 +788,12 @@ continue :: forall uni fun s
     => CekState uni fun
     -> CekM uni fun s (Term NamedDeBruijn uni fun ())
 continue (Computing !unbudgetedSteps ctx (Closure term env)) = do
-    state <- computeCekStep unbudgetedSteps ctx env term
+    state <- computeCekStep unbudgetedSteps ctx (Closure term env)
     continue state
 continue (Returning !unbudgetedSteps ctx val) = do
     state <- returnCekStep unbudgetedSteps ctx val
     continue state
 continue (Terminating term) = pure term
-
 
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
@@ -810,4 +807,4 @@ runCekDeBruijn
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
-        enterComputeCek NoFrame Env.empty term
+        enterComputeCek NoFrame (Closure term Env.empty)
