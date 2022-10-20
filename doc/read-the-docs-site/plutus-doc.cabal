@@ -39,7 +39,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags:
+  -- See Plutus Tx readme for why we need the following flags: 
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -63,7 +63,6 @@ executable doc-doctests
     BasicPlutusTx
     BasicPolicies
     BasicValidators
-    Coroutine
 
   build-depends:
     , aeson
@@ -71,7 +70,6 @@ executable doc-doctests
     , bytestring
     , containers
     , flat
-    , free
     , lens
     , plutus-core        ^>=1.1
     , plutus-ledger-api  ^>=1.1
