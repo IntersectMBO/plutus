@@ -9,7 +9,7 @@ Ziyang Liu <ziyang.liu@iohk.io>
 
 ## Status
 
-Draft
+Proposed
 
 ## Context
 
@@ -35,9 +35,19 @@ Our current CEK machine's performance is sensitive to changes. For example, expo
 
 We consciously chose to keep up the production CEK machine's performance by adding a separate machine for debugging. We will mitigate the drawback of this by keeping the implementation as close to the production machine as possible.
 
-### Proposed code structure of the separate machine
+## Alternative: polymorphic compute/return steps
 
+This approach has been suggested to potentially not introduce slow downs while not having a separate debugging CEK machine.
 
+As long as the debugging machine has the same type, we can alter `computeCek`/`returnCek` to be polymorphic over a type-level `Bool` specifying if we’re in debug mode or not. Then we demote it to the term level in the definition of `computeCek`/`returnCek` and branch on the `Bool` thus implementing different logic depending on whether we're in debug mode or not. This promotion to the type level allows us to statically instantiate the `Bool` in an instance and thus make GHC compile the whole worker of the CEK machine twice: once in debug mode and once in production mode. Theoretically, GHC will take care to remove all the dead debug code when in production mode.
+
+We currently decide to not take this approach because:
+
+- It's not clear whether we can implement it this way. Implementing a separate machine is simpler.
+- Some slowdown may still happen due to GHC optimizations being very unreliable.
+- It's difficult to detect slow downs due to this as we add more builtin functions.
+
+If the separate machine turns out to not provide correct debugging information, we may revisit this option again.
 
 ## Decision: implementing it as a coroutine system
 
@@ -76,7 +86,7 @@ computeCekStep
     -> CekM uni fun s (CekState uni fun)
 ```
 
-Similarly for the returning step (`returnCekStep`). Then we link up all the steps with `continue`:
+Similarly for the returning step (`returnCekStep`). Then we link up all the steps with `continue`, and the machine behaves very similar to our current one:
 
 ```haskell
 continue :: forall uni fun s
@@ -91,6 +101,31 @@ continue (Returning !unbudgetedSteps ctx val) = do
     continue state
 continue (Terminating term) = pure term
 ```
+
+### Alternative: use CPS
+
+This approach has been suggested to improve the performance of the debugging machine. The abstraction proposed above does not have good performance. To improve performance, we need to get rid of the creation of the state objects. This is because GHC probably doesn't have the capability to eliminate those, because the place where they're destructed is too far from where they're constructed. That means that instead we probably need to do something with continuations:
+
+```haskell
+{-# INLINE computeStep #-}
+computeStep :: (... -> r) -> .... -> r
+computeStep k =
+  go ...
+    -- instead of Computing $ ...
+    k ...
+```
+
+So `computeStep` gets inlined, as before, at which point we hopefully know `k`, so GHC can optimize it properly. Except it's going to be more complicated than that because:
+
+1. We need to pass continuations for all the different cases, so three of them.
+2. The continuations are recursive with the main function! It's not clear how to make it work nicely.
+
+We currently aren't taking this approach because:
+
+- The performance of the debugging machine is not a main concern.
+- It's unclear how to make some parts work nicely.
+
+If we find out that the debugging machine is too slow, we may want to revisit this approach again.
 
 ### Coroutines in Haskell
 
@@ -142,7 +177,7 @@ handle = \case
   InputF k     -> input >>= pure . k
 ```
 
-where `step state`, `log text` and `input` return `SteppableCekM` actions.
+where `step state`, `log text` and `input` return `SteppableCekM` actions. `step` will likely correspond to `computeCekStep` and `returnCekStep` depending on the states.
 
 We can then use `handle` to construct a monad morphism, interpreting the user computation (a `FreeT` structure) into a `SteppableCekM` action:
 
@@ -193,12 +228,8 @@ enterDebug termToDebug = do
 
 ## Implications
 
-## Alternatives: polymorphic compute/return steps
+In summary, we proposed to add a separate CEK machine for debugging. We will implement it as a coroutine system with "steps". This implies that:
 
-This approach has been suggested to potentially not introduce slow downs while not having a separate debugging CEK machine.
-
-As long as the debugging machine has the same type, we can alter `computeCek`/`returnCek` to be polymorphic over a type-level `Bool` specifying if we’re in debug mode or not. Then we demote it to the term level in the definition of `computeCek`/`returnCek` and branch on the `Bool` thus implementing different logic depending on whether we're in debug mode or not. This promotion to the type level allows us to statically instantiate the `Bool` in an instance and thus make GHC compile the whole worker of the CEK machine twice: once in debug mode and once in production mode. Theoretically, GHC will take care to remove all the dead debug code when in production mode.
-
-Some slowdown may still happen due to GHC optimizations being very unreliable. It's also difficult to detect slow downs due to this as we add more builtin functions.
-
-We currently chose to not risk slowing down the production CEK machine and implement a separate machine altogether. If the proposed approach turns out to not provide correct debugging information, we may revisit this option again.
+- We have to maintain two separate CEK machines. E.g., we need to check conformance of both machines.
+- We will add a debugger for our users. We can give users more information at each evaluation step.
+- We will need to write some tests to ensure that the debugging machine continuously output reasonable information.
