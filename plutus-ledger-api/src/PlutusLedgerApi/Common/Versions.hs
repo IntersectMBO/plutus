@@ -1,8 +1,12 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
+-- | This module contains the protocol versions and plutus versions as witnessed by the cardano ledger.
 module PlutusLedgerApi.Common.Versions
-    ( module PlutusLedgerApi.Common.ProtocolVersions
+    ( -- * Cardano Protocol versions
+      module PlutusLedgerApi.Common.ProtocolVersions
+      -- * Plutus versions
     , LedgerPlutusVersion (..)
+      -- * Version-testing functions
     , languageIntroducedIn
     , languagesAvailableIn
     , builtinsIntroducedIn
@@ -18,14 +22,14 @@ import Data.Set qualified as Set
 import Prettyprinter
 
 {- Note [New builtins and protocol versions]
-When we add a new builtin to the language, that is a *backwards-compatible* change.
+When we add a new builtin to the Plutus language, that is a *backwards-compatible* change.
 Old scripts will still work (since they don't use the new builtins), we just make some more
 scripts possible.
 
 It would be nice, therefore, to get away with just having one definition of the set of builtin
 functions. Then the new builtins will just "work". However, this neglects the fact that
 the new builtins will be added to the builtin universe in the *software update* that
-brings a new version of Plutus, but they should only be usable after the corresponding
+brings a new ledger Plutus version, but they should only be usable after the corresponding
 *hard fork*. So there is a period of time in which they must be present in the software but not
 usable, so we need to decide this conditionally based on the protocol version.
 
@@ -37,12 +41,18 @@ Note that this doesn't currently handle removals of builtins, although it fairly
 could do, just by tracking when they were removed.
 -}
 
--- | The plutus language version as seen from the ledger's side.
--- Note: the ordering of constructors matters for deriving Ord
+{-| The ledger Plutus versions. These are entirely different script languages from the ledger's perspective,
+which on our side are interpreted in very similar ways.
+
+It is a simple enumerated datatype (there is no major and minor components as in protocol version)
+and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
+
+IMPORTANT: this is different from the AST's `PlutusCore.Core.Type.Version`
+-}
 data LedgerPlutusVersion =
-      PlutusV1
-    | PlutusV2
-    | PlutusV3
+      PlutusV1 -- ^ introduced in shelley era
+    | PlutusV2 -- ^ introduced in vasil era
+    | PlutusV3 -- ^ not yet enabled, probably will be introduced in chang era
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
 
 instance Pretty LedgerPlutusVersion where
@@ -50,7 +60,7 @@ instance Pretty LedgerPlutusVersion where
 
 {-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
 
-This *must* be updated when new builtins are added.
+This __must__ be updated when new builtins are added.
 See Note [New builtins and protocol versions]
 -}
 builtinsIntroducedIn :: Map.Map (LedgerPlutusVersion, ProtocolVersion) (Set.Set DefaultFun)
@@ -79,16 +89,20 @@ builtinsIntroducedIn = Map.fromList [
           ])
   ]
 
--- | Query the protocol version that a specific ledger plutus version was first introduced in.
--- 'Introduction' in this context means the enablement/allowance of scripts of that language version to be executed on-chain.
+{-| Query the protocol version that a specific ledger Plutus version was first introduced in.
+
+/Introduction/ in this context means the enablement/allowance of scripts of that ledger Plutus version to be executed on-chain.
+-}
 languageIntroducedIn :: LedgerPlutusVersion -> ProtocolVersion
 languageIntroducedIn = \case
     PlutusV1 -> alonzoPV
     PlutusV2 -> vasilPV
     PlutusV3 -> changPV
 
--- | Given a protocol version return a set of all available plutus languages that are enabled/allowed to run.
--- Assumes that languages once introduced/enabled, will never be disabled in the future.
+{-| Given a protocol version return a set of all available ledger Plutus versions that are enabled/allowed to run.
+
+Assumes that the ledger Plutus versions once introduced/enabled, will never be disabled in the future.
+-}
 languagesAvailableIn :: ProtocolVersion -> Set.Set LedgerPlutusVersion
 languagesAvailableIn searchPv =
     foldMap ledgerVersionToSet enumerate

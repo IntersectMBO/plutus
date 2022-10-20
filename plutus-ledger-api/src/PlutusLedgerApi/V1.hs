@@ -146,8 +146,8 @@ anything, we're just going to create new versions.
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => ProtocolVersion
-                       -> SerialisedScript
+                       => ProtocolVersion -- ^ which protocol version to run the operation in
+                       -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
 assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
 
@@ -156,9 +156,9 @@ assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
@@ -171,9 +171,9 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script

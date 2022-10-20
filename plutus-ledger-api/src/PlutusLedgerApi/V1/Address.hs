@@ -27,8 +27,11 @@ import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 
--- | Address with two kinds of credentials, normal and staking.
-data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }
+-- | An address may contain two credentials, the payment credential and optionally a 'StakingCredential'.
+data Address = Address
+    { addressCredential        :: Credential -- ^ the payment credential
+    , addressStakingCredential :: Maybe StakingCredential -- ^ the staking credential
+    }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

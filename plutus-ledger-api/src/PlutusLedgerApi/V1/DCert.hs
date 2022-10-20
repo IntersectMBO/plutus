@@ -35,7 +35,7 @@ data DCert
       -- ^ poolId
       PubKeyHash
       -- ^ pool VFR
-  | -- | The retiremant certificate and the Epoch N
+  | -- | The retirement certificate and the Epoch in which the retirement will take place
     DCertPoolRetire PubKeyHash Integer -- NB: Should be Word64 but we only have Integer on-chain
   | -- | A really terse Digest
     DCertGenesis

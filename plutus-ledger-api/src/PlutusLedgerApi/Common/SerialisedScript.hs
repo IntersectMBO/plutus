@@ -34,13 +34,14 @@ import Data.Coerce
 import Data.Set as Set
 import Prettyprinter
 
+-- | An error that occurred during script deserialization.
 data ScriptDecodeError =
-      CBORDeserialiseError CBOR.DeserialiseFailure
-    | RemainderError BSL.ByteString
-    | LanguageNotAvailableError
-        { sdeAffectedLang :: LedgerPlutusVersion
-        , sdeIntroPv      :: ProtocolVersion
-        , sdeCurrentPv    :: ProtocolVersion
+      CBORDeserialiseError CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
+    | RemainderError BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
+    | LanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
+        { sdeAffectedLang :: LedgerPlutusVersion -- ^ the script's plutus version
+        , sdeIntroPv      :: ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
+        , sdeThisPv       :: ProtocolVersion -- ^ the protocol version in which the error occurred
         }
     deriving stock (Eq, Show)
     deriving anyclass Exception
@@ -60,7 +61,7 @@ we only perform it in V2 and above.
 -- | Scripts to the ledger are serialised bytestrings.
 type SerialisedScript = ShortByteString
 
-{-| Note [Using Flat for serialising/deserialising Script]
+{- Note [Using Flat for serialising/deserialising Script]
 `plutus-ledger` uses CBOR for data serialisation and `plutus-core` uses Flat. The
 choice to use Flat was made to have a more efficient (most wins are in uncompressed
 size) data serialisation format and use less space on-chain.
@@ -73,6 +74,17 @@ data structures that include scripts (for example, transactions) no-longer benef
 for CBOR's ability to self-describe it's format.
 -}
 
+-- | Turns a program which was compiled using the \'PlutusTx\' toolchain into
+-- a binary format that is understood by the network and can be stored on-chain.
+serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
+serialiseCompiledCode = serialiseUPLC . toNameless . getPlc
+    where
+        toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+                -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+        toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
+
+-- | Turns a program's AST (most likely manually constructed)
+-- into a binary format that is understood by the network and can be stored on-chain.
 serialiseUPLC :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> SerialisedScript
 serialiseUPLC =
     -- See Note [Using Flat for serialising/deserialising Script]
@@ -80,17 +92,11 @@ serialiseUPLC =
     -- about introducing a working version
     toShort . BSL.toStrict . serialise . SerialiseViaFlat
 
+-- | Deserialises a 'SerialisedScript' back into an AST.
 deserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
 deserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
   where
     unSerialiseViaFlat (SerialiseViaFlat a) = a
-
-serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
-serialiseCompiledCode = serialiseUPLC . toNameless . getPlc
-    where
-        toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-                -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-        toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
 -- | A variant of `Script` with a specialized decoder.
 newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
@@ -115,9 +121,9 @@ scriptCBORDecoder lv pv =
 -- | The deserialization from a serialised script to a Script (for execution).
 -- Called inside phase-1 validation (assertScriptWellFormed) and inside phase-2's `mkTermToEvaluate`
 fromSerialisedScript :: forall e m. (AsScriptDecodeError e, MonadError e m)
-                     => LedgerPlutusVersion
-                     -> ProtocolVersion
-                     -> SerialisedScript
+                     => LedgerPlutusVersion -- ^ the ledger Plutus version of the script.
+                     -> ProtocolVersion -- ^ which protocol version the script was submitted in.
+                     -> SerialisedScript -- ^ the script to deserialise.
                      -> m ScriptForExecution
 fromSerialisedScript lv currentPv sScript = do
     when (introPv > currentPv)  $
@@ -141,9 +147,9 @@ implies that it is (almost certainly) an encoded script and the script does not 
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => LedgerPlutusVersion
-                       -> ProtocolVersion
-                       -> SerialisedScript
+                       => LedgerPlutusVersion -- ^ the ledger Plutus version of the script.
+                       -> ProtocolVersion -- ^ the current protocol version of the network
+                       -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
 assertScriptWellFormed lv pv =
     -- We opt to throw away the ScriptExecution result. for not "leaking" the actual Script through the API.
