@@ -72,6 +72,7 @@ inputs.std.lib.dev.mkShell {
     pkgs.yq
     pkgs.zlib
     pkgs.ghcid
+    pkgs.gnused
     pkgs.awscli2
     pkgs.bzip2
     pkgs.cacert

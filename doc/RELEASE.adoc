@@ -60,8 +60,8 @@ In all other cases, we always start a new major or minor release from master.
 
 Suppose we are releasing version `x.y.z.0`.
 
-1. Update version numbers in cabal files to `x.y.z.0` (if it is not already the case).
-- Version bounds for packages in the same repo should be set to `==x.y.z.*`.
+1. Update versions and version bounds in cabal files by running `./scripts/update-versions.sh x.y.z.0`.
+This updates the version bounds for packages in the same repo to `^>=x.y`.
 2. Make sure the change log is up-to-date.
 3. Tag `x.y.z.0-rc1` on master.
 - There's no need to create a release branch at this point.
@@ -86,9 +86,10 @@ Suppose we are releasing version `x.y.z.w`.
 If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
 2. Backport the needed fixes from master to `release/x.y.z`.
-3. Tag `x.y.z.w-rc1` on the release branch.
-4. Run the release QA process.
-5. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
+3. Update versions in cabal files by running `./scripts/update-versions.sh x.y.z.w`.
+4. Tag `x.y.z.w-rc1` on the release branch.
+5. Run the release QA process.
+6. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
 - If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 3.
 
 === Release QA Process
