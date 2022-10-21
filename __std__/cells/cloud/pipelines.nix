@@ -54,12 +54,14 @@ let
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
 if system == "x86_64-linux" then
-  ciTasks // # for running tasks separately
+# including 'ciTasks' also seems to run into argument limits
   ciTasksSeq // # for running in an arbitrary sequence
   {
     "ci" = { lib, ... }: {
       imports = [ common ];
-      after = __attrNames ciTasksSeq;
+      # It would be simpler to just say it runs after _all_ the CI
+      # tasks, but we have so many tasks that it breaks max argument limits
+      after = [ (lib.last (__attrNames ciTasksSeq)) ];
     };
   }
 else { }
