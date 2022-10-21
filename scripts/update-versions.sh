@@ -9,6 +9,9 @@ versioned_packages=(
   "plutus-tx-plugin"
 )
 
+additional_packages=( "$@" )
+versioned_packages+=( "${additional_packages[@]:1}" )
+
 versioned_packages_regex=$(printf "\|%s" "${versioned_packages[@]}")
 versioned_packages_regex="\(${versioned_packages_regex:2}\)"
 
