@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name:          word-array
-version:       0.1.0.0
+version:       1.1.0.0
 synopsis:
 description:   Treat integral types as arrays of smaller integral types
 homepage:      https://github.com/plutus
@@ -59,7 +59,7 @@ test-suite test
     , tasty
     , tasty-quickcheck
     , vector
-    , word-array
+    , word-array        ^>=1.1
 
 benchmark bench
   import:         lang
@@ -68,7 +68,7 @@ benchmark bench
     , base
     , primitive
     , tasty-bench
-    , word-array
+    , word-array   ^>=1.1
 
   ghc-options:    -O2
   hs-source-dirs: bench

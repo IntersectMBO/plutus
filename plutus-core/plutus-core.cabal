@@ -317,7 +317,7 @@ library
     , nothunks
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable
+    , prettyprinter-configurable  ^>=1.1
     , primitive
     , recursion-schemes
     , semigroupoids
@@ -334,7 +334,7 @@ library
     , transformers
     , unordered-containers
     , witherable
-    , word-array
+    , word-array                  ^>=1.1
 
   if impl(ghc <9.0)
     build-depends: integer-gmp
