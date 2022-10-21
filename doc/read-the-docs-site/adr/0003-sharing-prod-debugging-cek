@@ -1,0 +1,37 @@
+# ADR 3: Sharing code between the production and debugging CEK machine
+
+Date: 2022-10
+
+## Authors
+
+Marty Stumpf <marty.stumpf@iohk.io>  
+
+## Status
+
+Proposed
+
+## Context
+
+In order to have a minimal viable product of a debugger for Plutus, we need a CEK machine that will give us more information for debugging than our current one.
+
+One of the first decision we need to make is: should the debugging machine be a separate one? The debugging machine need to satisfy these requirements:
+
+- we must not compromise the performance of the production machine, and
+- the debugging machine must behave the same as the production machine.
+
+There are tradeoffs between these two requirements. If we have a separate machine, the performance of the production machine will be untouched. But there is more scope for us to make mistakes with the new machine.
+
+But if we share code between the two machines, the performance of the production machine may be compromised.
+
+This ADR proposes approaches for the two machines to share code while not compromising performance.
+
+## Decision:
+
+## Argument:
+
+## Alternative:
+
+## Implications
+
+In summary, we proposed to share code between the production and debugging CEK machine using .... This implies that:
+

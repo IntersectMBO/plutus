@@ -10,7 +10,7 @@ The goals are:
 
 * making decisions transparent to internal/external stakeholders and contributors.
 
-* getting feeback on decisions that we're about to make or have made
+* getting feedback on decisions that we're about to make or have made
 
 * providing external contributors a framework to propose architectural changes
 
