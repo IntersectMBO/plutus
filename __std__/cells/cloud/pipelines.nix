@@ -54,7 +54,7 @@ let
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
 if system == "x86_64-linux" then
-  ciTasks // # for running tasks separately
+# including 'ciTasks' also seems to run into argument limits
   ciTasksSeq // # for running in an arbitrary sequence
   {
     "ci" = { lib, ... }: {
