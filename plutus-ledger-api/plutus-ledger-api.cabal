@@ -1,19 +1,20 @@
-cabal-version: 3.0
-name:          plutus-ledger-api
-version:       1.0.0.0
-license:       Apache-2.0
+cabal-version:   3.0
+name:            plutus-ledger-api
+version:         1.1.0.0
+license:         Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:    michael.peyton-jones@iohk.io
-author:        Michael Peyton Jones, Jann Mueller
-synopsis:      Interface to the Plutus ledger for the Cardano ledger.
+maintainer:      michael.peyton-jones@iohk.io
+author:          Michael Peyton Jones, Jann Mueller
+synopsis:        Interface to the Plutus ledger for the Cardano ledger.
 description:
   Interface to the Plutus scripting support for the Cardano ledger.
 
-category:      Language
-build-type:    Simple
+category:        Language
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
@@ -94,8 +95,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.0
-    , plutus-tx          ^>=1.0
+    , plutus-core        ^>=1.1
+    , plutus-tx          ^>=1.1
     , prettyprinter
     , serialise
     , tagged
@@ -115,9 +116,9 @@ library plutus-ledger-api-testlib
     , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
-    , plutus-core        ^>=1.0
-    , plutus-ledger-api
-    , plutus-tx          ^>=1.0
+    , plutus-core        ^>=1.1
+    , plutus-ledger-api  ^>=1.1
+    , plutus-tx          ^>=1.1
     , prettyprinter
     , PyF                >=0.11.1.0
     , serialise
@@ -145,9 +146,9 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                ^>=1.0
-    , plutus-ledger-api
-    , plutus-ledger-api-testlib
+    , plutus-core                ^>=1.1
+    , plutus-ledger-api          ^>=1.1
+    , plutus-ledger-api-testlib  ^>=1.1
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -167,9 +168,9 @@ executable evaluation-test
     , extra
     , filepath
     , mtl
-    , plutus-core
-    , plutus-ledger-api
-    , plutus-ledger-api-testlib
+    , plutus-core                ^>=1.1
+    , plutus-ledger-api          ^>=1.1
+    , plutus-ledger-api-testlib  ^>=1.1
     , serialise
     , tasty
     , tasty-hunit
