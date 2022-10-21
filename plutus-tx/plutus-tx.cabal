@@ -12,9 +12,7 @@ synopsis:        Libraries for Plutus Tx and its prelude
 description:     Libraries for Plutus Tx and its prelude
 category:        Language
 build-type:      Simple
-extra-doc-files:
-  CHANGELOG.md
-  README.md
+extra-doc-files: README.md
 
 source-repository head
   type:     git

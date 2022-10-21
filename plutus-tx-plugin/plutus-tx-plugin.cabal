@@ -12,9 +12,7 @@ synopsis:        The Plutus Tx compiler and GHC plugin
 description:     The Plutus Tx compiler and GHC plugin.
 category:        Language
 build-type:      Simple
-extra-doc-files:
-  CHANGELOG.md
-  README.md
+extra-doc-files: README.md
 
 source-repository head
   type:     git

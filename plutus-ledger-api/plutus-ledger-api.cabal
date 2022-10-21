@@ -1,20 +1,19 @@
-cabal-version:   3.0
-name:            plutus-ledger-api
-version:         1.1.0.0
-license:         Apache-2.0
+cabal-version: 3.0
+name:          plutus-ledger-api
+version:       1.1.0.0
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:      michael.peyton-jones@iohk.io
-author:          Michael Peyton Jones, Jann Mueller
-synopsis:        Interface to the Plutus ledger for the Cardano ledger.
+maintainer:    michael.peyton-jones@iohk.io
+author:        Michael Peyton Jones, Jann Mueller
+synopsis:      Interface to the Plutus ledger for the Cardano ledger.
 description:
   Interface to the Plutus scripting support for the Cardano ledger.
 
-category:        Language
-build-type:      Simple
-extra-doc-files: CHANGELOG.md
+category:      Language
+build-type:    Simple
 
 source-repository head
   type:     git
