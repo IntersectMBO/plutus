@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.0.0.0
+version:         1.1.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -33,7 +33,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags: 
+  -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -83,8 +83,8 @@ library
     , ghc-prim
     , lens
     , mtl
-    , plutus-core       ^>=1.0
-    , plutus-tx         ^>=1.0
+    , plutus-core       ^>=1.1
+    , plutus-tx         ^>=1.1
     , prettyprinter
     , PyF               >=0.11.1.0
     , template-haskell
@@ -113,7 +113,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin
+    , plutus-tx-plugin      ^>=1.1
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -166,9 +166,9 @@ test-suite plutus-tx-tests
     , integer-gmp
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
-    , plutus-tx-plugin
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.0
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
+    , plutus-tx-plugin                                ^>=1.1
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
     , prettyprinter
     , tasty
     , tasty-hedgehog
@@ -192,7 +192,7 @@ test-suite size
   hs-source-dirs: test/size
   build-depends:
     , base                                      >=4.9 && <5.0
-    , plutus-tx-plugin
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.0
+    , plutus-tx-plugin                          ^>=1.1
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.1
     , tagged
     , tasty
