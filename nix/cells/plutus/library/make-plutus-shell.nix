@@ -17,6 +17,11 @@ inputs.std.lib.dev.mkShell {
 
   commands = [
     {
+      package = cell.packages.scriv;
+      category = "general commands";
+      help = "Manage changelogs";
+    }
+    {
       package = cell.packages.fix-png-optimization;
       category = "general commands";
       help = "Fix all PNG files in-place";
