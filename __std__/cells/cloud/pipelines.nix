@@ -59,7 +59,9 @@ if system == "x86_64-linux" then
   {
     "ci" = { lib, ... }: {
       imports = [ common ];
-      after = __attrNames ciTasksSeq;
+      # It would be simpler to just say it runs after _all_ the CI
+      # tasks, but we have so many tasks that it breaks max argument limits
+      after = [ (lib.last (__attrNames ciTasksSeq)) ];
     };
   }
 else { }
