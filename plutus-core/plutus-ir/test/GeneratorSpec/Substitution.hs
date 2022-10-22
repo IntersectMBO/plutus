@@ -41,6 +41,7 @@ prop_unify :: Property
 prop_unify =
   forAllDoc "n"   arbitrary shrink         $ \ (NonNegative n) ->
   forAllDoc "nSub" (choose (0, n)) shrink  $ \ nSub ->
+  -- See Note [Chaotic Good fresh name generation].
   let xVars = [TyName $ Name (fromString $ "x" ++ show i) (toEnum i) | i <- [1..n]] in
   -- Just for displaying @xVars@ in case of error.
   letCE "xVars" xVars                      $ \ _ ->

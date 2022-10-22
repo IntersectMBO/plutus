@@ -164,6 +164,7 @@ genKindAndTypeDebug = do
 normalizeTy :: Type TyName DefaultUni () -> Type TyName DefaultUni ()
 normalizeTy = unNormalized . runQuote . normalizeType
 
+-- See Note [Chaotic Good fresh name generation].
 -- | Generate a context of free type variables with kinds
 genCtx :: Gen TypeCtx
 genCtx = do

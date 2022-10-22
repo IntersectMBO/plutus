@@ -163,6 +163,48 @@ astSizeSplit a b ga gb = do
 
 -- * Names
 
+{- Note [Chaotic Good fresh name generation]
+Currently we don't use 'Quote' for generating fresh names in the QuickCheck generators. It's mostly
+for historical reasons and it's very non-trivial to change the current alignment to use 'Quote' at
+this point. It does have positive sides to it, though, which we'll discuss below.
+
+So what we do right now is track all names that are in the scope (not all actually and not in the
+scope, more on that later, for now let's pretend the statement is correct) in separate maps:
+
+- one for type names
+- one for term names
+- one for datatype-associated names (the name of the data type, its matcher and constructors)
+
+and all these maps are processed in a linear fashion each time we need to generate a bunch of fresh
+names. The processing is done via collecting in a set all uniques of names found in the maps: the
+key sets of all the three maps and the names in the elements of the data map. Why do we need the
+latter given that the names there are present as keys in the term map? No idea.
+
+What makes it hard to change the current alignment to use 'Quote' is that names are generated all
+over the place and put into the current context, inside and outside of the 'GenTm' monad. Any
+operation on the context automatically makes the name generation machinery aware of the changes,
+because the machinery looks at the whole context each time. It's really hard to move all of that to
+run in 'Quote' simply because it’s trivial to miss a call here and there and types don't help much.
+
+Another challenge is that the current fresh name generation is pretty fancy and doesn’t just always
+pick the next fresh name. It can pick the next 10th fresh name, then go back, then again forward etc
+– all of that between different calls to the function generating fresh names. We want to keep this
+logic as it allows us to produce more diverse terms. We probably can simulate this kind of logic
+with 'Quote', but it's non-trivial for sure.
+
+Finally, we do not have any function that generates a definitely fresh name or a function that
+generates a definitely non-fresh name -- both for very technical reasons (see the docs inline).
+This likely isn't intentional, but it's hard to change that at this point and we don't care much
+anyway, name clashes are fine. Moreover, the term map rather than containing all term names that
+are in the scope only contains those that can be correctly inserted into the program (i.e. don't
+reference shadowed type variables in their type). However the data map isn't filtered the same way
+as the term map and so there can be constructors whose type references shadowed type variables,
+which we never notice because those are only used for fresh name generation... which I guess is how
+looking at the elements of the data map isn't redundant in the end.
+
+Overall, this chaotic goodness needs to be sorted out.
+-}
+
 -- | Get all uniques we have generated and are used in the current context.
 getUniques :: GenTm (Set Unique)
 getUniques = do
@@ -187,8 +229,12 @@ In order to bind generated names you need to use functions like 'bindTyName' and
 genLikelyFreshName :: String -> GenTm Name
 genLikelyFreshName s = head <$> genLikelyFreshNames [s]
 
+-- See Note [Chaotic Good fresh name generation].
+-- See Note [Warning about generating fresh names].
 -- | Generate one likely fresh name per string in the input list.
--- names don't overlap. See Note [Warning about generating fresh names].
+-- Note that this may not give you a fresh name, if it happens to generate a name that was removed
+-- from the terms map in 'bindTyName' (due to referencing a now-shadowed type variable) but is still
+-- in the scope.
 genLikelyFreshNames :: [String] -> GenTm [Name]
 genLikelyFreshNames ss = do
   used <- getUniques
@@ -206,6 +252,7 @@ genLikelyFreshTyName s = TyName <$> genLikelyFreshName s
 genLikelyFreshTyNames :: [String] -> GenTm [TyName]
 genLikelyFreshTyNames ss = map TyName <$> genLikelyFreshNames ss
 
+-- See Note [Chaotic Good fresh name generation].
 -- | Generate a name that likely overlaps with existing names on purpose. If there are no existing
 -- names, generate a fresh name. This function doesn't distinguish between the type- and term-level
 -- scopes, hence it may generate a 'Name' \"clashing\" with a previously generated 'TyName' and not
@@ -233,6 +280,7 @@ genMaybeFreshTyName s = TyName <$> genMaybeFreshName s
 bindTyName :: TyName -> Kind () -> GenTm a -> GenTm a
 bindTyName x k = local $ \ e -> e
     { geTypes = Map.insert x k (geTypes e)
+      -- See Note [Chaotic Good fresh name generation].
     , geTerms = Map.filter (\ty -> not $ x `Set.member` setOf ftvTy ty) (geTerms e)
     , geDatas = Map.delete x (geDatas e)
     }
