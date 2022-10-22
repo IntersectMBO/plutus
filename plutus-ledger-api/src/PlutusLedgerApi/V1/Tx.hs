@@ -65,6 +65,8 @@ newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
         ) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
+--
+-- See also 'PlutusLedgerApi.V1.ScriptPurpose'
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
@@ -96,6 +98,7 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
+
 -- | A transaction output, consisting of a target address ('Address'), a value ('Value'),
 -- and optionally a datum hash ('DatumHash').
 data TxOut = TxOut {

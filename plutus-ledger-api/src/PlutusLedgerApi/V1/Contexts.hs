@@ -95,7 +95,7 @@ instance Eq ScriptPurpose where
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
-    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs
+    { txInfoInputs      :: [TxInInfo] -- ^ Transaction inputs; cannot be an empty list
     , txInfoOutputs     :: [TxOut] -- ^ Transaction outputs
     , txInfoFee         :: Value -- ^ The fee paid by this transaction.
     , txInfoMint        :: Value -- ^ The 'Value' minted by this transaction.
@@ -103,9 +103,8 @@ data TxInfo = TxInfo
     , txInfoWdrl        :: [(StakingCredential, Integer)] -- ^ Withdrawals
     , txInfoValidRange  :: POSIXTimeRange -- ^ The valid range for the transaction.
     , txInfoSignatories :: [PubKeyHash] -- ^ Signatures provided with the transaction, attested that they all signed the tx
-    , txInfoData        :: [(DatumHash, Datum)]
-    , txInfoId          :: TxId
-    -- ^ Hash of the pending transaction (excluding witnesses)
+    , txInfoData        :: [(DatumHash, Datum)] -- ^ The lookup table of datums attached to the transaction
+    , txInfoId          :: TxId  -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
     } deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
 instance Eq TxInfo where
@@ -128,7 +127,11 @@ instance Pretty TxInfo where
             , "Datums:" <+> pretty txInfoData
             ]
 
-data ScriptContext = ScriptContext{scriptContextTxInfo :: TxInfo, scriptContextPurpose :: ScriptPurpose }
+-- | The context that the currently-executing script can access.
+data ScriptContext = ScriptContext
+    { scriptContextTxInfo  :: TxInfo -- ^ information about the transaction the currently-executing script is included in
+    , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
+    }
     deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
 instance Eq ScriptContext where
@@ -165,6 +168,7 @@ findDatumHash ds TxInfo{txInfoData} = fst <$> find f txInfoData
         f (_, ds') = ds' == ds
 
 {-# INLINABLE findTxInByTxOutRef #-}
+-- | Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the transaction's inputs (`TxInInfo`).
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef) txInfoInputs
@@ -178,6 +182,7 @@ findContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} 
 findContinuingOutputs _ = traceError "Le" -- "Can't find any continuing outputs"
 
 {-# INLINABLE getContinuingOutputs #-}
+-- | Get all the outputs that pay to the same script address we are currently spending from, if any.
 getContinuingOutputs :: ScriptContext -> [TxOut]
 getContinuingOutputs ctx | Just TxInInfo{txInInfoResolved=TxOut{txOutAddress}} <- findOwnInput ctx = filter (f txOutAddress) (txInfoOutputs $ scriptContextTxInfo ctx)
     where
@@ -245,9 +250,10 @@ ownCurrencySymbol ScriptContext{scriptContextPurpose=Minting cs} = cs
 ownCurrencySymbol _                                              = traceError "Lh" -- "Can't get currency symbol of the current validator script"
 
 {-# INLINABLE spendsOutput #-}
--- | Check if the pending transaction spends a specific transaction output
---   (identified by the hash of a transaction and an index into that
---   transactions' outputs)
+{- | Check if the pending transaction spends a specific transaction output
+(identified by the hash of a transaction and an index into that
+transactions' outputs)
+-}
 spendsOutput :: TxInfo -> TxId -> Integer -> Bool
 spendsOutput p h i =
     let spendsOutRef inp =

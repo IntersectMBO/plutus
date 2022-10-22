@@ -44,12 +44,16 @@ import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude
 
--- | An interval of @a@s.
---
---   The interval may be either closed or open at either end, meaning
---   that the endpoints may or may not be included in the interval.
---
---   The interval can also be unbounded on either side.
+{- | An interval of @a@s.
+
+The interval may be either closed or open at either end, meaning
+that the endpoints may or may not be included in the interval.
+
+The interval can also be unbounded on either side.
+
+The 'Haskell.Eq'uality of two intervals is specified as the canonical, structural equality and not
+the equality of the elements of their two underlying sets; the same holds for 'Haskell.Ord'.
+-}
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
     deriving anyclass (NFData)
@@ -160,18 +164,34 @@ instance Ord a => Ord (LowerBound a) where
         EQ -> in2 `compare` in1
 
 {-# INLINABLE strictUpperBound #-}
+{- | Construct a strict upper bound from a value.
+
+The resulting bound includes all values that are (strictly) smaller than the input value.
+-}
 strictUpperBound :: a -> UpperBound a
 strictUpperBound a = UpperBound (Finite a) False
 
 {-# INLINABLE strictLowerBound #-}
+{- | Construct a strict lower bound from a value.
+
+The resulting bound includes all values that are (strictly) greater than the input value.
+-}
 strictLowerBound :: a -> LowerBound a
 strictLowerBound a = LowerBound (Finite a) False
 
 {-# INLINABLE lowerBound #-}
+{- | Construct a lower bound from a value.
+
+The resulting bound includes all values that are equal or greater than the input value.
+-}
 lowerBound :: a -> LowerBound a
 lowerBound a = LowerBound (Finite a) True
 
 {-# INLINABLE upperBound #-}
+{- |  Construct an upper bound from a value.
+
+The resulting bound includes all values that are equal or smaller than the input value.
+-}
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
 
@@ -197,33 +217,39 @@ instance Eq a => Eq (Interval a) where
 
 {-# INLINABLE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal to @a@
--- and smaller than or equal to @b@. Therefore it includes @a@ and @b@.
+-- and smaller than or equal to @b@. Therefore it includes @a@ and @b@. In math. notation: [a,b]
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
 
 {-# INLINABLE singleton #-}
+-- | Create an interval that includes just a single concrete point @a@,
+-- i.e. having the same non-strict lower and upper bounds. In math.notation: [a,a]
 singleton :: a -> Interval a
 singleton s = interval s s
 
 {-# INLINABLE from #-}
 -- | @from a@ is an 'Interval' that includes all values that are
---  greater than or equal to @a@.
+--  greater than or equal to @a@. In math. notation: [a,+∞]
 from :: a -> Interval a
 from s = Interval (lowerBound s) (UpperBound PosInf True)
 
 {-# INLINABLE to #-}
 -- | @to a@ is an 'Interval' that includes all values that are
---  smaller than or equal to @a@.
+--  smaller than or equal to @a@. In math. notation: [-∞,a]
 to :: a -> Interval a
 to s = Interval (LowerBound NegInf True) (upperBound s)
 
 {-# INLINABLE always #-}
--- | An 'Interval' that covers every slot.
+-- | An 'Interval' that covers every slot. In math. notation [-∞,+∞]
 always :: Interval a
 always = Interval (LowerBound NegInf True) (UpperBound PosInf True)
 
 {-# INLINABLE never #-}
--- | An 'Interval' that is empty.
+{- | An 'Interval' that is empty.
+
+There can be many empty intervals, see `isEmpty`.
+The empty interval `never` is arbitrarily set to [+∞,-∞].
+-}
 never :: Interval a
 never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
 
@@ -250,14 +276,19 @@ hull :: Ord a => Interval a -> Interval a -> Interval a
 hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
 
 {-# INLINABLE contains #-}
--- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
---   @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
---   @member s a@.
+{- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
+@a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
+@member s a@.
+-}
 contains :: Ord a => Interval a -> Interval a -> Bool
 contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 
 {-# INLINABLE isEmpty #-}
--- | Check if an 'Interval' is empty.
+{- | Check if an 'Interval' is empty.
+
+There can be many empty intervals, given a set of values.
+Two 'Interval's being empty does not imply that they are `Haskell.Eq`ual to each other.
+-}
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
     LT -> if openInterval then checkEnds v1 v2 else False
@@ -267,7 +298,7 @@ isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v
         openInterval = in1 == False && in2 == False
         -- | We check two finite ends to figure out if there are elements between them.
         -- If there are no elements then the interval is empty (#3467).
-        checkEnds (Finite v1') (Finite v2') = (succ v1') `compare` v2' == EQ
+        checkEnds (Finite v1') (Finite v2') = succ v1' == v2'
         checkEnds _ _                       = False
 
 {-# INLINABLE before #-}
@@ -276,6 +307,6 @@ before :: Ord a => a -> Interval a -> Bool
 before h (Interval f _) = lowerBound h < f
 
 {-# INLINABLE after #-}
--- | Check if a value is later than the end of a 'Interval'.
+-- | Check if a value is later than the end of an 'Interval'.
 after :: Ord a => a -> Interval a -> Bool
 after h (Interval _ t) = upperBound h > t

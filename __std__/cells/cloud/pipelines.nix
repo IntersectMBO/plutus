@@ -35,28 +35,33 @@ let
       };
     };
 
-  ciTasks = __mapAttrs
-    (_: flakeOutputTask: { ... }: {
-      imports = [ common flakeOutputTask ];
+  # The 'required' job masks everything else, which isn't helpful, so we rmeove it
+  # for cicero
+  ciTasks = builtins.removeAttrs
+    (__mapAttrs
+      (_: flakeOutputTask: { ... }: {
+        imports = [ common flakeOutputTask ];
 
-      memory = 1024 * 8;
-      nomad.resources.cpu = 10000;
-    })
-    (flakeOutputTasks [ system "automation" "ciJobs" ] {
-      # Replicate flake output structure here, so that the generated nix build
-      # commands reference the right output relative to the top-level of the flake.
-      outputs.${system}.automation.ciJobs = ciJobs;
-    });
+        memory = 1024 * 8;
+        nomad.resources.cpu = 10000;
+      })
+      (flakeOutputTasks [ system "automation" "ciJobs" ] {
+        # Replicate flake output structure here, so that the generated nix build
+        # commands reference the right output relative to the top-level of the flake.
+        outputs.${system}.automation.ciJobs = ciJobs;
+      })) [ "required" ];
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
 if system == "x86_64-linux" then
-  ciTasks // # for running tasks separately
+# including 'ciTasks' also seems to run into argument limits
   ciTasksSeq // # for running in an arbitrary sequence
   {
     "ci" = { lib, ... }: {
       imports = [ common ];
-      after = __attrNames ciTasksSeq;
+      # It would be simpler to just say it runs after _all_ the CI
+      # tasks, but we have so many tasks that it breaks max argument limits
+      after = [ (lib.last (__attrNames ciTasksSeq)) ];
     };
   }
 else { }

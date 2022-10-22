@@ -12,7 +12,7 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudge
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import Data.Foldable (asum)
+import Data.Foldable
 import Data.Functor (void)
 import Data.List (nub)
 import Data.List.Split (splitOn)

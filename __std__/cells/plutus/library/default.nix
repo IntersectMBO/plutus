@@ -1,6 +1,12 @@
 { inputs, cell }@block:
 {
+  make-plutus-project = import ./make-plutus-project.nix block;
+
+  make-plutus-shell = import ./make-plutus-shell.nix block;
+
   plutus-project = import ./plutus-project.nix block;
+
+  plutus-project-924 = import ./plutus-project-924.nix block;
 
   agda-project = import ./agda-project.nix block;
 

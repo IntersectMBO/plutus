@@ -15,7 +15,7 @@ repository cardano-haskell-packages
 -- Bump this if you need newer packages from Hackage
 index-state: 2022-09-26T00:00:00Z
 -- Bump this if you need newer packages from CHaP
-index-state: cardano-haskell-packages 2022-10-10T00:00:00Z
+index-state: cardano-haskell-packages 2022-10-15T00:00:00Z
 
 packages: doc
           plutus-benchmark
@@ -41,9 +41,25 @@ benchmarks: true
 -- 'tasty' output.
 test-show-details: direct
 
-package plutus-core
-  flags: +with-inline-r
+if (impl (ghc >= 9))
+  -- The plugin doesn't support the 'ghc' library for GHC 9+ yet.
+  -- in order to avoid getting the solver confused, we can just use
+  -- the stub in this case until we get it working properly.
+  package plutus-tx-plugin
+    flags: +use-ghc-stub
+else
+  -- inline-r doesn't (yet) build on 9.2.4, so only turn it on before that
+  package plutus-core
+    flags: +with-inline-r
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
+
+-- An older version of this package might not generate GEq instances.
+-- See https://github.com/obsidiansystems/dependent-sum/issues/72
+-- TODO: is there some way we can get this into the cabal files given
+-- that we don't depend on it explicitly? Maybe we can add an unused
+-- dependency but turn off the warning?
+constraints:
+  dependent-sum >= 0.7.1.0,

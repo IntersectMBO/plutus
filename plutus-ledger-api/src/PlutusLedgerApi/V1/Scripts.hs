@@ -45,6 +45,8 @@ The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
   have to import `BuiltinData` which is from a different package.
 -}
 
+-- | A higher-level evaluation error.
+-- FIXME: move to /plutus-apps/.
 data ScriptError =
     EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
     | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)

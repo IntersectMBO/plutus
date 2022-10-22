@@ -30,7 +30,7 @@ import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyE
                verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
-import Data.ByteString.Lazy qualified as BS (toStrict)
+import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
 import Data.Text (Text)
@@ -1341,7 +1341,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramEqualsData)
     toBuiltinMeaning _ver SerialiseData =
         makeBuiltinMeaning
-            (BS.toStrict . serialise @Data)
+            (BSL.toStrict . serialise @Data)
             (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
     toBuiltinMeaning _ver MkPairData =

@@ -16,13 +16,16 @@ import Data.Map as Map
 import Data.Text qualified as Text
 import GHC.Generics
 
-{-| A valid parameter name has to be enumeration, bounded, ordered, and
-prettyprintable in a "lowerKebab" way.
+{-| A parameter name for different plutus versions.
 
-Each API version should expose such an enumeration as an ADT and create
-an instance of ParamName out of it.
+Each Plutus version should expose such an enumeration as an ADT and create
+an instance of 'ParamName' out of it.
+
+A valid parameter name has to be enumeration, bounded, ordered, and
+prettyprintable to a \"lower-Kebab\" string.
 -}
 class IsParamName a where
+   -- | Take the raw textual form for a given typed-by-plutus-version cost model parameter
    showParamName :: a -> String
 
 -- | A Generic wrapper for use with deriving via
@@ -85,7 +88,7 @@ tagWithParamNames ledgerParams =
             -- See Note [Cost model parameters from the ledger's point of view]
             throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
 
--- | Essentially untag the association of param names to values
--- so that CostModelInterface can make use of it.
+-- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
+-- (internally used by CostModelInterface).
 toCostModelParams :: IsParamName k => [(k, Integer)] -> CostModelParams
 toCostModelParams = Map.fromList . fmap (first $ Text.pack . showParamName)

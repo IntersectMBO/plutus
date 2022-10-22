@@ -129,6 +129,10 @@ asBase16 bs = Text.concat ["0x", encodeByteString bs]
 quoted :: Text -> Text
 quoted s = Text.concat ["\"", s, "\""]
 
+{- | Turn a TokenName to a hex-encoded 'String'
+
+Compared to `show` , it will not surround the string with double-quotes.
+-}
 toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
@@ -153,6 +157,7 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
 {-# INLINABLE assetClass #-}
+-- | The curried version of 'AssetClass' constructor
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
