@@ -15,47 +15,17 @@ Proposed
 
 In order to have a minimal viable product of a debugger for Plutus, we need a CEK machine that will give us more information for debugging than our current one.
 
-Implementing the steppable CEK machine is a non-trivial task and involves some design decisions:
+In order to provide debugging information for each evaluation step, we need a steppable CEK machine. Implementing the steppable CEK machine is a non-trivial task and involves some design decisions. One decision to make is about whether we can share the code between the production and the debugging machine. That is not the scope of this ADR. See the next ADR for that.
 
-- should the debugging machine be a separate one?
-- should we modify the existing CEK machine to support stepping, or implement something entirely new?
-- how do we ensure performance and conformance?
+This ADR proposes a design for an implementation of a steppable CEK machine. Of course, this doesn't mean that this is the final decision. This means that the next step for us is to prototype the machine in this way - which we have reasons to believe will go well. We may adjust our proposed approach depending on how the prototyping goes.
 
-## Decision: A separate machine
-
-We came to the conclusion that the debugging machine should be a separate one. The main reason is that we don't want to slow down the production machine.
-
-## Argument: A separate machine
-
-The debugging machine will give the most accurate information if it was the one in production. However, the drawback of that is that we have to care about its performance.
-
-We only care about performance if the steppable CEK machine will *replace* the production machine instead of being a separate one.
-
-Our current CEK machine's performance is sensitive to changes. For example, exporting the `computeCek` function from the module causes the CEK machine to become slower by up to 25%. Refactoring the machine in preparation for the stepper also shows significant slow downs. See [PR#4909](https://github.com/input-output-hk/plutus/pull/4909). We have enough evidence to show that replacing the machine without slow downs is impossible.
-
-We consciously chose to keep up the production CEK machine's performance by adding a separate machine for debugging. We will mitigate the drawback of this by keeping the implementation as close to the production machine as possible.
-
-## Alternative: polymorphic compute/return steps
-
-This approach has been suggested to potentially not introduce slow downs while not having a separate debugging CEK machine.
-
-As long as the debugging machine has the same type, we can alter `computeCek`/`returnCek` to be polymorphic over a type-level `Bool` specifying if we’re in debug mode or not. Then we demote it to the term level in the definition of `computeCek`/`returnCek` and branch on the `Bool` thus implementing different logic depending on whether we're in debug mode or not. This promotion to the type level allows us to statically instantiate the `Bool` in an instance and thus make GHC compile the whole worker of the CEK machine twice: once in debug mode and once in production mode. Theoretically, GHC will take care to remove all the dead debug code when in production mode.
-
-We currently decide to not take this approach because:
-
-- It's not clear whether we can implement it this way. Implementing a separate machine is simpler.
-- Some slowdown may still happen due to GHC optimizations being very unreliable.
-- It's difficult to detect slow downs due to this as we add more builtin functions.
-
-If the separate machine turns out to not provide correct debugging information, we may revisit this option again.
-
-## Decision: implementing it as a coroutine system
+## Decision
 
 This section describes the proposed implementation of the debugging machine.
 
-We first abstracts out the computation to "steps" on our current machine. We then implement a coroutine system to add the debugging functionalities.
+We first **abstracts out the computation to "steps"** on our current machine. We then **implement a coroutine system** to add the debugging functionalities.
 
-### Abstracting our the computation to "steps"
+### Abstracting out the computation to "steps"
 
 This abstraction has been implemented in [PR#4909](https://github.com/input-output-hk/plutus/pull/4909/).
 
@@ -102,31 +72,6 @@ continue (Returning !unbudgetedSteps ctx val) = do
 continue (Terminating term) = pure term
 ```
 
-### Alternative: use CPS
-
-This approach has been suggested to improve the performance of the debugging machine. The abstraction proposed above does not have good performance. To improve performance, we need to get rid of the creation of the state objects. This is because GHC probably doesn't have the capability to eliminate those, because the place where they're destructed is too far from where they're constructed. That means that instead we probably need to do something with continuations:
-
-```haskell
-{-# INLINE computeStep #-}
-computeStep :: (... -> r) -> .... -> r
-computeStep k =
-  go ...
-    -- instead of Computing $ ...
-    k ...
-```
-
-So `computeStep` gets inlined, as before, at which point we hopefully know `k`, so GHC can optimize it properly. Except it's going to be more complicated than that because:
-
-1. We need to pass continuations for all the different cases, so three of them.
-2. The continuations are recursive with the main function! It's not clear how to make it work nicely.
-
-We currently aren't taking this approach because:
-
-- The performance of the debugging machine is not a main concern.
-- It's unclear how to make some parts work nicely.
-
-If we find out that the debugging machine is too slow, we may want to revisit this approach again.
-
 ### Coroutines in Haskell
 
 The next step is to add debugging capabilities between each step. To do so, we implement it as a *coroutine system*. A detailed introduction to coroutines in Haskell can be found in [Coroutine Pipelines](https://themonadreader.files.wordpress.com/2011/10/issue19.pdf).
@@ -164,7 +109,7 @@ Multiple suspension functors and computations can be composed using [coproducts]
 
 The base monad `m` is the monad the machine computation runs in.
 The machine computation interprets each request into an `m` action.
-It is essentially a natural transformation from the suspension functor to `m`. This `m` will replace our current monad `CekM`.
+It is essentially a natural transformation from the suspension functor to `m`. This `m` will replace our current monad `CekM`. Although we can actually just use `CekM` in the steppable CEK machine when we add `IO` capabilities for debugging. This is because we can convert it to/from `IO` via `unsafeSTToIO` and `unsafeIOToST`.
 
 Suppose we define a type `SteppableCekM a` as our base monad `m`.
 Then the machine computation can be implemented as the following request handler function:
@@ -226,10 +171,19 @@ enterDebug termToDebug = do
   ...
 ```
 
+### Argument: coroutine system
+
+Why a coroutine system? In short, structuring the code this way will ease our future work. Some of the advantages are mentioned above already. Here is a summary:
+
+- The debugger is naturally a coroutine, where one routine is the user and the other is the CEK machine, and they take turns to suspend and pass data and control to each other in a debugging session. The literature has contributed a good way to design/implement a coroutine. It makes sense to implement a well studied design.
+- We can probably reuse the same monad (`CekM`) in the steppable CEK machine, because we can convert it to/from `IO` via `unsafeSTToIO` and `unsafeIOToST`.
+- It should be easier when we add more functionalities because multiple suspension functors and computations can be composed using [coproducts](https://www.cambridge.org/core/services/aop-cambridge-core/content/view/14416CB20C4637164EA9F77097909409/S0956796808006758a.pdf/data-types-a-la-carte.pdf).
+- This should also play nicely when we implement Debug Adapter Protocol for the debugger later on.
+
 ## Implications
 
-In summary, we proposed to add a separate CEK machine for debugging. We will implement it as a coroutine system with "steps". This implies that:
+In summary, we proposed to implement the debugging machine as a coroutine system with "steps". This implies that:
 
-- We have to maintain two separate CEK machines. E.g., we need to check conformance of both machines.
+- We have to maintain the CEK machine. E.g., we need to check its conformance.
 - We will add a debugger for our users. We can give users more information at each evaluation step.
 - We will need to write some tests to ensure that the debugging machine continuously output reasonable information.
