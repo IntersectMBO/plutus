@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module PlutusCore.Generators.Internal.Builtin (
+module PlutusCore.Generators.Hedgehog.Builtin (
     GenTypedTerm (..),
     GenArbitraryTerm (..),
     genConstant,
@@ -22,7 +22,7 @@ module PlutusCore.Generators.Internal.Builtin (
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
-import PlutusCore.Generators.AST hiding (genConstant)
+import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
 
 import Data.ByteString qualified as BS
 import Data.Int (Int64)

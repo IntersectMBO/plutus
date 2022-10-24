@@ -10,8 +10,8 @@ import PlutusCore
 import PlutusCore.Check.Normal qualified as Normal
 import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.Check.Value qualified as VR
-import PlutusCore.Generators
-import PlutusCore.Generators.AST
+import PlutusCore.Generators.Hedgehog
+import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 
 import Control.Monad.Except

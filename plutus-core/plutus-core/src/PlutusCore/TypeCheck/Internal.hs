@@ -369,7 +369,7 @@ inferKindM (TyForall ann n k body) = do
 -- [infer| G !- ifix pat arg :: *]
 inferKindM (TyIFix ann pat arg)    = do
     k <- inferKindM arg
-    checkKindOfPatternFunctorM ann pat k
+    checkKindM ann pat $ toPatFuncKind k
     pure $ Type ()
 
 -- | Check a 'Type' against a 'Kind'.
@@ -383,16 +383,6 @@ checkKindM
 checkKindM ann ty k = do
     tyK <- inferKindM ty
     when (tyK /= k) $ throwing _TypeError (KindMismatch ann (void ty) k tyK)
-
--- | Check that the kind of a pattern functor is @(k -> *) -> k -> *@.
-checkKindOfPatternFunctorM
-    :: (MonadKindCheck err term uni fun ann m, HasKindCheckConfig cfg)
-    => ann
-    -> Type TyName uni ann  -- ^ A pattern functor.
-    -> Kind ()              -- ^ @k@.
-    -> TypeCheckT uni fun cfg m ()
-checkKindOfPatternFunctorM ann pat k =
-    checkKindM ann pat $ KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
 
 -- ###################
 -- ## Type checking ##
@@ -494,7 +484,7 @@ inferTypeM (TyInst ann body ty) = do
 -- [infer| G !- iwrap pat arg term : ifix vPat vArg]
 inferTypeM (IWrap ann pat arg term) = do
     k <- inferKindM arg
-    checkKindOfPatternFunctorM ann pat k
+    checkKindM ann pat $ toPatFuncKind k
     vPat <- normalizeTypeM $ void pat
     vArg <- normalizeTypeM $ void arg
     checkTypeM ann term =<< unfoldIFixOf vPat vArg k

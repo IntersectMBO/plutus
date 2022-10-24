@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE RankNTypes #-}
 
-module PlutusCore.Generators.Internal.Utils
+module PlutusCore.Generators.Hedgehog.Utils
     ( liftT
     , generalizeT
     , hoistSupply

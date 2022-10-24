@@ -146,6 +146,7 @@ library
     PlutusIR
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Compiler
+    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
     PlutusIR.Core
@@ -233,6 +234,7 @@ library
     PlutusCore.Pretty.Classic
     PlutusCore.Pretty.ConfigName
     PlutusCore.Pretty.Default
+    PlutusCore.Pretty.Extra
     PlutusCore.Pretty.Plc
     PlutusCore.Pretty.PrettyConst
     PlutusCore.Pretty.Readable
@@ -241,7 +243,6 @@ library
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
-    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
@@ -342,41 +343,54 @@ library plutus-core-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusCore.Generators
-    PlutusCore.Generators.AST
-    PlutusCore.Generators.Interesting
+    PlutusCore.Generators.Hedgehog
+    PlutusCore.Generators.Hedgehog.AST
+    PlutusCore.Generators.Hedgehog.Builtin
+    PlutusCore.Generators.Hedgehog.Denotation
+    PlutusCore.Generators.Hedgehog.Entity
+    PlutusCore.Generators.Hedgehog.Interesting
+    PlutusCore.Generators.Hedgehog.Test
+    PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+    PlutusCore.Generators.Hedgehog.TypeEvalCheck
+    PlutusCore.Generators.Hedgehog.Utils
     PlutusCore.Generators.NEAT.Common
     PlutusCore.Generators.NEAT.Spec
     PlutusCore.Generators.NEAT.Term
     PlutusCore.Generators.NEAT.Type
-    PlutusCore.Generators.Test
+    PlutusCore.Generators.QuickCheck
+    PlutusCore.Generators.QuickCheck.Builtin
+    PlutusCore.Generators.QuickCheck.Common
+    PlutusCore.Generators.QuickCheck.GenerateKinds
+    PlutusCore.Generators.QuickCheck.GenerateTypes
+    PlutusCore.Generators.QuickCheck.GenTm
+    PlutusCore.Generators.QuickCheck.ShrinkTypes
+    PlutusCore.Generators.QuickCheck.Substitutions
+    PlutusCore.Generators.QuickCheck.Unification
+    PlutusCore.Generators.QuickCheck.Utils
     PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Test
     Test.Tasty.Extras
 
-  other-modules:
-    PlutusCore.Generators.Internal.Builtin
-    PlutusCore.Generators.Internal.Denotation
-    PlutusCore.Generators.Internal.Entity
-    PlutusCore.Generators.Internal.TypedBuiltinGen
-    PlutusCore.Generators.Internal.TypeEvalCheck
-    PlutusCore.Generators.Internal.Utils
-
   build-depends:
-    , base            >=4.9     && <5
+    , base                        >=4.9     && <5
     , bifunctors
     , bytestring
     , containers
-    , dependent-map   >=0.4.0.0
+    , data-default-class
+    , dependent-map               >=0.4.0.0
     , filepath
-    , hedgehog        >=1.0
+    , hedgehog                    >=1.0
     , lazy-search
     , lens
     , mmorph
     , mtl
-    , plutus-core     ^>=1.1
-    , prettyprinter   >=1.1.0.1
+    , multiset
+    , plutus-core                 ^>=1.1
+    , prettyprinter               >=1.1.0.1
+    , prettyprinter-configurable
+    , QuickCheck
+    , quickcheck-transformer
     , size-based
     , Stream
     , tagged
@@ -452,6 +466,9 @@ test-suite plutus-ir-test
   main-is:        Spec.hs
   hs-source-dirs: plutus-ir/test
   other-modules:
+    GeneratorSpec
+    GeneratorSpec.Substitution
+    GeneratorSpec.Types
     NamesSpec
     ParserSpec
     TransformSpec
@@ -459,13 +476,17 @@ test-suite plutus-ir-test
 
   build-depends:
     , base                 >=4.9 && <5
+    , containers
     , flat
     , hedgehog
+    , lens
     , megaparsec
     , plutus-core          ^>=1.1
     , plutus-core-testlib  ^>=1.1
+    , QuickCheck
     , tasty
     , tasty-hedgehog
+    , tasty-quickcheck
     , text
 
 test-suite untyped-plutus-core-test

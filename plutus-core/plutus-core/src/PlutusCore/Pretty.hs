@@ -62,6 +62,7 @@ module PlutusCore.Pretty
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.ConfigName
 import PlutusCore.Pretty.Default
+import PlutusCore.Pretty.Extra ()
 import PlutusCore.Pretty.Plc
 import PlutusCore.Pretty.PrettyConst
 import PlutusCore.Pretty.Readable

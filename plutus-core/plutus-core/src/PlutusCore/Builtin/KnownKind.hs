@@ -10,8 +10,11 @@ module PlutusCore.Builtin.KnownKind where
 import PlutusCore.Core
 
 import Data.Kind as GHC
+import Data.Proxy
 import GHC.Types
 import Universe
+
+infixr 5 `SingKindArrow`
 
 -- | The type of singletonized Haskell kinds representing Plutus kinds.
 -- Indexing by a Haskell kind allows us to avoid an 'error' call in the 'ToKind' instance of
@@ -30,6 +33,13 @@ instance rep ~ LiftedRep => KnownKind (TYPE rep) where
 
 instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
     knownKind = SingKindArrow (knownKind @dom) (knownKind @cod)
+
+withKnownKind :: Kind ann -> (forall k. KnownKind k => Proxy k -> r) -> r
+withKnownKind (Type _) k = k $ Proxy @GHC.Type
+withKnownKind (KindArrow _ dom cod) k =
+    withKnownKind dom $ \(_ :: Proxy dom) ->
+        withKnownKind cod $ \(_ :: Proxy cod) ->
+            k $ Proxy @(dom -> cod)
 
 -- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
 -- producing them directly or by parsing/decoding them and in both the cases we have access to the

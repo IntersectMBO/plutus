@@ -21,7 +21,7 @@ import PlutusCore
 import PlutusCore.Compiler.Erase
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek

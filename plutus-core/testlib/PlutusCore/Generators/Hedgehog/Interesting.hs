@@ -6,7 +6,7 @@
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module PlutusCore.Generators.Interesting
+module PlutusCore.Generators.Hedgehog.Interesting
     ( TermGen
     , TermOf(..)
     , genOverapplication
@@ -20,6 +20,10 @@ module PlutusCore.Generators.Interesting
     , genIfIntegers
     , fromInterestingTermGens
     ) where
+
+import PlutusCore.Generators.Hedgehog.Denotation
+import PlutusCore.Generators.Hedgehog.Entity
+import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
 
 import PlutusCore.Builtin
 import PlutusCore.Core
@@ -36,8 +40,6 @@ import PlutusCore.StdLib.Data.ScottList as ScottList
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Type
-
-import PlutusCore.Generators
 
 import Data.List (genericIndex)
 import Hedgehog hiding (Size, Var)

@@ -20,9 +20,9 @@ import PlutusCore.Error (AsUniqueError, ParserErrorBundle (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Generators qualified as Gen
-import PlutusCore.Generators.Interesting qualified as Gen
-import PlutusCore.Generators.Test qualified as Gen
+import PlutusCore.Generators.Hedgehog qualified as Gen
+import PlutusCore.Generators.Hedgehog.Interesting qualified as Gen
+import PlutusCore.Generators.Hedgehog.Test qualified as Gen
 import PlutusCore.Normalize (normalizeType)
 import PlutusCore.Parser qualified as PLC (program)
 import PlutusCore.Pretty qualified as PP

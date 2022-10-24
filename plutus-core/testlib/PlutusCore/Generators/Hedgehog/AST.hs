@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusCore.Generators.AST
+module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
     , AstGen
     , runAstGen

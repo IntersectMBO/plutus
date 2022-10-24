@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PatternSynonyms          #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
@@ -12,8 +13,14 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
+-- We rely on things from this module being lazy (e.g. the PIR generators rely on types being lazy),
+-- so don't use @StrictData@ in this module.
+
 module PlutusCore.Core.Type
     ( Kind (..)
+    , toPatFuncKind
+    , fromPatFuncKind
+    , argsFunKind
     , Type (..)
     , Term (..)
     , Version (..)
@@ -63,6 +70,23 @@ data Kind ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving stock (Eq, Show, Functor, Generic, Lift)
     deriving anyclass (NFData, Hashable)
+
+-- | The kind of a pattern functor (the first 'Type' argument of 'TyIFix') at a given kind (of the
+-- second 'Type' argument of 'TyIFix'):
+--
+-- > toPatFuncKind k = (k -> *) -> k -> *
+toPatFuncKind :: Kind () -> Kind ()
+toPatFuncKind k = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+
+fromPatFuncKind :: Kind () -> Maybe (Kind ())
+fromPatFuncKind (KindArrow () (KindArrow () k1 (Type ())) (KindArrow () k2 (Type ())))
+    | k1 == k2 = Just k1
+fromPatFuncKind _ = Nothing
+
+-- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
+argsFunKind :: Kind ann -> [Kind ann]
+argsFunKind Type{}            = []
+argsFunKind (KindArrow _ k l) = k : argsFunKind l
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
