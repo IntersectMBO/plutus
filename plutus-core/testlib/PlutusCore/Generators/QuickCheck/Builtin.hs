@@ -11,6 +11,7 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data
+import PlutusCore.Generators.QuickCheck.Common (genList, recursive)
 
 import Data.ByteString (ByteString)
 import Data.Coerce
@@ -21,11 +22,23 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Word
 import Test.QuickCheck
+import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary Data where
-    arbitrary = error "implement me"
-    shrink = error "implement me"
+    arbitrary =
+        recursive
+            oneof
+            [ I <$> arbitraryBuiltin
+            , B <$> arbitraryBuiltin
+            ]
+            [ Constr <$> (fromIntegral <$> arbitrary @Word64) <*> genList 0 5 arbitrary
+            , List <$> genList 0 5 arbitrary
+            , Map <$> genList 0 5 ((,) <$> arbitrary <*> arbitrary)
+            ]
+
+    shrink = genericShrink
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
 -- the default implementation of the methods for a built-in type.

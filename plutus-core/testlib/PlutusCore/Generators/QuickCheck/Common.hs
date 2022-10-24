@@ -19,6 +19,8 @@ import Data.Bifunctor
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import GHC.Stack
+import Test.QuickCheck.Gen (Gen)
+import Test.QuickCheck.Gen qualified as Gen
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
 import Text.Pretty
@@ -67,3 +69,33 @@ checkKind ctx ty kExp =
         ]
   where
     kInf = inferKind ctx ty
+
+-- | QuickCheck's version of @Hedgehog.Internal.Gen.golden@.
+golden :: Int -> Int
+golden x = round @Double (fromIntegral x * 0.61803398875)
+
+-- | QuickCheck's version of @Hedgehog.Internal.Gen.recursive@.
+recursive :: ([Gen a] -> Gen a) -> [Gen a] -> [Gen a] -> Gen a
+recursive f nonrec rec = Gen.sized $ \n ->
+    if n <= 1
+        then f nonrec
+        else f $ nonrec ++ fmap (Gen.scale golden) rec
+
+-- | Generate a list with the given minimum and maximum lengths.
+-- It is similar to @Hedgehog.Internal.Gen.list@.
+--
+-- Note that @genList 0 n gen@ behaves differently than @resize n (listOf gen)@, because
+--
+-- @
+--    resize m (genList 0 n gen) = genList 0 n (resize m gen)
+-- @
+--
+-- whereas
+--
+-- @
+--    resize m (resize n (listOf gen)) = resize n (listOf gen)
+-- @
+genList :: Int -> Int -> Gen a -> Gen [a]
+genList lb ub gen = do
+    len <- Gen.chooseInt (lb, ub)
+    Gen.vectorOf len gen
