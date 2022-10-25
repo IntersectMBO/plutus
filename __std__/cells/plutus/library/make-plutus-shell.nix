@@ -15,11 +15,6 @@ inputs.std.lib.dev.mkShell {
 
   commands = [
     {
-      package = cell.packages.check-the-flake;
-      category = "general commands";
-      help = "For nix maintainers: build everything in the flake";
-    }
-    {
       package = cell.packages.fix-png-optimization;
       category = "general commands";
       help = "Fix all PNG files in-place";
@@ -107,6 +102,11 @@ inputs.std.lib.dev.mkShell {
       package = inputs.tullia.packages.${pkgs.system}.tullia;
       category = "nix";
       help = "Tools for working with CI tasks";
+    }
+    {
+      package = cell.packages.check-the-flake;
+      category = "nix";
+      help = "For nix maintainers: build everything in the flake";
     }
   ];
 
