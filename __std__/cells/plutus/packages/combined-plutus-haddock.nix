@@ -1,5 +1,3 @@
-# editorconfig-checker-disable-file 
-
 { inputs, cell }:
 
 let
@@ -28,10 +26,9 @@ cell.library.combine-haddock {
         * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
         * "Plutus.Contract": Writing Plutus apps (off-chain code).
         * "Ledger.Constraints": Constructing and validating Plutus
-           transactions. Built on "PlutusTx" and
-           "Plutus.Contract".
+          transactions. Built on "PlutusTx" and "Plutus.Contract".
         * "Ledger.Typed.Scripts": A type-safe interface for spending and
-           producing script outputs. Built on "PlutusTx".
+          producing script outputs. Built on "PlutusTx".
         * "Plutus.Trace.Emulator": Testing Plutus contracts in the emulator.
     '';
   };

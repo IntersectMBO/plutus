@@ -13,17 +13,15 @@ pkgs.stdenv.mkDerivation {
 
   buildInputs = [
     cell.packages.sphinx-toolchain
+    # We need this here in order to get the `plantuml` executable in PATH.
+    # Unfortunately `python3.withPackages` (used by cell.packages.sphinx-toolchain above)
+    # won't do it automatically.
+    pkgs.python3Packages.sphinxcontrib_plantuml
   ];
 
   dontInstall = true;
 
   buildPhase = ''
-    # FIXME
-    # https://input-output.atlassian.net/browse/PLT-789
-    # https://hydra.iohk.io/build/18701775/nixlog/1
-    mkdir -p $out
-    exit 0
-
     cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
     SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out

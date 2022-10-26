@@ -27,12 +27,6 @@ cell.library.pkgs.runCommand "combine-haddock"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
-  # FIXME
-  # https://input-output.atlassian.net/browse/PLT-789
-  # https://hydra.iohk.io/build/18701775/nixlog/1
-  mkdir -p $out/share/doc
-  exit 0
-
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
 
   # Merge all the docs from the packages and their doc dependencies.
