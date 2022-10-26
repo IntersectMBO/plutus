@@ -45,10 +45,8 @@ for writing Haskell code that can be compiled to Plutus Core.
 .. toctree::
    :caption: Architectural decision records
    :maxdepth: 1
-   :titlesonly:
 
-   0001-record-architecture-decisions
-   0002-steppable-cek-machine
+   adr/index
 
 .. toctree::
    :caption: Reference
