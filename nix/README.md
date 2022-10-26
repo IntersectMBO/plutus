@@ -40,9 +40,9 @@ A description of the arguments follows:
   Provides access to the cell's blocks.\
   This is a shorthand for `inputs.cells.<cell>.<cell-block>`, where `<cell>` evaluates to the cell housing this nix file.\
   Examples:
-  - `cell.library.agda-packages` only works for code in `/cells/plutus`\
+  - `cell.library.agda-packages` only works for code in `./nix/cells/plutus`\
     Alternatively `inputs.cells.plutus.library.agda-packages` works everywhere
-  - `cell.packages.hlint` only works for code in `/cells/plutus`\
+  - `cell.packages.hlint` only works for code in `./nix/cells/plutus`\
     Alternatively `inputs.cells.plutus.packages.hlint` works everywhere
 
 ## One derivation per nix file
@@ -83,14 +83,14 @@ As an example, consider the file `./nix/cells/plutus/packages/eutxo-paper.nix`:
 
 - `./nix/cells` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
-- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
+- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `./nix/cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
 - `/packages` is the cell block name
-- `/packages/*` are accessible via `cell.packages.*` (while inside `cells/plutus`)
+- `/packages/*` are accessible via `cell.packages.*` (while inside `./nix/cells/plutus`)
 - `/packages/*` are accessible via `inputs.cells.plutus.packages.*` (everywhere)
 - `/eutxo-paper.nix` contains a *single derivation*
 - `eutxo-paper` is the name of the flake fragment
-- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `cells/plutus`)
+- A derivation named `eutxo-paper` is accessible via `cell.packages.eutxo-paper` (while inside `./nix/cells/plutus`)
 - And also accessible via `inputs.cells.plutus.packages.eutxo-paper` (everywhere)
 - And also buildable via `nix build .#eutxo-paper`
 
@@ -98,20 +98,11 @@ As another example, consider the file `./nix/cells/plutus/library/default.nix`
 
 - `./nix/cells` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
-- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
+- `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `./nix/cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
 - `/library` is the cell block name
-- `/library/*` are accessible via `cell.library.*` (while inside `cells/plutus`)
+- `/library/*` are accessible via `cell.library.*` (while inside `./nix/cells/plutus`)
 - `/library/*` are accessible via `inputs.cells.library.devshellCommands.*` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
 - Each attrs field in `/default.nix` is named after the file it imports (minus the `.nix`)
-
-
-## Migration Checklist 
-
-Migration to `std` will be 100% complete once all these are done:
-
-
-- Do all remaining `TODO(std)`s 
-- Check CONTRIBUTING.adoc for references to old nix files
