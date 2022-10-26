@@ -369,6 +369,8 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Utils
     PlutusCore.Test
     PlutusIR.Generators.AST
+    PlutusIR.Generators.QuickCheck
+    PlutusIR.Generators.QuickCheck.GenerateTerms
     PlutusIR.Test
     Test.Tasty.Extras
 
@@ -481,6 +483,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , megaparsec
+    , mtl
     , plutus-core          ^>=1.1
     , plutus-core-testlib  ^>=1.1
     , QuickCheck
