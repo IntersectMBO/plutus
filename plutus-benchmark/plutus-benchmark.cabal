@@ -317,8 +317,8 @@ benchmark cek-calibration
   main-is:          Main.hs
   hs-source-dirs:   cek-calibration
 
-  -- Something weird causes this to sometimes report the plugin
-  -- package as unused...
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
   ghc-options:      -Wno-unused-packages
   build-depends:
     , base              >=4.9     && <5
