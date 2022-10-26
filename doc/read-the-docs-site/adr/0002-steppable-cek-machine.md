@@ -23,7 +23,7 @@ This ADR proposes a design for an implementation of a steppable CEK machine. Of 
 
 This section describes the proposed implementation of the debugging machine.
 
-We first **abstracts out the computation to "steps"** on our current machine. We then **implement a coroutine system** to add the debugging functionalities.
+We first **abstract out the computation to "steps"** on our current machine. We then **implement a coroutine system** to add the debugging functionalities.
 
 ### Abstracting out the computation to "steps"
 
