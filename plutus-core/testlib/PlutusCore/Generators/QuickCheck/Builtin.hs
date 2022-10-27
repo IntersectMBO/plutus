@@ -27,18 +27,45 @@ import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary Data where
-    arbitrary =
-        recursive
-            oneof
-            [ I <$> arbitraryBuiltin
-            , B <$> arbitraryBuiltin
-            ]
-            [ Constr <$> (fromIntegral <$> arbitrary @Word64) <*> genList 0 5 arbitrary
-            , List <$> genList 0 5 arbitrary
-            , Map <$> genList 0 5 ((,) <$> arbitrary <*> arbitrary)
-            ]
+    arbitrary = genData 5
 
     shrink = genericShrink
+
+genData :: Int -> Gen Data
+genData depth =
+    oneof $
+        [genI, genB]
+            <> [ genRec | depth > 1, genRec <-
+                                        [ genListData (depth - 1)
+                                        , genMapData (depth - 1)
+                                        , genConstrData (depth - 1)
+                                        ]
+               ]
+  where
+    genI = I <$> arbitraryBuiltin
+    genB = B <$> arbitraryBuiltin
+
+genListWithMaxDepth :: Int -> (Int -> Gen a) -> Gen [a]
+genListWithMaxDepth depth gen =
+    -- The longer the list, the smaller the elements.
+    frequency
+        [ (1, genList 0 5 (gen (depth - 1)))
+        , (1, genList 0 50 (gen (depth - 2)))
+        , (1, genList 0 500 (gen (depth - 3)))
+        ]
+
+genListData :: Int -> Gen Data
+genListData depth = List <$> genListWithMaxDepth depth genData
+
+genMapData :: Int -> Gen Data
+genMapData depth =
+    Map <$> genListWithMaxDepth depth (\d -> (,) <$> genData d <*> genData d)
+
+genConstrData :: Int -> Gen Data
+genConstrData depth =
+    Constr
+        <$> (fromIntegral <$> arbitrary @Word64)
+        <*> genListWithMaxDepth depth genData
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
 -- the default implementation of the methods for a built-in type.
