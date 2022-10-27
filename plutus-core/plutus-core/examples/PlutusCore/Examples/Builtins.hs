@@ -104,6 +104,7 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    | ScottToMetaUnit
     -- The next four are for testing that costing always precedes actual evaluation.
     | FailingSucc
     | ExpensiveSucc
@@ -259,6 +260,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (Prelude.id
                 :: afa ~ Opaque val (TyForallRep a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning _ver ScottToMetaUnit =
+        makeBuiltinMeaning
+            (mempty
+                -- @(->)@ switches from the Rep context to the Type one. We could make @(->)@
+                -- preserve the current context, but there's no such notion in the current
+                -- elaboration machinery and we'd better not complicate it further just for the sake
+                -- of tests looking a bit nicer. Instead we simply wrap the 'TyVarRep' with 'Opaque'
+                -- (unlike in the case of @IdRank2@ where 'TyAppRep' preserves the Rep context).
+                :: oa ~ Opaque val (TyVarRep a)
+                => Opaque val (TyForallRep a (oa -> oa)) -> ())
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning _ver FailingSucc =
