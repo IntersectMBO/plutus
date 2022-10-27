@@ -19,11 +19,11 @@ The minting policy is a function which receives these two inputs as *arguments*.
 The validating node is responsible for passing them in and running the minting policy.
 As with validator scripts, the arguments are passed encoded as :hsobj:`PlutusCore.Data.Data`.
 
-Plutus V1 and V2 script context
+Plutus script context versions
 ------------------------------------
 
 Minting policies have access to the :term:`script context` as their second argument.
-Plutus V1 and V2 minting policy scripts are differentiated only by their ``ScriptContext``. 
+Each version of Plutus minting policy scripts are differentiated only by their ``ScriptContext`` argument. 
 
    See this example from the file ``MustSpendScriptOutput.hs`` (lines 340 to 422) showing code addressing `Versioned Policies for both Plutus V1 and Plutus V2 <https://github.com/input-output-hk/plutus-apps/blob/05e394fb6188abbbe827ff8a51a24541a6386422/plutus-contract/test/Spec/TxConstraints/MustSpendScriptOutput.hs#L340-L422>`_. 
 

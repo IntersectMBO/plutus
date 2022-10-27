@@ -84,11 +84,11 @@ Here's an example that uses our date types to check whether the date which was p
    :start-after: BLOCK3
    :end-before: BLOCK4
 
-Plutus V1 and V2 script context
+Plutus script context versions
 ------------------------------------
 
 Validators have access to the :term:`script context` as their third argument.
-Plutus V1 and V2 Validators are differentiated only by their ``ScriptContext``. 
+Each version of Plutus validators are differentiated only by their ``ScriptContext`` argument. 
 
    See this example from the file ``MustSpendScriptOutput.hs`` (lines 340 to 422) showing code addressing `Versioned Policies for both Plutus V1 and Plutus V2 <https://github.com/input-output-hk/plutus-apps/blob/05e394fb6188abbbe827ff8a51a24541a6386422/plutus-contract/test/Spec/TxConstraints/MustSpendScriptOutput.hs#L340-L422>`_. 
 
