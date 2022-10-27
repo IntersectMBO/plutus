@@ -84,11 +84,13 @@ Here's an example that uses our date types to check whether the date which was p
    :start-after: BLOCK3
    :end-before: BLOCK4
 
-Using the script context
-------------------------
+Plutus V1 and V2 script context
+------------------------------------
 
 Validators have access to the :term:`script context` as their third argument.
-This will always be a value of type :hsobj:`PlutusLedgerApi.V1.Contexts.ScriptContext` encoded as ``Data``.
+Plutus V1 and V2 Validators are differentiated only by their ``ScriptContext``. 
+
+   See this example from the file ``MustSpendScriptOutput.hs`` (lines 340 to 422) showing code addressing `Versioned Policies for both Plutus V1 and Plutus V2 <https://github.com/input-output-hk/plutus-apps/blob/05e394fb6188abbbe827ff8a51a24541a6386422/plutus-contract/test/Spec/TxConstraints/MustSpendScriptOutput.hs#L340-L422>`_. 
 
 The script context gives validators a great deal of power, because it allows them to inspect other inputs and outputs of the current transaction.
 For example, here is a validator that will only accept the transaction if a particular payment is made as part of it.
