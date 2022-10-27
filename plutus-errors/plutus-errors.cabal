@@ -47,7 +47,7 @@ common lang
 library
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   exposed-modules:
@@ -70,7 +70,7 @@ library
 executable plutus-errors-next
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
@@ -84,7 +84,7 @@ executable plutus-errors-next
 executable plutus-errors-bootstrap
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
