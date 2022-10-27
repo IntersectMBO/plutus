@@ -12,7 +12,7 @@ import PlutusIR.Compiler.Datatype
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Subst
 
-import Data.Kind qualified as Kind
+import Data.Kind qualified as GHC
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -63,7 +63,7 @@ assertNoCounterexamples bad = ceDoc (prettyPirReadable bad) False
 -- they relate to each other.
 -- | A type is a container for the purposes of shrinking if it has:
 class Container f where
-  data OneHoleContext f :: Kind.Type -> Kind.Type
+  data OneHoleContext f :: GHC.Type -> GHC.Type
   -- ^ One hole context where we can shrink a single "element" of the container
   oneHoleContexts :: f a -> [(OneHoleContext f a, a)]
   -- ^ A way of getting all the one hole contexts of an `f a`
