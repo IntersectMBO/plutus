@@ -22,7 +22,9 @@ pkgs.stdenv.mkDerivation {
   dontInstall = true;
 
   buildPhase = ''
-    cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
+    # TODO(std) fix me after fixing combined-plutus-haddock
+    # cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
+    mkdir haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
     SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out
     cp -aR haddock $out
