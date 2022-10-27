@@ -21,9 +21,9 @@ One of the first decision we need to make is: should the debugging machine be a 
 
 There are tradeoffs between these two requirements. If we have a separate machine, the performance of the production machine will be untouched. But there is more scope for us to make mistakes with the new machine.
 
-But if we share code between the two machines, the performance of the production machine may be compromised.
+However, if we share code between the two machines, the performance of the production machine may be compromised.
 
-This ADR proposes approaches for the two machines to share code while not compromising performance.
+This ADR proposes an approach for the two machines to share code while not compromising performance.
 
 ## Decision: Polymorphic compute/return steps
 
@@ -46,50 +46,72 @@ data Closure uni fun =
   Closure (Term NamedDeBruijn uni fun ()) (CekValEnv uni fun)
 ```
 
-The computing step is abstracted out to `computeCekStep` with the following signature:
+We enter either modes via `enterComputeCek`, which takes an extra `Bool` than our current implementation, to indicate whether we are in debugging mode or not:
 
 ```haskell
-computeCekStep
+enterComputeCek 
     :: forall uni fun s
     . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun s)
-    => WordArray
+    => Bool
     -> Context uni fun
     -> Closure uni fun
     -> CekM uni fun s (CekState uni fun)
-```
-
-```haskell
-enterComputeCek :: forall uni fun . Bool -> (Term NamedDeBruijn uni fun ()) -> CekM uni fun s (CekState uni fun)
-enterComputeCek debug term = computeCekStep term where
+enterComputeCek debug ctx (Closure term env) =
+    computeCekStep (toWordArray 0) NoFrame (Closure term Env.empty) where
+    
+    computeCek
+        :: WordArray -- for costing
+        -> Context uni fun
+        -> Closure uni fun
+        -> CekM uni fun s (CekState uni fun)
     computeCek = if debug then computeCekDebug else computeCekStep
     {-# NOINLINE computeCek #-}  -- Making sure the `if` is only evaluated once.
 
+    -- in debugging mode, immediately returns the current `CekState` and halts execution. Debugging mode details to be worked out.
     computeCekDebug 
-        :: Term NamedDeBruijn uni fun ()
-        -- | The `SteppableCekM` is the monad for the debugging CEK machine. It may be just `CekM`.
-        -> SteppableCekM uni fun s (CekState uni fun) 
-    computeCekDebug term = do
-        -- `step` is the function to do a computation step. The first step is always computing the given term with an empty closure, nothing spent on the budget etc.
-        state <- step (Computing (toWordArray 0) NoFrame (Closure term Env.empty))
-        ...
-
-    computeCek
         :: WordArray
         -> Context uni fun
-        -> CekValEnv uni fun
-        -> Term NamedDeBruijn uni fun ()
-        -> CekM uni fun s (CekState uni fun) -- current return type is `CekM uni fun s (Term NamedDeBruijn uni fun ())`. Now the return type is `CekState` with the term wrapped in the `Terminating` constructor.
-    computeCekStep (Force _ body) = computeCek body -- same function as our current CEK except for the return type
+        -> Closure uni fun
+        -> CekM uni fun s (CekState uni fun) 
+    computeCekDebug budget ctx (Closure term env) = 
+        pure $ Computing budget ctx (Closure term env)
+
+    -- in production mode, recursively calls `computeCek`, and thus `computeCekStep`, similar to our current production machine.
+    computeCekStep 
+        :: WordArray
+        -> Context uni fun
+        -> Closure uni fun
+        -> CekM uni fun s (CekState uni fun) -- the return type is `CekState` instead of a term.
+    computeCekStep unbudgetedSteps ctx (Closure (Force _ body) env) = do -- exactly like in current prod
+        !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps -- update costs
+        computeCek unbudgetedSteps' (FrameForce ctx) (Closure body env) -- compute again with updated costs and ctx
+    <other_clauses>
+    
+    -- details of `forceEvaluate`, `applyEvaluate` etc to be worked out.
+
+    -- similarly for the returning step
+
+    returnCek = if debug then returnCekDebug else returnCekStep
+    {-# NOINLINE returnCek #-}
+    
+    returnCekDebug = ...
+
+    
+    returnCekStep 
+        :: forall uni fun s
+        . (PrettyUni uni fun, GivenCekReqs uni fun s)
+        => WordArray
+        -> Context uni fun
+        -> CekValue uni fun
+        -> CekM uni fun s (CekState uni fun) -- return a state instead of a term
+    returnCekStep !unbudgetedSteps NoFrame val = do
+    spendAccumulatedBudget unbudgetedSteps
+    pure $ Terminating $ dischargeCekValue val --wrap the term in the `Terminating` constructor when returning the term.
     <other_clauses>
 ```
 
 Because when we are not debugging, we are still using basically the same code as our current implementation, the performance should not be affected by much. (Given that the machine is tail-recursive, the additional wrapping of the returned term in the `Terminating` constructor will affect performance in a negligible way.)
 
-### Argument:
-
-
-
 ## Implications
 
-In summary, we proposed to share code between the production and debugging CEK machine using .... This implies that:
-
+This is a draft of an idea. There are further details to be worked out in a prototype. The implementor should use their own judgement.
