@@ -12,7 +12,7 @@ import {-# SOURCE #-} PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.PLCTypes
 
-import GhcPlugins qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

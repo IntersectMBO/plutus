@@ -27,9 +27,13 @@ import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
-import GhcPlugins qualified as GHC
-import OccurAnal qualified as GHC
-import Panic qualified as GHC
+import GHC.ByteCode.Types qualified as GHC
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Core.Opt.OccurAnal qualified as GHC
+import GHC.Core.Unfold qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
+import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
@@ -59,7 +63,6 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import ErrorCode (HasErrorCode (errorCode))
-import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -107,7 +110,7 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
       install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
       install args rest = do
           -- create simplifier pass to be placed at the front
-          simplPass <- mkSimplPass <$> GHC.getDynFlags
+          simplPass <- mkSimplPass <$> GHC.getDynFlags <*> GHC.getLogger
           -- instantiate our plugin pass
           pluginPass <- mkPluginPass <$> case parsePluginOptions args of
               Success opts -> pure opts
@@ -119,14 +122,18 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
              : rest
 
 -- | A simplifier pass, implemented by GHC
-mkSimplPass :: GHC.DynFlags -> GHC.CoreToDo
-mkSimplPass flags =
+mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
+mkSimplPass flags logger =
   -- See Note [Making sure unfoldings are present]
   GHC.CoreDoSimplify 1 $ GHC.SimplMode {
               GHC.sm_names = ["Ensure unfoldings are present"]
             , GHC.sm_phase = GHC.InitialPhase
+            , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
+            , GHC.sm_cast_swizzle = True
+            , GHC.sm_pre_inline = True
+            , GHC.sm_logger = logger
             -- You might think you would need this, but apparently not
             , GHC.sm_inline = False
             , GHC.sm_case_case = False
@@ -235,7 +242,7 @@ compileMarkedExprs expr = do
       GHC.Let bnd e -> GHC.Let <$> compileBind bnd <*> compileMarkedExprs e
       GHC.Case e b t alts -> do
             e' <- compileMarkedExprs e
-            let expAlt (a, bs, rhs) = (,,) a bs <$> compileMarkedExprs rhs
+            let expAlt (GHC.Alt a bs rhs) = GHC.Alt a bs <$> compileMarkedExprs rhs
             alts' <- mapM expAlt alts
             pure $ GHC.Case e' b t alts'
       GHC.Cast e c -> flip GHC.Cast c <$> compileMarkedExprs e
@@ -278,7 +285,7 @@ compileMarkedExpr locStr codeTy origE = do
     famEnvs <- asks pcFamEnvs
     opts <- asks pcOpts
     moduleName <- asks pcModuleName
-    let moduleNameStr = GHC.showSDocForUser flags GHC.alwaysQualify (GHC.ppr moduleName)
+    let moduleNameStr = GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
@@ -440,7 +447,7 @@ makeByteStringLiteral bs = do
     -- This technique gratefully borrowed from the file-embed package
 
     -- The flags here are so GHC can check whether the int is in range for the current platform.
-    let lenLit = GHC.mkIntExpr flags $ fromIntegral $ BS.length bs
+    let lenLit = GHC.mkIntExpr (GHC.targetPlatform flags) $ fromIntegral $ BS.length bs
     -- This will have type Addr#, which is right for unsafePackAddressLen
     let bsLit = GHC.Lit (GHC.LitString bs)
     let upaled = GHC.mkCoreApps (GHC.Var upal) [lenLit, bsLit]
@@ -467,4 +474,3 @@ makePrimitiveNameInfo names = do
         thing <- lift . lift $ GHC.lookupThing ghcName
         pure (name, thing)
     pure $ Map.fromList infos
-

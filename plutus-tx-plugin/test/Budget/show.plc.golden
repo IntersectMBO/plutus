@@ -896,7 +896,14 @@
                                 (abs
                                   dead
                                   (type)
-                                  [ { Cons (con string) } (con string "a") ]
+                                  (lam
+                                    ds
+                                    [ List (con string) ]
+                                    [
+                                      [ { Cons (con string) } (con string "a") ]
+                                      ds
+                                    ]
+                                  )
                                 )
                               ]
                               (abs
@@ -934,9 +941,17 @@
                                       (abs
                                         dead
                                         (type)
-                                        [
-                                          { Cons (con string) } (con string "b")
-                                        ]
+                                        (lam
+                                          ds
+                                          [ List (con string) ]
+                                          [
+                                            [
+                                              { Cons (con string) }
+                                              (con string "b")
+                                            ]
+                                            ds
+                                          ]
+                                        )
                                       )
                                     ]
                                     (abs
@@ -982,10 +997,17 @@
                                             (abs
                                               dead
                                               (type)
-                                              [
-                                                { Cons (con string) }
-                                                (con string "c")
-                                              ]
+                                              (lam
+                                                ds
+                                                [ List (con string) ]
+                                                [
+                                                  [
+                                                    { Cons (con string) }
+                                                    (con string "c")
+                                                  ]
+                                                  ds
+                                                ]
+                                              )
                                             )
                                           ]
                                           (abs
@@ -1033,10 +1055,17 @@
                                                   (abs
                                                     dead
                                                     (type)
-                                                    [
-                                                      { Cons (con string) }
-                                                      (con string "d")
-                                                    ]
+                                                    (lam
+                                                      ds
+                                                      [ List (con string) ]
+                                                      [
+                                                        [
+                                                          { Cons (con string) }
+                                                          (con string "d")
+                                                        ]
+                                                        ds
+                                                      ]
+                                                    )
                                                   )
                                                 ]
                                                 (abs
@@ -1092,12 +1121,22 @@
                                                         (abs
                                                           dead
                                                           (type)
-                                                          [
-                                                            {
-                                                              Cons (con string)
-                                                            }
-                                                            (con string "e")
-                                                          ]
+                                                          (lam
+                                                            ds
+                                                            [
+                                                              List (con string)
+                                                            ]
+                                                            [
+                                                              [
+                                                                {
+                                                                  Cons
+                                                                  (con string)
+                                                                }
+                                                                (con string "e")
+                                                              ]
+                                                              ds
+                                                            ]
+                                                          )
                                                         )
                                                       ]
                                                       (abs
@@ -1158,30 +1197,55 @@
                                                               (abs
                                                                 dead
                                                                 (type)
-                                                                [
-                                                                  {
-                                                                    Cons
+                                                                (lam
+                                                                  ds
+                                                                  [
+                                                                    List
                                                                     (con string)
-                                                                  }
-                                                                  (con
-                                                                    string "f"
-                                                                  )
-                                                                ]
+                                                                  ]
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        Cons
+                                                                        (con
+                                                                          string
+                                                                        )
+                                                                      }
+                                                                      (con
+                                                                        string
+                                                                        "f"
+                                                                      )
+                                                                    ]
+                                                                    ds
+                                                                  ]
+                                                                )
                                                               )
                                                             ]
                                                             (abs
                                                               dead
                                                               (type)
-                                                              [
-                                                                {
-                                                                  Cons
+                                                              (lam
+                                                                ds
+                                                                [
+                                                                  List
                                                                   (con string)
-                                                                }
-                                                                (con
-                                                                  string
-                                                                  "<invalid byte>"
-                                                                )
-                                                              ]
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      Cons
+                                                                      (con
+                                                                        string
+                                                                      )
+                                                                    }
+                                                                    (con
+                                                                      string
+                                                                      "<invalid byte>"
+                                                                    )
+                                                                  ]
+                                                                  ds
+                                                                ]
+                                                              )
                                                             )
                                                           ]
                                                           (all dead (type) dead)
@@ -1234,7 +1298,15 @@
                     (lam
                       g
                       (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                      [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+                      [
+                        [
+                          { g [ List a ] }
+                          (lam
+                            ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ])
+                          )
+                        ]
+                        { Nil a }
+                      ]
                     )
                   )
                 )
@@ -1606,16 +1678,16 @@
                                 dMonoid
                                 [ Monoid m ]
                                 (lam
-                                  ds
+                                  eta
                                   (fun a m)
                                   (lam
-                                    ds
+                                    eta
                                     [ List a ]
                                     {
                                       [
                                         [
                                           {
-                                            [ { Nil_match a } ds ]
+                                            [ { Nil_match a } eta ]
                                             (all dead (type) m)
                                           }
                                           (abs
@@ -1634,7 +1706,7 @@
                                               [
                                                 [
                                                   [ { p1Monoid m } dMonoid ]
-                                                  [ ds x ]
+                                                  [ eta x ]
                                                 ]
                                                 [
                                                   [
@@ -1648,7 +1720,7 @@
                                                       }
                                                       dMonoid
                                                     ]
-                                                    ds
+                                                    eta
                                                   ]
                                                   xs
                                                 ]
@@ -2571,10 +2643,17 @@
                                                   (abs
                                                     dead
                                                     (type)
-                                                    [
-                                                      { Cons (con string) }
-                                                      (con string "[]")
-                                                    ]
+                                                    (lam
+                                                      ds
+                                                      [ List (con string) ]
+                                                      [
+                                                        [
+                                                          { Cons (con string) }
+                                                          (con string "[]")
+                                                        ]
+                                                        ds
+                                                      ]
+                                                    )
                                                   )
                                                 ]
                                                 (lam

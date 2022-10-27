@@ -75,85 +75,42 @@
             )
           )
         )
-        [
-          [
+        (let
+          (nonrec)
+          (termbind
+            (strict)
+            (vardecl eta [ List (con integer) ])
             [
-              { { foldr (con integer) } [ List (con integer) ] }
-              (lam
-                e
-                (con integer)
-                (lam
-                  xs
-                  [ List (con integer) ]
-                  {
-                    [
-                      [
-                        {
-                          [
-                            Bool_match
-                            [
-                              [
-                                [
-                                  { (builtin ifThenElse) Bool }
-                                  [
-                                    [
-                                      (builtin equalsInteger)
-                                      [
-                                        [ (builtin modInteger) e ]
-                                        (con integer 2)
-                                      ]
-                                    ]
-                                    (con integer 0)
-                                  ]
-                                ]
-                                True
-                              ]
-                              False
-                            ]
-                          ]
-                          (all dead (type) [ List (con integer) ])
-                        }
-                        (abs dead (type) [ [ { Cons (con integer) } e ] xs ])
-                      ]
-                      (abs dead (type) xs)
-                    ]
-                    (all dead (type) dead)
-                  }
-                )
-              )
-            ]
-            { Nil (con integer) }
-          ]
-          [
-            [
-              (let
-                (nonrec)
-                (typebind (tyvardecl a (type)) [ List (con integer) ])
-                (lam
-                  c
-                  (fun (con integer) (fun a a))
+              [
+                (let
+                  (nonrec)
+                  (typebind (tyvardecl a (type)) [ List (con integer) ])
                   (lam
-                    n
-                    a
-                    [
-                      [ c (con integer 1) ]
+                    c
+                    (fun (con integer) (fun a a))
+                    (lam
+                      n
+                      a
                       [
-                        [ c (con integer 2) ]
+                        [ c (con integer 1) ]
                         [
-                          [ c (con integer 3) ]
+                          [ c (con integer 2) ]
                           [
-                            [ c (con integer 4) ]
+                            [ c (con integer 3) ]
                             [
-                              [ c (con integer 5) ]
+                              [ c (con integer 4) ]
                               [
-                                [ c (con integer 6) ]
+                                [ c (con integer 5) ]
                                 [
-                                  [ c (con integer 7) ]
+                                  [ c (con integer 6) ]
                                   [
-                                    [ c (con integer 8) ]
+                                    [ c (con integer 7) ]
                                     [
-                                      [ c (con integer 9) ]
-                                      [ [ c (con integer 10) ] n ]
+                                      [ c (con integer 8) ]
+                                      [
+                                        [ c (con integer 9) ]
+                                        [ [ c (con integer 10) ] n ]
+                                      ]
                                     ]
                                   ]
                                 ]
@@ -162,15 +119,74 @@
                           ]
                         ]
                       ]
-                    ]
+                    )
                   )
                 )
-              )
-              { Cons (con integer) }
+                (lam
+                  ds
+                  (con integer)
+                  (lam
+                    ds
+                    [ List (con integer) ]
+                    [ [ { Cons (con integer) } ds ] ds ]
+                  )
+                )
+              ]
+              { Nil (con integer) }
             ]
-            { Nil (con integer) }
+          )
+          [
+            [
+              [
+                { { foldr (con integer) } [ List (con integer) ] }
+                (lam
+                  e
+                  (con integer)
+                  (lam
+                    xs
+                    [ List (con integer) ]
+                    {
+                      [
+                        [
+                          {
+                            [
+                              Bool_match
+                              [
+                                [
+                                  [
+                                    { (builtin ifThenElse) Bool }
+                                    [
+                                      [
+                                        (builtin equalsInteger)
+                                        [
+                                          [ (builtin modInteger) e ]
+                                          (con integer 2)
+                                        ]
+                                      ]
+                                      (con integer 0)
+                                    ]
+                                  ]
+                                  True
+                                ]
+                                False
+                              ]
+                            ]
+                            (all dead (type) [ List (con integer) ])
+                          }
+                          (abs dead (type) [ [ { Cons (con integer) } e ] xs ])
+                        ]
+                        (abs dead (type) xs)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              ]
+              { Nil (con integer) }
+            ]
+            eta
           ]
-        ]
+        )
       )
     )
   )

@@ -15,11 +15,16 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import Class qualified as GHC
-import CoreSyn qualified as GHC
-import CostCentre qualified as GHC
-import GhcPlugins qualified as GHC
-import MkId qualified as GHC
+import GHC.Builtin.Names qualified as GHC
+import GHC.ByteCode.Types qualified as GHC
+import GHC.Core qualified as GHC
+import GHC.Core.Class qualified as GHC
+import GHC.Core.Multiplicity qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.CostCentre qualified as GHC
+import GHC.Types.Id.Make qualified as GHC
+import GHC.Types.Tickish qualified as GHC
+import GHC.Types.TyThing qualified as GHC
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
@@ -35,7 +40,6 @@ import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
-import PrelNames qualified as GHC
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -103,14 +107,14 @@ compileLiteral
     => GHC.Literal -> m (PIRTerm uni fun)
 compileLiteral = \case
     -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-    (GHC.LitNumber _ i _) -> pure $ PIR.embed $ PLC.mkConstant AnnOther i
-    GHC.LitString _       -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
-    GHC.LitChar _         -> throwPlain $ UnsupportedError "Literal char"
-    GHC.LitFloat _        -> throwPlain $ UnsupportedError "Literal float"
-    GHC.LitDouble _       -> throwPlain $ UnsupportedError "Literal double"
-    GHC.LitLabel {}       -> throwPlain $ UnsupportedError "Literal label"
-    GHC.LitNullAddr       -> throwPlain $ UnsupportedError "Literal null"
-    GHC.LitRubbish        -> throwPlain $ UnsupportedError "Literal rubbish"
+    (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant AnnOther i
+    GHC.LitString _     -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
+    GHC.LitChar _       -> throwPlain $ UnsupportedError "Literal char"
+    GHC.LitFloat _      -> throwPlain $ UnsupportedError "Literal float"
+    GHC.LitDouble _     -> throwPlain $ UnsupportedError "Literal double"
+    GHC.LitLabel {}     -> throwPlain $ UnsupportedError "Literal label"
+    GHC.LitNullAddr     -> throwPlain $ UnsupportedError "Literal null"
+    GHC.LitRubbish _    -> throwPlain $ UnsupportedError "Literal rubbish"
 
 -- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
 -- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
@@ -165,7 +169,7 @@ compileDataConRef dc =
 findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
 findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
     Just alt -> alt
-    Nothing  -> (GHC.DEFAULT, [], GHC.mkImpossibleExpr t)
+    Nothing  -> GHC.Alt GHC.DEFAULT [] (GHC.mkImpossibleExpr t)
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
@@ -173,7 +177,7 @@ compileAlt
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
-compileAlt (alt, vars, body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
@@ -677,8 +681,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
 
-        -- void# - Surprisingly, `Void#` is actually more like `Unit` than `Void`, so we represent it as such.
-        GHC.Var n | n == GHC.voidPrimId || n == GHC.voidArgId -> pure (PIR.mkConstant AnnOther ())
+        -- Unboxed unit, (##).
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant AnnOther ())
 
         -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
         -- See Note [noinline hack]
@@ -697,7 +701,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
         -- See Note [Uses of Eq]
         GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
-        GHC.Var n | GHC.getName n == GHC.eqIntegerPrimName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+        GHC.Var n | GHC.getName n == GHC.integerEqName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
         GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
 
         -- locally bound vars
@@ -768,7 +772,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 pure $ PIR.mkLet AnnOther PIR.Rec binds body'
 
         -- See Note [Evaluation-only cases]
-        GHC.Case scrutinee b _ [(_, bs, body)] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
+        GHC.Case scrutinee b _ [GHC.Alt _ bs body] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
             -- See Note [At patterns]
             scrutinee' <- compileExpr scrutinee
             withVarScoped b $ \v -> do
@@ -797,7 +801,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     let alt = findAlt dc alts t
                         -- these are the instantiated type arguments, e.g. for the data constructor Just when
                         -- matching on Maybe Int it is [Int] (crucially, not [a])
-                        instArgTys = GHC.dataConInstOrigArgTys dc argTys
+                        instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
                     (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
                     return (nonDelayedAlt, delayedAlt)
                 let
@@ -867,14 +871,14 @@ getSourceSpan :: Maybe GHC.ModBreaks -> _ -> Maybe GHC.RealSrcSpan
 getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
 getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
   case cc of
-    GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp) -> Just sp
-    GHC.AllCafsCC _ (GHC.RealSrcSpan sp)    -> Just sp
-    _                                       -> Nothing
+    GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp _) -> Just sp
+    GHC.AllCafsCC _ (GHC.RealSrcSpan sp _)    -> Just sp
+    _                                         -> Nothing
 getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
   mb <- mmb
   let arr = GHC.modBreaks_locs mb
       range = Array.bounds arr
-  GHC.RealSrcSpan sp <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
   return sp
 getSourceSpan _ _ = Nothing
 

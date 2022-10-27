@@ -8,8 +8,9 @@ module PlutusTx.Compiler.Utils where
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 
-import CoreSyn qualified as GHC
-import GhcPlugins qualified as GHC
+import GHC.Core qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -31,7 +32,7 @@ getThing name = do
 sdToTxt :: MonadReader (CompileContext uni fun) m => GHC.SDoc -> m T.Text
 sdToTxt sd = do
   CompileContext { ccFlags=flags } <- ask
-  pure $ T.pack $ GHC.showSDocForUser flags GHC.alwaysQualify sd
+  pure $ T.pack $ GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify sd
 
 throwSd ::
     (MonadError (CompileError uni fun ann) m, MonadReader (CompileContext uni fun) m) =>
@@ -69,4 +70,4 @@ tyConsOfBind = \case
         binderTyCons bndr rhs = tyConsOfBndr bndr <> tyConsOfExpr rhs
 
 tyConsOfAlt :: GHC.CoreAlt -> GHC.UniqSet GHC.TyCon
-tyConsOfAlt (_, vars, e) = foldMap tyConsOfBndr vars <> tyConsOfExpr e
+tyConsOfAlt (GHC.Alt _ vars e) = foldMap tyConsOfBndr vars <> tyConsOfExpr e

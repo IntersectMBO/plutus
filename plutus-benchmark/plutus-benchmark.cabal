@@ -70,7 +70,7 @@ library plutus-benchmark-common
 library nofib-internal
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   hs-source-dirs:  nofib/src
@@ -97,7 +97,7 @@ library nofib-internal
 executable nofib-exe
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
@@ -118,7 +118,7 @@ executable nofib-exe
 benchmark nofib
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -134,7 +134,7 @@ benchmark nofib
 benchmark nofib-hs
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -150,7 +150,7 @@ benchmark nofib-hs
 test-suite plutus-benchmark-nofib-tests
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -171,7 +171,7 @@ test-suite plutus-benchmark-nofib-tests
 library lists-internal
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   hs-source-dirs:  lists/src
@@ -197,7 +197,7 @@ library lists-internal
 executable list-sort-exe
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
@@ -212,7 +212,7 @@ executable list-sort-exe
 benchmark lists
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -227,7 +227,7 @@ benchmark lists
 test-suite plutus-benchmark-lists-tests
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -309,7 +309,7 @@ benchmark validation-full
 benchmark cek-calibration
   import:           lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:             exitcode-stdio-1.0
@@ -334,7 +334,7 @@ benchmark cek-calibration
 executable ed25519-throughput
   import:           lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   default-language: Haskell2010

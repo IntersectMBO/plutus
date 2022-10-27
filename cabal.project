@@ -37,17 +37,11 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
--- The only sensible test display option, since it allows us to have colourized 
+-- The only sensible test display option, since it allows us to have colourized
 -- 'tasty' output.
 test-show-details: direct
 
-if (impl (ghc >= 9))
-  -- The plugin doesn't support the 'ghc' library for GHC 9+ yet.
-  -- in order to avoid getting the solver confused, we can just use
-  -- the stub in this case until we get it working properly.
-  package plutus-tx-plugin
-    flags: +use-ghc-stub
-else
+if (impl (ghc < 9))
   -- inline-r doesn't (yet) build on 9.2.4, so only turn it on before that
   package plutus-core
     flags: +with-inline-r

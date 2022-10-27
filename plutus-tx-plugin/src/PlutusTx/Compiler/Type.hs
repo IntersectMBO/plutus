@@ -25,9 +25,10 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.PIRTypes
 
-import FamInstEnv qualified as GHC
-import GhcPlugins qualified as GHC
-import TysPrim qualified as GHC
+import GHC.Builtin.Types.Prim qualified as GHC
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Core.Multiplicity qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -85,7 +86,7 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar AnnOther name
             Nothing                       ->
                 throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (i, o)) -> PIR.TyFun AnnOther <$> compileType i <*> compileType o
+        (GHC.splitFunTy_maybe -> Just (_m, i, o)) -> PIR.TyFun AnnOther <$> compileType i <*> compileType o
         -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
             PIR.mkIterTyApp AnnOther
@@ -93,7 +94,7 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
                 <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
         (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
             PIR.TyApp AnnOther <$> compileType t1 <*> compileType t2
-        (GHC.splitForAllTy_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
+        (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
@@ -119,8 +120,7 @@ compileTyCon :: forall uni fun m ann. CompilingDefault uni fun m ann => GHC.TyCo
 compileTyCon tc
     | tc == GHC.intTyCon = throwPlain $ UnsupportedError "Int: use Integer instead"
     | tc == GHC.intPrimTyCon = throwPlain $ UnsupportedError "Int#: unboxed integers are not supported"
-    -- Surprisingly, `Void#` is actually more like `Unit` than `Void`, so we represent it as such.
-    | tc == GHC.voidPrimTyCon = pure (PIR.mkTyBuiltin @_ @() AnnOther)
+    | tc == GHC.unboxedUnitTyCon = pure (PIR.mkTyBuiltin @_ @() AnnOther)
     | otherwise = do
 
     let tcName = GHC.getName tc
@@ -258,7 +258,7 @@ the type of the original code without that information.
 mkConstructorType :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRType uni)
 mkConstructorType dc =
     -- see Note [On data constructor workers and wrappers]
-    let argTys = GHC.dataConRepArgTys dc
+    let argTys = GHC.scaledThing <$> GHC.dataConRepArgTys dc
     in
         -- See Note [Scott encoding of datatypes]
         withContextM 3 (sdToTxt $ "Compiling data constructor type:" GHC.<+> GHC.ppr dc) $ do
