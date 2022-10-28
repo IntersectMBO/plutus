@@ -27,6 +27,11 @@ cell.library.pkgs.runCommand "combine-haddock"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
+  # TODO(std) fixme
+  mkdir -p $out
+  touch $out/TODO
+  exit 0
+
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
 
   # Merge all the docs from the packages and their doc dependencies.
