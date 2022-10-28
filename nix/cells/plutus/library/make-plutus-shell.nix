@@ -75,6 +75,12 @@ inputs.std.lib.dev.mkShell {
       category = "haskell";
       help = "Cabal file formatter";
     }
+    {
+      package = cell.packages.agda-with-stdlib;
+      name = "agda";
+      category = "haskell";
+      help = "Agda and its standard library";
+    }
 
     {
       package = cell.packages.sphinx-build-readthedocs-site;
