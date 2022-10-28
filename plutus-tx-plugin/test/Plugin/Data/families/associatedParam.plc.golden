@@ -1,11 +1,6 @@
 (program
   (let
     (nonrec)
-    (termbind
-      (strict)
-      (vardecl fNumInteger_cfromInteger (fun (con integer) (con integer)))
-      (lam x (con integer) x)
-    )
     (datatypebind
       (datatype
         (tyvardecl Param (fun (type) (type)))
@@ -21,7 +16,7 @@
     )
     [
       [ { paramId (con integer) } [ { Param (con integer) } (con integer 1) ] ]
-      [ fNumInteger_cfromInteger (con integer 1) ]
+      (con integer 1)
     ]
   )
 )

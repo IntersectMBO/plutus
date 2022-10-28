@@ -124,7 +124,6 @@ library plutus-tx-testlib
     , base                                            >=4.9 && <5
     , filepath
     , flat
-    , ghc-prim
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1

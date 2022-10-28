@@ -22,8 +22,9 @@ import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 import PlutusTx.Annotation
 
-import FamInstEnv qualified as GHC
-import GhcPlugins qualified as GHC
+import GHC qualified
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -160,7 +161,7 @@ stableModuleCmp :: GHC.Module -> GHC.Module -> Ordering
 stableModuleCmp m1 m2 =
     (GHC.moduleName m1 `GHC.stableModuleNameCmp` GHC.moduleName m2) <>
     -- See Note [Stable name comparisons]
-    (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
+    (GHC.moduleUnit m1 `GHC.stableUnitCmp` GHC.moduleUnit m2)
 
 -- See Note [Scopes]
 type Compiling uni fun m ann =

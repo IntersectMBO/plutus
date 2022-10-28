@@ -75,6 +75,11 @@
     )
     (termbind
       (strict)
+      (vardecl fApplicativeMaybe_cpure (all a (type) (fun a [ Maybe a ])))
+      (abs a (type) (lam ds a [ { Just a } ds ]))
+    )
+    (termbind
+      (strict)
       (vardecl
         fFunctorMaybe_cfmap
         (all
@@ -145,7 +150,10 @@
       (nonstrict)
       (vardecl fApplicativeMaybe [ Applicative Maybe ])
       [
-        [ [ { CConsApplicative Maybe } fFunctorMaybe_cfmap ] Just ]
+        [
+          [ { CConsApplicative Maybe } fFunctorMaybe_cfmap ]
+          fApplicativeMaybe_cpure
+        ]
         fApplicativeMaybe_c
       ]
     )
@@ -231,56 +239,46 @@
                 (lam
                   dMonoid
                   [ Monoid m ]
-                  (let
-                    (nonrec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl
-                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
-                      )
-                      [ { p1Monoid m } dMonoid ]
-                    )
+                  (lam
+                    eta
+                    (fun a m)
                     (lam
-                      ds
-                      (fun a m)
-                      (lam
-                        ds
-                        [ List a ]
-                        {
+                      eta
+                      [ List a ]
+                      {
+                        [
                           [
-                            [
-                              { [ { Nil_match a } ds ] (all dead (type) m) }
-                              (abs dead (type) [ { mempty m } dMonoid ])
-                            ]
+                            { [ { Nil_match a } eta ] (all dead (type) m) }
+                            (abs dead (type) [ { mempty m } dMonoid ])
+                          ]
+                          (lam
+                            x
+                            a
                             (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [ List a ]
-                                (abs
-                                  dead
-                                  (type)
+                              xs
+                              [ List a ]
+                              (abs
+                                dead
+                                (type)
+                                [
+                                  [ [ { p1Monoid m } dMonoid ] [ eta x ] ]
                                   [
-                                    [ dSemigroup [ ds x ] ]
                                     [
                                       [
-                                        [
-                                          { { fFoldableNil_cfoldMap m } a }
-                                          dMonoid
-                                        ]
-                                        ds
+                                        { { fFoldableNil_cfoldMap m } a }
+                                        dMonoid
                                       ]
-                                      xs
+                                      eta
                                     ]
+                                    xs
                                   ]
-                                )
+                                ]
                               )
                             )
-                          ]
-                          (all dead (type) dead)
-                        }
-                      )
+                          )
+                        ]
+                        (all dead (type) dead)
+                      }
                     )
                   )
                 )
@@ -655,7 +653,15 @@
                                                   }
                                                   (fun [ List b ] [ List b ])
                                                 }
-                                                { Cons b }
+                                                (lam
+                                                  ds
+                                                  b
+                                                  (lam
+                                                    ds
+                                                    [ List b ]
+                                                    [ [ { Cons b } ds ] ds ]
+                                                  )
+                                                )
                                               ]
                                               [ ds x ]
                                             ]
@@ -794,7 +800,15 @@
                       (lam
                         g
                         (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                        [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+                        [
+                          [
+                            { g [ List a ] }
+                            (lam
+                              ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ])
+                            )
+                          ]
+                          { Nil a }
+                        ]
                       )
                     )
                   )
@@ -933,7 +947,7 @@
                   (termbind
                     (strict)
                     (vardecl
-                      sequenceA
+                      sequence
                       (all
                         t
                         (fun (type) (type))
@@ -987,32 +1001,6 @@
                         )
                       )
                     )
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl
-                      sequence
-                      (all
-                        t
-                        (fun (type) (type))
-                        (all
-                          f
-                          (fun (type) (type))
-                          (all
-                            a
-                            (type)
-                            (fun
-                              [ Traversable t ]
-                              (fun
-                                [ Applicative f ]
-                                (fun [ t [ f a ] ] [ f [ t a ] ])
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                    sequenceA
                   )
                   [
                     [

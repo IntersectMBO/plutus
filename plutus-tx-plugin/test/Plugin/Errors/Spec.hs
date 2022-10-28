@@ -26,7 +26,7 @@ import Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
-import GHC.Integer.GMP.Internals
+import GHC.Num.Integer
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -53,7 +53,7 @@ negativeInt :: CompiledCode Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# _ -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { IS _ -> True; _ -> False; } )
 
 stringLiteral :: CompiledCode String
 stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)

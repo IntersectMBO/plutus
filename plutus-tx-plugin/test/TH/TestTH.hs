@@ -11,7 +11,7 @@ import PlutusTx.Prelude
 
 {- HLINT ignore -}
 
-power :: Integer -> Q (TExp (Integer -> Integer))
+power :: Integer -> Code Q (Integer -> Integer)
 power n =
     if n <= 0 then
         [|| \ _ -> (1::Integer) ||]
@@ -20,5 +20,5 @@ power n =
     else
         [|| \(x::Integer) -> x `multiplyInteger` ($$(power (n `subtractInteger` (1::Integer))) x) ||]
 
-andTH :: Q (TExp (Bool -> Bool -> Bool))
+andTH :: Code Q (Bool -> Bool -> Bool)
 andTH = [||\(a :: Bool) -> \(b::Bool) -> if a then if b then True else False else False||]

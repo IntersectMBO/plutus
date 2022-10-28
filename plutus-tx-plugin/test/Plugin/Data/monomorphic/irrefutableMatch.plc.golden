@@ -2,6 +2,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl MyMonoData (type))
 
@@ -24,14 +27,25 @@
               (lam
                 default_arg1
                 (con integer)
-                { (abs e (type) (error e)) (con integer) }
+                [
+                  {
+                    [ Unit_match { (abs e (type) (error e)) Unit } ]
+                    (con integer)
+                  }
+                  { (abs e (type) (error e)) (con integer) }
+                ]
               )
             )
           ]
           (lam a (con integer) a)
         ]
         (lam
-          default_arg0 (con integer) { (abs e (type) (error e)) (con integer) }
+          default_arg0
+          (con integer)
+          [
+            { [ Unit_match { (abs e (type) (error e)) Unit } ] (con integer) }
+            { (abs e (type) (error e)) (con integer) }
+          ]
         )
       ]
     )

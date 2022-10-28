@@ -66,7 +66,15 @@
           (lam
             y
             (con integer)
-            [ { Just (con integer) } [ [ (builtin addInteger) x ] y ] ]
+            (let
+              (nonrec)
+              (termbind
+                (strict)
+                (vardecl ds (con integer))
+                [ [ (builtin addInteger) x ] y ]
+              )
+              [ { Just (con integer) } ds ]
+            )
           )
         ]
       )
