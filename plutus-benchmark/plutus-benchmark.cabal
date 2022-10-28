@@ -357,3 +357,41 @@ executable ed25519-throughput
     , plutus-core           ^>=1.1
     , plutus-tx             ^>=1.1
     , plutus-tx-plugin      ^>=1.1
+
+---------------- script contexts ----------------
+
+library script-contexts-internal
+  import:          lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
+  hs-source-dirs:  script-contexts/src
+  exposed-modules: PlutusBenchmark.ScriptContexts
+  build-depends:
+    , base               >=4.9 && <5
+    , plutus-ledger-api  ^>=1.1
+    , plutus-tx          ^>=1.1
+    , plutus-tx-plugin   ^>=1.1
+
+test-suite plutus-benchmark-script-contexts-tests
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: script-contexts/test
+  other-modules:
+  build-depends:
+    , base                                            >=4.9 && <5
+    , plutus-benchmark-common
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
+    , script-contexts-internal
+    , tasty
+    , tasty-hunit
