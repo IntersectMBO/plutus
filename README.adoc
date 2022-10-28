@@ -15,21 +15,7 @@ This repository contains:
 * The implementation, specification, and mechanized metatheory of Plutus Core
 * Plutus Tx, the compiler from Haskell to Plutus Core.
 
-The rest of this README is focussed on people who want to develop or contribute to the project.
-
 For people who want to *use* the project, please consult the <<user-documentation>>.
-
-[IMPORTANT]
-====
-This repository used to contain the code for the Plutus Application Framework and Marlowe.
-These have now *moved*:
-
-- https://github.com/input-output-hk/plutus-apps[Plutus Application Framework]
-- https://github.com/input-output-hk/marlowe-cardano[Marlowe]
-
-Please ensure that you make PRs and issues in the appropriate repository!
-
-====
 
 == Development
 
@@ -46,14 +32,9 @@ Issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitH
 
 === How to depend on the project from another Haskell project
 
-None of our libraries are on Hackage, unfortunately (many of our dependencies aren't either).
-So for the time being, you need to:
-
-. Add `plutus` as a `source-repository-package` to your `cabal.project`.
-. Copy the `source-repository-package` stanzas from our `cabal.project` to yours.
-. Copy additional stanzas from our `cabal.project` as you need, e.g. you may need some of the `allow-newer` stanzas.
-
-The https://github.com/input-output-hk/plutus-starter[plutus-starter] project provides an example.
+The `plutus` libraries are published via https://input-output-hk.github.io/cardano-haskell-packages/[CHaP].
+See the information there for how to use CHaP.
+After setting it up you should just be able to depend on the `plutus` packages as normal and cabal will find them.
 
 == Documentation
 
