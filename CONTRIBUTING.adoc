@@ -584,7 +584,7 @@ It's useful to take a look if you're changing any of the documentation.
 
 Enter the development shell using `nix develop`
 
-Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002/. Haddock is at http://0.0.0.0:8002/haddock.
+Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002 (Haddock is at http://0.0.0.0:8002/haddock).
 
 ==== Github Actions
 
