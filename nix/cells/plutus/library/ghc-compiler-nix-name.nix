@@ -1,3 +1,3 @@
 { inputs, cell }:
 
-"ghc8107"
+"ghc924"
