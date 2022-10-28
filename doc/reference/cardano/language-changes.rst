@@ -8,13 +8,13 @@ Language versions
 
 See the documentation on :ref:`language versions <what_are_plutus_language_versions>` for an explanation of what they are.
 
-PlutusV1
-~~~~~~~~
+Plutus V1
+~~~~~~~~~~
 
 ``PlutusV1`` was the initial version of Plutus, introduced in the Alonzo hard fork.
 
-PlutusV2
-~~~~~~~~
+Plutus V2
+~~~~~~~~~~
 
 ``PlutusV2`` was introduced in the Vasil hard fork.
 
@@ -25,6 +25,15 @@ The ``ScriptContext`` was extended to include the following information:
 - Reference inputs in the transaction (proposed in `CIP-31 <https://cips.cardano.org/cips/cip31/>`_)
 - Inline datums in the transaction (proposed in `CIP-32 <https://cips.cardano.org/cips/cip32/>`_)
 - Reference scripts in the transaction (proposed in `CIP-33 <https://cips.cardano.org/cips/cip33/>`_)
+
+Examples
+------------
+
+- `Plutus V2 functionalities <https://github.com/input-output-hk/cardano-node/blob/master/doc/reference/plutus/babbage-script-example.md>`_
+- `How to use reference inputs <https://github.com/perturbing/vasil-tests/blob/main/reference-inputs-cip-31.md>`_
+- `How to use inline datums <https://github.com/perturbing/vasil-tests/blob/main/inline-datums-cip-32.md>`_
+- `How to reference scripts <https://github.com/perturbing/vasil-tests/blob/main/referencing-scripts-cip-33.md>`_
+- `How to use collateral outputs <https://github.com/perturbing/vasil-tests/blob/main/collateral-output-cip-40.md>`_
 
 Built-in functions and types
 ----------------------------
