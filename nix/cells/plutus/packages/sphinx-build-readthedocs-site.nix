@@ -8,6 +8,6 @@ cell.library.pkgs.writeShellApplication {
   ];
   text = ''
     root="$(repo-root)"
-    sphinx-build -j 4 -n "$root/doc" "$root/doc/_build"
+    sphinx-build -j 4 -n "$root/doc/read-the-docs-site" "$root/doc/read-the-docs-site/_build"
   '';
 }
