@@ -1,7 +1,5 @@
 { inputs, cell }:
 
-# TODO(std) path must be fixed once __std__ is brought to the toplevel.
-
 cell.library.pkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [
@@ -15,10 +13,10 @@ cell.library.pkgs.writeShellApplication {
 
     shell_fragments=$(
       find \
-        "$root/__std__/cells" \
+        "$root/nix/cells" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
-        -and -path "*devshells*" \
+        -and -path "*/devshells*" \
         -exec basename {} .nix \;
     )
 
@@ -29,10 +27,10 @@ cell.library.pkgs.writeShellApplication {
 
     derivation_fragments=$(
       find \
-        "$(repo-root)/__std__/cells" \
+        "$(repo-root)/nix/cells" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
-        -and -path "*packages*" \
+        -and -path "*/packages*" \
         -exec basename {} .nix \;
     )
 

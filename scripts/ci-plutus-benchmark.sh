@@ -45,6 +45,8 @@ cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
 nix-shell --run "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
+# TODO(std) check that this works 
+# nix develop --command "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
 
 echo "[ci-plutus-benchmark]: fetching origin ..."
 git fetch origin
@@ -59,6 +61,8 @@ cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
 nix-shell --run "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
+# TODO(std) check that this works 
+# nix develop --command "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
@@ -78,8 +82,8 @@ echo -e "</details>"
 } > bench-compare-result.log
 
 nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
-# TODO(std) check that this works 
-# jq -Rs '.' bench-compare-result.log >bench-compare.json
+# TODO(std) check that this works
+# nix develop --command "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
 curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
