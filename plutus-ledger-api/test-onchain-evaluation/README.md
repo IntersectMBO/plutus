@@ -13,8 +13,8 @@ It is currently in the "plutus-script-dump" branch and will eventually be merged
 To run it, check out the "plutus-script-dump" branch, and run the following in the nix shell of plutus-apps:
 
 ```
-AWS_ACCESS_KEY_ID=<replace_with_aws_key> \
-AWS_SECRET_ACCESS_KEY=<replace_with_aws_secret_secret> \
+AWS_ACCESS_KEY_ID=<replace_with_aws_key_id> \
+AWS_SECRET_ACCESS_KEY=<replace_with_aws_secret_access_key> \
 AWS_DEFAULT_REGION=us-east-1 \
 AWS_ENDPOINT_URL=https://s3.devx.iog.io \
 S3_DUMP_DIR=s3://plutus/mainnet-script-dump/ \
@@ -46,8 +46,8 @@ This also means that as long as `blocks-per-file` and `events-per-file` remain t
 To run the tests, first download the dump files from S3 to a local directory:
 
 ```
-AWS_ACCESS_KEY_ID=plutus \
-AWS_SECRET_ACCESS_KEY=plutuskey \
+AWS_ACCESS_KEY_ID=<replace_with_aws_key_id> \
+AWS_SECRET_ACCESS_KEY=<replace_with_aws_secret_access_key> \
 AWS_DEFAULT_REGION=us-east-1 \
 aws --endpoint-url https://s3.devx.iog.io \
 s3 sync s3://plutus/mainnet-script-dump/ $HOME/mainnet-script-dump-downloaded

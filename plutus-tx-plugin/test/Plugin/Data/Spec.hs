@@ -77,7 +77,7 @@ monoDataType :: CompiledCode (MyMonoData -> Integer)
 monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
-monoConstructor = plc (Proxy @"monConstructor") Mono1
+monoConstructor = plc (Proxy @"monoConstructor") Mono1
 
 monoConstructed :: CompiledCode MyMonoData
 monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)
