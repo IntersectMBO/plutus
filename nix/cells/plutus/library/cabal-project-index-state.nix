@@ -1,3 +1,3 @@
 { inputs, cell }:
 
-cell.library.plutus-project.index-state
+cell.library.plutus-project-924.index-state

@@ -4,7 +4,7 @@
 
   make-plutus-shell = import ./make-plutus-shell.nix block;
 
-  plutus-project = import ./plutus-project.nix block;
+  plutus-project-8107 = import ./plutus-project-8107.nix block;
 
   plutus-project-924 = import ./plutus-project-924.nix block;
 

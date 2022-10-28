@@ -257,13 +257,15 @@ There are various tools for visualizing the resulting profile, e.g. https://hack
 
 === 9.2 migration
 
-Our primary major version of GHC is 8.10. 
-However, the Cardano projects are in the process of moving to 9.2.
-We have CI for 9.2 and many of our packages build with it.
-The ones that do not build (mostly, the plugin and anything that depends on it) are explicitly marked as unbuildable in the cabal files.
+We are in the process of moving to 9.2 from 8.10.
+We have now primarily moved to 9.2, with 8.10 being kept as a backup.
+We have CI for both versions, although a few packages only build on 9.2 (notably the plugin and it's dependents).
+The ones that do not build on 8.10 are explicitly marked as unbuildable in the cabal files.
 
-We will try to move to primarily 9.2 and drop 8.10 soon.
-To facilitate working on 9.2 in the interim, there is a devshell which you can use with `nix develop .#plutus-shell-924`.
+We will drop 8.10 once there is a released Cardano node using 9.2.
+Until then all our code must continue to build with both, so you cannot use any 9.2-only features yet.
+
+The default devshell is a 9.2 shell, but you can get an 8.10 devshell with `nix develop .#plutus-shell-8107`.
 
 == Working conventions
 
