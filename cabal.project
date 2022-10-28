@@ -17,7 +17,7 @@ index-state: 2022-09-26T00:00:00Z
 -- Bump this if you need newer packages from CHaP
 index-state: cardano-haskell-packages 2022-10-24T00:00:00Z
 
-packages: doc
+packages: doc/read-the-docs-site
           plutus-benchmark
           plutus-conformance
           plutus-core

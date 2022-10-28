@@ -8,7 +8,7 @@ pkgs.stdenv.mkDerivation {
   name = "read-the-docs-site";
 
   src = pkgs.lib.sourceFilesBySuffices
-    (inputs.self + /doc)
+    (inputs.self + /doc/read-the-docs-site)
     [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
 
   buildInputs = [

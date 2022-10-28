@@ -7,7 +7,7 @@ let
     "FIR-compiler"
     {
       buildInputs = [ pkgs.zip ];
-      src = inputs.self + /papers/unraveling-recursion/code;
+      src = inputs.self + /doc/papers/unraveling-recursion/code;
     }
     ''
       mkdir -p $out
@@ -44,7 +44,7 @@ cell.library.build-latex {
   ];
 
   src = pkgs.lib.sourceFilesBySuffices
-    (inputs.self + /papers/unraveling-recursion)
+    (inputs.self + /doc/papers/unraveling-recursion)
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
   preBuild = ''
