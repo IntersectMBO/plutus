@@ -1,15 +1,26 @@
-{ runCommand, lib, ghc, jq, sphinxcontrib-haddock }:
-{ hspkgs # Haskell packages to make documentation for. Only those with a "doc" output will be used.
+{ inputs, cell }:
+
+{ ghc
+  # Haskell packages to make documentation for. Only those with a "doc" output will be used.
   # Note: we do not provide arbitrary additional Haddock options, as these would not be
   # applied consistently, since we're reusing the already built Haddock for the packages.
-, prologue ? null # Optionally, a file to be used for the Haddock "--prologue" option.
+, hspkgs
+  # Optionally, a file to be used for the Haddock "--prologue" option.
+, prologue ? null
 }:
+
 let
+  lib = cell.library.pkgs.lib;
+
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in
-runCommand "haddock-join"
+
+cell.library.pkgs.runCommand "combine-haddock"
 {
-  buildInputs = [ hsdocs ];
+  # TODO(std) fix in next PR
+  # buildInputs = [ hsdocs ];
+  buildInputs = [ ];
+
   # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
   # which contains information about which nix paths are referenced by the package. This will allow
   # us to resolve hyperlinks to haddocks elsewhere in the store.
@@ -18,19 +29,20 @@ runCommand "haddock-join"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
-  # FIXME
-  # https://input-output.atlassian.net/browse/PLT-789
-  # https://hydra.iohk.io/build/18701775/nixlog/1
-  echo TODO > $out
+  # TODO(std) fixme
+  mkdir -p $out
+  touch $out/TODO
   exit 0
 
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
+
   # Merge all the docs from the packages and their doc dependencies.
   # We don't use symlinkJoin because:
   # - We are going to want to redistribute this, so we don't want any symlinks.
   # - We want to be selective about what we copy (we don't need the hydra
   #   tarballs from the other packages, for example.
   mkdir -p "$out/share/doc"
+
   for pkg in $hsdocsRec; do
     files=($pkg/share/doc/*)
     if [ ''${#files[@]} -gt 0 ]; then
@@ -70,7 +82,7 @@ runCommand "haddock-join"
 
       # Jam this in here for now
       pushd $out/share/doc
-      ${sphinxcontrib-haddock}/bin/haddock_inventory $docdir
+      ${cell.packages.sphinxcontrib-haddock}/bin/haddock_inventory $docdir
       popd
     done
     popd
@@ -96,7 +108,7 @@ runCommand "haddock-join"
   echo "[]" > "doc-index.json"
   for file in $(ls **/doc-index.json); do
     project=$(dirname $file);
-    ${jq}/bin/jq -s \
+    ${cell.library.pkgs.jq}/bin/jq -s \
       ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
       "doc-index.json" \
       $file \

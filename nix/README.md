@@ -9,6 +9,7 @@ Start with the comments inside the [flake](../flake.nix) then continue reading h
 ## The standard format of nix files 
 
 Note how *every single nix file* in this repository (with the exception of `flake.nix`) has the same format:
+
 ```
 { inputs, cell }: ...
 ```
@@ -20,7 +21,7 @@ A description of the arguments follows:
 - `inputs.self`\
   This is a path pointing to the top-level of the repository.\
   It is the *only* way to reference source files inside the repository.\
-  Example: `{ src = inputs.self + /plutus-core-spec; }`
+  Example: `{ src = inputs.self + /plutus-core; }`
 
 - `inputs.cells`\
   Provides access to all cells.\
@@ -78,9 +79,9 @@ For example:
 
 ## Reference example
 
-As an example, consider the file `__std__/cells/plutus/packages/eutxo-paper.nix`:
+As an example, consider the file `./nix/cells/plutus/packages/eutxo-paper.nix`:
 
-- `__std__/cells` is the `cellsFrom` value in `flake.nix`
+- `./nix/cells` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
 - `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
@@ -93,9 +94,9 @@ As an example, consider the file `__std__/cells/plutus/packages/eutxo-paper.nix`
 - And also accessible via `inputs.cells.plutus.packages.eutxo-paper` (everywhere)
 - And also buildable via `nix build .#eutxo-paper`
 
-As another example, consider the file `__std__/cells/plutus/library/default.nix`
+As another example, consider the file `./nix/cells/plutus/library/default.nix`
 
-- `__std__/cells` is the `cellsFrom` value in `flake.nix`
+- `./nix/cells` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
 - `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
@@ -111,7 +112,6 @@ As another example, consider the file `__std__/cells/plutus/library/default.nix`
 
 Migration to `std` will be 100% complete once all these are done:
 
-- Replace all occurrences of `__std__` to `nix`
-- Remove *every* nix files not in `nix` 
+
 - Do all remaining `TODO(std)`s 
 - Check CONTRIBUTING.adoc for references to old nix files
