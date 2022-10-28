@@ -86,8 +86,6 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # TODO(std) update to latest version to fix:
-    # warning: String 'configureFlags' is deprecated and will be removed in release 23.05.
     iohk-nix = {
       url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
