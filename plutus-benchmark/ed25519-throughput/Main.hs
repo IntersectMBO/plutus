@@ -96,6 +96,8 @@ data Inputs = Inputs [(BuiltinByteString, BuiltinByteString, BuiltinByteString, 
 type HashFun = ByteString -> ByteString
 type BuiltinHashFun = BuiltinByteString -> BuiltinByteString
 
+unstableMakeIsData ''Inputs
+
 haskellHash :: HashFun
 haskellHash = Hash.sha2_256
 
@@ -216,5 +218,3 @@ main = do
   printf "    n     script size             CPU usage               Memory usage\n"
   printf "  ----------------------------------------------------------------------\n"
   mapM_ printStatistics [0, 10..150]
-
-unstableMakeIsData ''Inputs

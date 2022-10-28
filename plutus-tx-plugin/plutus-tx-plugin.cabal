@@ -80,7 +80,6 @@ library
     , either
     , extra
     , flat
-    , ghc-prim
     , lens
     , mtl
     , plutus-core       ^>=1.1
@@ -89,7 +88,6 @@ library
     , PyF               >=0.11.1.0
     , template-haskell
     , text
-    , transformers
 
   if flag(use-ghc-stub)
     build-depends: plutus-ghc-stub
@@ -161,15 +159,12 @@ test-suite plutus-tx-tests
     , containers
     , deepseq
     , flat
-    , ghc-prim
     , hedgehog
-    , integer-gmp
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
     , plutus-tx-plugin                                ^>=1.1
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
-    , prettyprinter
     , tasty
     , tasty-hedgehog
     , tasty-hunit
