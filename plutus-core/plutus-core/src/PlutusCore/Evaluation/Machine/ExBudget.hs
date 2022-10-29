@@ -184,6 +184,7 @@ data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
 -- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget
 minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1-c2) (m1-m2)
+{-# INLINE minusExBudget #-}
 
 -- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
 instance Semigroup ExBudget where
@@ -195,6 +196,7 @@ instance Semigroup ExBudget where
 
 instance Monoid ExBudget where
     mempty = ExBudget mempty mempty
+    {-# INLINE mempty #-}
 
 instance Pretty ExBudget where
     pretty (ExBudget cpu memory) = parens $ braces $ vsep

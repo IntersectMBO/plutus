@@ -35,63 +35,64 @@ import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
 
 newtype SatInt = SI { unSatInt :: Int }
-    deriving newtype (NFData, Bits, FiniteBits, Prim)
+    deriving newtype (Show, Read, Eq, Ord, Bounded, NFData, Bits, FiniteBits, Prim)
     deriving stock (Lift, Generic)
     deriving (FromJSON, ToJSON) via Int
     deriving FromField via Int  -- For reading cost model data from CSV input
     deriving Serialise via Int
     deriving anyclass NoThunks
 
-instance Show SatInt where
-  showsPrec p x = showsPrec p (unSatInt x)
-
-instance Read SatInt where
-  readsPrec p xs = [ (SI x, r) | (x, r) <- readsPrec p xs ]
-
-instance Eq SatInt where
-  SI x == SI y = eqInt x y
-  SI x /= SI y = neInt x y
-
-instance Ord SatInt where
-  SI x <  SI y = ltInt x y
-  SI x <= SI y = leInt x y
-  SI x >  SI y = gtInt x y
-  SI x >= SI y = geInt x y
-
 -- | In the `Num' instance, we plug in our own addition, multiplication
 -- and subtraction function that perform overflow-checking.
 instance Num SatInt where
-  (+)               = plusSI
-  (*)               = timesSI
-  (-)               = minusSI
+  {-# INLINE (+) #-}
+  (+) = plusSI
+
+  {-# INLINE (*) #-}
+  (*) = timesSI
+
+  {-# INLINE (-) #-}
+  (-) = minusSI
+
+  {-# INLINE negate #-}
   negate (SI y)
     | y == minBound = maxBound
     | otherwise     = SI (negate y)
+
+  {-# INLINE abs #-}
   abs x
-    | x >= 0        = x
-    | otherwise     = negate x
-  signum (SI x)     = SI (signum x)
+    | x >= 0    = x
+    | otherwise = negate x
+
+  {-# INLINE signum #-}
+  signum = coerce (signum :: Int -> Int)
+
+  {-# INLINE fromInteger #-}
   fromInteger x
     | x > maxBoundInteger  = maxBound
     | x < minBoundInteger  = minBound
     | otherwise            = SI (fromInteger x)
 
+{-# INLINABLE maxBoundInteger #-}
 maxBoundInteger :: Integer
 maxBoundInteger = toInteger maxInt
 
+{-# INLINABLE minBoundInteger #-}
 minBoundInteger :: Integer
 minBoundInteger = toInteger minInt
 
-instance Bounded SatInt where
-
-  minBound = SI minInt
-  maxBound = SI maxInt
-
 instance Enum SatInt where
-  succ (SI x) = SI (succ x)
-  pred (SI x) = SI (pred x)
-  toEnum                = SI
-  fromEnum              = unSatInt
+  {-# INLINE succ #-}
+  succ = coerce (succ :: Int -> Int)
+
+  {-# INLINE pred #-}
+  pred = coerce (pred :: Int -> Int)
+
+  {-# INLINE toEnum #-}
+  toEnum = SI
+
+  {-# INLINE fromEnum #-}
+  fromEnum = unSatInt
 
   {-# INLINE enumFrom #-}
   enumFrom (SI (I# x)) = eftInt x maxInt#
@@ -223,11 +224,14 @@ efdtIntDnFB c n x1 x2 y    -- Be careful about underflow!
 -- The following code is copied/adapted from GHC.Real.
 
 instance Real SatInt where
+  {-# INLINE toRational #-}
   toRational (SI x) = toInteger x % 1
 
 instance Integral SatInt where
+    {-# INLINE toInteger #-}
     toInteger (SI (I# i)) = smallInteger i
 
+    {-# INLINE quot #-}
     SI a `quot` SI b
      | b == 0                     = divZeroError
      -- a/-1 = -a, -minBound = maxBound
@@ -235,6 +239,7 @@ instance Integral SatInt where
      | a == minBound && b == (-1) = maxBound
      | otherwise                  = SI (a `quotInt` b)
 
+    {-# INLINE rem #-}
     SI a `rem` SI b
      | b == 0                     = divZeroError
      -- a/-1 = -a, with no remainder
@@ -242,6 +247,7 @@ instance Integral SatInt where
      | a == minBound && b == (-1) = 0
      | otherwise                  = SI (a `remInt` b)
 
+    {-# INLINE div #-}
     SI a `div` SI b
      | b == 0                     = divZeroError
      -- a/-1 = -a, -minBound = maxBound
@@ -249,6 +255,7 @@ instance Integral SatInt where
      | a == minBound && b == (-1) = maxBound
      | otherwise                  = SI (a `divInt` b)
 
+    {-# INLINE mod #-}
     SI a `mod` SI b
      | b == 0                     = divZeroError
      -- a/-1 = -a, with no remainder
@@ -256,21 +263,25 @@ instance Integral SatInt where
      | a == minBound && b == (-1) = 0
      | otherwise                  = SI (a `modInt` b)
 
+    {-# INLINE quotRem #-}
     SI a `quotRem` SI b
      | b == 0                     = divZeroError
      -- See cases for `quot` and `rem`
      | a == minBound && b == (-1) = (maxBound, 0)
      | otherwise                  =  a `quotRemSI` b
 
+    {-# INLINE divMod #-}
     SI a `divMod` SI b
      | b == 0                     = divZeroError
      -- See cases for `div` and `mod`
      | a == minBound && b == (-1) = (maxBound, 0)
      | otherwise                  =  a `divModSI` b
 
+{-# INLINE quotRemSI #-}
 quotRemSI :: Int -> Int -> (SatInt, SatInt)
 quotRemSI a@(I# _) b@(I# _) = (SI (a `quotInt` b), SI (a `remInt` b))
 
+{-# INLINE divModSI #-}
 divModSI ::  Int -> Int -> (SatInt, SatInt)
 divModSI x@(I# _) y@(I# _) = (SI (x `divInt` y), SI (x `modInt` y))
 
@@ -285,6 +296,7 @@ So we have to case on the result, and then do some logic to work out what
 kind of overflow we're facing, and pick the correct result accordingly.
 -}
 
+{-# INLINE plusSI #-}
 plusSI :: SatInt -> SatInt -> SatInt
 plusSI (SI (I# x#)) (SI (I# y#)) =
   case addIntC# x# y#  of
@@ -297,6 +309,7 @@ plusSI (SI (I# x#)) (SI (I# y#)) =
       -- be impossible
       else overflowError
 
+{-# INLINE minusSI #-}
 minusSI :: SatInt -> SatInt -> SatInt
 minusSI (SI (I# x#)) (SI (I# y#)) =
   case subIntC# x# y# of
@@ -309,6 +322,7 @@ minusSI (SI (I# x#)) (SI (I# y#)) =
       -- be impossible
       else overflowError
 
+{-# INLINE timesSI #-}
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
   case mulIntMayOflo# x# y# of

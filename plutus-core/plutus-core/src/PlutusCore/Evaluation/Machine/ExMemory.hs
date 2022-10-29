@@ -22,7 +22,6 @@ import PlutusCore.Pretty
 import PlutusPrelude
 
 import Codec.Serialise (Serialise)
-import Control.Monad.RWS.Strict
 import Data.Aeson
 import Data.ByteString qualified as BS
 import Data.Proxy
@@ -105,7 +104,6 @@ type CostingInteger = SatInt
 newtype ExMemory = ExMemory CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
-  deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
@@ -114,12 +112,19 @@ instance Pretty ExMemory where
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
+instance Semigroup ExMemory where
+    (<>) = coerce $ (+) @CostingInteger
+    {-# INLINE (<>) #-}
+
+instance Monoid ExMemory where
+    mempty = coerce (0 :: CostingInteger)
+    {-# INLINE mempty #-}
+
 -- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
-  deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
@@ -127,6 +132,14 @@ instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
+
+instance Semigroup ExCPU where
+    (<>) = coerce $ (+) @CostingInteger
+    {-# INLINE (<>) #-}
+
+instance Monoid ExCPU where
+    mempty = coerce (0 :: CostingInteger)
+    {-# INLINE mempty #-}
 
 {- Note [ExMemoryUsage instances for non-constants]
 In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
