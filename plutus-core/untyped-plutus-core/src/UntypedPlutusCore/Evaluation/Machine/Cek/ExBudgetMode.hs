@@ -27,19 +27,19 @@ import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
 import Control.Lens (ifoldMap)
 import Control.Monad.Except
-import Data.HashMap.Monoidal as HashMap
 import Data.Hashable (Hashable)
+import Data.HashMap.Monoidal as HashMap
 import Data.List (intersperse)
 import Data.Map.Strict qualified as Map
 import Data.Primitive.PrimArray
-import Data.STRef
 import Data.SatInt
 import Data.Semigroup.Generic
+import Data.STRef
 import Prettyprinter
 import Text.PrettyBy (IgnorePrettyConfig (..))
 

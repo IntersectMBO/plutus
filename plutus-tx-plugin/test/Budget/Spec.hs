@@ -20,8 +20,8 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.TH (compile)
 import PlutusTx.Test (goldenBudget, goldenPir)
+import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [

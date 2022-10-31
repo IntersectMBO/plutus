@@ -5,8 +5,8 @@ module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
 
 import Control.Monad (unless)
 import Control.Monad.Trans (liftIO)
-import Criterion.IO.Printf (printError, writeCsv)
 import Criterion.Internal (runAndAnalyse, runFixedIters)
+import Criterion.IO.Printf (printError, writeCsv)
 import Criterion.Main (makeMatcher)
 import Criterion.Main.Options (MatchType (..), Mode (..), describe, versionInfo)
 import Criterion.Measurement (initializeTime)

@@ -60,8 +60,8 @@ import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
