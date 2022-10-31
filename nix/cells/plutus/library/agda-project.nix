@@ -8,7 +8,7 @@ in
 library.haskell-nix.hackage-project {
   name = "Agda";
 
-  version = "2.6.2.1";
+  version = "2.6.2.2";
 
   compiler-nix-name = library.ghc-compiler-nix-name;
 

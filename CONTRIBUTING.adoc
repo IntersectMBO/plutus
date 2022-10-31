@@ -267,6 +267,9 @@ Until then all our code must continue to build with both, so you cannot use any 
 
 The default devshell is a 9.2 shell, but you can get an 8.10 devshell with `nix develop .#plutus-shell-8107`.
 
+NOTE: The dev tools in the 8.10 shell will still be built with 9.2, so some things like HLS may not work properly.
+Do not use the 8.10 shell for anything except fixing compatibility problems.
+
 == Working conventions
 
 === Style guide

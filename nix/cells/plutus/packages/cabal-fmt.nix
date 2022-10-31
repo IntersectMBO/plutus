@@ -16,7 +16,8 @@ let
     # Cabal library version 3.6, hence we add this line.
     modules = [{ reinstallableLibGhc = true; }];
 
-    compiler-nix-name = cell.library.ghc-compiler-nix-name;
+    # Doesn't build with 9.2.4
+    compiler-nix-name = "ghc8107";
 
     index-state = cell.library.cabal-project-index-state;
   };
