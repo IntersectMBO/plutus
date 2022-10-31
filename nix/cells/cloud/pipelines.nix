@@ -10,6 +10,7 @@
   and not the automation cell.
 */
 let
+  inherit (inputs.nixpkgs) lib;
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
   inherit (inputs.cells.plutus.library.pkgs.stdenv) system;
   inherit (inputs.cells.automation) ciJobs;
@@ -35,9 +36,11 @@ let
       };
     };
 
-  # The 'required' job masks everything else, which isn't helpful, so we rmeove it
-  # for cicero
-  ciTasks = builtins.removeAttrs
+  # Only build the required job, other jobs might change and become unavailable
+  # This is necessary because cicero only evaluates the task list on master,
+  # instead of the current branch
+  ciJobsToBuild = lib.getAttrs [ "required" ] ciJobs;
+  ciTasks =
     (__mapAttrs
       (_: flakeOutputTask: { ... }: {
         imports = [ common flakeOutputTask ];
@@ -48,8 +51,8 @@ let
       (flakeOutputTasks [ system "automation" "ciJobs" ] {
         # Replicate flake output structure here, so that the generated nix build
         # commands reference the right output relative to the top-level of the flake.
-        outputs.${system}.automation.ciJobs = ciJobs;
-      })) [ "required" ];
+        outputs.${system}.automation.ciJobs = ciJobsToBuild;
+      }));
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
