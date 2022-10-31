@@ -97,7 +97,7 @@ data MyMonoData where
 @
 -}
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
-monoConstructor = plc (Proxy @"monConstructor") Mono1
+monoConstructor = plc (Proxy @"monoConstructor") Mono1
 
 monoConstructed :: CompiledCode MyMonoData
 monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)
