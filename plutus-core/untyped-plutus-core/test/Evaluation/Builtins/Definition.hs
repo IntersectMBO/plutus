@@ -45,8 +45,8 @@ import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
