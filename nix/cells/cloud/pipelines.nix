@@ -10,8 +10,8 @@
   and not the automation cell.
 */
 let
+  inherit (inputs.nixpkgs) lib system;
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
-  inherit (inputs.cells.plutus.library.pkgs.stdenv) system;
   inherit (inputs.cells.automation) ciJobs;
 
   common =
@@ -35,9 +35,11 @@ let
       };
     };
 
-  # The 'required' job masks everything else, which isn't helpful, so we rmeove it
-  # for cicero
-  ciTasks = builtins.removeAttrs
+  # Only build the required job, other jobs might change and become unavailable
+  # This is necessary because cicero only evaluates the task list on master,
+  # instead of the current branch
+  ciJobsToBuild = lib.getAttrs [ "required" ] ciJobs;
+  ciTasks =
     (__mapAttrs
       (_: flakeOutputTask: { ... }: {
         imports = [ common flakeOutputTask ];
@@ -48,20 +50,18 @@ let
       (flakeOutputTasks [ system "automation" "ciJobs" ] {
         # Replicate flake output structure here, so that the generated nix build
         # commands reference the right output relative to the top-level of the flake.
-        outputs.${system}.automation.ciJobs = ciJobs;
-      })) [ "required" ];
+        outputs.${system}.automation.ciJobs = ciJobsToBuild;
+      }));
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
 if system == "x86_64-linux" then
-# including 'ciTasks' also seems to run into argument limits
+  ciTasks // # for running separately
   ciTasksSeq // # for running in an arbitrary sequence
   {
-    "ci" = { lib, ... }: {
+    "ci" = { ... }: {
       imports = [ common ];
-      # It would be simpler to just say it runs after _all_ the CI
-      # tasks, but we have so many tasks that it breaks max argument limits
-      after = [ (lib.last (__attrNames ciTasksSeq)) ];
+      after = __attrNames ciTasksSeq;
     };
   }
 else { }

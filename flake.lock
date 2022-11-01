@@ -1124,11 +1124,11 @@
         "std": "std_2"
       },
       "locked": {
-        "lastModified": 1665589828,
-        "narHash": "sha256-LNhGQo1R49MA67rCDUcmGU6LPvLPleEUMudkJgx3Mdc=",
+        "lastModified": 1666956227,
+        "narHash": "sha256-7ogjY/4084uclSSc7q4DJ4clpj/qCYTxK+sIKpfNajc=",
         "owner": "input-output-hk",
         "repo": "tullia",
-        "rev": "30e198000528b0af23eac546c941c23b7ac39709",
+        "rev": "a27b99ec5505757c6d3cad66b4d9719cfc62781c",
         "type": "github"
       },
       "original": {
