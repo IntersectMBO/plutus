@@ -241,7 +241,7 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString pubKey) (BuiltinByteString message) (BuiltinByteString signature) =
-  BuiltinBool (fromMaybe False (Crypto.verifyEd25519Signature pubKey message signature))
+  BuiltinBool (fromMaybe False (Crypto.verifyEd25519Signature_V1 pubKey message signature))
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::
