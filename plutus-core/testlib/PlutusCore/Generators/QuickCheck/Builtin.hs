@@ -11,7 +11,7 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data
-import PlutusCore.Generators.QuickCheck.Common (genList, recursive)
+import PlutusCore.Generators.QuickCheck.Common (genList)
 
 import Data.ByteString (ByteString)
 import Data.Coerce
@@ -27,7 +27,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary Data where
-    arbitrary = genData 5
+    arbitrary = sized genData
 
     shrink = genericShrink
 
@@ -36,9 +36,9 @@ genData depth =
     oneof $
         [genI, genB]
             <> [ genRec | depth > 1, genRec <-
-                                        [ genListData (depth - 1)
-                                        , genMapData (depth - 1)
-                                        , genConstrData (depth - 1)
+                                        [ genListData (depth `div` 2)
+                                        , genMapData (depth `div` 2)
+                                        , genConstrData (depth `div` 2)
                                         ]
                ]
   where
@@ -49,9 +49,9 @@ genListWithMaxDepth :: Int -> (Int -> Gen a) -> Gen [a]
 genListWithMaxDepth depth gen =
     -- The longer the list, the smaller the elements.
     frequency
-        [ (1, genList 0 5 (gen (depth - 1)))
-        , (1, genList 0 50 (gen (depth - 2)))
-        , (1, genList 0 500 (gen (depth - 3)))
+        [ (100, genList 0 5 (gen depth))
+        , (10, genList 0 50 (gen (depth `div` 2)))
+        , (1, genList 0 500 (gen (depth `div` 4)))
         ]
 
 genListData :: Int -> Gen Data

@@ -70,17 +70,6 @@ checkKind ctx ty kExp =
   where
     kInf = inferKind ctx ty
 
--- | QuickCheck's version of @Hedgehog.Internal.Gen.golden@.
-golden :: Int -> Int
-golden x = round @Double (fromIntegral x * 0.61803398875)
-
--- | QuickCheck's version of @Hedgehog.Internal.Gen.recursive@.
-recursive :: ([Gen a] -> Gen a) -> [Gen a] -> [Gen a] -> Gen a
-recursive f nonrec rec = Gen.sized $ \n ->
-    if n <= 1
-        then f nonrec
-        else f $ nonrec ++ fmap (Gen.scale golden) rec
-
 -- | Generate a list with the given minimum and maximum lengths.
 -- It is similar to @Hedgehog.Internal.Gen.list@.
 --
