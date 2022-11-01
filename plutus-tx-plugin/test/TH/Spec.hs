@@ -31,6 +31,13 @@ import Prelude qualified as Haskell
 
 import TH.TestTH
 
+data SomeType = One Integer | Two | Three ()
+
+makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]
+
+someData :: (BuiltinData, BuiltinData, BuiltinData)
+someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
+
 tests :: TestNested
 tests = testNested "TH" [
     goldenPir "simple" simple
@@ -75,10 +82,3 @@ traceRepeatedly = $$(compile
               i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
           in i3
     ||])
-
-data SomeType = One Integer | Two | Three ()
-
-someData :: (BuiltinData, BuiltinData, BuiltinData)
-someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
-
-makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]

@@ -38,7 +38,8 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
 
-import GhcPlugins qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
 
 import Language.Haskell.TH.Syntax qualified as TH
 

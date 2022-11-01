@@ -119,56 +119,46 @@
                 (lam
                   dMonoid
                   [ Monoid m ]
-                  (let
-                    (nonrec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl
-                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
-                      )
-                      [ { p1Monoid m } dMonoid ]
-                    )
+                  (lam
+                    eta
+                    (fun a m)
                     (lam
-                      ds
-                      (fun a m)
-                      (lam
-                        ds
-                        [ List a ]
-                        {
+                      eta
+                      [ List a ]
+                      {
+                        [
                           [
-                            [
-                              { [ { Nil_match a } ds ] (all dead (type) m) }
-                              (abs dead (type) [ { mempty m } dMonoid ])
-                            ]
+                            { [ { Nil_match a } eta ] (all dead (type) m) }
+                            (abs dead (type) [ { mempty m } dMonoid ])
+                          ]
+                          (lam
+                            x
+                            a
                             (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [ List a ]
-                                (abs
-                                  dead
-                                  (type)
+                              xs
+                              [ List a ]
+                              (abs
+                                dead
+                                (type)
+                                [
+                                  [ [ { p1Monoid m } dMonoid ] [ eta x ] ]
                                   [
-                                    [ dSemigroup [ ds x ] ]
                                     [
                                       [
-                                        [
-                                          { { fFoldableNil_cfoldMap m } a }
-                                          dMonoid
-                                        ]
-                                        ds
+                                        { { fFoldableNil_cfoldMap m } a }
+                                        dMonoid
                                       ]
-                                      xs
+                                      eta
                                     ]
+                                    xs
                                   ]
-                                )
+                                ]
                               )
                             )
-                          ]
-                          (all dead (type) dead)
-                        }
-                      )
+                          )
+                        ]
+                        (all dead (type) dead)
+                      }
                     )
                   )
                 )
@@ -218,7 +208,13 @@
                 (lam
                   g
                   (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                  [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+                  [
+                    [
+                      { g [ List a ] }
+                      (lam ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ]))
+                    ]
+                    { Nil a }
+                  ]
                 )
               )
             )
@@ -364,7 +360,7 @@
                           { { dFoldable [ (lam a (type) a) a ] } a }
                           [ { fMonoidSum a } dAdditiveMonoid ]
                         ]
-                        (lam v a v)
+                        (lam ds a ds)
                       ]
                     )
                   )

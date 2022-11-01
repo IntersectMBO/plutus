@@ -1,0 +1,3 @@
+{ inputs, cell }:
+
+"ghc924"

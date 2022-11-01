@@ -26,7 +26,7 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
-import GhcPlugins qualified as GHC
+import GHC.Plugins qualified as GHC
 import Prettyprinter
 import PyF (fmt)
 

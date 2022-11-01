@@ -2,5 +2,5 @@
 , exiting runIdentity
 , entering newtypeFunction
 , exiting newtypeFunction
-, entering fFoldableIdentity
-, exiting fFoldableIdentity ]
+, entering runIdentity
+, exiting runIdentity ]

@@ -79,7 +79,7 @@ In order to prevent people encoding copyright or otherwise illegal data on the c
 restrict the amount of data that can be controlled in an unrestricted fashion by the user. Fortunately,
 most of the encoding does no allow much leeway for a user to control its content (when accounting for the
 structure of the format itself). The main thing to worry about is bytestrings, but even there, the flat
-encoding of bytestrings is a a sequence of 255-byte chunks. This is okay, since user-controlled data will
+encoding of bytestrings is a sequence of 255-byte chunks. This is okay, since user-controlled data will
 be broken up by the chunk metadata.
 -}
 

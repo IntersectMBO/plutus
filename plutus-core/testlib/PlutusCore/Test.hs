@@ -69,8 +69,8 @@ import Hedgehog
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 import Hedgehog.Internal.Config
 import Hedgehog.Internal.Property

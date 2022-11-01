@@ -110,7 +110,7 @@ freshTyName = fmap TyName <$> freshName
 freshenTyName :: MonadQuote m => TyName -> m TyName
 freshenTyName (TyName name) = TyName <$> freshenName name
 
--- | Mark a all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
+-- | Mark all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
 markNonFreshBelow :: MonadQuote m => Unique -> m ()
 markNonFreshBelow = liftQuote . QuoteT . modify . max
 

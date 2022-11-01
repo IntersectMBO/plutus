@@ -20,8 +20,8 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.TH (compile)
 import PlutusTx.Test (goldenBudget, goldenPir)
+import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [
@@ -105,6 +105,25 @@ patternMatchExample x y = case x of
         Nothing -> Nothing
     Nothing -> Nothing
 
+{-
+Since upgrading to GHC 9.2.4, the optimized PIR for this test case contains
+an additional let-binding:
+
+@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+  (vardecl ds (con integer))
+  [ [ (builtin addInteger) x ] y ]
+  )
+  [ { Just (con integer) } ds ]
+)
+@
+
+This is likely caused by the @$fApplicativeMaybe_$cpure@ in the CoreExpr. In GHC 8,
+it is inlined into @Just@.
+-}
 monadicDo :: CompiledCode (Maybe Integer)
 monadicDo = $$(compile [||
       let x = Just 1

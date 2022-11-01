@@ -10,7 +10,7 @@ import PlutusTx.Compiler.Names
 import PlutusTx.Compiler.Types
 import PlutusTx.PIRTypes
 
-import GhcPlugins qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import PlutusIR qualified as PIR
 

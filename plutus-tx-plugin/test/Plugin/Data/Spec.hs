@@ -76,8 +76,28 @@ instance P.Eq MyMonoData where
 monoDataType :: CompiledCode (MyMonoData -> Integer)
 monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
+{-
+This is one of the test cases that reveals a bug in GHC 9: it fails to perform some
+eta reductions that should be performed.
+
+The CoreExpr for this test case in GHC 8 is simply @Mono1@, but in GHC 9, it becomes
+@\ds1 ds2 -> Mono1 ds1 ds2@. This leads to bigger PIR, since we don't do eta reduction in PIR.
+
+The reason for the GHC 9 behavior appears to be this Multiplicity check:
+https://gitlab.haskell.org/ghc/ghc/-/blob/a54827e0b48af33fa9cfde6ad131c6751c2fe321/compiler/GHC/Core/Utils.hs#L2501.
+GHC thinks @Mono1@ has a linear type, but @ds1@ and @ds2@ are non-linear, and the check is False.
+
+The GHC 8 behavior is restored if @MyMonoData@ is defined this way:
+
+@
+data MyMonoData where
+  Mono1 :: Integer %Many -> Integer %Many -> MyMonoData
+  Mono2 :: Integer %Many -> MyMonoData
+  Mono3 :: Integer %Many -> MyMonoData
+@
+-}
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
-monoConstructor = plc (Proxy @"monConstructor") Mono1
+monoConstructor = plc (Proxy @"monoConstructor") Mono1
 
 monoConstructed :: CompiledCode MyMonoData
 monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)

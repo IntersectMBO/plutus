@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.1.0.0
+version:         1.1.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -49,7 +49,7 @@ flag use-ghc-stub
 library
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   hs-source-dirs:  src
@@ -80,7 +80,6 @@ library
     , either
     , extra
     , flat
-    , ghc-prim
     , lens
     , mtl
     , plutus-core       ^>=1.1
@@ -89,7 +88,6 @@ library
     , PyF               >=0.11.1.0
     , template-haskell
     , text
-    , transformers
 
   if flag(use-ghc-stub)
     build-depends: plutus-ghc-stub
@@ -97,12 +95,12 @@ library
       -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
 
   else
-    build-depends: ghc >=8.10 && <9
+    build-depends: ghc >=9.2 && <9.4
 
 executable gen-plugin-opts-doc
   import:           lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:          GeneratePluginOptionsDoc.hs
@@ -123,7 +121,7 @@ executable gen-plugin-opts-doc
 test-suite plutus-tx-tests
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   if flag(use-ghc-stub)
@@ -161,15 +159,12 @@ test-suite plutus-tx-tests
     , containers
     , deepseq
     , flat
-    , ghc-prim
     , hedgehog
-    , integer-gmp
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
     , plutus-tx-plugin                                ^>=1.1
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
-    , prettyprinter
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -182,7 +177,7 @@ test-suite plutus-tx-tests
 test-suite size
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   -- needs plutus-tx-plugin but it looks unused
