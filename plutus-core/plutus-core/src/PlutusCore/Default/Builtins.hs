@@ -24,7 +24,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
                verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -790,7 +790,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b_256)
     toBuiltinMeaning VerifyEd25519Signature =
         makeBuiltinMeaning
-            verifyEd25519Signature_V1 -- TODO is this correct?
+            (verifyEd25519Signature @EvaluationResult)
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
