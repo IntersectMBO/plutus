@@ -24,7 +24,8 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
+               verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BS (toStrict)
