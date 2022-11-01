@@ -13,9 +13,9 @@ repository cardano-haskell-packages
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
 -- Bump this if you need newer packages from Hackage
-index-state: 2022-10-25T23:33:39Z
+index-state: 2022-10-31T00:00:00Z
 -- Bump this if you need newer packages from CHaP
-index-state: cardano-haskell-packages 2022-10-25T17:33:07Z
+index-state: cardano-haskell-packages 2022-10-24T00:00:00Z
 
 packages:
           -- doc
@@ -37,32 +37,27 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
--- The only sensible test display option, since it allows us to have colourized 
+-- The only sensible test display option, since it allows us to have colourized
 -- 'tasty' output.
 test-show-details: direct
 
-allow-newer:
-           -- Pins to an old version of Template Haskell, unclear if/when it will be updated
-           size-based:template-haskell
+if (impl (ghc < 9))
+  -- inline-r doesn't (yet) build on 9.2.4, so only turn it on before that
+  package plutus-core
+    flags: +with-inline-r
+
+-- See https://github.com/input-output-hk/nothunks/issues/17
+package nothunks
+  flags: +vector
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
 
-allow-newer:
-  cardano-slotting:time,
-  int-cast:base,
---   monoidal-containers:aeson,
---   size-based:template-haskell,
-  plutus-errors:th-abstraction,
-  plutus-core:int-cast,
-  plutus-core:ral,
-  plutus-core:some,
-  plutus-tx-plugin:ghc,
---   Unique:hashable,
-
--- https://github.com/well-typed/canonical-json/pull/8
-source-repository-package
-  type: git
-  location: https://github.com/well-typed/canonical-json
-  tag: 8a37c22f0ce4759b4d534a4019a473e8225f3477
+-- An older version of this package might not generate GEq instances.
+-- See https://github.com/obsidiansystems/dependent-sum/issues/72
+-- TODO: is there some way we can get this into the cabal files given
+-- that we don't depend on it explicitly? Maybe we can add an unused
+-- dependency but turn off the warning?
+constraints:
+  dependent-sum >= 0.7.1.0,
