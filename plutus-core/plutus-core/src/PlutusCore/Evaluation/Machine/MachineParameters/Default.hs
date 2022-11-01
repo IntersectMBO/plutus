@@ -45,4 +45,6 @@ mkMachineParametersFor :: (MonadError CostModelApplyError m)
 mkMachineParametersFor ver newCMP =
     inline mkMachineParameters ver <$>
         applyCostModelParams defaultCekCostModel newCMP
-{-# INLINE mkMachineParametersFor #-}
+-- {-# INLINE mkMachineParametersFor #-} was removed because [benchmarking
+-- results](https://github.com/input-output-hk/plutus/pull/4879#issuecomment-1301052379) show that
+-- the pragma isn't helping anymore.
