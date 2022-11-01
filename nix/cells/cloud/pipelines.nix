@@ -10,9 +10,8 @@
   and not the automation cell.
 */
 let
-  inherit (inputs.nixpkgs) lib;
+  inherit (inputs.nixpkgs) lib system;
   inherit (inputs.tullia) flakeOutputTasks taskSequence;
-  inherit (inputs.cells.plutus.library.pkgs.stdenv) system;
   inherit (inputs.cells.automation) ciJobs;
 
   common =
@@ -57,14 +56,12 @@ let
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 in
 if system == "x86_64-linux" then
-# including 'ciTasks' also seems to run into argument limits
+  ciTasks // # for running separately
   ciTasksSeq // # for running in an arbitrary sequence
   {
-    "ci" = { lib, ... }: {
+    "ci" = { ... }: {
       imports = [ common ];
-      # It would be simpler to just say it runs after _all_ the CI
-      # tasks, but we have so many tasks that it breaks max argument limits
-      after = [ (lib.last (__attrNames ciTasksSeq)) ];
+      after = __attrNames ciTasksSeq;
     };
   }
 else { }
