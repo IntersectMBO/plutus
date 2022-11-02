@@ -13,11 +13,11 @@ repository cardano-haskell-packages
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
 -- Bump this if you need newer packages from Hackage
-index-state: 2022-09-26T00:00:00Z
+index-state: 2022-10-31T00:00:00Z
 -- Bump this if you need newer packages from CHaP
 index-state: cardano-haskell-packages 2022-10-24T00:00:00Z
 
-packages: doc
+packages: doc/read-the-docs-site
           plutus-benchmark
           plutus-conformance
           plutus-core
@@ -37,20 +37,18 @@ write-ghc-environment-files: never
 tests: true
 benchmarks: true
 
--- The only sensible test display option, since it allows us to have colourized 
+-- The only sensible test display option, since it allows us to have colourized
 -- 'tasty' output.
 test-show-details: direct
 
-if (impl (ghc >= 9))
-  -- The plugin doesn't support the 'ghc' library for GHC 9+ yet.
-  -- in order to avoid getting the solver confused, we can just use
-  -- the stub in this case until we get it working properly.
-  package plutus-tx-plugin
-    flags: +use-ghc-stub
-else
+if (impl (ghc < 9))
   -- inline-r doesn't (yet) build on 9.2.4, so only turn it on before that
   package plutus-core
     flags: +with-inline-r
+
+-- See https://github.com/input-output-hk/nothunks/issues/17
+package nothunks
+  flags: +vector
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).

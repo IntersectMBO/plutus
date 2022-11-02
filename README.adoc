@@ -4,7 +4,10 @@
 :toc: left
 :reproducible:
 
+== Introduction
+
 Plutus Core is the scripting language embedded in the Cardano ledger and forms the basis of the Plutus Platform, an application development platform for developing distributed applications using the Cardano blockchain.
+
 For more information about the projects, see the <<user-documentation>>.
 
 This repository contains:
@@ -12,32 +15,26 @@ This repository contains:
 * The implementation, specification, and mechanized metatheory of Plutus Core
 * Plutus Tx, the compiler from Haskell to Plutus Core.
 
-The rest of this README is focussed on people who want to develop or contribute to the project.
-
 For people who want to *use* the project, please consult the <<user-documentation>>.
 
-[IMPORTANT]
-====
-This repository used to contain the code for the Plutus Application Framework and Marlowe.
-These have now *moved*:
+== Development
 
-- https://github.com/input-output-hk/plutus-apps[Plutus Application Framework]
-- https://github.com/input-output-hk/marlowe-cardano[Marlowe]
+[[how-to-develop]]
+=== How to develop and contribute to the project
 
-Please ensure that you make PRs and issues in the appropriate repository!
+Run `nix develop` to enter the development shell and you will be presented with a list of available commands.
 
-====
+**Please see link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING] for comprehensive documentation on how to contribute to the project, including development and submitting changes*
 
-[[cache-warning]]
-[IMPORTANT]
-====
-DO NOT IGNORE THIS
+=== How to submit an issue
 
-If you want to use Nix with this project, make sure to set up the xref:iohk-binary-cache[IOHK binary cache].
-If you do not do this, you will end up building GHC, which takes several hours.
-If you find yourself building GHC, STOP and fix the cache.
+Issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
 
-====
+=== How to depend on the project from another Haskell project
+
+The `plutus` libraries are published via https://input-output-hk.github.io/cardano-haskell-packages/[CHaP].
+See the information there for how to use CHaP.
+After setting it up you should just be able to depend on the `plutus` packages as normal and cabal will find them.
 
 == Documentation
 
@@ -65,141 +62,11 @@ The main documentation is located https://plutus.readthedocs.io/en/latest/[here]
 - https://hydra.iohk.io/job/Cardano/plutus/linux.docs.papers.eutxoma/latest/download-by-type/doc-pdf/eutxoma[Native Custom Tokens in the Extended UTXO Model]: a discussion of the interaction of the multi-asset support with EUTXO (https://doi.org/10.1007/978-3-030-61467-6_7[published version]).
 - https://arxiv.org/abs/2201.04919[Translation Certification for Smart Contracts]:  a certifier of Plutus IR compiler passes written in Coq.
 
-== Working with the project
-
-=== How to submit an issue
-
-Issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
-
-However, note that this is pre-release software, so we will not usually be providing support.
-
-[[how-to-develop]]
-=== How to develop and contribute to the project
-
-See link:CONTRIBUTING{outfilesuffix}[CONTRIBUTING], which describes our processes in more detail including development environments.
-
-=== How to depend on the project from another Haskell project
-
-None of our libraries are on Hackage, unfortunately (many of our dependencies aren't either).
-So for the time being, you need to:
-
-. Add `plutus` as a `source-repository-package` to your `cabal.project`.
-. Copy the `source-repository-package` stanzas from our `cabal.project` to yours.
-. Copy additional stanzas from our `cabal.project` as you need, e.g. you may need some of the `allow-newer` stanzas.
-
-The https://github.com/input-output-hk/plutus-starter[plutus-starter] project provides an example.
-
-=== How to build the project's artifacts
-
-This section contains information about how to build the project's artifacts for independent usage.
-For development work see <<how-to-develop>> for more information.
-
-[[prerequisites]]
-==== Prerequisites
-
-The Haskell libraries in Plutus Core are built with `cabal` and Nix.
-The other artifacts (docs etc.) are also most easily built with Nix.
-
-===== Nix
-
-Install https://nixos.org/nix/[Nix] (recommended). following the instructions on the https://nixos.org/nix/[Nix website].
-
-Make sure you have read and understood the xref:cache-warning[cache warning].
-DO NOT IGNORE THIS.
-
-See <<nix-advice>> for further advice on using Nix.
-
-===== Non-Nix
-
-You can build some of the Haskell packages without Nix, but this is not recommended and we don't guarantee that these prerequisites are sufficient.
-If you use Nix, these tools are provided for you via `shell.nix`, and you do *not* need to install them yourself.
-
-* If you want to build our Haskell packages with https://www.haskell.org/cabal/[`cabal`], then install it.
-* If you want to build our Agda code, then install https://github.com/agda/agda[Agda] and the https://github.com/agda/agda-stdlib[standard library].
-
-[[building-with-nix]]
-==== How to build the Haskell packages and other artifacts with Nix
-
-Run `nix build -f default.nix plutus.haskell.packages.plutus-core.components.library` from the root to build the Plutus Core library.
-
-See <<nix-build-attributes>> to find out what other attributes you can build.
-
-==== How to build the Haskell packages with `cabal`
-
-The Haskell packages can be built directly with `cabal`.
-We do this during development (see <<how-to-develop>>).
-The best way is to do this is inside a `nix-shell`.
-
-[NOTE]
-====
-For fresh development setups, you also need to run `cabal update`.
-====
-
-Run `cabal build plutus-core` from the root to build the Plutus Core library.
-
-See the link:./cabal.project[cabal project file] to see the other packages that you can build with `cabal`.
-
-[[nix-advice]]
-== Nix
-
-[[iohk-binary-cache]]
-=== How to set up the IOHK binary caches
-
-Adding the IOHK binary cache to your Nix configuration will speed up
-builds a lot, since many things will have been built already by our CI.
-
-If you find you are building packages that are not defined in this
-repository, or if the build seems to take a very long time then you may
-not have this set up properly.
-
-To set up the cache:
-
-. On non-NixOS, edit `/etc/nix/nix.conf` and add the following lines:
-+
-----
-substituters        = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/
-trusted-public-keys = hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-----
-+
-[NOTE]
-====
-If you don't have an `/etc/nix/nix.conf` or don't want to edit it, you may add the `nix.conf` lines to `~/.config/nix/nix.conf` instead.
-You must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this. If this file doesn't exist, go ahead and create it.
-
-Remember that nix will use `~/.config/nix/nix.conf` over `/etc/nix/nix.conf` if both files exist.
-====
-. On NixOS, set the following NixOS options:
-+
-----
-nix = {
-  binaryCaches          = [ "https://hydra.iohk.io" "https://iohk.cachix.org" ];
-  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" "iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo=" ];
-};
-----
-
-Note: after changing /etc/nix/nix.conf you must restart the nix-daemon on non-NixOS for the changes to take effect!
-
-[[nix-build-attributes]]
-=== Which attributes to use to build different artifacts
-
-link:./default.nix[`default.nix`] defines a package set with attributes for all the artifacts you can build from this repository.
-These can be built using `nix build`.
-For example:
-
-----
-nix build -f default.nix docs.papers.eutxo
-----
-
-.Example attributes
-* Project packages: defined inside `plutus.haskell.packages`
-** e.g. `plutus.haskell.packages.plutus-core.components.library`
-* Documents: defined inside `docs`
-** e.g. `docs.plutus-core-spec`
-
-There are other attributes defined in link:./default.nix[`default.nix`].
-
 == Licensing
 
-You are free to copy, modify, and distribute this software
-under the terms of the Apache 2.0 license. See the link:./LICENSE[LICENSE]
-and link:./NOTICE[NOTICE] files for details.
+You are free to copy, modify, and distribute this software under the terms of the Apache 2.0 license. 
+
+See the link:./LICENSE[LICENSE] and link:./NOTICE[NOTICE] files for details.
+
+
+

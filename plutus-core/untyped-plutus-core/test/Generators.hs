@@ -27,8 +27,8 @@ import Data.Text qualified as T
 
 import Hedgehog (property, tripping)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (testCase, (@?=))
 
 import Flat qualified
 

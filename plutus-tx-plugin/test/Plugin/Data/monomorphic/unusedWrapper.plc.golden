@@ -33,9 +33,9 @@
       )
     )
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl mkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
-      WMkT
+      (lam ds [ [ Tuple2 (con integer) ] (con integer) ] [ WMkT ds ])
     )
     [
       mkT

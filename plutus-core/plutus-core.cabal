@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.1.0.0
+version:            1.1.1.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -312,7 +312,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks
+    , nothunks                    >=0.1.1
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable  ^>=1.1
@@ -379,7 +379,6 @@ library plutus-core-testlib
     , bifunctors
     , bytestring
     , containers
-    , data-default-class
     , dependent-map               >=0.4.0.0
     , filepath
     , hedgehog                    >=1.0

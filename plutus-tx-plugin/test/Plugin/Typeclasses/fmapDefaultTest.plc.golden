@@ -1,7 +1,7 @@
 (program
   (let
     (nonrec)
-    (termbind (strict) (vardecl ds (con integer)) (con integer 1))
+    (termbind (strict) (vardecl v (con integer)) (con integer 1))
     (termbind
       (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
@@ -19,6 +19,23 @@
         [ (lam a (type) (fun a (fun a a))) (con integer) ]
       )
       addInteger
+    )
+    (termbind
+      (strict)
+      (vardecl
+        bad_name
+        (all
+          a
+          (type)
+          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a (fun a a)))
+        )
+      )
+      (abs a (type) (lam v [ (lam a (type) (fun a (fun a a))) a ] v))
+    )
+    (termbind
+      (nonstrict)
+      (vardecl v (fun (con integer) (fun (con integer) (con integer))))
+      [ { bad_name (con integer) } fAdditiveSemigroupInteger ]
     )
     (datatypebind
       (datatype
@@ -102,56 +119,46 @@
                 (lam
                   dMonoid
                   [ Monoid m ]
-                  (let
-                    (nonrec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl
-                        dSemigroup [ (lam a (type) (fun a (fun a a))) m ]
-                      )
-                      [ { p1Monoid m } dMonoid ]
-                    )
+                  (lam
+                    eta
+                    (fun a m)
                     (lam
-                      ds
-                      (fun a m)
-                      (lam
-                        ds
-                        [ List a ]
-                        {
+                      eta
+                      [ List a ]
+                      {
+                        [
                           [
-                            [
-                              { [ { Nil_match a } ds ] (all dead (type) m) }
-                              (abs dead (type) [ { mempty m } dMonoid ])
-                            ]
+                            { [ { Nil_match a } eta ] (all dead (type) m) }
+                            (abs dead (type) [ { mempty m } dMonoid ])
+                          ]
+                          (lam
+                            x
+                            a
                             (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [ List a ]
-                                (abs
-                                  dead
-                                  (type)
+                              xs
+                              [ List a ]
+                              (abs
+                                dead
+                                (type)
+                                [
+                                  [ [ { p1Monoid m } dMonoid ] [ eta x ] ]
                                   [
-                                    [ dSemigroup [ ds x ] ]
                                     [
                                       [
-                                        [
-                                          { { fFoldableNil_cfoldMap m } a }
-                                          dMonoid
-                                        ]
-                                        ds
+                                        { { fFoldableNil_cfoldMap m } a }
+                                        dMonoid
                                       ]
-                                      xs
+                                      eta
                                     ]
+                                    xs
                                   ]
-                                )
+                                ]
                               )
                             )
-                          ]
-                          (all dead (type) dead)
-                        }
-                      )
+                          )
+                        ]
+                        (all dead (type) dead)
+                      }
                     )
                   )
                 )
@@ -565,7 +572,15 @@
                                                   }
                                                   (fun [ List b ] [ List b ])
                                                 }
-                                                { Cons b }
+                                                (lam
+                                                  ds
+                                                  b
+                                                  (lam
+                                                    ds
+                                                    [ List b ]
+                                                    [ [ { Cons b } ds ] ds ]
+                                                  )
+                                                )
                                               ]
                                               [ ds x ]
                                             ]
@@ -688,23 +703,6 @@
                   (termbind
                     (strict)
                     (vardecl
-                      bad_name
-                      (all
-                        a
-                        (type)
-                        (fun
-                          [ (lam a (type) (fun a (fun a a))) a ]
-                          (fun a (fun a a))
-                        )
-                      )
-                    )
-                    (abs
-                      a (type) (lam v [ (lam a (type) (fun a (fun a a))) a ] v)
-                    )
-                  )
-                  (termbind
-                    (strict)
-                    (vardecl
                       build
                       (all
                         a
@@ -721,7 +719,15 @@
                       (lam
                         g
                         (all b (type) (fun (fun a (fun b b)) (fun b b)))
-                        [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+                        [
+                          [
+                            { g [ List a ] }
+                            (lam
+                              ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ])
+                            )
+                          ]
+                          { Nil a }
+                        ]
                       )
                     )
                   )
@@ -762,7 +768,7 @@
                       fApplicativeIdentity_cpure
                       (all a (type) (fun a [ (lam a (type) a) a ]))
                     )
-                    (abs a (type) (lam v a v))
+                    (abs a (type) (lam ds a ds))
                   )
                   (termbind
                     (strict)
@@ -993,20 +999,7 @@
                         { { { fmapDefault List } (con integer) } (con integer) }
                         fTraversableNil
                       ]
-                      (lam
-                        ds
-                        (con integer)
-                        [
-                          [
-                            [
-                              { bad_name (con integer) }
-                              fAdditiveSemigroupInteger
-                            ]
-                            ds
-                          ]
-                          ds
-                        ]
-                      )
+                      (lam v (con integer) [ [ v v ] v ])
                     ]
                     [
                       { build (con integer) }

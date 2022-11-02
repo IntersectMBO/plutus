@@ -5,48 +5,14 @@
 # While official documentation for std can be found in its GitHub, this flake
 # has been thoroughly commented so as to quickstart new maintainers.
 # This flake can also be used as a template for new std-based projects.
-# Further documentation can be found in __std__/README.md
+# Further documentation can be found in nix/README.md
 #
 # You may want to refer to the standard glossary as you go along:
 # https://divnix.github.io/std/glossary.html
 {
   description = "Plutus Core";
 
-  # TODO(std) these are the old inputs, remove once the new inputs are fully migrated.
   inputs = {
-    __old__nixpkgs = {
-      type = "github";
-      owner = "NixOS";
-      repo = "nixpkgs";
-      ref = "nixpkgs-unstable";
-      flake = false;
-    };
-    __old__haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
-      flake = false;
-    };
-    __old__cardano-repo-tool = {
-      url = "github:input-output-hk/cardano-repo-tool";
-      flake = false;
-    };
-    __old__gitignore-nix = {
-      url = "github:hercules-ci/gitignore.nix";
-      flake = false;
-    };
-    __old__hackage-nix = {
-      url = "github:input-output-hk/hackage.nix";
-      flake = false;
-    };
-    __old__iohk-nix = {
-      url = "github:input-output-hk/iohk-nix";
-      flake = false;
-    };
-    __old__pre-commit-hooks-nix = {
-      url = "github:cachix/pre-commit-hooks.nix";
-      flake = false;
-    };
-
-    # TODO(std) these are the new inputs: remove this comment once the old inputs are truly gone.
     nixpkgs = {
       url = "github:NixOS/nixpkgs";
     };
@@ -86,8 +52,6 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # TODO(std) update to latest version to fix:
-    # warning: String 'configureFlags' is deprecated and will be removed in release 23.05.
     iohk-nix = {
       url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -121,7 +85,7 @@
         #     (top comment in pipelines.nix explains automation and cloud separation)
         #   plutus
         #     Devshell, tooling and packages for plutus and its documentation
-        cellsFrom = ./__std__/cells;
+        cellsFrom = ./nix/cells;
 
         # Each cell contains "cell blocks".
         # Block names are arbitrary.
@@ -144,10 +108,10 @@
         #     These are not exposed to the flake
         #   ciJobs :: installables
         #     Jobsets for our Hydra and Cicero CI
-        #   pipelines :: tullia tasks
-        #     Tasks called by Cicero actions written with tullia
         #   actions :: functions
         #     Actions added to Cicero with defined triggers, such as any git push
+        #   pipelines :: tullia tasks
+        #     Tasks called by Cicero actions written with tullia
         #
         # std provides a TUI to interact with the cell blocks.
         # Available interactions are determined by the cell block's type.
@@ -157,8 +121,8 @@
           (inputs.std.installables "packages")
           (inputs.std.functions "library")
           (inputs.std.installables "ciJobs")
-          (inputs.tullia.tasks "pipelines")
           (inputs.std.functions "actions")
+          (inputs.tullia.tasks "pipelines")
         ];
       }
 
@@ -184,6 +148,8 @@
       }
       {
         ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
+        # TODO(std) remove me once hydra is gone
+        hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
@@ -193,7 +159,6 @@
   nixConfig = {
     extra-substituters = [
       "https://cache.iog.io"
-      "https://hydra.iohk.io"
     ];
     extra-trusted-public-keys = [
       "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="

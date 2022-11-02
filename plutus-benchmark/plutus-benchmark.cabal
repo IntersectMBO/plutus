@@ -70,9 +70,12 @@ library plutus-benchmark-common
 library nofib-internal
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
   hs-source-dirs:  nofib/src
   exposed-modules:
     PlutusBenchmark.NoFib.Clausify
@@ -97,7 +100,7 @@ library nofib-internal
 executable nofib-exe
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
@@ -118,7 +121,7 @@ executable nofib-exe
 benchmark nofib
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -134,7 +137,7 @@ benchmark nofib
 benchmark nofib-hs
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -150,7 +153,7 @@ benchmark nofib-hs
 test-suite plutus-benchmark-nofib-tests
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -171,9 +174,12 @@ test-suite plutus-benchmark-nofib-tests
 library lists-internal
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
   hs-source-dirs:  lists/src
   exposed-modules:
     PlutusBenchmark.Lists.Sort
@@ -197,7 +203,7 @@ library lists-internal
 executable list-sort-exe
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
@@ -212,7 +218,7 @@ executable list-sort-exe
 benchmark lists
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -227,7 +233,7 @@ benchmark lists
 test-suite plutus-benchmark-lists-tests
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -309,17 +315,16 @@ benchmark validation-full
 benchmark cek-calibration
   import:           lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:      -Wno-unused-packages
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   main-is:          Main.hs
   hs-source-dirs:   cek-calibration
-
-  -- Something weird causes this to sometimes report the plugin
-  -- package as unused...
-  ghc-options:      -Wno-unused-packages
   build-depends:
     , base              >=4.9     && <5
     , criterion         >=1.5.9.0
@@ -334,15 +339,14 @@ benchmark cek-calibration
 executable ed25519-throughput
   import:           lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   default-language: Haskell2010
   main-is:          Main.hs
   hs-source-dirs:   ed25519-throughput
 
-  -- Without the line below we get a warning that plutus-tx-plugin is unused
-  -- which causes a CI failure.
+  -- Without the line below we get a warning that plutus-tx-plugin is unused which causes a CI failure.
   ghc-options:      -Wno-unused-packages
   build-depends:
     , base                  >=4.9 && <5
@@ -353,3 +357,41 @@ executable ed25519-throughput
     , plutus-core           ^>=1.1
     , plutus-tx             ^>=1.1
     , plutus-tx-plugin      ^>=1.1
+
+---------------- script contexts ----------------
+
+library script-contexts-internal
+  import:          lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
+  hs-source-dirs:  script-contexts/src
+  exposed-modules: PlutusBenchmark.ScriptContexts
+  build-depends:
+    , base               >=4.9 && <5
+    , plutus-ledger-api  ^>=1.1
+    , plutus-tx          ^>=1.1
+    , plutus-tx-plugin   ^>=1.1
+
+test-suite plutus-benchmark-script-contexts-tests
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: script-contexts/test
+  other-modules:
+  build-depends:
+    , base                                            >=4.9 && <5
+    , plutus-benchmark-common
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
+    , script-contexts-internal
+    , tasty
+    , tasty-hunit

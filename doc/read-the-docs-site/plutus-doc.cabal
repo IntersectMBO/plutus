@@ -1,0 +1,84 @@
+cabal-version: 2.2
+name:          plutus-doc
+version:       0.1.0.0
+license:       Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+
+maintainer:    jann.mueller@iohk.io
+author:        Michael Peyton Jones, Jann Mueller
+synopsis:      Plutus documentation
+description:   Plutus documentation
+category:      Language
+build-type:    Simple
+
+source-repository head
+  type:     git
+  location: https://github.com/input-output-hk/plutus
+
+flag defer-plugin-errors
+  description:
+    Defer errors from the plugin, useful for things like Haddock that can't handle it.
+
+  default:     False
+  manual:      True
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    ExplicitForAll
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    MultiParamTypeClasses
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  -- See Plutus Tx readme for why we need the following flags: 
+  -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -fobject-code -fno-ignore-interface-pragmas
+    -fno-omit-interface-pragmas
+
+  if flag(defer-plugin-errors)
+
+executable doc-doctests
+  import:             lang
+
+  if ((impl(ghcjs) || os(windows)) || impl(ghc <9.0))
+    buildable: False
+
+  hs-source-dirs:     tutorials howtos
+  main-is:            Main.hs
+  ghc-options:        -Wno-unused-imports
+  build-tool-depends: doctest:doctest
+  other-modules:
+    BasicPlutusTx
+    BasicPolicies
+    BasicValidators
+
+  build-depends:
+    , aeson
+    , base               >=4.9      && <5
+    , bytestring
+    , containers
+    , flat
+    , lens
+    , plutus-core        ^>=1.1
+    , plutus-ledger-api  ^>=1.1
+    , plutus-tx          ^>=1.1
+    , prettyprinter
+    , random
+    , serialise
+    , template-haskell   >=2.13.0.0
+    , text
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin

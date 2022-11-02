@@ -47,7 +47,7 @@ common lang
 library
   import:          lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   exposed-modules:
@@ -59,7 +59,6 @@ library
   hs-source-dirs:  src
   build-depends:
     , base              >=4.9     && <5
-    , containers        >=0.6
     , plutus-core       ^>=1.1
     , plutus-tx         ^>=1.1
     , plutus-tx-plugin  ^>=1.1
@@ -70,21 +69,20 @@ library
 executable plutus-errors-next
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs
   hs-source-dirs: exe-next
   build-depends:
     , base           >=4.9     && <5
-    , plutus-core    ^>=1.1
     , plutus-errors
     , prettyprinter  >=1.1.0.1
 
 executable plutus-errors-bootstrap
   import:         lang
 
-  if impl(ghc >=9.0)
+  if impl(ghc <9.0)
     buildable: False
 
   main-is:        Main.hs

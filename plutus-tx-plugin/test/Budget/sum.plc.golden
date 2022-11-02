@@ -47,15 +47,15 @@
                 dMonoid
                 [ Monoid m ]
                 (lam
-                  ds
+                  eta
                   (fun a m)
                   (lam
-                    ds
+                    eta
                     [ List a ]
                     {
                       [
                         [
-                          { [ { Nil_match a } ds ] (all dead (type) m) }
+                          { [ { Nil_match a } eta ] (all dead (type) m) }
                           (abs
                             dead
                             (type)
@@ -91,14 +91,14 @@
                                       (lam v m v)
                                     )
                                   ]
-                                  [ ds x ]
+                                  [ eta x ]
                                 ]
                                 [
                                   [
                                     [
                                       { { fFoldableNil_cfoldMap m } a } dMonoid
                                     ]
-                                    ds
+                                    eta
                                   ]
                                   xs
                                 ]
@@ -208,7 +208,7 @@
                     ]
                   ]
                 ]
-                (lam v (con integer) v)
+                (lam ds (con integer) ds)
               ]
             )
             [
@@ -253,7 +253,15 @@
                     )
                   )
                 )
-                { Cons (con integer) }
+                (lam
+                  ds
+                  (con integer)
+                  (lam
+                    ds
+                    [ List (con integer) ]
+                    [ [ { Cons (con integer) } ds ] ds ]
+                  )
+                )
               ]
               { Nil (con integer) }
             ]

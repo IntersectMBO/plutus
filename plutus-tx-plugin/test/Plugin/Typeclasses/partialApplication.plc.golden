@@ -40,10 +40,10 @@
         fOrdInteger_ccompare (fun (con integer) (fun (con integer) Ordering))
       )
       (lam
-        x
+        eta
         (con integer)
         (lam
-          y
+          eta
           (con integer)
           {
             [
@@ -52,7 +52,10 @@
                   [
                     Bool_match
                     [
-                      [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ]
+                      [
+                        [ { ifThenElse Bool } [ [ equalsInteger eta ] eta ] ]
+                        True
+                      ]
                       False
                     ]
                   ]
@@ -73,7 +76,7 @@
                             [
                               [
                                 { ifThenElse Bool }
-                                [ [ lessThanEqualsInteger x ] y ]
+                                [ [ lessThanEqualsInteger eta ] eta ]
                               ]
                               True
                             ]

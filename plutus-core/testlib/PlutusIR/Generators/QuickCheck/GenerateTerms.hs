@@ -19,8 +19,8 @@ module PlutusIR.Generators.QuickCheck.GenerateTerms where
 
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.GenerateTypes
+import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Unification

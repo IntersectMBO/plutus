@@ -8,8 +8,8 @@
 module PlutusCore.Generators.QuickCheck.ShrinkTypes where
 
 import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.GenerateKinds
+import PlutusCore.Generators.QuickCheck.GenTm
 
 import PlutusCore.Core
 import PlutusCore.Default

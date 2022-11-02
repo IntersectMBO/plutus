@@ -231,6 +231,8 @@ uniform (n:ns) (r:rs) = if t == n then t: uniform ns rs
 data PrimeID = P5 | P8 | P10 | P20 | P30 | P40 | P50 | P60 | P100 | P150 | P200
      deriving stock (Haskell.Read, Haskell.Show)
 
+Tx.makeLift ''PrimeID
+
 {- Some prime numbers.  The larger ones are taken from
    https://primes.utm.edu/lists/small/small.html and
    https://primes.utm.edu/lists/small/small2.html -}
@@ -271,6 +273,8 @@ data Result = Composite | Prime
     deriving stock (Haskell.Show, Haskell.Eq, Generic)
     deriving anyclass (NFData)
 -- Haskell.Eq needed for comparing Haskell results in tests.
+
+Tx.makeLift ''Result
 
 -- % The @processList@ function takes a list of input numbers
 -- % and produces a list of output results.
@@ -317,6 +321,3 @@ mkPrimalityCode pid =
 mkPrimalityBenchTerm :: PrimeID -> Term
 mkPrimalityBenchTerm pid =
     compiledCodeToTerm $ mkPrimalityCode pid
-
-Tx.makeLift ''PrimeID
-Tx.makeLift ''Result
