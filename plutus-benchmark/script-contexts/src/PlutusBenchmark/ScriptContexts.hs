@@ -48,6 +48,8 @@ mkValue i = assetClassValue (assetClass adaSymbol adaToken) (fromIntegral i)
 {-# INLINABLE checkScriptContext1 #-}
 checkScriptContext1 :: PlutusTx.BuiltinData -> ()
 checkScriptContext1 d =
+  -- Bang pattern to ensure this is forced, probably not necesssary
+  -- since we do use it later
   let !sc = PlutusTx.unsafeFromBuiltinData d
       (ScriptContext txi _) = sc
   in
@@ -67,6 +69,9 @@ mkCheckScriptContext1Code sc =
 checkScriptContext2 :: PlutusTx.BuiltinData -> ()
 checkScriptContext2 d =
   let (sc :: ScriptContext) = PlutusTx.unsafeFromBuiltinData d
+  -- Just using a bang pattern was not enough to stop GHC from getting
+  -- rid of the dead binding before we even hit the plugin, this works
+  -- for now!
   in case sc of
     !_ ->
       if 48*9900 PlutusTx.== (475200 :: Integer)
