@@ -2,16 +2,18 @@
 { compiler-nix-name ? inputs.cells.toolchain.library.ghc-compiler-nix-name }:
 
 let
-  inherit (cell.library) pkgs;
+  inherit (cell.library) pkgs haskell-nix;
+
+  plutus-project = cell.library.make-plutus-project { inherit compiler-nix-name; };
+
+  plutus-devshell = haskell-nix.haskellLib.devshellFor plutus-project.shell;
 in
 
 inputs.std.lib.dev.mkShell {
 
   name = "plutus-shell";
 
-  imports = [
-    (cell.library.make-plutus-project { inherit compiler-nix-name; }).devshell
-  ];
+  imports = [ plutus-devshell ];
 
   commands = [
     {
