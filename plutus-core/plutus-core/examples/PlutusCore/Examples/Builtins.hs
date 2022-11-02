@@ -264,7 +264,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
 
     toBuiltinMeaning _ver ScottToMetaUnit =
         makeBuiltinMeaning
-            (mempty
+            ((\_ -> ())
                 -- @(->)@ switches from the Rep context to the Type one. We could make @(->)@
                 -- preserve the current context, but there's no such notion in the current
                 -- elaboration machinery and we'd better not complicate it further just for the sake

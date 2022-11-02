@@ -15,9 +15,11 @@ module Evaluation.Builtins.Definition
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
 import PlutusPrelude
@@ -179,10 +181,15 @@ test_IdRank2 =
 test_ScottToMetaUnit :: TestTree
 test_ScottToMetaUnit =
     testCase "ScottToMetaUnit" $ do
-        let res = mkConstant @() @DefaultUni () ()
-            -- > scottToMetaUnit Scott.unitval
-            term = apply () (builtin () ScottToMetaUnit) Scott.unitval
-        typecheckEvaluateCekNoEmit def () term @?= Right (EvaluationSuccess res)
+        let res = EvaluationSuccess $ mkConstant @() @DefaultUni () ()
+            applyTerm = apply () (builtin () ScottToMetaUnit)
+        -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
+        typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
+        let runtime = mkMachineParameters def defaultUnliftingMode $
+                CostModel defaultCekMachineCosts ()
+        -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
+        -- doesn't look at the argument.
+        unsafeEvaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map) @?= res
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
 -- machine and blows in the caller face instead. Uses a one-argument built-in function.

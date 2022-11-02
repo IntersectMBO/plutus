@@ -3,7 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( typecheckAnd
+    ( unsafeEvaluateCek
+    , unsafeEvaluateCekNoEmit
+    , readKnownCek
+    , typecheckAnd
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
