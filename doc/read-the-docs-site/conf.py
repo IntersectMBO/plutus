@@ -82,7 +82,8 @@ source_suffix = {
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
     'haddock', # Otherwise it tries to pick up the README.md's in the Haddock doc!
-    'README.md'
+    'README.md',
+    'stdspan.md'
 ]
 
 # -- Options for HTML output -------------------------------------------------

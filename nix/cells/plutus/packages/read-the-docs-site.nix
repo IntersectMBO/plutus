@@ -9,7 +9,7 @@ pkgs.stdenv.mkDerivation {
 
   src = pkgs.lib.sourceFilesBySuffices
     (inputs.self + /doc/read-the-docs-site)
-    [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
+    [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ".md" ];
 
   buildInputs = [
     cell.packages.sphinx-toolchain
