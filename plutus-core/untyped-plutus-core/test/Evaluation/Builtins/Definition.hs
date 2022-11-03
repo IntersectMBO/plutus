@@ -15,9 +15,11 @@ module Evaluation.Builtins.Definition
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
 import PlutusPrelude
@@ -31,6 +33,7 @@ import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.List qualified as Builtin
 import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
+import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.Common
@@ -90,7 +93,7 @@ test_Id =
         let zer = mkConstant @Integer @DefaultUni @DefaultFunExt () 0
             oneT = mkConstant @Integer @DefaultUni () 1
             oneU = mkConstant @Integer @DefaultUni () 1
-            -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+            -- > id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
                 mkIterApp () (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
                     [ apply () constIntegerInteger oneT
@@ -113,7 +116,7 @@ test_IdFInteger =
         let one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            -- sum (idFInteger {list} (enumFromTo 1 10))
+            -- > sum (idFInteger {list} (enumFromTo 1 10))
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdFInteger) Scott.listTy)
@@ -130,7 +133,7 @@ test_IdList =
             one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            -- sum (idList {integer} (enumFromTo 1 10))
+            -- > sum (idList {integer} (enumFromTo 1 10))
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdList) integer)
@@ -167,12 +170,26 @@ test_IdRank2 :: TestTree
 test_IdRank2 =
     testCase "IdRank2" $ do
         let res = mkConstant @Integer @DefaultUni () 0
-            -- sum (idRank2 {list} nil {integer})
+            -- > sum (idRank2 {list} nil {integer})
             term
                 = apply () (mapFun Left Scott.sum)
                 . tyInst () (apply () (tyInst () (builtin () $ Right IdRank2) Scott.listTy) Scott.nil)
                 $ integer
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
+
+-- | Test that a builtin can be applied to a non-constant term.
+test_ScottToMetaUnit :: TestTree
+test_ScottToMetaUnit =
+    testCase "ScottToMetaUnit" $ do
+        let res = EvaluationSuccess $ mkConstant @() @DefaultUni () ()
+            applyTerm = apply () (builtin () ScottToMetaUnit)
+        -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
+        typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
+        let runtime = mkMachineParameters def defaultUnliftingMode $
+                CostModel defaultCekMachineCosts ()
+        -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
+        -- doesn't look at the argument.
+        unsafeEvaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map) @?= res
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
 -- machine and blows in the caller face instead. Uses a one-argument built-in function.
@@ -267,13 +284,13 @@ test_BuiltinPair =
             swapped = apply () (inst $ Right Swap) arg
             fsted   = apply () (inst $ Left FstPair) arg
             snded   = apply () (inst $ Left SndPair) arg
-        -- Swap {integer} {bool} (1, False) ~> (False, 1)
+        -- > swap {integer} {bool} (1, False) ~> (False, 1)
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt swapped @?=
             Right (EvaluationSuccess $ mkConstant @(Bool, Integer) () (False, 1))
-        -- Fst {integer} {bool} (1, False) ~> 1
+        -- > fst {integer} {bool} (1, False) ~> 1
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt fsted @?=
             Right (EvaluationSuccess $ mkConstant @Integer () 1)
-        -- Snd {integer} {bool} (1, False) ~> False
+        -- > snd {integer} {bool} (1, False) ~> False
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt snded @?=
             Right (EvaluationSuccess $ mkConstant @Bool () False)
 
@@ -623,6 +640,7 @@ test_definition =
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
+        , test_ScottToMetaUnit
         , test_FailingSucc
         , test_ExpensiveSucc
         , test_FailingPlus
