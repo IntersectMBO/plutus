@@ -57,6 +57,8 @@ enterComputeCek
     -> Closure uni fun
     -> CekM uni fun s (CekState uni fun)
 enterComputeCek debug ctx (Closure term env) =
+    -- The initial step is always computing with zero budget, empty context and environment.
+    -- `computeCekStep` matches on the `term` and calls `computeCek` or `returnCek` depending on the clause. 
     computeCekStep (toWordArray 0) NoFrame (Closure term Env.empty) where
     
     computeCek
@@ -76,7 +78,8 @@ enterComputeCek debug ctx (Closure term env) =
     computeCekDebug budget ctx (Closure term env) = 
         pure $ Computing budget ctx (Closure term env)
 
-    -- in production mode, recursively calls `computeCek`, and thus `computeCekStep`, similar to our current production machine.
+    -- In production mode, `computeCekStep` matches on the term and calls `computeCek` or `returnCek` on a subterm. 
+    -- In production mode, `computeCek` calls the original `computeCekStep`, i.e. in production mode `computeCekStep` calls itself through the thin `computeCek` wrapper thus achieving recursion and replicating the old behavior of the CEK machine.
     computeCekStep 
         :: WordArray
         -> Context uni fun
@@ -85,7 +88,7 @@ enterComputeCek debug ctx (Closure term env) =
     computeCekStep unbudgetedSteps ctx (Closure (Force _ body) env) = do -- exactly like in current prod
         !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps -- update costs
         computeCek unbudgetedSteps' (FrameForce ctx) (Closure body env) -- compute again with updated costs and ctx
-    <other_clauses>
+    <other_clauses> -- there's a lot of code in here! Some clauses call `returnCek`, some `computeCek`, achieving recursive calling similar to our current implementation. 
     
     -- details of `forceEvaluate`, `applyEvaluate` etc to be worked out.
 
@@ -110,8 +113,10 @@ enterComputeCek debug ctx (Closure term env) =
     <other_clauses>
 ```
 
-Because when we are not debugging, we are still using basically the same code as our current implementation, the performance should not be affected by much. (Given that the machine is tail-recursive, the additional wrapping of the returned term in the `Terminating` constructor will affect performance in a negligible way.)
+This trick lets us inline the "step" functions and call them recursively like before. Because when we are not debugging, we are still using basically the same code as our current implementation, the performance should not be affected by much. (Given that the machine is tail-recursive, the additional wrapping of the returned term in the `Terminating` constructor will affect performance in a negligible way.)
 
 ## Implications
 
 This is a draft of an idea. There are further details to be worked out in a prototype. The implementor should use their own judgement.
+
+Whether we proceed with this approach or not depends on how the prototyping goes, and its benchmarking results. If we find that the slow down is negligible enough, then we may proceed with this. Otherwise, we proceed with a separate implementation for the debugging machine.
