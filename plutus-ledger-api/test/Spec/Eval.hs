@@ -143,7 +143,8 @@ testWith str evalFn = testCase str $ do
 
 testUnlifting :: TestTree
 testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
-    evalAPI alonzoPV illTypedPartialBuiltin @?= False
+    -- This used to behave differently but was changed, this witnesses the change
+    evalAPI alonzoPV illTypedPartialBuiltin @?= True
     evalAPI vasilPV illTypedPartialBuiltin @?= True
 
 tests :: TestTree

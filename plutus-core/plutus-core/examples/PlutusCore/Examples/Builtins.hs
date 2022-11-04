@@ -137,11 +137,11 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2
 
     data BuiltinVersion (Either fun1 fun2) = PairV (BuiltinVersion fun1) (BuiltinVersion fun2)
     toBuiltinMeaning (PairV verL _) (Left  fun) = case toBuiltinMeaning verL fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . fst) (defF . fst))
+        BuiltinMeaning tySch toF denot ->
+            BuiltinMeaning tySch toF (denot . fst)
     toBuiltinMeaning (PairV _ verR) (Right fun) = case toBuiltinMeaning verR fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . snd) (defF . snd))
+        BuiltinMeaning tySch toF denot ->
+            BuiltinMeaning tySch toF (denot . snd)
 
 instance (Default (BuiltinVersion fun1), Default (BuiltinVersion fun2))
          => Default (BuiltinVersion (Either fun1 fun2)) where

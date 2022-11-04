@@ -257,11 +257,9 @@ applyEvaluate stack (VBuiltin term runtime) arg = do
     case runtime of
         -- It's only possible to apply a builtin application if the builtin expects a term
         -- argument next.
-        BuiltinExpectArgument f -> case f arg of
-            Left err       -> throwKnownTypeErrorWithCause argTerm err
-            Right runtime' -> do
-                res <- evalBuiltinApp term' runtime'
-                stack <| res
+        BuiltinExpectArgument f -> do
+            res <- evalBuiltinApp term' $ f arg
+            stack <| res
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
 applyEvaluate _ val _ =
