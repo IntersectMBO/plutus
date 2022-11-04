@@ -364,6 +364,39 @@ Set it up if you can, it's relatively easy to do.
 
 == Making and reviewing changes
 
+=== Changelogs
+
+We write changelogs for our packages.
+To do htis we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
+The basic idea is that you write a changelog "fragment" in the `changelog.d` directory.
+When we do a release, these will be collected into the main `CHANGELOG.md`.
+Usually we don't edit `CHANGELOG.md` directly.
+
+You can make a changelog fragment using `scriv create` in the package directory, but you can also just create the fragment directly with an editor.
+A fragment is a markdown file beginning with a header giving the category of change.
+Currently these are:
+- Removed
+- Added
+- Changed
+- Deprecated
+- Fixed
+- Security
+
+We can change these categories if we want.
+
+A fragment can contain multiple sections if there are multiple changes. 
+For example:
+
+```
+# Changed
+
+Updated foo to take a bar.
+
+# Deprecated
+
+Deprecated baz.
+```
+
 === Opening a pull request
 
 A pull request is a change to the codebase, but it is also an artifact which goes through a change acceptance process.
