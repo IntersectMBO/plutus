@@ -367,7 +367,7 @@ Set it up if you can, it's relatively easy to do.
 === Changelogs
 
 We write changelogs for our packages.
-To do htis we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
+To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
 The basic idea is that you write a changelog "fragment" in the `changelog.d` directory.
 When we do a release, these will be collected into the main `CHANGELOG.md`.
 Usually we don't edit `CHANGELOG.md` directly.
