@@ -49,6 +49,7 @@
       // There is no documentation for this yet. Ask SRE if you have trouble changing this.
 
       let github = {
+        #target: "zeme-iohk/benchmarking"
         #input: "GitHub event"
         #repo: "input-output-hk/plutus"
       }

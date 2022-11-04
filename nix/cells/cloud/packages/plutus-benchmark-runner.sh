@@ -3,9 +3,6 @@
 # ci-plutus-benchmark: Run benchmarks on 2 branches, compare the results and
 # add a comment on the corresponding PR on GitHub.
 #
-# This script is supposed to be executed by https://buildkite.com/input-output-hk/plutus-benchmark
-# which itself is triggered through the GitHub workflow ./.github/workflows/benchmark.yaml
-#
 # USAGE: 
 # In order to trigger benchmarking for an open PR, add `/benchmark` as a comment to
 # the PR. The command will be acknowledged with a :rocket: reaction and when done a bot will
@@ -25,11 +22,16 @@
 
 set -e
 
-PR_NUMBER=4956
-BENCHMARK_NAME=nofib
+PR_NUMBER=$1
+PR_COMMIT_SHA=$2
+BENCHMARK_NAME=$3
 
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
+   exit 1
+fi
+if [ -z "$PR_COMMIT_SHA" ] ; then
+   echo "[ci-plutus-benchmark]: 'PR_COMMIT_SHA' is not set! Exiting"
    exit 1
 fi
 if [ -z "$BENCHMARK_NAME" ] ; then
@@ -37,37 +39,34 @@ if [ -z "$BENCHMARK_NAME" ] ; then
    exit 1
 fi
 
+PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
+
+echo "[ci-plutus-benchmark]: Cloning the plutus repository"
+git init 
+git remote add origin git@github.com:input-output-hk/plutus.git
+git fetch --depth 1 origin $PR_COMMIT_SHA
+git checkout $PR_COMMIT_SHA
+
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
-PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-cabal update
-
-echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
-cabal clean
+nix develop --command cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-# nix-shell --run "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
-# TODO(std) check that this works 
-# nix develop --command "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
-cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: fetching origin ..."
-git fetch origin
+git fetch --depth 1 origin master
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
-
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
-cabal clean
+nix develop --command cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-# nix-shell --run "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
-# TODO(std) check that this works 
-# nix develop --command "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
-cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
+nix develop --command cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
@@ -86,10 +85,8 @@ EOF
 echo -e "</details>"
 } > bench-compare-result.log
 
-# nix-shell -p jq --run "jq -Rs '.' bench-compare-result.log >bench-compare.json"
-# TODO(std) check that this works
-# nix develop --command "jq -Rs '.' bench-compare-result.log >bench-compare.json"
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
+# TODO(std) we'll need to change this 
 curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"

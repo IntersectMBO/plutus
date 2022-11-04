@@ -56,19 +56,18 @@ let
 
   ciTasksSeq = taskSequence "ci/" ciTasks (__attrNames ciTasks);
 
-  benchmark = { config, ... }: {
-    preset = {
-      nix.enable = true;
+  benchmark = { config, ... }:
+    let
+      runner = cell.library.plutus-benchmark-runner {
+        PR_NUMBER = "4956";
+        PR_COMMIT_SHA = "c6c6cd04c0d3ea6e6d041ff7f75ab9b92467dbef";
+        BENCHMARK_NAME = "nofib";
+      };
+    in
+    {
+      preset.nix.enable = true;
+      command.text = "${runner}/bin/plutus-benchmark-runner";
     };
-    command.runtimeInputs = [
-    ];
-    command.text = ''
-      echo TESTSTSTSTSSTSSTSTSTS
-      ls -la
-      pwd
-      nix develop --command "bash ${inputs.self + /scripts/ci-plutus-benchmark.sh}"
-    '';
-  };
 
 in
 if system == "x86_64-linux" then
