@@ -21,7 +21,6 @@ pkgs.stdenv.mkDerivation {
 
   dontInstall = true;
 
-  # TODO(std) add ADR #2 & #3 to doc/read-the-docs-site/ard/index.rst when ready
   buildPhase = ''
     cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
