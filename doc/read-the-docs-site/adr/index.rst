@@ -33,3 +33,4 @@ The general process for creating an ADR is:
    0001-record-architecture-decisions
    0002-steppable-cek-machine
    0003-sharing-prod-debugging-cek
+   0004-deferred-unlifting
