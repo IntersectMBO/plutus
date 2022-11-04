@@ -64,10 +64,10 @@ In all other cases, we always start a new major or minor release from master.
 
 Suppose we are releasing version `x.y.z.0`.
 
-1. Update versions and version bounds in cabal files by running `./scripts/update-versions.sh x.y.z.0 <additional packages>`.
-This updates the version bounds for packages in the same repo to `^>=x.y`.
-- `<additional packages>` can be empty, or `prettyprinter-configurable`, `word-array`, or both, depending on which packages we are releasing.
-2. Make sure the change log is up-to-date.
+1. Prepare the release by running `./scripts/prepare-release.sh x.y.z.0 <packages>`.
+This updates versions and version bounds, and assembles the changelogs.
+- `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
+2. Review the changelogs and edit manually if needed.
 3. Tag `x.y.z.0-rc1` on master.
 - There's no need to create a release branch at this point.
 A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
@@ -91,7 +91,7 @@ Suppose we are releasing version `x.y.z.w`.
 If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
 2. Backport the needed fixes from master to `release/x.y.z`.
-3. Update versions in cabal files by running `./scripts/update-versions.sh x.y.z.w <additional_packages>`.
+3. Prepare the release by running `./scripts/prepare-release.sh x.y.z.w <packages>`.
 4. Tag `x.y.z.w-rc1` on the release branch.
 5. Run the release QA process.
 6. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
