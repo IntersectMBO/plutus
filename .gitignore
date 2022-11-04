@@ -118,4 +118,3 @@ plutus-pab/test-node/alonzo-purple/db
 *.timelog
 *.stacks
 .nvimrc
-out
