@@ -7,6 +7,7 @@ Tutorials
    :maxdepth: 3
    :titlesonly:
 
+   english-auction-example
    plutus-tx
    basic-validators
    basic-minting-policies
