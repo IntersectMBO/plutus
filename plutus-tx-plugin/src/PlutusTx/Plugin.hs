@@ -121,6 +121,22 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
              : pluginPass
              : rest
 
+{- Note [GHC.sm_pre_inline]
+We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`. The
+reason is that the plugin needs certain functions to be fully applied. For example, it can
+compile `noinline @(String -> BuiltinString) stringToBuiltinString "a"`, but not
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a"`.
+
+Arguably, relying on `sm_pre_inline` is not the proper solution - what if we get
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a" <> f "b"`? We should
+instead inline a binding when the RHS is a partially applied function that we need fully applied.
+But so far we haven't had an issue like this.
+
+We should also make the error message better in cases like this. The current error message is
+"Unsupported feature: Type constructor: GHC.Prim.Char#", resulting from attempting to inline
+and compile `stringToBuiltinString`.
+-}
+
 -- | A simplifier pass, implemented by GHC
 mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
 mkSimplPass flags logger =
@@ -132,6 +148,7 @@ mkSimplPass flags logger =
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
             , GHC.sm_cast_swizzle = True
+            -- See Note [GHC.sm_pre_inline]
             , GHC.sm_pre_inline = True
             , GHC.sm_logger = logger
             -- You might think you would need this, but apparently not
