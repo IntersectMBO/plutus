@@ -21,7 +21,7 @@ However, unlifting can fail: we cannot unlift a _string_ constant into a Haskell
 This failure is visible in program execution, since it terminates the program with an error.
 
 The original design of the builtin application machinery performed unlifting of an argument as soon as it was received. 
-This meant that unlifting failures would surface at that point, whereas most of the errors that relate to builtin evaluation can only occcur once the builtin has all its arguments, since that's when we run the actual function.
+This meant that unlifting failures would surface at that point, whereas most of the errors that relate to builtin evaluation can only occur once the builtin has all its arguments, since that's when we run the actual function.
 
 For example:
 ```
@@ -32,6 +32,8 @@ would fail (due to the unlifting failure), even though the builtin _never_ recei
 The fact that unlifting errors occur early on makes the specification of the behaviour of builtins significantly more complex.
 It would be simpler if unlifting errors occurred when the builtin has all its arguments.
 We refer to these two alternatives as "immediate" unlifting (the status quo) and "deferred" unlifting.
+
+Deferred unlifting only makes evaluation slightly more lenient: some terms (such as the above example) do not give an error where they would do with immediate unlifting.
 
 ## Decision
 
@@ -53,6 +55,9 @@ However, in order to gain the full benefit of simplification, we would like to r
 If historical script evaluations on the chain still rely on immediate unlifting, then we must support it (and specify it!) forever.
 However, once the default has changed, if the history of the chain still validates with _deferred_ unlifting, then we know that no historical script evaluations relied on that behaviour. 
 At that point we can _unconditionally_ enable deferred unlifting without worrying about not being able to validate the chain.
+
+In theory, there could be outputs locked with script hashes whose behaviour would (if they are ever spent) rely on inmmediate unlifting.
+We cannot rule this out, but given that it has never been relevant in the entire history of the chain, we considered this to be extremely unlikely.
 
 ## Alternatives
 
@@ -76,3 +81,4 @@ Relevant PRs:
 - [Choose the unlifting mode based on protocol version](https://github.com/input-output-hk/plutus/pull/4522)
 - [Remove immediate unlifting](https://github.com/input-output-hk/plutus/pull/4879)
 - [Mainnet script dump test](https://github.com/input-output-hk/plutus/pull/4726)
+- [Update PLC specification for deferred unlifting](https://github.com/input-output-hk/plutus/pull/4960)
