@@ -48,17 +48,13 @@
       // This is a CUE expression that defines what events trigger a new run of this action.
       // There is no documentation for this yet. Ask SRE if you have trouble changing this.
 
-      let github = {
+      #lib.io.github_pr_comment & {
         #target: "zeme-iohk/benchmarking"
-        #input: "GitHub event"
+        #input: "github_comment"
+        #prInput: "github_pr"
         #repo: "input-output-hk/plutus"
+        #comment: "^/benchmark .+"
       }
-
-      #lib.merge
-      #ios: [
-        #lib.io.github_push & github,
-        { #lib.io.github_pr, github, #target_default: false },
-      ]
     '';
   };
 }

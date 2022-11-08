@@ -59,9 +59,11 @@ let
   benchmark = { config, ... }:
     let
       runner = cell.library.plutus-benchmark-runner {
-        PR_NUMBER = "4956";
-        PR_COMMIT_SHA = "c6c6cd04c0d3ea6e6d041ff7f75ab9b92467dbef";
-        BENCHMARK_NAME = "nofib";
+        PR_NUMBER = config.actionRun.facts.github_pr.github_body.pull_request.number;
+        PR_COMMIT_SHA = config.actionRun.facts.github_pr.github_body.pull_request.head.sha;
+        BENCHMARK_NAME = lib.removePrefix
+          "/benchmark"
+          config.actionRun.facts.github_comment.github_body.comment.body;
       };
     in
     {
