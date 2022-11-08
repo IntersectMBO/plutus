@@ -153,7 +153,7 @@
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "cloud" "pipelines" ];
+        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
       });
 
   nixConfig = {
