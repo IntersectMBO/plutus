@@ -610,3 +610,18 @@ The "details" link for the task goes to a page for the entire action and you wil
 
 If no GitHub statuses are shown, this might indicate that the invocation itself has failed.
 Check the link:https://cicero.ci.iog.io/action/53f25880-8fde-4e24-8ce7-6b7568777e00[plutus action page] for details, including logs and the full GitHub event payload.
+
+== Project roles and responsibilities
+
+- The regular contributors to the Haskell code, all of whom can review and merge PRs are:
+    - @michaelpj
+    - @effectfully
+    - @kwxm
+    - @bezirg
+    - @thealmarty
+    - @zliu41
+- The maintainer of the documentation is @joseph-fajen.
+- The maintainer of the Agda code is @jmchapman.
+- If you have a technical dispute that you need help resolving, you can ask @michaelpj.
+- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk, @Pacman99, or @michaelpj.
+- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41 or @michaelpj.
