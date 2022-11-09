@@ -368,6 +368,17 @@ Set it up if you can, it's relatively easy to do.
 
 We write changelogs for our packages.
 To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
+
+==== When to write a changelog entry
+
+We have no clear policy here, it is up to the judgement of the contributor.
+Not all PRs need changelog entries.
+
+The broad heuristic is to put yourself in the position of the consumer of the piece of software in question and ask if you would want to know about this change.
+If the answer is yes, then write a quick changelog entry.
+
+==== How to write a changelog entry
+
 The basic idea is that you write a changelog "fragment" in the `changelog.d` directory.
 When we do a release, these will be collected into the main `CHANGELOG.md`.
 Usually we don't edit `CHANGELOG.md` directly.
@@ -451,7 +462,7 @@ Do not mix business logic with such things as reformatting and refactoring in a 
 A pull request is communication, so as usual, put yourself in the position of the reader: what does your audience (the reviewer) need to know to do their job?
 This information is easy for you to access, but hard for them to figure out, so write it down!
 
-However, better to put information in the code or commit messages if possible: these persist but PR descriptions do not.
+However, better to put information in the code, commit messages, or changelog if possible: these persist but PR descriptions do not.
 It's okay to repeat information from such places, or simply to point to it.
 For one-commit PRs, Github will automatically populate the PR description with the commit message, so if you've written a good commit message you're done!
 Sometimes there is "change-related" information that doesn't belong in a commit message but is useful ("Kris I think this will fix the issue you had yesterday").
