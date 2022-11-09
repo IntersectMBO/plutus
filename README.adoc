@@ -4,6 +4,8 @@
 :toc: left
 :reproducible:
 
+image:https://img.shields.io/badge/policy-Cardano%20Engineering%20Handbook-informational[link=https://input-output-hk.github.io/cardano-engineering-handbook]
+
 == Introduction
 
 Plutus Core is the scripting language embedded in the Cardano ledger and forms the basis of the Plutus Platform, an application development platform for developing distributed applications using the Cardano blockchain.
