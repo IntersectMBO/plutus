@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# for some reason you can't just put a heredoc in a variable...
-read -r -d '' USAGE << EOF
-prepare-release.sh VERSION [PACKAGE...]
+usage () {
+  echo "$(basename $0) VERSION [PACKAGE...]
   Prepares to release PACKAGEs at VERSION. If no PACKAGEs are provided,
-  prepares to release the default packges.
-EOF
+  prepares to release the default packages."
+}
 
 if [ "$#" == "0" ]; then
-  echo "$USAGE"
+  usage
+  exit 1
 fi
 
 set -euo pipefail

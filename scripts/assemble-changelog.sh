@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# for some reason you can't just put a heredoc in a variable...
-read -r -d '' USAGE << EOF
-assemble-changelog.sh PACKAGE VERSION
-  Assembles the changelog for PACKAGE at VERSION.
-EOF
+usage () {
+  echo "$(basename $0) PACKAGE VERSION
+  Assembles the changelog for PACKAGE at VERSION."
+}
 
 if [ "$#" == "0" ]; then
-  echo "$USAGE"
+  usage
+  exit 1
 fi
 
 PACKAGE=$1

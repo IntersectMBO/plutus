@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-# for some reason you can't just put a heredoc in a variable...
-read -r -d '' USAGE << EOF
-update-version.sh PACKAGE VERSION
+usage () {
+  echo "$(basename $0) PACKAGE VERSION
   Updates the version for PACKAGE to VERSION, and updates bounds
-  on that package in other cabal files.
-EOF
+  on that package in other cabal files."
+}
 
 if [ "$#" == "0" ]; then
-  echo "$USAGE"
+  usage
+  exit 1
 fi
 
 set -euo pipefail
