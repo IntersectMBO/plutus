@@ -16,9 +16,6 @@ set -euo pipefail
 PACKAGE=$1
 VERSION=$2
 
-versioned_packages_regex=$(printf "\|%s" "${versioned_packages[@]}")
-versioned_packages_regex="\(${versioned_packages_regex:2}\)"
-
 IFS='.' read -r -a components <<< "$VERSION"
 
 major_version="${components[0]}.${components[1]}"
