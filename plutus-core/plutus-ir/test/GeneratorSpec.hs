@@ -27,10 +27,9 @@ generators factor = return $ testGroup "generators"
   , testProperty "prop_genTypeCorrect"  $
       withMaxSuccess (factor*10000) (prop_genTypeCorrect False)
   , testProperty "prop_genWellTypedFullyApplied" $
-      withMaxSuccess (factor*100) prop_genWellTypedFullyApplied
-  -- This test fails for some reason.
-  -- , testProperty "prop_findInstantiation" $
-  --     withMaxSuccess (factor*100) prop_findInstantiation
+      withMaxSuccess (factor*1000) prop_genWellTypedFullyApplied
+  , testProperty "prop_findInstantiation" $
+      withMaxSuccess (factor*10000) prop_findInstantiation
   , testProperty "prop_inhabited" $
       withMaxSuccess (factor*1000) prop_inhabited
   , testProperty "prop_stats_numShrink" $
