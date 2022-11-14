@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 module GeneratorSpec where
 
+import GeneratorSpec.Builtin
 import GeneratorSpec.Substitution
 import GeneratorSpec.Terms
 import GeneratorSpec.Types
@@ -14,7 +15,9 @@ import Test.Tasty.QuickCheck
 -- The default for the argument is @1@.
 generators :: Int -> TestNested
 generators factor = return $ testGroup "generators"
-  [ testProperty "prop_genKindCorrect" $
+  [ testProperty "prop_genData" $ withMaxSuccess (factor*10000) prop_genData
+
+  , testProperty "prop_genKindCorrect" $
       withMaxSuccess (factor*100000) (prop_genKindCorrect False)
   , testProperty "prop_shrinkTypeSound" $
       withMaxSuccess (factor*100000) prop_shrinkTypeSound

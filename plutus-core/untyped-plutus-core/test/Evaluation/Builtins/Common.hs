@@ -3,7 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( typecheckAnd
+    ( unsafeEvaluateCek
+    , unsafeEvaluateCekNoEmit
+    , readKnownCek
+    , typecheckAnd
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
@@ -40,7 +43,7 @@ typecheckAnd ver action costingPart term = TPLC.runQuoteT $ do
     _ <- TPLC.inferType tcConfig term
     return . action runtime $ TPLC.eraseTerm term
     where
-      runtime = mkMachineParameters ver defaultUnliftingMode $
+      runtime = mkMachineParameters ver $
                    CostModel defaultCekMachineCosts costingPart
 
 -- | Type check and evaluate a term, logging enabled.

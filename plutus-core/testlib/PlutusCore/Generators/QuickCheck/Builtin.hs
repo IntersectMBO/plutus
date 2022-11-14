@@ -11,6 +11,7 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Data
+import PlutusCore.Generators.QuickCheck.Common (genList)
 
 import Data.ByteString (ByteString)
 import Data.Coerce
@@ -21,11 +22,50 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Word
 import Test.QuickCheck
+import Test.QuickCheck.Instances.ByteString ()
 
 instance Arbitrary Data where
-    arbitrary = error "implement me"
-    shrink = error "implement me"
+    arbitrary = sized genData
+
+    shrink = genericShrink
+
+genData :: Int -> Gen Data
+genData depth =
+    oneof $
+        [genI, genB]
+            <> [ genRec | depth > 1, genRec <-
+                                        [ genListData (depth `div` 2)
+                                        , genMapData (depth `div` 2)
+                                        , genConstrData (depth `div` 2)
+                                        ]
+               ]
+  where
+    genI = I <$> arbitraryBuiltin
+    genB = B <$> arbitraryBuiltin
+
+genListWithMaxDepth :: Int -> (Int -> Gen a) -> Gen [a]
+genListWithMaxDepth depth gen =
+    -- The longer the list, the smaller the elements.
+    frequency
+        [ (100, genList 0 5 (gen depth))
+        , (10, genList 0 50 (gen (depth `div` 2)))
+        , (1, genList 0 500 (gen (depth `div` 4)))
+        ]
+
+genListData :: Int -> Gen Data
+genListData depth = List <$> genListWithMaxDepth depth genData
+
+genMapData :: Int -> Gen Data
+genMapData depth =
+    Map <$> genListWithMaxDepth depth (\d -> (,) <$> genData d <*> genData d)
+
+genConstrData :: Int -> Gen Data
+genConstrData depth =
+    Constr
+        <$> (fromIntegral <$> arbitrary @Word64)
+        <*> genListWithMaxDepth depth genData
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
 -- the default implementation of the methods for a built-in type.

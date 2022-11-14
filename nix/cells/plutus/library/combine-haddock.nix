@@ -17,9 +17,7 @@ in
 
 cell.library.pkgs.runCommand "combine-haddock"
 {
-  # TODO(std) fix in next PR
-  # buildInputs = [ hsdocs ];
-  buildInputs = [ ];
+  buildInputs = [ hsdocs ];
 
   # For each package in hsdocs, this will create a file `graph-N` (where N is the index in the list)
   # which contains information about which nix paths are referenced by the package. This will allow
@@ -29,11 +27,6 @@ cell.library.pkgs.runCommand "combine-haddock"
   exportReferencesGraph = lib.concatLists
     (lib.imap0 (i: pkg: [ "graph-${toString i}" pkg ]) hsdocs);
 } ''
-  # TODO(std) fixme
-  mkdir -p $out
-  touch $out/TODO
-  exit 0
-
   hsdocsRec="$(cat graph* | grep -F /nix/store | sort | uniq)"
 
   # Merge all the docs from the packages and their doc dependencies.
@@ -79,7 +72,6 @@ cell.library.pkgs.runCommand "combine-haddock"
       # this is '$PACKAGE/html'
       docdir=$(dirname $interfaceFile)
       interfaceOpts+=("--read-interface=$docdir,$interfaceFile")
-
       # Jam this in here for now
       pushd $out/share/doc
       ${cell.packages.sphinxcontrib-haddock}/bin/haddock_inventory $docdir
@@ -108,11 +100,10 @@ cell.library.pkgs.runCommand "combine-haddock"
   echo "[]" > "doc-index.json"
   for file in $(ls **/doc-index.json); do
     project=$(dirname $file);
-    ${cell.library.pkgs.jq}/bin/jq -s \
-      ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
-      "doc-index.json" \
-      $file \
-      > /tmp/doc-index.json
-    mv /tmp/doc-index.json "doc-index.json"
+    ${cell.library.pkgs.jq}/bin/jq -s ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
+      "doc-index.json" "$file" > doc-index.tmp.json
+    mv doc-index.tmp.json "doc-index.json"
   done
+
+  echo "Done Combining Haddock"
 ''

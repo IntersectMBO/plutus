@@ -191,6 +191,5 @@ let
   });
 
 in
-project.appendOverlays [
-  library.haskell-nix.haskellLib.projectOverlays.devshell
-]
+
+project

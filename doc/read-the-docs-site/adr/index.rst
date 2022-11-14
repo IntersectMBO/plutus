@@ -10,7 +10,7 @@ The goals are:
 
 * making decisions transparent to internal/external stakeholders and contributors.
 
-* getting feeback on decisions that we're about to make or have made
+* getting feedback on decisions that we're about to make or have made
 
 * providing external contributors a framework to propose architectural changes
 
@@ -32,3 +32,5 @@ The general process for creating an ADR is:
 
    0001-record-architecture-decisions
    0002-steppable-cek-machine
+   0003-sharing-prod-debugging-cek
+   0004-deferred-unlifting

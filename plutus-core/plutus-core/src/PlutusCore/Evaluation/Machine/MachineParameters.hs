@@ -80,9 +80,8 @@ mkMachineParameters ::
     , ToBuiltinMeaning uni fun
     )
     => BuiltinVersion fun
-    -> UnliftingMode
     -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts val uni fun
-mkMachineParameters ver unlMode (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime ver unlMode builtinCosts)
+mkMachineParameters ver (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime ver builtinCosts)
 {-# INLINE mkMachineParameters #-}

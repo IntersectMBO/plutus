@@ -391,7 +391,7 @@ test-suite plutus-benchmark-script-contexts-tests
     , base                                            >=4.9 && <5
     , plutus-benchmark-common
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.1
+    , plutus-tx:plutus-tx-testlib                     ^>=1.1
     , script-contexts-internal
     , tasty
     , tasty-hunit

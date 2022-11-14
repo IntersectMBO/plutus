@@ -732,11 +732,9 @@ enterComputeCek = computeCek (toWordArray 0) where
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinExpectArgument f -> case f arg of
-                Left err       -> throwKnownTypeErrorWithCause argTerm err
-                Right runtime' -> do
-                    res <- evalBuiltinApp fun term' runtime'
-                    returnCek unbudgetedSteps ctx res
+            BuiltinExpectArgument f -> do
+                res <- evalBuiltinApp fun term' $ f arg
+                returnCek unbudgetedSteps ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ !_ val _ =

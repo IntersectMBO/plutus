@@ -104,6 +104,7 @@ data ExtensionFun
     | IdFInteger
     | IdList
     | IdRank2
+    | ScottToMetaUnit
     -- The next four are for testing that costing always precedes actual evaluation.
     | FailingSucc
     | ExpensiveSucc
@@ -136,11 +137,11 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2
 
     data BuiltinVersion (Either fun1 fun2) = PairV (BuiltinVersion fun1) (BuiltinVersion fun2)
     toBuiltinMeaning (PairV verL _) (Left  fun) = case toBuiltinMeaning verL fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . fst) (defF . fst))
+        BuiltinMeaning tySch toF denot ->
+            BuiltinMeaning tySch toF (denot . fst)
     toBuiltinMeaning (PairV _ verR) (Right fun) = case toBuiltinMeaning verR fun of
-        BuiltinMeaning tySch toF (BuiltinRuntimeOptions immF defF) ->
-            BuiltinMeaning tySch toF (BuiltinRuntimeOptions (immF . snd) (defF . snd))
+        BuiltinMeaning tySch toF denot ->
+            BuiltinMeaning tySch toF (denot . snd)
 
 instance (Default (BuiltinVersion fun1), Default (BuiltinVersion fun2))
          => Default (BuiltinVersion (Either fun1 fun2)) where
@@ -259,6 +260,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (Prelude.id
                 :: afa ~ Opaque val (TyForallRep a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
+            (\_ _ -> ExBudget 1 0)
+
+    toBuiltinMeaning _ver ScottToMetaUnit =
+        makeBuiltinMeaning
+            ((\_ -> ())
+                -- @(->)@ switches from the Rep context to the Type one. We could make @(->)@
+                -- preserve the current context, but there's no such notion in the current
+                -- elaboration machinery and we'd better not complicate it further just for the sake
+                -- of tests looking a bit nicer. Instead we simply wrap the 'TyVarRep' with 'Opaque'
+                -- (unlike in the case of @IdRank2@ where 'TyAppRep' preserves the Rep context).
+                :: oa ~ Opaque val (TyVarRep a)
+                => Opaque val (TyForallRep a (oa -> oa)) -> ())
             (\_ _ -> ExBudget 1 0)
 
     toBuiltinMeaning _ver FailingSucc =

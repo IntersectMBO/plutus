@@ -16,8 +16,7 @@ import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
 -- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
--- builtin with no arguments) by instantiating (via 'fromBuiltinRuntimeOptions') a
--- 'BuiltinRuntimeOptions'.
+-- builtin with no arguments) by instantiating.
 --
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.
@@ -34,11 +33,7 @@ import NoThunks.Class
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
     = BuiltinResult ExBudget ~(MakeKnownM val)
-    -- 'ReadKnownM' is required here only for immediate unlifting, because deferred unlifting
-    -- doesn't need the ability to fail in the middle of a builtin application, but having a uniform
-    -- interface for both the ways of doing unlifting is way too convenient, hence we decided to pay
-    -- the price (about 1-2% of total evaluation time) for now.
-    | BuiltinExpectArgument (val -> ReadKnownM (BuiltinRuntime val))
+    | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 
 instance NoThunks (BuiltinRuntime val) where
@@ -54,34 +49,6 @@ instance NoThunks (BuiltinRuntime val) where
         BuiltinExpectForce runtime -> noThunks ctx runtime
 
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinRuntime"
-
--- | Determines how to unlift arguments. The difference is that with 'UnliftingImmediate' unlifting
--- is performed immediately after a builtin gets the argument and so can fail immediately too, while
--- with deferred unlifting all arguments are unlifted upon full saturation, hence no failure can
--- occur until that. The former makes it much harder to specify the behaviour of builtins and
--- so 'UnliftingDeferred' is the preferred mode.
-data UnliftingMode
-    = UnliftingImmediate
-    | UnliftingDeferred
-
--- | A 'BuiltinRuntimeOptions' is a precursor to 'BuiltinRuntime'. One gets the latter from the
--- former by applying a function returning the runtime denotation of the builtin (either
--- '_broImmediateF' for immediate unlifting or '_broDeferredF' for deferred unlifting, see
--- 'UnliftingMode' for details) to a cost model.
-data BuiltinRuntimeOptions val cost = BuiltinRuntimeOptions
-    { _broImmediateF :: cost -> BuiltinRuntime val
-    , _broDeferredF  :: cost -> BuiltinRuntime val
-    }
-
--- | Convert a 'BuiltinRuntimeOptions' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost
--- model.
-fromBuiltinRuntimeOptions
-    :: UnliftingMode -> cost -> BuiltinRuntimeOptions val cost -> BuiltinRuntime val
-fromBuiltinRuntimeOptions unlMode cost (BuiltinRuntimeOptions immF defF) =
-    case unlMode of
-        UnliftingImmediate -> immF cost
-        UnliftingDeferred  -> defF cost
-{-# INLINE fromBuiltinRuntimeOptions #-}
 
 instance NFData (BuiltinRuntime val) where
     -- 'BuiltinRuntime' is strict (verified by the 'NoThunks' tests), hence we only need to force

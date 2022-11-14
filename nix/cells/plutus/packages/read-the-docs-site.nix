@@ -9,7 +9,7 @@ pkgs.stdenv.mkDerivation {
 
   src = pkgs.lib.sourceFilesBySuffices
     (inputs.self + /doc/read-the-docs-site)
-    [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ];
+    [ ".py" ".rst" ".hs" ".png" ".svg" ".bib" ".csv" ".css" ".md" ];
 
   buildInputs = [
     cell.packages.sphinx-toolchain
@@ -21,13 +21,8 @@ pkgs.stdenv.mkDerivation {
 
   dontInstall = true;
 
-  # TODO(std) fix me after fixing combined-plutus-haddock
-  # cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
   buildPhase = ''
-    mkdir -p $out
-    touch $out/TODO
-    exit 0
-
+    cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
     SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out
     cp -aR haddock $out
