@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -16,6 +15,7 @@ import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Show qualified as PlutusTx
 import Prettyprinter
 
 {- | The hash of a public key. This is frequently used to identify the public key,
@@ -28,7 +28,14 @@ You may want to add checks for its invariants. See the
 newtype PubKeyHash = PubKeyHash { getPubKeyHash :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
-    deriving newtype (PlutusTx.Eq, PlutusTx.Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
+    deriving newtype
+        ( PlutusTx.Eq,
+          PlutusTx.Ord,
+          PlutusTx.Show,
+          PlutusTx.ToData,
+          PlutusTx.FromData,
+          PlutusTx.UnsafeFromData
+        )
     deriving
         (IsString        -- ^ from hex encoding
         , Show           -- ^ using hex encoding
