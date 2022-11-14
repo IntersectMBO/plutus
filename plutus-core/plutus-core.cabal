@@ -472,6 +472,7 @@ test-suite plutus-ir-test
   other-modules:
     GeneratorSpec
     GeneratorSpec.Substitution
+    GeneratorSpec.Terms
     GeneratorSpec.Types
     NamesSpec
     ParserSpec

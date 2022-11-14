@@ -1,18 +1,23 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
+
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module GeneratorSpec.Terms where
 
 import PlutusCore.Generators.QuickCheck
 import PlutusIR.Generators.QuickCheck
 
+import PlutusCore.Default
 import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
 import Control.Monad.Reader
-
 import Data.Char
 import Data.Either
 import Data.List hiding (insert)
@@ -21,6 +26,15 @@ import Data.Map.Strict qualified as Map
 import Test.QuickCheck
 import Text.Printf
 
+-- We need this for checking the behavior of the shrinker (in particular, whether a term shrinks
+-- to itself, which would be a bug, or how often a term shrinks to the same thing multiple times
+-- within a single step). Should we move this to @plutus-ir@ itself? Not sure, but it's safe to
+-- place it here, since nothing can depend on a test suite (apart from modules from within this test
+-- suite), hence no conflicting orphans can occur.
+instance Eq (Term TyName Name DefaultUni DefaultFun ()) where
+    -- We generally consider equality modulo alpha, hence the call to 'rename'.
+    term1 == term2 = show (runQuote $ rename term1) == show (runQuote $ rename term2)
+
 -- * Core properties for PIR generators
 
 -- | Test that our generators only result in well-typed terms.
@@ -28,11 +42,12 @@ import Text.Printf
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and the utility properties below when this property fails.
 prop_genTypeCorrect :: Bool -> Property
-prop_genTypeCorrect debug =
+prop_genTypeCorrect debug = do
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
-  forAllDoc "ty,tm" (if debug then genTypeAndTermDebug_ else genTypeAndTerm_) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
+  let gen = if debug then genTypeAndTermDebug_ else genTypeAndTerm_
+  forAllDoc "ty,tm" gen (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
 
 -- | Test that when we generate a fully applied term we end up
 -- with a well-typed term.

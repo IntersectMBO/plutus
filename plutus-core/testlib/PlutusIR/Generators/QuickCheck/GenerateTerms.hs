@@ -13,7 +13,6 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusIR.Generators.QuickCheck.GenerateTerms where
 
