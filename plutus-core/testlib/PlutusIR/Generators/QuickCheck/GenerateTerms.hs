@@ -38,7 +38,6 @@ import PlutusIR.Compiler
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Subst
 
-import Control.Applicative ((<|>))
 import Control.Lens ((<&>))
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -79,8 +78,8 @@ findInstantiation :: HasCallStack
                   -> Either String [TyInst]
 findInstantiation ctx n target ty = do
   sub <- unifyType (ctx <> ctx') flex target b
-      -- We map any unsolved flexible variables to ∀ a. a
-  let defaultSub = minimalType <$> ctx'
+  let -- We map any unsolved flexible variable to a 'minimalType'.
+      defaultSub = minimalType <$> ctx'
       doSub :: HasCallStack => _
       doSub = substType defaultSub . substType sub
       doSubI (InstApp t) = InstApp (doSub t)
@@ -108,7 +107,10 @@ genConstant (SomeTypeIn b) = case toSingKind b of
 -- prefers to not default to `error`
 inhabitType :: Type TyName DefaultUni () -> GenTm (Term TyName Name DefaultUni DefaultFun ())
 inhabitType ty0 = local (\ e -> e { geTerms = mempty }) $ do
-  either error id <$> runExceptT (findTm ty0 <|> pure (Error () ty0))
+    errOrRes <- runExceptT $ findTm ty0
+    pure $ case errOrRes of
+        Left  _   -> Error () ty0
+        Right res -> res
   where
     -- Do the obvious thing as long as target type is not type var
     -- When type var: magic (if higher-kinded type var: black magic)
@@ -155,8 +157,8 @@ inhabitType ty0 = local (\ e -> e { geTerms = mempty }) $ do
                        Right insts <- [findInstantiation ctx n ty a],
                        x `Set.notMember` fvArgs a
                      ] of
-                  [] -> mzero
-                  gs -> head gs
+                  []  -> mzero
+                  g:_ -> g
           _ -> mzero
 
     -- Try to inhabit a constructor `con` of type `conTy` in datatype `d` at type `ty`
@@ -311,7 +313,7 @@ genTerm mty = checkInvariants $ do
       -- Strictness
       ss  <- vectorOf n $ liftGen $ elements [Strict, NonStrict]
       -- Recursive?
-      r   <- liftGen $ frequency [(5, pure True), (30, pure False)]
+      r   <- liftGen $ frequency [(1, pure True), (6, pure False)]
       -- Generate the binding
       -- TODO: maybe also generate mutually recursive bindings?
       let genBin (x, a) | r         = withNoEscape . bindTmName x a . genTermOfType $ a
@@ -392,7 +394,7 @@ genTerm mty = checkInvariants $ do
         [] -> (ty,) <$> inhabitType ty
         gs -> (ty,) <$> oneof gs
 
--- | Like 'liftOf' except each of the elements is generated with a proportionally smaller size.
+-- | Like 'listOf' except each of the elements is generated with a proportionally smaller size.
 scaledListOf :: GenTm a -> GenTm [a]
 scaledListOf g = do
   sz <- asks geAstSize
@@ -417,8 +419,6 @@ genDatatypeLet rec cont = do
     let dat = Datatype () (TyVarDecl () d k0) [TyVarDecl () x k | (x, k) <- zip xs ks] m
                        [ VarDecl () c (foldr (TyFun ()) dTy conArgs)
                        | (c, conArgs) <- zip cs conArgss ]
-                       -- TODO: it might make sense to do a negativity test here -
-                       -- but not clear how important that is.
     bindDat dat $ cont dat
 
 -- | Generate up to 5 datatypes and bind them in a generator.

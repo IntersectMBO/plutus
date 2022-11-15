@@ -96,7 +96,7 @@ instance Arbitrary TestCase where
 
 prettyByRespectsDefaults :: Blind TestCase -> Property
 prettyByRespectsDefaults (Blind (TestCase (x :: a))) =
-    label exprRepr $ counterexample err $ viaPretty == viaPrettyBy
+    label exprType $ counterexample err $ viaPretty == viaPrettyBy
   where
     exprType    = show . prettyBy (OnlyType botRenderContext) $ Proxy @a
     exprRepr    = show x
