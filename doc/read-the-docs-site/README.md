@@ -2,7 +2,7 @@
 
 This is a sphinx site.
 
-Run `nix develop` to enter a development shell with `sphinx-build` and `sphinx-auotbuild`.
+Run `nix develop` to enter a development shell with `sphinx-build` and `sphinx-autobuild`.
 
 The following commands are also available:
 

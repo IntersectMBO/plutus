@@ -92,7 +92,7 @@ inputs.std.lib.dev.mkShell {
     {
       package = cell.packages.sphinx-build-readthedocs-site;
       category = "docs";
-      help = "Build the docs locally in doc/_build";
+      help = "Build the docs locally in doc/read-the-docs-site/_build";
     }
     {
       package = cell.packages.sphinx-autobuild-readthedocs-site;
