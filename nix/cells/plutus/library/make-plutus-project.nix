@@ -1,29 +1,15 @@
 { inputs, cell }:
-{ compiler-nix-name ? inputs.cells.toolchain.library.ghc-compiler-nix-name }:
+
+{ compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
+
 let
-
-  inherit (cell) library;
-  inherit (library.pkgs) lib;
-
-  r-packages = with library.pkgs.rPackages; [
-    library.pkgs.R
-    tidyverse
-    dplyr
-    stringr
-    MASS
-    plotly
-    shiny
-    shinyjs
-    purrr
-  ];
-
-  project = library.haskell-nix.cabalProject' ({ pkgs, ... }: {
+  project = cell.library.haskell-nix.cabalProject' ({ pkgs, lib, ... }: {
 
     inherit compiler-nix-name;
 
     # This is incredibly difficult to get right, almost everything goes wrong,
     # see https://github.com/input-output-hk/haskell.nix/issues/496
-    src = library.haskell-nix.haskellLib.cleanSourceWith {
+    src = cell.library.haskell-nix.haskellLib.cleanSourceWith {
 
       src = inputs.self.outPath;
 
@@ -139,13 +125,13 @@ let
           plutus-metatheory.components.tests.test3.build-tools = [ cell.packages.agda-with-stdlib ];
 
           plutus-core.components.benchmarks.update-cost-model = {
-            build-tools = r-packages;
+            build-tools = cell.library.r-with-packages;
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
 
           plutus-core.components.benchmarks.cost-model-test = {
-            build-tools = r-packages;
+            build-tools = cell.library.r-with-packages;
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
@@ -189,7 +175,6 @@ let
       })
     ];
   });
-
 in
-
 project
+

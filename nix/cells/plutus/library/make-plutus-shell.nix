@@ -1,5 +1,5 @@
 { inputs, cell }:
-{ compiler-nix-name ? inputs.cells.toolchain.library.ghc-compiler-nix-name }:
+{ compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
 
 let
   inherit (cell.library) pkgs haskell-nix;
@@ -143,9 +143,8 @@ inputs.std.lib.dev.mkShell {
     pkgs.cacert
     pkgs.pkg-config # TODO(std) Keep an eye on https://github.com/input-output-hk/plutus/pull/4906
 
-    # More R libraries
-    pkgs.rPackages.plotly
-  ];
+    # R libraries
+  ] ++ cell.library.r-with-packages;
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
 
