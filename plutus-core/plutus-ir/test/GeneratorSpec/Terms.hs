@@ -72,11 +72,12 @@ prop_shrinkTermSound =
   -- shrinking itself is broken, so we can only use the
   -- parts of shrinking that happen to be OK.
   isRight (typeCheckTerm tm ty) ==>
-  -- We don't want to let the shrinker get away with being empty, so we ignore empty shrinks. QuickCheck will give
-  -- up and print an error if the shrinker returns the empty list too often.
+  -- We don't want to let the shrinker get away with being empty, so we ignore empty
+  -- shrinks. QuickCheck will give up and print an error if the shrinker returns the empty list too
+  -- often.
   not (null shrinks) ==>
   assertNoCounterexamples $ lefts
-    [ ((ty', tm'), scopeCheckTyVars Map.empty (ty, tm), ) <$> typeCheckTerm tm ty
+    [ ((ty', tm'), scopeCheckTyVars Map.empty (ty', tm'), ) <$> typeCheckTerm tm' ty'
     | (ty', tm') <- shrinks
     ]
 
