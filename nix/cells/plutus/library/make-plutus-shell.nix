@@ -128,6 +128,8 @@ inputs.std.lib.dev.mkShell {
     cell.packages.hie-bios
     # Provides sphinx-build and other things, unclear how to represent it as a command
     cell.packages.sphinx-toolchain
+    # R environment
+    cell.library.r-with-packages
 
     # Misc  useful stuff, could make these commands but there's a lot already
     pkgs.editorconfig-core-c
@@ -142,9 +144,7 @@ inputs.std.lib.dev.mkShell {
     pkgs.zlib
     pkgs.cacert
     pkgs.pkg-config # TODO(std) Keep an eye on https://github.com/input-output-hk/plutus/pull/4906
-
-    # R libraries
-  ] ++ cell.library.r-with-packages;
+  ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
 

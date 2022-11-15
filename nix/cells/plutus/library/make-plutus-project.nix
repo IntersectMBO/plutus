@@ -125,13 +125,13 @@ let
           plutus-metatheory.components.tests.test3.build-tools = [ cell.packages.agda-with-stdlib ];
 
           plutus-core.components.benchmarks.update-cost-model = {
-            build-tools = cell.library.r-with-packages;
+            build-tools = [ cell.library.r-with-packages ];
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
 
           plutus-core.components.benchmarks.cost-model-test = {
-            build-tools = cell.library.r-with-packages;
+            build-tools = [ cell.library.r-with-packages ];
             # Seems to be broken on darwin for some reason
             platforms = lib.platforms.linux;
           };
