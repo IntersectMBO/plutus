@@ -69,7 +69,7 @@ executable doc-doctests
     , base               >=4.9      && <5
     , bytestring
     , containers
-    , flat
+    , flat <0.6
     , lens
     , plutus-core        ^>=1.1
     , plutus-ledger-api  ^>=1.1
