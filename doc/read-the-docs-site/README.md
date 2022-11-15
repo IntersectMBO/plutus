@@ -4,12 +4,12 @@ This is a sphinx site.
 
 Run `nix develop` to enter a development shell with `sphinx-build` and `sphinx-auotbuild`.
 
-The following commands are also avaialble:
+The following commands are also available:
 
 - `autobuild-docs`          
   Start a development server with live reload on `http://localhost:8000`
 - `build-docs`             
-  Build the docs locally to `_build/index.html`
+  Build the docs locally in `_build/index.html`
 - `serve-docs`   
   Build the full site with nix (including Haddock) and serve it on `http://localhost:8002`
 
