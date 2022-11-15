@@ -27,7 +27,7 @@ prop_shrinkTypeSound =
   -- See discussion about the same trick in 'prop_shrinkTermSound'.
   isRight (checkKind ctx ty k) ==>
   assertNoCounterexamples $ lefts
-    [ (k', ty', ) <$> checkKind ctx ty k
+    [ (k', ty', ) <$> checkKind ctx ty' k'
     | (k', ty') <- shrinkKindAndType ctx (k, ty)
     ]
 
