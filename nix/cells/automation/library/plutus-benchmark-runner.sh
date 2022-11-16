@@ -89,4 +89,4 @@ jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
 # TODO(std) we'll need to change this 
-curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
