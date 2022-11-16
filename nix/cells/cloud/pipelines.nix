@@ -64,11 +64,19 @@ let
         BENCHMARK_NAME = lib.removePrefix
           "/benchmark"
           config.actionRun.facts.github_comment.github_body.comment.body;
+        GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
     {
       preset.nix.enable = true;
       command.text = "${runner}/bin/plutus-benchmark-runner";
+      nomad.templates = [
+        {
+          destination = "/secrets/cicero/github/token";
+          data = ''{{with secret "kv/data/cicero/github"}}{{.Data.data.token}}{{end}}'';
+        }
+      ];
+
     };
 
 in

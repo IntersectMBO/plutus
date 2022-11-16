@@ -22,10 +22,6 @@
 
 set -e
 
-PR_NUMBER=$1
-PR_COMMIT_SHA=$2
-BENCHMARK_NAME=$3
-
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
    exit 1
@@ -36,6 +32,10 @@ if [ -z "$PR_COMMIT_SHA" ] ; then
 fi
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set! Exiting"
+   exit 1
+fi
+if [ -z "$GITHUB_TOKEN" ] ; then
+   echo "[ci-plutus-benchmark]: 'GITHUB_TOKEN' is not set! Exiting"
    exit 1
 fi
 
