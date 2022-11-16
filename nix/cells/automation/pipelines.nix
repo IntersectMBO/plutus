@@ -28,7 +28,7 @@ in
   ci = { config, lib, ... }: {
     imports = [ common ];
 
-    preset.github.ci.revision = config.preset.github.status.readRevision
+    preset.github.ci.revision = config.preset.github.lib.readRevision
       inputs.cells.cloud.library.actions.ci.input
       null;
 
@@ -78,7 +78,7 @@ in
   publish-documents = { config, pkgs, lib, ... }: {
     imports = [ common ];
 
-    preset.github.ci.revision = config.preset.github.status.lib.readRevision
+    preset.github.ci.revision = config.preset.github.lib.readRevision
       inputs.cells.cloud.library.actions.documents.input
       null;
 
