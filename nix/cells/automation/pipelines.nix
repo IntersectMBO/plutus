@@ -50,19 +50,18 @@ in
     let
       # Facts here correspond to inputs created by the benchmark action in the cloud cell
       facts = config.actionRun.facts;
-      commentFact = facts.${cloud.library.actions.benchmark.commentInput};
-      prFact = facts.${cloud.library.actions.benchmark.prInput};
+      commentFact = facts.${cloud.library.actions.benchmark.commentInput}.github_body;
+      prFact = facts.${cloud.library.actions.benchmark.prInput}.github_body;
 
       runner = cell.library.plutus-benchmark-runner {
-        PR_NUMBER = prFact.github_body.pull_request.number;
-        PR_COMMIT_SHA = prFact.github_body.pull_request.head.sha;
+        PR_NUMBER = prFact.pull_request.number;
+        PR_COMMIT_SHA = prFact.pull_request.head.sha;
         BENCHMARK_NAME = lib.removePrefix "/benchmark" commentFact.github_body.comment.body;
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
     {
       # Not importing common, github-ci preset is not needed here
-      #
       preset.nix.enable = true;
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [
