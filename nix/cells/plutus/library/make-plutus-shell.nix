@@ -92,17 +92,17 @@ inputs.std.lib.dev.mkShell {
     {
       package = cell.packages.sphinx-build-readthedocs-site;
       category = "docs";
-      help = "Build the docs locally with output in doc/_build";
+      help = "Build the docs locally in doc/read-the-docs-site/_build";
     }
     {
       package = cell.packages.sphinx-autobuild-readthedocs-site;
       category = "docs";
-      help = "Start the autobuild server with output in doc/_build";
+      help = "Start the autobuild server on localhost:8000";
     }
     {
       package = cell.packages.serve-readthedocs-site;
       category = "docs";
-      help = "nix build and serve the doc site on port 3000";
+      help = "nix build and serve the doc site on localhost:8002";
     }
 
     {
