@@ -1,7 +1,7 @@
 { cell
 , inputs
 }: {
-  "plutus/ci" = {
+  /* "plutus/ci" = {
     task = "ci";
     io = ''
       // This is a CUE expression that defines what events trigger a new run of this action.
@@ -18,7 +18,7 @@
         { #lib.io.github_pr, github, #target_default: false },
       ]
     '';
-  };
+  };*/
 
   "plutus/benchmark" = {
     task = "benchmark";
@@ -34,7 +34,7 @@
     '';
   };
 
-  "plutus/publish-documents" = {
+  /*"plutus/publish-documents" = {
     task = "publish-documents";
     io = ''
       let push = {
@@ -54,6 +54,6 @@
         }
       }
     '';
-  };
+  };*/
 
 }
