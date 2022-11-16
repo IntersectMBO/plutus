@@ -122,14 +122,29 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
              : rest
 
 {- Note [GHC.sm_pre_inline]
-We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`. The
-reason is that the plugin needs certain functions to be fully applied. For example, it can
-compile `noinline @(String -> BuiltinString) stringToBuiltinString "a"`, but not
+We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
+makes GHC inline certain bindings before the plugin runs. Pre-inlining is a phase of the GHC
+inliner that inlines bindings in GHC Core where the binder occurs exactly once in an
+unconditionally safe way (e.g., the occurrence isn't inside a lambda). For details, see paper
+"Secrets of the Glasgow Haskell Compiler inliner".
+
+The reason we need the pre-inlining is that the plugin requires certain functions
+to be fully applied. For example, it has a special rule to handle
+`noinline @(String -> BuiltinString) stringToBuiltinString "a"`, but it cannot compile
 `let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a"`.
+By turning on pre-inlining, the `f` in the latter expression will be inlined, resulting in
+the former expression, which the plugin knows how to compile.
+
+There is a related flag, `sm_inline`, which controls whether GHC's call-site inlining is
+enabled. If enabled, GHC will inline additional bindings that cannot be unconditionally
+inlined, on a call-site-by-call-site basis. Currently we haven't found the need to turn on
+`sm_inline`. Turning it on seems to reduce PIR sizes in many cases, but it is unclear
+whether it may affect the semantics of Plutus Core.
 
 Arguably, relying on `sm_pre_inline` is not the proper solution - what if we get
-`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a" <> f "b"`? We should
-instead inline a binding when the RHS is a partially applied function that we need fully applied.
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a" <> f "b"`?
+Here `f` won't be pre-inlined because it occurs twice. Instead, we should perhaps
+inline a binding when the RHS is a partially applied function that we need fully applied.
 But so far we haven't had an issue like this.
 
 We should also make the error message better in cases like this. The current error message is
