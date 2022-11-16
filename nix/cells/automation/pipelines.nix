@@ -50,8 +50,8 @@ in
     let
       # Facts here correspond to inputs created by the benchmark action in the cloud cell
       facts = config.actionRun.facts;
-      commentFact = facts.${cloud.library.actions.benchmark.commentInput}.github_body;
-      prFact = facts.${cloud.library.actions.benchmark.prInput}.github_body;
+      commentFact = facts.${cloud.library.actions.benchmark.commentInput}.value.github_body;
+      prFact = facts.${cloud.library.actions.benchmark.prInput}.value.github_body;
 
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = prFact.pull_request.number;
