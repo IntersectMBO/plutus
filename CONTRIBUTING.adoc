@@ -621,7 +621,7 @@ Check the link:https://cicero.ci.iog.io/action/53f25880-8fde-4e24-8ce7-6b7568777
     - @thealmarty
     - @zliu41
 - The maintainer of the documentation is @joseph-fajen.
-- The maintainer of the Agda code is @jmchapman.
+- The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
 - If you have a technical dispute that you need help resolving, you can ask @michaelpj.
 - For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk, @Pacman99, or @michaelpj.
 - The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41 or @michaelpj.
