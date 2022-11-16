@@ -20,6 +20,20 @@
     '';
   };
 
+  "plutus/benchmark" = {
+    task = "benchmark";
+    io = ''
+      // Two inputs need to match: PR sync event & issue comment creation event
+      #lib.io.github_pr_comment & {
+        #target: "zeme-iohk/benchmarking"
+        #input: "${cell.library.actions.benchmark.commentInput}"
+        #prInput: "${cell.library.actions.benchmark.prInput}"
+        #repo: "input-output-hk/plutus"
+        #comment: "^/benchmark .+"
+      }
+    '';
+  };
+
   "plutus/publish-documents" = {
     task = "publish-documents";
     io = ''
@@ -42,19 +56,4 @@
     '';
   };
 
-  "plutus/benchmark" = {
-    task = "benchmark";
-    io = ''
-      // This is a CUE expression that defines what events trigger a new run of this action.
-      // There is no documentation for this yet. Ask SRE if you have trouble changing this.
-
-      #lib.io.github_pr_comment & {
-        #target: "zeme-iohk/benchmarking"
-        #input: "github_comment"
-        #prInput: "github_pr"
-        #repo: "input-output-hk/plutus"
-        #comment: "^/benchmark .+"
-      }
-    '';
-  };
 }

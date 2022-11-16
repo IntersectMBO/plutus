@@ -2,6 +2,9 @@
 , inputs
 }:
 let
+  inherit (inputs.nixpkgs) lib system;
+  inherit (inputs.cells) cloud;
+
   common =
     { config
     , ...
@@ -42,6 +45,34 @@ in
     memory = 1024 * 8;
     nomad.resources.cpu = 10000;
   };
+
+  benchmark = { config, ... }:
+    let
+      # Facts here correspond to inputs created by the benchmark action in the cloud cell
+      facts = config.actionRun.facts;
+      commentFact = facts.${cloud.library.actions.benchmark.commentInput};
+      prFact = facts.${cloud.library.actions.benchmark.prInput};
+
+      runner = cell.library.plutus-benchmark-runner {
+        PR_NUMBER = prFact.github_body.pull_request.number;
+        PR_COMMIT_SHA = prFact.github_body.pull_request.head.sha;
+        BENCHMARK_NAME = lib.removePrefix "/benchmark" commentFact.github_body.comment.body;
+        GITHUB_TOKEN = "/secrets/cicero/github/token";
+      };
+    in
+    {
+      # Not importing common, github-ci preset is not needed here
+      #
+      preset.nix.enable = true;
+      command.text = "${runner}/bin/plutus-benchmark-runner";
+      nomad.templates = [
+        {
+          destination = "/secrets/cicero/github/token";
+          data = ''{{with secret "kv/data/cicero/github"}}{{.Data.data.token}}{{end}}'';
+        }
+      ];
+
+    };
 
   publish-documents = { config, pkgs, lib, ... }: {
     imports = [ common ];
