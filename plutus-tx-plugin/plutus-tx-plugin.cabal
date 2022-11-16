@@ -79,7 +79,7 @@ library
     , containers
     , either
     , extra
-    , flat
+    , flat              <0.5
     , lens
     , mtl
     , plutus-core       ^>=1.1
@@ -158,7 +158,7 @@ test-suite plutus-tx-tests
     , base                                            >=4.9 && <5
     , containers
     , deepseq
-    , flat
+    , flat                                            <0.5
     , hedgehog
     , lens
     , mtl
