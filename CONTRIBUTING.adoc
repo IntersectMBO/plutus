@@ -364,6 +364,51 @@ Set it up if you can, it's relatively easy to do.
 
 == Making and reviewing changes
 
+=== Changelogs
+
+We write changelogs for our packages.
+To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
+
+==== When to write a changelog entry
+
+We have no clear policy here, it is up to the judgement of the contributor.
+Not all PRs need changelog entries.
+
+The broad heuristic is to put yourself in the position of the consumer of the piece of software in question and ask if you would want to know about this change.
+If the answer is yes, then write a quick changelog entry.
+
+==== How to write a changelog entry
+
+The basic idea is that you write a changelog "fragment" in the `changelog.d` directory.
+When we do a release, these will be collected into the main `CHANGELOG.md`.
+Usually we don't edit `CHANGELOG.md` directly.
+
+You can make a changelog fragment using `scriv create` in the package directory, but you can also just create the fragment directly with an editor.
+A fragment is a markdown file beginning with a header giving the category of change.
+Currently these are:
+
+- Removed
+- Added
+- Changed
+- Deprecated
+- Fixed
+- Security
+
+We can change these categories if we want.
+
+A fragment can contain multiple sections if there are multiple changes. 
+For example:
+
+```
+# Changed
+
+Updated foo to take a bar.
+
+# Deprecated
+
+Deprecated baz.
+```
+
 === Opening a pull request
 
 A pull request is a change to the codebase, but it is also an artifact which goes through a change acceptance process.
@@ -418,7 +463,7 @@ Do not mix business logic with such things as reformatting and refactoring in a 
 A pull request is communication, so as usual, put yourself in the position of the reader: what does your audience (the reviewer) need to know to do their job?
 This information is easy for you to access, but hard for them to figure out, so write it down!
 
-However, better to put information in the code or commit messages if possible: these persist but PR descriptions do not.
+However, better to put information in the code, commit messages, or changelog if possible: these persist but PR descriptions do not.
 It's okay to repeat information from such places, or simply to point to it.
 For one-commit PRs, Github will automatically populate the PR description with the commit message, so if you've written a good commit message you're done!
 Sometimes there is "change-related" information that doesn't belong in a commit message but is useful ("Kris I think this will fix the issue you had yesterday").
@@ -610,3 +655,18 @@ The "details" link for the task goes to a page for the entire action and you wil
 
 If no GitHub statuses are shown, this might indicate that the invocation itself has failed.
 Check the link:https://cicero.ci.iog.io/action/53f25880-8fde-4e24-8ce7-6b7568777e00[plutus action page] for details, including logs and the full GitHub event payload.
+
+== Project roles and responsibilities
+
+- The regular contributors to the Haskell code, all of whom can review and merge PRs are:
+    - @michaelpj
+    - @effectfully
+    - @kwxm
+    - @bezirg
+    - @thealmarty
+    - @zliu41
+- The maintainer of the documentation is @joseph-fajen.
+- The maintainer of the Agda code is @jmchapman, @effectfully can help with small issues.
+- If you have a technical dispute that you need help resolving, you can ask @michaelpj.
+- For problems with the developer environment setup, builds, or CI, you can ask @zeme-iohk, @Pacman99, or @michaelpj.
+- The regular contributors take turns releasing our software, but if you have a specific problem ask @zliu41 or @michaelpj.
