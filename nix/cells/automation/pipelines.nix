@@ -12,14 +12,14 @@ let
       preset = {
         nix.enable = true;
 
-        github.ci = {
+        github = {
           # Tullia tasks can run locally or on Cicero.
           # When no facts are present we know that we are running locally and vice versa.
           # When running locally, the current directory is already bind-mounted
           # into the container, so we don't need to fetch the source from GitHub
           # and we don't want to report a GitHub status.
-          enable = config.actionRun.facts != { };
-          repository = "input-output-hk/plutus";
+          ci.enable = config.actionRun.facts != { };
+          ci.repository = "input-output-hk/plutus";
         };
       };
     };
@@ -28,7 +28,7 @@ in
   ci = { config, lib, ... }: {
     imports = [ common ];
 
-    preset.github.ci.revision = config.preset.github.lib.readRevision
+    preset.github.ci.revision = config.preset.github.status.readRevision
       inputs.cells.cloud.library.actions.ci.input
       null;
 
@@ -61,7 +61,7 @@ in
       };
     in
     {
-      # Not importing common, github-ci preset is not needed here
+      # Not importing common, github preset is not needed here
       preset.nix.enable = true;
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [
@@ -71,12 +71,14 @@ in
         }
       ];
 
+      memory = 1024 * 8;
+      nomad.resources.cpu = 10000;
     };
 
   publish-documents = { config, pkgs, lib, ... }: {
     imports = [ common ];
 
-    preset.github.ci.revision = config.preset.github.lib.readRevision
+    preset.github.ci.revision = config.preset.github.status.lib.readRevision
       inputs.cells.cloud.library.actions.documents.input
       null;
 
