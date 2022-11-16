@@ -56,7 +56,7 @@ in
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = toString prFact.pull_request.number;
         PR_COMMIT_SHA = prFact.pull_request.head.sha;
-        BENCHMARK_NAME = lib.removePrefix "/benchmark" commentFact.github_body.comment.body;
+        BENCHMARK_NAME = lib.removePrefix "/benchmark " commentFact.comment.body;
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
