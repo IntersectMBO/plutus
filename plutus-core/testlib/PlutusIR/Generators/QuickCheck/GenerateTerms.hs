@@ -406,6 +406,8 @@ genDatatypeLet rec cont = do
     k0 <- liftGen arbitrary
     let ks = argsFunKind k0
     n <- liftGen $ choose (1, 3)
+    -- Lazy matching to communicate to GHC the fact that this can't fail and thus doesn't require
+    -- a 'MonadFail' (which 'GenTm' isn't).
     ~(d : xs) <- genLikelyFreshTyNames $ "d" : replicate (length ks) "a"
     ~(m : cs) <- genLikelyFreshNames   $ "m" : replicate n "c"
     let dTy = foldl (TyApp ()) (TyVar () d) [TyVar () x | x <- xs]
