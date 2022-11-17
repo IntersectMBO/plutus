@@ -52,7 +52,7 @@ shrinkConstant uni x =
 scopeCheckTyVars :: TypeCtx
                  -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                  -> Bool
-scopeCheckTyVars tyctx (ty, tm) = all (`Set.member` inscope) (setOf ftvTy ty)
+scopeCheckTyVars tyctx (ty, tm) = setOf ftvTy ty `Set.isSubsetOf` inscope
   where
     inscope = Map.keysSet tyctx <> Set.fromList (map fst $ datatypes tm)
 
