@@ -65,7 +65,7 @@ in
     {
       # Not importing common, github preset is not needed here
       preset.nix.enable = true;
-      preset.git = {
+      preset.git.clone = {
         enable = true;
         remote = "https://github.com/input-output-hk/plutus";
         ref = prRevision;
