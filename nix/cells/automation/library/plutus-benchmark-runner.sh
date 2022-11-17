@@ -37,13 +37,13 @@ if [ -z "$GITHUB_TOKEN" ] ; then
    exit 1
 fi
 
-PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
-
 echo "[ci-plutus-benchmark]: Cloning the plutus repository"
 git init 
 git remote add origin git@github.com:input-output-hk/plutus.git
 git fetch --depth 1 origin $PR_COMMIT_SHA
 git checkout $PR_COMMIT_SHA
+
+PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
