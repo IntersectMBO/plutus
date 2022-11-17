@@ -32,16 +32,6 @@ if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set! Exiting"
    exit 1
 fi
-if [ -z "$GITHUB_TOKEN" ] ; then
-   echo "[ci-plutus-benchmark]: 'GITHUB_TOKEN' is not set! Exiting"
-   exit 1
-fi
-
-echo "[ci-plutus-benchmark]: Cloning the plutus repository"
-git init 
-git remote add origin git@github.com:input-output-hk/plutus.git
-git fetch --depth 1 origin $PR_COMMIT_SHA
-git checkout $PR_COMMIT_SHA
 
 PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
 
@@ -53,9 +43,6 @@ nix develop --command cabal update
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
 nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
-echo "[ci-plutus-benchmark]: fetching origin ..."
-git fetch --depth 1 origin master
-
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
@@ -65,8 +52,6 @@ nix develop --command cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
 nix develop --command cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
-
-git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
@@ -84,7 +69,10 @@ echo -e "</details>"
 } > bench-compare-result.log
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
-
-echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
-# TODO(std) we'll need to change this 
-curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+if [ -v GITHUB_TOKEN ] ; then
+   echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
+   # TODO(std) we'll need to change this
+   curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+else
+   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
+fi

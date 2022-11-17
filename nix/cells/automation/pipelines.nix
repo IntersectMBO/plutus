@@ -53,9 +53,11 @@ in
       commentFact = facts.${cloud.library.actions.benchmark.commentInput}.value.github_body;
       prFact = facts.${cloud.library.actions.benchmark.prInput}.value.github_body;
 
+      prRevision = prFact.pull_request.head.sha;
+
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = toString prFact.pull_request.number;
-        PR_COMMIT_SHA = prFact.pull_request.head.sha;
+        PR_COMMIT_SHA = prRevision;
         BENCHMARK_NAME = lib.removePrefix "/benchmark " commentFact.comment.body;
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
@@ -63,6 +65,11 @@ in
     {
       # Not importing common, github preset is not needed here
       preset.nix.enable = true;
+      preset.git = {
+        enable = true;
+        remote = "https://github.com/input-output-hk/plutus";
+        ref = prRevision;
+      };
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [
         {
