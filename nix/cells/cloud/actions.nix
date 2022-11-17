@@ -1,7 +1,7 @@
 { cell
 , inputs
 }: {
-  /* "plutus/ci" = {
+  "plutus/ci" = {
     task = "ci";
     io = ''
       // This is a CUE expression that defines what events trigger a new run of this action.
@@ -18,23 +18,9 @@
         { #lib.io.github_pr, github, #target_default: false },
       ]
     '';
-  };*/
-
-  "plutus/benchmark" = {
-    task = "benchmark";
-    io = ''
-      // Two inputs need to match: PR sync event & issue comment creation event
-      #lib.io.github_pr_comment & {
-        #target: "zeme-iohk/benchmarking"
-        #input: "${cell.library.actions.benchmark.commentInput}"
-        #prInput: "${cell.library.actions.benchmark.prInput}"
-        #repo: "input-output-hk/plutus"
-        #comment: "^/benchmark .+"
-      }
-    '';
   };
 
-  /*"plutus/publish-documents" = {
+  "plutus/publish-documents" = {
     task = "publish-documents";
     io = ''
       let push = {
@@ -54,6 +40,5 @@
         }
       }
     '';
-  };*/
-
+  };
 }
