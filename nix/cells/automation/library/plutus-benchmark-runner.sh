@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # ci-plutus-benchmark: Run benchmarks on 2 branches, compare the results and
 # add a comment on the corresponding PR on GitHub.
 #
