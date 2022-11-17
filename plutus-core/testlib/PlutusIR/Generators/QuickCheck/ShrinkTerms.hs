@@ -229,10 +229,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
 
         Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
           -- Drop substerms
-          [(argTy, arg), (TyFun () argTy ty, fun)] ++
-          -- Shrink subterms (TODO: this is really two-step shrinking and might not be necessary)
-          go tyctx ctx (TyFun () argTy ty, fun) ++
-          go tyctx ctx (argTy, arg)
+          [(argTy, arg), (TyFun () argTy ty, fun)]
 
         TyAbs _ x _ body ->
           [ fixupTerm_ (Map.insert x k tyctx) ctx tyctx ctx tyInner' body
@@ -303,17 +300,17 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
             a' <- shrinkType tyctx a
           ]
 
-        Apply _ fun arg ->
-          [ (ty', Apply () fun' arg')
-          | Right argTy <- [inferTypeInContext tyctx ctx arg]
-          , (TyFun _ argTy' ty', fun') <- go tyctx ctx (TyFun () argTy ty, fun)
-          , let arg' = fixupTerm tyctx ctx tyctx ctx argTy' arg
-          ] ++
-          [ (ty,  Apply () fun' arg')
-          | Right argTy <- [inferTypeInContext tyctx ctx arg]
-          , (argTy', arg') <- go tyctx ctx (argTy, arg)
-          , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
-          ]
+        Apply _ fun arg -> case inferTypeInContext tyctx ctx arg of
+          Left err    -> error err
+          Right argTy ->
+            [ (ty', Apply () fun' arg')
+            | (TyFun _ argTy' ty', fun') <- go tyctx ctx (TyFun () argTy ty, fun)
+            , let arg' = fixupTerm tyctx ctx tyctx ctx argTy' arg
+            ] ++
+            [ (ty,  Apply () fun' arg')
+            | (argTy', arg') <- go tyctx ctx (argTy, arg)
+            , let fun' = fixupTerm tyctx ctx tyctx ctx (TyFun () argTy' ty) fun
+            ]
 
         Constant _ (Some (ValueOf uni x)) -> map ((,) ty) $ shrinkConstant uni x
 

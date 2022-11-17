@@ -20,11 +20,20 @@ import PlutusIR.Core.Instance.Pretty.Readable
 import Control.Monad.Reader
 import Data.Char
 import Data.Either
-import Data.List hiding (insert)
+import Data.Function
+import Data.Hashable
+import Data.HashMap.Strict qualified as HashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict qualified as Map
 import Test.QuickCheck
-import Text.Printf
+
+-- | 'rename' a 'Term' and 'show' it afterwards.
+showRenameTerm :: Term TyName Name DefaultUni DefaultFun () -> String
+showRenameTerm = show . runQuote . rename
+
+-- | Same as 'nub', but relies on 'Hashable' and is therefore asymptotically faster.
+nubHashableOn :: Hashable b => (a -> b) -> [a] -> [a]
+nubHashableOn f = HashMap.elems . HashMap.fromList . map (\x -> (f x, x))
 
 -- We need this for checking the behavior of the shrinker (in particular, whether a term shrinks
 -- to itself, which would be a bug, or how often a term shrinks to the same thing multiple times
@@ -32,8 +41,9 @@ import Text.Printf
 -- place it here, since nothing can depend on a test suite (apart from modules from within this test
 -- suite), hence no conflicting orphans can occur.
 instance Eq (Term TyName Name DefaultUni DefaultFun ()) where
+    -- Quick-and-dirty implementation in terms of 'Show'.
     -- We generally consider equality modulo alpha, hence the call to 'rename'.
-    term1 == term2 = show (runQuote $ rename term1) == show (runQuote $ rename term2)
+    (==) = (==) `on` showRenameTerm
 
 -- * Core properties for PIR generators
 
@@ -77,7 +87,7 @@ prop_shrinkTermSound =
   -- often.
   not (null shrinks) ==>
   assertNoCounterexamples $ lefts
-    [ ((ty', tm'), scopeCheckTyVars Map.empty (ty', tm'), ) <$> typeCheckTerm tm' ty'
+    [ ((ty', tm'), ) <$> typeCheckTerm tm' ty'
     | (ty', tm') <- shrinks
     ]
 
@@ -137,12 +147,12 @@ prop_stats_numShrink :: Property
 prop_stats_numShrink =
   -- No shrinking here because we are only collecting stats
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
-  let shrinks = shrinkClosedTypedTerm (ty, tm)
-      n = fromIntegral (length shrinks)
-      u = fromIntegral (length $ nub shrinks)
-      r | n > 0     = (n - u) / n :: Double
+  let shrinks = map snd $ shrinkClosedTypedTerm (ty, tm)
+      n = length shrinks
+      u = length $ nubHashableOn showRenameTerm shrinks
+      r | n > 0     = 5 * ((n - u) * 20 `div` n)
         | otherwise = 0
-  in tabulate "r" [printf "%0.1f" r] True
+  in tabulate "distribution | duplicates" ["         | " ++ show r ++ "%"] True
 
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
@@ -167,5 +177,6 @@ prop_noTermShrinkLoops =
   -- Note that we need to remove x from the shrinks of x here because
   -- a counterexample to this property is otherwise guaranteed to
   -- go into a shrink loop.
-  forAllDoc "ty,tm" genTypeAndTerm_ (\x -> filter (/= x) $ shrinkClosedTypedTerm x) $ \ tytm ->
-  tytm `notElem` shrinkClosedTypedTerm tytm
+  forAllDoc "ty,tm" genTypeAndTerm_
+    (\(ty', tm') -> filter ((/= tm') . snd) $ shrinkClosedTypedTerm (ty', tm')) $ \(ty, tm) ->
+  tm `notElem` map snd (shrinkClosedTypedTerm (ty, tm))

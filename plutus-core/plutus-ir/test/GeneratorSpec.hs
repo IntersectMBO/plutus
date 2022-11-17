@@ -15,12 +15,13 @@ import Test.Tasty.QuickCheck
 -- The default for the argument is @1@.
 generators :: Int -> TestNested
 generators factor = return $ testGroup "generators"
-  [ testProperty "prop_genData" $ withMaxSuccess (factor*10000) prop_genData
+  [ testProperty "prop_genData" $
+      withMaxSuccess (factor*3000) prop_genData
 
   , testProperty "prop_genKindCorrect" $
       withMaxSuccess (factor*100000) (prop_genKindCorrect False)
   , testProperty "prop_shrinkTypeSound" $
-      withMaxSuccess (factor*100000) prop_shrinkTypeSound
+      withMaxSuccess (factor*30000) prop_shrinkTypeSound
 
   , testProperty "prop_substType" $
       withMaxSuccess (factor*10000) prop_substType
@@ -34,11 +35,11 @@ generators factor = return $ testGroup "generators"
   , testProperty "prop_findInstantiation" $
       withMaxSuccess (factor*10000) prop_findInstantiation
   , testProperty "prop_inhabited" $
-      withMaxSuccess (factor*1000) prop_inhabited
+      withMaxSuccess (factor*3000) prop_inhabited
   , testProperty "prop_stats_numShrink" $
-      withMaxSuccess (factor*10) prop_stats_numShrink
-  , testProperty "prop_inhabited" $
-      withMaxSuccess (factor*20) prop_noTermShrinkLoops
+      withMaxSuccess (factor*30) prop_stats_numShrink
+  , testProperty "prop_noTermShrinkLoops" $
+      withMaxSuccess (factor*40) prop_noTermShrinkLoops
   , testProperty "prop_shrinkTermSound" $
-      withMaxSuccess (factor*20) prop_shrinkTermSound
+      withMaxSuccess (factor*40) prop_shrinkTermSound
   ]

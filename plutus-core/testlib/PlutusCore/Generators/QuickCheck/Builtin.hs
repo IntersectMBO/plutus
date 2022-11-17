@@ -100,6 +100,10 @@ instance ArbitraryBuiltin Integer where
         , (1, fromIntegral <$> arbitrary @Int64)
         ]
 
+-- |
+--
+-- >>> shrinkBuiltin $ Text.pack "abcd"
+-- ["","cd","ab","bcd","acd","abd","abc","aacd","abad","abbd","abca","abcb","abcc"]
 instance ArbitraryBuiltin Text where
     arbitraryBuiltin = Text.pack . getPrintableString <$> arbitrary
     shrinkBuiltin = map (Text.pack . getPrintableString) . shrink . PrintableString . Text.unpack
