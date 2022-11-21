@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: haskell/actions/hlint-setup@v2
-        with:
-          version: '3.4'
-      - uses: haskell/actions/hlint-run@v1
-        with:
-          hlint-bin: "hlint --hint=./.github/.hlint.yaml"
-          fail-on: status
-          path: .
+      - uses: nixbuild/nix-quick-install-action@v19 
+        with: 
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true 
+      - name: Run hlint
+        run: nix run .#run-hlint
+
