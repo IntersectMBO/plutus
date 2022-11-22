@@ -1,1 +1,0 @@
-(program 1.0.0 [ [ (builtin multiplyInteger) (con integer 1) ] (con integer 1) ])

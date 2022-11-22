@@ -118,3 +118,4 @@ If we add the tests you share, we will acknowledge your contribution and post a 
 We are grateful to these external partners for their contributions:
 
 - Runtime Verification Inc. ([runtimeverification/plutus-core-semantics](https://github.com/runtimeverification/plutus-core-semantics/tree/master/tests))
+- Hachi Security ([HachiSecurity/plc-llvm/tree/main/compiler/test-data/untyped](https://github.com/HachiSecurity/plc-llvm/tree/main/compiler/test-data/untyped))
