@@ -1,0 +1,3 @@
+(program 1.0.0
+    [(force (builtin chooseUnit)) (con unit ()) (con integer 42)]
+)
