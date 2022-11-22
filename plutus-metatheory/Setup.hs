@@ -1,3 +1,5 @@
+{-# LANGUAGE ImportQualifiedPost #-}
+
 import Distribution.Simple qualified as D
 import Distribution.Simple.PreProcess qualified as D
 import Distribution.Simple.Program qualified as D
