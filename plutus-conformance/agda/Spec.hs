@@ -43,7 +43,11 @@ failingTests = [
     "test-cases/uplc/evaluation/builtin/mkNilPairData"
     , "test-cases/uplc/evaluation/builtin/mkNilData"
     -- this is because agda has the BuiltinVersion=V1; haskell defaults to latest BuilinVersion
-    , "test-cases/uplc/evaluation/builtin/consByteString"
+    , "test-cases/uplc/evaluation/builtin/consByteString/consByteString1"
+    , "test-cases/uplc/evaluation/builtin/consByteString/consByteString2"
+    -- This is because the V2 version of consByteString requires the first
+    -- argument to be in [0..255].  The V1 version accepted any integer and
+    -- reduced it modulo 256 before consing.
     ]
 
 main :: IO ()
