@@ -7,6 +7,6 @@ cell.library.pkgs.writeShellApplication {
     cell.packages.repo-root
   ];
   text = ''
-    hlint --hint="$(repo-root)/.hlint.yaml" -j --json -- "$(repo-root)"
+    hlint --hint="$(repo-root)/.github/.hlint.yaml" -j --json -- "$(repo-root)"
   '';
 }
