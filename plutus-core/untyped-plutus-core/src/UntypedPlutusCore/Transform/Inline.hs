@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -49,14 +48,16 @@ import Witherable (wither)
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).
 3. Handling of multiple beta-reductions in one go, this is handled in PIR by a dedicated pass.
-4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really. But doing it here
-is actively harmful, so we don't include it.
-5. Simplistic purity analysis, in particular we don't try to be clever about builtins (should mostly be handled in PIR).
+4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really.
+But doing it here is actively harmful, so we don't include it.
+5. Simplistic purity analysis, in particular we don't try to be clever about builtins
+(should mostly be handled in PIR).
 -}
 
 newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
 
-newtype TermEnv name uni fun a = TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
+newtype TermEnv name uni fun a =
+    TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
 -- See Note [Differences from PIR inliner] 1
@@ -83,7 +84,8 @@ type InliningConstraints name uni fun =
 -- See Note [Differences from PIR inliner] 2
 data InlineInfo name a = InlineInfo { _usages :: Usages.Usages, _hints :: InlineHints name a }
 
--- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
+-- Using a concrete monad makes a very large difference to the performance of this module
+-- (determined from profiling)
 type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst name uni fun a) Quote)
 
 lookupTerm
@@ -132,7 +134,8 @@ extractApps = collectArgs []
       collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
       collectArgs argStack t               = matchArgs argStack [] t
       matchArgs (arg:rest) acc (LamAbs a n body) = matchArgs rest (Def (UVarDecl a n) arg:acc) body
-      matchArgs []         acc t                 = if null acc then Nothing else Just (reverse acc, t)
+      matchArgs []         acc t                 =
+        if null acc then Nothing else Just (reverse acc, t)
       matchArgs (_:_)      _   _                 = Nothing
 
 -- | The inverse of 'extractApps'.

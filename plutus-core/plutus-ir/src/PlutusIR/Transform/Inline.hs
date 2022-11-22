@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -121,10 +120,12 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun a = Done (Dupable (Term tyname name uni fun a))
 
-newtype TermEnv tyname name uni fun a = TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
+newtype TermEnv tyname name uni fun a =
+    TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
-newtype TypeEnv tyname uni a = TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
+newtype TypeEnv tyname uni a =
+    TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
 data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
@@ -161,8 +162,10 @@ data InlineInfo name fun a = InlineInfo
     }
 makeLenses ''InlineInfo
 
--- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
-type InlineM tyname name uni fun a = ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
+-- Using a concrete monad makes a very large difference to the performance of this module
+-- (determined from profiling)
+type InlineM tyname name uni fun a =
+    ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
 lookupTerm
     :: (HasUnique name TermUnique)
@@ -228,7 +231,8 @@ inline hints ver t = let
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
 leave this to the dead code pass, but it's helpful to do it here.
-Crucially, we have to do the same reasoning wrt strict bindings and purity (see Note [Inlining and purity]):
+Crucially, we have to do the same reasoning wrt strict bindings and purity
+(see Note [Inlining and purity]):
 we can only inline *pure* strict bindings, which is effectively the same as what we do in the dead
 code pass.
 
@@ -242,20 +246,22 @@ processTerm
     => Term tyname name uni fun a
     -> InlineM tyname name uni fun a (Term tyname name uni fun a)
 processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
-    handleTerm :: Term tyname name uni fun a -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    handleTerm ::
+        Term tyname name uni fun a
+        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
         Let a NonRec bs t -> do
             -- Process bindings, eliminating those which will be inlined unconditionally,
             -- and accumulating the new substitutions
             -- See Note [Removing inlined bindings]
-            -- Note that we don't *remove* the bindings or scope the state, so the state will carry over
-            -- into "sibling" terms. This is fine because we have global uniqueness
+            -- Note that we don't *remove* the bindings or scope the state, so the state will carry
+            -- over into "sibling" terms. This is fine because we have global uniqueness
             -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
             bs' <- wither (processSingleBinding t) (toList bs)
             t' <- processTerm t
-            -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might actually
-            -- have got rid of all of them!
+            -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
+            -- actually have got rid of all of them!
             pure $ mkLet a NonRec bs' t'
         -- We cannot currently soundly do beta for types (see SCP-2570), so we just recognize
         -- immediately instantiated type abstractions here directly.
@@ -269,7 +275,8 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         t -> forMOf termSubterms t processTerm
     applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
     applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
-        -- The type substitution is very often empty, and there are lots of types in the program, so this saves a lot of work (determined from profiling)
+        -- The type substitution is very often empty, and there are lots of types in the program,
+        -- so this saves a lot of work (determined from profiling)
         True -> pure t
         _    -> typeSubstTyNamesM substTyName t
     -- See Note [Renaming strategy]
@@ -279,7 +286,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-    renameTerm :: InlineTerm tyname name uni fun a -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    renameTerm ::
+        InlineTerm tyname name uni fun a
+        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     renameTerm = \case
         -- Already processed term, just rename and put it in, don't do any
         -- further optimization here.
@@ -337,7 +346,9 @@ maybeAddSubst body a s n rhs = do
         then extendAndDrop (Done $ dupable rhs')
         else pure $ Just rhs'
     where
-        extendAndDrop :: forall b . InlineTerm tyname name uni fun a -> InlineM tyname name uni fun a (Maybe b)
+        extendAndDrop ::
+            forall b . InlineTerm tyname name uni fun a
+            -> InlineM tyname name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
         checkPurity :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
