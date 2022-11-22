@@ -19,8 +19,6 @@ open import Relation.Nullary
 open import Category.Monad
 import Level
 
-
-
 open import Builtin
 open import Raw
 open import Utils
