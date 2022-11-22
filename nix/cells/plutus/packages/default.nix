@@ -79,6 +79,4 @@
   scriv = import ./scriv.nix block;
 
   repo-root = import ./repo-root.nix block;
-
-  run-hlint = import ./run-hlint.nix block;
 }

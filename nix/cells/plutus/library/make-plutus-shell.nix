@@ -89,13 +89,6 @@ inputs.std.lib.dev.mkShell {
       help = "Agda and its standard library";
     }
     {
-      package = cell.packages.run-hlint;
-      name = "run-hlint";
-      category = "haskell";
-      help = "Run hlint on the haskell sources";
-    }
-
-    {
       package = cell.packages.sphinx-build-readthedocs-site;
       category = "docs";
       help = "Build the docs locally in doc/read-the-docs-site/_build";
