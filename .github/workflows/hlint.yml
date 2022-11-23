@@ -28,3 +28,4 @@ jobs:
           hlint-bin: "./result/bin/hlint --hint=./.github/.hlint.yaml"
           fail-on: status
           path: .
+
