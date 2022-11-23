@@ -162,6 +162,31 @@ shrinkDat ctx (Datatype _ dd@(TyVarDecl _ d _) xs m cs) =
         setTarget t (TyFun _ a b) = TyFun () a (setTarget t b)
         setTarget t _             = t
 
+{-
+TODO: Note
+
+nonstructural cases for
+
+    let x1 = y1
+        x2 = y2
+    in b
+
+1. drop all bindings
+2. drop body and pick one binding as a new body and drop all bindings appearing after it
+3. drop a single binding if there are more than one (because we handled a single one in 1)
+-}
+
+{-
+TODO: Note
+
+document terms giving duplicate shrinks like
+
+a -> a
+let x = "abc" in "abc"
+let x = "abc" in x
+(\a1_1 -> a1_1) unit
+-}
+
 -- | Shrink a typed term in a type and term context.
 -- NOTE: if you want to understand what's going on in this function it's a good
 -- idea to look at how we do this for types first (it's a lot simpler).
@@ -170,7 +195,17 @@ shrinkTypedTerm :: HasCallStack
                 -> Map Name (Type TyName DefaultUni ())
                 -> (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())
                 -> [(Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())]
-shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
+shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
+    [ -- TODO: this somehow contributes a huge number of duplicates as reported by the @numShrink@
+      -- test. How come? Is it because it's called from 'shrinkBind'? Do we even need this kind of
+      -- shrinking?
+      [ (ty', tm')
+      | not $ isHelp ctx0 tm0
+      , ty' <- ty0 : shrinkType (tyctx0 <> Map.fromList (datatypes tm0)) ty0
+      , let tm' = mkHelp ctx0 ty'
+      ]
+    , go tyctx0 ctx0 (ty0, tm0)
+    ]
   where
     isHelp _ (Constant _ _)           = True
     isHelp ctx (TyInst _ (Var _ x) _) = Just x == findHelp ctx
@@ -190,42 +225,48 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
       nonstructural tyctx ctx (ty, tm) ++
       structural    tyctx ctx (ty, tm)
 
+    -- TODO: what about 'TyInst'?
     -- These are the special cases and "tricks" for shrinking
     nonstructural :: HasCallStack => _
     nonstructural tyctx ctx (ty, tm) =
-      [ (ty', tm') | not $ isHelp ctx tm
-                   , ty' <- ty : shrinkType (tyctx <> Map.fromList (datatypes tm)) ty
-                   , let tm' = mkHelp ctx ty' ] ++
       case tm of
-
         -- TODO: shrink Rec to NonRec
-        Let _ rec bindsL body ->
-          [ case binds of
-              []   -> (letTy, letTm)
-              b:bs -> (letTy, Let () NonRec (b :| bs) letTm)
-          | (NonEmptyContext binds _, TermBind _ _ (VarDecl _ _ letTy) letTm) <-
-              oneHoleContexts bindsL
-          , rec == NonRec
-          ] ++
-          [ second (Let () rec (b :| binds'))
-            $ fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
-          | (NonEmptyContext binds0 binds1, _) <- oneHoleContexts bindsL,
-            let tyctxInner  = foldr addTyBind tyctx bindsL
-                ctxInner    = foldr addTmBind ctx   bindsL
-                tyctxInner' = foldr addTyBind tyctx (binds0 ++ binds1)
-                ctxInner'   = foldr addTmBind ctx   (binds0 ++ binds1)
-          , b:binds' <- [binds0 ++ binds1]
-          ] ++
-          [ fixupTerm_ tyctxInner ctxInner tyctx ctx ty body
-          | let tyctxInner  = foldr addTyBind tyctx bindsL
-                ctxInner    = foldr addTmBind ctx   bindsL ]
+        Let _ rec bindsL body -> concat
+          [ --
+            [ fixupTerm_ tyctxInner ctxInner tyctx ctx ty body
+            | let tyctxInner  = foldr addTyBind tyctx bindsL
+                  ctxInner    = foldr addTmBind ctx   bindsL
+            ]
+          , -- Make one of the let-bindings the new body dropping the old body and all the
+            -- bindings appearing after the chosen binding (we don't need them, since the whole
+            -- 'let' is non-recursive and hence the chosen binding can't reference those appearing
+            -- after it).
+            [ (letTy, case binds of
+                -- If there's no bindings before the chosen one, we don't recreate the 'let'.
+                []   -> letTm
+                b:bs -> Let () NonRec (b :| bs) letTm)
+            | (NonEmptyContext binds _, TermBind _ _ (VarDecl _ _ letTy) letTm) <-
+                oneHoleContexts bindsL
+            , rec == NonRec
+              -- TODO: check that the body is not one of the bound variables?
+            ]
+          , -- Drop a single binding.
+            [ second (Let () rec (b :| binds'))
+              $ fixupTerm_ tyctxInner ctxInner tyctxInner' ctxInner' ty body
+            | (NonEmptyContext binds0 binds1, _) <- oneHoleContexts bindsL,
+              let tyctxInner  = foldr addTyBind tyctx bindsL
+                  ctxInner    = foldr addTmBind ctx   bindsL
+                  binds       = binds0 ++ binds1
+                  tyctxInner' = foldr addTyBind tyctx binds
+                  ctxInner'   = foldr addTmBind ctx   binds
+            , b:binds' <- [binds]
+            ]
+          ]
 
         LamAbs _ x a body ->
           [ fixupTerm_ tyctx (Map.insert x a ctx) tyctx ctx b body
-          | TyFun _ _ b <- [ty] ] ++
-          [ (b, body)
           | TyFun _ _ b <- [ty]
-          , x `Set.notMember` setOf fvTerm body ]
+          ]
 
         Apply _ fun arg | Right argTy <- inferTypeInContext tyctx ctx arg ->
           -- Drop substerms
@@ -252,6 +293,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
     structural tyctx ctx (ty, tm) =
       case tm of
 
+        -- TODO: this needs a long, long Note...
         Let _ rec binds body ->
           [ (substTypeParallel subst ty', Let () rec binds body')
           | (ty', body') <- go tyctxInner ctxInner (ty, body) ] ++
@@ -271,6 +313,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
                   tyctxInner = foldr addTyBind tyctx binds
                   ctxInner   = foldr addTmBind ctx binds
 
+        -- TODO: shrink the function too!
         TyInst _ fun argTy -> case inferTypeInContext tyctx ctx fun of
           Right (TyForall _ x k tyInner) ->
             [ (substType (Map.singleton x argTy') tyInner', TyInst () fun' argTy')
@@ -283,6 +326,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
           Left err -> error $ displayPlcCondensedErrorClassic err
           Right tyWrong -> error $ "Expected a 'TyForall', but got " ++ displayPlcDef tyWrong
 
+        -- TODO: shrink the kind too like with the type in @LamAbs@ below.
         TyAbs _ x _ body | not $ Map.member x tyctx ->
           [ (TyForall () x k tyInner', TyAbs () x k body')
           | TyForall _ y k tyInner <- [ty]
@@ -314,6 +358,7 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = go tyctx0 ctx0 (ty0, tm0)
 
         Constant _ (Some (ValueOf uni x)) -> map ((,) ty) $ shrinkConstant uni x
 
+        -- TODO: handle all the cases explicitly.
         _ -> []
 
 shrinkClosedTypedTerm :: (Type TyName DefaultUni (), Term TyName Name DefaultUni DefaultFun ())

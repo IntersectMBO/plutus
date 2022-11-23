@@ -37,7 +37,7 @@ generators factor = return $ testGroup "generators"
   , testProperty "prop_inhabited" $
       withMaxSuccess (factor*3000) prop_inhabited
   , testProperty "prop_stats_numShrink" $
-      withMaxSuccess (factor*30) prop_stats_numShrink
+      withMaxSuccess (factor*40) prop_stats_numShrink
   , testProperty "prop_noTermShrinkLoops" $
       withMaxSuccess (factor*40) prop_noTermShrinkLoops
   , testProperty "prop_shrinkTermSound" $
