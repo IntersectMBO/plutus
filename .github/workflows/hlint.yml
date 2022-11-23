@@ -15,8 +15,16 @@ jobs:
       - uses: haskell/actions/hlint-setup@v2
         with:
           version: '3.4'
-      - uses: haskell/actions/hlint-run@v1
+      - uses: nixbuild/nix-quick-install-action@v19 
+        with: 
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true 
+      - name: Build HLint
+        run: nix build .#hlint  
+      - name: Run HLint 
+        uses: haskell/actions/hlint-run@v1
         with:
-          hlint-bin: "hlint --hint=./.github/.hlint.yaml"
+          hlint-bin: "./result/bin/hlint --hint=./.github/.hlint.yaml"
           fail-on: status
           path: .
