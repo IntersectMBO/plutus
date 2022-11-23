@@ -92,13 +92,13 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
       case status of
         NotRun -> do
           D.notice verb "***** running agda preprocessor..."
-          runAgda
+          runAgda verb
           writeIORef agdaProgramStatus Run
         Run ->
           D.notice verb "***** agda already run, skipping preprocessor hook"
 
-    runAgda :: IO ()
-    runAgda = D.runProgram D.verbosity agdaProgram
+    runAgda :: D.Verbosity -> IO ()
+    runAgda verb = D.runProgram verb agdaProgram
       [ "--compile-dir", D.buildDir lbi
       , "--compile"
       , "--ghc-dont-call-ghc"
