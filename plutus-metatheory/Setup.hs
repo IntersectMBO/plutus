@@ -4,6 +4,7 @@ import Distribution.Simple qualified as D
 import Distribution.Simple.PreProcess qualified as D
 import Distribution.Simple.Program qualified as D
 import Distribution.Simple.Program.Types qualified as D
+import Distribution.Simple.Utils as D
 import Distribution.Types.BuildInfo qualified as D
 import Distribution.Types.ComponentLocalBuildInfo qualified as D
 import Distribution.Types.LocalBuildInfo qualified as D
@@ -27,7 +28,7 @@ Tokens.x!
 
 In order to achieve this, cabal PreProcessors are used. First we make sure to list
 src/**/*.lagda in the cabal's extra-source-files. This way, when changes to .lagda
-files are made, cabal will pre-process them anew, with the pre-processor being invoked
+files are made, cabal will pre-process them anew, with the pre-processor being run
 once on each changed file.
 
 With Alex, each .x file will be pre-processed and thus translated into a .hs file
@@ -40,21 +41,21 @@ invoke agda once, with all subsequent invokations being noops, but still kind of
 This is why we use the agdaProgramStatus IORef: to cut down compilation times.
 
 Finally, the order in which the modules are listed in exposed-modules matters a lot!
-The MAlonzo.Code files must be listed first, otherwise cabal will fail with:
+The MAlonzo.Code files must be listed last, otherwise cabal will fail with:
 setup: can't find source for MAlonzo/Code/* in src
 
-TODO Newer (> 3.6.3.0) versions of the cabal library introduced a ppOrdering field in PreProcessor
-which can reorder all modules.
+TODO Newer (> 3.6.3.0) versions of the cabal library introduced a ppOrdering field in
+PreProcessor which can reorder all modules.
 https://hackage.haskell.org/package/Cabal-3.8.1.0/docs/Distribution-Simple-PreProcess.html
 Until we upgrade cabal, we just have to be careful to expose our modules in the right order.
-Once cabal is upgrdaded, we can implement ppOrdering as reorderModules:
+Once cabal is upgraded, we can implement ppOrdering as reorderModules:
 
 reorderModules :: Verbosity -> [FilePath] -> [ModuleName] -> IO [ModuleName]
 reorderModules _ _ = sortBy malonzoCodeOrdering
   where
     malonzoCodeOrdering :: ModuleName -> ModuleName -> Ordering
     malonzoCodeOrdering name _
-      | "MAlonzo.Code" `isPrefixOf` name = LT
+      | "MAlonzo.Code" `isPrefixOf` name = GT
       | otherwise = EQ
 -}
 
@@ -86,15 +87,15 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
   }
   where
     preProcessors :: FilePath -> FilePath -> D.Verbosity -> IO ()
-    preProcessors _ _ _ = do
+    preProcessors _ _ verb = do
       status <- readIORef agdaProgramStatus
       case status of
         NotRun -> do
-          putStrLn "***** running agda preprocessor..."
+          D.notice verb "***** running agda preprocessor..."
           runAgda
           writeIORef agdaProgramStatus Run
-        Run -> do
-          putStrLn "***** agda already run, skipping preprocessor hook"
+        Run ->
+          D.notice verb "***** agda already run, skipping preprocessor hook"
 
     runAgda :: IO ()
     runAgda = D.runProgram D.verbose agdaProgram
