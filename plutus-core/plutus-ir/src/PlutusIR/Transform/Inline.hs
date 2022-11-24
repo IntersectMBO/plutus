@@ -17,8 +17,8 @@ module PlutusIR.Transform.Inline (inline, InlineHints (..)) where
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.MkPir
-import PlutusIR.Purity
+import PlutusIR.MkPir (mkLet)
+import PlutusIR.Purity (isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -38,7 +38,7 @@ import Algebra.Graph qualified as G
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import Witherable
+import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
 The approach we take is more-or-less exactly taken from 'Secrets of the GHC Inliner'.
@@ -52,18 +52,15 @@ We differ from the paper a few ways, mostly leaving things out:
 Functionality
 ------------
 
-PreInlineUncoditional: we don't do it, since we don't bother using usage information.
+PreInlineUnconditional: we don't do it, since we don't bother using usage information.
 We *could* do it, but it doesn't seem worth it. We also don't need to worry about
 inlining nested let-bindings, since we don't inline any.
 
-CallSiteInline: not worth it.
+CallSiteInline: we do it based on ambient arity, not context. (TODO in PLT-1146)
 
 Inlining recursive bindings: not worth it, complicated.
 
-Context-based inlining: we don't do CallSiteInline, so no point.
-
-Beta reduction: not worth it, but would be easy. We could do the inlining of the argument
-here and also detect dead immediately-applied-lambdas in the dead code pass.
+Context-based inlining: CallSiteInline is done based on ambient arity, so no point.
 
 Implementation
 --------------
@@ -116,18 +113,26 @@ turn into a delay/force pair and get simplified away, and then we have something
 inline. This is essentially the reason for the existence of the UPLC inlining pass.
 -}
 
--- 'SubstRng' in the paper, no 'Susp' case
+-- | Substitution range, 'SubstRng' in the paper.
+-- No 'Susp' case because we don't do PreInlineConditionally.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni fun a = Done (Dupable (Term tyname name uni fun a))
+newtype InlineTerm tyname name uni fun a =
+    Done (Dupable (Term tyname name uni fun a)) --out expressions
 
+-- | Substitution, 'Subst' in the paper.
+-- A map of unprocessed variable and its substitution range.
 newtype TermEnv tyname name uni fun a =
     TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
+-- | Type substitution, similar to `TermEnv` but for types.
+-- A map of unprocessed type variable and its substitution range.
 newtype TypeEnv tyname uni a =
     TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
+-- | Substitution for both terms and types.
+-- Similar to 'Subst' in the paper, but the paper only has terms.
 data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
                                          , _typeEnv :: TypeEnv tyname uni a
                                          }
@@ -153,35 +158,43 @@ type InliningConstraints tyname name uni fun =
     , PLC.ToBuiltinMeaning uni fun
     )
 
-
+-- | Useful info for inlining.
 data InlineInfo name fun a = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
+    -- ^ Is it strict? Only needed for PIR, not UPLC
     , _iiUsages        :: Usages.Usages
+    -- ^ how many times is it used?
     , _iiHints         :: InlineHints name a
+    -- ^ have we explicitly been told to inline.
     , _iiBuiltinVer    :: PLC.BuiltinVersion fun
+    -- ^ the builtin version.
     }
 makeLenses ''InlineInfo
 
+-- | The monad the inliner runs in.
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
 type InlineM tyname name uni fun a =
     ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
+-- | Look up the unprocessed variable from the substitution.
 lookupTerm
     :: (HasUnique name TermUnique)
-    => name
-    -> Subst tyname name uni fun a
+    => name -- ^ The name of the variable.
+    -> Subst tyname name uni fun a -- ^ The substitution.
     -> Maybe (InlineTerm tyname name uni fun a)
 lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
 
+-- | Insert the unprocessed variable to the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
-    => name
-    -> InlineTerm tyname name uni fun a
-    -> Subst tyname name uni fun a
+    => name -- ^ The name of the variable.
+    -> InlineTerm tyname name uni fun a -- ^ The substitution range.
+    -> Subst tyname name uni fun a -- ^ The substitution.
     -> Subst tyname name uni fun a
 extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
 
+-- | Look up the unprocessed type variable from the substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
@@ -189,14 +202,16 @@ lookupType
     -> Maybe (Dupable (Type tyname uni a))
 lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
+-- | Check if the type substitution is empty.
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
 isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
 
+-- | Insert the unprocessed type variable to the substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
-    => tyname
-    -> Type tyname uni a
-    -> Subst tyname name uni fun a
+    => tyname -- ^ The name of the type variable.
+    -> Type tyname uni a -- ^ Its type.
+    -> Subst tyname name uni fun a -- ^ The substitution.
     -> Subst tyname name uni fun a
 extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
@@ -241,9 +256,10 @@ TODO: merge them or figure out a way to share more work, especially since there'
 This might mean reinventing GHC's OccAnal...
 -}
 
+-- | Run the inliner through a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
+    => Term tyname name uni fun a -- ^ Term to be processed.
     -> InlineM tyname name uni fun a (Term tyname name uni fun a)
 processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     handleTerm ::
@@ -303,10 +319,11 @@ avoid any variable capture.
 We rename both terms and types as both may have binders in them.
 -}
 
+-- | Run the inliner through a single non-recursive let binding.
 processSingleBinding
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
-    -> Binding tyname name uni fun a
+    => Term tyname name uni fun a -- ^ The body of the let binding.
+    -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding body = \case
     TermBind a s v@(VarDecl _ n _) rhs -> do
@@ -318,16 +335,17 @@ processSingleBinding body = \case
     -- Just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
--- NOTE:  Nothing means that we are inlining the term:
+-- Check against the heuristics we have for inlining and either inline the term binding or not.
+-- Nothing means that we are inlining the term:
 --   * we have extended the substitution, and
---   * we are removing the binding (hence we return Nothing)
+--   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
-    -> a
-    -> Strictness
-    -> name
-    -> Term tyname name uni fun a
+    => Term tyname name uni fun a -- ^ The body of the let binding that is to be inlined.
+    -> a -- ^ Its annotation.
+    -> Strictness -- ^ Its `Strictness`.
+    -> name -- ^ Its name.
+    -> Term tyname name uni fun a -- ^ Its RHS.
     -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
 maybeAddSubst body a s n rhs = do
     rhs' <- processTerm rhs
@@ -412,7 +430,7 @@ firstEffectfulTerm = goTerm
         t@Error{} -> Just t
         t@Builtin{} -> Just t
 
-        -- Hard to know what gets evaluted first in a recursive let-binding,
+        -- Hard to know what gets evaluated first in a recursive let-binding,
         -- just give up and say nothing
         (Let _ Rec _ _) -> Nothing
         TyAbs{} -> Nothing
@@ -440,7 +458,7 @@ After that it gets more difficult. As soon as we're inlining things that are not
 and are used more than once, we are at risk of doing more work or making things bigger.
 
 There are a few things we could do to do this in a more principled way, such as call-site inlining
-based on whether a funciton is fully applied.
+based on whether a function is fully applied.
 -}
 
 {- Note [Inlining and purity]
@@ -458,10 +476,13 @@ For non-strict bindings, the effects already happened at the use site, so it's f
 unconditionally.
 -}
 
+-- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
+-- just return the type without inlining.
+-- We only inline if (1) the type is used at most once OR (2) its a `trivialType`.
 maybeAddTySubst
     :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
-    => tyname
-    -> Type tyname uni a
+    => tyname -- ^ The type name.
+    -> Type tyname uni a -- ^ Its type.
     -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
 maybeAddTySubst tn rhs = do
     usgs <- view iiUsages
@@ -489,6 +510,7 @@ costIsAcceptable = \case
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
+
   Apply{}    -> False
   TyInst{}   -> False
   Let{}      -> False
