@@ -288,7 +288,7 @@ run the appropriate `param<builtin-name>` function:
                       Data.ByteString.pack $ zipWith (Data.Bits.xor) (Data.ByteString.unpack a) (Data.ByteString.unpack b)
 ```
 
-#### Step 5: add a benchmark for the new builtin
+#### Step 5: add a benchmark for the new builtin and run it
 
 Now a CPU usage benchmark for the function will have to be added in
 [`plutus-core/cost-model/budgeting-bench`](./budgeting-bench) and new R code
@@ -306,6 +306,17 @@ times incur large charges which penalise excessive computation.  Some
 experimentation may be required to achieve this, and it may not always be
 possible to satisfy both goals simultaneously.  In such cases it may be
 necessary to sacrifice some accuracy in order to guarantee security.
+
+Once the benchmark is in its final form, run it using `cabal run
+plutus-core:cost-model-budgeting-bench -- --csv <file>` as described in the
+first section of this document. Either run the full set of benchmarks and save
+the full output in a CSV file or run the new benchmark alone using `cabal run
+plutus-core:cost-model-budgeting-bench -- --csv <file> <benchmark name>` to run
+the benchmark on its own and then add the output in `<file>` results to a CSV
+file (such as `benching.csv) containing earlier benchmark results for the rest
+of the builtin functions.  If the latter method (which will be much faster) is
+used it is advisable to run some other costing benchmarks as well to check that
+the results are at least approximately consistent with previous ones.
 
 
 #### Step 6: add code to read the costing function from R into Haskell 
@@ -423,12 +434,11 @@ plutus-core:cost-model-test`.
 ### Step 9: update the cost model JSON file
 
 Once the previous steps have been carried out, proceed as described in the first
-section: run `cost-model-budgeting-bench` on the reference machine and then feed
-the results to `generate-cost-model` to produce a new JSON cost model file
-(which will contain sensible coefficients for the costing functions for the new
-builtin in place of the arbitray ones we added in Step 3), and check it in along
-with a CSV file containing a full set of benchmark results which can be used to
-reproduce it.
+section: feed the results of the costing benchmarks to `generate-cost-model` to
+produce a new JSON cost model file (which will contain sensible coefficients for
+the costing functions for the new builtin in place of the arbitray ones we added
+in Step 3), and check it in along with a CSV file containing a full set of
+benchmark results which can be used to reproduce it.
 
 If you're confident that the evaluator hasn't changed too much since
 the cost model was last fully updated it may be possible to save time
