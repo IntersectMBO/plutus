@@ -295,7 +295,7 @@ Now a CPU usage benchmark for the function will have to be added in
 will have to be added in [`models.R`](./data/models.R) to process the results of
 the benchmark (see Step 6 below).  The benchmark should aim to cover a wide
 range of inputs in order to get a good idea of the worst-case behaviour of the
-function: some experimentation may be needed to acheive this.
+function: experimentation may be needed to achieve this.
 
 Once the benchmark is in its final form, run it using `cabal run
 plutus-core:cost-model-budgeting-bench -- --csv <file>` as described in the
@@ -333,8 +333,8 @@ sometimes more complex code may be required to obtain a good model of the
 behaviour of the function. Ideally the R model should accurate over a wide range
 of inputs so that charges for "typical" inputs are reasonable but worst-case
 inputs which require large computation times incur large charges which penalise
-excessive computation. Some experimentation may be required to achieve this, and
-it may not always be possible to satisfy both goals simultaneously. In such
+excessive computation. Developing the model may involve some experimentation,
+and it may not always be possible to satisfy both goals simultaneously. In such
 cases it may be necessary to sacrifice some accuracy in order to guarantee
 security.
 
