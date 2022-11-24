@@ -1,0 +1,3 @@
+(program
+  1.0.0 [ [ (builtin multiplyInteger) (con integer 11) ] (con integer 22) ]
+)
