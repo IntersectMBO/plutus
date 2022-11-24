@@ -5,22 +5,28 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Function hiding (_∋_)
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List hiding ([_])
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Unit
-open import Data.Sum
+open import Data.Product using (Σ;proj₁;proj₂;_×_) renaming (_,_ to _,,_)
+open import Data.List using (List;[])
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 
 open import Utils hiding (TermCon)
-open import Type
-open import Type.BetaNormal
-import Type.RenamingSubstitution as ⋆
-open import Type.BetaNBE
-open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
-open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
+import Type.RenamingSubstitution as ⋆ using (Ren)
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.RenamingSubstitution using (subNf;SubNf) renaming (_[_]Nf to _[_])
+
+open import Builtin using (Builtin)
+open Builtin.Builtin
+
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open TyCon
 \end{code}
 
 ## Fixity declarations
@@ -66,7 +72,6 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-open import Type.BetaNormal.Equality
 data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
   Z : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
@@ -243,18 +248,12 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 Utility functions
 
 \begin{code}
-open import Type.BetaNormal.Equality
-
 conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'
  → A ≡ A'
  → Γ ∋ A
  → Γ' ∋ A'
 conv∋ refl refl x = x
-
-open import Type.BetaNBE.Completeness
-open import Type.Equality
-open import Type.BetaNBE.RenamingSubstitution
 
 conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'

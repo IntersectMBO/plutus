@@ -1,42 +1,49 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
+--{-# OPTIONS --rewriting #-}
 {-# OPTIONS --injective-type-constructors #-}
 
 module Algorithmic.Erasure where
 \end{code}
 
 \begin{code}
+open import Function using (_∘_;id)
+open import Data.Nat using (_+_)
+open import Data.Nat.Properties using (+-cancelˡ-≡)
+open import Data.Fin using (Fin;zero;suc)
+open import Data.List using (List;length;[];_∷_)
+open import Data.Product using () renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂)
+open import Data.Empty using (⊥)
+
 open import Algorithmic as A
-open import Untyped
---open import Untyped.RenamingSubstitution as U
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNBE.Completeness
-open import Utils
-open import Type
-open import Type.BetaNBE.RenamingSubstitution
-open import Function hiding (_∋_)
-open import Builtin hiding (length)
+open import Untyped using (_⊢)
+open _⊢
+
+open import Type.BetaNormal using (_⊢Nf⋆_;ren-embNf)
+open _⊢Nf⋆_
+
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.Completeness using (completeness)
+open import Utils using (Kind;*;Maybe;nothing;just;TermCon)
+open TermCon
+
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
+open _⊢⋆_
+
+open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf-lemma')
+
+open import Builtin using (Builtin)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
 open import Type.RenamingSubstitution as T
-open import Type.Equality
-open import Type.BetaNBE.Soundness
-open import Utils
 
-
-open import Data.Nat
-open import Data.Nat.Properties
-open import Data.Fin using (Fin;zero;suc)
-open import Data.List using (List;length;[];_∷_)
-open import Data.Vec hiding (length)
-open import Data.Product renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality
+import Declarative as D
+import Declarative.Erasure as D
+open import Algorithmic.Completeness using (nfCtx;nfTypeTC;nfTyVar;nfType;lemΠ;lem[];stability-μ;btype-lem)
+open import Algorithmic.Soundness using (embCtx;embVar;embTC;emb)
 \end{code}
 
 \begin{code}
-open import Data.Empty
-
 len⋆ : Ctx⋆ → Set
 len⋆ ∅        = ⊥
 len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
@@ -81,14 +88,6 @@ I need to pattern match on the term constructors
 # Erasing decl/alg terms agree
 
 \begin{code}
-
-open import Relation.Binary.PropositionalEquality
-import Declarative as D
-import Declarative.Erasure as D
-open import Algorithmic.Completeness
-
-open import Utils
-
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
@@ -111,9 +110,6 @@ lemzero refl = refl
 lemsuc : ∀{X X'}(p : Maybe X ≡ Maybe X')(q : X ≡ X')(x : X) →
   just (subst id q x) ≡ subst id p (just x)
 lemsuc refl refl x = refl
-
-open import Type.BetaNormal.Equality
-open import Function
 
 sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
   → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
@@ -223,8 +219,6 @@ same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
   (lem-erase refl (btype-lem b) (builtin b / refl)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
-
-open import Algorithmic.Soundness
 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
 same'Len ∅          = refl

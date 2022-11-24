@@ -1,46 +1,49 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
+--{-# OPTIONS --rewriting #-}
 module Main where
-open import Agda.Builtin.IO
+open import Agda.Builtin.IO using (IO)
 import IO.Primitive as IO using (return;_>>=_)
-open import Agda.Builtin.Unit
-open import Agda.Builtin.String
-open import Function
-open import Data.Sum
-open import Data.String
-open import Agda.Builtin.TrustMe
-open import Relation.Binary.PropositionalEquality
+open import Agda.Builtin.Unit using (⊤;tt)
+open import Function using (_$_;_∘_)
+open import Data.String using (String;_++_)
 open import Agda.Builtin.Nat
-open import Data.Nat
-open import Agda.Builtin.Int
-open import Data.Integer
-open import Data.Integer.Show
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Bool
-open import Data.Fin
-open import Data.Vec hiding (_>>=_;_++_)
-open import Data.List hiding (_++_)
-import Debug.Trace as D
+open import Agda.Builtin.Int using (pos)
+open import Data.Integer.Show using (show)
+open import Data.Product using (Σ) renaming (_,_ to _,,_)
+open import Data.Bool using (Bool)
+open import Data.Vec using (Vec;[];_∷_)
+open import Data.List using (List)
+open import Data.Empty using (⊥)
+--import Debug.Trace as D
 
-open import Type
-open import Builtin
-open import Check
-open import Scoped.Extrication
-open import Type.BetaNBE
-open import Type.BetaNormal
-import Untyped as U
-open import Untyped.CEK as U
-import Scoped as S
-open import Raw
-open import Scoped
-open import Utils hiding (ByteString)
-open import Algorithmic hiding (Term;Type)
-open import Algorithmic.ReductionEC
-open import Algorithmic.Reduction
-open import Algorithmic.CK
-open import Algorithmic.CEKV
-open import Algorithmic.Erasure
-import Algorithmic.Evaluation as L
+open import Type using (Ctx⋆;∅;_,⋆_)
+open import Check using (TypeError;inferType;inferKind;meqKind;checkKind;checkType)
+open TypeError -- Bring all TypeError constructors in scope.
+
+open import Scoped.Extrication using (extricateNf⋆;extricate)
+open import Type.BetaNormal using (_⊢Nf⋆_)
+import Untyped as U using (Untyped;_⊢;scopeCheckU0;extricateU0;decUTm)
+
+open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
+open U.State
+
+open import Raw using (RawTm;RawTy;rawPrinter;rawTyPrinter;decRTy;decRTm)
+open import Scoped using (FreeVariableError;ScopeError;freeVariableError;extricateScopeTy;ScopedTm;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy)
+open Weirdℕ -- Bring Weirdℕ constructors in scope
+open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError)
+open RuntimeError
+open Monad {{...}}
+
+open import Algorithmic using (_⊢_;∅;error)
+
+open import Algorithmic.CK using (stepper;State;Stack;ε)
+open Algorithmic.CK.State
+
+open import Algorithmic.CEKV using (stepper;State;Stack;ε;Env;[])
+open Algorithmic.CEKV.State
+
+open import Algorithmic.Erasure using (erase)
+import Algorithmic.Evaluation as L using(stepper)
 
 
 
@@ -234,7 +237,6 @@ parsePLC plc = do
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
-open import Data.Empty
 parseUPLC : String → Either ERROR (⊥ U.⊢)
 parseUPLC plc = do
   namedprog ← withE parseError $ parseU plc
@@ -246,8 +248,6 @@ typeCheckPLC t = inferType _ t
 
 
 maxsteps = 10000000000
-
-open import Data.String
 
 reportError : ERROR → String
 reportError (parseError _) = "parseError"
@@ -461,8 +461,6 @@ inferKind∅ ty = do
   return k
 
 {-# COMPILE GHC inferKind∅ as inferKindAgda #-}
-
-open import Type.BetaNormal
 
 -- a Haskell interface to the type normalizer:
 normalizeType : Type → Either ERROR Type

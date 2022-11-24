@@ -1,43 +1,43 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
+--{-# OPTIONS --rewriting #-}
 module Algorithmic.Reduction where
 \end{code}
 
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl) renaming (subst to substEq)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Sum
-open import Function hiding (_∋_)
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
-open import Relation.Nullary
-open import Relation.Nullary.Decidable
-open import Data.Unit hiding (_≤_; _≤?_; _≟_)
+open import Data.Product using (_×_;∃) renaming (_,_ to _,,_)
 open import Data.List as List using (List; _∷_; []; _++_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
-import Debug.Trace as Debug
-
-open import Utils hiding (TermCon)
-open import Type
-import Type.RenamingSubstitution as T
-open import Algorithmic.RenamingSubstitution
-open import Type.BetaNBE
-open import Type.BetaNBE.Stability
-open import Type.BetaNBE.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Builtin
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
-open import Algorithmic
-open import Algorithmic.ReductionEC hiding (_—→_;_—↠_;progress;Progress;determinism)
+
+--import Debug.Trace as Debug
+
+open import Utils using (Kind;*;_⇒_;_<>>_∈_;bubble;K) 
+open import Type using (Ctx⋆;∅;_,⋆_;Z;_⊢⋆_)
+open _⊢⋆_
+
+import Type.RenamingSubstitution as T
+open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
+open import Type.BetaNBE using (nf)
+open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
+open _⊢Nf⋆_
+
+open import Builtin using (Builtin)
+open import Algorithmic using (Ctx;_⊢_;Term;Type;arity)
+open _⊢_
+open Ctx
+open import Algorithmic.ReductionEC using (Value;BApp;BUILTIN';_—→⋆_;EC;_[_]ᴱ;Error)
+                                    using (step;done;error) -- Progress constructors
+                                    using (ruleEC;ruleErr)  -- _—→_ constructors
+open EC
+open _—→⋆_
+ --hiding (_—→_;_—↠_;progress;Progress;determinism)
 import Algorithmic.ReductionEC as E
 \end{code}
 

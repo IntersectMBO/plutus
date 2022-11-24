@@ -8,15 +8,20 @@ module Algorithmic.Examples where
 
 \begin{code}
 open import Utils using (*;_⇒_)
-open import Type
-open import Type.BetaNormal
-open import Type.BetaNBE.RenamingSubstitution
+open import Relation.Binary.PropositionalEquality using (refl) 
+                                                  renaming (subst to substEq)
+open import Type using (_,⋆_;_⇒_;Z;S;_⊢⋆_)
+open _⊢⋆_
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;ne)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 import Type.RenamingSubstitution as ⋆
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
-open import Algorithmic.Evaluation
-
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
+open import Algorithmic using (Ctx;∅;_⊢_;_∋_)
+open _⊢_
+open _∋_
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.Stability using (stability)
 \end{code}
 
 ## Examples
@@ -45,8 +50,6 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 \begin{code}
 -- bound variable names inserted below are not meaningful
 module Scott where
-  open import Type.BetaNBE
-  open import Type.BetaNBE.Stability
 
   _·Nf_ : ∀{Γ}{K J}
     → Γ ⊢Nf⋆ K ⇒ J

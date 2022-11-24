@@ -6,17 +6,31 @@ layout: page
 
 ```
 module Algorithmic.CC where
+```
 
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
+## Imports
+
+```
+open import Utils using (Kind;*;_⇒_;_<><_∈_;_<>>_∈_;start;bubble)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_)
+open _⊢⋆_
+open import Type.BetaNormal using (_⊢Nf⋆_)
+open _⊢Nf⋆_
+open import Algorithmic using (Ctx;_⊢_)
+open Ctx
+open _⊢_
+open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
+
 open import Algorithmic.ReductionEC
 
-open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
-open import Data.Sum
-open import Data.Product renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans) 
+                                                  renaming ([_] to I[_])
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Data.Product using (Σ;_×_;∃) 
+                         renaming (_,_ to _,,_)
+open import Data.List using (_∷_;[])
+open import Data.Empty using (⊥;⊥-elim)
+open import Relation.Nullary using (¬_)
 
 dissect : ∀{A B}(E : EC A B) → A ≡ B ⊎ Σ (∅ ⊢Nf⋆ *) λ C → EC A C × Frame C B
 dissect []        = inj₁ refl
@@ -162,8 +176,6 @@ compEC-[]ᴱ (unwrap E / refl) E' L =
 # the machine
 
 ```
-open import Data.List hiding ([_])
-
 data State (T : ∅ ⊢Nf⋆ *) : Set where
   _▻_ : {H : ∅ ⊢Nf⋆ *} → EC T H → ∅ ⊢ H → State T
   _◅_ : {H : ∅ ⊢Nf⋆ *} → EC T H → {t : ∅ ⊢ H} → Value t → State T
@@ -236,7 +248,6 @@ dissect-lemma (wrap E)   F
 dissect-lemma (unwrap E / refl) F
   rewrite dissect-lemma E F = refl
 
-open import Builtin
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
 
@@ -716,7 +727,6 @@ lem62 L E (E' ·⋆ A / refl)   = step* refl (lem62 L (extEC E (-·⋆ A)) E')
 lem62 L E (wrap E')   = step* refl (lem62 L (extEC E wrap-) E')
 lem62 L E (unwrap E' / refl) = step* refl (lem62 L (extEC E unwrap-) E')
 
-open import Data.Empty
 
 {-# TERMINATING #-}
 unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
@@ -754,10 +764,6 @@ unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
 unwindE M N E E' refl VN = step**
   (lemV M _ (compEC' E E'))
   (unwindVE M N E E' refl (lemVE M E' VN) VN)
-
-open import Relation.Nullary
-open import Type.BetaNBE
-open import Type.BetaNBE.RenamingSubstitution
 
 data Focussing {A B}(M : ∅ ⊢ A)(E : EC B A) M' (p : E [ M ]ᴱ —→ M') : Set
   where
