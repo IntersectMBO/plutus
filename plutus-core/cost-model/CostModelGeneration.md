@@ -115,7 +115,11 @@ details of how to add a new built-in function see the extensive notes on "How to
 add a built-in function" in
 [`PlutusCore.Default.Builtins`](../plutus-core/src/PlutusCore/Default/Builtins.hs).
 For documentation on how to add a new built-in type, see
-[`Universe.Core`](../plutus-core/src/Universe/Core.hs).
+[`Universe.Core`](../plutus-core/src/Universe/Core.hs).  Note that the procedure
+described here will only add a new built-in function to Plutus Core: to make a
+new function available from Haskell more work will be required in the
+[`plutus-tx`](https://github.com/input-output-hk/plutus/tree/master/plutus-tx)
+codebase.
 
 
 ### Adding a new function
