@@ -313,10 +313,10 @@ first section of this document. Either run the full set of benchmarks and save
 the full output in a CSV file or run the new benchmark alone using `cabal run
 plutus-core:cost-model-budgeting-bench -- --csv <file> <benchmark name>` to run
 the benchmark on its own and then add the output in `<file>` results to a CSV
-file (such as `benching.csv) containing earlier benchmark results for the rest
+file (such as `benching.csv`) containing earlier benchmark results for the rest
 of the builtin functions.  If the latter method (which will be much faster) is
 used it is advisable to run some other costing benchmarks as well to check that
-the results are at least approximately consistent with previous ones.
+the results are at least approximately consistent with the previous ones.
 
 
 #### Step 6: add code to read the costing function from R into Haskell 
