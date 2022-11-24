@@ -379,7 +379,7 @@ object. (That's what gets read in by the code in Step 6: `paramXorByteString`
 contains the string "xorByteStringModel" and that lets the Haskell code retrieve
 the correct thing from R.)
 
-#### Step 7 add code to read the costing function from R into Haskell 
+#### Step 7: add code to read the costing function from R into Haskell 
 
 Next we have to update the code which converts benchmarking results into JSON
 models.  Go to
