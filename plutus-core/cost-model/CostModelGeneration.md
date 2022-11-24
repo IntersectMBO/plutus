@@ -309,7 +309,7 @@ used it is advisable to run some other costing benchmarks as well to check that
 the results are at least approximately consistent with the previous ones.
 
 
-#### Step 7: update the R code
+#### Step 6: update the R code
 
 We now have to extend the R code in [`models.R`](./data/models.R).  Firstly, add
 an entry for the arity of the builtin in the `arity` function:
