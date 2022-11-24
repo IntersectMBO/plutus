@@ -293,19 +293,9 @@ run the appropriate `param<builtin-name>` function:
 Now a CPU usage benchmark for the function will have to be added in
 [`plutus-core/cost-model/budgeting-bench`](./budgeting-bench) and new R code
 will have to be added in [`models.R`](./data/models.R) to process the results of
-the benchmark.  The benchmark should aim to cover a wide range of inputs in
-order to get a good idea of the worst-case behaviour of the function.  The exact
-form of the R code will depend on the behaviour of the function being added and
-will probably be based on the expected time complexity of the function, backed
-up by examination of the initial benchmark results.  In simpler cases it may be
-possible to re-use existing R code, but sometimes more complex code may be
-required to obtain a good model of the behaviour of the function.  Ideally the R
-model should accurate over a wide range of inputs so that charges for "typical"
-inputs are reasonable but worst-case inputs which require large computation
-times incur large charges which penalise excessive computation.  Some
-experimentation may be required to achieve this, and it may not always be
-possible to satisfy both goals simultaneously.  In such cases it may be
-necessary to sacrifice some accuracy in order to guarantee security.
+the benchmark (see Step 6 below).  The benchmark should aim to cover a wide
+range of inputs in order to get a good idea of the worst-case behaviour of the
+function: some experimentation may be needed to acheive this.
 
 Once the benchmark is in its final form, run it using `cabal run
 plutus-core:cost-model-budgeting-bench -- --csv <file>` as described in the
@@ -319,7 +309,77 @@ used it is advisable to run some other costing benchmarks as well to check that
 the results are at least approximately consistent with the previous ones.
 
 
-#### Step 6: add code to read the costing function from R into Haskell 
+#### Step 7: update the R code
+
+We now have to extend the R code in [`models.R`](./data/models.R).  Firstly, add
+an entry for the arity of the builtin in the `arity` function:
+
+```
+   arity <- function(name) {
+       switch (name,
+           "AddInteger" = 2,
+           ...
+           "XorByteString" = 2,
+           ...
+           )
+```
+
+Now add a function to infer coefficients for the CPU costing function from
+benchmarking data. The exact form of the R code will depend on the behaviour of
+the function being added and will probably be based on the expected time
+complexity of the function, backed up by examination of the initial benchmark
+results. In simpler cases it may be possible to re-use existing R code, but
+sometimes more complex code may be required to obtain a good model of the
+behaviour of the function. Ideally the R model should accurate over a wide range
+of inputs so that charges for "typical" inputs are reasonable but worst-case
+inputs which require large computation times incur large charges which penalise
+excessive computation. Some experimentation may be required to achieve this, and
+it may not always be possible to satisfy both goals simultaneously. In such
+cases it may be necessary to sacrifice some accuracy in order to guarantee
+security.
+
+
+In the case of `xorByteString` we assume that the time taken will be linear in
+the minimum of the sizes of the arguments (ie, the arguments of the new
+builtin).  It is often worthwhile to plot the benchmark data and experiment with
+it in order to check that it has the form expected when the basic shape of the
+costing function was selected (Steps 1, 3 and 6).  For example, we have assumed
+that the execution time of `xorByteString` is linear in the _minimum_ of the
+argument sizes since the function stops when it gets to the end of the smaller
+argument, but note that we call `unpack` on both arguments and that this takes
+linear time. Examination of benchmark results might reveal that if one input is
+very large then the unpacking step will dominate the execution time, and if this
+is the case it might be more sensible to use a model linear in the _maximum_ of
+the input sizes.  In general, think carefully about the structure of the model
+and issues such as whether the raw data might need to have outliers discarded or
+whether only some subset of the data should be used to arrive at an accurate
+worst-case model.
+
+```
+    xorByteStringModel <- {
+        fname <- "XorByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        adjustModel(m,fname)
+    }
+```
+
+Finally, add an entry to the list which is returned by `modelFun` (at the very
+end of the file):
+
+```
+        xorByteStringModel = xorByteStringModel,
+```
+
+From the point of view of Haskell this effectively creates a record field called
+`xorByteStringModel` which contains a Haskell representation of the R model
+object. (That's what gets read in by the code in Step 6: `paramXorByteString`
+contains the string "xorByteStringModel" and that lets the Haskell code retrieve
+the correct thing from R.)
+
+#### Step 7 add code to read the costing function from R into Haskell 
 
 Next we have to update the code which converts benchmarking results into JSON
 models.  Go to
@@ -361,62 +421,7 @@ sizes `m` and `n` then the result will have size `min(m,n)` so we define the mem
 costing function to be `(m,n) -> 0 + 1*min(m,n)`.
 
 
-#### Step 7: update the R code
-
-We now have to extend the R code in [`models.R`](./data/models.R).  Firstly, add
-an entry for the arity of the builtin in the `arity` function:
-
-```
-   arity <- function(name) {
-       switch (name,
-           "AddInteger" = 2,
-           ...
-           "XorByteString" = 2,
-           ...
-           )
-```
-
-Now add a function to infer coefficients for the CPU costing function from
-benchmarking data.  In the case of `xorByteString` we assume that the time taken
-will be linear in the minimum of the sizes of the arguments (ie, the arguments
-of the new builtin).  It is often worthwhile to plot the benchmark data and
-experiment with it in order to check that it has the form expected when the
-basic shape of the costing function was selected (Steps 1, 3 and 6).  For
-example, we have assumed that the execution time of `xorByteString` is linear in
-the _minimum_ of the argument sizes since the function stops when it gets to the
-end of the smaller argument, but note that we call `unpack` on both arguments
-and that this takes linear time. Examination of benchmark results might reveal
-that if one input is very large then the unpacking step will dominate the
-execution time, and if this is the case it might be more sensible to use a model
-linear in the _maximum_ of the input sizes.  In general, think carefully about
-the structure of the model and issues such as whether the raw data might need to
-have outliers discarded or whether only some subset of the data should be used
-to arrive at an accurate worst-case model.
-
-```
-    xorByteStringModel <- {
-        fname <- "XorByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
-    }
-```
-
-Finally, add an entry to the list which is returned by `modelFun` (at the very end of the file):
-
-```
-        xorByteStringModel = xorByteStringModel,
-```
-
-From the point of view of Haskell this effectively creates a record field called
-`xorByteStringModel` which contains a Haskell representation of the R model
-object. (That's what gets read in by the code in Step 6: `paramXorByteString`
-contains the string "xorByteStringModel" and that lets the Haskell code retrieve
-the correct thing from R.)
-
-### Step 8: test the Haskell versions of the costing functions
+#### Step 8: test the Haskell versions of the costing functions
 
 The code in [`CreateCostModel`](./create-cost-model/CreateBuiltinCostModel.hs)
 converts the cost modelling functions fitted by R into Haskell functions.  As
@@ -431,7 +436,7 @@ how to do this) and then run the tests with `cabal bench
 plutus-core:cost-model-test`.
 
 
-### Step 9: update the cost model JSON file
+#### Step 9: update the cost model JSON file
 
 Once the previous steps have been carried out, proceed as described in the first
 section: feed the results of the costing benchmarks to `generate-cost-model` to
@@ -454,7 +459,3 @@ can run benchmarks on their own machine and have the results re-scaled
 to be compatible with our reference machine, thereby removing (or at
 least lessening) the necessity for Cardano developers to do the
 benchmarking).
-
-
-
-
