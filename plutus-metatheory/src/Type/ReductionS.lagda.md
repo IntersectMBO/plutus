@@ -19,16 +19,16 @@ version does full normalisation.
 ## Imports
 
 ```
-open import Utils
-open import Type
-open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
-open import Relation.Nullary
-open import Data.Product
-open import Data.Empty
-
-open import Agda.Builtin.Nat
+open import Data.Product using (Σ;_×_;_,_)
+open import Data.Empty using (⊥-elim)
+open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+
+open import Utils using (*;J;K)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;A;B;C;A';B')
+open _⊢⋆_
+open import Type.RenamingSubstitution using (_[_])
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
 ```
 
 ## Values

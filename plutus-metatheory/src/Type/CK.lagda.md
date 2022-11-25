@@ -10,12 +10,21 @@ module Type.CK where
 ## Imports
 
 ```
-open import Utils
-open import Type
-open import Type.RenamingSubstitution
-open import Type.ReductionC hiding (step)
+open import Data.Product using (Σ;_×_;∃;_,_;-,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;inspect;subst)
+                                                  renaming ([_] to I[_])
+open import Data.Sum using (_⊎_;inj₁;inj₂)
 
-open import Data.Product
+open import Utils using (Kind;*;I;J;K)
+open import Type using (∅;_⊢⋆_)
+open _⊢⋆_
+import Type.CC as CC
+open import Type.RenamingSubstitution using (_[_])
+open import Type.ReductionC 
+   using (Value⋆;Frame;EvalCtx;closeFrame;discharge;dissect';dissect'-lemma;extendEvalCtx;I';J')
+open Value⋆
+open Frame
+open EvalCtx
 ```
 
 The CK machine is an abstract machine used to compute a lambda term to
@@ -115,8 +124,6 @@ step (□ V)                          = -, □ V
 reflexive transitive closure of step:
 
 ```
-open import Relation.Binary.PropositionalEquality
-
 data _-→ck_ : State K J → State K I → Set where
   base  : {s : State K J}
         → s -→ck s
@@ -151,11 +158,6 @@ subst-step* refl q = q
 Converting from evaluation contexts to stacks of frames:
 
 ```
-open import Data.Sum
-open import Type.ReductionC
-import Type.CC as CC
-
-
 {-# TERMINATING #-}
 helper : ∀{E} → ((Σ (K ≡ J) λ p → subst (λ K → EvalCtx K J) p E ≡ []) ⊎ (Σ Kind λ I → EvalCtx K I × Frame I J)) → Stack K J
 
@@ -197,15 +199,15 @@ thm64 (x CC.▻ μ x₁ x₂) s' (CC.step* refl p) =
 thm64 (x CC.▻ con x₁) s' (CC.step* refl p) =
   step* refl (thm64 _ s' p)
 thm64 (x CC.◅ x₁) s' (CC.step* refl p) with dissect' x | inspect dissect' x
-... | inj₁ (refl , refl) | [ eq ] = step* refl (thm64 _ s' p)
-... | inj₂ (I , E , (-· x₂)) | [ eq ] rewrite dissect'-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
-... | inj₂ (I , E , (V-ƛ x₂ ·-)) | [ eq ] rewrite dissect'-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
-... | inj₂ (.* , E , (-⇒ x₂)) | [ eq ] rewrite dissect'-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
+... | inj₁ (refl , refl) | I[ eq ] = step* refl (thm64 _ s' p)
+... | inj₂ (I , E , (-· x₂)) | I[ eq ] rewrite dissect'-lemma x E (-· x₂) eq | CC.lemma E (-· x₂) = step* refl (subst-step* (cong (λ E  → _ , E ▻ x₂) (lemmaH E (x₁ ·-))) (thm64 _ s' p))
+... | inj₂ (I , E , (V-ƛ x₂ ·-)) | I[ eq ] rewrite dissect'-lemma x E (V-ƛ x₂ ·-) eq | CC.lemma E (V-ƛ x₂ ·-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (-⇒ x₂)) | I[ eq ] rewrite dissect'-lemma x E (-⇒ x₂) eq | CC.lemma E (-⇒ x₂)
   = step* refl (subst-step* (cong (λ E → _ , E ▻ x₂) (lemmaH E (x₁ ⇒-))) (thm64 _ s' p))
-... | inj₂ (.* , E , (x₂ ⇒-)) | [ eq ] rewrite dissect'-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
-... | inj₂ (.* , E , (μ- B)) | [ eq ] rewrite dissect'-lemma x E (μ- B) eq | CC.lemma E (μ- B)
+... | inj₂ (.* , E , (x₂ ⇒-)) | I[ eq ] rewrite dissect'-lemma x E (x₂ ⇒-) eq | CC.lemma E (x₂ ⇒-) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , (μ- B)) | I[ eq ] rewrite dissect'-lemma x E (μ- B) eq | CC.lemma E (μ- B)
   = step* refl (subst-step* (cong (λ E → _ , E ▻ B) (lemmaH E (μ x₁ -))) (thm64 _ s' p))
-... | inj₂ (.* , E , μ x₂ -) | [ eq ]  rewrite dissect'-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
+... | inj₂ (.* , E , μ x₂ -) | I[ eq ]  rewrite dissect'-lemma x E (μ x₂ -) eq | CC.lemma E (μ x₂ -) = step* refl (thm64 _ s' p)
 thm64 (CC.□ x) s' (CC.step* refl p) = step* refl (thm64 _ s' p)
 
 thm64b : (s : State K J)(s' : State K J')

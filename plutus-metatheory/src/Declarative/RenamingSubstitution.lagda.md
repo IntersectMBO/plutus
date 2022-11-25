@@ -10,19 +10,20 @@ module Declarative.RenamingSubstitution where
 ## Imports
 
 ```
-open import Function using (id; _∘_)
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-open import Data.Unit
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List
+open import Function using (_∘_)
+open import Relation.Binary.PropositionalEquality using (refl;sym;trans)
 
-open import Utils hiding (TermCon)
-open import Type
+open import Utils using (Kind;*;K)
+open import Type using (Ctx⋆;_⊢⋆_;Φ;Ψ;A;B)
+open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
-open import Type.Equality
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
-open import Declarative
+open import Type.Equality using (ren≡β;sub≡β)
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
+open TermCon
+open import Declarative using (Ctx;Γ;Δ;_∋_;conv∋;_⊢_;conv⊢;piBody;btype-ren;btype-sub;muPat;muArg;typeOf;typeOf∋)
+open Ctx
+open _∋_
+open _⊢_
 ```
 
 

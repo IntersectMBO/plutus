@@ -10,20 +10,21 @@ module Type.CC where
 ## Imports
 
 ```
-open import Utils hiding (lem0)
-open import Type
-open import Type.RenamingSubstitution
+open import Data.Product using (Σ;_×_;_,_;-,_;∃)
+open import Data.Empty using (⊥-elim)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Relation.Binary.PropositionalEquality 
+      using (_≡_;refl;sym;trans;cong;cong₂;inspect;subst) renaming ([_] to I[_])
+
+
+open import Utils using (Kind;*;_⇒_;I;J;K)
+open import Type using (∅;_,⋆_;_⊢⋆_;A;A';B;B')
+open _⊢⋆_
+open import Type.RenamingSubstitution using (_[_];sub;sub-cons)
 open import Type.ReductionC hiding (step)
 ```
 
 ```
-open import Data.Product
-open import Data.Empty
-open import Relation.Binary.PropositionalEquality renaming ([_] to I[_])
-open import Data.Sum
-
-
-
 -- expose the bottom inner layer of the evalctx
 dissect : (E : EvalCtx K J) → K ≡ J ⊎ Σ Kind λ I → EvalCtx K I × Frame I J
 dissect [] = inj₁ refl

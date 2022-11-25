@@ -20,16 +20,18 @@ version does full normalisation.
 ## Imports
 
 ```
-open import Utils hiding (lem0)
-open import Type
-open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
-open import Relation.Nullary
-open import Data.Product hiding (∃!)
-open import Data.Empty
-
+open import Relation.Nullary using (¬_)
+open import Data.Product using (Σ;proj₁;proj₂;_×_;∃;_,_;-,_) --hiding (∃!)
+open import Data.Empty using (⊥;⊥-elim)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality
   using (_≡_;refl;cong;cong₂;subst;trans;sym;inspect) renaming ([_] to I[_])
+
+open import Utils using (Kind;*;_⇒_;I;J;K) --hiding (lem0)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;A;B;C;B')
+open _⊢⋆_
+open import Type.RenamingSubstitution using (_[_];sub;sub-cons)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
 ```
 
 ## Values
@@ -545,7 +547,6 @@ inv·r A .A B .B refl = refl , refl
 
 
 -- this is progress in another form
-open import Data.Sum
 lemma51 : (M : ∅ ⊢⋆ K)
   → Value⋆ M
   ⊎ Σ Kind λ J →

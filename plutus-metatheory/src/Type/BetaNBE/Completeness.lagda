@@ -3,21 +3,27 @@ module Type.BetaNBE.Completeness where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNormal.Equality
+open import Data.Empty using (⊥)
+open import Data.Product using (proj₂;_×_;_,_)
+open import Data.Sum using (inj₁;inj₂)
+open import Function using (_∘_;id)
+open import Relation.Binary.PropositionalEquality 
+   using (_≡_;refl;sym;trans;cong;cong₂)
+
+open import Utils using (*;_⇒_;J;K)
+open import Type using (Ctx⋆;Φ;Ψ;Θ;_⊢⋆_;_∋⋆_;S;Z)
+open _⊢⋆_
+open import Type.Equality using (_≡β_;_≡βTyCon_)
+open _≡β_
+open _≡βTyCon_
+open import Type.RenamingSubstitution using (Ren;ren;renTyCon;ext;Sub;sub;subTyCon;exts;sub-cons)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;evalTyCon;idEnv;nf)
+open import Type.BetaNormal.Equality using (renNe-cong;renNf-id;renNe-id;renNf-comp;renNe-comp)
 import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
-
-open import Relation.Binary.PropositionalEquality hiding (subst)
-open import Data.Sum
-open import Data.Empty
-open import Data.Product
-open import Function
 \end{code}
 
 \begin{code}
