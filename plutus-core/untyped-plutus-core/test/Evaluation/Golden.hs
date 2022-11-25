@@ -5,6 +5,7 @@
 
 module Evaluation.Golden
     ( test_golden
+    , namesAndTests
     ) where
 
 import Prelude hiding (even)
