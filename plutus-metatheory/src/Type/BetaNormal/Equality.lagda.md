@@ -2,16 +2,20 @@
 module Type.BetaNormal.Equality where
 ```
 
-```
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.BetaNormal
-open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+## Imports
 
-open import Function
-open import Relation.Binary.PropositionalEquality
+```
+open import Function using (id;_∘_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;cong;cong₂)
+
+open import Utils using (*;J)
+open import Type using (Ctx⋆;Θ;Φ;Ψ;_∋⋆_)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.RenamingSubstitution using (Ren;ext-cong;ext-id;ext-comp)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open TyCon
 ```
 
 ```
