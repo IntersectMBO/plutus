@@ -119,7 +119,7 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 newtype InlineTerm tyname name uni fun a =
     Done (Dupable (Term tyname name uni fun a)) --out expressions
 
--- | Substitution, 'Subst' in the paper.
+-- | Term substitution, 'Subst' in the paper.
 -- A map of unprocessed variable and its substitution range.
 newtype TermEnv tyname name uni fun a =
     TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
@@ -177,7 +177,7 @@ makeLenses ''InlineInfo
 type InlineM tyname name uni fun a =
     ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
--- | Look up the unprocessed variable from the substitution.
+-- | Look up the unprocessed variable in the substitution.
 lookupTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
@@ -185,7 +185,7 @@ lookupTerm
     -> Maybe (InlineTerm tyname name uni fun a)
 lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
 
--- | Insert the unprocessed variable to the substitution.
+-- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
@@ -194,7 +194,7 @@ extendTerm
     -> Subst tyname name uni fun a
 extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
 
--- | Look up the unprocessed type variable from the substitution.
+-- | Look up the unprocessed type variable in the substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
@@ -206,7 +206,7 @@ lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
 isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
 
--- | Insert the unprocessed type variable to the substitution.
+-- | Insert the unprocessed type variable into the substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname -- ^ The name of the type variable.
@@ -256,7 +256,7 @@ TODO: merge them or figure out a way to share more work, especially since there'
 This might mean reinventing GHC's OccAnal...
 -}
 
--- | Run the inliner through a `Core.Type.Term`.
+-- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Term tyname name uni fun a -- ^ Term to be processed.
@@ -319,7 +319,7 @@ avoid any variable capture.
 We rename both terms and types as both may have binders in them.
 -}
 
--- | Run the inliner through a single non-recursive let binding.
+-- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Term tyname name uni fun a -- ^ The body of the let binding.
@@ -335,13 +335,13 @@ processSingleBinding body = \case
     -- Just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
--- Check against the heuristics we have for inlining and either inline the term binding or not.
+-- | Check against the heuristics we have for inlining and either inline the term binding or not.
 -- Nothing means that we are inlining the term:
 --   * we have extended the substitution, and
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ The body of the let binding that is to be inlined.
+    => Term tyname name uni fun a -- ^ The body of the let term that is to be inlined.
     -> a -- ^ Its annotation.
     -> Strictness -- ^ Its `Strictness`.
     -> name -- ^ Its name.

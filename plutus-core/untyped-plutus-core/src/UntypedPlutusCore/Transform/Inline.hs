@@ -84,6 +84,7 @@ type InliningConstraints name uni fun =
 -- See Note [Differences from PIR inliner] 2
 data InlineInfo name a = InlineInfo { _usages :: Usages.Usages, _hints :: InlineHints name a }
 
+-- | The monad the inliner runs in.
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
 type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst name uni fun a) Quote)
