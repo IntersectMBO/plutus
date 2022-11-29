@@ -24,7 +24,37 @@
     task = "benchmark";
     io = ''
       // Two inputs need to match: PR sync event & issue comment creation event
-      #lib.io.github_pr_comment & {
+
+      // WIP: Currently inlining lib.io.github_pr_comment
+      // #lib.io.github_pr_comment &
+      //
+      {
+        #input:   string | *"GitHub PR comment to \(#repo)"
+
+        #repo:    =~"^[^/]+/[^/]+$"
+        #comment: string
+
+        inputs: {
+
+          "\(#input)": match: {
+            github_event: "issue_comment"
+            github_body: {
+              action: "created"
+
+              repository: full_name: #repo
+
+              issue: pull_request: {}
+
+              comment: body: =~#comment
+            }
+          }
+        }
+
+        let _body = inputs["\(#input)"].value.github_body
+        _repo:    _body.repository.full_name
+        _comment: _body.comment.body
+        _number:  _body.issue.number
+
         #target: "zeme-iohk/benchmarking"
         #input: "${cell.library.actions.benchmark.commentInput}"
         #prInput: "${cell.library.actions.benchmark.prInput}"
