@@ -20,9 +20,9 @@ import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
+import Annotation
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable, liftDupable)

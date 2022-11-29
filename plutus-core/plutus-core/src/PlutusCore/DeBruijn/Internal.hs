@@ -68,7 +68,7 @@ import GHC.Generics
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Word64
     deriving stock (Generic)
-    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData)
+    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData, Read)
 
 -- | The LamAbs index (for debruijn indices) and the starting level of DeBruijn monad
 deBruijnInitIndex :: Index
@@ -77,7 +77,7 @@ deBruijnInitIndex = 0
 -- The bangs gave us a speedup of 6%.
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: !T.Text, ndbnIndex :: !Index }
-    deriving stock (Show, Generic)
+    deriving stock (Show, Generic, Read)
     deriving anyclass NFData
 
 -- | A wrapper around nameddebruijn that must hold the invariant of name=`fakeName`.

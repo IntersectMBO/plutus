@@ -17,9 +17,9 @@ import Control.Monad.Reader
 
 import Control.Lens
 
+import Annotation
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.InlineUtils
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
