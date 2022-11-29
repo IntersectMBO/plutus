@@ -30,11 +30,24 @@
       //
       {
         #input:   string | *"GitHub PR comment to \(#repo)"
+        #prInput: string | *"GitHub PR to \(#repo)"
 
         #repo:    =~"^[^/]+/[^/]+$"
         #comment: string
 
+
+        _prRepo: #repo
+
+        let pr = {
+          github_pr
+          #input: #prInput
+          #repo:  _prRepo
+          inputs: _final_inputs
+        }
+
+        _final_inputs: inputs
         inputs: {
+          pr.inputs
 
           "\(#input)": match: {
             github_event: "issue_comment"
