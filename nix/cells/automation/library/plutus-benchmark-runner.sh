@@ -44,24 +44,10 @@ echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
 # nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
-pwd
-ls -la 
-git status
-git branch -v 
-echo b4 fetch
-git checkout "$(git merge-base FETCH_HEAD origin/master)"
 git fetch 
-echo after fetch checkout 
-echo 1
-git merge-base FETCH_HEAD origin/master
-echo 2
-git checkout "$(git merge-base HEAD origin/master)"
-echo after fetch BASE_BRANCH_REF
-echo 1 
-git rev-parse --short FETCH_HEAD
-echo 2
+git checkout "$(git merge-base FETCH_HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short FETCH_HEAD)
-exit 0
+
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 nix develop --command cabal clean
 
