@@ -38,10 +38,10 @@ PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-# nix develop --command cabal update
+nix develop --command cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-# nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git fetch 
