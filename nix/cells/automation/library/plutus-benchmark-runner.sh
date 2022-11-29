@@ -18,7 +18,7 @@
 #     as JSON data (see the curl command) meaning the script output has to be escaped
 #     first before we can insert it.
 
-set -e
+set +e
 
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
@@ -38,13 +38,22 @@ PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-nix develop --command cabal update
+# nix develop --command cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+# nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
+pwd
+ls -la 
+git status
+git branch -v 
+echo b4 fetch
 git checkout "$(git merge-base HEAD origin/master)"
+git fetch 
+echo after fetch
+git checkout "$(git merge-base HEAD origin/master)"
+
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
