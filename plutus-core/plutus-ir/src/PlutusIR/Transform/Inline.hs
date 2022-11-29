@@ -56,11 +56,13 @@ PreInlineUnconditional: we don't do it, since we don't bother using usage inform
 We *could* do it, but it doesn't seem worth it. We also don't need to worry about
 inlining nested let-bindings, since we don't inline any.
 
-CallSiteInline: we do it based on ambient arity, not context. (TODO in PLT-1146)
+CallSiteInline: TODO in PLT-1146
 
 Inlining recursive bindings: not worth it, complicated.
 
-Context-based inlining: CallSiteInline is done based on ambient arity, so no point.
+Context-based inlining: TODO
+
+Beta-reduction: done in `Beta.hs`, not here.
 
 Implementation
 --------------
@@ -171,9 +173,9 @@ data InlineInfo name fun a = InlineInfo
     }
 makeLenses ''InlineInfo
 
--- | The monad the inliner runs in.
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
+-- | The monad the inliner runs in.
 type InlineM tyname name uni fun a =
     ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
@@ -478,11 +480,11 @@ unconditionally.
 
 -- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
 -- just return the type without inlining.
--- We only inline if (1) the type is used at most once OR (2) its a `trivialType`.
+-- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
 maybeAddTySubst
     :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
-    => tyname -- ^ The type name.
-    -> Type tyname uni a -- ^ Its type.
+    => tyname -- ^ The type variable
+    -> Type tyname uni a -- ^  The value of the type variable.
     -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
 maybeAddTySubst tn rhs = do
     usgs <- view iiUsages
