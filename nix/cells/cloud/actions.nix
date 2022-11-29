@@ -39,7 +39,7 @@
         _prRepo: #repo
 
         let pr = {
-          github_pr
+          #lib.io.github_pr
           #input: #prInput
           #repo:  _prRepo
           inputs: _final_inputs
