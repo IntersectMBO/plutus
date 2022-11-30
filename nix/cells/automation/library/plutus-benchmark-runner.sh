@@ -38,10 +38,10 @@ PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-# nix develop --command cabal update
+nix develop --command cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-# nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git fetch 
@@ -49,12 +49,11 @@ git checkout "$(git merge-base FETCH_HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short FETCH_HEAD)
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
-# nix develop --command cabal clean
+nix develop --command cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-# nix develop --command cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
-touch bench-PR.log
-touch bench-base.log
+nix develop --command cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
+
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
 # The blank line is important, otherwise Github doesn't render markdown in the body of the details element.
