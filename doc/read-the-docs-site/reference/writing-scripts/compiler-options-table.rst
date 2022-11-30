@@ -66,10 +66,15 @@
      - Dump Untyped Plutus Core
 
 
-   * - ``max-simplifier-iterations``
+   * - ``max-simplifier-iterations-pir``
      - Int
      - 12
-     - Set the max iterations for the simplifier
+     - Set the max iterations for the PIR simplifier
+
+   * - ``max-simplifier-iterations-uplc``
+     - Int
+     - 12
+     - Set the max iterations for the UPLC simplifier
 
 
    * - ``no-context``
