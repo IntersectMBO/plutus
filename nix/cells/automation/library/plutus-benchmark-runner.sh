@@ -66,7 +66,7 @@ Comparing benchmark results of '$BENCHMARK_NAME' on '$BASE_BRANCH_REF' (base) an
 <summary>Results table</summary>
 
 EOF
-./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}"
+bash ./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}"
 echo -e "</details>"
 } > bench-compare-result.log
 

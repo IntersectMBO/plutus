@@ -1,3 +1,5 @@
+echo PLEEEEEEEEEEEASE 2
+
 # Compare the output from two runs of 'nofib-exe sizes-and-budgets' and print a
 # table of the increase/decrease in size/cpu/memory for each.  We only print the
 # changes because including the input data would make the table too wide.

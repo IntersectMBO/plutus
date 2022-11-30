@@ -8,7 +8,7 @@ in
 
 pkgs.writeShellApplication {
   name = "plutus-benchmark-runner";
-  runtimeInputs = [ pkgs.nix pkgs.git pkgs.jq pkgs.curl ];
+  runtimeInputs = [ pkgs.nix pkgs.git pkgs.jq pkgs.curl pkgs.bash ];
   text = ''
     PR_NUMBER=${PR_NUMBER} \
     PR_COMMIT_SHA=${PR_COMMIT_SHA} \
