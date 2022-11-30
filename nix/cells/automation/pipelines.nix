@@ -49,7 +49,7 @@ in
     command.text =
       let
         documents = __mapAttrs (_: v: "${v}.pdf") {
-          plutus-report = "plutus-core-specification";
+          plutus-report = "plutus-report";
           plutus-core-spec = "plutus-core-specification";
           extended-utxo-spec = "extended-utxo-specification";
           unraveling-recursion-paper = "unraveling-recursion";
