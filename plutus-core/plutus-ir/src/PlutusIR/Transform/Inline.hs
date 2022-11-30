@@ -338,16 +338,17 @@ processSingleBinding body = \case
     b -> Just <$> forMOf bindingSubterms b processTerm
 
 -- | Check against the heuristics we have for inlining and either inline the term binding or not.
+-- The arguments to this function are the fields of the `TermBinding` being processed.
 -- Nothing means that we are inlining the term:
 --   * we have extended the substitution, and
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ The body of the let term that is to be inlined.
-    -> a -- ^ Its annotation.
-    -> Strictness -- ^ Its `Strictness`.
-    -> name -- ^ Its name.
-    -> Term tyname name uni fun a -- ^ Its RHS.
+    => Term tyname name uni fun a
+    -> a
+    -> Strictness
+    -> name
+    -> Term tyname name uni fun a
     -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
 maybeAddSubst body a s n rhs = do
     rhs' <- processTerm rhs
