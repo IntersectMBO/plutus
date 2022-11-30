@@ -399,7 +399,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
                  & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
                  & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
@@ -407,7 +407,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
         plcOpts = PLC.defaultCompilationOpts
-            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
