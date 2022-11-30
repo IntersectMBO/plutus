@@ -3,8 +3,7 @@
 }: {
   actions = {
     ci.input = "GitHub event";
-    benchmark.commentInput = "GitHub comment";
-    benchmark.prInput = "GitHub pr";
+    benchmark.input = "GitHub comment";
     documents.input = "GitHub push";
   };
 }

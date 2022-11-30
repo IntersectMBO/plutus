@@ -8,6 +8,8 @@
 let
   inherit (inputs.nixpkgs) lib system;
   inherit (inputs.cells) cloud;
+  inherit (inputs.cells.plutus) library;
+  inherit (library) pkgs;
 
   common =
     { config
@@ -52,27 +54,30 @@ in
 
   benchmark = { config, ... }:
     let
-      # Facts here correspond to inputs created by the benchmark action in the cloud cell
-      facts = config.actionRun.facts;
-      commentFact = facts.${cloud.library.actions.benchmark.commentInput}.value.github_body;
-      prFact = facts.${cloud.library.actions.benchmark.prInput}.value.github_body;
+      fact = config.actionRun.facts.${cloud.library.actions.benchmark.input}.value.github_body;
+      prNumber = toString fact.issue.number;
 
-      prRevision = prFact.pull_request.head.sha;
+      prRevision = lib.getExe (pkgs.writeScript "get-pr-rev" ''
+        curl \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/input-output-hk/plutus/pulls/${prNumber} \
+          | jq -r .base.sha
+      '');
 
       runner = cell.library.plutus-benchmark-runner {
-        PR_NUMBER = toString prFact.pull_request.number;
-        PR_COMMIT_SHA = prRevision;
-        BENCHMARK_NAME = lib.removePrefix "/benchmark " commentFact.comment.body;
+        PR_NUMBER = prNumber;
+        BENCHMARK_NAME = lib.removePrefix "/benchmark " fact.comment.body;
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
     {
-      # Not importing common, github preset is not needed here
+      # Not importing commn module defined above, because we don't need the github preset
       preset.nix.enable = true;
       preset.git.clone = {
         enable = true;
         remote = "https://github.com/input-output-hk/plutus";
-        ref = prRevision;
+        # Tullia has some magic to get the revision when given a script like this
+        ref.outPath = prRevision;
       };
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [

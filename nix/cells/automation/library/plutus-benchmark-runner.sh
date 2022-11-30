@@ -24,16 +24,12 @@ if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
    exit 1
 fi
-if [ -z "$PR_COMMIT_SHA" ] ; then
-   echo "[ci-plutus-benchmark]: 'PR_COMMIT_SHA' is not set! Exiting"
-   exit 1
-fi
 if [ -z "$BENCHMARK_NAME" ] ; then
    echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set! Exiting"
    exit 1
 fi
 
-PR_BRANCH_REF=$(git rev-parse --short $PR_COMMIT_SHA)
+PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 
