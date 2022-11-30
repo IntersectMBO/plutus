@@ -1,5 +1,4 @@
 \begin{code}
---{-# OPTIONS --rewriting #-}
 module Main where
 open import Agda.Builtin.IO using (IO)
 import IO.Primitive as IO using (return;_>>=_)
@@ -14,7 +13,6 @@ open import Data.Bool using (Bool)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List)
 open import Data.Empty using (⊥)
---import Debug.Trace as D
 
 open import Type using (Ctx⋆;∅;_,⋆_)
 open import Check using (TypeError;inferType;inferKind;meqKind;checkKind;checkType)

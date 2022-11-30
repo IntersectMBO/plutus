@@ -15,7 +15,6 @@ module Declarative.Examples where
 ```
 open import Agda.Builtin.Int using (pos)
 
---open import Type using ()
 open import Type using (_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
@@ -243,8 +242,6 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
-
---open Church public
 ```
 
 ```

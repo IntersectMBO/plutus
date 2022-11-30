@@ -34,7 +34,6 @@ open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
---open import Type.BetaNormal.Equality using ()
 open import Builtin 
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)

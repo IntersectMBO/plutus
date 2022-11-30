@@ -1,8 +1,6 @@
 # CEK machine that discharges builtin args
 
 ```
---{-# OPTIONS --rewriting #-}
-
 module Algorithmic.CEKV where
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
@@ -45,7 +43,6 @@ open import Data.Nat using (ℕ;zero;suc)
 import Algorithmic.ReductionEC as Red
 import Algorithmic.CK as CK
 import Algorithmic.CC as CC
---import Debug.Trace as Debug
 
 data Env : Ctx ∅ → Set
 
