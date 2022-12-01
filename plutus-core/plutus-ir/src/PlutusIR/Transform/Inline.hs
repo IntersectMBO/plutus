@@ -245,8 +245,31 @@ inline hints ver t = let
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
         arity :: Natural -- ambient arity, for CallSiteInline
-        arity = undefined -- TODO need to run a pass through the expr to count and
+        arity = countArity t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
+
+countArity :: Term tyname name uni fun a -> Natural
+countArity = countAr 0 0
+    where
+      countAr ::
+        Natural -- ^ Number of arguments applied.
+        -> Natural -- ^ Number of lambdas of the function.
+        -> Term tyname name uni fun a -- ^ The term that is being counted.
+        -> Natural -- ^ The arity of the term.
+      countAr currentAr lambdas (Apply _ f _arg) =
+        -- if the term is a function application, increase the count of the number of arguments
+        -- applied by one, and move on to examining the function.
+        countAr (currentAr + 1) lambdas f
+      countAr currentAr lambdas (LamAbs _a _n _ty body@(LamAbs {})) =
+        -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
+        -- If the body has another lambda, keep on examining the body.
+        countAr currentAr (lambdas + 1) body
+      countAr currentAr lambdas (LamAbs _a _n _ty _body) = lambdas + 1 - currentAr
+        -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
+        -- Since the body is not another lambda abstraction, we know the term's arity is the number
+        -- of lambdas minus the number of arguments applied.
+      countAr currentAr lambdas _ = lambdas - currentAr
+      -- TODO over-application will cause an exception
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
