@@ -371,7 +371,6 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Declarative
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
