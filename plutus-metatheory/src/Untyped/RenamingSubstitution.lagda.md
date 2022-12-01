@@ -10,19 +10,15 @@ module Untyped.RenamingSubstitution where
 ## Imports
 
 ```
-open import Untyped
+open import Function using (id;_∘_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
-open import Data.Nat
-open import Data.Fin hiding (lift)
-open import Data.Vec
-open import Relation.Binary.PropositionalEquality
-open import Function
-open import Utils
+open import Utils using (Maybe;nothing;just)
+open import Untyped using (_⊢)
+open _⊢
 ```
 
 ## Renaming
-
-
 
 ```
 Ren : Set → Set → Set

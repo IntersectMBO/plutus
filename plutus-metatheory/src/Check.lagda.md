@@ -8,30 +8,44 @@ module Check where
 ```
 
 ```
-open import Data.Nat hiding (_*_)
-open import Function hiding (_∋_)
-open import Data.String
-open import Data.Fin
-open import Data.Product renaming (_,_ to _,,_) hiding (map)
-open import Data.Vec hiding ([_];_>>=_) hiding (map)
-import Data.List as L
-open import Data.Sum
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Relation.Nullary
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Fin using (Fin;zero;suc)
+open import Data.Product using (Σ) renaming (_,_ to _,,_)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong₂;cong;sym)
+open import Relation.Nullary using (¬_)
 
-open import Scoped
-open import Type
-open import Type.BetaNormal
-open import Utils
-open import Builtin
-open import Type.Equality
-open import Type.BetaNBE
-open import Type.BetaNBE.Soundness
-open import Algorithmic
-open import Type.BetaNBE.RenamingSubstitution
-open import Type.BetaNormal.Equality
+open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
+open ScopedTy
+open ScopedTm
+open Weirdℕ
+open WeirdFin
+
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
+open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;TermCon)
+open Monad {{...}}
+open TermCon
+
+open import Type.Equality using (_≡β_;≡2β)
+open _≡β_
+
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.Soundness using (soundness)
+open import Algorithmic using (_⊢_;Ctx;_∋_;btype)
+open _⊢_
+open Ctx
+open _∋_
+
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
 ```
 
 ```
@@ -333,16 +347,12 @@ meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
 meqNeTy (` _) (_ · _) = inj₁ λ()
 meqNeTy (_ · _) (` _) = inj₁ λ()
 
-open import Type.BetaNormal.Equality
-
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
-open import Function
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
-open import Type.RenamingSubstitution
+
 
 inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
 inferTypeCon (integer i)    = T.integer ,, A.integer i
@@ -397,3 +407,4 @@ inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu (inferType Γ L)
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```
+ 

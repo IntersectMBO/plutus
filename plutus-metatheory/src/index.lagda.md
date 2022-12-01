@@ -46,14 +46,9 @@ represented using De Bruijn indices. Parallel renaming and
 substitution are implemented in the
 [`Type.RenamingSubstitution`](Type/RenamingSubstitution.html) module
 and they are shown to be satisfy the functor and relative monad laws
-respectively. The [`Type.Reduction`](Type/Reduction.html) module
-contains a small step reduction algorithm for types and the
-[`Type.CK`](Type/CK.html) contains a CK machine for
-types. Neither are used directly in the formalisation as computation
-on types is carried out using normalisation by evaluation
-instead. Equality of types is specified in the
+respectively. Equality of types is specified in the
 [`Type.Equality`](Type/Equality.html) module. Equality serves as a
-specification of type compuation and is used in the normalisation
+specification of type computation and is used in the normalisation
 proof.
 
 
@@ -61,10 +56,6 @@ proof.
 import Type
 import Type.RenamingSubstitution
 import Type.Equality
-import Type.ReductionS
-import Type.ReductionC
-import Type.CC
-import Type.CK
 ```
 
 ## Normal Types
@@ -132,7 +123,6 @@ import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
--- import Algorithmic.Erasure.Reduction
 import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEKV

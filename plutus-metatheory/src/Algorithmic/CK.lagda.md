@@ -4,34 +4,55 @@
 module Algorithmic.CK where
 ```
 
+## Imports
+
 ```
-open import Function
 open import Data.Bool using (Bool;true;false)
 open import Data.List as L using (List;[];_∷_)
-open import Data.List.Properties
-open import Relation.Binary.PropositionalEquality using (inspect;sym;trans;_≡_;refl;cong)
-  renaming ([_] to [[_]];subst to substEq)
+open import Relation.Binary.PropositionalEquality using (inspect;_≡_;refl;cong)
+                                                  renaming ([_] to [[_]];subst to substEq)
 open import Data.Unit using (tt)
-open import Data.Integer
-open import Data.Product renaming (_,_ to _,,_)
+open import Data.Integer using (+_)
+open import Data.Product using (Σ;_×_;∃) renaming (_,_ to _,,_)
 import Data.Sum as Sum
-open import Data.Empty
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Algorithmic
-open import Builtin
-open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Type.BetaNBE.RenamingSubstitution
-open import Type.BetaNBE
-open import Algorithmic.RenamingSubstitution
+open import Data.Empty using (⊥)
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+
+open import Utils using (Kind;*;_⇒_;Either;inj₁;_<>>_∈_;bubble;RuntimeError;Monad)
+open RuntimeError
+open Monad {{...}}
+
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_)
+open _⊢⋆_
+
+open import Type.BetaNormal using (_⊢Nf⋆_)
+open _⊢Nf⋆_
+
+open import Algorithmic using (Ctx;_⊢_)
+open Ctx
+open _⊢_
+
+open import Builtin using (Builtin)
+open Builtin.Builtin
+
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
+
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
+open TermCon
+
+open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;EC) 
+                                    renaming (step to app;step⋆ to app⋆)
+open Frame
+open Value
+open EC
+
+import Algorithmic.CC as CC
 ```
 
 ```
-open import Algorithmic.ReductionEC renaming (step to app;step⋆ to app⋆)
-
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
   _,_ : {T : ∅ ⊢Nf⋆ *}{H1 : ∅ ⊢Nf⋆ *}{H2 : ∅ ⊢Nf⋆ *}
@@ -94,7 +115,7 @@ step ((s , -·⋆ A) ◅ V-IΠ b {as' = _ ∷ as'} p bt) =
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
-open import Data.Nat hiding (_*_)
+
  
 stepper : ℕ → ∀{T}
   → State T
@@ -106,12 +127,6 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 
-
-
-import Algorithmic.CC as CC
-
-open import Relation.Binary.PropositionalEquality
-open import Data.Sum
 
 {-# TERMINATING #-}
 helper : ∀{A B} → (B ≡ A) ⊎ (Σ _ λ I → EC B I × Frame I A) → Stack B A

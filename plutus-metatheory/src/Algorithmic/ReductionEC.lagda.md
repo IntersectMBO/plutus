@@ -4,42 +4,40 @@ module Algorithmic.ReductionEC where
 ## Imports
 
 ```
-open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.String using (primStringFromList; primStringAppend ; primStringEquality)
-open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Sum
-open import Function hiding (_∋_)
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
-open import Relation.Nullary
-open import Relation.Nullary.Decidable
-open import Data.Unit hiding (_≤_; _≤?_; _≟_)
-open import Data.List as List using (List; _∷_; []; _++_;reverse;length)
+open import Agda.Builtin.String using (primStringAppend ; primStringEquality)
 open import Data.Bool using (Bool;true;false)
-open import Data.Nat using (zero;ℕ;_+_)
+open import Data.Empty using (⊥;⊥-elim)
+open import Data.Integer using (_<?_;∣_∣;_≤?_;_≟_)
+open import Data.List as List using (List; _∷_; [];length)
+open import Data.Maybe using (just;from-just)
+open import Data.Product using (_×_;∃) renaming (_,_ to _,,_)
+open import Data.String using (String)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Unit using (tt)
-open import Agda.Builtin.String using (primStringAppend;primStringEquality)
+open import Relation.Nullary using (¬_;yes;no)
+open import Relation.Binary.PropositionalEquality 
+                    using (_≡_;refl;sym;trans;cong)  
+                    renaming (subst to substEq)
+open import Relation.Binary.HeterogeneousEquality 
+        using (_≅_;refl;≅-to-≡) 
 
 open import Utils hiding (TermCon)
-open import Type
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
+open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
-open import Algorithmic.Properties
-open import Type.BetaNBE
-open import Type.BetaNBE.Stability
-open import Type.BetaNBE.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Builtin
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Data.Maybe using (just;from-just)
-open import Data.String using (String)
-open import Relation.Binary.HeterogeneousEquality using (_≅_;≡-subst-removable;refl;≡-to-≅;≅-to-≡;≅-to-subst-≡) renaming (sym to hsym; trans to htrans; cong to hcong)
-```
-
-```
+open import Algorithmic using (Ctx;_⊢_;arity;btype;Term;Type;conv⊢)
+open Ctx
+open _⊢_
+open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
+open import Algorithmic.Properties using (lem-·⋆;lem-unwrap)
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
+open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
+open _⊢Nf⋆_
+open import Builtin 
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
+open TermCon
 ```
 
 ## Values

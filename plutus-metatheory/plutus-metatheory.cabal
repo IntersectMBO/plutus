@@ -111,7 +111,6 @@ library
     MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Properties
-    MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
@@ -187,7 +186,6 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Declarative
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
@@ -298,7 +296,6 @@ library
     MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Properties
-    MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
@@ -374,9 +371,7 @@ library
     MAlonzo.Code.Data.These.Base
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
-    MAlonzo.Code.Debug.Trace
     MAlonzo.Code.Declarative
-    MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
     MAlonzo.Code.Function.Equality

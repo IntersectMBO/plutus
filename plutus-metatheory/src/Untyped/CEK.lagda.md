@@ -7,22 +7,22 @@ module Untyped.CEK where
 ## Imports
 
 ```
-open import Untyped
-open import Untyped.RenamingSubstitution
-open import Utils
-open import Builtin
-open import Algorithmic using (arity;Term;Type) -- TODO: move this stuff
-
-
-open import Function
+open import Function using (case_of_;_$_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
 open import Data.Bool using (true;false;if_then_else_)
-open import Data.Empty
-open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Relation.Nullary
-open import Relation.Binary.PropositionalEquality
-open import Data.Nat using (ℕ;suc;zero)
+open import Data.Empty using (⊥)
+open import Agda.Builtin.String using (primStringAppend; primStringEquality)
+open import Relation.Nullary using (yes;no)
+open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
+open import Data.Nat using (ℕ;suc)
 open import Data.List using ([];_∷_)
+
+open import Untyped using (_⊢)
+open _⊢
+open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
+open import Utils 
+open import Builtin
+open import Algorithmic using (arity;Term;Type)
 ```
 
 ```

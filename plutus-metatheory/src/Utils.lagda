@@ -2,21 +2,28 @@
 \begin{code}
 module Utils where
 
-open import Relation.Binary.PropositionalEquality
-open import Function
-open import Data.Nat
-open import Data.Nat.Properties
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans)
+open import Function using (const;_∘_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
+open _≤_
+open _≤‴_
+open import Data.Nat.Properties using (≤⇒≤″;≤″⇒≤;≤″⇒≤‴;≤‴⇒≤″;+-monoʳ-≤)
+                                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
-open import Data.Vec hiding (map;_>>=_;_++_)
-open import Data.List hiding (map)
-open import Data.Sum
-open import Relation.Nullary
-open import Data.Empty
+open import Data.List using (List;[];_∷_)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Relation.Nullary using (Dec;yes;no;¬_)
+open import Data.Empty using (⊥;⊥-elim)
+open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
+open import Data.Integer using (ℤ)
+open import Data.String using (String)
+open import Data.Bool using (Bool)
+
 
 -- we cannot use the standard library's Maybe as it is not set up to
 -- compile the Haskell's Maybe and compile pragmas have to go in the
--- same module as defintions
+-- same module as definitions
 
 data Maybe (A : Set) : Set where
   just : A → Maybe A
@@ -135,7 +142,7 @@ unique<>> (bubble p) (bubble p') = cong bubble (unique<>> p p')
 _<>>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
 xs <>> ys ∈' zs = xs <>> ys ≡ zs
 
-open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
+
 
 <>>-length : ∀{A}(az : Bwd A)(as : List A)
   → Data.List.length (az <>> as) ≡ bwd-length az Data.Nat.+ Data.List.length as
@@ -163,7 +170,7 @@ open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;
                          (<>>-length az (a ∷ as)))
                   (+-suc (bwd-length az) (Data.List.length as))))
 
-open import Data.Product renaming (_,_ to _,,_)
+
 
 <>>-lcancel' : ∀{A}(az : Bwd A)(as as' : List A)
   → as ≡ az <>> as'
@@ -283,9 +290,6 @@ lemma∷1 as .as (start .as) = refl
                 (trans (<>>-length az'' []) (cong (Data.Nat._+ 0) (sym q))))))))
       (+-comm (bwd-length az') 0))))
 
-
-open import Data.Product
-
 _<L'_ : {A : Set} → List A → List A → Set
 as <L' as' = Σ _ λ a → (a ∷ as) ≤L' as'
 
@@ -395,14 +399,10 @@ variable
 \end{code}
 ## Term constants
 
-Defined separetely here rather than using generic version used in the
+Defined separately here rather than using generic version used in the
 typed syntax.
 
 \begin{code}
-open import Data.Integer
-open import Data.String
-open import Data.Bool
-
 data TermCon : Set where
   integer    : ℤ → TermCon
   bytestring : ByteString → TermCon

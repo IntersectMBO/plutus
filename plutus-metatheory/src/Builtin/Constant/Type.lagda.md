@@ -17,20 +17,7 @@ module Builtin.Constant.Type
 ## Imports
 
 ```
-open import Agda.Builtin.Char
-open import Agda.Builtin.Int
-open import Agda.Builtin.String
-open import Data.Integer using (ℤ;-_;+≤+;-≤+;-≤-;_<_;_>_;_≤?_;_<?_;_≥_;_≤_)
-open import Data.Unit using (⊤)
-open import Data.Bool using (Bool)
-open import Data.Product
-open import Relation.Binary
-open import Data.Nat using (ℕ;_*_;z≤n;s≤s;zero;suc)
-open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary
-open import Function
-
-open import Utils
+-- no imports
 ```
 
 ## Type constants
