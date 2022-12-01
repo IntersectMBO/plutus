@@ -127,12 +127,9 @@ pluginOptions =
                  \the compilation error is suppressed and the original Haskell \
                  \expression is replaced with a runtime-error expression."
            in (k, PluginOption typeRep (setTrue k) posDeferErrors desc)
-        , let k = "no-context"
-              desc = "Set context level to 0, which means error messages contain minimum contexts."
-           in (k, PluginOption typeRep (flag (const 0) k) posContextLevel desc)
-        , let k = "debug-context"
-              desc = "Set context level to 3, which means error messages contain full contexts."
-           in (k, PluginOption typeRep (flag (const 3) k) posContextLevel desc)
+        , let k = "context-level"
+              desc = "Set context level for error messages."
+           in (k, PluginOption typeRep (intOption k) posContextLevel desc)
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
            in (k, PluginOption typeRep (setTrue k) posDumpPir desc)
