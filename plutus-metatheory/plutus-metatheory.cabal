@@ -102,7 +102,6 @@ library
     MAlonzo.Code.Algorithmic.Erasure
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Properties
-    MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
@@ -289,7 +288,6 @@ library
     MAlonzo.Code.Algorithmic.CK
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Erasure
-    MAlonzo.Code.Algorithmic.Reduction
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
