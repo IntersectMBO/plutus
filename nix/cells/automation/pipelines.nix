@@ -57,12 +57,12 @@ in
       fact = config.actionRun.facts.${cloud.library.actions.benchmark.input}.value.github_body;
       prNumber = toString fact.issue.number;
 
-      prRevision = lib.getExe (pkgs.writeScript "get-pr-rev" ''
-        curl \
+      prRevision = pkgs.writeScript "get-pr-rev" ''
+        ${lib.getExe pkgs.curl} \
           -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/input-output-hk/plutus/pulls/${prNumber} \
-          | jq -r .base.sha
-      '');
+          | ${lib.getExe pkgs.jq} -r .base.sha
+      '';
 
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = prNumber;
