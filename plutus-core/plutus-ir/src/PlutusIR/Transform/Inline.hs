@@ -170,6 +170,7 @@ data InlineInfo name fun a = InlineInfo
     -- ^ have we explicitly been told to inline.
     , _iiBuiltinVer    :: PLC.BuiltinVersion fun
     -- ^ the builtin version.
+    , _iiArity         :: Natural -- ambient arity of the expression
     }
 makeLenses ''InlineInfo
 
@@ -237,12 +238,14 @@ inline
     -> m (Term tyname name uni fun a)
 inline hints ver t = let
         inlineInfo :: InlineInfo name fun a
-        inlineInfo = InlineInfo (snd deps) usgs hints ver
+        inlineInfo = InlineInfo (snd deps) usgs hints ver arity
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
         deps = Deps.runTermDeps ver t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
+        arity :: Natural -- ambient arity, for CallSiteInline
+        arity = undefined -- TODO need to run a pass through the expr to count and
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 {- Note [Removing inlined bindings]
