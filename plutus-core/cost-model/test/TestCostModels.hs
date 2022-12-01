@@ -60,8 +60,12 @@ import Hedgehog.Range qualified as Range
    be any problem because the functions should be the same as the ones we
    construct from R here (they're essentially the contents of 'costModelsR'
    converted to JSON), but it wouldn't do any harm to include any possible loss
-   of accuracy due to serialisation/deserialisation in the tests as well.
-
+   of accuracy due to serialisation/deserialisation in the tests as well.  Doing
+   the tests the way they're done here is arguably better because it may reveal
+   problems in the costing interface before the cost model file is updated, and
+   we want to be sure that we don’t include an incorrect costing function in the
+   JSON. Maybe it would be sensible to have some separate tests that check that
+   converting to JSON and then back is the identity.
 -}
 
 -- How many tests to run for each costing function

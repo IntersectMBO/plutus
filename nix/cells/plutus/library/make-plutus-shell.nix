@@ -88,7 +88,6 @@ inputs.std.lib.dev.mkShell {
       category = "haskell";
       help = "Agda and its standard library";
     }
-
     {
       package = cell.packages.sphinx-build-readthedocs-site;
       category = "docs";
