@@ -30,7 +30,11 @@ in
       null;
 
     command.text = config.preset.github.status.lib.reportBulk {
-      bulk.text = "nix eval .#__std.init --apply __attrNames --json | nix-systems -i";
+      bulk.text = ''
+        nix eval .#__std.init --apply __attrNames --json | # all systems the flake declares
+        nix-systems -i | # figure out which the current machine is able to build
+        jq 'with_entries(select(.value))' # only keep those we can build
+      '';
       each.text = ''nix build -L .#"$1".automation.ciJobs.required'';
       skippedDescription = lib.escapeShellArg "No nix builder available for this system";
     };
