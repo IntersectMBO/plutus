@@ -250,10 +250,9 @@ inline hints ver t = let
         arity = countArity t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
--- | Count the arity of a function.
--- I.e., count the number of lambdas in the lambda abstraction (lambdas),
--- and the number of arguments applied (argsApplied), the function's arity is lambdas - argsApplied.
-countArity :: Term tyname name uni fun a -> Natural
+-- | Count the number of lambdas in the lambda abstraction (lambdas),
+-- and the number of arguments applied (argsApplied).
+countArity :: Term tyname name uni fun a -> (Natural, Natural)
 countArity = countAr 0 0 -- starts with no argument/lambdas
     where
       countAr ::
@@ -262,7 +261,6 @@ countArity = countAr 0 0 -- starts with no argument/lambdas
         -> Term tyname name uni fun a -- ^ The term that is being counted.
         -> (Natural, Natural)
         -- ^ (number of lambdas, number of applied arguments) of the term.
-        -- The arity of the term.
       countAr argsApplied lambdas (Apply _ f _arg) =
         -- if the term is a function application, increase the count of the number of arguments
         -- applied by one, and move on to examining the function.
@@ -271,10 +269,14 @@ countArity = countAr 0 0 -- starts with no argument/lambdas
         -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
         -- If the body has another lambda, keep on examining the body.
         countAr argsApplied (lambdas + 1) body
-      countAr argsApplied lambdas (LamAbs _a _n _ty _body) = ((lambdas + 1), argsApplied)
+      countAr argsApplied lambdas (LamAbs _a _n _ty body@(Apply {})) =
         -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
-        -- Since the body is not another lambda abstraction, we know the term's arity is the number
-        -- of lambdas minus the number of arguments applied.
+        -- If the body is a function application, keep on examining the body.
+        countAr argsApplied (lambdas + 1) body
+      countAr argsApplied lambdas (LamAbs _a _n _ty _body) = (lambdas + 1, argsApplied)
+        -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
+        -- Since the body is not another lambda abstraction or function application,
+        -- we know we are done counting.
       countAr argsApplied lambdas _ = (lambdas, argsApplied)
 
 {- Note [Removing inlined bindings]
