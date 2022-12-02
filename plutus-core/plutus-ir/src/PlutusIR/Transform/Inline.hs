@@ -163,14 +163,15 @@ type InliningConstraints tyname name uni fun =
 -- | Useful info for inlining.
 data InlineInfo name fun a = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
-    -- ^ Is it strict? Only needed for PIR, not UPLC
+    -- ^ Is it strict? Only needed for PIR, not UPLC.
     , _iiUsages        :: Usages.Usages
     -- ^ how many times is it used?
     , _iiHints         :: InlineHints name a
     -- ^ have we explicitly been told to inline.
     , _iiBuiltinVer    :: PLC.BuiltinVersion fun
     -- ^ the builtin version.
-    , _iiArity         :: Natural -- ambient arity of the expression
+    , _iiArity         :: (Natural, Natural)
+    -- ^ (number of lambdas, number of arguments applied), for arity analysis.
     }
 makeLenses ''InlineInfo
 
@@ -244,32 +245,37 @@ inline hints ver t = let
         deps = Deps.runTermDeps ver t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
-        arity :: Natural -- ambient arity, for CallSiteInline
+        -- | (lambdas, applied arguments), for arity analysis.
+        arity :: (Natural, Natural)
         arity = countArity t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
+-- | Count the arity of a function.
+-- I.e., count the number of lambdas in the lambda abstraction (lambdas),
+-- and the number of arguments applied (argsApplied), the function's arity is lambdas - argsApplied.
 countArity :: Term tyname name uni fun a -> Natural
-countArity = countAr 0 0
+countArity = countAr 0 0 -- starts with no argument/lambdas
     where
       countAr ::
         Natural -- ^ Number of arguments applied.
         -> Natural -- ^ Number of lambdas of the function.
         -> Term tyname name uni fun a -- ^ The term that is being counted.
-        -> Natural -- ^ The arity of the term.
-      countAr currentAr lambdas (Apply _ f _arg) =
+        -> (Natural, Natural)
+        -- ^ (number of lambdas, number of applied arguments) of the term.
+        -- The arity of the term.
+      countAr argsApplied lambdas (Apply _ f _arg) =
         -- if the term is a function application, increase the count of the number of arguments
         -- applied by one, and move on to examining the function.
-        countAr (currentAr + 1) lambdas f
-      countAr currentAr lambdas (LamAbs _a _n _ty body@(LamAbs {})) =
+        countAr (argsApplied + 1) lambdas f
+      countAr argsApplied lambdas (LamAbs _a _n _ty body@(LamAbs {})) =
         -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
         -- If the body has another lambda, keep on examining the body.
-        countAr currentAr (lambdas + 1) body
-      countAr currentAr lambdas (LamAbs _a _n _ty _body) = lambdas + 1 - currentAr
+        countAr argsApplied (lambdas + 1) body
+      countAr argsApplied lambdas (LamAbs _a _n _ty _body) = ((lambdas + 1), argsApplied)
         -- if the term is a lambda abstraction, increase the count of the number of lambdas by one.
         -- Since the body is not another lambda abstraction, we know the term's arity is the number
         -- of lambdas minus the number of arguments applied.
-      countAr currentAr lambdas _ = lambdas - currentAr
-      -- TODO over-application will cause an exception
+      countAr argsApplied lambdas _ = (lambdas, argsApplied)
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
