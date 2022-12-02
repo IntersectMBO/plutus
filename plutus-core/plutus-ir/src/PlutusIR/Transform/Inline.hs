@@ -439,9 +439,9 @@ maybeAddSubst body a s n rhs = do
             -- See Note [Inlining criteria]
             let acceptable = costIsAcceptable t && sizeIsAcceptable t
             -- See Note [Inlining and purity]
-            -- This is the case where we don't know that the number of occurences is exactly one,
+            -- This is the case where we don't know that the number of occurrences is exactly one,
             -- so there's no point checking if the term is immediately evaluated.
-            termIsPure <- checkPurity t
+            termIsPure <- checkPurity t --TODO figure out if we can check this less
 
             pure $ acceptable && termIsPure
 
