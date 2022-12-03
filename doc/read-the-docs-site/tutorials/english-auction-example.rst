@@ -7,34 +7,30 @@ Plutus Script for a Simple Auction Smart Contract
 Overview
 ------------
 
-This tutorial describes the general logic, structure, and Plutus Tx code needed for designing and writing a Plutus smart contract that can be used for an English auction that is executed on the Cardano blockchain.
+In this page we look at the Plutus Tx code for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain.
 
-Key aspects of this example are the EUTXO model, the concepts involved in designing the EUTXOs, the actions required of the parties involved with the auction transactions, and Plutus on-chain code examples.
-The specific on-chain code examples included here are accompanied by detailed explanations of what the Haskell code is doing.
+Plutus Tx is a high level language for writing the validation logic of the contract, the logic that determines whether a transaction is allowed to spend a UTXO.
+Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low level language based on higher-order polymorphic lambda calculus.
+Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction.
+A Plutus Core program included in a transaction is often referred to as Plutus script or Plutus validator.
 
-The EUTXO model
+To develop and deploy a smart contract, you'd also need to off-chain code for building and submitting transactions, querying for available UTXOs and so on. These are not covered in this page.
+
+Before we get to the Plutus Tx code, let's briefly go over some basic concepts, including UTXO, datum, redeemer and script context.
+
+The EUTXO Model, Datum, Redeemer and Script Context
 --------------------------------
 
-In order to write Plutus smart contracts, it is necessary to understand the accounting model that Plutus and Cardano use, which is the Extended Unspent Transaction Output (EUTXO) model.
-This is different than the Bitcoin and Ethereum models for creating smart contracts in some critical ways.
-Cardano's EUTXO model has some significant advantages, but it requires a new way of thinking about smart contracts.
+UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
+A UTXO is produced by a transaction, is immutable, and can only be spent once by another transaction.
+In the classic UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of bitcoin), and is identified by wallet address.
+It can be spent by a transaction signed by the private key of the wallet address.
 
-UTXO, or unspent transaction outputs, are transaction outputs from previous transactions that have occurred on the blockchain and that have not yet been spent.
-The EUTXO model adds arbitrary logic capabilities to the transactions.
-
-Rather than having an address that corresponds to a public key that can be verified by a signature that is added to the transaction, we have more general addresses that are not based on public keys or the hashes of public keys.
-Instead, the addresses contain arbitrary logic which decides under which conditions a particular EUTXO can be spent by a particular transaction.
-
-Further reading on Cardano's EUTXO model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* `Architecting DApps on the EUTXO ledger <https://iohk.io/en/blog/posts/2021/11/16/architecting-dapps-on-the-eutxo-ledger/>`_
-* `The EUTXO Handbook <https://www.essentialcardano.io/article/the-eutxo-handbook>`_
-* `Concurrency and all that: Cardano smart contracts and the EUTXO model <https://iohk.io/en/blog/posts/2021/09/10/concurrency-and-all-that-cardano-smart-contracts-and-the-eutxo-model/>`_
-* Cardano's Extended UTXO accounting model---built to support multi-assets and smart contracts:
-
-   * `Part 1 <https://iohk.io/en/blog/posts/2021/03/11/cardanos-extended-utxo-accounting-model/>`_
-   * `Part 2 <https://iohk.io/en/blog/posts/2021/03/12/cardanos-extended-utxo-accounting-model-part-2/>`_
+The EUTXO model introduces a new kind of UTXO: script UTXO.
+A script UTXO contains a script (usually a Plutus script) and a piece of data called *datum*, and is identified by the hash of the script.
+For a transaction to spend it, the transaction must provide an input to the script, referred to as a *redeemer*.
+The script is then run, and it must succeed in order for the transaction to be allowed to spend the UTXO.
+Besides the redeemer, the script also has access to the datum contained in the UTXO, as well as the details of the transaction trying to spend it (referred to as *script context*).
 
 Conceptualizing the English auction in the EUTXO framework
 -------------------------------------------------------------
@@ -342,3 +338,13 @@ A full suite of solutions is provided in the Plutus Application Framework.
 See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
 
 See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building a DApp using Plutus.
+
+Further Reading
+-----------------------
+
+The EUTXO model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* [Paper] `The Extended UTXO Model <https://iohk.io/en/research/library/papers/the-extended-utxo-model/>`_
+* [Doc] `Understanding the Extended UTXO model <https://www.essentialcardano.io/article/the-eutxo-handbook>`_
+* [Blog Post] Cardano's Extended UTXO accounting model---built to support multi-assets and smart contracts (`part 1 <https://iohk.io/en/blog/posts/2021/03/11/cardanos-extended-utxo-accounting-model/>`_, `part 2 <https://iohk.io/en/blog/posts/2021/03/12/cardanos-extended-utxo-accounting-model-part-2/>`_)
