@@ -77,7 +77,7 @@ in
         enable = true;
         remote = "https://github.com/input-output-hk/plutus";
         # Tullia has some magic to get the revision when given a script like this
-        ref.outPath = prRevision;
+        ref.outPath = prRevision.outPath;
       };
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [
