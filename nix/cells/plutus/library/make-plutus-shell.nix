@@ -142,7 +142,6 @@ inputs.std.lib.dev.mkShell {
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
-    pkgs.pkg-config # TODO(std) Keep an eye on https://github.com/input-output-hk/plutus/pull/4906
   ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
