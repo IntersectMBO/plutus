@@ -1,30 +1,31 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Logic for the debugging stage.
-module Debugger where
+-- | Renders the debugger in the terminal.
+module Draw where
 
-import Common
 import Types
 
+import Brick.AttrMap qualified as B
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Border qualified as BB
 import Brick.Widgets.Center qualified as BC
 import Brick.Widgets.Core qualified as B
 import Brick.Widgets.Edit qualified as BE
-import Control.Monad.State
 import Data.Bifunctor
 import Data.Maybe
 import Data.Text (Text)
 import Data.Text qualified as Text
-import Graphics.Vty qualified as Vty
 import Lens.Micro
 
 drawDebugger ::
     DebuggerState ->
     [B.Widget ResourceName]
-drawDebugger st = [header "Plutus Core Debugger" $ BC.center ui]
+drawDebugger st =
+    withKeyBindingsOverlay
+        (st ^. dsKeyBindingsMode)
+        [header "Plutus Core Debugger" $ BC.center ui]
   where
     focusRing = st ^. dsFocusRing
     (curRow, curCol) = BE.getCursorPosition (st ^. dsUplcEditor)
@@ -102,46 +103,14 @@ drawDebugger st = [header "Plutus Core Debugger" $ BC.center ui]
                     B.Location (eRow, eCol) = fromMaybe (B.Location (sRow, Text.length row)) eLoc
              in fmap alg (zip rows [1 ..])
 
--- | Handle events in the debugging stage
-handleDebuggerEvent :: B.BrickEvent ResourceName e -> B.EventM ResourceName DebuggerState ()
-handleDebuggerEvent bev@(B.VtyEvent ev) = do
-    focusRing <- gets (^. dsFocusRing)
-    let handleEditorEvent = case B.focusGetCurrent focusRing of
-            Just EditorUplc ->
-                B.zoom dsUplcEditor $ BE.handleEditorEvent bev
-            Just EditorSource ->
-                B.zoom dsSourceEditor $ BE.handleEditorEvent bev
-            Just EditorReturnValue ->
-                B.zoom dsReturnValueEditor $ BE.handleEditorEvent bev
-            Just EditorCekState ->
-                B.zoom dsCekStateEditor $ BE.handleEditorEvent bev
-            _ -> pure ()
-    case ev of
-        Vty.EvKey (Vty.KChar 's') [] -> modify' $ \st' ->
-            -- Stepping. Currently it highlights one line at a time.
-            let highlightNextLine = \case
-                    Nothing ->
-                        Just (HighlightCode (B.Location (1, 1)) Nothing)
-                    Just (HighlightCode (B.Location (r, c)) _) ->
-                        Just (HighlightCode (B.Location (r + 1, c)) Nothing)
-             in st' & dsUplcHighlight %~ highlightNextLine
-        Vty.EvKey (Vty.KChar '\t') [] -> modify' $ \st' ->
-            st' & dsFocusRing %~ B.focusNext
-        Vty.EvKey Vty.KBackTab [] -> modify' $ \st' ->
-            st' & dsFocusRing %~ B.focusPrev
-        Vty.EvKey Vty.KUp [Vty.MCtrl] -> modify' $ \st' ->
-            st' & dsVLimitBottomEditors %~ (+ 1)
-        Vty.EvKey Vty.KDown [Vty.MCtrl] -> modify' $ \st' ->
-            st' & dsVLimitBottomEditors %~ (\x -> x - 1)
-        Vty.EvKey Vty.KUp [] -> handleEditorEvent
-        Vty.EvKey Vty.KDown [] -> handleEditorEvent
-        Vty.EvKey Vty.KLeft [] -> handleEditorEvent
-        Vty.EvKey Vty.KRight [] -> handleEditorEvent
-        Vty.EvKey (Vty.KChar _) [] ->
-            -- This disables editing the text, making the editors read-only.
-            pure ()
-        _ -> handleEditorEvent
-handleDebuggerEvent _ = pure ()
+-- | Show key bindings upon request.
+withKeyBindingsOverlay ::
+    KeyBindingsMode ->
+    [B.Widget ResourceName] ->
+    [B.Widget ResourceName]
+withKeyBindingsOverlay = \case
+    KeyBindingsShown  -> (BC.centerLayer debuggerKeyBindings :)
+    KeyBindingsHidden -> id
 
 debuggerKeyBindings :: forall n. B.Widget n
 debuggerKeyBindings =
@@ -155,3 +124,18 @@ debuggerKeyBindings =
             ]
         , B.txt "Press any key to exit"
         ]
+
+menuAttr :: B.AttrName
+menuAttr = B.attrName "menu"
+
+highlightAttr :: B.AttrName
+highlightAttr = B.attrName "highlight"
+
+header :: Text -> B.Widget a -> B.Widget a
+header title =
+    (B.vLimit 1 (B.withAttr menuAttr . BC.hCenter $ B.txt title) B.<=>)
+
+footer :: forall a. B.Widget a
+footer =
+    B.padTop (B.Pad 1) . BC.hCenter . B.withAttr menuAttr $
+        B.txt "(?): Key Bindings"

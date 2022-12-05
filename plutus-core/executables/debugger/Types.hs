@@ -5,11 +5,8 @@ module Types where
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
-import Brick.Widgets.FileBrowser qualified as BF
 import Data.Text (Text)
 import Lens.Micro.TH
-
-data AppStage = FileBrowsing | Debugging
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
     deriving stock (Eq, Ord, Show)
@@ -30,9 +27,7 @@ data ResourceName
     deriving stock (Eq, Ord, Show)
 
 data DebuggerState = DebuggerState
-    { _dsAppStage            :: AppStage
-    , _dsFileBrowser         :: BF.FileBrowser ResourceName
-    , _dsKeyBindingsMode     :: KeyBindingsMode
+    { _dsKeyBindingsMode     :: KeyBindingsMode
     , _dsFocusRing           :: B.FocusRing ResourceName
     -- ^ Controls which window is in focus.
     , _dsUplcEditor          :: BE.Editor Text ResourceName

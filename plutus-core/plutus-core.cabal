@@ -626,9 +626,8 @@ executable debugger
   main-is:        Main.hs
   hs-source-dirs: executables/debugger
   other-modules:
-    Common
-    Debugger
-    FileBrowser
+    Draw
+    Event
     Types
 
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
