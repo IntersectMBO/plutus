@@ -1,3 +1,8 @@
+# This file specifies the cicero actions.  If you change this file, you
+# _must_ re-create the job https://cicero.ci.iog.io/action/ for it to
+# take any effect.
+
+
 { cell
 , inputs
 }: {
