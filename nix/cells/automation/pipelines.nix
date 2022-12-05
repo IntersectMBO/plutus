@@ -57,13 +57,7 @@ in
       fact = config.actionRun.facts.${cloud.library.actions.benchmark.input}.value.github_body;
       prNumber = toString fact.issue.number;
 
-      prRevision = pkgs.writeScript "get-pr-rev" ''
-        ${lib.getExe pkgs.curl} \
-          -H "Accept: application/vnd.github+json" \
-          https://api.github.com/repos/input-output-hk/plutus/pulls/${prNumber} \
-          | ${lib.getExe pkgs.jq} -r .base.sha
-      '';
-
+      # Script gets current commit from HEAD in git repo it's ran in
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = prNumber;
         BENCHMARK_NAME = lib.removePrefix "/benchmark " fact.comment.body;
@@ -73,11 +67,19 @@ in
     {
       # Not importing commn module defined above, because we don't need the github preset
       preset.nix.enable = true;
+
+      # clone and checkout git repo at latest revision at the time the action is run
+      # might be inaccurate if a commit was pushed in between comment creation and action run
       preset.git.clone = {
         enable = true;
         remote = "https://github.com/input-output-hk/plutus";
         # Tullia has some magic to get the revision when given a script like this
-        ref.outPath = prRevision.outPath;
+        ref.outPath = lib.getAttr "outPath" (pkgs.writeScript "get-pr-rev" ''
+          ${lib.getExe pkgs.curl} \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/input-output-hk/plutus/pulls/${prNumber} \
+            | ${lib.getExe pkgs.jq} -r .base.sha
+        '');
       };
       command.text = "${runner}/bin/plutus-benchmark-runner";
       nomad.templates = [
