@@ -51,8 +51,8 @@ parseOptions = do
     optPath <-
         OA.argument OA.str $
             mconcat
-                [ OA.metavar "UPLC_FILE_OR_DIR"
-                , OA.help "UPLC File or Dir (default: .)"
+                [ OA.metavar "UPLC_FILE"
+                , OA.help "UPLC File"
                 ]
     pure Options{..}
 
@@ -64,7 +64,8 @@ main = do
                 (parseOptions OA.<**> OA.helper)
                 (OA.fullDesc <> OA.header "Plutus Core Debugger")
 
-    unlessM (doesFileExist (optPath opts)) . fail $ "Does not exist: " <> optPath opts
+    unlessM (doesFileExist (optPath opts)) . fail $
+        "Does not exist or not a file: " <> optPath opts
     uplcText <- Text.readFile (optPath opts)
 
     let app :: B.App DebuggerState e ResourceName
