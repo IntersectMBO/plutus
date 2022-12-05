@@ -2,8 +2,6 @@
 , inputs
 }:
 let
-  inherit (inputs.nixpkgs) system;
-
   common =
     { config
     , ...
@@ -11,14 +9,14 @@ let
       preset = {
         nix.enable = true;
 
-        github-ci = {
+        github.ci = {
           # Tullia tasks can run locally or on Cicero.
           # When no facts are present we know that we are running locally and vice versa.
           # When running locally, the current directory is already bind-mounted
           # into the container, so we don't need to fetch the source from GitHub
           # and we don't want to report a GitHub status.
           enable = config.actionRun.facts != { };
-          repo = "input-output-hk/plutus";
+          repository = "input-output-hk/plutus";
         };
       };
     };
@@ -27,13 +25,19 @@ in
   ci = { config, lib, ... }: {
     imports = [ common ];
 
-    preset.github-ci.sha = config.preset.github-ci.lib.readRevision
+    preset.github.ci.revision = config.preset.github.lib.readRevision
       inputs.cells.cloud.library.actions.ci.input
       null;
 
-    command.text = ''
-      nix build -L .#${lib.escapeShellArg system}.automation.ciJobs.required
-    '';
+    command.text = config.preset.github.status.lib.reportBulk {
+      bulk.text = ''
+        nix eval .#__std.init --apply __attrNames --json | # all systems the flake declares
+        nix-systems -i | # figure out which the current machine is able to build
+        jq 'with_entries(select(.value))' # only keep those we can build
+      '';
+      each.text = ''nix build -L .#"$1".automation.ciJobs.required'';
+      skippedDescription = lib.escapeShellArg "No nix builder available for this system";
+    };
 
     memory = 1024 * 8;
     nomad.resources.cpu = 10000;
@@ -42,7 +46,7 @@ in
   publish-documents = { config, pkgs, lib, ... }: {
     imports = [ common ];
 
-    preset.github-ci.sha = config.preset.github-ci.lib.readRevision
+    preset.github.ci.revision = config.preset.github.lib.readRevision
       inputs.cells.cloud.library.actions.documents.input
       null;
 
@@ -64,7 +68,7 @@ in
 
         nix build -L ${lib.escapeShellArgs (map (k: ".#${k}") (__attrNames documents))}
 
-        revision=$(${lib.escapeShellArg config.preset.github-ci.sha})
+        revision=$(${lib.escapeShellArg config.preset.github.ci.revision})
       '' + __concatStringsSep "\n" (lib.imap0
         (i: k: ''
           jq > ${lib.escapeShellArg k}.json --null-input \
