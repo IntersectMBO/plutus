@@ -1,7 +1,7 @@
 .. highlight:: haskell
 .. _english_auction_tutorial:
 
-Plutus Script for a Simple Auction Smart Contract
+Plutus Script for an Auction Smart Contract
 ==========================================================
 
 Overview
@@ -11,10 +11,12 @@ In this page we look at the Plutus Tx code for a smart contract that controls th
 
 Plutus Tx is a high level language for writing the validation logic of the contract, the logic that determines whether a transaction is allowed to spend a UTXO.
 Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low level language based on higher-order polymorphic lambda calculus.
-Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction.
-A Plutus Core program included in a transaction is often referred to as Plutus script or Plutus validator.
+Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine.
+A Plutus Core program included in a Cardano transaction is often referred to as Plutus script or Plutus validator.
 
-To develop and deploy a smart contract, you'd also need to off-chain code for building and submitting transactions, querying for available UTXOs and so on. These are not covered in this page.
+To develop and deploy a smart contract, you'd also need off-chain code for building and submitting transactions, querying for available UTXOs and so on.
+You may also want a frontend for your smart contract for better user experiences.
+The frontend and backend of the off-chain part of smart contracts are not covered in this page.
 
 Before we get to the Plutus Tx code, let's briefly go over some basic concepts, including UTXO, datum, redeemer and script context.
 
@@ -23,184 +25,49 @@ The EUTXO Model, Datum, Redeemer and Script Context
 
 UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
 A UTXO is produced by a transaction, is immutable, and can only be spent once by another transaction.
-In the classic UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of bitcoin), and is identified by wallet address.
-It can be spent by a transaction signed by the private key of the wallet address.
+In the classic UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of Ada and/or other tokens), and is identified by the wallet address.
+It can be spent by a transaction, if the transaction is signed by the private key of the wallet address.
 
-The EUTXO model introduces a new kind of UTXO: script UTXO.
-A script UTXO contains a script (usually a Plutus script) and a piece of data called *datum*, and is identified by the hash of the script.
-For a transaction to spend it, the transaction must provide an input to the script, referred to as a *redeemer*.
+The EUTXO (Extended UTXO) model introduces a new kind of UTXO: script UTXO.
+A script UTXO contains a value, a script (usually a Plutus script) and a piece of data called *datum*, and is identified by the hash of the script.
+For a transaction to spend it, the transaction must provide a piece of input data to the script, referred to as the *redeemer*.
 The script is then run, and it must succeed in order for the transaction to be allowed to spend the UTXO.
 Besides the redeemer, the script also has access to the datum contained in the UTXO, as well as the details of the transaction trying to spend it (referred to as *script context*).
 
-Conceptualizing the English auction in the EUTXO framework
+Note that the only thing a Plutus script does is to determine whether a transaction can spend the script UTXO that contains the script. It is *not* responsible for such things as deciding whether it can spend a different UTXO, checking that the input value in a transaction equals the output value, or updating the state of the smart contract.
+Consider it a pure function that returns ``Bool``.
+Checking transaction validity is done by the ledger rules, and updating the state of a smart contract is done by constructing the transaction to produce a new script UTXO with an updated datum.
+
+The immutability of UTXOs leads to the extremely useful property of completely predictable transaction fees.
+The Plutus script in a transaction can be run off-chain to determine the fee before submitting the transaction onto the blockchain.
+When the transaction is submitted, if some UTXOs it tries to spend has already been spent, the transaction is immediately rejected without penalty.
+If all input UTXOs still exist, and the Plutus script is invoked, the on-chain behavior would be exactly identical to the off-chain behavior.
+This cannot be achieved if transaction inputs are mutable (e.g., in Ethereum's account-based model).
+
+An Example: Auction Smart Contract
 -------------------------------------------------------------
 
 On the Cardano blockchain, a transaction contains an arbitrary number of inputs and an arbitrary number of outputs.
 The effect of a transaction is to consume inputs and produce new outputs.
 
-In this English auction example, the item owner, Alice, wants to auction an NFT (Non-fungible token), a native token on Cardano that exists only once.
-An NFT can represent a piece of digital art or possibly a real-world asset.
+In this example, Alice wants to auction some asset she owns, represented as a non-fungible token (NFT) on Cardano.
+She would like to create and deploy an auction smart contract with the following properties:
 
-The general logic of the auction takes into account the following parameters:
+* there is a minimal bid amount
+* each bid must be higher than the previous highest bid (if any)
+* once a new bid is made, the previous highest bid (if exists) is immediately refunded to the previous bidder
+* there is a deadline for placing bids; once the deadline has passed, new bids are no longer accepted, the asset can be transferred to the highest bidder (or the seller if there's no bid), and the highest bid (if exists) can be transferred to the seller.
 
-* the owner of the token,
-* the token itself,
-* a minimal bid,
-* a higher bid, and
-* a deadline.
+Let's look at the Plutus Tx code for the auction smart contract shown below.
 
-At the outset, Alice creates a transaction for the English auction that has a EUTXO at the script output.
-
-The value of the EUTXO is the NFT, and the datum initially is nothing.
-Later it will be the highest bidder and the highest bid. But at this stage, a bid has not yet taken place.
-
-   *On the Cardano blockchain you can’t have a EUTXO that contains only native tokens. A EUTXO always has to be accompanied by some Ada, but for the sake of simplicity we will temporarily ignore that requirement for now.*
-
-Bidder transactions
-----------------------
-
-In this example, Bob, the first bidder, wants to bid 100 Ada for Alice's NFT.
-In order to do this, Bob creates a transaction that has two inputs and one output.
-
-The two inputs are:
-
-* the auction EUTXO
-* Bob's bid of 100 Ada
-
-Datum
-~~~~~~~~~
-
-The output is at the output script, but now the value and the datum have changed.
-Previously the datum was nothing but now it has the value of: (Bob, 100).
-
-Now there is not only the NFT in the EUTXO, but also the 100 Ada bid.
-
-+----------------------+-------------------+
-| 1st bid inputs       | 1st bid outputs   |
-+======================+===================+
-| The auction EUTXO    | Bob               |
-+----------------------+-------------------+
-| Bob's bid of 100 Ada | 100 Ada           |
-+----------------------+-------------------+
-
-Redeemer
-~~~~~~~~~~~~
-
-As a redeemer, in order to unlock the original auction EUTXO, we use something called `Bid`.
-This is an algebraic data type. There will be other values as well.
-
-The auction script will check that all the conditions are satisfied.
-In this example, the script has to check these three conditions:
-
-1. The bid happens before the deadline.
-2. The bid is high enough.
-3. The correct inputs and outputs are present (meaning that the auction is an output containing the NFT and it has the correct datum).
-
-A second bidder
-~~~~~~~~~~~~~~~~~~~~
-
-Next, a second bidder, Charlie, wants to outbid Bob. Charlie wants to bid 200 Ada.
-
-Charlie will create another transaction, this one having two inputs and two outputs.
-The two inputs are:
-
-* the auction EUTXO
-* Charlie's bid of 200 Ada
-
-The two outputs are:
-
-* the updated auction EUTXO
-* a EUTXO that returns Bob's bid of 100 Ada
-
-.. note::
-    To be more clear, technically, the auction EUTXO is not getting updated because nothing ever changes.
-    Instead, what really happens is that the old auction EUTXO is spent and a new one is created.
-    In a way this may feel like the auction EUTXO is getting updated, but that isn't truly accurate.
-
-+--------------------------+-----------------------------------------+
-| 2nd bid inputs           | 2nd bid outputs                         |
-+==========================+=========================================+
-| The auction EUTXO        | Newly created unspent transaction       |
-+--------------------------+-----------------------------------------+
-| Charlie's bid of 200 Ada | EUTXO that returns Bob's bid of 100 Ada |
-+--------------------------+-----------------------------------------+
-
-Bid redeemer logic
-~~~~~~~~~~~~~~~~~~~~~
-
-This time we again use the `Bid` redeemer. The script has to check that these conditions are satisfied:
-
-1. The deadline has been reached.
-2. The bid is higher than the previous bid.
-3. The auction EUTXO is correctly created.
-4. The previous highest bidder gets their bid back.
-
-Transactions for closing the auction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, for this example, let’s assume that there won’t be another bid.
-Once the deadline has passed, the auction can be closed.
-
-In order to do that, somebody has to create another transaction.
-That could be Alice who wants to collect the bid or it could be Charlie who wants to collect the NFT.
-It can be anybody, but Alice and Charlie have an incentive to create it.
-
-This transaction will have one input:
-
-* the auction EUTXO, this time with the `Close` redeemer.
-
-This transaction will have two outputs:
-
-* One output is for the highest bidder, Charlie, who gets the NFT.
-* The second output goes to Alice who gets the highest bid.
-
-In the Close case, the script checks that these conditions are satisfied:
-
-1. The deadline has been reached.
-2. The winner gets the NFT.
-3. The auction owner gets the highest bid.
-
-When there are no bidders
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, we need to consider the scenario in which nobody bids in the auction.
-Alice creates the auction, but the auction receives no bids.
-In this case, there must be a mechanism for Alice to retrieve her NFT.
-
-To address this possibility, Alice creates a transaction with the `Close` redeemer.
-However, because there is no bidder, the NFT doesn’t go to the highest bidder, but instead simply goes back to Alice.
-
-The logic in this case is slightly different.
-It will check that the NFT goes back to Alice.
-However, it doesn’t need to check the recipient because the transaction will be triggered by Alice and she can send the NFT wherever she wants.
-
-Diagram/graphic of how the smart contract works
---------------------------------------------------
-
-*Assess what sort of diagrams would be most helpful.*
-
-Plutus Tx Validator Code
+Plutus Tx Code
 -----------------------------
 
-With the on-chain code (the scripts from the EUTXO model), we have a script address in addition to public key addresses.
-Outputs can sit at such a script address, and if a transaction tries to consume such an output, the script is executed.
-The transaction is only valid if the script succeeds.
+Recall that Plutus Tx is a subset of Haskell, and is the source language one writes Plutus validators in.
+A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
+The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 
-If a node receives a new transaction, it validates it before accepting it into its mempool and eventually into a block.
-For each input of the transaction, if that input happens to be a script address, the corresponding script is executed.
-If the script does not succeed, the transaction is invalid and does not get completed.
 
-Plutus Core
-~~~~~~~~~~~~~~
-
-The programming language this script is expressed in is called (Untyped) Plutus Core, but you never write Plutus Core by hand.
-Instead, you write Plutus Tx (a subset of Haskell) and that gets compiled down to Plutus Core.
-Eventually there may be other high-level languages such as Solidity, C or Python that can compile down to Plutus Core.
-
-The task of a script is to say yes or no regarding whether a transaction can consume an output.
-
-Next, we'll go over the Plutus Tx code for the auction validator.
-The full source code can be found in `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 
 Data Types
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,16 +82,20 @@ The purpose of ``makeLift`` and ``unstableMakeIsData`` will be explained later.
 
 Typically, writing a Plutus Tx validator script for a smart contract involves four data types:
 
-* **Contract parameters**.
+Contract parameters
   These are fixed properties of the contract.
   In our example, it is the ``AuctionParams`` type, containing properties like seller and minimum bid.
-* **Datum**.
-  This should be thought of as the state of the contract.
+
+Datum
+  This is part of a script UTXO. It should be thought of as the state of the contract.
   Our example requires only one piece of state: the current highest bid, which we use the ``AuctionDatum`` type to represent.
-* **Redeemer**.
-  This is the input to the contract that generates a new state.
+
+Redeemer
+  This is an input to the Plutus script provided by the transaction trying to spend a script UTXO.
+  If a smart contract is regarded as a state machine, the redeemer would be the input that ticks the state machine.
   In our example, it is the ``AuctionRedeemer`` type: one may either submit a new bid, or request to close the auction and pay out the winner and the seller, both of which lead to a new state of the auction.
-* **Script context**.
+
+Script context
   This type contains the information of the transaction that the validator can inspect.
   In our example, our validator verifies several conditions of the transaction; e.g., if it is a new bid, then it must be submitted before the auction's end time, the previous highest bid must be refunded to the previous bidder, etc.
 
@@ -252,7 +123,7 @@ The ``sufficientBid`` condition verifies that the bid amount is sufficient:
    :start-after: BLOCK3
    :end-before: BLOCK4
 
-The ``validBidTime`` condition verifies that the bid is submitted before the auction's end time:
+The ``validBidTime`` condition verifies that the bid is submitted before the auction's deadline:
 
 .. literalinclude:: AuctionValidator.hs
    :start-after: BLOCK4
@@ -265,9 +136,8 @@ It is the time interval in which the transaction is allowed to go through phase-
 Since the transaction may be validated at any point in the ``txInfoValidRange`` interval, we need to check that the entire interval lies within ``(-∞, apEndTime params]``.
 
 The reason we need the ``txInfoValidRange`` interval, instead of using the exact time the transaction is validated, is due to `determinism <https://iohk.io/en/blog/posts/2021/09/06/no-surprises-transaction-validation-on-cardano/>`_.
-A transaction validated off-chain must not fail at phase-2 on-chain.
-If we use the exact time, then this cannot be guaranteed, because the exact time is different when validating the script off-chain vs. on-chain.
-On the other hand, by using the ``txInfoValidRange`` interval, the same interval is used both off-chain and on-chain, and as a result, only phase-1 validation failures are possible, not phase-2.
+Using the exact time would be like calling a ``getCurrentTime`` function and branching based on the current time.
+On the other hand, by using the ``txInfoValidRange`` interval, the same interval is always used by the same transaction.
 
 The ``refundsPreviousHighestBid`` condition checks that the transaction pays the previous highest bid to the previous bidder:
 
@@ -275,7 +145,7 @@ The ``refundsPreviousHighestBid`` condition checks that the transaction pays the
    :start-after: BLOCK5
    :end-before: BLOCK6
 
-It uses ``PlutusTx.filter`` to find the transaction output (an EUTXO) that pays to the previous bidder the amount equivalent to the previous highest bid, and verifies that there is exactly one such output.
+It uses ``PlutusTx.find`` to find the transaction output (a UTXO) that pays to the previous bidder the amount equivalent to the previous highest bid, and verifies that there is at least one such output.
 
 ``singleton adaSymbol adaToken amt`` constructs a ``Value`` with ``amt`` Lovelaces.
 ``Value`` is a multi-asset type that represents a collection of assets, including Ada.
@@ -294,7 +164,7 @@ Exactly one continuing output must be present in this example so that the next b
 If the transaction is requesting a payout, the validator will then verify the other three conditions: `validPayoutTime`, `sellerGetsHighestBid` and `highestBidderGetsAsset`.
 These conditions are similar to the ones already explained, so their details are omitted.
 
-Finally, we need to compile the validator written in Plutus Tx into Untyped Plutus Core (UPLC), using the Plutus Tx compiler:
+Finally, we need to compile the validator written in Plutus Tx into Plutus Core, using the Plutus Tx compiler:
 
 .. literalinclude:: AuctionValidator.hs
    :start-after: BLOCK8
@@ -305,39 +175,151 @@ An untyped validator takes three ``BuiltinData`` arguments, representing the ser
 The call to ``PlutusTx.unsafeFromBuiltinData`` is the reason we need the ``PlutusTx.unstableMakeIsData`` shown before, which derives ``UnsafeFromData`` instances.
 And instead of returning a ``Bool``, it simply returns ``()``, and the validation succeeds if the script evaluates without error.
 
-Note that ``AuctionParams`` is an argument of neither the untyped validator nor the final UPLC program. As said before, it contains contract properties that don't change, so it is simply built into the validator.
+Note that ``AuctionParams`` is an argument of neither the untyped validator nor the final UPLC program. ``AuctionParams`` contains contract properties that don't change, so it is simply built into the validator.
 
-Since the PlutusTx compiler compiles ``a`` into ``CompiledCode a``, we first use ``auctionUntypedValidator`` to obain an untyped validator.
+Since the Plutus Tx compiler compiles ``a`` into ``CompiledCode a``, we first use ``auctionUntypedValidator`` to obain an untyped validator.
 It takes ``AuctionParams``, and returns an untyped validator.
-We then define the ``auctionValidatorScript`` function, which takes ``AuctionParams`` and returns the compiled UPLC program.
+We then define the ``auctionValidatorScript`` function, which takes ``AuctionParams`` and returns the compiled Plutus Core program.
 
-Next, to create the Plutus validator script for a particular auction, we call ``auctionValidatorScript`` with the appropriate ``AuctionParams``.
-We will then be able to launch the auction on-chain by submitting a transaction that locks the asset being auctioned at the script address with ``AuctionDatum Nothing`` as the datum.
+To create the Plutus validator script for a particular auction, we call ``auctionValidatorScript`` with the appropriate ``AuctionParams``.
+We will then be able to launch the auction on-chain by submitting a transaction that outputs a script UTXO with ``Nothing`` as the datum.
 
 .. note::
    It is worth noting that we must call ``PlutusTx.compile`` on the entire ``auctionUntypedValidator``, rather than applying it to ``params`` before compiling, as in ``$$(PlutusTx.compile [||auctionUntypedValidator params||])``.
-   The latter won't work, because everything being compiled (inside ``[||...||]``) must be known at compile time, but ``params`` is not: it is a formal parameter.
-   Instead, we compile the entire ``auctionUntypedValidator`` into UPLC, then use ``liftCode`` to lift ``params`` into a UPLC term, and apply the compiled ``auctionUntypedValidator`` to it at the UPLC level.
+   The latter won't work, because everything being compiled (inside ``[||...||]``) must be known at compile time, but ``params`` is not: it can differ at runtime depending on what kind of auction we want to run!
+   Instead, we compile the entire ``auctionUntypedValidator`` into Plutus Core, then use ``liftCode`` to lift ``params`` into a Plutus Core term, and apply the compiled ``auctionUntypedValidator`` to it at the Plutus Core level.
    To do so, we need the ``Lift`` instance for ``AuctionParams``, derived via ``PlutusTx.makeLift``.
 
+Life Cycle of the Auction Smart Contract
+-------------------------------------------
+
+With the Plutus script written, Alice is now ready to start the auction smart contract.
+At the outset, Alice creates a script UTXO whose address is the hash of the Plutus script, whose value is the token to be auctioned, and whose datum is ``Nothing``.
+Recall that the datum represents the highest bid, and there's no bid yet.
+This script UTXO also contains the script itself, so that nodes validating transactions that
+try to spend this script UTXO have access to the script.
+
+How does Alice create this initial UTXO?
+Alice needs to create a transcation with the desired UTXO as an output.
+The token being auctioned can either be minted by this transaction, or if it already exists in another UTXO on the ledger, the transaction should consume that UTXO as an input.
+We will not go into the details of how minting tokens works.
+
+The First Bid
+~~~~~~~~~~~~~~~~~~
+
+Suppose Bob, the first bidder, wants to bid 100 Ada for Alice's NFT.
+In order to do this, Bob creates a transaction that has at least two inputs and at least one output.
+
+The required inputs are (1) the script UTXO Alice created; (2) Bob's bid of 100 Ada.
+The 100 Ada can come one or multiple UTXOs.
+Note that the input UTXOs must have a total value of more than 100 Ada: in addition to the bid amount, they also need to cover the transaction fee.
+
+The required output is a script UTXO with the same address as the initial UTXO (since the Plutus script itself remains the same), which is known as a continuing output.
+This continuing output UTXO should contain:
+
+* a datum that contains Bob's wallet address and Bob's bid amount (100 Ada).
+
+  * Bob's wallet address is used to claim the token (if Bob ends up winning the auction) or receive the refund (if a higher bid is placed later).
+
+* a value: the token being auctioned plus the 100 Ada from Bob's bid.
+
+If the input UTXOs contain more Ada than 100 plus the transaction fee, then there should be additional output UTXOs that return the extra Ada.
+Again, verifying that the input value of a transaction minus the transaction fee equals the output value (unless the transaction is burning tokens) is the responsibility of the ledger, not the Plutus script.
+
+TODO: replace this table with a diagram
+
++----------------------+-------------------+
+| 1st bid inputs       | 1st bid outputs   |
++======================+===================+
+| The auction UTXO    | Bob               |
++----------------------+-------------------+
+| Bob's bid of 100 Ada | 100 Ada           |
++----------------------+-------------------+
+
+In order for Bob's transaction to be able to spend the initial script UTXO Alice created, Bob's transaction must also contain a redeemer.
+As shown in the code above, there are two kinds of redeemers in our example: ``NewBid Bid`` and ``Payout``.
+The redeemer in Bob's transation is a ``NewBid Bid`` where the ``Bid`` contains Bob's wallet address and bid amount.
+
+Once Bob's transaction is submitted, the node validating this trasaction will run the Plutus script, which checks a number of conditions like whether the bid happens before the deadline, and whether the bid is high enough.
+If the checks pass and everything else about the transaction is valid, the transaction will go through and be included in a block.
+At this point, the initial UTXO created by Alice no longer exists on the ledger, since it has been spent by Bob's transaction.
+
+TOOD: insert a diagram here.
+
+The Second Bid
+~~~~~~~~~~~~~~~~~~~~
+
+Next, suppose a second bidder, Charlie, wants to outbid Bob. Charlie wants to bid 200 Ada.
+
+Charlie will create another transaction.
+This transaction should have an additional output compared to Bob's transaction: a UTXO that returns Bob's bid of 100 Ada.
+Recall that this is one of the conditions checked by the Plutus script, and the transaction is rejected if the refund output is missing.
+
+TODO: replace this table with a diagram
+
++--------------------------+-----------------------------------------+
+| 2nd bid inputs           | 2nd bid outputs                         |
++==========================+=========================================+
+| The auction UTXO        | Newly created unspent transaction       |
++--------------------------+-----------------------------------------+
+| Charlie's bid of 200 Ada | UTXO that returns Bob's bid of 100 Ada |
++--------------------------+-----------------------------------------+
+
+Charlie's transaction needs to spend the script UTXO produced by Bob's transaction, so it also needs a redeemer. The redeemer is a ``NewBid Bid`` where ``Bid`` contains Charlie's wallet address and bid amount.
+Charlie's transaction cannot spend the initial UTXO produced by Alice, since it has already been spent by Bob's transaction.
+
+TODO: insert a diagram here.
+
+Closing the Auction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Let’s assume that there won’t be another bid.
+Once the deadline has passed, the auction can be closed.
+
+In order to do that, somebody has to create another transaction.
+That could be Alice who wants to collect the bid or it could be Charlie who wants to collect the NFT.
+It can be anybody, but Alice and Charlie have an incentive to create it.
+
+This transaction has one required input: the script UTXO produced by Charlie's transaction, and
+two required outputs: (1) the payment of the auctioned token to Charlie; (2) the payment of 200 Ada to Alice.
+
+TODO: insert a diagram here.
+
 Libraries for Writing Plutus Tx Scripts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------
 
 This auction example shows a relatively low-level way of writing scripts using Plutus Tx.
 In practice, you may consider using a higher-level library that abstracts away some of the details.
 For example, `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ provides a state machine library and a constraint library for writing Plutus Tx.
 Using these libraries, writing a validator in Plutus Tx becomes a matter of defining state transactions and the corresponding constraints, e.g., the condition ``refundsPreviousHighestBid`` can simply be written as ``Constraints.mustPayToPubKey bidder (singleton adaSymbol adaToken amt)``.
 
-Off-chain code
+Alterntaives to Plutus Tx
+-----------------------------
+
+Besides Plutus Tx there are other languages that can be compiled into Plutus Core.
+The following are some of them.
+This is not an endorsement and we do not know their qualities or production-readiness. We list them merely as examples.
+
+* `Aiken <https://github.com/txpipe/aiken/>`_
+* `Helios <https://github.com/hyperion-bt/helios>`_
+* `Imperator <https://github.com/ImperatorLang/imperator>`_
+* `plu-ts <https://github.com/HarmonicLabs/plu-ts>`_
+* `Plutarch <https://github.com/Plutonomicon/plutarch-core>`_
+* `Pluto <https://github.com/Plutonomicon/pluto>`_
+
+Off-chain Code
 -----------------------
 
-Since the main purpose of this tutorial is to introduce Plutus Tx and Plutus Core, we only walked through the on-chain code, responsible for validating transactions (in the sense of determining whether a transaction is allowed to spend an EUTXO).
+Since the main purpose of this tutorial is to introduce Plutus Tx and Plutus Core, we only walked through the on-chain code, responsible for validating transactions (in the sense of determining whether a transaction is allowed to spend a UTXO).
 
-In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available EUTXOs on the chain, etc.
+In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 A full suite of solutions is provided in the Plutus Application Framework.
 See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
+Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
+All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
 
-See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building a DApp using Plutus.
+See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building DApps using Plutus.
+A DApp is basically a smart contract plus a frontend.
 
 Further Reading
 -----------------------
