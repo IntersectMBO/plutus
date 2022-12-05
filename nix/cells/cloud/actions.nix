@@ -1,3 +1,8 @@
+# This file specifies the cicero actions.  If you change this file, you
+# _must_ re-create the job https://cicero.ci.iog.io/action/ for it to
+# take any effect.
+
+
 { cell
 , inputs
 }: {
@@ -17,6 +22,17 @@
         #lib.io.github_push & github,
         { #lib.io.github_pr, github, #target_default: false },
       ]
+    '';
+  };
+
+  "plutus/benchmark" = {
+    task = "benchmark";
+    io = ''
+      #lib.io.github_pr_comment & {
+        #input: "${cell.library.actions.benchmark.input}"
+        #repo: "input-output-hk/plutus"
+        #comment: "^/benchmark .+"
+      }
     '';
   };
 
@@ -41,4 +57,5 @@
       }
     '';
   };
+
 }
