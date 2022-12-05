@@ -38,9 +38,9 @@ handleDebuggerEvent bev@(B.VtyEvent ev) = do
             -- Stepping. Currently it highlights one line at a time.
             let highlightNextLine = \case
                     Nothing ->
-                        Just (HighlightCode (B.Location (1, 1)) Nothing)
-                    Just (HighlightCode (B.Location (r, c)) _) ->
-                        Just (HighlightCode (B.Location (r + 1, c)) Nothing)
+                        Just (HighlightSpan (B.Location (1, 1)) Nothing)
+                    Just (HighlightSpan (B.Location (r, c)) _) ->
+                        Just (HighlightSpan (B.Location (r + 1, c)) Nothing)
              in st & dsUplcHighlight %~ highlightNextLine
         Vty.EvKey (Vty.KChar '\t') [] -> modify' $ \st ->
             st & dsFocusRing %~ B.focusNext

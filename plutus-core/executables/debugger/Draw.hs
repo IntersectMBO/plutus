@@ -28,14 +28,14 @@ drawDebugger st =
         [header "Plutus Core Debugger" $ BC.center ui]
   where
     focusRing = st ^. dsFocusRing
-    (curRow, curCol) = BE.getCursorPosition (st ^. dsUplcEditor)
-    cursorPos = "Ln " <> show (curRow + 1) <> ", Col " <> show (curCol + 1)
+    (curLine, curCol) = BE.getCursorPosition (st ^. dsUplcEditor)
+    cursorPos = "Ln " <> show (curLine + 1) <> ", Col " <> show (curCol + 1)
     uplcEditor =
         BB.borderWithLabel (B.txt "UPLC program") $
             B.vBox
                 [ B.withFocusRing
                     focusRing
-                    (BE.renderEditor drawTexts)
+                    (BE.renderEditor (drawDocumentWithHighlight (st ^. dsUplcHighlight)))
                     (st ^. dsUplcEditor)
                 , B.padTop (B.Pad 1) . BC.hCenter $ B.str cursorPos
                 ]
@@ -64,44 +64,67 @@ drawDebugger st =
                 BC.center returnValueEditor B.<+> BC.center cekStateEditor
             , footer
             ]
-    drawTexts :: [Text] -> B.Widget ResourceName
-    drawTexts =
-        B.vBox
-            . toWidgets
-            -- This is needed for empty lines to be rendered correctly.
-            -- `Brick.Widgets.Core.txt` does the same via `fixEmpty`.
-            . fmap (\t -> if Text.null t then " " else t)
 
-    toWidgets :: [Text] -> [B.Widget ResourceName]
-    toWidgets rows = case st ^. dsUplcHighlight of
-        Nothing -> B.txt <$> rows
-        Just (HighlightCode (B.Location (sRow, sCol)) eLoc) ->
-            let alg :: (Text, Int) -> B.Widget ResourceName
-                alg (row, rowNo)
-                    | rowNo < sRow || rowNo > eRow = B.txt row
-                    -- The current line (either entirely or part of it) needs to be highlighted.
-                    | otherwise =
-                        let s =
-                                if rowNo > sRow
-                                    then 0
-                                    else sCol - 1
-                            e =
-                                if rowNo < eRow
-                                    then Text.length row
-                                    else eCol
-                            -- left -> no highlight
-                            -- middle -> highlight
-                            -- right -> no highlight
-                            ((left, middle), right) = first (Text.splitAt s) (Text.splitAt e row)
-                         in B.hBox $
-                                [B.txt left | not (Text.null left)]
-                                    ++ [ B.withAttr highlightAttr $ B.txt middle
-                                       | not (Text.null middle)
-                                       ]
-                                    ++ [B.txt right | not (Text.null right)]
-                  where
-                    B.Location (eRow, eCol) = fromMaybe (B.Location (sRow, Text.length row)) eLoc
-             in fmap alg (zip rows [1 ..])
+-- | Draw a document, a consecutive part of which may be highlighted.
+drawDocumentWithHighlight ::
+    forall n.
+    -- | The part of the document to be highlighted.
+    Maybe HighlightSpan ->
+    -- | The document to draw, one `Text` per line.
+    [Text] ->
+    B.Widget n
+drawDocumentWithHighlight = \case
+    Nothing -> B.txt . Text.unlines
+    Just (HighlightSpan (B.Location (sLine, sCol)) eLoc) ->
+        let toWidgets :: [Text] -> [B.Widget n]
+            toWidgets lns =
+                let alg :: (Text, Int) -> B.Widget n
+                    alg (line, lineNo)
+                        | lineNo < sLine || lineNo > eLine = B.txt line
+                        -- The current line (either entirely or part of it) needs to be highlighted.
+                        | otherwise =
+                            let s =
+                                    if lineNo > sLine
+                                        then 0
+                                        else sCol - 1
+                                e =
+                                    if lineNo < eLine
+                                        then Text.length line
+                                        else eCol
+                             in highlightLine line s e
+                      where
+                        B.Location (eLine, eCol) =
+                            fromMaybe
+                                (B.Location (sLine, Text.length line))
+                                eLoc
+                 in fmap alg (zip lns [1 ..])
+         in B.vBox
+                . toWidgets
+                -- This is needed for empty lines to be rendered correctly.
+                -- `Brick.Widgets.Core.txt` does the same via `fixEmpty`.
+                . fmap (\t -> if Text.null t then " " else t)
+
+-- | Draw a line and highlight from the start column to the end column.
+highlightLine ::
+    forall n.
+    Text ->
+    -- | Start column
+    Int ->
+    -- End column
+    Int ->
+    B.Widget n
+highlightLine line s e =
+    B.hBox $
+        [B.txt left | not (Text.null left)]
+            ++ [ B.withAttr highlightAttr $ B.txt middle
+               | not (Text.null middle)
+               ]
+            ++ [B.txt right | not (Text.null right)]
+  where
+    -- left -> no highlight
+    -- middle -> highlight
+    -- right -> no highlight
+    ((left, middle), right) = first (Text.splitAt s) (Text.splitAt e line)
 
 -- | Show key bindings upon request.
 withKeyBindingsOverlay ::

@@ -11,8 +11,8 @@ import Lens.Micro.TH
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
     deriving stock (Eq, Ord, Show)
 
--- | Highlight the code between two positions.
-data HighlightCode = HighlightCode
+-- | Highlight between two positions.
+data HighlightSpan = HighlightSpan
     { _hcSLoc :: B.Location
     , _hcELoc :: Maybe B.Location
     -- ^ @Nothing@ means highlight till the end of the line
@@ -31,7 +31,7 @@ data DebuggerState = DebuggerState
     , _dsFocusRing           :: B.FocusRing ResourceName
     -- ^ Controls which window is in focus.
     , _dsUplcEditor          :: BE.Editor Text ResourceName
-    , _dsUplcHighlight       :: Maybe HighlightCode
+    , _dsUplcHighlight       :: Maybe HighlightSpan
     , _dsSourceEditor        :: BE.Editor Text ResourceName
     , _dsReturnValueEditor   :: BE.Editor Text ResourceName
     , _dsCekStateEditor      :: BE.Editor Text ResourceName
