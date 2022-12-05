@@ -2,6 +2,11 @@
 , inputs
 }:
 let
+  inherit (inputs.nixpkgs) lib system;
+  inherit (inputs.cells) cloud;
+  inherit (inputs.cells.plutus) library;
+  inherit (library) pkgs;
+
   common =
     { config
     , ...
@@ -9,14 +14,14 @@ let
       preset = {
         nix.enable = true;
 
-        github.ci = {
+        github = {
           # Tullia tasks can run locally or on Cicero.
           # When no facts are present we know that we are running locally and vice versa.
           # When running locally, the current directory is already bind-mounted
           # into the container, so we don't need to fetch the source from GitHub
           # and we don't want to report a GitHub status.
-          enable = config.actionRun.facts != { };
-          repository = "input-output-hk/plutus";
+          ci.enable = config.actionRun.facts != { };
+          ci.repository = "input-output-hk/plutus";
         };
       };
     };
@@ -42,6 +47,47 @@ in
     memory = 1024 * 8;
     nomad.resources.cpu = 10000;
   };
+
+  benchmark = { config, ... }:
+    let
+      fact = config.actionRun.facts.${cloud.library.actions.benchmark.input}.value.github_body;
+      prNumber = toString fact.issue.number;
+
+      # Script gets current commit from HEAD in git repo it's ran in
+      runner = cell.library.plutus-benchmark-runner {
+        PR_NUMBER = prNumber;
+        BENCHMARK_NAME = lib.removePrefix "/benchmark " fact.comment.body;
+        GITHUB_TOKEN = "/secrets/cicero/github/token";
+      };
+    in
+    {
+      # Not importing commn module defined above, because we don't need the github preset
+      preset.nix.enable = true;
+
+      # clone and checkout git repo at latest revision at the time the action is run
+      # might be inaccurate if a commit was pushed in between comment creation and action run
+      preset.git.clone = {
+        enable = true;
+        remote = "https://github.com/input-output-hk/plutus";
+        # Tullia has some magic to get the revision when given a script like this
+        ref.outPath = lib.getAttr "outPath" (pkgs.writeScript "get-pr-rev" ''
+          ${lib.getExe pkgs.curl} \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/input-output-hk/plutus/pulls/${prNumber} \
+            | ${lib.getExe pkgs.jq} -r .base.sha
+        '');
+      };
+      command.text = "${runner}/bin/plutus-benchmark-runner";
+      nomad.templates = [
+        {
+          destination = "/secrets/cicero/github/token";
+          data = ''{{with secret "kv/data/cicero/github"}}{{.Data.data.token}}{{end}}'';
+        }
+      ];
+
+      memory = 1024 * 8;
+      nomad.resources.cpu = 10000;
+    };
 
   publish-documents = { config, pkgs, lib, ... }: {
     imports = [ common ];
