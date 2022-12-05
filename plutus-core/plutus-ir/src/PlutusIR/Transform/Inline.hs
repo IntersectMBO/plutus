@@ -357,15 +357,48 @@ maybeAddSubst body a s n rhs = do
     hints <- view iiHints
     let hinted = shouldInline hints a n
 
-    preUnconditional <- preInlineUnconditional rhs'
-    if preUnconditional
+    if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
     else do
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-        postUnconditional <- postInlineUnconditional rhs'
-        if hinted || postUnconditional
+        -- See Note [Inlining and purity]
+        termIsPure <- checkPurity rhs'
+        let preInlineUnconditional :: InlineM tyname name uni fun a Bool
+            preInlineUnconditional = do
+                usgs <- view iiUsages
+                -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+                let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
+                if not termUsedAtMostOnce -- if the term is used more than once, we don't inline
+                then pure False
+                else do -- otherwise, check if it's nonstrict first
+                            -- effectSafe = case s of
+                                -- Strict    -> termIsPure || immediatelyEvaluated
+                                -- NonStrict -> True
+                    if s == NonStrict
+                    then pure True -- if it's nonstrict, we inline
+                    else if termIsPure
+                        then pure True
+                        else do
+                        -- This can in the worst case traverse a lot of the term, which could lead
+                        -- to us doing ~quadratic work as we process the program. However in
+                        -- practice most term types will make it give up, so it's not too bad.
+                        let immediatelyEvaluated = case firstEffectfulTerm body of
+                                Just (Var _ n') -> n == n'
+                                _               -> False
+                        pure immediatelyEvaluated
+
+        preUnconditional <- preInlineUnconditional
+        if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
-        else pure $ Just rhs'
+        -- See Note [Inlining and purity]
+        -- This is the case where we don't know that the number of occurrences is exactly one,
+        -- so there's no point checking if the term is immediately evaluated.
+        else if not termIsPure then pure $ Just rhs'
+        else do
+        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+            postUnconditional <- postInlineUnconditional rhs'
+            if postUnconditional
+            then extendAndDrop (Done $ dupable rhs')
+            else pure $ Just rhs'
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun a
@@ -379,37 +412,13 @@ maybeAddSubst body a s n rhs = do
             let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
             pure $ isPure builtinVer strictnessFun t
 
-        preInlineUnconditional :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
-        preInlineUnconditional t = do
-            usgs <- view iiUsages
-            -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-            let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
-            -- See Note [Inlining and purity]
-            termIsPure <- checkPurity t
-            -- This can in the worst case traverse a lot of the term, which could lead to us
-            -- doing ~quadratic work as we process the program. However in practice most term
-            -- types will make it give up, so it's not too bad.
-            let immediatelyEvaluated = case firstEffectfulTerm body of
-                 Just (Var _ n') -> n == n'
-                 _               -> False
-                effectSafe = case s of
-                    Strict    -> termIsPure || immediatelyEvaluated
-                    NonStrict -> True
-
-            pure $ termUsedAtMostOnce && effectSafe
-
         -- | Should we inline? Should only inline things that won't duplicate work or code.
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postInlineUnconditional ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
         postInlineUnconditional t = do
             -- See Note [Inlining criteria]
             let acceptable = costIsAcceptable t && sizeIsAcceptable t
-            -- See Note [Inlining and purity]
-            -- This is the case where we don't know that the number of occurences is exactly one,
-            -- so there's no point checking if the term is immediately evaluated.
-            termIsPure <- checkPurity t
-
-            pure $ acceptable && termIsPure
+            pure acceptable
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
