@@ -73,8 +73,8 @@ extra-experimental-features = nix-command flakes
 On NixOS, set the following NixOS options:
 ----
 nix = {
-  binaryCaches          = [ "https://cache.iog.io" "https://cache.nixos.org"];
-  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+  binaryCaches          = [ "https://cache.iog.io" ];
+  binaryCachePublicKeys = [ "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" ];
 };
 ----
 
