@@ -10,12 +10,14 @@ module Builtin.Constant.Term
   (_⊢⋆_ : Ctx⋆ → Kind → Set)
   (con : ∀{Φ} → TyCon Ctx⋆ (_⊢⋆ *) Φ → Φ ⊢⋆ *)
   where
+```
 
-open import Builtin
+## Imports
 
-open import Data.Integer
-open import Data.String
-open import Data.Bool
+```
+open import Data.Integer using (ℤ)
+open import Data.String using (String)
+open import Data.Bool using (Bool)
 ```
 
 ## Term Constants

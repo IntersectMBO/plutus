@@ -1,22 +1,32 @@
 \begin{code}
 module Algorithmic.Completeness where
 
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.RenamingSubstitution
+
+
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans) 
+                                                  renaming (subst to substEq) 
+open import Function using (_∘_)
+open import Data.Product using (_×_) renaming (_,_ to _,,_)
+open import Data.List using (List;[];_∷_)
+
+open import Utils using (Kind;*)
+open import Type using (_⊢⋆_;_∋⋆_;Z;S;Ctx⋆;_,⋆_)
+open _⊢⋆_
+
+open import Type.Equality using (_≡β_;≡2β)
+open _≡β_
+open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub)
 import Declarative as Syn
 import Algorithmic as Norm
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Type.BetaNBE
-open import Type.BetaNBE.Completeness
-open import Type.BetaNBE.RenamingSubstitution
-
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
-open import Function
-open import Data.Vec hiding ([_];length)
-open import Data.Sum
+open import Type.BetaNormal using (embNf;weakenNf;ne;_⊢Nf⋆_;_⊢Ne⋆_)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.Completeness using (completeness;sub-eval;idCR;fund;symCR)
+open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons)
+open import Type.BetaNBE.Soundness using (soundness)
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -31,13 +41,12 @@ nfTyVar Syn.Z             = Norm.Z
 nfTyVar (Syn.S α)         = Norm.S (nfTyVar α)
 nfTyVar (Syn.T {A = A} α) = Norm.conv∋ refl (ren-nf S A) (Norm.T (nfTyVar α))
 
-open import Type.BetaNormal.Equality
 
 lemΠ : ∀{Γ K }(B : Γ ,⋆ K ⊢⋆ *) →
        nf (Π B) ≡ Π (nf B)
 lemΠ B = cong Π (sym (subNf-lemma' B))
 
-open import Type.BetaNBE.Soundness
+
 
 stability-μ : ∀{Φ K}(A :  Φ ⊢⋆ _)(B : Φ ⊢⋆ K) →
   nf (A · ƛ (μ (weaken A) (` Z)) · B)
@@ -52,11 +61,6 @@ stability-μ A B = completeness
         (≡2β (sym (cong embNf (ren-nf S A))))) (refl≡β (` Z)))))
     (soundness B))
 
-open import Type.BetaNBE.Completeness
-open import Type.BetaNBE.Soundness
-open import Type.BetaNBE.Stability
-
-
 lem[] : ∀{Γ K}(A : Γ ⊢⋆ K)(B : Γ ,⋆ K ⊢⋆ *) →
   (nf B [ nf A ]Nf) ≡ nf (B [ A ])
 lem[] A B = trans
@@ -67,10 +71,6 @@ lem[] A B = trans
       (sym≡β (soundness B)))
     (sym (sub-eval B idCR (sub-cons ` A))))
 
-open import Builtin hiding (length)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
-
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
 nfTypeTC (STermCon.integer i)    = NTermCon.integer i
@@ -79,9 +79,6 @@ nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
 nfTypeTC STermCon.unit           = NTermCon.unit
 nfTypeTC (STermCon.Data d)       = NTermCon.Data d
-
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
@@ -107,7 +104,7 @@ lemσ σ C _ refl q = trans
 -- this should be a lemma in NBE/RenSubst
 -- subNf (nf ∘ σ) (nf C) ≡ nf (sub σ C)
 
-open import Builtin.Constant.Type  Ctx⋆ (_⊢Nf⋆ *)
+
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As

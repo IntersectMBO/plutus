@@ -5,21 +5,18 @@ module Type.BetaNBE where
 ## Imports
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Type.RenamingSubstitution
-open import Type.Equality
+open import Function using (_∘_;id)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+
+open import Utils using (Kind;*;_⇒_)
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.RenamingSubstitution using (Ren)
 import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
-
-open import Function
-open import Data.Sum
-open import Data.Empty
-open import Data.Product
-open import Data.String
-
-open import Relation.Binary.PropositionalEquality hiding ([_]; subst)
 \end{code}
 
 Values are defined by induction on kind. At kind # and * they are

@@ -10,31 +10,24 @@ module Declarative where
 ## Imports
 
 ```
-open import Type
-open import Type.RenamingSubstitution
-open import Type.Equality
-open import Builtin
-open import Utils hiding (TermCon)
-open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
 
-open import Relation.Binary.PropositionalEquality
-  hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.Int
-open import Data.Integer renaming (_*_ to _**_)
-open import Data.Empty
-open import Data.Product hiding (_,_)
-open import Relation.Binary hiding (_⇒_)
-import Data.Nat as ℕ
-open import Data.Unit hiding (_≤_)
-open import Data.Vec hiding ([_]; take; drop)
-open import Data.List hiding ([_]; length; take; drop)
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
-open import Data.Sum
-open import Function hiding (_∋_;typeOf)
-import Data.Bool as Bool
-open import Data.String
+open import Type using (Ctx⋆;_⊢⋆_;_∋⋆_;Φ;Ψ;A;B)
+open Ctx⋆
+open _⊢⋆_
+open _∋⋆_
+
+open import Type.RenamingSubstitution using (weaken;sub;Ren;ren;Sub;_[_])
+open import Type.Equality using (_≡β_)
+open import Builtin using (Builtin)
+open Builtin.Builtin
+
+open import Utils using (Kind;*;_⇒_;K)
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
+
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
 ```
 
 ## Fixity declarations

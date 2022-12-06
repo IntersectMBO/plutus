@@ -76,5 +76,7 @@
 
   stylish-haskell = import ./stylish-haskell.nix block;
 
+  scriv = import ./scriv.nix block;
+
   repo-root = import ./repo-root.nix block;
 }

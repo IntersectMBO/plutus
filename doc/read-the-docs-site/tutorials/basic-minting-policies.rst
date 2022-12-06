@@ -23,13 +23,15 @@ Plutus script context versions
 ------------------------------------
 
 Minting policies have access to the :term:`script context` as their second argument.
-Each version of Plutus minting policy scripts are differentiated only by their ``ScriptContext`` argument. 
+Each version of Plutus minting policy scripts are differentiated only by their ``ScriptContext`` argument.
 
-   See this example from the file ``MustSpendScriptOutput.hs`` (lines 340 to 422) showing code addressing `Versioned Policies for both Plutus V1 and Plutus V2 <https://github.com/input-output-hk/plutus-apps/blob/05e394fb6188abbbe827ff8a51a24541a6386422/plutus-contract/test/Spec/TxConstraints/MustSpendScriptOutput.hs#L340-L422>`_. 
+   See this example from the file ``MustSpendScriptOutput.hs`` (lines 340 to 422) showing code addressing `Versioned Policies for both Plutus V1 and Plutus V2 <https://github.com/input-output-hk/plutus-apps/blob/05e394fb6188abbbe827ff8a51a24541a6386422/plutus-contract/test/Spec/TxConstraints/MustSpendScriptOutput.hs#L340-L422>`_.
 
 Minting policies tend to be particularly interested in the ``mint`` field, since the point of a minting policy is to control which tokens are minted.
 
-It is also important for a minting policy to look at the tokens in the ``mint`` field that are part of its own asset group.
+It is also important for a minting policy to look at the tokens in the ``mint`` field that use its own currency symbol i.e. policy hash.
+Note that checking only a specific token name is usually not correct.
+The minting policy must check for correct minting (or lack there of) of all token names under its currency symbol.
 This requires the policy to refer to its own hash --- fortunately this is provided for us in the script context of a minting policy.
 
 Writing minting policies

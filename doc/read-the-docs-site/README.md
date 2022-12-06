@@ -1,26 +1,17 @@
 # Plutus and Marlowe documentation site
- 
-This is a sphinx site. 
-Assuming you're in a `nix-shell`, from the top-level, you can either build the site directly:
 
-```
-sphinx-build -j 4 -n doc doc/_build 
-```
+This is a sphinx site.
 
-And then open `doc/_build/index.html` in your browser.
+Run `nix develop` to enter a development shell with `sphinx-build` and `sphinx-autobuild`.
 
+The following commands are also available:
 
-Or you can get yourself a development server with live reload on `http://127.0.0.1:8000`:
-
-```
-sphinx-autobuild -j 4 -n doc doc/_build 
-```
-
-Or you can use Nix which will also build the Haddock for the project and link it in:
-
-```
-nix build -f default.nix docs.site
-```
+- `autobuild-docs`          
+  Start a development server with live reload on `http://localhost:8000`
+- `build-docs`             
+  Build the docs locally in `_build/index.html`
+- `serve-docs`   
+  Build the full site with nix (including Haddock) and serve it on `http://localhost:8002`
 
 The doc site from main is built automatically and hosted [here](https://plutus.readthedocs.io/en/latest).
 

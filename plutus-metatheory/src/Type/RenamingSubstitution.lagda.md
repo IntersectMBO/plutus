@@ -10,12 +10,16 @@ module Type.RenamingSubstitution where
 ## Imports
 
 ```
-open import Utils
-open import Type
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
-open import Function using (id; _∘_)
+open import Function using (id;_∘_)
 open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
+  using (_≡_; refl; cong; cong₂; trans; sym)
+  renaming (subst to substEq) 
+
+open import Utils using (*;J;K)
+open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S;Z)
+open _⊢⋆_
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
+open TyCon
 ```
 
 ## Type renaming

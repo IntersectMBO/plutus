@@ -26,6 +26,7 @@ import Data.Data qualified
 import Data.Text.Encoding qualified as Text
 import Data.Word (Word64, Word8)
 import GHC.Generics
+import NoThunks.Class
 import Prelude
 import Prettyprinter
 
@@ -44,7 +45,7 @@ data Data =
     | I Integer
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
-    deriving anyclass (NFData)
+    deriving anyclass (NFData, NoThunks)
 
 instance Pretty Data where
     pretty = \case

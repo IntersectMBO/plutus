@@ -57,7 +57,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tullia = {
-      url = "github:input-output-hk/tullia/max-jobs-auto";
+      url = "github:input-output-hk/tullia/gh-comment";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -153,7 +153,7 @@
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "cloud" "pipelines" ];
+        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
       });
 
   nixConfig = {

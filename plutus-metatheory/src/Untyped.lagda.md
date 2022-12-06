@@ -14,20 +14,26 @@ module Untyped where
 ## Imports
 
 ```
-open import Utils
-open import Builtin
+open import Utils using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon)
+open Monad {{...}}
+open TermCon
+
 open import Scoped using (ScopeError;deBError)
-open import Builtin
-open import Raw
+open import Builtin using (Builtin;equals)
+open Builtin.Builtin
+
+open import Raw using (decBuiltin)
+open import Algorithmic using (arity;Term;Type)
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Nat using (ℕ;suc;zero)
-open import Data.Bool using (true;false)
+open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Algorithmic using (arity;Term;Type)
 open import Data.List using ([];_∷_)
-open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary
+open import Relation.Nullary using (yes;no)
+open import Data.Integer.Show using (show)
+open import Data.String using (String;_++_)
+open import Data.Empty using (⊥)
 ```
 
 ## Well-scoped Syntax
@@ -52,16 +58,13 @@ variable
 ## Debug printing
 
 ```
-open import Data.Integer.Show
-open import Data.String renaming (_++_ to _+++_) hiding (show)
-
 uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " +++ show x +++ ")"
+uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon unit = "()"
-uglyTermCon (string s) = "(string " +++ s +++ ")"
-uglyTermCon (bool false) = "(bool " +++ "false" +++ ")"
-uglyTermCon (bool true) = "(bool " +++ "true" +++ ")"
+uglyTermCon (string s) = "(string " ++ s ++ ")"
+uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
+uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
 uglyTermCon (Data d) = "(DATA)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
@@ -77,12 +80,12 @@ uglyBuiltin _ = "other"
 
 ugly : ∀{X} → X ⊢ → String
 ugly (` x) = "(` var )"
-ugly (ƛ t) = "(ƛ " +++ ugly t +++ ")"
-ugly (t · u) = "( " +++ ugly t +++ " · " +++ ugly u +++ ")"
-ugly (con c) = "(con " +++ uglyTermCon c +++ ")"
-ugly (force t) = "(f0rce " +++ ugly t +++ ")"
-ugly (delay t) = "(delay " +++ ugly t +++ ")"
-ugly (builtin b) = "(builtin " +++ uglyBuiltin b +++ ")"
+ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
+ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
+ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
+ugly (force t) = "(f0rce " ++ ugly t ++ ")"
+ugly (delay t) = "(delay " ++ ugly t ++ ")"
+ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
 ugly error = "error"
 ```
 
@@ -123,7 +126,6 @@ extricateU g (con c)     = UCon c
 extricateU g (builtin b) = UBuiltin b
 extricateU g error       = UError
 
-open import Data.Empty
 extricateU0 : ⊥  ⊢ → Untyped
 extricateU0 t = extricateU (λ()) t
 
@@ -154,8 +156,6 @@ scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 Used to compare outputs in testing
 
 ```
-open import Data.Bool
-
 decUTermCon : (C C' : TermCon) → Bool
 decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
 ... | yes p = true
