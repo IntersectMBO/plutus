@@ -50,7 +50,18 @@ in
 
   benchmark = { config, ... }:
     let
-      fact = config.actionRun.facts.${cloud.library.actions.benchmark.input}.value.github_body;
+      benchmarkInput = cloud.library.actions.benchmark.input;
+      fact =
+        # This fact gets evaluated by other tasks because of the IFD usage
+        # to get the PR rev. This prevents an error from that by populating
+        # the fact with fake data.
+        if config.actionRun.facts ? ${benchmarkInput} then
+          config.actionRun.facts.${benchmarkInput}.value.github_body
+        else
+          lib.warn "benchmark input missing, benchmark task will be created on fake data" {
+            issue.number = (-1);
+            comment.body = "";
+          };
       prNumber = toString fact.issue.number;
 
       # Script gets current commit from HEAD in git repo it's ran in
