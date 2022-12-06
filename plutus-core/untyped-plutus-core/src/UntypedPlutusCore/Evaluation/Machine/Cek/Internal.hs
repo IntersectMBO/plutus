@@ -24,6 +24,7 @@
 {-# LANGUAGE UndecidableInstances     #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dppr-cols=200 -dumpdir /tmp/dumps #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
@@ -190,8 +191,8 @@ instance Show (BuiltinRuntime (CekValue uni fun)) where
 data CekValue uni fun =
     -- This bang gave us a 1-2% speed-up at the time of writing.
     VCon !(Some (ValueOf uni))
-  | VDelay !(Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
-  | VLamAbs !NamedDeBruijn !(Term NamedDeBruijn uni fun ()) !(CekValEnv uni fun)
+  | VDelay {-# UNPACK #-} !(Closure uni fun)
+  | VLamAbs !NamedDeBruijn {-# UNPACK #-} !(Closure uni fun)
     -- | A partial builtin application, accumulating arguments for eventual full application.
     -- We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
     -- values always store their corresponding 'Term's fully discharged, see the comments at
@@ -497,11 +498,11 @@ dischargeCekValEnv valEnv = go 0
 dischargeCekValue :: CekValue uni fun -> Term NamedDeBruijn uni fun ()
 dischargeCekValue = \case
     VCon     val                         -> Constant () val
-    VDelay   body env                    -> dischargeCekValEnv env $ Delay () body
+    VDelay   (Closure env body)          -> dischargeCekValEnv env $ Delay () body
     -- 'computeCek' turns @LamAbs _ name body@ into @VLamAbs name body env@ where @env@ is an
     -- argument of 'computeCek' and hence we need to start discharging outside of the reassembled
     -- lambda, otherwise @name@ could clash with the names that we have in @env@.
-    VLamAbs (NamedDeBruijn n _ix) body env ->
+    VLamAbs (NamedDeBruijn n _ix) (Closure env body) ->
         -- The index on the binder is meaningless, we put `0` by convention, see 'Binder'.
         dischargeCekValEnv env $ LamAbs () (NamedDeBruijn n deBruijnInitIndex) body
     -- We only return a discharged builtin application when (a) it's being returned by the machine,
@@ -629,10 +630,10 @@ enterComputeCek = computeCek (toWordArray 0) where
         returnCek unbudgetedSteps' ctx (VCon val)
     computeCek !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
-        returnCek unbudgetedSteps' ctx (VLamAbs name body env)
+        returnCek unbudgetedSteps' ctx (VLamAbs name (Closure env body))
     computeCek !unbudgetedSteps !ctx !env (Delay _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
-        returnCek unbudgetedSteps' ctx (VDelay body env)
+        returnCek unbudgetedSteps' ctx (VDelay (Closure env body))
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek !unbudgetedSteps !ctx !env (Force _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps
@@ -701,7 +702,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> Context uni fun
         -> CekValue uni fun
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
+    forceEvaluate !unbudgetedSteps !ctx (VDelay (Closure env body)) = computeCek unbudgetedSteps ctx env body
     forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) = do
         -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
@@ -732,7 +733,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
+    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ (Closure env body)) arg =
         computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
