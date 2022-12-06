@@ -57,7 +57,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tullia = {
-      url = "github:input-output-hk/tullia/gh-comment";
+      url = "github:input-output-hk/tullia/max-jobs-auto";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
