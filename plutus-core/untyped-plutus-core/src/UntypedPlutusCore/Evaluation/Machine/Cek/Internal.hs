@@ -77,6 +77,7 @@ import Data.Array hiding (index)
 import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.List.NonEmpty qualified as NE
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
@@ -525,7 +526,7 @@ we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun)                         -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun) !(Term NamedDeBruijn uni fun ()) !(Context uni fun) -- ^ @[_ N]@
+    | FrameApplyArgs !(CekValEnv uni fun) {-# UNPACK #-} !(NE.NonEmpty (Term NamedDeBruijn uni fun ())) !(Context uni fun) -- ^ @[_ N ...]@
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
@@ -636,7 +637,13 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-        computeCek unbudgetedSteps' (FrameApplyArg env arg ctx) env fun
+        let ctx' = case ctx of
+              -- If the enclosing ctx is a FrameApplyArgs, then the env
+              -- there must be the same also
+              -- TODO: is this definitely true?
+              FrameApplyArgs env args ctx -> FrameApplyArgs env (arg `NE.cons` args) ctx
+              _                           -> FrameApplyArgs env (pure arg) ctx
+        computeCek unbudgetedSteps' ctx' env fun
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
@@ -671,8 +678,11 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek !unbudgetedSteps (FrameForce ctx) fun = forceEvaluate unbudgetedSteps ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek !unbudgetedSteps (FrameApplyArg argVarEnv arg ctx) fun =
-        computeCek unbudgetedSteps (FrameApplyFun fun ctx) argVarEnv arg
+    returnCek !unbudgetedSteps (FrameApplyArgs argVarEnv (arg NE.:| args) ctx) fun =
+        let remainingArgsCtx = case NE.nonEmpty args of
+                Just ne -> FrameApplyArgs argVarEnv ne ctx
+                Nothing -> ctx
+        in computeCek unbudgetedSteps (FrameApplyFun fun remainingArgsCtx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
