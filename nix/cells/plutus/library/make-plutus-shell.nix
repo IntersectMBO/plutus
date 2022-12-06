@@ -1,4 +1,5 @@
 { inputs, cell }:
+
 { compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
 
 let
