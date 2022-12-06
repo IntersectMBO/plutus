@@ -57,7 +57,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tullia = {
-      url = "github:input-output-hk/tullia/gh-comment";
+      url = "github:zeme-iohk/tullia";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
