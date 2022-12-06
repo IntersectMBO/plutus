@@ -60,7 +60,7 @@ in
         else
           lib.warn "benchmark input missing, benchmark task will be created on fake data" {
             issue.number = (-1);
-            comment.body = "";
+            comment.body = "/benchmark none";
           };
       prNumber = toString fact.issue.number;
 
