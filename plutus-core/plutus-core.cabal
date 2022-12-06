@@ -532,32 +532,6 @@ test-suite untyped-plutus-core-test
     , tasty-hunit
     , text
 
-executable untyped-plutus-core-test-dump
-  import:         lang
-  main-is:        Dump.hs
-  hs-source-dirs: untyped-plutus-core/test
-  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
-  other-modules:  Evaluation.Golden
-  build-depends:
-    , base                  >=4.9 && <5
-    , bytestring
-    , cardano-crypto-class
-    , flat
-    , hedgehog
-    , index-envs
-    , lens
-    , mtl
-    , plutus-core           ^>=1.1
-    , plutus-core-testlib   ^>=1.1
-    , pretty-show
-    , prettyprinter
-    , split
-    , tasty
-    , tasty-golden
-    , tasty-hedgehog
-    , tasty-hunit
-    , text
-
 executable plc
   import:         lang
   main-is:        plc/Main.hs
