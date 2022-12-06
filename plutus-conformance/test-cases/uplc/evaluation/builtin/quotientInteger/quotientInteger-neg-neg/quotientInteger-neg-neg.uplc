@@ -1,1 +1,0 @@
-(program 1.0.0 [(builtin quotientInteger) (con integer -503783783785265728700234277) (con integer -1777777777)])

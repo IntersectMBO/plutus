@@ -1,1 +1,0 @@
-(program 0.0.0 [ [ (builtin equalsByteString) (con bytestring #00ffaa) ] (con bytestring #00ffaa) ])

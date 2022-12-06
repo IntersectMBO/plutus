@@ -1,1 +1,0 @@
-(program 0.0.0 [[(builtin constrData) (con integer 1)] (con list(data) [{ Integer 0 }])] )

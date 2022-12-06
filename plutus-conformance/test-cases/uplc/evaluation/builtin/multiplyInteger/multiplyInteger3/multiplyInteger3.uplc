@@ -1,1 +1,0 @@
-(program 1.0.0 [ [ (builtin multiplyInteger) (con integer 793479793478939) ] (con integer 166266268485555555) ])

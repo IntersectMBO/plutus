@@ -1,1 +1,0 @@
-(program 1.0.0 [ [ (builtin subtractInteger) (con integer 134782734132417234781342718231486243)] (con integer 23443231) ])

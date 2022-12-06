@@ -1,1 +1,0 @@
-(program 0.0.0 [[(force (builtin trace)) (con string "Ola")] (con integer 2)])
