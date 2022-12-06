@@ -217,6 +217,9 @@ data CekValue uni fun =
 
 type CekValEnv uni fun = Env.RAList (CekValue uni fun)
 
+data Closure uni fun = Closure !(CekValEnv uni fun) !(Term NamedDeBruijn uni fun ())
+  deriving stock (Show)
+
 -- | The CEK machine is parameterized over a @spendBudget@ function. This makes the budgeting machinery extensible
 -- and allows us to separate budgeting logic from evaluation logic and avoid branching on the union
 -- of all possible budgeting state types during evaluation.
@@ -526,7 +529,7 @@ we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun
     = FrameApplyFun !(CekValue uni fun) !(Context uni fun)                         -- ^ @[V _]@
-    | FrameApplyArgs !(CekValEnv uni fun) {-# UNPACK #-} !(NE.NonEmpty (Term NamedDeBruijn uni fun ())) !(Context uni fun) -- ^ @[_ N ...]@
+    | FrameApplyArgs {-# UNPACK #-} !(NE.NonEmpty (Closure uni fun)) !(Context uni fun) -- ^ @[_ N ...]@
     | FrameForce !(Context uni fun)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
@@ -637,12 +640,11 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-        let ctx' = case ctx of
-              -- If the enclosing ctx is a FrameApplyArgs, then the env
-              -- there must be the same also
-              -- TODO: is this definitely true?
-              FrameApplyArgs env args ctx -> FrameApplyArgs env (arg `NE.cons` args) ctx
-              _                           -> FrameApplyArgs env (pure arg) ctx
+        let
+          clos = Closure env arg
+          ctx' = case ctx of
+              FrameApplyArgs args outer -> FrameApplyArgs (clos `NE.cons` args) outer
+              _                         -> FrameApplyArgs (pure clos) ctx
         computeCek unbudgetedSteps' ctx' env fun
     -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
     -- s ; ρ ▻ con c  ↦  s ◅ con c
@@ -678,9 +680,9 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek !unbudgetedSteps (FrameForce ctx) fun = forceEvaluate unbudgetedSteps ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek !unbudgetedSteps (FrameApplyArgs argVarEnv (arg NE.:| args) ctx) fun =
+    returnCek !unbudgetedSteps (FrameApplyArgs ((Closure argVarEnv arg) NE.:| args) ctx) fun =
         let remainingArgsCtx = case NE.nonEmpty args of
-                Just ne -> FrameApplyArgs argVarEnv ne ctx
+                Just ne -> FrameApplyArgs ne ctx
                 Nothing -> ctx
         in computeCek unbudgetedSteps (FrameApplyFun fun remainingArgsCtx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
