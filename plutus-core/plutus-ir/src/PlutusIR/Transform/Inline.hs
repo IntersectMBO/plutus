@@ -52,10 +52,6 @@ We differ from the paper a few ways, mostly leaving things out:
 Functionality
 ------------
 
-PreInlineUnconditional: we don't do it, since we don't bother using usage information.
-We *could* do it, but it doesn't seem worth it. We also don't need to worry about
-inlining nested let-bindings, since we don't inline any.
-
 CallSiteInline: TODO in PLT-1146
 
 Inlining recursive bindings: not worth it, complicated.
@@ -116,7 +112,7 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 -}
 
 -- | Substitution range, 'SubstRng' in the paper.
--- No 'Susp' case because we don't do PreInlineConditionally.
+-- IS THIS STILL RIGHT? No 'Susp' case because we don't do PreInlineConditionally.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun a =
     Done (Dupable (Term tyname name uni fun a)) --out expressions
@@ -362,31 +358,7 @@ maybeAddSubst body a s n rhs = do
     else do
         -- See Note [Inlining and purity]
         termIsPure <- checkPurity rhs'
-        let preInlineUnconditional :: InlineM tyname name uni fun a Bool
-            preInlineUnconditional = do
-                usgs <- view iiUsages
-                -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-                let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
-                if not termUsedAtMostOnce -- if the term is used more than once, we don't inline
-                then pure False
-                else do -- otherwise, check if it's nonstrict first
-                            -- effectSafe = case s of
-                                -- Strict    -> termIsPure || immediatelyEvaluated
-                                -- NonStrict -> True
-                    if s == NonStrict
-                    then pure True -- if it's nonstrict, we inline
-                    else if termIsPure
-                        then pure True
-                        else do
-                        -- This can in the worst case traverse a lot of the term, which could lead
-                        -- to us doing ~quadratic work as we process the program. However in
-                        -- practice most term types will make it give up, so it's not too bad.
-                        let immediatelyEvaluated = case firstEffectfulTerm body of
-                                Just (Var _ n') -> n == n'
-                                _               -> False
-                        pure immediatelyEvaluated
-
-        preUnconditional <- preInlineUnconditional
+        preUnconditional <- preInlineUnconditional body s n termIsPure
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
         -- See Note [Inlining and purity]
@@ -419,6 +391,30 @@ maybeAddSubst body a s n rhs = do
             -- See Note [Inlining criteria]
             let acceptable = costIsAcceptable t && sizeIsAcceptable t
             pure acceptable
+
+-- according to the paper we could only do this when it's `OnceSafe` - the single occurrence is not
+-- inside a lambda, nor is a constructor argument?
+preInlineUnconditional :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun a
+    -> Strictness
+    -> name
+    -> Bool -- ^ is it pure?
+    -> InlineM tyname name uni fun a Bool
+preInlineUnconditional body s n purity = do
+    usgs <- view iiUsages
+    -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+    let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
+    -- This can in the worst case traverse a lot of the term, which could lead to us
+    -- doing ~quadratic work as we process the program. However in practice most term
+    -- types will make it give up, so it's not too bad.
+    let immediatelyEvaluated = case firstEffectfulTerm body of
+            Just (Var _ n') -> n == n'
+            _               -> False
+        effectSafe = case s of
+            Strict    -> purity || immediatelyEvaluated
+            NonStrict -> True
+
+    pure $ termUsedAtMostOnce && effectSafe
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
