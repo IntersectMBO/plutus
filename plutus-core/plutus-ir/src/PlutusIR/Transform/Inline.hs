@@ -391,13 +391,18 @@ maybeAddSubst body a s n rhs = do
     hints <- view iiHints
     let hinted = shouldInline hints a n
 
+    (args, lams) <- view iiArity
+    let fullyApplied = -- TODO expand note [Inlining criteria]
+            -- if it's a function and it's fully applied, inline it. TODO more sophisticated check
+            (lams - args) == 0 && (lams > 0)
+
     preUnconditional <- preInlineUnconditional rhs'
     if preUnconditional
     then extendAndDrop (Done $ dupable rhs')
     else do
         -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
         postUnconditional <- postInlineUnconditional rhs'
-        if hinted || postUnconditional
+        if hinted || postUnconditional || fullyApplied
         then extendAndDrop (Done $ dupable rhs')
         else pure $ Just rhs'
     where
