@@ -154,13 +154,15 @@ testDischargeFree :: TestTree
 testDischargeFree = testCase "discharge" $ do
     -- free variable is left alone
     -- dis( empty |- (delay (\.9999)) ) === (delay (\.9999))
-    dis (VDelay (n outLam) Env.empty) @?= Delay () (n outLam)
+    dis (VDelay (Closure Env.empty (n outLam))) @?= Delay () (n outLam)
 
     -- x is bound so it is left alone
     -- y is discharged from the env
     -- outOfScope is free so it is left alone
     -- dis( y:unit |- \x-> x y outOfScope) ) === (\x -> x unit outOfScope)
     dis (VLamAbs (fakeNameDeBruijn $ DeBruijn 0)
+         (Closure
+         (Env.cons (VCon $ someValue ()) Env.empty)
          (n
          (mkIterApp ()
            (Var () (DeBruijn 1))
@@ -169,7 +171,7 @@ testDischargeFree = testCase "discharge" $ do
            ]
          )
          )
-         (Env.cons (VCon $ someValue ()) Env.empty)
+         )
         )
         @?= n (mkLam $ mkIterApp ()
                           (Var () (DeBruijn 1))

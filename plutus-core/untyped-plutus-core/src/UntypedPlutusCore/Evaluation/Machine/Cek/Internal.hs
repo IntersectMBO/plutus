@@ -30,6 +30,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     -- See Note [Compilation peculiarities].
     ( EvaluationResult(..)
     , CekValue(..)
+    , Closure (..)
     , CekUserError(..)
     , CekEvaluationException
     , CekBudgetSpender(..)
