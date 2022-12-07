@@ -388,7 +388,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> AnnInline `elem` toList ann
+            _                                      -> AlwaysInline `elem` fmap annInline (toList ann)
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
@@ -411,7 +411,7 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    pirT <- PIR.runDefT annMayInline $ compileExprWithDefs expr
     when (_posDumpPir opts) . liftIO $
         dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
@@ -427,7 +427,7 @@ runCompiler moduleName opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
