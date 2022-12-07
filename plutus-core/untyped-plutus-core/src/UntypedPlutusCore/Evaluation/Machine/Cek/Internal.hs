@@ -535,9 +535,9 @@ data Context uni fun
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
-        VDelay {}   -> 1
-        VLamAbs {}  -> 1
         VBuiltin {} -> 1
+        VLamAbs {}  -> 1
+        VDelay {}   -> 1
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
