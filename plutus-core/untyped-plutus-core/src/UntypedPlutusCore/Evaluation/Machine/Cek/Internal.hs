@@ -520,6 +520,7 @@ instance HasConstant (CekValue uni fun) where
 {-|
 The context in which the machine operates.
 
+
 Morally, this is a stack of frames, but we use the "intrusive list" representation so that
 we can match on context and the top frame in a single, strict pattern match.
 -}
