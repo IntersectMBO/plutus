@@ -37,7 +37,7 @@ echo "[ci-plutus-benchmark]: Updating cabal database ..."
 nix develop --command cabal update
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix develop --command cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+nix develop --command cabal bench "$BENCHMARK_NAME" >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
 git fetch 
@@ -48,7 +48,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 nix develop --command cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-nix develop --command cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
+nix develop --command cabal bench "$BENCHMARK_NAME" >bench-base.log 2>&1
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
@@ -68,7 +68,7 @@ echo -e "</details>"
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 if [ -v GITHUB_TOKEN ] ; then
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
-   curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+   curl -s -H "Authorization: token $(<"$GITHUB_TOKEN")" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
 else
    echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
 fi
