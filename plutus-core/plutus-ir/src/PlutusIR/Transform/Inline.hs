@@ -64,11 +64,13 @@ Implementation
 --------------
 
 In-scope set: we don't bother keeping it, since we only ever substitute in things that
-don't have bound variables. This is largely because we don't do PreInlineUnconditional, which
-would inline big things that were only used once, including lambdas etc.
+don't have bound variables.
 
-Suspended substitutions for values: we don't do it, since you only need it for
-PreInlineUnconditional
+Suspended substitutions ('SuspEx') for values: we don't need it, because we simplify the RHS before
+preInlineUnconditional. For GHC, they can do more simplification in context, but they only want to
+process the binding RHS once, so delaying it until the call site is better
+if it's a single-occurrence term. But in our case it's fine to leave any improved in-context
+simplification to later passes, so we don't need this complication.
 
 Optimization after substituting in DoneExprs: we can't make different inlining decisions
 contextually, so there's no point doing this.
@@ -111,8 +113,7 @@ turn into a delay/force pair and get simplified away, and then we have something
 inline. This is essentially the reason for the existence of the UPLC inlining pass.
 -}
 
--- | Substitution range, 'SubstRng' in the paper.
--- IS THIS STILL RIGHT? No 'Susp' case because we don't do PreInlineConditionally.
+-- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun a =
     Done (Dupable (Term tyname name uni fun a)) --out expressions
@@ -156,7 +157,6 @@ type InliningConstraints tyname name uni fun =
     , PLC.ToBuiltinMeaning uni fun
     )
 
--- | Useful info for inlining.
 data InlineInfo name fun a = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
     -- ^ Is it strict? Only needed for PIR, not UPLC
@@ -356,18 +356,18 @@ maybeAddSubst body a s n rhs = do
     if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
     else do
-        -- See Note [Inlining and purity]
         termIsPure <- checkPurity rhs'
-        preUnconditional <- preInlineUnconditional body s n termIsPure
+        preUnconditional <- liftM2 (&&) (termUsedAtMostOnce n) (effectSafe body s n termIsPure)
+        -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
+        -- I.e., it's used at most once AND it's `effectSafe` (it isn't doing any substantial work).
+        -- Although we actually also inline 'Dead' binders (i.e., remove dead code) here.
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
-        -- See Note [Inlining and purity]
+        else do
+        -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and purity].
         -- This is the case where we don't know that the number of occurrences is exactly one,
         -- so there's no point checking if the term is immediately evaluated.
-        else if not termIsPure then pure $ Just rhs'
-        else do
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-            postUnconditional <- postInlineUnconditional rhs'
+            postUnconditional <- fmap ((&&) termIsPure) (acceptable rhs')
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'
@@ -377,44 +377,47 @@ maybeAddSubst body a s n rhs = do
             -> InlineM tyname name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
-        checkPurity :: Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
-        checkPurity t = do
-            strctMap <- view iiStrictnessMap
-            builtinVer <- view iiBuiltinVer
-            let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-            pure $ isPure builtinVer strictnessFun t
+-- | Check if term is pure. See Note [Inlining and purity]
+checkPurity
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    =>Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
+checkPurity t = do
+    strctMap <- view iiStrictnessMap
+    builtinVer <- view iiBuiltinVer
+    let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
+    pure $ isPure builtinVer strictnessFun t
 
-        -- | Should we inline? Should only inline things that won't duplicate work or code.
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-        postInlineUnconditional ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
-        postInlineUnconditional t = do
-            -- See Note [Inlining criteria]
-            let acceptable = costIsAcceptable t && sizeIsAcceptable t
-            pure acceptable
+termUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    => name
+    -> InlineM tyname name uni fun a Bool
+termUsedAtMostOnce n = do
+    usgs <- view iiUsages
+    -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+    pure $ Usages.getUsageCount n usgs <= 1
 
--- according to the paper we could only do this when it's `OnceSafe` - the single occurrence is not
--- inside a lambda, nor is a constructor argument?
-preInlineUnconditional :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+effectSafe :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => Term tyname name uni fun a
     -> Strictness
     -> name
     -> Bool -- ^ is it pure?
     -> InlineM tyname name uni fun a Bool
-preInlineUnconditional body s n purity = do
-    usgs <- view iiUsages
-    -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-    let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
+effectSafe body s n purity = do
     -- This can in the worst case traverse a lot of the term, which could lead to us
     -- doing ~quadratic work as we process the program. However in practice most term
     -- types will make it give up, so it's not too bad.
     let immediatelyEvaluated = case firstEffectfulTerm body of
             Just (Var _ n') -> n == n'
             _               -> False
-        effectSafe = case s of
-            Strict    -> purity || immediatelyEvaluated
-            NonStrict -> True
+    pure $ case s of
+        Strict    -> purity || immediatelyEvaluated
+        NonStrict -> True
 
-    pure $ termUsedAtMostOnce && effectSafe
+-- | Should we inline? Should only inline things that won't duplicate work or code.
+-- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+acceptable ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
+acceptable t =
+    -- See Note [Inlining criteria]
+    pure $ costIsAcceptable t && sizeIsAcceptable t
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
