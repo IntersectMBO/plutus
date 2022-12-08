@@ -36,12 +36,6 @@
      - Set log level to debug
 
 
-   * - ``debug-context``
-     - Int
-     - 1
-     - Set context level to 3, which means error messages contain full contexts.
-
-
    * - ``defer-errors``
      - Bool
      - False
@@ -66,16 +60,21 @@
      - Dump Untyped Plutus Core
 
 
-   * - ``max-simplifier-iterations``
+   * - ``max-simplifier-iterations-pir``
      - Int
      - 12
-     - Set the max iterations for the simplifier
+     - Set the max iterations for the PIR simplifier
+
+   * - ``max-simplifier-iterations-uplc``
+     - Int
+     - 12
+     - Set the max iterations for the UPLC simplifier
 
 
-   * - ``no-context``
+   * - ``context-level``
      - Int
      - 1
-     - Set context level to 0, which means error messages contain minimum contexts.
+     - Set context level for error messages.
 
 
    * - ``optimize``

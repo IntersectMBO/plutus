@@ -80,6 +80,12 @@ executable haskell-implementation
   other-modules:
   build-depends:  base >=4.9 && <5
 
+-- NB: some of the Adga tests are marked as expected to fail.  If you just type
+-- `cabal test --test-options --accept` then the result files can be updated
+-- with successful results by haskell-conformance and then immediately
+-- overwritten with error messages by agda-conformance, which can put you back
+-- where you started.  To avoid this, only use `--accept` with
+-- haskell-conformance.
 test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0

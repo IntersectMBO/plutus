@@ -148,8 +148,6 @@
       }
       {
         ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
-        # TODO(std) remove me once hydra is gone
-        hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
