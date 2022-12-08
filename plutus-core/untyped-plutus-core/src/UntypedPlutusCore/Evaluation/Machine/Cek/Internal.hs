@@ -161,8 +161,8 @@ cekStepCost costs = \case
     BLamAbs  -> cekLamCost costs
     BApply   -> cekApplyCost costs
     BDelay   -> cekDelayCost costs
-    BForce   -> cekForceCost costs
     BBuiltin -> cekBuiltinCost costs
+    BForce   -> cekForceCost costs
 
 data ExBudgetCategory fun
     = BStep StepKind
