@@ -67,7 +67,10 @@ in
       # Script gets current commit from HEAD in git repo it's ran in
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = prNumber;
-        BENCHMARK_NAME = lib.removePrefix "/benchmark " fact.comment.body;
+        # Remove newlines and carriage returns from comment
+        BENCHMARK_NAME = builtins.head (builtins.match
+          "/benchmark ([[:lower:]:]+)[[:space:]]+"
+          fact.comment.body);
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
