@@ -1,7 +1,7 @@
 .. highlight:: haskell
 .. _english_auction_tutorial:
 
-Plutus Script for an Auction Smart Contract
+Plutus script for an auction smart contract
 ==========================================================
 
 Overview
@@ -20,7 +20,7 @@ In this example, we are not covering the front-end and back-end aspects of the o
 
 Before we get to the Plutus Tx code, let's briefly go over some basic concepts, including UTXO, EUTXO, datum, redeemer and script context.
 
-The EUTXO Model, Datum, Redeemer and Script Context
+The EUTXO model, datum, redeemer and script context
 -----------------------------------------------------
 
 UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
@@ -45,7 +45,7 @@ When the transaction is submitted, if some UTXOs it tries to spend have already 
 If all input UTXOs still exist, and the Plutus script is invoked, the on-chain behavior would be exactly identical to the off-chain behavior.
 This could not be achieved if transaction inputs were mutable, such as is the case in Ethereum's account-based model.
 
-An Example: Auction Smart Contract
+An example: auction smart contract
 -----------------------------------------
 
 On the Cardano blockchain, a transaction contains an arbitrary number of inputs and an arbitrary number of outputs.
@@ -61,14 +61,14 @@ She would like to create and deploy an auction smart contract with the following
 
 Next, let's go through and discuss the Plutus Tx code we're using, shown below, for this specific example of an auction smart contract.
 
-Plutus Tx Code
+Plutus Tx code
 ---------------------
 
 Recall that Plutus Tx is a subset of Haskell. It is the source language one uses to write Plutus validators.
 A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
 The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 
-Data Types
+Data types
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 First, let's define the following data types and instances for the validator:
@@ -189,7 +189,7 @@ We will then be able to launch the auction on-chain by submitting a transaction 
    Instead, we compile the entire ``auctionUntypedValidator`` into Plutus Core, then use ``liftCode`` to lift ``params`` into a Plutus Core term, and apply the compiled ``auctionUntypedValidator`` to it at the Plutus Core level.
    To do so, we need the ``Lift`` instance for ``AuctionParams``, derived via ``PlutusTx.makeLift``.
 
-Life Cycle of the Auction Smart Contract
+Life cycle of the auction smart contract
 -------------------------------------------
 
 With the Plutus script written, Alice is now ready to start the auction smart contract.
@@ -206,7 +206,7 @@ Alice needs to create a transcation with the desired UTXO as an output.
 The token being auctioned can either be minted by this transaction, or if it already exists in another UTXO on the ledger, the transaction should consume that UTXO as an input.
 We will not go into the details here of how minting tokens works.
 
-The First Bid
+The first bid
 ~~~~~~~~~~~~~~~~~~
 
 Suppose Bob, the first bidder, wants to bid 100 Ada for Alice's NFT.
@@ -240,7 +240,7 @@ Once Bob's transaction is submitted, the node validating this trasaction will ru
 If the checks pass and everything else about the transaction is valid, the transaction will go through and be included in a block.
 At this point, the initial UTXO created by Alice no longer exists on the ledger, since it has been spent by Bob's transaction.
 
-The Second Bid
+The second bid
 ~~~~~~~~~~~~~~~~~~~~
 
 Next, suppose a second bidder, Charlie, wants to outbid Bob. Charlie wants to bid 200 Ada.
@@ -256,7 +256,7 @@ Recall that this is one of the conditions checked by the Plutus script; the tran
 Charlie's transaction needs to spend the script UTXO produced by Bob's transaction, so it also needs a redeemer. The redeemer is a ``NewBid Bid`` where ``Bid`` contains Charlie's wallet address and bid amount.
 Charlie's transaction cannot spend the initial UTXO produced by Alice, since it has already been spent by Bob's transaction.
 
-Closing the Auction
+Closing the auction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let’s assume that there won’t be another bid.
@@ -273,7 +273,7 @@ two required outputs: (1) the payment of the auctioned token to Charlie; (2) the
    :width: 700
    :alt: Closing transaction
 
-Libraries for Writing Plutus Tx Scripts
+Libraries for writing Plutus Tx scripts
 --------------------------------------------------
 
 This auction example shows a relatively low-level way of writing scripts using Plutus Tx.
@@ -294,15 +294,15 @@ We list some of them here for reference. However, we are not endorsing them; we 
 * `Plutarch <https://github.com/Plutonomicon/plutarch-core>`_
 * `Pluto <https://github.com/Plutonomicon/pluto>`_
 
-Off-chain Code
+Off-chain code
 -----------------------
 
 Since the main purpose of this tutorial is to introduce Plutus Tx and Plutus Core, we walked through only the on-chain code, which is responsible for validating transactions (in the sense of determining whether a transaction is allowed to spend a UTXO).
 
 In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 
-A full suite of solutions is provided in the Plutus Application Framework.
-See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
+A full suite of solutions is `in development <https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/plutus-tools-component-descriptions.html>`_. 
+See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details. 
 
 Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
 All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
@@ -310,12 +310,12 @@ All these are based on the `Cardano API <https://github.com/input-output-hk/card
 See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building DApps using Plutus.
 A DApp is basically a smart contract plus a front end.
 
-Further Reading
+Further reading
 -----------------------
 
 The EUTXO model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * [Paper] `The Extended UTXO Model <https://iohk.io/en/research/library/papers/the-extended-utxo-model/>`_
-* [Doc] `Understanding the Extended UTXO model <https://www.essentialcardano.io/article/the-eutxo-handbook>`_
+* [Doc] `The EUTXO Handbook <https://www.essentialcardano.io/article/the-eutxo-handbook>`_
 * [Blog Post] Cardano's Extended UTXO accounting model---built to support multi-assets and smart contracts (`part 1 <https://iohk.io/en/blog/posts/2021/03/11/cardanos-extended-utxo-accounting-model/>`_, `part 2 <https://iohk.io/en/blog/posts/2021/03/12/cardanos-extended-utxo-accounting-model-part-2/>`_)
