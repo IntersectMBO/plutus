@@ -54,7 +54,6 @@ import PlutusPrelude
 
 import UntypedPlutusCore.Core
 
-
 import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
