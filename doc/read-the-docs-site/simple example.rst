@@ -1,8 +1,11 @@
 Simple example
 ===================
 
-Plutus script for an auction smart contract (overview)
-----------------------------------------------------------
+Plutus script for an auction smart contract 
+-------------------------------------------------
+
+Overview
+~~~~~~~~~~~~
 
 This tutorial presents an example of Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully. 
 
