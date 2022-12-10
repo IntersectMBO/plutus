@@ -7,7 +7,7 @@ Plutus script for an auction smart contract
 Overview
 ~~~~~~~~~~~~
 
-This tutorial presents an example of Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully. 
+This example presents Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully. 
 
 Plutus Tx is a high-level language for writing the validation logic of the contract, the logic that determines whether a transaction is allowed to spend a UTXO.
 Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low-level language based on higher-order polymorphic lambda calculus.
@@ -23,6 +23,9 @@ Before we get to the Plutus Tx code, let's briefly go over some basic concepts, 
 The EUTXO model, datum, redeemer and script context
 -----------------------------------------------------
 
+On the Cardano blockchain, a transaction contains an arbitrary number of inputs and an arbitrary number of outputs.
+The effect of a transaction is to consume inputs and produce new outputs.
+
 UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
 A UTXO is produced by a transaction, is immutable, and can only be spent once by another transaction.
 In the original UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of Ada and/or other tokens). 
@@ -35,8 +38,6 @@ For a transaction to spend it, the transaction must provide a piece of input dat
 The script is then run, and it must succeed in order for the transaction to be allowed to spend the UTXO.
 In addition to the redeemer, the script also has access to the datum contained in the UTXO, as well as the details of the transaction trying to spend it. This is referred to as *script context*.
 
-See also `Plutus scripts <https://docs.cardano.org/plutus/plutus-scripts>`_ for further reading about scripts and the `Extended UTXO model <https://docs.cardano.org/learn/eutxo-explainer>`_. 
-
 Note that the only thing a Plutus script does is to determine whether a transaction can spend the script UTXO that contains the script. It is *not* responsible for such things as deciding whether it can spend a different UTXO, checking that the input value in a transaction equals the output value, or updating the state of the smart contract.
 Consider it a pure function that returns ``Bool``.
 Checking transaction validity is done by the ledger rules, and updating the state of a smart contract is done by constructing the transaction to produce a new script UTXO with an updated datum.
@@ -47,11 +48,13 @@ When the transaction is submitted, if some UTXOs it tries to spend have already 
 If all input UTXOs still exist, and the Plutus script is invoked, the on-chain behavior would be exactly identical to the off-chain behavior.
 This could not be achieved if transaction inputs were mutable, such as is the case in Ethereum's account-based model.
 
-An example: auction smart contract
------------------------------------------
+See also: 
 
-On the Cardano blockchain, a transaction contains an arbitrary number of inputs and an arbitrary number of outputs.
-The effect of a transaction is to consume inputs and produce new outputs.
+   * `Plutus scripts <https://docs.cardano.org/plutus/plutus-scripts>`_ for further reading about scripts, and 
+   * `Understanding the Extended UTXO model <https://docs.cardano.org/learn/eutxo-explainer>`_ 
+
+Auction properties
+----------------------
 
 In this example, Alice wants to auction some asset she owns, represented as a non-fungible token (NFT) on Cardano.
 She would like to create and deploy an auction smart contract with the following properties:
@@ -68,7 +71,7 @@ Plutus Tx code
 
 Recall that Plutus Tx is a subset of Haskell. It is the source language one uses to write Plutus validators.
 A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
+The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/AuctionValidator.hs>`_.
 
 Data types
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -203,8 +206,7 @@ try to spend this script UTXO have access to the script.
 Initial UTXO
 ~~~~~~~~~~~~~~~~~
 
-How does Alice create this initial UTXO?
-Alice needs to create a transcation with the desired UTXO as an output.
+Alice needs to create the initial UTXO transaction with the desired UTXO as an output.
 The token being auctioned can either be minted by this transaction, or if it already exists in another UTXO on the ledger, the transaction should consume that UTXO as an input.
 We will not go into the details here of how minting tokens works.
 
@@ -234,7 +236,7 @@ In order for Bob's transaction to be able to spend the initial script UTXO Alice
 As shown in the code above, there are two kinds of redeemers in our example: ``NewBid Bid`` and ``Payout``.
 The redeemer in Bob's transaction is a ``NewBid Bid`` where the ``Bid`` contains Bob's wallet address and bid amount.
 
-.. image:: first-bid-simple-auction.png
+.. image:: first-bid-simple-auction-1.png
    :width: 700
    :alt: First bid 
 
@@ -251,7 +253,7 @@ Charlie will create another transaction.
 This transaction should have an additional output compared to Bob's transaction: a UTXO that returns Bob's bid of 100 Ada.
 Recall that this is one of the conditions checked by the Plutus script; the transaction is rejected if the refund output is missing.
 
-.. image:: second-bid-simple-auction.png
+.. image:: second-bid-simple-auction-1.png
    :width: 700
    :alt: Second bid 
 
@@ -270,16 +272,16 @@ It can be anybody, but Alice and Charlie have an incentive to create it.
 
 This transaction has one required input: the script UTXO produced by Charlie's transaction, and two required outputs: (1) the payment of the auctioned token to Charlie; (2) the payment of 200 Ada to Alice.
 
-.. image:: closing-tx-simple-auction.png
+.. image:: closing-tx-simple-auction-1.png
    :width: 700
    :alt: Closing transaction
 
 Libraries for writing Plutus Tx scripts
---------------------------------------------------
+-------------------------------------------
 
 This auction example shows a relatively low-level way of writing scripts using Plutus Tx.
 In practice, you may consider using a higher-level library that abstracts away some of the details.
-For example, `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ provides a state machine library and a constraint library for writing Plutus Tx.
+For example, `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ provides a constraint library for writing Plutus Tx.
 Using these libraries, writing a validator in Plutus Tx becomes a matter of defining state transactions and the corresponding constraints, e.g., the condition ``refundsPreviousHighestBid`` can simply be written as ``Constraints.mustPayToPubKey bidder (singleton adaSymbol adaToken amt)``.
 
 Alternatives to Plutus Tx
@@ -298,7 +300,7 @@ We list some of them here for reference. However, we are not endorsing them; we 
 Off-chain code
 -----------------------
 
-Since the main purpose of this tutorial is to introduce Plutus Tx and Plutus Core, we walked through only the on-chain code, which is responsible for validating transactions (in the sense of determining whether a transaction is allowed to spend a UTXO).
+Since the main purpose of this example is to introduce Plutus Tx and Plutus Core, we walked through only the on-chain code, which is responsible for validating transactions (in the sense of determining whether a transaction is allowed to spend a UTXO).
 
 In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 
