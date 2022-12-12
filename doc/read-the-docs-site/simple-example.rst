@@ -71,14 +71,14 @@ Plutus Tx code
 
 Recall that Plutus Tx is a subset of Haskell. It is the source language one uses to write Plutus validators.
 A Plutus Tx program is compiled into Plutus Core, which is interpreted on-chain.
-The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/AuctionValidator.hs>`_.
+The full Plutus Tx code for the auction smart contract can be found at `AuctionValidator.hs <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 
 Data types
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 First, let's define the following data types and instances for the validator:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK1
    :end-before: BLOCK2
 
@@ -115,7 +115,7 @@ Main validator function
 Now we are ready to introduce our main validator function.
 The beginning of the function looks like the following:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK2
    :end-before: BLOCK3
 
@@ -123,13 +123,13 @@ Depending on whether this transaction is attempting to submit a new bid or to re
 
 The ``sufficientBid`` condition verifies that the bid amount is sufficient:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK3
    :end-before: BLOCK4
 
 The ``validBidTime`` condition verifies that the bid is submitted before the auction's deadline:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK4
    :end-before: BLOCK5
 
@@ -145,7 +145,7 @@ On the other hand, by using the ``txInfoValidRange`` interval, the same interval
 
 The ``refundsPreviousHighestBid`` condition checks that the transaction pays the previous highest bid to the previous bidder:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK5
    :end-before: BLOCK6
 
@@ -158,7 +158,7 @@ An asset is identified by a (symbol, token) pair, where the symbol represents th
 
 The ``correctNewDatum`` condition verifies that the transaction produces a *continuing output* containing the correct datum (the new highest bid):
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK6
    :end-before: BLOCK7
 
@@ -170,7 +170,7 @@ These conditions are similar to the ones already explained, so their details are
 
 Finally, we need to compile the validator written in Plutus Tx into Plutus Core, using the Plutus Tx compiler:
 
-.. literalinclude:: AuctionValidator.hs
+.. literalinclude:: tutorials/AuctionValidator.hs
    :start-after: BLOCK8
    :end-before: BLOCK9
 
