@@ -41,7 +41,7 @@ compareResult eq mode test = withTempFile $ \tmp -> do
   putStrLn $ "test: " ++ test
   plcOutput <- readProcess "plc" [mode, "--input",tmp] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs [mode,"--file",tmp]  M.main)
+    (withArgs [mode,"--input",tmp]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ()) -- does this ever happen?
@@ -55,7 +55,7 @@ compareResultU eq test = withTempFile $ \tmp -> do
   putStrLn $ "test: " ++ test
   plcOutput <- readProcess "uplc" ["evaluate", "--input",tmp] []
   plcAgdaOutput <- catchOutput $ catch
-    (withArgs ["evaluate","-mU","--file",tmp]  M.main)
+    (withArgs ["evaluate","-mU","--input",tmp]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
@@ -67,12 +67,12 @@ compareResultMode mode1 mode2 eq test = withTempFile $ \tmp -> do
   writeFile tmp example
   putStrLn $ "test: " ++ test
   plcAgdaOutput1 <- catchOutput $ catch
-    (withArgs ["evaluate","--file",tmp,"--mode",mode1]  M.main)
+    (withArgs ["evaluate","--input",tmp,"--mode",mode1]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
   plcAgdaOutput2 <- catchOutput $ catch
-    (withArgs ["evaluate","--file",tmp,"--mode",mode2]  M.main)
+    (withArgs ["evaluate","--input",tmp,"--mode",mode2]  M.main)
     (\case
         ExitFailure _ -> exitFailure
         ExitSuccess   -> return ())
