@@ -54,12 +54,16 @@ But doing it here is actively harmful, so we don't include it.
 (should mostly be handled in PIR).
 -}
 
+-- | Substitution range, 'SubstRng' in the paper.
 newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
 
+-- | Term substitution, 'Subst' in the paper.
+-- A map of unprocessed variable and its substitution range.
 newtype TermEnv name uni fun a =
     TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
+-- | Wrapper of term substitution so that it's similar to the PIR inliner.
 -- See Note [Differences from PIR inliner] 1
 newtype Subst name uni fun a = Subst { _termEnv :: TermEnv name uni fun a }
     deriving stock (Generic)
@@ -84,11 +88,12 @@ type InliningConstraints name uni fun =
 -- See Note [Differences from PIR inliner] 2
 data InlineInfo name a = InlineInfo { _usages :: Usages.Usages, _hints :: InlineHints name a }
 
--- | The monad the inliner runs in.
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
+-- | The monad the inliner runs in.
 type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst name uni fun a) Quote)
 
+-- | Look up the unprocessed variable in the substitution.
 lookupTerm
     :: (HasUnique name TermUnique)
     => name
@@ -96,11 +101,12 @@ lookupTerm
     -> Maybe (InlineTerm name uni fun a)
 lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
 
+-- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
-    => name
-    -> InlineTerm name uni fun a
-    -> Subst name uni fun a
+    => name -- ^ The name of the variable.
+    -> InlineTerm name uni fun a -- ^ The substitution range.
+    -> Subst name uni fun a -- ^ The substitution.
     -> Subst name uni fun a
 extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
 
@@ -149,6 +155,7 @@ restoreApps defs t = makeLams [] t (reverse defs)
       makeApps (arg:args) acc = makeApps args (Apply (termAnn acc) acc arg)
       makeApps [] acc         = acc
 
+-- | Run the inliner on a `UntypedPlutusCore.Core.Type.Term`.
 processTerm
     :: forall name uni fun a. InliningConstraints name uni fun
     => Term name uni fun a
@@ -183,9 +190,11 @@ processSingleBinding body (Def vd@(UVarDecl a n) rhs) = do
     rhs' <- maybeAddSubst body a n rhs
     pure $ Def vd <$> rhs'
 
--- NOTE:  Nothing means that we are inlining the term:
+-- | Check against the heuristics we have for inlining and either inline the term binding or not.
+-- The arguments to this function are the fields of the `TermBinding` being processed.
+-- Nothing means that we are inlining the term:
 --   * we have extended the substitution, and
---   * we are removing the binding (hence we return Nothing)
+--   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall name uni fun a. InliningConstraints name uni fun
     => Term name uni fun a
