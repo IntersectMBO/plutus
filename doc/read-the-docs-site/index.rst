@@ -38,6 +38,7 @@ for writing Haskell code that can be compiled to Plutus Core.
    :maxdepth: 2
 
    explanations/index
+   simple-example
    tutorials/index
    howtos/index
    troubleshooting

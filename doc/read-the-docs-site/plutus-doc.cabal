@@ -39,7 +39,7 @@ common lang
     ScopedTypeVariables
     StandaloneDeriving
 
-  -- See Plutus Tx readme for why we need the following flags: 
+  -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -60,6 +60,7 @@ executable doc-doctests
   ghc-options:        -Wno-unused-imports
   build-tool-depends: doctest:doctest
   other-modules:
+    AuctionValidator
     BasicPlutusTx
     BasicPolicies
     BasicValidators
