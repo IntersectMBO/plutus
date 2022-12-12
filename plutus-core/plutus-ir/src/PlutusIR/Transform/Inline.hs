@@ -364,9 +364,9 @@ maybeAddSubst body a s n rhs = do
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
         else do
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and purity].
-        -- This is the case where we don't know that the number of occurrences is exactly one,
-        -- so there's no point checking if the term is immediately evaluated.
+            -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
+            -- purity]. This is the case where we don't know that the number of occurrences is
+            -- exactly one, so there's no point checking if the term is immediately evaluated.
             postUnconditional <- fmap ((&&) termIsPure) (acceptable rhs')
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
