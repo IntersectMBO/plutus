@@ -5,6 +5,7 @@
 
 module Evaluation.Golden
     ( test_golden
+    , namesAndTests
     ) where
 
 import Prelude hiding (even)
@@ -413,6 +414,11 @@ namesAndTests =
 test_golden :: TestTree
 test_golden = testGroup "golden"
               [ testGroup "CK"  $ fmap (uncurry goldenVsEvaluatedCK)  namesAndTests
+              -- The CEK tests have been added to the plutus-conformance tests
+              -- (mostly renamed since there's no instantation, and with some
+              -- duplicates removed).  We should also add the typed tests to the
+              -- conformance suite and remove them from here once we've done
+              -- that.
               , testGroup "CEK" $ fmap (uncurry goldenVsEvaluatedCEK) namesAndTests
               , testGroup "Typechecking" $ fmap (uncurry goldenVsTypechecked) namesAndTests
               , testGroup "Typechecking CK output" $ fmap (uncurry goldenVsTypecheckedEvaluatedCK) namesAndTests

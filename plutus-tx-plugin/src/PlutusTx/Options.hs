@@ -32,6 +32,7 @@ import PyF (fmt)
 
 import Text.Read (readMaybe)
 import Type.Reflection
+import UntypedPlutusCore qualified as UPLC
 
 data PluginOptions = PluginOptions
     { _posDoTypecheck                    :: Bool
@@ -44,7 +45,8 @@ data PluginOptions = PluginOptions
     , _posPedantic                       :: Bool
     , _posVerbose                        :: Bool
     , _posDebug                          :: Bool
-    , _posMaxSimplifierIterations        :: Int
+    , _posMaxSimplifierIterationsPir     :: Int
+    , _posMaxSimplifierIterationsUPlc    :: Int
     , _posDoSimplifierUnwrapCancel       :: Bool
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
@@ -125,12 +127,9 @@ pluginOptions =
                  \the compilation error is suppressed and the original Haskell \
                  \expression is replaced with a runtime-error expression."
            in (k, PluginOption typeRep (setTrue k) posDeferErrors desc)
-        , let k = "no-context"
-              desc = "Set context level to 0, which means error messages contain minimum contexts."
-           in (k, PluginOption typeRep (flag (const 0) k) posContextLevel desc)
-        , let k = "debug-context"
-              desc = "Set context level to 3, which means error messages contain full contexts."
-           in (k, PluginOption typeRep (flag (const 3) k) posContextLevel desc)
+        , let k = "context-level"
+              desc = "Set context level for error messages."
+           in (k, PluginOption typeRep (intOption k) posContextLevel desc)
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
            in (k, PluginOption typeRep (setTrue k) posDumpPir desc)
@@ -152,9 +151,12 @@ pluginOptions =
         , let k = "debug"
               desc = "Set log level to debug"
            in (k, PluginOption typeRep (setTrue k) posDebug desc)
-        , let k = "max-simplifier-iterations"
-              desc = "Set the max iterations for the simplifier"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterations desc)
+        , let k = "max-simplifier-iterations-pir"
+              desc = "Set the max iterations for the PIR simplifier"
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsPir desc)
+        , let k = "max-simplifier-iterations-uplc"
+              desc = "Set the max iterations for the UPLC simplifier"
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsUPlc desc)
         , let k = "simplifier-unwrap-cancel"
               desc = "Run a simplification pass that cancels unwrap/wrap pairs"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc)
@@ -210,7 +212,8 @@ defaultPluginOptions =
         , _posPedantic = False
         , _posVerbose = False
         , _posDebug = False
-        , _posMaxSimplifierIterations = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
+        , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
+        , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
         , _posDoSimplifierUnwrapCancel = True
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True

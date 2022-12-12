@@ -77,9 +77,9 @@ If evaluation fails with an error, the expected output will show "evaluation err
 
 This means the input file successfully evaluates to the output program as per the specification. The evaluated program is represented in the concrete syntax.
 
-### Testing alternative implementation
+### Testing alternative implementations
 
-In the library We provide a function named `runUplcEvalTests` with the following signature:
+In the library we provide a function named `runUplcEvalTests` with the following signature:
 
 ```haskell
 import UntypedPlutusCore.Core.Type qualified as UPLC
@@ -118,3 +118,4 @@ If we add the tests you share, we will acknowledge your contribution and post a 
 We are grateful to these external partners for their contributions:
 
 - Runtime Verification Inc. ([runtimeverification/plutus-core-semantics](https://github.com/runtimeverification/plutus-core-semantics/tree/master/tests))
+- Hachi Security ([HachiSecurity/plc-llvm/tree/main/compiler/test-data/untyped](https://github.com/HachiSecurity/plc-llvm/tree/main/compiler/test-data/untyped))
