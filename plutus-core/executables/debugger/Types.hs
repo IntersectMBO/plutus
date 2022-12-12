@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- | Debugger TUI Types.
 module Types where
 
 import Brick.Focus qualified as B

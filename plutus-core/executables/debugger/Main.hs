@@ -1,10 +1,8 @@
 {-# LANGUAGE ApplicativeDo     #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
 
 {- | A Plutus Core debugger TUI application.
 
@@ -30,8 +28,8 @@ import Graphics.Vty qualified as Vty
 import Options.Applicative qualified as OA
 import System.Directory.Extra
 
-debuggerAttrMap :: DebuggerState -> B.AttrMap
-debuggerAttrMap _ =
+debuggerAttrMap :: B.AttrMap
+debuggerAttrMap =
     B.attrMap
         Vty.defAttr
         [ (BE.editAttr, Vty.white `B.on` Vty.rgbColor @Int 32 32 32)
@@ -75,7 +73,7 @@ main = do
                 , B.appChooseCursor = B.showFirstCursor
                 , B.appHandleEvent = handleDebuggerEvent
                 , B.appStartEvent = pure ()
-                , B.appAttrMap = debuggerAttrMap
+                , B.appAttrMap = const debuggerAttrMap
                 }
         initialState =
             DebuggerState
