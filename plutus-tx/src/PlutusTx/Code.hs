@@ -59,6 +59,8 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun ()
 -- | The span between two source locations.
 --
 -- This corresponds roughly to the `SrcSpan` used by GHC, but we define our own version so we don't have to depend on `ghc` to use it.
+--
+-- The line and column numbers are 1-based, and the unit is Unicode code point (or `Char`).
 data SrcSpan = SrcSpan
     { srcSpanFile  :: FilePath
     , srcSpanSLine :: Int

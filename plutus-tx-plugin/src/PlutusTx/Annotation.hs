@@ -1,5 +1,6 @@
 {-# LANGUAGE StrictData #-}
 
+-- | Annotations used during the compilation.
 module PlutusTx.Annotation where
 
 import PlutusTx.Code
