@@ -18,9 +18,9 @@ pkgs.writeShellApplication {
     pkgs.coreutils
   ];
   text = ''
-    PR_NUMBER=${PR_NUMBER} \
-    BENCHMARK_NAME=${BENCHMARK_NAME} \
-    GITHUB_TOKEN=${GITHUB_TOKEN} \
+    export PR_NUMBER="${PR_NUMBER}"
+    export BENCHMARK_NAME="${BENCHMARK_NAME}"
+    export GITHUB_TOKEN="${GITHUB_TOKEN}"
     ${./plutus-benchmark-runner.sh}
   '';
 }
