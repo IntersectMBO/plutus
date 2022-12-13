@@ -359,8 +359,10 @@ maybeAddSubst body a s n rhs = do
         termIsPure <- checkPurity rhs'
         preUnconditional <- liftM2 (&&) (termUsedAtMostOnce n) (effectSafe body s n termIsPure)
         -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
-        -- I.e., it's used at most once AND it's `effectSafe` (it isn't doing any substantial work).
-        -- Although we actually also inline 'Dead' binders (i.e., remove dead code) here.
+        -- I.e., it's used at most once AND it neither duplicate code or work.
+        -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
+        -- isn't doing any substantial work.
+        -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
         else do
