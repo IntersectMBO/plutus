@@ -44,6 +44,8 @@ module PlutusLedgerApi.Common
     , IsParamName
     , showParamName
     , GenericParamName
+    , CostModelApplyError (..)
+    , CostModelApplyWarn (..)
 
       -- ** Evaluation context
     , EvaluationContext (..)
