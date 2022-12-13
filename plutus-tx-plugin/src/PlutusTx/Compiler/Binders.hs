@@ -37,7 +37,7 @@ withVarScoped ::
     m a
 withVarScoped v k = do
     let ghcName = GHC.getName v
-    var <- compileVarFresh AnnOther v
+    var <- compileVarFresh annMayInline v
     local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
 
 withVarsScoped ::
@@ -48,7 +48,7 @@ withVarsScoped ::
 withVarsScoped vs k = do
     vars <- for vs $ \v -> do
         let name = GHC.getName v
-        var' <- compileVarFresh AnnOther v
+        var' <- compileVarFresh annMayInline v
         pure (name, var')
     local (\c -> c {ccScopes=pushNames vars (ccScopes c)}) (k (fmap snd vars))
 
@@ -81,7 +81,7 @@ mkLamAbsScoped ::
     GHC.Var ->
     m (PIRTerm uni fun) ->
     m (PIRTerm uni fun)
-mkLamAbsScoped v body = withVarScoped v $ \(PIR.VarDecl _ n t) -> PIR.LamAbs AnnOther n t <$> body
+mkLamAbsScoped v body = withVarScoped v $ \(PIR.VarDecl _ n t) -> PIR.LamAbs annMayInline n t <$> body
 
 mkIterLamAbsScoped :: CompilingDefault uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
 mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
@@ -89,7 +89,7 @@ mkIterLamAbsScoped vars body = foldr (\v acc -> mkLamAbsScoped v acc) body vars
 -- | Builds a type abstraction, binding the given variable to a name that
 -- will be in scope when running the second argument.
 mkTyAbsScoped :: Compiling uni fun m ann => GHC.Var -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
-mkTyAbsScoped v body = withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyAbs AnnOther t k <$> body
+mkTyAbsScoped v body = withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyAbs annMayInline t k <$> body
 
 mkIterTyAbsScoped :: Compiling uni fun m ann => [GHC.Var] -> m (PIRTerm uni fun) -> m (PIRTerm uni fun)
 mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
@@ -98,7 +98,7 @@ mkIterTyAbsScoped vars body = foldr (\v acc -> mkTyAbsScoped v acc) body vars
 -- will be in scope when running the second argument.
 mkTyForallScoped :: Compiling uni fun m ann => GHC.Var -> m (PIRType uni) -> m (PIRType uni)
 mkTyForallScoped v body =
-    withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyForall AnnOther t k <$> body
+    withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyForall annMayInline t k <$> body
 
 mkIterTyForallScoped :: Compiling uni fun m ann => [GHC.Var] -> m (PIRType uni) -> m (PIRType uni)
 mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body vars
@@ -107,7 +107,7 @@ mkIterTyForallScoped vars body = foldr (\v acc -> mkTyForallScoped v acc) body v
 -- will be in scope when running the second argument.
 mkTyLamScoped :: Compiling uni fun m ann => GHC.Var -> m (PIRType uni) -> m (PIRType uni)
 mkTyLamScoped v body =
-    withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyLam AnnOther t k <$> body
+    withTyVarScoped v $ \(PIR.TyVarDecl _ t k) -> PIR.TyLam annMayInline t k <$> body
 
 mkIterTyLamScoped :: Compiling uni fun m ann => [GHC.Var] -> m (PIRType uni) -> m (PIRType uni)
 mkIterTyLamScoped vars body = foldr (\v acc -> mkTyLamScoped v acc) body vars
