@@ -3,8 +3,10 @@
 {-# LANGUAGE TypeApplications #-}
 module PlutusTx.TH (
     compile,
+    compileDebug,
     compileUntyped,
-    loadFromFile) where
+    loadFromFile,
+    loadFromFileDebug) where
 
 import Data.Proxy
 import Language.Haskell.TH qualified as TH
@@ -23,9 +25,22 @@ compile :: TH.SpliceQ a -> TH.SpliceQ (CompiledCode a)
 -- See note [Typed TH]
 compile e = TH.unsafeSpliceCoerce $ compileUntyped $ TH.unType <$> TH.examineSplice e
 
+-- | Like `compile` but compiles into `CompiledCodeDebug`.
+compileDebug :: TH.SpliceQ a -> TH.SpliceQ (CompiledCodeDebug a)
+-- See note [Typed TH]
+compileDebug e = TH.unsafeSpliceCoerce $ compileUntyped $ TH.unType <$> TH.examineSplice e
+
 -- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.
 loadFromFile :: FilePath -> TH.SpliceQ (CompiledCode a)
 loadFromFile fp = TH.liftSplice $ do
+    -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
+    -- so we lift the bytestring and construct the value in the quote.
+    bs <- liftIO $ BS.readFile fp
+    TH.examineSplice [|| SerializedCode bs Nothing mempty ||]
+
+-- | Load a 'CompiledCodeDebug' from a file. Drop-in replacement for 'compileDebug'.
+loadFromFileDebug :: FilePath -> TH.SpliceQ (CompiledCodeDebug a)
+loadFromFileDebug fp = TH.liftSplice $ do
     -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
     -- so we lift the bytestring and construct the value in the quote.
     bs <- liftIO $ BS.readFile fp

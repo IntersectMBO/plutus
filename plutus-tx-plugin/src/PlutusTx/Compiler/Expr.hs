@@ -26,6 +26,7 @@ import GHC.Types.Id.Make qualified as GHC
 import GHC.Types.Tickish qualified as GHC
 import GHC.Types.TyThing qualified as GHC
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Code
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -831,7 +832,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
               CompileContext {ccOpts=coverageOpts} <- ask
               -- See Note [Coverage annotations]
               let anns = Set.toList $ activeCoverageTypes coverageOpts
-              compiledBody <- compileExpr body
+              compiledBody <- fmap (addSrcSpan $ spanToSpan src) <$> compileExpr body
               foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
 
         -- ignore other annotations
@@ -881,6 +882,15 @@ getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
   GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
   return sp
 getSourceSpan _ _ = Nothing
+
+spanToSpan :: GHC.RealSrcSpan -> SrcSpan
+spanToSpan sp = SrcSpan
+    { srcSpanFile = GHC.unpackFS (GHC.srcSpanFile sp),
+      srcSpanSLine = GHC.srcSpanStartLine sp,
+      srcSpanSCol = GHC.srcSpanStartCol sp,
+      srcSpanELine = GHC.srcSpanEndLine sp,
+      srcSpanECol = GHC.srcSpanEndCol sp
+    }
 
 -- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
 toCovLoc :: GHC.RealSrcSpan -> CovLoc

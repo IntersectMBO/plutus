@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiWayIf                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskellQuotes      #-}
 {-# LANGUAGE TypeApplications           #-}
@@ -13,6 +14,7 @@
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
+import Control.Arrow ((***))
 import Data.Bifunctor
 import PlutusPrelude
 import PlutusTx.Code
@@ -73,6 +75,7 @@ data PluginCtx = PluginCtx
     , pcMarkerName      :: GHC.Name
     , pcModuleName      :: GHC.ModuleName
     , pcModuleModBreaks :: Maybe GHC.ModBreaks
+    , pcAnnTy           :: GHC.Type
     }
 
 {- Note [Making sure unfoldings are present]
@@ -205,6 +208,7 @@ mkPluginPass opts = GHC.CoreDoPluginPass "Core to PLC" $ \ guts -> do
                                  , pcMarkerName = markerName
                                  , pcModuleName = GHC.moduleName $ GHC.mg_module guts
                                  , pcModuleModBreaks = GHC.mg_modBreaks guts
+                                 , pcAnnTy = GHC.unitTy
                                  }
                 -- start looking for plc calls from the top-level binds
             in GHC.bindsOnlyPass (runPluginM pctx . traverse compileBind) guts
@@ -256,18 +260,14 @@ compileMarkedExprs :: GHC.CoreExpr -> PluginM PLC.DefaultUni PLC.DefaultFun GHC.
 compileMarkedExprs expr = do
     markerName <- asks pcMarkerName
     case expr of
-      GHC.App (GHC.App (GHC.App (GHC.App
-                          -- function id
-                          -- sometimes GHCi sticks ticks around this for some reason
-                          (stripTicks -> (GHC.Var fid))
-                          -- first type argument, must be a string literal type
-                          (GHC.Type (GHC.isStrLitTy -> Just fs_locStr)))
-                     -- second type argument
-                     (GHC.Type codeTy))
-            _)
-            -- value argument
-            inner
-          | markerName == GHC.idName fid -> compileMarkedExprOrDefer (show fs_locStr) codeTy inner
+      _ | (fun, [GHC.Type annTy, GHC.Type locTy, GHC.Type codeTy, _proxy, code]) <- GHC.collectArgs expr,
+          -- function id
+          -- sometimes GHCi sticks ticks around this for some reason
+          GHC.Var fid <- stripTicks fun,
+          markerName == GHC.idName fid,
+          Just fs_locStr <- GHC.isStrLitTy locTy ->
+            local (\ctx -> ctx { pcAnnTy = annTy }) $
+                compileMarkedExprOrDefer (show fs_locStr) codeTy code
       e@(GHC.Var fid) | markerName == GHC.idName fid -> throwError . NoContext . InvalidMarkerError . GHC.showSDocUnsafe $ GHC.ppr e
       GHC.App e a -> GHC.App <$> compileMarkedExprs e <*> compileMarkedExprs a
       GHC.Lam b e -> GHC.Lam b <$> compileMarkedExprs e
@@ -339,24 +339,53 @@ compileMarkedExpr locStr codeTy origE = do
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
-        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
-            runCompiler moduleNameStr opts origE'
+    annTy <- asks pcAnnTy
+    let (moduSpans, baseSpans) = (TH.nameModule &&& TH.nameBase) ''SrcSpans
 
-    -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
-    bsPir <- makeByteStringLiteral $ flat pirP
-    bsPlc <- makeByteStringLiteral $ flat uplcP
+    (bsPir, bsPlc, covIdx) <-
+        if | GHC.eqType annTy GHC.unitTy -> do
+            ((pirP, uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
+                withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+                    runCompiler moduleNameStr opts origE'
+            -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
+            bsPir <- makeByteStringLiteral $ flat pirP
+            bsPlc <- makeByteStringLiteral $ flat uplcP
+            pure (bsPir, bsPlc, covIdx)
+           | Just tc <- GHC.tyConAppTyCon_maybe annTy,
+             let (modu, base) = splitNameString (GHC.tyConName tc),
+             modu == moduSpans,
+             base == baseSpans -> do
+            ((pirPD, uplcPD), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
+                withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+                    runCompilerDebug moduleNameStr opts origE'
+            bsPir <- makeByteStringLiteral $ flat pirPD
+            bsPlc <- makeByteStringLiteral $ flat uplcPD
+            pure (bsPir, bsPlc, covIdx)
+           | otherwise -> do
+            dflags <- GHC.getDynFlags
+            throwError . NoContext . UnsupportedAnnotationTypeError . GHC.showSDoc dflags
+                $ GHC.ppr annTy
+
     covIdxFlat <- makeByteStringLiteral $ flat covIdx
 
     builder <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
 
     -- inject the three bytestrings back as Haskell code.
     pure $
-        GHC.Var builder
-        `GHC.App` GHC.Type codeTy
-        `GHC.App` bsPlc
-        `GHC.App` bsPir
-        `GHC.App` covIdxFlat
+        GHC.mkCoreApps
+            (GHC.Var builder)
+            [ GHC.Type codeTy,
+              GHC.Type annTy,
+              bsPlc,
+              bsPir,
+              covIdxFlat
+            ]
+
+splitNameString :: GHC.Name -> (Maybe String, String)
+splitNameString name = (modu, base)
+    where
+        modu = fmap (GHC.moduleNameString . GHC.moduleName) (GHC.nameModule_maybe name)
+        base = GHC.occNameString (GHC.nameOccName name)
 
 -- | The GHC.Core to PIR to PLC compiler pipeline. Returns both the PIR and PLC output.
 -- It invokes the whole compiler chain:  Core expr -> PIR expr -> PLC expr -> UPLC expr.
@@ -374,7 +403,24 @@ runCompiler ::
     PluginOptions ->
     GHC.CoreExpr ->
     m (PIRProgram uni fun, UPLCProgram uni fun)
-runCompiler moduleName opts expr = do
+runCompiler moduleName opts = fmap (void *** void) . runCompilerDebug moduleName opts
+
+-- | Like `runCompiler`, but generates PIR and UPLC with annotated `SrcSpans`.
+runCompilerDebug ::
+    forall uni fun m.
+    ( uni ~ PLC.DefaultUni
+    , fun ~ PLC.DefaultFun
+    , MonadReader (CompileContext uni fun) m
+    , MonadWriter CoverageIndex m
+    , MonadQuote m
+    , MonadError (CompileError uni fun Ann) m
+    , MonadIO m
+    ) =>
+    String ->
+    PluginOptions ->
+    GHC.CoreExpr ->
+    m (PIRProgramDebug uni fun, UPLCProgramDebug uni fun)
+runCompilerDebug moduleName opts expr = do
     -- Plc configuration
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
 
@@ -418,6 +464,7 @@ runCompiler moduleName opts expr = do
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
     let spirP = PIR.Program () . void $ spirT
+        spirPD = PIR.Program mempty . fmap getSrcSpans $ spirT
     when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
@@ -432,8 +479,9 @@ runCompiler moduleName opts expr = do
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
     let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
+        uplcPD = UPLC.Program mempty (PLC.defaultVersion mempty) . fmap getSrcSpans $ dbT
     when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
-    pure (spirP, uplcP)
+    pure (spirPD, uplcPD)
 
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it using our 'CompileError'
@@ -448,6 +496,9 @@ runCompiler moduleName opts expr = do
         (tPath, tHandle) <- openTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
+
+      getSrcSpans :: PIR.Provenance Ann -> SrcSpans
+      getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
@@ -494,7 +545,12 @@ stripTicks = \case
     e            -> e
 
 -- | Helper to avoid doing too much construction of Core ourselves
-mkCompiledCode :: forall a . BS.ByteString -> BS.ByteString -> BS.ByteString -> CompiledCode a
+mkCompiledCode ::
+    forall a ann.
+    BS.ByteString ->
+    BS.ByteString ->
+    BS.ByteString ->
+    CompiledCodeIn PLC.DefaultUni PLC.DefaultFun ann a
 mkCompiledCode plcBS pirBS ci = SerializedCode plcBS (Just pirBS) (fold . unflat $ ci)
 
 -- | Make a 'NameInfo' mapping the given set of TH names to their

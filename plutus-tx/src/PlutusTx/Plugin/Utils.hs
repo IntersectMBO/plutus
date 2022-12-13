@@ -8,6 +8,7 @@ module PlutusTx.Plugin.Utils where
 
 import Data.Proxy
 import GHC.TypeLits
+import PlutusCore
 import PlutusTx.Code
 import PlutusTx.Utils
 
@@ -25,6 +26,6 @@ a Proxy to avoid this.
 -- If we inline this then we won't be able to find it later!
 {-# NOINLINE plc #-}
 -- | Marks the given expression for compilation to PLC.
-plc :: forall (loc::Symbol) a . Proxy loc -> a -> CompiledCode a
+plc :: forall ann (loc::Symbol) a. Proxy loc -> a -> CompiledCodeIn DefaultUni DefaultFun ann a
 -- this constructor is only really there to get rid of the unused warning
 plc _ _ = SerializedCode (mustBeReplaced "plc") (mustBeReplaced "pir") (mustBeReplaced "covidx")

@@ -30,7 +30,7 @@ primitives = testNested "Primitives" [
   , goldenPir "int2" int2
   , goldenPir "bool" bool
   , goldenPir "and" andPlc
-  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc (Proxy @"T") True, toUPlc $ plc (Proxy @"F") False ]
+  , goldenUEval "andApply" [ toUPlc andPlc, toUPlc $ plc @() (Proxy @"T") True, toUPlc $ plc @() (Proxy @"F") False ]
   , goldenPir "tuple" tuple
   , goldenPir "tupleMatch" tupleMatch
   , goldenUEval "tupleConstDest" [ toUPlc tupleMatch, toUPlc tuple ]

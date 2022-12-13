@@ -5,6 +5,7 @@ module PlutusTx.Annotation where
 
 import PlutusTx.Code
 
+import Data.Set qualified as Set
 import GHC.Generics
 import Prettyprinter
 
@@ -38,3 +39,6 @@ annAlwaysInline = Ann{annInline = AlwaysInline, annSrcSpans = mempty}
 -- | Create an `Ann` with `MayInline`.
 annMayInline :: Ann
 annMayInline = Ann{annInline = MayInline, annSrcSpans = mempty}
+
+addSrcSpan :: SrcSpan -> Ann -> Ann
+addSrcSpan s (Ann i (SrcSpans ss)) = Ann i (SrcSpans $ Set.insert s ss)

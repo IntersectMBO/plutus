@@ -30,17 +30,17 @@ import Prelude
 profiling :: TestNested
 profiling = testNested "Profiling" [
   goldenPir "fib" fibTest
-  , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "fib4" [toUPlc fibTest, toUPlc $ plc @() (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "fact4" [toUPlc factTest, toUPlc $ plc @() (Proxy @"4") (4::Integer)]
   , goldenPir "addInt" addIntTest
-  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
-  , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
-  , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer), toUPlc $ plc (Proxy @"5") (5::Integer)]
-  , goldenUEvalProfile "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc (Proxy @"3") (3::Integer)]
+  , goldenUEvalProfile "addInt3" [toUPlc addIntTest, toUPlc $ plc @() (Proxy @"3") (3::Integer)]
+  , goldenUEvalProfile "letInFun" [toUPlc letInFunTest, toUPlc $ plc @() (Proxy @"1") (1::Integer), toUPlc $ plc @() (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "letInFunMoreArg" [toUPlc letInFunMoreArgTest, toUPlc $ plc @() (Proxy @"1") (1::Integer), toUPlc $ plc @() (Proxy @"4") (4::Integer), toUPlc $ plc @() (Proxy @"5") (5::Integer)]
+  , goldenUEvalProfile "letRecInFun" [toUPlc letRecInFunTest, toUPlc $ plc @() (Proxy @"3") (3::Integer)]
   , goldenPir "idCode" idTest
   , goldenUEvalProfile "id" [toUPlc idTest]
   , goldenUEvalProfile "swap" [toUPlc swapTest]
-  , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc (Proxy @"1") (1::Integer), toUPlc $ plc (Proxy @"4") (4::Integer)]
+  , goldenUEvalProfile "typeclass" [toUPlc typeclassTest, toUPlc $ plc @() (Proxy @"1") (1::Integer), toUPlc $ plc @() (Proxy @"4") (4::Integer)]
   , goldenUEvalProfile "argMismatch1" [toUPlc argMismatch1]
   , goldenUEvalProfile "argMismatch2" [toUPlc argMismatch2]
   ]

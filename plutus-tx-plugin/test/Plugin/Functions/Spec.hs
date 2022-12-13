@@ -37,12 +37,12 @@ functions = testNested "Functions" [
 recursiveFunctions :: TestNested
 recursiveFunctions = testNested "recursive" [
     goldenPir "fib" fib
-    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc @() (Proxy @"4") (4::Integer) ]
     , goldenPir "sum" sumDirect
     , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
     , goldenPir "even" evenMutual
-    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
-    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc @() (Proxy @"3") (3::Integer) ]
+    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc @() (Proxy @"4") (4::Integer) ]
     , goldenPir "strictLength" strictLength
     , goldenPir "lazyLength" lazyLength
   ]
