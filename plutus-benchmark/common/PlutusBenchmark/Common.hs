@@ -65,7 +65,7 @@ toAnonDeBruijnTerm = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBru
 
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun () a -> Term
 compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
 
 {- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
@@ -94,4 +94,3 @@ type Result = EvaluationResult Term
    Properties.  -}
 cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => Term -> (Result -> Result -> b) -> a -> b
 cekResultMatchesHaskellValue term matches value = (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)
-

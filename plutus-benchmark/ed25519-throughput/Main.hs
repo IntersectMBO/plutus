@@ -67,7 +67,7 @@ type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
 
 
 compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun () a -> UTerm
 compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
 
 {- | Remove the textual names from a NamedDeBruijn program -}

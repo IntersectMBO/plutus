@@ -31,14 +31,14 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
-            ToUPlc (CompiledCodeIn uni fun a) uni fun where
+            ToUPlc (CompiledCodeIn uni fun () a) uni fun where
     toUPlc v = do
         v' <- catchAll $ getPlc v
         toUPlc v'
 
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Pretty ann, Flat fun, Flat ann)
+    => String -> CompiledCodeIn uni fun ann a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())

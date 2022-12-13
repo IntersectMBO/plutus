@@ -129,8 +129,8 @@ measureBudget compiledCode =
 -- Compilation testing
 
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Pretty ann, Flat fun, Flat ann)
+    => String -> CompiledCodeIn uni fun ann a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
 
 -- Evaluation testing
@@ -145,7 +145,7 @@ goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 <$> (r
 -- Helpers
 
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
-            ToUPlc (CompiledCodeIn uni fun a) uni fun where
+            ToUPlc (CompiledCodeIn uni fun () a) uni fun where
     toUPlc v = do
         v' <- catchAll $ getPlc v
         toUPlc v'
@@ -167,4 +167,3 @@ runPlcCekTrace values = do
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)
-
