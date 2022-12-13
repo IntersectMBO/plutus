@@ -732,17 +732,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_fromByteString": {
-        "cpu": {
-            "arguments": 46417,
-            "type": "constant_cost"
-        },
-        "memory": {
-            "arguments": 4,
-            "type": "constant_cost"
-        }
-    },
-    "bls12_381_G1_fromByteString": {
+    "bls12_381_G1_hashToCurve": {
         "cpu": {
             "arguments": 46417,
             "type": "constant_cost"
@@ -832,7 +822,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_fromByteString": {
+    "bls12_381_G2_hashToCurve": {
         "cpu": {
             "arguments": 46417,
             "type": "constant_cost"

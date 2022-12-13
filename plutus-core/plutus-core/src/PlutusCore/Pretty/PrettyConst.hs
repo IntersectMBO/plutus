@@ -107,8 +107,6 @@ deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer
 instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a]
 instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b)
 
-instance PrettyBy ConstConfig BS.ByteString where
-    prettyBy _ b = "#" <> fold (asBytes <$> BS.unpack b)
 
 -- Special instance for bytestrings
 asBytes :: Word8 -> Doc ann
@@ -118,17 +116,23 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
               | x < 16    = ('0' :)
               | otherwise = id
 
+toBytes :: BS.ByteString -> Doc ann
+toBytes b = fold (asBytes <$> BS.unpack b)
+
+instance PrettyBy ConstConfig BS.ByteString where
+    prettyBy _ b = "#" <> toBytes b
+
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
 instance PrettyBy ConstConfig BLS12_381.G1.Element where
-    prettyBy _ _ = "<BLS12_381.G1.Element>"
+    prettyBy _ e = "0x" <> toBytes (BLS12_381.G1.serialise e)
 
 instance PrettyBy ConstConfig  BLS12_381.G2.Element where
-    prettyBy _ _ = "<BLS12_381.G2.Element>"
+    prettyBy _ e = "0x" <> toBytes (BLS12_381.G2.serialise e)
 
 instance PrettyBy ConstConfig BLS12_381.GT.Element where
-    prettyBy _ _ = "<BLS12_381.GT.Element>"
+    prettyBy _ = pretty
 
 -- FIXME !!!
 

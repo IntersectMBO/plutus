@@ -175,16 +175,17 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_G1_equal              = unitCostTwoArguments
     , paramBls12_381_G1_serialise          = unitCostOneArgument
     , paramBls12_381_G1_deserialise        = unitCostOneArgument
-    , paramBls12_381_G1_fromByteString     = unitCostOneArgument
+    , paramBls12_381_G1_hashToCurve        = unitCostOneArgument
     , paramBls12_381_G2_add                = unitCostTwoArguments
     , paramBls12_381_G2_mul                = unitCostTwoArguments
     , paramBls12_381_G2_neg                = unitCostOneArgument
     , paramBls12_381_G2_equal              = unitCostTwoArguments
     , paramBls12_381_G2_serialise          = unitCostOneArgument
     , paramBls12_381_G2_deserialise        = unitCostOneArgument
-    , paramBls12_381_G2_fromByteString     = unitCostOneArgument
+    , paramBls12_381_G2_hashToCurve        = unitCostOneArgument
     , paramBls12_381_GT_mul                = unitCostTwoArguments
     , paramBls12_381_GT_deserialise        = unitCostOneArgument
     , paramBls12_381_GT_finalVerify        = unitCostTwoArguments
     , paramBls12_381_millerLoop            = unitCostTwoArguments
     }
+

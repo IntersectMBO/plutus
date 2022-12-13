@@ -139,14 +139,14 @@ data BuiltinCostModelBase f =
     , paramBls12_381_G1_equal              :: f ModelTwoArguments
     , paramBls12_381_G1_serialise          :: f ModelOneArgument
     , paramBls12_381_G1_deserialise        :: f ModelOneArgument
-    , paramBls12_381_G1_fromByteString     :: f ModelOneArgument
+    , paramBls12_381_G1_hashToCurve        :: f ModelOneArgument
     , paramBls12_381_G2_add                :: f ModelTwoArguments
     , paramBls12_381_G2_mul                :: f ModelTwoArguments
     , paramBls12_381_G2_neg                :: f ModelOneArgument
     , paramBls12_381_G2_equal              :: f ModelTwoArguments
     , paramBls12_381_G2_serialise          :: f ModelOneArgument
     , paramBls12_381_G2_deserialise        :: f ModelOneArgument
-    , paramBls12_381_G2_fromByteString     :: f ModelOneArgument
+    , paramBls12_381_G2_hashToCurve        :: f ModelOneArgument
     , paramBls12_381_GT_mul                :: f ModelTwoArguments
     , paramBls12_381_GT_deserialise        :: f ModelOneArgument
     , paramBls12_381_GT_finalVerify        :: f ModelTwoArguments

@@ -129,7 +129,7 @@ data DefaultFun
     | Bls12_381_G1_mul
     | Bls12_381_G1_neg
     | Bls12_381_G1_equal
-    | Bls12_381_G1_fromByteString
+    | Bls12_381_G1_hashToCurve
     | Bls12_381_G1_serialise
     | Bls12_381_G1_deserialise
     -- G2
@@ -137,7 +137,7 @@ data DefaultFun
     | Bls12_381_G2_mul
     | Bls12_381_G2_neg
     | Bls12_381_G2_equal
-    | Bls12_381_G2_fromByteString
+    | Bls12_381_G2_hashToCurve
     | Bls12_381_G2_serialise
     | Bls12_381_G2_deserialise
     -- GT
@@ -1415,10 +1415,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   case PlutusCore.BLS12_381.G1.deserialise s of
                     Nothing -> EvaluationFailure
                     Just p  -> EvaluationSuccess p
-    toBuiltinMeaning _var Bls12_381_G1_fromByteString =
+    toBuiltinMeaning _var Bls12_381_G1_hashToCurve =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.hashToCurve
-            (runCostingFunOneArgument . paramBls12_381_G1_fromByteString)
+            (runCostingFunOneArgument . paramBls12_381_G1_hashToCurve)
     toBuiltinMeaning _var Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @PlutusCore.BLS12_381.G1.Element)
@@ -1448,10 +1448,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   case PlutusCore.BLS12_381.G2.deserialise s of
                     Nothing -> EvaluationFailure
                     Just p  -> EvaluationSuccess p
-    toBuiltinMeaning _var Bls12_381_G2_fromByteString =
+    toBuiltinMeaning _var Bls12_381_G2_hashToCurve =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.hashToCurve
-            (runCostingFunOneArgument . paramBls12_381_G2_fromByteString)
+            (runCostingFunOneArgument . paramBls12_381_G2_hashToCurve)
     toBuiltinMeaning _var Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @PlutusCore.BLS12_381.G2.Element)
@@ -1571,14 +1571,14 @@ instance Flat DefaultFun where
               Bls12_381_G1_equal              -> 57
               Bls12_381_G1_serialise          -> 58
               Bls12_381_G1_deserialise        -> 59
-              Bls12_381_G1_fromByteString     -> 60
+              Bls12_381_G1_hashToCurve        -> 60
               Bls12_381_G2_add                -> 61
               Bls12_381_G2_mul                -> 62
               Bls12_381_G2_neg                -> 63
               Bls12_381_G2_equal              -> 64
               Bls12_381_G2_serialise          -> 65
               Bls12_381_G2_deserialise        -> 66
-              Bls12_381_G2_fromByteString     -> 67
+              Bls12_381_G2_hashToCurve        -> 67
               Bls12_381_GT_mul                -> 68
               Bls12_381_GT_deserialise        -> 69
               Bls12_381_GT_finalVerify        -> 70
@@ -1645,14 +1645,14 @@ instance Flat DefaultFun where
               go 57 = pure Bls12_381_G1_equal
               go 58 = pure Bls12_381_G1_serialise
               go 59 = pure Bls12_381_G1_deserialise
-              go 60 = pure Bls12_381_G1_fromByteString
+              go 60 = pure Bls12_381_G1_hashToCurve
               go 61 = pure Bls12_381_G2_add
               go 62 = pure Bls12_381_G2_mul
               go 63 = pure Bls12_381_G2_neg
               go 64 = pure Bls12_381_G2_equal
               go 65 = pure Bls12_381_G2_serialise
               go 66 = pure Bls12_381_G2_deserialise
-              go 67 = pure Bls12_381_G2_fromByteString
+              go 67 = pure Bls12_381_G2_hashToCurve
               go 68 = pure Bls12_381_GT_mul
               go 69 = pure Bls12_381_GT_deserialise
               go 70 = pure Bls12_381_GT_finalVerify
