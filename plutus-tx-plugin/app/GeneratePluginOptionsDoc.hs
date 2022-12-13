@@ -63,6 +63,6 @@ genRow k (O.PluginOption tr _ field desc) = [fmt|
      - {show tr}
      - {show (pretty defaultValue)}
      - {desc}
-    |]
+|]
     where
         defaultValue = O.defaultPluginOptions ^. field
