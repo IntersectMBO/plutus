@@ -13,6 +13,9 @@
 
 module PlutusCore.Pretty.PrettyConst where
 
+import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
 import PlutusCore.Data
 
 import Codec.Serialise (serialise)
@@ -117,6 +120,17 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
 
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
+
+instance PrettyBy ConstConfig BLS12_381.G1.Element where
+    prettyBy _ _ = "<BLS12_381.G1.Element>"
+
+instance PrettyBy ConstConfig  BLS12_381.G2.Element where
+    prettyBy _ _ = "<BLS12_381.G2.Element>"
+
+instance PrettyBy ConstConfig BLS12_381.GT.Element where
+    prettyBy _ _ = "<BLS12_381.GT.Element>"
+
+-- FIXME !!!
 
 instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
     pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)

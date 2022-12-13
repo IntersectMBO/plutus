@@ -90,6 +90,12 @@ constantOf uni = case uni of
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
     DefaultUniData                                                    ->
         fail "Data not supported"
+    DefaultUniBLS12_381G1Element                                      ->
+        fail "BLS12_381G1Element not supported"
+    DefaultUniBLS12_381G2Element                                      ->
+        fail "BLS12_381G2Element not supported"
+    DefaultUniBLS12_381GTElement                                      ->
+        fail "BLS12_381GTElement not supported"
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))

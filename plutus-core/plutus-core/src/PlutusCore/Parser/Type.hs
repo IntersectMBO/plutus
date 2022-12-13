@@ -7,6 +7,9 @@ module PlutusCore.Parser.Type where
 
 import PlutusPrelude
 
+import PlutusCore.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.BLS12_381.GT as BLS12_381.GT
 import PlutusCore.Core.Type
 import PlutusCore.Data
 import PlutusCore.Default
@@ -123,6 +126,9 @@ defaultUni = choice $ map try
     , someType @_ @[] <$ symbol "list"
     , someType @_ @(,) <$ symbol "pair"
     , someType @_ @Data <$ symbol "data"
+    , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381G1element"  -- FIXME !!!!
+    , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381G2element"
+    , someType @_ @BLS12_381.GT.Element <$ symbol "bls12_381GTelement"
     ]
 
 tyName :: Parser TyName

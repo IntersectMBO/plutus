@@ -21,6 +21,10 @@ import PlutusCore.Data
 import PlutusCore.Pretty
 import PlutusPrelude
 
+import PlutusCore.BLS12_381.G1
+import PlutusCore.BLS12_381.G2
+import PlutusCore.BLS12_381.GT
+
 import Codec.Serialise (Serialise)
 import Control.Monad.RWS.Strict
 import Data.Aeson
@@ -276,3 +280,15 @@ instance ExMemoryUsage Data where
               sizeDataList (d:ds) = sizeData d + sizeDataList ds
               sizeDataPairs []           = 0
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
+
+-- FIXME!!!  What's the correct number here?
+
+
+instance ExMemoryUsage PlutusCore.BLS12_381.G1.Element where
+    memoryUsage _ = 4
+
+instance ExMemoryUsage PlutusCore.BLS12_381.G2.Element where
+    memoryUsage _ = 4
+
+instance ExMemoryUsage PlutusCore.BLS12_381.GT.Element where
+    memoryUsage _ = 4

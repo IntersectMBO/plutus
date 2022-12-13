@@ -25,6 +25,10 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusCore.BLS12_381.G1 qualified
+import PlutusCore.BLS12_381.G2 qualified
+import PlutusCore.BLS12_381.GT qualified
+
 import Codec.Serialise (serialise)
 import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
                verifySchnorrSecp256k1Signature)
@@ -119,6 +123,30 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
+    -- BLS12_381 operations
+    -- G1
+    | Bls12_381_G1_add
+    | Bls12_381_G1_mul
+    | Bls12_381_G1_neg
+    | Bls12_381_G1_equal
+    | Bls12_381_G1_fromByteString
+    | Bls12_381_G1_serialise
+    | Bls12_381_G1_deserialise
+    -- G2
+    | Bls12_381_G2_add
+    | Bls12_381_G2_mul
+    | Bls12_381_G2_neg
+    | Bls12_381_G2_equal
+    | Bls12_381_G2_fromByteString
+    | Bls12_381_G2_serialise
+    | Bls12_381_G2_deserialise
+    -- GT
+    | Bls12_381_GT_mul
+    | Bls12_381_GT_deserialise
+      -- Pairing
+    | Bls12_381_GT_finalVerify
+    | Bls12_381_millerLoop
+
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1362,6 +1390,93 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
+    -- BLS12_381.G1
+    toBuiltinMeaning _var Bls12_381_G1_add =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.add
+            (runCostingFunTwoArguments . paramBls12_381_G1_add)
+    toBuiltinMeaning _var Bls12_381_G1_mul =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.mul
+            (runCostingFunTwoArguments . paramBls12_381_G1_mul)
+    toBuiltinMeaning _var Bls12_381_G1_neg =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.neg
+            (runCostingFunOneArgument . paramBls12_381_G1_neg)
+    toBuiltinMeaning _var Bls12_381_G1_serialise =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.serialise
+            (runCostingFunOneArgument . paramBls12_381_G1_serialise)
+    toBuiltinMeaning _var Bls12_381_G1_deserialise =
+        makeBuiltinMeaning
+            deserialiseG1
+            (runCostingFunOneArgument . paramBls12_381_G1_deserialise)
+        where deserialiseG1 s =
+                  case PlutusCore.BLS12_381.G1.deserialise s of
+                    Nothing -> EvaluationFailure
+                    Just p  -> EvaluationSuccess p
+    toBuiltinMeaning _var Bls12_381_G1_fromByteString =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.hashToCurve
+            (runCostingFunOneArgument . paramBls12_381_G1_fromByteString)
+    toBuiltinMeaning _var Bls12_381_G1_equal =
+        makeBuiltinMeaning
+            ((==) @PlutusCore.BLS12_381.G1.Element)
+            (runCostingFunTwoArguments . paramBls12_381_G1_equal)
+    -- BLS12_381.G2
+    toBuiltinMeaning _var Bls12_381_G2_add =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.add
+            (runCostingFunTwoArguments . paramBls12_381_G2_add)
+    toBuiltinMeaning _var Bls12_381_G2_mul =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.mul
+            (runCostingFunTwoArguments . paramBls12_381_G2_mul)
+    toBuiltinMeaning _var Bls12_381_G2_neg =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.neg
+            (runCostingFunOneArgument . paramBls12_381_G2_neg)
+    toBuiltinMeaning _var Bls12_381_G2_serialise =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.serialise
+            (runCostingFunOneArgument . paramBls12_381_G2_serialise)
+    toBuiltinMeaning _var Bls12_381_G2_deserialise =
+        makeBuiltinMeaning
+            deserialiseG2
+            (runCostingFunOneArgument . paramBls12_381_G2_deserialise)
+        where deserialiseG2 s =
+                  case PlutusCore.BLS12_381.G2.deserialise s of
+                    Nothing -> EvaluationFailure
+                    Just p  -> EvaluationSuccess p
+    toBuiltinMeaning _var Bls12_381_G2_fromByteString =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.hashToCurve
+            (runCostingFunOneArgument . paramBls12_381_G2_fromByteString)
+    toBuiltinMeaning _var Bls12_381_G2_equal =
+        makeBuiltinMeaning
+            ((==) @PlutusCore.BLS12_381.G2.Element)
+            (runCostingFunTwoArguments . paramBls12_381_G2_equal)
+    -- BLS12_381.GT
+    toBuiltinMeaning _var Bls12_381_GT_mul =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.GT.mul
+            (runCostingFunTwoArguments . paramBls12_381_G2_mul)
+    toBuiltinMeaning _var Bls12_381_GT_deserialise =
+        makeBuiltinMeaning
+            deserialiseGT
+            (runCostingFunOneArgument . paramBls12_381_GT_deserialise)
+        where deserialiseGT s =
+                  case PlutusCore.BLS12_381.GT.deserialise s of
+                    Nothing -> EvaluationFailure
+                    Just p  -> EvaluationSuccess p
+    toBuiltinMeaning _var Bls12_381_millerLoop =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.GT.millerLoop
+            (runCostingFunTwoArguments . paramBls12_381_millerLoop)
+    toBuiltinMeaning _var Bls12_381_GT_finalVerify =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.GT.finalVerify
+            (runCostingFunTwoArguments . paramBls12_381_GT_finalVerify)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1411,8 +1526,6 @@ instance Flat DefaultFun where
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
               VerifyEd25519Signature          -> 21
-              VerifyEcdsaSecp256k1Signature   -> 52
-              VerifySchnorrSecp256k1Signature -> 53
 
               AppendString                    -> 22
               EqualsString                    -> 23
@@ -1450,6 +1563,26 @@ instance Flat DefaultFun where
               MkNilData                       -> 49
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
+              VerifyEcdsaSecp256k1Signature   -> 52
+              VerifySchnorrSecp256k1Signature -> 53
+              Bls12_381_G1_add                -> 54
+              Bls12_381_G1_mul                -> 55
+              Bls12_381_G1_neg                -> 56
+              Bls12_381_G1_equal              -> 57
+              Bls12_381_G1_serialise          -> 58
+              Bls12_381_G1_deserialise        -> 59
+              Bls12_381_G1_fromByteString     -> 60
+              Bls12_381_G2_add                -> 61
+              Bls12_381_G2_mul                -> 62
+              Bls12_381_G2_neg                -> 63
+              Bls12_381_G2_equal              -> 64
+              Bls12_381_G2_serialise          -> 65
+              Bls12_381_G2_deserialise        -> 66
+              Bls12_381_G2_fromByteString     -> 67
+              Bls12_381_GT_mul                -> 68
+              Bls12_381_GT_deserialise        -> 69
+              Bls12_381_GT_finalVerify        -> 70
+              Bls12_381_millerLoop            -> 71
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1506,6 +1639,24 @@ instance Flat DefaultFun where
               go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure Bls12_381_G1_add
+              go 55 = pure Bls12_381_G1_mul
+              go 56 = pure Bls12_381_G1_neg
+              go 57 = pure Bls12_381_G1_equal
+              go 58 = pure Bls12_381_G1_serialise
+              go 59 = pure Bls12_381_G1_deserialise
+              go 60 = pure Bls12_381_G1_fromByteString
+              go 61 = pure Bls12_381_G2_add
+              go 62 = pure Bls12_381_G2_mul
+              go 63 = pure Bls12_381_G2_neg
+              go 64 = pure Bls12_381_G2_equal
+              go 65 = pure Bls12_381_G2_serialise
+              go 66 = pure Bls12_381_G2_deserialise
+              go 67 = pure Bls12_381_G2_fromByteString
+              go 68 = pure Bls12_381_GT_mul
+              go 69 = pure Bls12_381_GT_deserialise
+              go 70 = pure Bls12_381_GT_finalVerify
+              go 71 = pure Bls12_381_millerLoop
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
