@@ -59,6 +59,16 @@ data CompileContext uni fun = CompileContext {
     ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
 
+-- | Verbosity level of the Plutus Tx compiler.
+data Verbosity =
+    Quiet
+    | Verbose
+    | Debug
+    deriving stock (Eq, Show)
+
+instance Pretty Verbosity where
+    pretty = viaShow
+
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts =
     All -- set this with -fplugin-opt PlutusTx.Plugin:profile-all
