@@ -52,10 +52,8 @@ import Algorithmic.Evaluation as L using(stepper)
 
 postulate
   putStrLn : String → IO ⊤
-  Text : Set
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
-{-# COMPILE GHC Text = type T.Text #-}
 
 {-# FOREIGN GHC import qualified Data.Text.IO as TextIO #-}
 {-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
@@ -66,21 +64,12 @@ instance
   IOMonad : Monad IO
   IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
 
--- Bytestring stuff
+-- Parsing stuff
 
 postulate
-  --ByteString : Set
   FilePath : Set
-  getContents : IO Text
-  readFile : FilePath → IO Text
 
---{-# FOREIGN GHC import qualified Data.ByteString.Lazy as BSL #-}
---{-# COMPILE GHC ByteString = type BSL.ByteString #-}
 {-# COMPILE GHC FilePath = type FilePath #-}
-
-{-# COMPILE GHC readFile = \s -> TextIO.readFile s #-}
-    -- readFile :: FilePath -> IO Text
-{-# COMPILE GHC getContents = TextIO.getContents #-}
 
 -- System.Exit stuff
 
@@ -105,16 +94,17 @@ postulate
 {-# FOREIGN GHC import Data.Either #-}
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 
-data AstNameType : Set where
-    named deBruijn namedDeBruijn : AstNameType
+-- Input Options stuff
+{-# FOREIGN GHC import Common  #-}
+{-# FOREIGN GHC import Parsers #-}
+{-# FOREIGN GHC import Opts #-}
 
-{-# COMPILE GHC AstNameType = data AstNameType ( Common.Named | Common.DeBruijn | Common.NamedDeBruijn) #-}
+postulate 
+   Format : Set
+   Input : Set
 
-data Format : Set where
-    textual : Format
-    flat : AstNameType → Format
-
-{-# COMPILE GHC Format = data Format ( Textual | Flat) #-}
+{-# COMPILE GHC Format = type Format #-}
+{-# COMPILE GHC Input = type Input #-}
 
 postulate
   TermN : Set -- term with names
@@ -129,7 +119,7 @@ postulate
   unconvTm : RawTm → Term
   convP : Program → RawTm
   ParseError : Set
-  parse : Format → Text → Either ParseError ProgramN
+  parse : Format → Input → IO ProgramN
   parseTm : String → Either ParseError TermN
   parseTy : String → Either ParseError TypeN
   showTerm : RawTm → String
@@ -143,7 +133,7 @@ postulate
   TermU : Set
   deBruijnifyU : ProgramNU → Either FreeVariableError ProgramU
   deBruijnifyTmU : TermNU → Either FreeVariableError TermU
-  parseU : Format → Text → Either ParseError ProgramNU
+  parseU : Format → Input → IO ProgramNU
   parseTmU : String → Either ParseError TermNU
   convPU : ProgramU → U.Untyped
   convTmU : TermU → U.Untyped
@@ -170,8 +160,8 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = \format -> runQuoteT . parseProgram #-}
-{-# COMPILE GHC parseU = \format -> runQuoteT . U.parseProgram #-}
+{-# COMPILE GHC parse = getProgram #-}
+{-# COMPILE GHC parseU = getProgram #-}
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType #-}
 {-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
@@ -242,22 +232,18 @@ uglyTypeError (typeMismatch A A' x) =
 uglyTypeError builtinError = "builtinError"
 
 -- the haskell version of Error is defined in Raw
-{-# FOREIGN GHC import Raw #-}
 
 {-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError) #-}
 
--- Should get an input config to pass to parse
-parsePLC : Format → Text → Either ERROR (ScopedTm Z)
-parsePLC fmt plc = do
-  namedprog ← withE parseError $ parse fmt plc
+parsePLC : ProgramN → Either ERROR (ScopedTm Z)
+parsePLC namedprog = do
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   withE scopeError $ scopeCheckTm {0}{Z} (shifter Z (convP prog))
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
-parseUPLC : Format → Text → Either ERROR (⊥ U.⊢)
-parseUPLC fmt plc = do
-  namedprog ← withE parseError $ parseU fmt plc
+parseUPLC : ProgramNU → Either ERROR (⊥ U.⊢)
+parseUPLC namedprog = do
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
   withE scopeError $ U.scopeCheckU0 (convPU prog)
 
@@ -312,14 +298,15 @@ executeUPLC t = do
           _    → inj₁ (runtimeError gasError)
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 
-evalString : EvalMode → Format → Text → Either ERROR String
-evalString U f b = do
-  t ← parseUPLC f b
+evalProgramNU : ProgramNU → Either ERROR String
+evalProgramNU namedprog = do
+  t ← parseUPLC namedprog
   executeUPLC t
-evalString m f b = do
+
+evalProgramN : EvalMode → ProgramN → Either ERROR String
+evalProgramN m namedprog = do
 {-
   -- some debugging code
-  namedprog ← withE parseError $ parse b
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   let shiftedprog = shifter Z (convP prog)
   scopedprog ← withE scopeError $ scopeCheckTm {0}{Z} shiftedprog
@@ -332,12 +319,12 @@ evalString m f b = do
           "unshifted: " ++ rawPrinter unshiftedprog ++ "\n" ++
           "unconved: " ++ prettyPrintTm unshiftedprog ++ "\n")
 -}
-  t ← parsePLC f b
+  t ← parsePLC namedprog
   executePLC m t
 
-typeCheckString : Format → Text → Either ERROR String
-typeCheckString f b = do
-  t ← parsePLC f b
+typeCheckProgramN : ProgramN → Either ERROR String
+typeCheckProgramN namedprog = do
+  t ← parsePLC namedprog
   (A ,, _) ← withE (λ e → typeError (uglyTypeError e) ) $ typeCheckPLC t
 {-
   -- some debugging code
@@ -395,18 +382,7 @@ alphaU plc1 plc2 | _ | _ = Bool.false
 
 {-# COMPILE GHC alphaU as alphaU #-}
 
-
--- Opt stuff
-
-{-# FOREIGN GHC import Common  #-}
-{-# FOREIGN GHC import Parsers #-}
-{-# FOREIGN GHC import Opts #-}
-
-data Input : Set where
-  FileInput : FilePath → Input
-  StdInput : Input
-
-{-# COMPILE GHC Input = data Input (FileInput | StdInput) #-}
+-- More Opt Stuff
 
 data EvalOptions : Set where
   EvalOpts : Input → Format → EvalMode → EvalOptions
@@ -428,23 +404,21 @@ postulate execP : IO Command
 
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode → Input → Format → IO (Either ERROR String)
-evalInput m (FileInput fn) f = fmap (evalString m f) (readFile fn)
-evalInput m StdInput       f = fmap (evalString m f) getContents
+evalInput : EvalMode → Format → Input → IO (Either ERROR String)
+evalInput U fmt inp = fmap evalProgramNU (parseU fmt inp)
+evalInput m fmt inp = fmap (evalProgramN m) (parse fmt inp)
 
-tcInput : Input → Format → IO (Either ERROR String)
-tcInput (FileInput fn) f = fmap (typeCheckString f) (readFile fn)
-tcInput StdInput       f = fmap (typeCheckString f) getContents
-
+tcInput : Format → Input → IO (Either ERROR String)
+tcInput fmt inp = fmap typeCheckProgramN (parse fmt inp)
 
 main' : Command → IO ⊤
-main' (Eval (EvalOpts i f m)) = do
-  inj₂ s ← evalInput m i f
+main' (Eval (EvalOpts inp fmt m)) = do
+  inj₂ s ← evalInput m fmt inp
     where
     inj₁ e → putStrLn (reportError e) >> exitFailure
   putStrLn s >> exitSuccess
-main' (Typecheck (TCOpts i f))    = do
-  inj₂ s ← tcInput i f
+main' (Typecheck (TCOpts inp fmt))    = do
+  inj₂ s ← tcInput fmt inp
     where
     inj₁ e → putStrLn (reportError e) >> exitFailure
   putStrLn s >> exitSuccess
