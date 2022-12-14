@@ -68,9 +68,18 @@ in
       runner = cell.library.plutus-benchmark-runner {
         PR_NUMBER = prNumber;
         # Remove newlines and carriage returns from comment
-        BENCHMARK_NAME = builtins.head (builtins.match
-          "/benchmark ([[:lower:]:]+)[[:space:]]+"
-          fact.comment.body);
+        BENCHMARK_NAME =
+          let
+            matches = builtins.match
+              "/benchmark ([[:lower:]:]+)[[:space:]]+"
+              fact.comment.body;
+          in
+          if builtins.length matches == 0
+          then
+            lib.warn
+              "benchmark name missing, benchmark task will be created on fake benchmark"
+              "fake-benchmark"
+          else builtins.head matches;
         GITHUB_TOKEN = "/secrets/cicero/github/token";
       };
     in
