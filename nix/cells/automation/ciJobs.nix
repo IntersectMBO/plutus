@@ -38,15 +38,20 @@ let
     lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; } //
     other-jobs;
 
+  # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
+  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
+
   required-job = pkgs.releaseTools.aggregate {
     name = "required-plutus";
     meta.description = "All jobs required to pass CI";
-    constituents = lib.collect lib.isDerivation jobs;
+    constituents = lib.collect lib.isDerivation filtered-jobs;
   };
 
   final-jobset =
-    if system == "x86_64-linux" || system == "x86_64-darwin" then
-      jobs // { required = required-job; }
+    # TODO(temporary)
+    # if system == "x86_64-linux" || system == "x86_64-darwin" then
+    if system == "x86_64-linux" then
+      filtered-jobs // { required = required-job; }
     else { };
 
 in
