@@ -126,10 +126,10 @@ instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
 instance PrettyBy ConstConfig BLS12_381.G1.Element where
-    prettyBy _ e = "0x" <> toBytes (BLS12_381.G1.serialise e)
+    prettyBy _ = pretty
 
 instance PrettyBy ConstConfig  BLS12_381.G2.Element where
-    prettyBy _ e = "0x" <> toBytes (BLS12_381.G2.serialise e)
+    prettyBy _ = pretty
 
 instance PrettyBy ConstConfig BLS12_381.GT.Element where
     prettyBy _ = pretty

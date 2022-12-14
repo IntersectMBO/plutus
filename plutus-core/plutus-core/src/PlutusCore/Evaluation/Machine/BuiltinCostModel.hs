@@ -148,7 +148,6 @@ data BuiltinCostModelBase f =
     , paramBls12_381_G2_deserialise        :: f ModelOneArgument
     , paramBls12_381_G2_hashToCurve        :: f ModelOneArgument
     , paramBls12_381_GT_mul                :: f ModelTwoArguments
-    , paramBls12_381_GT_deserialise        :: f ModelOneArgument
     , paramBls12_381_GT_finalVerify        :: f ModelTwoArguments
     , paramBls12_381_millerLoop            :: f ModelTwoArguments
     }

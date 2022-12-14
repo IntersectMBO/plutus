@@ -142,7 +142,6 @@ data DefaultFun
     | Bls12_381_G2_deserialise
     -- GT
     | Bls12_381_GT_mul
-    | Bls12_381_GT_deserialise
       -- Pairing
     | Bls12_381_GT_finalVerify
     | Bls12_381_millerLoop
@@ -1459,20 +1458,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- BLS12_381.GT
     toBuiltinMeaning _var Bls12_381_GT_mul =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.GT.mul
+            PlutusCore.BLS12_381.G2.mul
             (runCostingFunTwoArguments . paramBls12_381_G2_mul)
-    toBuiltinMeaning _var Bls12_381_GT_deserialise =
-        makeBuiltinMeaning
-            deserialiseGT
-            (runCostingFunOneArgument . paramBls12_381_GT_deserialise)
-        where deserialiseGT s =
-                  case PlutusCore.BLS12_381.GT.deserialise s of
-                    Nothing -> EvaluationFailure
-                    Just p  -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_millerLoop =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.GT.millerLoop
+            ml
             (runCostingFunTwoArguments . paramBls12_381_millerLoop)
+        where ml a b =
+                  case PlutusCore.BLS12_381.GT.millerLoop a b of
+                    Nothing -> EvaluationFailure
+                    Just p  -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_GT_finalVerify =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.GT.finalVerify
@@ -1580,9 +1575,8 @@ instance Flat DefaultFun where
               Bls12_381_G2_deserialise        -> 66
               Bls12_381_G2_hashToCurve        -> 67
               Bls12_381_GT_mul                -> 68
-              Bls12_381_GT_deserialise        -> 69
-              Bls12_381_GT_finalVerify        -> 70
-              Bls12_381_millerLoop            -> 71
+              Bls12_381_GT_finalVerify        -> 69
+              Bls12_381_millerLoop            -> 70
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1654,9 +1648,8 @@ instance Flat DefaultFun where
               go 66 = pure Bls12_381_G2_deserialise
               go 67 = pure Bls12_381_G2_hashToCurve
               go 68 = pure Bls12_381_GT_mul
-              go 69 = pure Bls12_381_GT_deserialise
-              go 70 = pure Bls12_381_GT_finalVerify
-              go 71 = pure Bls12_381_millerLoop
+              go 69 = pure Bls12_381_GT_finalVerify
+              go 70 = pure Bls12_381_millerLoop
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
