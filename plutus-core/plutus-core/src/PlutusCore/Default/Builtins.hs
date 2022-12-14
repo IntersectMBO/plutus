@@ -144,7 +144,7 @@ data DefaultFun
     | Bls12_381_GT_mul
       -- Pairing
     | Bls12_381_GT_finalVerify
-    | Bls12_381_millerLoop
+    | Bls12_381_GT_millerLoop
 
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
@@ -1460,10 +1460,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.mul
             (runCostingFunTwoArguments . paramBls12_381_G2_mul)
-    toBuiltinMeaning _var Bls12_381_millerLoop =
+    toBuiltinMeaning _var Bls12_381_GT_millerLoop =
         makeBuiltinMeaning
             ml
-            (runCostingFunTwoArguments . paramBls12_381_millerLoop)
+            (runCostingFunTwoArguments . paramBls12_381_GT_millerLoop)
         where ml a b =
                   case PlutusCore.BLS12_381.GT.millerLoop a b of
                     Nothing -> EvaluationFailure
@@ -1576,7 +1576,7 @@ instance Flat DefaultFun where
               Bls12_381_G2_hashToCurve        -> 67
               Bls12_381_GT_mul                -> 68
               Bls12_381_GT_finalVerify        -> 69
-              Bls12_381_millerLoop            -> 70
+              Bls12_381_GT_millerLoop         -> 70
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1649,7 +1649,7 @@ instance Flat DefaultFun where
               go 67 = pure Bls12_381_G2_hashToCurve
               go 68 = pure Bls12_381_GT_mul
               go 69 = pure Bls12_381_GT_finalVerify
-              go 70 = pure Bls12_381_millerLoop
+              go 70 = pure Bls12_381_GT_millerLoop
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

@@ -185,6 +185,6 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_G2_hashToCurve        = unitCostOneArgument
     , paramBls12_381_GT_mul                = unitCostTwoArguments
     , paramBls12_381_GT_finalVerify        = unitCostTwoArguments
-    , paramBls12_381_millerLoop            = unitCostTwoArguments
+    , paramBls12_381_GT_millerLoop         = unitCostTwoArguments
     }
 

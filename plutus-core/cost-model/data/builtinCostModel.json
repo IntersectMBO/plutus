@@ -864,7 +864,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_millerLoop": {
+    "bls12_381_GT_millerLoop": {
         "cpu": {
             "arguments": 46417,
             "type": "constant_cost"
