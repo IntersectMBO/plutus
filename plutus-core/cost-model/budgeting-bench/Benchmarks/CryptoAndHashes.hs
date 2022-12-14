@@ -117,12 +117,109 @@ benchByteStringOneArgOp name =
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
+blsBenchmarks :: [Benchmark]
+blsBenchmarks =
+    [ benchBls12_381_G1_add
+    , benchBls12_381_G1_mul
+    , benchBls12_381_G1_neg
+    , benchBls12_381_G1_equal
+    , benchBls12_381_G1_hashToCurve
+    , benchBls12_381_G1_serialise
+    , benchBls12_381_G1_deserialise
+    , benchBls12_381_G2_add
+    , benchBls12_381_G2_mul
+    , benchBls12_381_G2_neg
+    , benchBls12_381_G2_equal
+    , benchBls12_381_G2_hashToCurve
+    , benchBls12_381_G2_serialise
+    , benchBls12_381_G2_deserialise
+    , benchBls12_381_GT_mul
+    , benchBls12_381_GT_finalVerify
+    , benchBls12_381_GT_millerLoop
+  ]
+
+-- Need to generate random elements of G1 and G2, probably by hashing random
+-- bytestrings to the curve.  GT is slightly problematic: we can only get points
+-- on the curve by using millerLoop on elements of G1 and G2.
+
+benchBls12_381_G1_add :: Benchmark
+benchBls12_381_G1_add = bgroup "BLS" []
+-- const
+-- Two args, points on G1
+
+benchBls12_381_G1_mul :: Benchmark
+benchBls12_381_G1_mul = bgroup "BLS" []
+-- linear in x (size of scalar)
+
+benchBls12_381_G1_neg :: Benchmark
+benchBls12_381_G1_neg = bgroup "BLS" []
+-- const
+
+benchBls12_381_G1_equal :: Benchmark
+benchBls12_381_G1_equal = bgroup "BLS" []
+-- const
+
+benchBls12_381_G1_hashToCurve :: Benchmark
+benchBls12_381_G1_hashToCurve = bgroup "BLS" []
+-- linear in input size
+
+benchBls12_381_G1_serialise :: Benchmark
+benchBls12_381_G1_serialise = bgroup "BLS" []
+-- const
+
+benchBls12_381_G1_deserialise :: Benchmark
+benchBls12_381_G1_deserialise = bgroup "BLS" []
+-- const
+
+benchBls12_381_G2_add :: Benchmark
+benchBls12_381_G2_add = bgroup "BLS" []
+-- const
+
+benchBls12_381_G2_mul :: Benchmark
+benchBls12_381_G2_mul = bgroup "BLS" []
+-- linear in x (size of scalar)
+
+benchBls12_381_G2_neg :: Benchmark
+benchBls12_381_G2_neg = bgroup "BLS" []
+-- const
+
+benchBls12_381_G2_equal :: Benchmark
+benchBls12_381_G2_equal = bgroup "BLS" []
+-- const
+
+benchBls12_381_G2_hashToCurve :: Benchmark
+benchBls12_381_G2_hashToCurve = bgroup "BLS" []
+-- linear in size of input
+
+benchBls12_381_G2_serialise :: Benchmark
+benchBls12_381_G2_serialise = bgroup "BLS" []
+-- const
+
+benchBls12_381_G2_deserialise :: Benchmark
+benchBls12_381_G2_deserialise = bgroup "BLS" []
+-- const
+
+benchBls12_381_GT_mul :: Benchmark
+benchBls12_381_GT_mul = bgroup "BLS" []
+-- const
+
+benchBls12_381_GT_finalVerify :: Benchmark
+benchBls12_381_GT_finalVerify = bgroup "BLS" []
+-- const?
+
+benchBls12_381_GT_millerLoop :: Benchmark
+benchBls12_381_GT_millerLoop = bgroup "BLS" []
+-- const?
+
 ---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =  [benchVerifyEd25519Signature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]
+makeBenchmarks _gen =  [ benchVerifyEd25519Signature
+                       , benchVerifyEcdsaSecp256k1Signature
+                       , benchVerifySchnorrSecp256k1Signature
+                       ]
                        <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
-
+                       <> blsBenchmarks
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
 -- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the
 -- input.

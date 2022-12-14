@@ -694,7 +694,7 @@
     },
     "bls12_381_G1_add": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -705,8 +705,8 @@
     "bls12_381_G1_mul": {
         "cpu": {
             "arguments": {
-                "intercept": 117366,
-                "slope": 10475
+                "intercept": 111111,
+                "slope": 22222
             },
             "type": "linear_in_x"
         },
@@ -717,7 +717,7 @@
     },
     "bls12_381_G1_neg": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -727,7 +727,7 @@
     },
     "bls12_381_G1_equal": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -738,8 +738,8 @@
     "bls12_381_G1_hashToCurve": {
         "cpu": {
             "arguments": {
-                "intercept": 117366,
-                "slope": 10475
+                "intercept": 111111,
+                "slope": 22222
             },
             "type": "linear_cost"
         },
@@ -750,7 +750,7 @@
     },
     "bls12_381_G1_serialise": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -760,7 +760,7 @@
     },
     "bls12_381_G1_deserialise": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -770,7 +770,7 @@
     },
     "bls12_381_G2_add": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -781,8 +781,8 @@
     "bls12_381_G2_mul": {
         "cpu": {
             "arguments": {
-                "intercept": 117366,
-                "slope": 10475
+                "intercept": 111111,
+                "slope": 22222
             },
             "type": "linear_in_x"
         },
@@ -793,7 +793,7 @@
     },
     "bls12_381_G2_neg": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -803,7 +803,7 @@
     },
     "bls12_381_G2_equal": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -813,7 +813,7 @@
     },
     "bls12_381_G2_serialise": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -823,7 +823,7 @@
     },
     "bls12_381_G2_deserialise": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -834,8 +834,8 @@
     "bls12_381_G2_hashToCurve": {
         "cpu": {
             "arguments": {
-                "intercept": 117366,
-                "slope": 10475
+                "intercept": 111111,
+                "slope": 22222
             },
             "type": "linear_cost"
         },
@@ -846,7 +846,7 @@
     },
     "bls12_381_GT_mul": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -856,7 +856,7 @@
     },
     "bls12_381_GT_finalVerify": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
@@ -866,7 +866,7 @@
     },
     "bls12_381_GT_millerLoop": {
         "cpu": {
-            "arguments": 46417,
+            "arguments": 444444,
             "type": "constant_cost"
         },
         "memory": {
