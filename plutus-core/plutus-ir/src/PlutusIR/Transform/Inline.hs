@@ -357,7 +357,7 @@ maybeAddSubst body a s n rhs = do
     then extendAndDrop (Done $ dupable rhs')
     else do
         termIsPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (termUsedAtMostOnce n) (effectSafe body s n termIsPure)
+        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n termIsPure)
         -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
         -- I.e., it's used at most once AND it neither duplicate code or work.
         -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
@@ -389,10 +389,10 @@ checkPurity t = do
     let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
     pure $ isPure builtinVer strictnessFun t
 
-termUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+nameUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => name
     -> InlineM tyname name uni fun a Bool
-termUsedAtMostOnce n = do
+nameUsedAtMostOnce n = do
     usgs <- view iiUsages
     -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
     pure $ Usages.getUsageCount n usgs <= 1
