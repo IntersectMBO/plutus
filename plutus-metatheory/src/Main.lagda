@@ -64,7 +64,7 @@ instance
   IOMonad : Monad IO
   IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
 
--- Parsing stuff
+-- For parsing
 
 postulate
   FilePath : Set
