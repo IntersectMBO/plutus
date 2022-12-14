@@ -74,7 +74,7 @@ in
               "/benchmark ([[:lower:]:]+)[[:space:]]+"
               fact.comment.body;
           in
-          if builtins.length matches == 0
+          if builtins.isNull matches || builtins.length matches == 0
           then
             lib.warn
               "benchmark name missing, benchmark task will be created on fake benchmark"
