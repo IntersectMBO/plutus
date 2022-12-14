@@ -48,9 +48,7 @@ let
   };
 
   final-jobset =
-    # TODO(temporary)
-    # if system == "x86_64-linux" || system == "x86_64-darwin" then
-    if system == "x86_64-linux" then
+    if system == "x86_64-linux" || system == "x86_64-darwin" then
       filtered-jobs // { required = required-job; }
     else { };
 
