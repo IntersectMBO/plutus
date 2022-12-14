@@ -12,6 +12,13 @@
      - Default
      - Description
 
+
+   * - ``context-level``
+     - Int
+     - 1
+     - Set context level for error messages.
+
+
    * - ``coverage-all``
      - Bool
      - False
@@ -28,12 +35,6 @@
      - Bool
      - False
      - Add location coverage annotations in the trace output
-
-
-   * - ``debug``
-     - Bool
-     - False
-     - Set log level to debug
 
 
    * - ``defer-errors``
@@ -65,16 +66,11 @@
      - 12
      - Set the max iterations for the PIR simplifier
 
+
    * - ``max-simplifier-iterations-uplc``
      - Int
      - 12
      - Set the max iterations for the UPLC simplifier
-
-
-   * - ``context-level``
-     - Int
-     - 1
-     - Set context level for error messages.
 
 
    * - ``optimize``
@@ -131,9 +127,9 @@
      - Perform type checking during compilation.
 
 
-   * - ``verbose``
-     - Bool
-     - False
-     - Set log level to verbose
+   * - ``verbosity``
+     - Verbosity
+     - Quiet
+     - Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)
 
 
