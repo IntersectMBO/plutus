@@ -624,6 +624,11 @@ executable traceToStacks
 executable debugger
   import:         lang
   main-is:        Main.hs
+
+  -- brick does not work on windows
+  if os(windows)
+    buildable: False
+
   hs-source-dirs: executables/debugger
   other-modules:
     Draw
