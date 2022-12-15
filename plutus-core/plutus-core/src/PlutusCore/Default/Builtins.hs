@@ -1466,8 +1466,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramBls12_381_GT_millerLoop)
         where ml a b =
                   case PlutusCore.BLS12_381.GT.millerLoop a b of
-                    Nothing -> EvaluationFailure
-                    Just p  -> EvaluationSuccess p
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_GT_finalVerify =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.GT.finalVerify

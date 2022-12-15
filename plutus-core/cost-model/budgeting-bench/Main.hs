@@ -8,7 +8,7 @@ import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWi
 
 import Benchmarks.Bool qualified
 import Benchmarks.ByteStrings qualified
-import Benchmarks.CryptoAndHashes qualified
+import Benchmarks.Crypto qualified
 import Benchmarks.Data qualified
 import Benchmarks.Integers qualified
 import Benchmarks.Lists qualified
@@ -49,7 +49,7 @@ main = do
        defaultConfig $
             Benchmarks.Bool.makeBenchmarks            gen
         <>  Benchmarks.ByteStrings.makeBenchmarks     gen
-        <>  Benchmarks.CryptoAndHashes.makeBenchmarks gen
+        <>  Benchmarks.Crypto.makeBenchmarks          gen
         <>  Benchmarks.Data.makeBenchmarks            gen
         <>  Benchmarks.Integers.makeBenchmarks        gen
         <>  Benchmarks.Lists.makeBenchmarks           gen
