@@ -1,0 +1,52 @@
+name: Standard CI
+
+on:
+  push:
+    branches:
+      - zeme-iohk/update-std
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+
+  discover:
+    outputs:
+      hits: ${{ steps.discovery.outputs.hits }}
+      nix_conf: ${{ steps.discovery.outputs.nix_conf }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}
+    steps:
+      - name: Standard Discovery
+        uses: divnix/std-action/discover@main
+        id: discovery
+
+  build-ciJobs:
+    needs: discover
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.discover.outputs.hits).ciJobs.build }}
+    name: ${{ matrix.target.cell }} - ${{ matrix.target.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: divnix/std-action/run@main
+        with:
+          extra_nix_config: |
+            ${{ needs.discover.outputs.nix_conf }}
+          json: ${{ toJSON(matrix.target) }}
+          # optional:
+          github_pat: ${{ secrets.HUB_PAT }}
+          nix_key: ${{ secrets.NIX_SECRET_KEY }}
+          s3_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          s3_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          nix_ssh_key: ${{ secrets.NIXBUILD_SSH }}
+          cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
+          builder: ssh-ng://eu.nixbuild.net
+          ssh_known_hosts: "eu.nixbuild.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPIQCZc54poJ8vqawd8TraNryQeJnvH1eLpIDgbiqymM"

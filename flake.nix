@@ -120,7 +120,7 @@
           (inputs.std.devshells "devshells")
           (inputs.std.installables "packages")
           (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs")
+          (inputs.std.installables "ciJobs" { ci.build = true; })
           (inputs.std.functions "actions")
           (inputs.tullia.tasks "pipelines")
         ];
