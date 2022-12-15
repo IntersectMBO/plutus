@@ -6,6 +6,9 @@ module PlutusCore.Parser.Builtin where
 
 import PlutusPrelude (Word8, reoption)
 
+import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon
@@ -18,7 +21,7 @@ import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
 import Text.Megaparsec (customFailure, getSourcePos, takeWhileP)
-import Text.Megaparsec.Char (char, hexDigitChar)
+import Text.Megaparsec.Char (char, hexDigitChar, string)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 
 cachedBuiltin :: Map.Map T.Text DefaultFun
@@ -77,6 +80,29 @@ conPair uniA uniB = inParens $ do
     b <- constantOf uniB
     pure (a, b)
 
+-- Serialised BLS12_381 elements are "0x" followed by a hex string of even
+-- length.  Maybe we should just use the usual bytestring syntax.
+con0xBS :: Parser ByteString
+con0xBS = lexeme . fmap pack $ string "0x" *> many hexByte
+
+conBLS12_381G1Element :: Parser BLS12_381.G1.Element
+conBLS12_381G1Element = do
+    s <- con0xBS
+    case BLS12_381.G1.deserialise s of
+      Left err -> fail $ "Error decoding BLS12_381 G1 element: " ++ show err
+      Right e  -> pure e
+
+conBLS12_381G2Element :: Parser BLS12_381.G2.Element
+conBLS12_381G2Element = do
+    s <- con0xBS
+    case BLS12_381.G2.deserialise s of
+      Left err -> fail $ "Error decoding BLS12_381 G2 element: " ++ show err
+      Right e  -> pure e
+
+conBLS12_381GTElement :: Parser BLS12_381.GT.Element
+conBLS12_381GTElement = do
+  fail "Parsing BLS12_381GTElement is not supported"
+
 -- | Parser for constants of the given type.
 constantOf :: DefaultUni (Esc a) -> Parser a
 constantOf uni = case uni of
@@ -90,12 +116,9 @@ constantOf uni = case uni of
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
     DefaultUniData                                                    ->
         fail "Data not supported"
-    DefaultUniBLS12_381G1Element                                      ->
-        fail "BLS12_381G1Element not supported"
-    DefaultUniBLS12_381G2Element                                      ->
-        fail "BLS12_381G2Element not supported"
-    DefaultUniBLS12_381GTElement                                      ->
-        fail "BLS12_381GTElement not supported"
+    DefaultUniBLS12_381G1Element                                      -> conBLS12_381G1Element
+    DefaultUniBLS12_381G2Element                                      -> conBLS12_381G2Element
+    DefaultUniBLS12_381GTElement                                      -> conBLS12_381GTElement
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))

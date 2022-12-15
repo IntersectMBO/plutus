@@ -134,8 +134,6 @@ instance PrettyBy ConstConfig  BLS12_381.G2.Element where
 instance PrettyBy ConstConfig BLS12_381.GT.Element where
     prettyBy _ = pretty
 
--- FIXME !!!
-
 instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
     pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)
 

@@ -126,9 +126,9 @@ defaultUni = choice $ map try
     , someType @_ @[] <$ symbol "list"
     , someType @_ @(,) <$ symbol "pair"
     , someType @_ @Data <$ symbol "data"
-    , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381G1element"  -- FIXME !!!!
-    , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381G2element"
-    , someType @_ @BLS12_381.GT.Element <$ symbol "bls12_381GTelement"
+    , someType @_ @BLS12_381.G1.Element <$ symbol "BLS12_381G1Element"  -- FIXME !!!!
+    , someType @_ @BLS12_381.G2.Element <$ symbol "BLS12_381G2Element"
+    , someType @_ @BLS12_381.GT.Element <$ symbol "BLS12_381GTElement"
     ]
 
 tyName :: Parser TyName

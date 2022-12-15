@@ -1412,8 +1412,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBls12_381_G1_deserialise)
         where deserialiseG1 s =
                   case PlutusCore.BLS12_381.G1.deserialise s of
-                    Nothing -> EvaluationFailure
-                    Just p  -> EvaluationSuccess p
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_hashToCurve =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.hashToCurve
@@ -1445,8 +1445,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBls12_381_G2_deserialise)
         where deserialiseG2 s =
                   case PlutusCore.BLS12_381.G2.deserialise s of
-                    Nothing -> EvaluationFailure
-                    Just p  -> EvaluationSuccess p
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_hashToCurve =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.hashToCurve

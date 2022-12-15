@@ -156,9 +156,9 @@ instance HasRenderContext config => PrettyBy config (DefaultUni a) where
         DefaultUniProtoPair          -> "pair"
         DefaultUniApply uniF uniA    -> uniF `juxtPrettyM` uniA
         DefaultUniData               -> "data"
-        DefaultUniBLS12_381G1Element -> "BSL12_381G1Element"
-        DefaultUniBLS12_381G2Element -> "BSL12_381G2Element"
-        DefaultUniBLS12_381GTElement -> "BSL12_381GTElement"
+        DefaultUniBLS12_381G1Element -> "BLS12_381G1Element"
+        DefaultUniBLS12_381G2Element -> "BLS12_381G2Element"
+        DefaultUniBLS12_381GTElement -> "Bls12_381GTElement"
 
 -- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
 -- doesn't pretty-print them otherwise (e.g. @integer@).
