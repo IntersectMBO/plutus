@@ -122,30 +122,7 @@ benchByteStringOneArgOp name =
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
--- createTwoTermBuiltinBenchElementwise name tys xs ys =
-
-
-blsBenchmarks :: StdGen -> [Benchmark]
-blsBenchmarks gen =
-    let multipliers = fst $ makeSizedIntegers gen [1..100] -- Constants for scalar multiplication functions
-    in [ benchBls12_381_G1_add
-       , benchBls12_381_G1_mul multipliers
-       , benchBls12_381_G1_neg
-       , benchBls12_381_G1_equal
-       , benchBls12_381_G1_hashToCurve
-       , benchBls12_381_G1_serialise
-       , benchBls12_381_G1_deserialise
-       , benchBls12_381_G2_add
-       , benchBls12_381_G2_mul multipliers
-       , benchBls12_381_G2_neg
-       , benchBls12_381_G2_equal
-       , benchBls12_381_G2_hashToCurve
-       , benchBls12_381_G2_serialise
-       , benchBls12_381_G2_deserialise
-       , benchBls12_381_GT_mul
-       , benchBls12_381_GT_finalVerify
-       , benchBls12_381_GT_millerLoop
-  ]
+---------------- BLS12_381 buitlins ----------------
 
 
 byteStrings :: [ByteString]
@@ -248,7 +225,7 @@ benchBls12_381_G2_mul multipliers =
 benchBls12_381_G2_neg :: Benchmark
 benchBls12_381_G2_neg =
     let name = Bls12_381_G2_neg
-    in createOneTermBuiltinBench name [] g1inputsB
+    in createOneTermBuiltinBench name [] g2inputsB
 
 -- const
 
@@ -269,7 +246,7 @@ benchBls12_381_G2_hashToCurve =
 benchBls12_381_G2_serialise :: Benchmark
 benchBls12_381_G2_serialise =
     let name = Bls12_381_G2_serialise
-    in createOneTermBuiltinBench name [] g1inputsA
+    in createOneTermBuiltinBench name [] g2inputsA
 -- const
 
 benchBls12_381_G2_deserialise :: Benchmark
@@ -296,6 +273,28 @@ benchBls12_381_GT_millerLoop =
     let name = Bls12_381_GT_millerLoop
     in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
 -- const?
+
+blsBenchmarks :: StdGen -> [Benchmark]
+blsBenchmarks gen =
+    let multipliers = fst $ makeSizedIntegers gen [1..100] -- Constants for scalar multiplication functions
+    in [ benchBls12_381_G1_add
+       , benchBls12_381_G1_mul multipliers
+       , benchBls12_381_G1_neg
+       , benchBls12_381_G1_equal
+       , benchBls12_381_G1_hashToCurve
+       , benchBls12_381_G1_serialise
+       , benchBls12_381_G1_deserialise
+       , benchBls12_381_G2_add
+       , benchBls12_381_G2_mul multipliers
+       , benchBls12_381_G2_neg
+       , benchBls12_381_G2_equal
+       , benchBls12_381_G2_hashToCurve
+       , benchBls12_381_G2_serialise
+       , benchBls12_381_G2_deserialise
+       , benchBls12_381_GT_mul
+       , benchBls12_381_GT_finalVerify
+       , benchBls12_381_GT_millerLoop
+  ]
 
 ---------------- Main benchmarks ----------------
 
