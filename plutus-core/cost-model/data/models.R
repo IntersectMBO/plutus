@@ -106,7 +106,24 @@ arity <- function(name) {
         "EqualsData" = 2,
         "MkPairData" = 2,
         "MkNilData" = 1,
-        "MkNilPairData" = 1
+        "MkNilPairData" = 1,
+        "Bls12_381_G1_add" = 2 ,
+        "Bls12_381_G1_mul" = 2,
+        "Bls12_381_G1_neg" = 1,
+        "Bls12_381_G1_equal" = 2,
+        "Bls12_381_G1_hashToCurve" = 1,
+        "Bls12_381_G1_serialise" = 1,
+        "Bls12_381_G1_deserialise" = 1,
+        "Bls12_381_G2_add" = 2,
+        "Bls12_381_G2_mul" = 2,
+        "Bls12_381_G2_neg" = 1,
+        "Bls12_381_G2_equal" = 2,
+        "Bls12_381_G2_hashToCurve" = 1,
+        "Bls12_381_G2_serialise" = 1,
+        "Bls12_381_G2_deserialise" = 1,
+        "Bls12_381_GT_mul" = 2,
+        "Bls12_381_GT_finalVerify" = 2,
+        "Bls12_381_GT_millerLoop" = 2
         )
 }
 
@@ -326,6 +343,22 @@ modelFun <- function(path) {
         adjustModel (m,fname)
     }
 
+   linearInX <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+   }
+
+   linearInY <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem, filtered)
+        adjustModel(m,fname)
+   }
+
 
     ##### Integers #####
 
@@ -421,14 +454,7 @@ modelFun <- function(path) {
     ## Note that this is symmetrical in the arguments: a new bytestring is
     ## created and the contents of both arguments are copied into it.
 
-    consByteStringModel  <- {
-        fname <- "ConsByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    consByteStringModel  <- linearInY ("ConsByteString")
     ## Depends on the size of the second argument, which has to be copied into
     ## the destination.
 
@@ -463,64 +489,26 @@ modelFun <- function(path) {
 
     ###### Hashing functions #####
 
-    sha2_256Model <- {
-        fname <- "Sha2_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    sha3_256Model <- {
-        fname <- "Sha3_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-      m <- lm(t ~ x_mem, filtered)
-      adjustModel(m,fname)
-    }
-
-    blake2b_256Model <- {
-        fname <- "Blake2b_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-      m <- lm(t ~ x_mem, filtered)
-      adjustModel(m,fname)
-    }
-
+    sha2_256Model    <- linearinX ("Sha2_256")
+    sha3_256Model    <- linearinX ("Sha3_256")
+    blake2b_256Model <- linearinX ("Blake2b_256")
 
     ###### Signature verification #####
 
     ## VerifyEd25519Signature in fact takes three arguments, but the first and
     ## third are of fixed size so we only gather benchmarking data for
     ## different sizes of the second argument (the message being signed).
-    verifyEd25519SignatureModel <- {
-        fname <- "VerifyEd25519Signature"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    verifyEd25519SignatureModel <- linearInY ("VerifyEd25519Signature")
 
     ## Similar to VerifyEd25519Signature.
-    verifySchnorrSecp256k1SignatureModel <- {
-        fname <- "VerifySchnorrSecp256k1Signature"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    verifySchnorrSecp256k1SignatureModel <- linearInY ("VerifySchnorrSecp256k1Signature")
 
     ## All of the arguments of VerifyEcdsaSecp256k1Signature are of fixed size.
     ## The "message" (usually a hash of the real message) is always 32 bytes
     ## long.
     verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
 
-    
+
     ##### Strings #####
 
     appendStringModel <- {
@@ -543,24 +531,8 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    decodeUtf8Model <- {
-        fname <- "DecodeUtf8"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    encodeUtf8Model <- {
-        fname <- "EncodeUtf8"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
+    decodeUtf8Model <- linearInX ("DecodeUtf8")
+    encodeUtf8Model <- linearInX ("EncodeUtf8")
 
     ##### Bool #####
 
@@ -650,6 +622,26 @@ modelFun <- function(path) {
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
+    ##### BLS12_381 operations #####
+
+    bls12_381_G1_addModel         <- constantModel ("Bls12_381_G1_add")
+    bls12_381_G1_mulModel         <- linearInX     ("Bls12_381_G1_mul")
+    bls12_381_G1_negModel         <- constantModel ("Bls12_381_G1_neg")
+    bls12_381_G1_equalModel       <- constantModel ("Bls12_381_G1_equal")
+    bls12_381_G1_hashToCurveModel <- linearInX     ("Bls12_381_G1_hashToCurve")
+    bls12_381_G1_serialiseModel   <- constantModel ("Bls12_381_G1_serialise")
+    bls12_381_G1_deserialiseModel <- constantModel ("Bls12_381_G1_deserialise")
+    bls12_381_G2_addModel         <- constantModel ("Bls12_381_G2_add")
+    bls12_381_G2_mulModel         <- linearInX     ("Bls12_381_G2_mul")
+    bls12_381_G2_negModel         <- constantModel ("Bls12_381_G2_neg")
+    bls12_381_G2_equalModel       <- constantModel ("Bls12_381_G2_equal")
+    bls12_381_G2_hashToCurveModel <- linearInX     ("Bls12_381_G2_hashToCurve")
+    bls12_381_G2_serialiseModel   <- constantModel ("Bls12_381_G2_serialise")
+    bls12_381_G2_deserialiseModel <- constantModel ("Bls12_381_G2_deserialise")
+    bls12_381_GT_mulModel         <- constantModel ("Bls12_381_GT_mul")
+    bls12_381_GT_finalVerifyModel <- constantModel ("Bls12_381_GT_finalVerify")
+    bls12_381_GT_millerLoopModel  <- constantModel ("Bls12_381_GT_millerLoop")
+
     list(
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
@@ -704,6 +696,23 @@ modelFun <- function(path) {
         mkPairDataModel                      = mkPairDataModel,
         mkNilDataModel                       = mkNilDataModel,
         mkNilPairDataModel                   = mkNilPairDataModel,
-        serialiseDataModel                   = serialiseDataModel
+        serialiseDataModel                   = serialiseDataModel,
+        bls12_381_G1_addModel                = bls12_381_G1_addModel,
+        bls12_381_G1_mulModel                = bls12_381_G1_mulModel,
+        bls12_381_G1_negModel                = bls12_381_G1_negModel,
+        bls12_381_G1_equalModel              = bls12_381_G1_equalModel,
+        bls12_381_G1_hashToCurveModel        = bls12_381_G1_hashToCurveModel,
+        bls12_381_G1_serialiseModel          = bls12_381_G1_serialiseModel,
+        bls12_381_G1_deserialiseModel        = bls12_381_G1_deserialiseModel,
+        bls12_381_G2_addModel                = bls12_381_G2_addModel,
+        bls12_381_G2_mulModel                = bls12_381_G2_mulModel,
+        bls12_381_G2_negModel                = bls12_381_G2_negModel,
+        bls12_381_G2_equalModel              = bls12_381_G2_equalModel,
+        bls12_381_G2_hashToCurveModel        = bls12_381_G2_hashToCurveModel,
+        bls12_381_G2_serialiseModel          = bls12_381_G2_serialiseModel,
+        bls12_381_G2_deserialiseModel        = bls12_381_G2_deserialiseModel,
+        bls12_381_GT_mulModel                = bls12_381_GT_mulModel,
+        bls12_381_GT_finalVerifyModel        = bls12_381_GT_finalVerifyModel,
+        bls12_381_GT_millerLoopModel         = bls12_381_GT_millerLoopModel
     )
 }
