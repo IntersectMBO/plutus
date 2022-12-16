@@ -335,6 +335,30 @@ library
   if impl(ghc <9.0)
     build-depends: integer-gmp
 
+library plutus-core-execlib
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  executables/src
+  exposed-modules:
+    PlutusCore.Executable.Common
+    PlutusCore.Executable.Parsers
+
+  build-depends:
+    , aeson
+    , base                  >=4.9 && <5
+    , bytestring
+    , deepseq
+    , flat
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core           ^>=1.1
+    , plutus-core-testlib   ^>=1.1
+    , prettyprinter
+    , text
+
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
   import:          lang
@@ -536,48 +560,26 @@ executable plc
   import:         lang
   main-is:        plc/Main.hs
   hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
   build-depends:
-    , aeson
     , base                  >=4.9 && <5
-    , bytestring
     , deepseq
-    , flat
     , lens
-    , megaparsec
-    , monoidal-containers
-    , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
-    , plutus-core-testlib   ^>=1.1
-    , prettyprinter
+    , plutus-core-execlib
     , text
 
 executable uplc
   import:         lang
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
   build-depends:
-    , aeson
     , base                  >=4.9 && <5
-    , bytestring
     , deepseq
-    , flat
     , lens
-    , megaparsec
-    , monoidal-containers
-    , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
-    , plutus-core-testlib   ^>=1.1
-    , prettyprinter
+    , plutus-core-execlib
     , split
     , text
 
@@ -585,26 +587,16 @@ executable pir
   import:         lang
   main-is:        pir/Main.hs
   hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
   build-depends:
-    , aeson
     , base                  >=4.9 && <5
     , bytestring
     , cassava
     , containers
-    , deepseq
-    , flat
     , lens
     , megaparsec
-    , monoidal-containers
-    , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
-    , plutus-core-testlib   ^>=1.1
-    , prettyprinter
+    , plutus-core-execlib
     , text
     , transformers
 
