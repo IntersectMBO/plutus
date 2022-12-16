@@ -1,0 +1,57 @@
+name: Benchmarking
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
+    steps:
+       #
+       # Checkout the repository so that we can use scripts from it
+       #
+      - name: Checkout
+        uses: actions/checkout@v3 
+
+       #
+       # Check for '/benchmark' comments on a PR
+       #
+       # Pinning a particular commit to avoid https://github.com/Khan/pull-request-comment-trigger/issues/22
+      - uses: khan/pull-request-comment-trigger@edab8d9ba7759221187ef7120592a6fbfada0d18
+        id: find-comment
+        with:
+          trigger: '/benchmark'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+      #
+      # Extract the branch of that the PR the comment was added to belongs to
+      #
+      - uses: xt0rted/pull-request-comment-branch@v1
+        if: steps.find-comment.outputs.triggered == 'true'
+        id: extract-branch
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+      #
+      # Extract the benchmark name from the comment text
+      #
+      - uses: actions-ecosystem/action-regex-match@v2
+        if: steps.find-comment.outputs.triggered == 'true'
+        id: extract-benchmark
+        with:
+          # The 'pull-request-comment-trigger` action alleges that you 
+          # can get the matched comment via its comment_body output, but
+          # this is a lie: https://github.com/Khan/pull-request-comment-trigger/issues/6
+          text: ${{ github.event.comment.body }}
+          regex: '^\/benchmark\s*(.*?)\s*$'
+
+      #
+      # Trigger the buildkite pipeline IF the 'benchmark' command was found
+      #
+      - run: |
+         ./scripts/trigger-buildkite-pipeline.sh ${{ steps.extract-branch.outputs.head_ref }} ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.group1 }}
+        if: steps.find-comment.outputs.triggered == 'true' && steps.extract-benchmark.outputs.match != ''
