@@ -36,10 +36,13 @@ generators factor = return $ testGroup "generators"
       withMaxSuccess (factor*10000) prop_findInstantiation
   , testProperty "prop_inhabited" $
       withMaxSuccess (factor*3000) prop_inhabited
-  , testProperty "prop_stats_numShrink" $
-      withMaxSuccess (factor*40) prop_stats_numShrink
-  , testProperty "prop_noTermShrinkLoops" $
-      withMaxSuccess (factor*40) prop_noTermShrinkLoops
-  , testProperty "prop_shrinkTermSound" $
-      withMaxSuccess (factor*40) prop_shrinkTermSound
+-- These tests sometimes take a long time to run due to
+-- a large number of shrinks being generated.
+-- See https://github.com/input-output-hk/plutus/pull/4949#discussion_r1029985014
+--   , testProperty "prop_stats_numShrink" $
+--       withMaxSuccess (factor*40) prop_stats_numShrink
+--   , testProperty "prop_noTermShrinkLoops" $
+--       withMaxSuccess (factor*40) prop_noTermShrinkLoops
+--   , testProperty "prop_shrinkTermSound" $
+--       withMaxSuccess (factor*40) prop_shrinkTermSound
   ]
