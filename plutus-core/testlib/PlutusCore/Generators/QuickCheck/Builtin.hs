@@ -15,9 +15,9 @@ import PlutusCore.Generators.QuickCheck.Common (genList)
 
 import Data.ByteString (ByteString)
 import Data.Coerce
-import Data.Functor
 import Data.Int
 import Data.Kind qualified as GHC
+import Data.Maybe
 import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
@@ -25,6 +25,7 @@ import Data.Text.Encoding qualified as Text
 import Data.Word
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
+import Universe
 
 instance Arbitrary Data where
     arbitrary = sized genData
@@ -100,6 +101,10 @@ instance ArbitraryBuiltin Integer where
         , (1, fromIntegral <$> arbitrary @Int64)
         ]
 
+-- |
+--
+-- >>> shrinkBuiltin $ Text.pack "abcd"
+-- ["","cd","ab","bcd","acd","abd","abc","aacd","abad","abbd","abca","abcb","abcc"]
 instance ArbitraryBuiltin Text where
     arbitraryBuiltin = Text.pack . getPrintableString <$> arbitrary
     shrinkBuiltin = map (Text.pack . getPrintableString) . shrink . PrintableString . Text.unpack
@@ -134,6 +139,17 @@ data MaybeSomeTypeOf k
     = NothingSomeType
     | forall (a :: k). JustSomeType (DefaultUni (Esc a))
 
+instance Eq (MaybeSomeTypeOf k) where
+    NothingSomeType   == NothingSomeType   = True
+    JustSomeType uni1 == JustSomeType uni2 = uni1 `defaultEq` uni2
+    NothingSomeType   == JustSomeType{}    = False
+    JustSomeType{}    == NothingSomeType   = False
+
+-- | Forget the reflected at the type level kind.
+eraseMaybeSomeTypeOf :: MaybeSomeTypeOf k -> Maybe (SomeTypeIn DefaultUni)
+eraseMaybeSomeTypeOf NothingSomeType    = Nothing
+eraseMaybeSomeTypeOf (JustSomeType uni) = Just $ SomeTypeIn uni
+
 -- | Generate a 'DefaultUniApply' if possible.
 genDefaultUniApply :: KnownKind k => Gen (MaybeSomeTypeOf k)
 genDefaultUniApply = do
@@ -147,10 +163,53 @@ genDefaultUniApply = do
 -- (because the head of an application can't be of the same kind as the whole application).
 -- We don't have higher-kinded built-in types, so we don't do this kind of shrinking for any kinds
 -- other than *.
-shrinkDefaultUniApplyStar :: DefaultUni (Esc b) -> [MaybeSomeTypeOf GHC.Type]
-shrinkDefaultUniApplyStar (fun `DefaultUniApply` arg) =
-    [JustSomeType arg | SingType <- [toSingKind arg]] ++ shrinkDefaultUniApplyStar fun
-shrinkDefaultUniApplyStar _ = []
+shrinkToStarArgs :: DefaultUni (Esc a) -> [MaybeSomeTypeOf GHC.Type]
+shrinkToStarArgs = go [] where
+    go :: [MaybeSomeTypeOf GHC.Type] -> DefaultUni (Esc b) -> [MaybeSomeTypeOf GHC.Type]
+    go args (fun `DefaultUniApply` arg) =
+        go ([JustSomeType arg | SingType <- [toSingKind arg]] ++ args) fun
+    go args _ = args
+
+-- | Shrink a built-in type while preserving its kind.
+shrinkDropBuiltinSameKind :: DefaultUni (Esc (a :: k)) -> [MaybeSomeTypeOf k]
+shrinkDropBuiltinSameKind uni =
+    case toSingKind uni of
+        SingType -> case uni of
+            -- 'DefaultUniUnit' is the "minimal" built-in type, can't shrink it any further.
+            DefaultUniUnit -> []
+            -- Any other built-in type of kind @*@ shrinks to 'DefaultUniUnit' and if it happens to
+            -- be a built-in type application, then also all suitable arguments of the
+            -- application that are not 'DefaultUniUnit'.
+            _              ->
+                let ju = JustSomeType DefaultUniUnit
+                in ju : filter (/= ju) (shrinkToStarArgs uni)
+        -- Any built-in type of kind @* -> *@ can be shrunk to @[] :: * -> *@ as long as the
+        -- built-in type is not @[]@ already.
+        -- If we had higher-kinded built-in types, we'd need 'shrinkToStarToStarArgs' here like with
+        -- 'shrinkToStarArgs' above, so the current approach would need some generalization. But we
+        -- we don't have higher-kinded built-in types and are unlikely to introduce them, so we opt
+        -- for not complicating things here.
+        SingType `SingKindArrow` SingType -> case uni of
+            DefaultUniProtoList -> []
+            _                   -> [JustSomeType DefaultUniProtoList]
+        _ -> []
+
+-- | Shrink a function application by shrinking either the function or the argument.
+-- The kind is preserved.
+shrinkDefaultUniApply :: DefaultUni (Esc (a :: k)) -> [MaybeSomeTypeOf k]
+shrinkDefaultUniApply (fun `DefaultUniApply` arg) = concat
+    [ [ JustSomeType $ fun' `DefaultUniApply` arg
+      | JustSomeType fun' <- shrinkBuiltinSameKind fun
+      ]
+    , [ JustSomeType $ fun `DefaultUniApply` arg'
+      | JustSomeType arg' <- shrinkBuiltinSameKind arg
+      ]
+    ]
+shrinkDefaultUniApply _ = []
+
+-- | Kind-preserving shrinking for 'DefaultUni'.
+shrinkBuiltinSameKind :: DefaultUni (Esc (a :: k)) -> [MaybeSomeTypeOf k]
+shrinkBuiltinSameKind uni = shrinkDropBuiltinSameKind uni ++ shrinkDefaultUniApply uni
 
 {- Note [Kind-driven generation of built-in types]
 The @Arbitrary (MaybeSomeTypeOf k)@ instance is responsible for generating built-in types.
@@ -189,25 +248,59 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                [pure $ JustSomeType DefaultUniProtoPair]
            _ -> [pure NothingSomeType]
 
-   -- No shrinks if you don't have anything to shrink.
-   shrink NothingSomeType    = []
-   shrink (JustSomeType uni) =
-       case knownKind @k of
-           SingType -> case uni of
-               -- 'DefaultUniUnit' is the "minimal" built-in type, can't shrink it any further.
-               DefaultUniUnit -> []
-               -- Any other built-in type of kind * shrinks to 'DefaultUniUnit' and if it happens to
-               -- be a built-in type application, then also all suitable arguments of the
-               -- application.
-               _              -> JustSomeType DefaultUniUnit : shrinkDefaultUniApplyStar uni
-           -- No suitable builtins to shrink to for non-* kinds.
-           _ -> []
+   shrink NothingSomeType    = []  -- No shrinks if you don't have anything to shrink.
+   shrink (JustSomeType uni) = shrinkBuiltinSameKind uni
 
 -- | Generate a built-in type of a given kind.
 genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))
 genBuiltinTypeOf kind =
     -- See Note [Kind-driven generation of built-in types].
     withKnownKind kind $ \(_ :: Proxy kind) ->
-        arbitrary @(MaybeSomeTypeOf kind) <&> \case
-            NothingSomeType  -> Nothing
-            JustSomeType uni -> Just $ SomeTypeIn uni
+        eraseMaybeSomeTypeOf <$> arbitrary @(MaybeSomeTypeOf kind)
+
+-- | Shrink a built-in type by dropping a part of it or dropping the whole built-in type in favor of
+-- a some minimal one (see 'shrinkDropBuiltinSameKind'). The kind is not preserved in the general
+-- case.
+shrinkDropBuiltin :: DefaultUni (Esc (a :: k)) -> [SomeTypeIn DefaultUni]
+shrinkDropBuiltin uni = concat
+    [ case toSingKind uni of
+          SingType `SingKindArrow` _ -> shrinkDropBuiltin $ uni `DefaultUniApply` DefaultUniUnit
+          _                          -> []
+    , mapMaybe eraseMaybeSomeTypeOf $ shrinkDropBuiltinSameKind uni
+    ]
+
+-- TODO: have proper tests
+-- >>> :set -XTypeApplications
+-- >>> import PlutusCore.Pretty
+-- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @[Bool]
+-- unit
+-- bool
+-- (list unit)
+-- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @(,)
+-- unit
+-- list
+-- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @((,) Integer)
+-- unit
+-- integer
+-- list
+-- (pair unit)
+-- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @((), Integer)
+-- unit
+-- integer
+-- (list integer)
+-- (pair unit unit)
+-- >>> mapM_ (putStrLn . display) . shrinkBuiltinType $ someType @_ @([Bool], Integer)
+-- unit
+-- (list bool)
+-- integer
+-- (list integer)
+-- (pair unit integer)
+-- (pair bool integer)
+-- (pair (list unit) integer)
+-- (pair (list bool) unit)
+-- | Non-kind-preserving shrinking for 'DefaultUni'.
+shrinkBuiltinType :: SomeTypeIn DefaultUni -> [SomeTypeIn DefaultUni]
+shrinkBuiltinType (SomeTypeIn uni) = concat
+    [ shrinkDropBuiltin uni
+    , mapMaybe eraseMaybeSomeTypeOf $ shrinkDefaultUniApply uni
+    ]

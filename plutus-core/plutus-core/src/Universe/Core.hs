@@ -44,6 +44,7 @@ module Universe.Core
     , GShow (..)
     , gshow
     , GEq (..)
+    , defaultEq
     , deriveGEq
     , deriveGCompare
     , (:~:)(..)
