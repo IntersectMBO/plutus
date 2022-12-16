@@ -3,7 +3,14 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module PlutusLedgerApi.Common.ParamName where
+module PlutusLedgerApi.Common.ParamName
+    ( IsParamName (..)
+    , GenericParamName (..)
+    , toCostModelParams
+    , tagWithParamNames
+    , CostModelApplyError (..)
+    , CostModelApplyWarn (..)
+    ) where
 
 import PlutusCore.Evaluation.Machine.CostModelInterface
 

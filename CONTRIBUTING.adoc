@@ -12,7 +12,7 @@ Please use Nix since problems due to mismatched versions of tools are particular
 
 If you _really_ cannot use Nix and still want to contribute to Plutus then xref:develop-without-nix[skip to the relevant section].
 
-=== Installing and setting up Nix 
+=== Installing and setting up Nix
 
 This project uses Flakes, so you must have Nix version `>= 2.4` installed.
 
@@ -22,7 +22,7 @@ On Linux this command should suffice: `sh <(curl -L https://nixos.org/nix/instal
 
 === How to get a shell environment with tools
 
-To enter the development shell run the following command in the root directory: 
+To enter the development shell run the following command in the root directory:
 
 `nix develop`
 
@@ -34,7 +34,7 @@ Then try this:
 
 `nix develop --extra-experimental-features 'nix-command flakes'`
 
-You may now choose to edit your `/etc/nix/nix.conf` (global) or `~/.config/nix/nix.conf` (you must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this) by appending the following line: 
+You may now choose to edit your `/etc/nix/nix.conf` (global) or `~/.config/nix/nix.conf` (you must be a https://nixos.org/nix/manual/#ssec-multi-user[trusted user] to do this) by appending the following line:
 
 `extra-experimental-features = nix-command flakes`
 
@@ -59,7 +59,7 @@ It is not uncommon for this process to take a couple of hours and to write tens 
 
 *Rest assured that this only happens the very first time you run `nix develop`.*
 
-However you should pay attention to the output of `nix develop`: if you notice that you are _building_ GHC, it is likely that your 
+However you should pay attention to the output of `nix develop`: if you notice that you are _building_ GHC, it is likely that your
 caches have not been configured correctly.
 
 Accepting the configuration settings as outlined above should be sufficient to avoid this, however if your caches are still broken, you may try to append the following lines to `/etc/nix/nix.conf` and/or `~/.config/nix/nix.conf`:
@@ -111,7 +111,7 @@ We don't have a `hie.yaml`, the implicit cradle support in HLS seems to work fin
 
 Haskell components are provisioned by Nix via link:https://github.com/input-output-hk/haskell.nix[Haskell.nix]
 
-In general you can run `nix build .#SYSTEM.plutus.library.plutus-project.hsPkgs.PACKAGE.components.COMPONENT` 
+In general you can run `nix build .#SYSTEM.plutus.library.plutus-project.hsPkgs.PACKAGE.components.COMPONENT`
 
 For example `nix build .#x86_64-linux.plutus.library.plutus-project.hsPkgs.plutus-core.components.library`
 
@@ -205,7 +205,7 @@ If you launch `nix develop .#profiled-plutus` you will get a shell where all the
 
 [WARNING]
 ====
-The shell with profiling dependencies is not currently cached, so this will result in you rebuilding all of our dependencies with profiling on your machine. 
+The shell with profiling dependencies is not currently cached, so this will result in you rebuilding all of our dependencies with profiling on your machine.
 This will take a *long* time.
 ====
 
@@ -396,7 +396,7 @@ Currently these are:
 
 We can change these categories if we want.
 
-A fragment can contain multiple sections if there are multiple changes. 
+A fragment can contain multiple sections if there are multiple changes.
 For example:
 
 ```
@@ -421,9 +421,9 @@ The amount of time it's worth spending doing this is probably much more than you
 
 ==== What branch to target
 
-Make sure to read the section on link:./README{outfilesuffix}#versioning-and-releases[versioning and releases].
 PRs should target `master` unless there is a very good reason not to.
 The only PRs to release branches should be backport PRs which should consist only of cherry-picks of commits from master (and any fixups that are needed).
+For more details, see link:./doc/read-the-docs-site/RELEASE{outfilesuffix}[Plutus Release Process].
 
 ==== What changes to include, and pull request sizes
 
@@ -438,7 +438,7 @@ You basically have three options:
   The problem is that Github doesn't support approving, rejecting or merging individual commits in a PR.
   You can look at each individual commit, but it's not necessarily useful or even appropriate - many PRs have quite messy commits, and commits are sometimes overwritten via force push.
 
-The first two options are often referred to as ["trunk-based development"](https://trunkbaseddevelopment.com/), while the third "long-lived feature branches".
+The first two options are often referred to as link:https://trunkbaseddevelopment.com/[trunk-based development], while the third "long-lived feature branches".
 There is no single best option for all cases, although in general we encourage adopting trunk-based development styles.
 Long-lived feature branches with too many commits are harmful because
 
@@ -577,7 +577,7 @@ If you don't, squash. The option chosen can vary from PR to PR.
 Merging a PR can break master, if the PR branch has diverged from master, even if CI on the PR is green.
 This happens because the PRs conflict in a way that isn’t obvious to git, e.g. one adds a usage of a function and the other removes that function.
 The problems with a broken master include inconveniencing other developers, and causing problems for "git bisect".
-There are ways to guarantee master never breaks, such as GitHub's [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
+There are ways to guarantee master never breaks, such as GitHub's link:https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue[merge queue].
 
 We don't use the merge queue because
 

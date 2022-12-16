@@ -11,5 +11,12 @@ jobs:
           nix_conf: |
             experimental-features = nix-command flakes
             accept-flake-config = true 
-      - name: Pre Commit Check
+      - name: Pre-commit check
         run: nix build .#pre-commit-check 
+      - name: Cicero actions evaluate
+        run: | 
+          # Evaluate the cicero jobs using some fake inputs. Should catch eval errors.
+          # Ideally this should be replaced by some simpler Cicero tool at some point.
+          nix eval ".#cicero.x86_64-linux.plutus/ci" --apply 'a: (__head (a {id = ""; ociRegistry = ""; inputs."GitHub event" = {id=""; created_at="2022-11-30T18:03:55+01:00"; value.github_body.pull_request.head.sha="SHA";}; }).prepare)' --json
+          nix eval ".#cicero.x86_64-linux.plutus/benchmark" --apply 'a: (__head (a {id = ""; ociRegistry = ""; inputs."GitHub comment" = {id=""; created_at="2022-11-30T18:03:55+01:00"; value.github_body.issue.number="42"; value.github_body.comment.body="/benchmark nofib";}; }).prepare)' --json
+          nix eval ".#cicero.x86_64-linux.plutus/publish-documents" --apply 'a: (__head (a {id = ""; ociRegistry = ""; inputs."GitHub push" = {id=""; created_at="2022-11-30T18:03:55+01:00"; value.github_body.pull_request.head.sha="SHA";}; }).prepare)' --json

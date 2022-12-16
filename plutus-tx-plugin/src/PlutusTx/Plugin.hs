@@ -443,8 +443,8 @@ runCompilerDebug moduleName opts expr = do
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
                  & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbosity opts == Verbose)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posVerbosity opts == Debug)
                  & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options

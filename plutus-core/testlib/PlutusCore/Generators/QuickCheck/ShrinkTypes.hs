@@ -7,10 +7,12 @@
 -- this module or reverse-engineer the shrinker and fix the problem.
 module PlutusCore.Generators.QuickCheck.ShrinkTypes where
 
+import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenerateKinds
 import PlutusCore.Generators.QuickCheck.GenTm
 
+import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkTyBuiltin)
@@ -129,8 +131,10 @@ shrinkKindAndType :: HasCallStack
                   -> (Kind (), Type TyName DefaultUni ())
                   -> [(Kind (), Type TyName DefaultUni ())]
 shrinkKindAndType ctx (k0, ty) =
+  let minK0 = minimalType k0 in
   -- If we are not already minimal, add the minial type as a possible shrink.
-  [(k, m) | k <- k0 : shrink k0, let m = minimalType k, m /= ty] ++
+  ([(k0, m) | let m = minimalType k0, m /= ty] ++) . filter ((/= minK0) . snd) $
+  [(k, m) | k <- shrink k0, let m = minimalType k] ++
   case ty of
     -- Variables shrink to arbitrary "smaller" variables
     -- Note: the order on variable names here doesn't matter,
@@ -160,8 +164,10 @@ shrinkKindAndType ctx (k0, ty) =
         [ [ (ka, a)
           | ka `leKind` k0
           ]
-        , [ (k0, typeSubstClosedType x (minimalType ka) b)
+        , [ (k0, typeSubstClosedType x m b)
           | TyLam _ x _ b <- [f]
+          , let m = minimalType ka
+          , m /= a  -- @m == a@ is handled right below.
           ]
         , [ (k0, typeSubstClosedType x a b)
           | TyLam _ x _ b <- [f], null (setOf ftvTy a)
@@ -171,20 +177,21 @@ shrinkKindAndType ctx (k0, ty) =
         -- apply f' to `fixKind ctx a ka'` - which takes `a` and tries to rewrite it
         -- to something of kind `ka'`.
         , concat
-            [ concat
-                [ case kf' of
-                    Type{}              -> [(kf', f')]
-                    KindArrow _ ka' kb' ->
-                        [ (kb', TyApp () f' (fixKind ctx a ka'))
-                        | leKind kb' k0, leKind ka' ka
-                        ]
-                | (kf', f') <- shrinkKindAndType ctx (KindArrow () ka k0, f)
-                ]
-            , -- Here we shrink the argument and fixup the function to have the right kind.
-              [ (k0, TyApp () (fixKind ctx f (KindArrow () ka' k0)) a')
-              | (ka', a') <- shrinkKindAndType ctx (ka, a)
-              ]
+            [ case kf' of
+                Type{}              ->
+                    [ (kf', f')
+                    | f' /= a  -- @f' == a@ is handled above.
+                    ]
+                KindArrow _ ka' kb' ->
+                    [ (kb', TyApp () f' (fixKind ctx a ka'))
+                    | leKind kb' k0, leKind ka' ka
+                    ]
+            | (kf', f') <- shrinkKindAndType ctx (KindArrow () ka k0, f)
             ]
+        , -- Here we shrink the argument and fixup the function to have the right kind.
+          [ (k0, TyApp () (fixKind ctx f (KindArrow () ka' k0)) a')
+          | (ka', a') <- shrinkKindAndType ctx (ka, a)
+          ]
         ]
       where ka = unsafeInferKind ctx a
     -- type lambdas shrink by either shrinking the kind of the argument or shrinking the body
@@ -225,7 +232,10 @@ shrinkKindAndType ctx (k0, ty) =
           | (_, b') <- shrinkKindAndType (Map.insert x ka ctx) (Type (), b)
           ]
         ]
-    TyBuiltin{}       -> []
+    TyBuiltin _ builtin ->
+        [ (kindOfBuiltinType uni', TyBuiltin () $ SomeTypeIn uni')
+        | SomeTypeIn uni' <- shrinkBuiltinType builtin
+        ]
     TyIFix _ pat arg  -> concat
         [ [ (Type (), fixKind ctx pat $ Type ()), (Type (), fixKind ctx arg $ Type ())
           ]
