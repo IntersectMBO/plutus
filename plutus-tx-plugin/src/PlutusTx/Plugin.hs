@@ -5,7 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TemplateHaskellQuotes      #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -121,6 +121,37 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
              : pluginPass
              : rest
 
+{- Note [GHC.sm_pre_inline]
+We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
+makes GHC inline certain bindings before the plugin runs. Pre-inlining is a phase of the GHC
+inliner that inlines bindings in GHC Core where the binder occurs exactly once in an
+unconditionally safe way (e.g., the occurrence isn't inside a lambda). For details, see paper
+"Secrets of the Glasgow Haskell Compiler inliner".
+
+The reason we need the pre-inlining is that the plugin requires certain functions
+to be fully applied. For example, it has a special rule to handle
+`noinline @(String -> BuiltinString) stringToBuiltinString "a"`, but it cannot compile
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a"`.
+By turning on pre-inlining, the `f` in the latter expression will be inlined, resulting in
+the former expression, which the plugin knows how to compile.
+
+There is a related flag, `sm_inline`, which controls whether GHC's call-site inlining is
+enabled. If enabled, GHC will inline additional bindings that cannot be unconditionally
+inlined, on a call-site-by-call-site basis. Currently we haven't found the need to turn on
+`sm_inline`. Turning it on seems to reduce PIR sizes in many cases, but it is unclear
+whether it may affect the semantics of Plutus Core.
+
+Arguably, relying on `sm_pre_inline` is not the proper solution - what if we get
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a" <> f "b"`?
+Here `f` won't be pre-inlined because it occurs twice. Instead, we should perhaps
+inline a binding when the RHS is a partially applied function that we need fully applied.
+But so far we haven't had an issue like this.
+
+We should also make the error message better in cases like this. The current error message is
+"Unsupported feature: Type constructor: GHC.Prim.Char#", resulting from attempting to inline
+and compile `stringToBuiltinString`.
+-}
+
 -- | A simplifier pass, implemented by GHC
 mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
 mkSimplPass flags logger =
@@ -132,6 +163,7 @@ mkSimplPass flags logger =
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
             , GHC.sm_cast_swizzle = True
+            -- See Note [GHC.sm_pre_inline]
             , GHC.sm_pre_inline = True
             , GHC.sm_logger = logger
             -- You might think you would need this, but apparently not
@@ -356,7 +388,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> AnnInline `elem` toList ann
+            _                                      -> AlwaysInline `elem` fmap annInline (toList ann)
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
@@ -365,9 +397,9 @@ runCompiler moduleName opts expr = do
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
                  & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbosity opts == Verbose)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posVerbosity opts == Debug)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
@@ -375,11 +407,11 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
         plcOpts = PLC.defaultCompilationOpts
-            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    pirT <- PIR.runDefT annMayInline $ compileExprWithDefs expr
     when (_posDumpPir opts) . liftIO $
         dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
@@ -395,7 +427,7 @@ runCompiler moduleName opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT

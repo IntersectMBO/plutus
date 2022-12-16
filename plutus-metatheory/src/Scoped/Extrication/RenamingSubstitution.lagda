@@ -5,30 +5,31 @@ module Scoped.Extrication.RenamingSubstitution where
 erasure commutes with renaming/substitution
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Data.Nat
-open import Data.Fin
-open import Function hiding (_∋_)
-open import Relation.Binary.PropositionalEquality as Eq
-open import Algorithmic as A
-open import Type.RenamingSubstitution as T
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNBE.Completeness
-open import Type.BetaNBE.RenamingSubstitution
-open import Scoped
-open import Scoped.Extrication
-open import Algorithmic.RenamingSubstitution as AS
-open import Scoped.RenamingSubstitution as SS
-open import Builtin
+open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin;zero;suc)
+open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
+open import Function using (_∘_)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_;refl;sym;trans;cong;cong₂)
+
+open import Utils using (Kind;*)
+open import Type using (Ctx⋆;_,⋆_;_∋⋆_;Z;S)
+open import Algorithmic using (Ctx;_⊢_)
+open Ctx
+import Algorithmic.RenamingSubstitution as AS
+import Type.RenamingSubstitution as T
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE.RenamingSubstitution using (extsNf)
+open import Scoped using (ScopedTy)
+open ScopedTy
+open import Scoped.Extrication using (len⋆;extricateVar⋆;extricateNf⋆;extricateNe⋆;extricateTyConNf⋆;extricate)
+open import Scoped.RenamingSubstitution as SS using (Ren⋆;lift⋆;ren⋆;renTyCon⋆;ren⋆-cong;Sub⋆;slift⋆)
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as AC
 import Builtin.Constant.Type ℕ ScopedTy as SC
 
 -- type renamings
 
-open import Data.Product renaming (_,_ to _,,_)
 
 backVar : ∀{Γ} → Fin (len⋆ Γ) → Σ Kind λ J → Γ ∋⋆ J
 backVar {Γ ,⋆ K} zero    = K ,, Z

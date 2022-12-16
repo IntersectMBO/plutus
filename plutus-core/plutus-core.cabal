@@ -630,6 +630,32 @@ executable traceToStacks
     , text
     , vector
 
+executable debugger
+  import:         lang
+  main-is:        Main.hs
+
+  -- brick does not work on windows
+  if os(windows)
+    buildable: False
+
+  hs-source-dirs: executables/debugger
+  other-modules:
+    Draw
+    Event
+    Types
+
+  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                  >=4.9 && <5
+    , brick
+    , extra
+    , microlens
+    , microlens-th
+    , mtl
+    , optparse-applicative
+    , text
+    , vty
+
 -- Tests for functions called by @traceToStacks@.
 test-suite traceToStacks-test
   import:           lang

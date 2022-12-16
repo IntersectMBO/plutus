@@ -13,16 +13,13 @@ infix 4 _⊢Ne⋆_
 ## Imports
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.RenamingSubstitution
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; cong₂)
+
+open import Utils using (Kind;*;_⇒_;J;K)
+open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S)
+open _⊢⋆_
+open import Type.RenamingSubstitution using (Ren;ren;ext;renTyCon)
 import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
-
-
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
-open import Function
-open import Agda.Builtin.Nat
 \end{code}
 
 ## Type β-normal forms

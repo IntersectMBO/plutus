@@ -1,8 +1,3 @@
-# TODO(std) replace all occurrences of hydra with cicero once hydra is gone.
-# Normally we'd name this file default.nix and put it into a hydraJobs folder.
-# However that causes all hydra job names to contain an extra string (the flake fragment name)
-# in the final attribute path. To make job names shorter we name this file hydraJobs.nix instead.
-
 { inputs, cell }:
 
 # TODO(std) Keep an eye on input-output-hk/haskell.nix#1743 for new utility functions.
@@ -44,7 +39,6 @@ let
     other-jobs;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  # TODO(std) hydra will be gone by the end of month. Remove this stuff when that happens.
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
 
   required-job = pkgs.releaseTools.aggregate {

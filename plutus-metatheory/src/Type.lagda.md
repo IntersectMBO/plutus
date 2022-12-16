@@ -26,8 +26,7 @@ infix  9 S
 ## Imports
 
 ```
-open import Agda.Builtin.Nat
-open import Utils
+open import Utils using (Kind;*;_⇒_;J;K)
 ```
 
 ## Type contexts
@@ -81,11 +80,9 @@ constant (base type). Note that recursive types range over an
 arbitrary kind `k` which goes beyond standard iso-recursive types.
 
 ```
-open import Data.String
-
 data _⊢⋆_ : Ctx⋆ → Kind → Set
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
 
 data _⊢⋆_ where
   ` : Φ ∋⋆ J

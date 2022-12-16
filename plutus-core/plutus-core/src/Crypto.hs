@@ -87,7 +87,7 @@ verifyEd25519Signature_V2 pk msg sig =
 -- [dangerous](https://bitcoin.stackexchange.com/a/81116/35586). Other than
 -- length, we make no requirements of what hash gets used.
 verifyEcdsaSecp256k1Signature
-  :: BS.ByteString -- ^ Public key   (32 bytes)
+  :: BS.ByteString -- ^ Public key   (33 bytes)
   -> BS.ByteString -- ^ Message hash (32 bytes)
   -> BS.ByteString -- ^ Signature    (64 bytes)
   -> Emitter (EvaluationResult Bool)

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -49,16 +48,22 @@ import Witherable (wither)
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).
 3. Handling of multiple beta-reductions in one go, this is handled in PIR by a dedicated pass.
-4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really. But doing it here
-is actively harmful, so we don't include it.
-5. Simplistic purity analysis, in particular we don't try to be clever about builtins (should mostly be handled in PIR).
+4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really.
+But doing it here is actively harmful, so we don't include it.
+5. Simplistic purity analysis, in particular we don't try to be clever about builtins
+(should mostly be handled in PIR).
 -}
 
+-- | Substitution range, 'SubstRng' in the paper.
 newtype InlineTerm name uni fun a = Done (Dupable (Term name uni fun a))
 
-newtype TermEnv name uni fun a = TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
+-- | Term substitution, 'Subst' in the paper.
+-- A map of unprocessed variable and its substitution range.
+newtype TermEnv name uni fun a =
+    TermEnv { _unTermEnv :: PLC.UniqueMap TermUnique (InlineTerm name uni fun a) }
     deriving newtype (Semigroup, Monoid)
 
+-- | Wrapper of term substitution so that it's similar to the PIR inliner.
 -- See Note [Differences from PIR inliner] 1
 newtype Subst name uni fun a = Subst { _termEnv :: TermEnv name uni fun a }
     deriving stock (Generic)
@@ -83,9 +88,12 @@ type InliningConstraints name uni fun =
 -- See Note [Differences from PIR inliner] 2
 data InlineInfo name a = InlineInfo { _usages :: Usages.Usages, _hints :: InlineHints name a }
 
--- Using a concrete monad makes a very large difference to the performance of this module (determined from profiling)
+-- Using a concrete monad makes a very large difference to the performance of this module
+-- (determined from profiling)
+-- | The monad the inliner runs in.
 type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst name uni fun a) Quote)
 
+-- | Look up the unprocessed variable in the substitution.
 lookupTerm
     :: (HasUnique name TermUnique)
     => name
@@ -93,11 +101,12 @@ lookupTerm
     -> Maybe (InlineTerm name uni fun a)
 lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
 
+-- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
-    => name
-    -> InlineTerm name uni fun a
-    -> Subst name uni fun a
+    => name -- ^ The name of the variable.
+    -> InlineTerm name uni fun a -- ^ The substitution range.
+    -> Subst name uni fun a -- ^ The substitution.
     -> Subst name uni fun a
 extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
 
@@ -132,7 +141,8 @@ extractApps = collectArgs []
       collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
       collectArgs argStack t               = matchArgs argStack [] t
       matchArgs (arg:rest) acc (LamAbs a n body) = matchArgs rest (Def (UVarDecl a n) arg:acc) body
-      matchArgs []         acc t                 = if null acc then Nothing else Just (reverse acc, t)
+      matchArgs []         acc t                 =
+        if null acc then Nothing else Just (reverse acc, t)
       matchArgs (_:_)      _   _                 = Nothing
 
 -- | The inverse of 'extractApps'.
@@ -145,6 +155,7 @@ restoreApps defs t = makeLams [] t (reverse defs)
       makeApps (arg:args) acc = makeApps args (Apply (termAnn acc) acc arg)
       makeApps [] acc         = acc
 
+-- | Run the inliner on a `UntypedPlutusCore.Core.Type.Term`.
 processTerm
     :: forall name uni fun a. InliningConstraints name uni fun
     => Term name uni fun a
@@ -179,9 +190,11 @@ processSingleBinding body (Def vd@(UVarDecl a n) rhs) = do
     rhs' <- maybeAddSubst body a n rhs
     pure $ Def vd <$> rhs'
 
--- NOTE:  Nothing means that we are inlining the term:
+-- | Check against the heuristics we have for inlining and either inline the term binding or not.
+-- The arguments to this function are the fields of the `TermBinding` being processed.
+-- Nothing means that we are inlining the term:
 --   * we have extended the substitution, and
---   * we are removing the binding (hence we return Nothing)
+--   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall name uni fun a. InliningConstraints name uni fun
     => Term name uni fun a
@@ -196,47 +209,64 @@ maybeAddSubst body a n rhs = do
     hints <- asks _hints
     let hinted = shouldInline hints a n
 
-    preUnconditional <- preInlineUnconditional rhs'
-    if preUnconditional
+    if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
     else do
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-        postUnconditional <- postInlineUnconditional rhs'
-        if hinted || postUnconditional
+        termIsPure <- checkPurity rhs'
+        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body n termIsPure)
+        -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
+        -- I.e., it's used at most once AND it neither duplicate code or work.
+        -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
+        -- isn't doing any substantial work.
+        -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
+        if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
-        else pure $ Just rhs'
+        else do
+            -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
+            -- purity]. This is the case where we don't know that the number of occurrences is
+            -- exactly one, so there's no point checking if the term is immediately evaluated.
+            postUnconditional <- fmap ((&&) termIsPure) (acceptable rhs')
+            if postUnconditional
+            then extendAndDrop (Done $ dupable rhs')
+            else pure $ Just rhs'
     where
-        extendAndDrop :: forall b . InlineTerm name uni fun a -> InlineM name uni fun a (Maybe b)
+        extendAndDrop ::
+            forall b . InlineTerm name uni fun a
+            -> InlineM name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
-        checkPurity :: Term name uni fun a -> InlineM name uni fun a Bool
-        checkPurity t = pure $ isPure t
+-- | Check if term is pure. See Note [Inlining and purity]
+checkPurity :: Term name uni fun a -> InlineM name uni fun a Bool
+checkPurity t = pure $ isPure t
 
-        preInlineUnconditional :: Term name uni fun a -> InlineM name uni fun a Bool
-        preInlineUnconditional t = do
-            usgs <- asks _usages
-            -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-            let termUsedAtMostOnce = Usages.getUsageCount n usgs <= 1
-            -- See Note [Inlining and purity]
-            termIsPure <- checkPurity t
-            -- This can in the worst case traverse a lot of the term, which could lead to us
-            -- doing ~quadratic work as we process the program. However in practice most term
-            -- types will make it give up, so it's not too bad.
-            let immediatelyEvaluated = case firstEffectfulTerm body of
-                 Just (Var _ n') -> n == n'
-                 _               -> False
-                effectSafe = termIsPure || immediatelyEvaluated
-            pure $ termUsedAtMostOnce && effectSafe
+nameUsedAtMostOnce :: forall name uni fun a. InliningConstraints name uni fun
+    => name
+    -> InlineM name uni fun a Bool
+nameUsedAtMostOnce n = do
+    usgs <- asks _usages
+    -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
+    pure $ Usages.getUsageCount n usgs <= 1
 
-        -- | Should we inline? Should only inline things that won't duplicate work or code.
-        -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-        postInlineUnconditional ::  Term name uni fun a -> InlineM name uni fun a Bool
-        postInlineUnconditional t = do
-            -- See Note [Inlining criteria]
-            let acceptable = costIsAcceptable t && sizeIsAcceptable t
-            -- See Note [Inlining and purity]
-            termIsPure <- checkPurity t
-            pure $ acceptable && termIsPure
+effectSafe :: forall name uni fun a. InliningConstraints name uni fun
+    => Term name uni fun a
+    -> name
+    -> Bool -- ^ is it pure?
+    -> InlineM name uni fun a Bool
+effectSafe body n purity = do
+    -- This can in the worst case traverse a lot of the term, which could lead to us
+    -- doing ~quadratic work as we process the program. However in practice most term
+    -- types will make it give up, so it's not too bad.
+    let immediatelyEvaluated = case firstEffectfulTerm body of
+            Just (Var _ n') -> n == n'
+            _               -> False
+    pure $ purity || immediatelyEvaluated
+
+-- | Should we inline? Should only inline things that won't duplicate work or code.
+-- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+acceptable ::  Term name uni fun a -> InlineM name uni fun a Bool
+acceptable t =
+    -- See Note [Inlining criteria]
+    pure $ costIsAcceptable t && sizeIsAcceptable t
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and

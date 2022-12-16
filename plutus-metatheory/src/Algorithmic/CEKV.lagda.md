@@ -1,35 +1,48 @@
 # CEK machine that discharges builtin args
 
 ```
-{-# OPTIONS --rewriting #-}
-
 module Algorithmic.CEKV where
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Function hiding (_∋_)
-open import Data.Product using (proj₁;proj₂)
+open import Function using (_∘_)
+open import Data.Product using (∃;proj₁;proj₂)
 open import Data.List using ([];_∷_)
-open import Data.List.Properties
-open import Relation.Binary.PropositionalEquality renaming ([_] to [[_]];subst to substEq)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
+                                                  renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
-open import Data.Product using (_×_;Σ) renaming (_,_ to _,,_)
-open import Data.Sum
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Data.Product using (_×_;Σ) 
+                         renaming (_,_ to _,,_)
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) 
+                         renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
-open import Relation.Nullary
-open import Relation.Nullary.Decidable
-import Debug.Trace as Debug
-open import Type
-open import Type.BetaNormal
+open import Relation.Nullary using (no;yes)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
-open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
+open import Algorithmic using (Ctx;arity;_⊢_;Term;Type;btype;_∋_;conv⊢;builtin_/_)
+open Ctx
+open _⊢_
+open _∋_
+open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
 open import Utils hiding (TermCon)
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Data.Empty
+
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open TyCon
+
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
+open TermCon
+
+open import Data.Empty using (⊥-elim)
+open import Data.Nat using (ℕ;zero;suc)
+import Algorithmic.ReductionEC as Red
+import Algorithmic.CK as CK
+import Algorithmic.CC as CC
 
 data Env : Ctx ∅ → Set
 
@@ -221,8 +234,6 @@ BUILTIN' b {az = az} p q
 ... | refl with BUILTIN b (convBApp b p (saturated (arity b)) q)
 ... | inj₂ V = discharge V
 ... | inj₁ A = error _
-
-open import Data.Product using (∃)
 
 bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b)
     → BApp b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
@@ -951,7 +962,7 @@ step ((s , -·⋆ A) ◅ V-IΠ b {as' = x₂ ∷ as'} p vs) =
 step (□ V)                            = □ V
 step (◆ A)                            = ◆ A
 
-open import Data.Nat
+
 
 stepper : ℕ → ∀{T} → State T → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
@@ -963,7 +974,7 @@ stepper (suc n) st | ◆ A     = return (◆ A)
 
 -- convert CK things to CEK things
 
-import Algorithmic.ReductionEC as Red
+
 
 ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
 ck2cekBApp : ∀{b az as}{p : az <>> as ∈ arity b}{A}{L : ∅ ⊢ A}
@@ -987,7 +998,7 @@ ck2cekFrame (Red.-·⋆ A) = -·⋆ A
 ck2cekFrame Red.wrap- = wrap-
 ck2cekFrame Red.unwrap- = unwrap-
 
-import Algorithmic.CK as CK
+
 
 ck2cekStack : ∀{A B} → CK.Stack A B → Stack A B
 ck2cekStack CK.ε = ε
@@ -1112,7 +1123,6 @@ postulate dischargeB-lem'' : ∀ {A}{b}{as a as'}{p : as <>> a ∷ as' ∈ arity
 
 postulate BUILTIN-lem : ∀ b {A}{az}(p : az <>> [] ∈ arity b)(q : BApp b p A) → Red.BUILTIN' b p (cek2ckBApp q) ≡ cek2ckClos (BUILTIN' b p q) []
 
-import Algorithmic.CC as CC
 thm65a : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
 thm65a s s  base        = CK.base
 thm65a (s ; ρ ▻ ` x) s' (step* refl q) = CK.step** (CK.lemV (discharge (lookup x ρ)) (cek2ckVal (lookup x ρ)) (cek2ckStack s)) (thm65a _ s' q)

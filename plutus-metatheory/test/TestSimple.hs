@@ -54,7 +54,7 @@ runTest command mode test = withTempFile $ \tmp -> do
   example <- readProcess mode ["example", "-s",test] []
   writeFile tmp example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--file",tmp] ++ blah mode)  M.main
+  withArgs ([command,"--input",tmp] ++ blah mode)  M.main
 
 runSucceedingTests :: String -> String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()

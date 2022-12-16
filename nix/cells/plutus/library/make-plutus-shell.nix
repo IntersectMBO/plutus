@@ -1,5 +1,6 @@
 { inputs, cell }:
-{ compiler-nix-name ? inputs.cells.toolchain.library.ghc-compiler-nix-name }:
+
+{ compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
 
 let
   inherit (cell.library) pkgs haskell-nix;
@@ -88,21 +89,20 @@ inputs.std.lib.dev.mkShell {
       category = "haskell";
       help = "Agda and its standard library";
     }
-
     {
       package = cell.packages.sphinx-build-readthedocs-site;
       category = "docs";
-      help = "Build the docs locally with output in doc/_build";
+      help = "Build the docs locally in doc/read-the-docs-site/_build";
     }
     {
       package = cell.packages.sphinx-autobuild-readthedocs-site;
       category = "docs";
-      help = "Start the autobuild server with output in doc/_build";
+      help = "Start the autobuild server on localhost:8000";
     }
     {
       package = cell.packages.serve-readthedocs-site;
       category = "docs";
-      help = "nix build and serve the doc site on port 3000";
+      help = "nix build and serve the doc site on localhost:8002";
     }
 
     {
@@ -128,6 +128,8 @@ inputs.std.lib.dev.mkShell {
     cell.packages.hie-bios
     # Provides sphinx-build and other things, unclear how to represent it as a command
     cell.packages.sphinx-toolchain
+    # R environment
+    cell.library.r-with-packages
 
     # Misc  useful stuff, could make these commands but there's a lot already
     pkgs.editorconfig-core-c
@@ -141,10 +143,6 @@ inputs.std.lib.dev.mkShell {
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
-    pkgs.pkg-config # TODO(std) Keep an eye on https://github.com/input-output-hk/plutus/pull/4906
-
-    # More R libraries
-    pkgs.rPackages.plotly
   ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;

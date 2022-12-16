@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 -- editorconfig-checker-disable-file
 module Opts where
 
@@ -6,27 +8,13 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Options.Applicative
 
-data Input = FileInput T.Text | StdInput deriving stock (Show, Read)
+import Common
+import Parsers
 
+-- The different evaluation modes of plc-agda
+data EvalMode = U | TL | TCK | TCEK deriving stock (Show, Read)
 
-fileInput :: Parser Input
-fileInput = FileInput <$> strOption
-  (  long "file"
-  <> short 'f'
-  <> metavar "FILENAME"
-  <> help "Read from file" )
-
-stdInput :: Parser Input
-stdInput = flag' StdInput
-  (  long "stdin"
-  <> help "Read from stdin" )
-
-input :: Parser Input
-input = fileInput <|> stdInput
-
-data EvalMode = U | TL | L | TCK | CK | TCEK deriving stock (Show, Read)
-
-data EvalOptions = EvalOpts Input EvalMode
+data EvalOptions = EvalOpts Input Format EvalMode
 
 evalMode :: Parser EvalMode
 evalMode = option auto
@@ -35,23 +23,27 @@ evalMode = option auto
   <> metavar "MODE"
   <> value TL
   <> showDefault
-  <> help "Evaluation mode (U , TL, L, TCK, CK, TCEK)" )
+  <> help "Evaluation mode (U , TL, TCK, TCEK)" )
 
 evalOpts :: Parser EvalOptions
-evalOpts = EvalOpts <$> input <*> evalMode
+evalOpts = EvalOpts <$> input <*> inputformat <*> evalMode
 
-data TCOptions = TCOpts Input
+data TypecheckOptions = TCOpts Input Format
 
-tcOpts :: Parser TCOptions
-tcOpts = TCOpts <$> input
+typecheckOpts :: Parser TypecheckOptions
+typecheckOpts = TCOpts <$> input <*> inputformat
 
-data Command = Evaluate EvalOptions | TypeCheck TCOptions
+data Command = Eval EvalOptions
+             | Typecheck TypecheckOptions
 
 commands :: Parser Command
 commands = hsubparser (
-      command "evaluate" (info (Evaluate <$> evalOpts) (fullDesc <> progDesc "run a Plutus Core program"))
-      <> command "typecheck" (info (TypeCheck <$> tcOpts) (fullDesc <> progDesc "typecheck a Plutus Core program")))
-
+         command "evaluate"
+          (info (Eval <$> evalOpts)
+          (fullDesc <> progDesc "run a Plutus Core program"))
+      <> command "typecheck"
+          (info (Typecheck <$> typecheckOpts)
+          (fullDesc <> progDesc "typecheck a Plutus Core program")))
 
 execP :: IO Command
 execP = execParser (info (commands <**> helper)

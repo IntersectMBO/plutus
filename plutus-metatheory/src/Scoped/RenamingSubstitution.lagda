@@ -3,13 +3,19 @@ module Scoped.RenamingSubstitution where
 \end{code}
 
 \begin{code}
-open import Data.Nat
-open import Data.Fin hiding (lift)
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec using ([];_∷_)
-open import Function
+open import Function using (id)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
 
-open import Scoped
-open import Builtin.Constant.Type ℕ ScopedTy
+open import Scoped using (ScopedTy;Tel;Tel⋆;Weirdℕ;WeirdFin;ScopedTm)
+open ScopedTy
+open ScopedTm
+open Weirdℕ
+open WeirdFin
+open import Builtin.Constant.Type ℕ ScopedTy using (TyCon)
+open TyCon
 \end{code}
 
 \begin{code}
@@ -158,8 +164,6 @@ t [ A ]⋆ = sub (ext⋆ ` A) (⋆ext `) t
 # Proofs
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality
-
 lift⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → lift⋆ ρ x ≡ lift⋆ ρ' x

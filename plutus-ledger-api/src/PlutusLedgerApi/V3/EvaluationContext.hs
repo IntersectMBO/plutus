@@ -13,7 +13,6 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
 import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV2))
-import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 
 import Control.Monad
 import Control.Monad.Except

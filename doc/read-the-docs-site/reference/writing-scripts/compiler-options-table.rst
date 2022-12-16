@@ -12,6 +12,13 @@
      - Default
      - Description
 
+
+   * - ``context-level``
+     - Int
+     - 1
+     - Set context level for error messages.
+
+
    * - ``coverage-all``
      - Bool
      - False
@@ -28,18 +35,6 @@
      - Bool
      - False
      - Add location coverage annotations in the trace output
-
-
-   * - ``debug``
-     - Bool
-     - False
-     - Set log level to debug
-
-
-   * - ``debug-context``
-     - Int
-     - 1
-     - Set context level to 3, which means error messages contain full contexts.
 
 
    * - ``defer-errors``
@@ -66,16 +61,16 @@
      - Dump Untyped Plutus Core
 
 
-   * - ``max-simplifier-iterations``
+   * - ``max-simplifier-iterations-pir``
      - Int
      - 12
-     - Set the max iterations for the simplifier
+     - Set the max iterations for the PIR simplifier
 
 
-   * - ``no-context``
+   * - ``max-simplifier-iterations-uplc``
      - Int
-     - 1
-     - Set context level to 0, which means error messages contain minimum contexts.
+     - 12
+     - Set the max iterations for the UPLC simplifier
 
 
    * - ``optimize``
@@ -132,9 +127,9 @@
      - Perform type checking during compilation.
 
 
-   * - ``verbose``
-     - Bool
-     - False
-     - Set log level to verbose
+   * - ``verbosity``
+     - Verbosity
+     - Quiet
+     - Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)
 
 

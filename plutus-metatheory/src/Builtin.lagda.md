@@ -8,11 +8,10 @@ This module contains an enumeration of builtins.
 ```
 module Builtin where
 
-open import Data.Nat
-open import Data.Bool
-open import Agda.Builtin.Int
-open import Agda.Builtin.String
-open import Utils
+open import Data.Bool using (Bool)
+open import Agda.Builtin.Int using (Int)
+open import Agda.Builtin.String using (String)
+open import Utils using (ByteString;Maybe;DATA)
 
 data Builtin : Set where
   -- Integers

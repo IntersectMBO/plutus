@@ -57,7 +57,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tullia = {
-      url = "github:input-output-hk/tullia/max-jobs-auto";
+      url = "github:input-output-hk/tullia/gh-comment";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -148,12 +148,11 @@
       }
       {
         ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
-        # TODO(std) remove me once hydra is gone
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
       (inputs.tullia.fromStd {
         actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "cloud" "pipelines" ];
+        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
       });
 
   nixConfig = {

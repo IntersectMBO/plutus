@@ -59,10 +59,10 @@ optionsTable = [fmt|
 
 genRow :: O.OptionKey -> O.PluginOption -> Text
 genRow k (O.PluginOption tr _ field desc) = [fmt|
-    * - ``{k}``
-      - {show tr}
-      - {show (pretty defaultValue)}
-      - {desc}
-    |]
+   * - ``{k}``
+     - {show tr}
+     - {show (pretty defaultValue)}
+     - {desc}
+|]
     where
         defaultValue = O.defaultPluginOptions ^. field

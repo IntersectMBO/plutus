@@ -121,16 +121,13 @@ termSubstTyNames = purely termSubstTyNamesM
 -- there that variable is no longer free). The resulting 'Term' may and likely will not satisfy
 -- global uniqueness.
 typeSubstClosedType
-    :: Eq tyname => tyname -> Type tyname uni () -> Type tyname uni () -> Type tyname uni ()
+    :: Eq tyname => tyname -> Type tyname uni a -> Type tyname uni a -> Type tyname uni a
 typeSubstClosedType tn0 ty0 = go where
     go = \case
-         TyVar    () tn      -> if tn == tn0 then ty0 else TyVar () tn
-         TyFun    () ty1 ty2 -> TyFun    () (go ty1) (go ty2)
-         TyIFix   () ty1 ty2 -> TyIFix   () (go ty1) (go ty2)
-         TyApp    () ty1 ty2 -> TyApp    () (go ty1) (go ty2)
-         TyForall () tn k ty -> TyForall () tn k (goUnder tn ty)
-         TyLam    () tn k ty -> TyLam    () tn k (goUnder tn ty)
-         bt@TyBuiltin{}      -> bt
+         TyVar    a tn      -> if tn == tn0 then ty0 else TyVar a tn
+         TyForall a tn k ty -> TyForall a tn k (goUnder tn ty)
+         TyLam    a tn k ty -> TyLam    a tn k (goUnder tn ty)
+         ty                 -> ty & over typeSubtypes go
     goUnder tn ty = if tn == tn0 then ty else go ty
 
 -- | Substitute the given closed 'Type' for the given type variable in the given 'Term'. Does not
@@ -139,19 +136,11 @@ typeSubstClosedType tn0 ty0 = go where
 -- global uniqueness.
 termSubstClosedType
     :: Eq tyname
-    => tyname -> Type tyname uni () -> Term tyname name uni fun () -> Term tyname name uni fun ()
+    => tyname -> Type tyname uni a -> Term tyname name uni fun a -> Term tyname name uni fun a
 termSubstClosedType tn0 ty0 = go where
     go = \case
-         v@Var{}                 -> v
-         c@Constant{}            -> c
-         b@Builtin{}             -> b
-         TyAbs   () tn ty body   -> TyAbs   () tn ty (goUnder tn body)
-         LamAbs  () var ty body  -> LamAbs  () var (goTy ty) (go body)
-         Apply   () fun arg      -> Apply   () (go fun) (go arg)
-         TyInst  () fun ty       -> TyInst  () (go fun) (goTy ty)
-         Unwrap  () term         -> Unwrap  () (go term)
-         IWrap   () pat arg term -> IWrap   () (goTy pat) (goTy arg) (go term)
-         Error   () ty           -> Error   () (goTy ty)
+         TyAbs a tn k body -> TyAbs a tn k (goUnder tn body)
+         t                 -> t & over termSubtypes goTy & over termSubterms go
     goUnder tn term = if tn == tn0 then term else go term
     goTy = typeSubstClosedType tn0 ty0
 
@@ -162,21 +151,14 @@ termSubstClosedType tn0 ty0 = go where
 termSubstClosedTerm
     :: Eq name
     => name
-    -> Term tyname name uni fun ()
-    -> Term tyname name uni fun ()
-    -> Term tyname name uni fun ()
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
 termSubstClosedTerm varFor new = go where
     go = \case
-         Var      () var          -> if var == varFor then new else Var () var
-         TyAbs    () tyn ty body  -> TyAbs    () tyn ty (go body)
-         LamAbs   () var ty body  -> LamAbs   () var ty (goUnder var body)
-         Apply    () fun arg      -> Apply    () (go fun) (go arg)
-         Constant () constant     -> Constant () constant
-         TyInst   () fun arg      -> TyInst   () (go fun) arg
-         Unwrap   () term         -> Unwrap   () (go term)
-         IWrap    () pat arg term -> IWrap    () pat arg (go term)
-         b@Builtin{}              -> b
-         e@Error  {}              -> e
+         Var    a var         -> if var == varFor then new else Var a var
+         LamAbs a var ty body -> LamAbs a var ty (goUnder var body)
+         t                    -> t & over termSubterms go
     goUnder var term = if var == varFor then term else go term
 
 -- Free variables

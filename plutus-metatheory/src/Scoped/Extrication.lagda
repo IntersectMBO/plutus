@@ -3,27 +3,33 @@ module Scoped.Extrication where
 \end{code}
 
 \begin{code}
-open import Data.Nat
-open import Data.Nat.Properties
-open import Data.Fin
-open import Data.Vec
+open import Data.Fin using (Fin;zero;suc)
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Nat.Properties using (+-comm)
+open import Data.Vec using ([];_++_)
 open import Function using (_∘_)
-open import Data.Sum using (inj₁;inj₂)
-open import Data.Product renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality as Eq using (refl)
 
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic as A
-open import Scoped
-open import Builtin
+open import Utils using (Kind;*;TermCon)
+open TermCon
+open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Algorithmic as A using (Ctx;_∋_;_⊢_)
+open Ctx
+open _⊢_
+open _∋_
+open import Scoped using (ScopedTy;ScopedTm;Weirdℕ;WeirdFin)
+open ScopedTy
+open ScopedTm
+open Weirdℕ
+open WeirdFin
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B
-open import Type.BetaNormal
-open import Type.RenamingSubstitution as T
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as B using (TermCon)
+open B.TermCon
 \end{code}
 
 type level
@@ -71,7 +77,7 @@ len ∅ = Z
 len (Γ ,⋆ K) = T (len Γ)
 len (Γ , A) = S (len Γ)
 
-open import Relation.Binary.PropositionalEquality as Eq
+
 
 extricateVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → WeirdFin (len Γ)
 extricateVar Z = Z
