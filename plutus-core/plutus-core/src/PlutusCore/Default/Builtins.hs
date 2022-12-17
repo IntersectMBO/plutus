@@ -1458,8 +1458,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- BLS12_381.GT
     toBuiltinMeaning _var Bls12_381_GT_mul =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.G2.mul
-            (runCostingFunTwoArguments . paramBls12_381_G2_mul)
+            PlutusCore.BLS12_381.GT.mul
+            (runCostingFunTwoArguments . paramBls12_381_GT_mul)
     toBuiltinMeaning _var Bls12_381_GT_millerLoop =
         makeBuiltinMeaning
             ml
