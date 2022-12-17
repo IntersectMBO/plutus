@@ -53,6 +53,8 @@ data GenEnv = GenEnv
   -- ^ Type context
   , geTerms              :: Map Name (Type TyName DefaultUni ())
   -- ^ Term context
+  , geUnboundUsedTyNames :: Set TyName
+  -- ^ Names that we have generated and don't want to shadow but haven't bound yet.
   , geEscaping           :: AllowEscape
   -- ^ Are we in a place where we are allowed to generate a datatype binding?
   , geCustomGen          :: Maybe (Type TyName DefaultUni ())
@@ -101,14 +103,15 @@ runGenTmCustom f cg g = do
     let env = GenEnv
           { -- Duplicating the QC size parameter that we use to control the size of constants as
             -- the initial AST size parameter.
-            geAstSize    = n
-          , geDatas      = Map.empty
-          , geTypes      = Map.empty
-          , geTerms      = Map.empty
-          , geEscaping   = YesEscape
-          , geCustomGen  = cg
-          , geCustomFreq = f
-          , geDebug      = False
+            geAstSize            = n
+          , geDatas              = Map.empty
+          , geTypes              = Map.empty
+          , geTerms              = Map.empty
+          , geUnboundUsedTyNames = Set.empty
+          , geEscaping           = YesEscape
+          , geCustomGen          = cg
+          , geCustomFreq         = f
+          , geDebug              = False
           }
     flip runReader env <$> runGenT g
 
@@ -208,8 +211,8 @@ Overall, this chaotic goodness needs to be sorted out.
 -- | Get all uniques we have generated and are used in the current context.
 getUniques :: GenTm (Set Unique)
 getUniques = do
-  GenEnv{geDatas = dts, geTypes = tys, geTerms = tms} <- ask
-  return $ Set.mapMonotonic (_nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys) <>
+  GenEnv{geDatas = dts, geTypes = tys, geTerms = tms, geUnboundUsedTyNames = used} <- ask
+  return $ Set.mapMonotonic (_nameUnique . unTyName) (Map.keysSet dts <> Map.keysSet tys <> used) <>
            Set.mapMonotonic _nameUnique (Map.keysSet tms) <>
            Set.unions [ names d | d <- Map.elems dts ]
   where
@@ -288,6 +291,11 @@ bindTyName x k = local $ \ e -> e
 -- | Bind type names
 bindTyNames :: [(TyName, Kind ())] -> GenTm a -> GenTm a
 bindTyNames = flip $ foldr (uncurry bindTyName)
+
+-- | Remember that we have generated a type name locally but don't bind it.
+-- Useful for non-recursive definitions where we want to control name overlap.
+registerTyName :: TyName -> GenTm a -> GenTm a
+registerTyName n = local $ \ e -> e { geUnboundUsedTyNames = Set.insert n (geUnboundUsedTyNames e) }
 
 -- | Bind a term to a type in a generator.
 bindTmName :: Name -> Type TyName DefaultUni () -> GenTm a -> GenTm a

@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  package = { lib, buildPythonPackage, fetchPypi, attrs, click, click-log, jinja2, requests }:
+  package = { lib, buildPythonPackage, fetchPypi, attrs, click, click-log, requests, jinja2 }:
     buildPythonPackage rec {
 
       pname = "scriv";

@@ -65,6 +65,21 @@ library
     , text
     , transformers
 
+  -- added for Common.hs
+  build-depends:
+    , aeson
+    , deepseq
+    , flat
+    , lens
+    , monoidal-containers
+    , mtl
+    , plutus-core:plutus-core-testlib
+    , prettyprinter
+
+  other-modules:
+    Common
+    Parsers
+
   exposed-modules:
     Opts
     Raw

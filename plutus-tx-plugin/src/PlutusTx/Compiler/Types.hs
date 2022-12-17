@@ -8,8 +8,10 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
-  Ann (..)) where
+module PlutusTx.Compiler.Types (
+    module PlutusTx.Compiler.Types,
+    module PlutusTx.Annotation
+    ) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -58,6 +60,16 @@ data CompileContext uni fun = CompileContext {
     ccModBreaks   :: Maybe GHC.ModBreaks,
     ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
+
+-- | Verbosity level of the Plutus Tx compiler.
+data Verbosity =
+    Quiet
+    | Verbose
+    | Debug
+    deriving stock (Eq, Show)
+
+instance Pretty Verbosity where
+    pretty = viaShow
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts =

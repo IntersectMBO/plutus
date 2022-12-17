@@ -14,6 +14,9 @@ module PlutusLedgerApi.Common
     , VerboseMode (..)
     , LogOutput
     , EvaluationError (..)
+    -- reexport Data & ExBudget for convenience to upstream users
+    , PlutusCore.Data (..)
+    , PlutusCore.ExBudget (..)
 
       -- * Network's versioning
       {-| The network's behaviour (and plutus's by extension) can change via /hard forks/,
@@ -41,6 +44,8 @@ module PlutusLedgerApi.Common
     , IsParamName
     , showParamName
     , GenericParamName
+    , CostModelApplyError (..)
+    , CostModelApplyWarn (..)
 
       -- ** Evaluation context
     , EvaluationContext (..)
@@ -48,7 +53,9 @@ module PlutusLedgerApi.Common
     , toMachineParameters
     ) where
 
+import PlutusCore.Data as PlutusCore (Data (..))
 import PlutusCore.Evaluation.Machine.CostModelInterface (CostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudget as PlutusCore (ExBudget (..))
 import PlutusLedgerApi.Common.Eval
 import PlutusLedgerApi.Common.ParamName
 import PlutusLedgerApi.Common.SerialisedScript
