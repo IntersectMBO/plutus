@@ -45,16 +45,17 @@ succeedingTCTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
-blah :: String -> [String]
-blah "plc" = []
-blah _     = ["--mode","U"]
+-- For each mode determine which executable should generate examples
+modeExampleGenerator :: String -> String
+modeExampleGenerator "U" = "uplc"
+modeExampleGenerator _   = "plc"
 
 runTest :: String -> String -> String -> IO ()
 runTest command mode test = withTempFile $ \tmp -> do
-  example <- readProcess mode ["example", "-s",test] []
+  example <- readProcess (modeExampleGenerator mode) ["example", "-s",test] []
   writeFile tmp example
   putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--input",tmp] ++ blah mode)  M.main
+  withArgs [command,"--input",tmp,"--mode",mode]  M.main
 
 runSucceedingTests :: String -> String -> [String] -> IO ()
 runSucceedingTests command mode [] = return ()
@@ -70,30 +71,22 @@ runFailingTests command mode (test:tests) = catch
   (runTest command mode test)
   (\case
     ExitFailure _ -> runFailingTests command mode tests
-    ExitSuccess   -> exitSuccess)
+    ExitSuccess   -> exitFailure)
 
 main = do
-{-
-putStrLn "running succ L..."
-  runSucceedingTests "evaluate" (Just "L") succeedingEvalTests
-  putStrLn "running fail L"
-  runFailingTests "evaluate" (Just "L") failingEvalTests
-  putStrLn "running succ CK"
-  runSucceedingTests "evaluate" (Just "CK") succeedingEvalTests
-  putStrLn "running fail CK"
-  runFailingTests "evaluate" (Just "CK") failingEvalTests
--}
   putStrLn "running succ TCK"
-  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  runSucceedingTests "evaluate" "TCK" succeedingEvalTests
   putStrLn "running fail TCK"
-  runFailingTests "evaluate" "plc" failingEvalTests
+  runFailingTests "evaluate" "TCK" failingEvalTests
   putStrLn "running succ TCEK"
-  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  runSucceedingTests "evaluate" "TCEK" succeedingEvalTests
   putStrLn "running fail TCEK"
-  runFailingTests "evaluate" "plc" failingEvalTests
+  runFailingTests "evaluate" "TCEK" failingEvalTests
   putStrLn "running succ U..."
-  runSucceedingTests "evaluate" "uplc" succeedingEvalTests
+  runSucceedingTests "evaluate" "U" succeedingEvalTests
   putStrLn "running fail U..."
-  runFailingTests "evaluate" "uplc" failingEvalTests
-  putStrLn "running succ TC"
-  runSucceedingTests "typecheck" "plc" succeedingTCTests
+  runFailingTests "evaluate" "U" failingEvalTests
+  putStrLn "running succ TL"
+  runSucceedingTests "evaluate" "TL" succeedingTCTests
+  putStrLn "running fail TL"
+  runFailingTests "evaluate" "TL" failingEvalTests
