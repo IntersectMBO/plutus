@@ -34,3 +34,4 @@ The general process for creating an ADR is:
    0002-steppable-cek-machine
    0003-sharing-prod-debugging-cek
    0004-deferred-unlifting
+   0005-inlining-saturated-functions
