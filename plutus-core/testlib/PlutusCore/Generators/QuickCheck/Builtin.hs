@@ -1,6 +1,5 @@
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -9,6 +8,9 @@
 module PlutusCore.Generators.QuickCheck.Builtin where
 
 import PlutusCore
+import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)
@@ -112,6 +114,22 @@ instance ArbitraryBuiltin Text where
 instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
+
+instance ArbitraryBuiltin BLS12_381.G1.Element where
+    arbitraryBuiltin = BLS12_381.G1.hashToCurve <$> arbitrary
+    shrinkBuiltin _ = []
+
+instance ArbitraryBuiltin BLS12_381.G2.Element where
+    arbitraryBuiltin = BLS12_381.G2.hashToCurve <$> arbitrary
+    shrinkBuiltin _ = []
+
+instance ArbitraryBuiltin BLS12_381.GT.Element where
+    arbitraryBuiltin = millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
+                       where millerLoop p1 p2 =
+                                 case BLS12_381.GT.millerLoop p1 p2 of
+                                   Left err -> error $ "millerLoop: " ++ show err
+                                   Right p  -> p
+    shrinkBuiltin _ = []
 
 -- | For providing an 'Arbitrary' instance deferring to 'ArbitraryBuiltin'. Useful for implementing
 -- 'ArbitraryBuiltin' for a polymorphic built-in type by taking the logic for handling spines from

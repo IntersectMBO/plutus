@@ -197,16 +197,16 @@ benchBls12_381_G1_hashToCurve =
     in createOneTermBuiltinBench name [] inputs
 -- linear in input size
 
-benchBls12_381_G1_serialise :: Benchmark
-benchBls12_381_G1_serialise =
-    let name = Bls12_381_G1_serialise
+benchBls12_381_G1_compress :: Benchmark
+benchBls12_381_G1_compress =
+    let name = Bls12_381_G1_compress
     in createOneTermBuiltinBench name [] g1inputsA
 -- const
 
-benchBls12_381_G1_deserialise :: Benchmark
-benchBls12_381_G1_deserialise =
-    let name = Bls12_381_G1_deserialise
-        inputs = fmap G1.serialise g1inputsA
+benchBls12_381_G1_uncompress :: Benchmark
+benchBls12_381_G1_uncompress =
+    let name = Bls12_381_G1_uncompress
+        inputs = fmap G1.compress g1inputsA
     in createOneTermBuiltinBench name [] inputs
 -- const
 
@@ -243,16 +243,16 @@ benchBls12_381_G2_hashToCurve =
     in createOneTermBuiltinBench name [] inputs
 -- linear in size of input
 
-benchBls12_381_G2_serialise :: Benchmark
-benchBls12_381_G2_serialise =
-    let name = Bls12_381_G2_serialise
+benchBls12_381_G2_compress :: Benchmark
+benchBls12_381_G2_compress =
+    let name = Bls12_381_G2_compress
     in createOneTermBuiltinBench name [] g2inputsA
 -- const
 
-benchBls12_381_G2_deserialise :: Benchmark
-benchBls12_381_G2_deserialise =
-    let name = Bls12_381_G2_deserialise
-        inputs = fmap G2.serialise g2inputsA
+benchBls12_381_G2_uncompress :: Benchmark
+benchBls12_381_G2_uncompress =
+    let name = Bls12_381_G2_uncompress
+        inputs = fmap G2.compress g2inputsA
     in createOneTermBuiltinBench name [] inputs
 -- const
 
@@ -282,15 +282,15 @@ blsBenchmarks gen =
        , benchBls12_381_G1_neg
        , benchBls12_381_G1_equal
        , benchBls12_381_G1_hashToCurve
-       , benchBls12_381_G1_serialise
-       , benchBls12_381_G1_deserialise
+       , benchBls12_381_G1_compress
+       , benchBls12_381_G1_uncompress
        , benchBls12_381_G2_add
        , benchBls12_381_G2_mul multipliers
        , benchBls12_381_G2_neg
        , benchBls12_381_G2_equal
        , benchBls12_381_G2_hashToCurve
-       , benchBls12_381_G2_serialise
-       , benchBls12_381_G2_deserialise
+       , benchBls12_381_G2_compress
+       , benchBls12_381_G2_uncompress
        , benchBls12_381_GT_mul
        , benchBls12_381_GT_finalVerify
        , benchBls12_381_GT_millerLoop
