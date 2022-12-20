@@ -61,3 +61,11 @@ extra-packages: ieee, filemanip
 -- dependency but turn off the warning?
 constraints:
   dependent-sum >= 0.7.1.0,
+
+-- FIXME!!! Temporary workaround for inline-r problem
+source-repository-package
+  type: git
+  location: https://github.com/tweag/HaskellR.git
+  tag: af3b75aba6c9530d68e3cc0cfad7239a88380349
+  subdir:
+     inline-r
