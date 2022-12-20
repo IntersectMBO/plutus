@@ -281,14 +281,11 @@ instance ExMemoryUsage Data where
               sizeDataPairs []           = 0
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
 
--- FIXME!!!  What's the correct number here?
-
-
 instance ExMemoryUsage PlutusCore.BLS12_381.G1.Element where
-    memoryUsage _ = 4
+    memoryUsage _ = 12
 
 instance ExMemoryUsage PlutusCore.BLS12_381.G2.Element where
-    memoryUsage _ = 4
+    memoryUsage _ = 24
 
 instance ExMemoryUsage PlutusCore.BLS12_381.GT.Element where
-    memoryUsage _ = 4
+    memoryUsage _ = 144

@@ -284,7 +284,6 @@ readModelLinearOnDiagonal model c = do
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
 
-
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
 memoryUsageAsCostingInteger x = coerce $ memoryUsage x
 
@@ -737,84 +736,128 @@ mkNilPairData cpuModelR = do
 
 ---------------- BLS12_381 operations ----------------
 
-readOneArgumentModelConstantCost memCost cpuModelR = do
-  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
-  let memModel = ModelOneArgumentConstantCost memCost
-  pure $ CostingFun cpuModel memModel
+-- Group order is 255 bits   -> 32 bytes (4 words)
+-- Field modulus is 381 bits -> 48 bytes (6 words)
 
-g1ElementSize = 8
-g2ElementSize = 16
-gtElementSize = 4
+-- In-memory G1 points take up 96 bytes  (12 words)
+g1MemSize :: CostingInteger
+g1MemSize = 12
+
+-- Serialised G1 points take up 48 bytes (6 words)
+g1SerialisedSize :: CostingInteger
+g1SerialisedSize = 6
+
+-- In-memory G2 points take up 192 bytes (24 words)
+g2MemSize :: CostingInteger
+g2MemSize = 24
+
+-- Serialised G2 points take up 96 bytes (12 words)
+g2SerialisedSize :: CostingInteger
+g2SerialisedSize = 12
+
+-- In-memory G2 points take up ??? bytes (??? words)
+gtMemSize :: CostingInteger
+gtMemSize = 144
 
 bls12_381_G1_add :: GetTwoArgumentCostingFunction
 bls12_381_G1_add cupModelR = do
-  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g1MemSize
   pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_mul ::  GetTwoArgumentCostingFunction
-bls12_381_G1_mul = undefined
+bls12_381_G1_mul = do
+  cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_neg :: GetOneArgumentCostingFunction
-bls12_381_G1_neg = readOneArgumentModelConstantCost g1Size
+bls12_381_G1_neg = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_equal :: GetTwoArgumentCostingFunction
 bls12_381_G1_equal cpuModelR = do
-    cpuModel <- ModelTwoArgumentsConstantCost <$> readOneArgumentModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost 4
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
-
 
 bls12_381_G1_hashToCurve :: GetTwoArgumentCostingFunction
-bls12_381_G1_hashToCurve = undefined
+bls12_381_G1_hashToCurve = do
+    cpuModel <- ModelOneArgumentLinearCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelOneArgumentConstantCost g1MemSize
+    pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_serialise :: GetOneArgumentCostingFunction
-bls12_381_G1_serialise = readOneArgumentModelConstantCost g1SerialisedSize
+bls12_381_G1_serialise = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g1SerialisedSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_deserialise :: GetOneArgumentCostingFunction
-bls12_381_G1_deserialise = readOneArgumentModelConstantCost g1Size
+bls12_381_G1_deserialise = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_add :: GetTwoArgumentCostingFunction
-bls12_381_G2_add cpuModelR = do
-    cpuModel <- ModelTwoArgumentsConstantCost <$> readOneArgumentModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost 4
-    pure $ CostingFun cpuModel memModel
+bls12_381_G2_add cupModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
 
-bls12_381_G2_mul :: GetTwoArgumentCostingFunction
-bls12_381_G2_mul cpuModelR = do
-    cpuModel <- ModelTwoArgumentsConstantCost <$> readOneArgumentModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost 4
-    pure $ CostingFun cpuModel memModel
-
+bls12_381_G2_mul ::  GetTwoArgumentCostingFunction
+bls12_381_G2_mul = do
+  cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_neg :: GetOneArgumentCostingFunction
-bls12_381_G2_neg = readOneArgumentModelConstantCost g2Size
+bls12_381_G2_neg = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_equal :: GetTwoArgumentCostingFunction
 bls12_381_G2_equal cpuModelR = do
-    cpuModel <- ModelTwoArgumentsConstantCost <$> readOneArgumentModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost 4
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-
-bls12_381_G2_hashToCurve :: GetOneArgumentCostingFunction
-bls12_381_G2_hashToCurve cpuModelR = undefined
+bls12_381_G2_hashToCurve :: GetTwoArgumentCostingFunction
+bls12_381_G2_hashToCurve = do
+    cpuModel <- ModelOneArgumentLinearCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelOneArgumentConstantCost g2MemSize
+    pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_serialise :: GetOneArgumentCostingFunction
-bls12_381_G2_serialise = readOneArgumentModelConstantCost g2SerialsedSize
+bls12_381_G2_serialise = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g2SerialisedSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_deserialise :: GetOneArgumentCostingFunction
-bls12_381_G2_deserialise = readOneArgumentModelConstantCost g2Size
+bls12_381_G2_deserialise = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
 
 bls12_381_GT_mul :: GetTwoArgumentCostingFunction
 bls12_381_GT_mul cpuModelR = do
-    cpuModel <- ModelTwoArgumentsConstantCost <$> readOneArgumentModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost 4
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost gtMemSize
     pure $ CostingFun cpuModel memModel
 
 bls12_381_GT_finalVerify :: GetTwoArgumentCostingFunction
-bls12_381_GT_finalVerify = undefined
+bls12_381_GT_finalVerify = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
+    pure $ CostingFun cpuModel memModel
 
 bls12_381_GT_millerLoop :: GetTwoArgumentCostingFunction
-bls12_381_GT_millerLoop = undefined
+bls12_381_GT_millerLoop = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelOneArgumentConstantCost gtMemSize
+    pure $ CostingFun cpuModel memModel
 

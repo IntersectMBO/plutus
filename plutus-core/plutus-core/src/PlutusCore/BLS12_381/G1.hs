@@ -11,6 +11,10 @@ module PlutusCore.BLS12_381.G1
     , deserialise
     ) where
 
+-- FIXME: perhaps export the in-memory and serialised sizes of elements.  We
+-- need these in ExMemory.hs and CreateBuiltinCostModel.hs.  Can we get these
+-- numbers from the library easily?
+
 import Crypto.EllipticCurve.BLS12_381 qualified as BLS12_381
 import PlutusCore.BLS12_381.Utils (byteStringAsHex)
 -- import PlutusCore.Evaluation.Result
