@@ -29,50 +29,61 @@ succeedingEvalTests = ["succInteger"
 
 failingEvalTests = ["DivideByZero"]
 
--- For each mode determine which executable should generate examples
-modeExampleGenerator :: String -> String
-modeExampleGenerator "U" = "uplc"
-modeExampleGenerator _   = "plc"
+type Mode = String
+data Command = Evaluate Mode | Typecheck deriving Show
 
-runTest :: String -> String -> String -> IO ()
-runTest command mode test = withTempFile $ \tmp -> do
-  example <- readProcess (modeExampleGenerator mode) ["example", "-s",test] []
+-- For each Command construct arguments to pass to plc-agda
+mkArgs :: String -> Command -> [String]
+mkArgs file (Evaluate mode) = ["evaluate","--input",file,"--mode",mode]
+mkArgs file Typecheck       = ["typecheck","--input",file]
+
+-- For each Command determine which executable should generate examples
+exampleGenerator :: Command -> String
+exampleGenerator (Evaluate "U") = "uplc"
+exampleGenerator _              = "plc"
+
+runTest :: Command -> String -> IO ()
+runTest command test = withTempFile $ \tmp -> do
+  example <- readProcess (exampleGenerator command) ["example", "-s",test] []
   writeFile tmp example
-  putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs [command,"--input",tmp,"--mode",mode]  M.main
+  putStrLn $ "test: " ++ test ++ " [" ++ show command ++ "]"
+  withArgs (mkArgs tmp command) M.main
 
-runSucceedingTests :: String -> String -> [String] -> IO ()
-runSucceedingTests command mode [] = return ()
-runSucceedingTests command mode (test:tests) = catch
-  (runTest command mode test)
+runSucceedingTests :: Command -> [String] -> IO ()
+runSucceedingTests command [] = return ()
+runSucceedingTests command (test:tests) = catch
+  (runTest command test)
   (\case
     ExitFailure _ -> exitFailure
-    ExitSuccess   -> runSucceedingTests command mode tests)
+    ExitSuccess   -> runSucceedingTests command tests)
 
-runFailingTests :: String -> String -> [String] -> IO ()
-runFailingTests command mode [] = return ()
-runFailingTests command mode (test:tests) = catch
-  (runTest command mode test)
+runFailingTests :: Command -> [String] -> IO ()
+runFailingTests command [] = return ()
+runFailingTests command (test:tests) = catch
+  (runTest command test)
   (\case
-    ExitFailure _ -> runFailingTests command mode tests
+    ExitFailure _ -> runFailingTests command tests
     ExitSuccess   -> exitFailure)
 
 main = do
+  -- Evaluation tests
   putStrLn "running succ TCK"
-  runSucceedingTests "evaluate" "TCK" succeedingEvalTests
+  runSucceedingTests (Evaluate "TCK") succeedingEvalTests
   putStrLn "running fail TCK"
-  runFailingTests "evaluate" "TCK" failingEvalTests
+  runFailingTests (Evaluate "TCK") failingEvalTests
   putStrLn "running succ TCEK"
-  runSucceedingTests "evaluate" "TCEK" succeedingEvalTests
+  runSucceedingTests (Evaluate "TCEK") succeedingEvalTests
   putStrLn "running fail TCEK"
-  runFailingTests "evaluate" "TCEK" failingEvalTests
+  runFailingTests (Evaluate "TCEK") failingEvalTests
   putStrLn "running succ U..."
-  runSucceedingTests "evaluate" "U" succeedingEvalTests
+  runSucceedingTests (Evaluate "U") succeedingEvalTests
   putStrLn "running fail U..."
-  runFailingTests "evaluate" "U" failingEvalTests
+  runFailingTests (Evaluate "U") failingEvalTests
   putStrLn "running succ TL"
-  runSucceedingTests "evaluate" "TL" succeedingEvalTests
+  runSucceedingTests (Evaluate "TL") succeedingEvalTests
   putStrLn "running fail TL"
-  runFailingTests "evaluate" "TL" failingEvalTests
+  runFailingTests (Evaluate "TL") failingEvalTests
 
+  putStrLn "Typechecking succ"
+  runSucceedingTests Typecheck succeedingEvalTests
 -- TODO: Testing of typecheck command
