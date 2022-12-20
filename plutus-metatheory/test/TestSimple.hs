@@ -29,22 +29,6 @@ succeedingEvalTests = ["succInteger"
 
 failingEvalTests = ["DivideByZero"]
 
-succeedingTCTests = ["succInteger"
-        ,"unitval"
-        ,"true"
-        ,"false"
-        ,"churchZero"
-        ,"churchSucc"
-        ,"overapplication"
-        ,"factorial"
-        ,"fibonacci"
-        ,"NatRoundTrip"
-        ,"ScottListSum"
-        ,"IfIntegers"
-        ,"ApplyAdd1"
-        ,"ApplyAdd2"
-        ]
-
 -- For each mode determine which executable should generate examples
 modeExampleGenerator :: String -> String
 modeExampleGenerator "U" = "uplc"
@@ -87,6 +71,8 @@ main = do
   putStrLn "running fail U..."
   runFailingTests "evaluate" "U" failingEvalTests
   putStrLn "running succ TL"
-  runSucceedingTests "evaluate" "TL" succeedingTCTests
+  runSucceedingTests "evaluate" "TL" succeedingEvalTests
   putStrLn "running fail TL"
   runFailingTests "evaluate" "TL" failingEvalTests
+
+-- TODO: Testing of typecheck command

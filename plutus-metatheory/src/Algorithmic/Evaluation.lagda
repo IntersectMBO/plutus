@@ -83,6 +83,6 @@ stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either RuntimeError (�
 stepper {A} t n with eval (gas n) t
 ... | steps x (done t' v) = return t'
 ... | steps x out-of-gas  = inj₁ gasError
-... | steps x (error _)   = inj₁ userError
+... | steps x (error _)   = return (error A)
 
 \end{code}
