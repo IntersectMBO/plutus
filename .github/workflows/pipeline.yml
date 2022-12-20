@@ -1,0 +1,7 @@
+steps:
+  - command:
+    - "nix-develop --command ./scripts/ci-plutus-benchmark.sh"
+    concurrency: 1
+    concurrency_group: "plutus-benchmark"
+    agents:
+      queue: "plutus"

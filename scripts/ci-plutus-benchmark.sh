@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # ci-plutus-benchmark: Run benchmarks on 2 branches, compare the results and
 # add a comment on the corresponding PR on GitHub.
 #
@@ -44,7 +42,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-nix develop --command "cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1"
+cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
 echo "[ci-plutus-benchmark]: fetching origin ..."
 git fetch origin
@@ -58,7 +56,7 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-nix develop --command "cabal bench $BENCHMARK_NAME >bench-base.log 2>&1"
+cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
@@ -77,7 +75,7 @@ EOF
 echo -e "</details>"
 } > bench-compare-result.log
 
-nix develop --command "jq -Rs '.' bench-compare-result.log >bench-compare.json"
+jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
 curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
