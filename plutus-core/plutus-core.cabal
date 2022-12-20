@@ -71,6 +71,7 @@ library
   exposed-modules:
     Crypto
     Crypto.EllipticCurve.BLS12_381
+    Crypto.EllipticCurve.BLS12_381.Internal
     Data.ByteString.Hash
     Data.Either.Extras
     Data.MultiSet.Lens
@@ -206,7 +207,6 @@ library
     plutus-ir/src untyped-plutus-core/src prelude common
 
   other-modules:
-    Crypto.EllipticCurve.BLS12_381.Internal
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
@@ -854,3 +854,11 @@ test-suite index-envs-test
     , quickcheck-instances
     , tasty
     , tasty-quickcheck
+
+executable bls-sizes
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: plutus-core/src/Crypto/EllipticCurve
+  build-depends:
+    , base         >=4.9 && <5
+    , plutus-core

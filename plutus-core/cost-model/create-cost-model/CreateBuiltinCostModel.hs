@@ -739,25 +739,29 @@ mkNilPairData cpuModelR = do
 -- Group order is 255 bits   -> 32 bytes (4 words)
 -- Field modulus is 381 bits -> 48 bytes (6 words)
 
--- In-memory G1 points take up 96 bytes  (12 words)
+-- Sizes below from sizeP, compressedSizeP, and sizePT in
+-- Crypto.EllipticCurve.BLS12_381.Internal
+
+-- In-memory G1 points take up 144 bytes (18 words)
+-- These are *projective* points, so we have *three* 48-byte coordinates.
 g1MemSize :: CostingInteger
-g1MemSize = 12
+g1MemSize = 18
 
--- Serialised G1 points take up 48 bytes (6 words)
-g1SerialisedSize :: CostingInteger
-g1SerialisedSize = 6
+-- Compressed serialised G1 points take up 48 bytes (6 words)
+g1CompressedSize :: CostingInteger
+g1CompressedSize = 6
 
--- In-memory G2 points take up 192 bytes (24 words)
+-- In-memory G2 points take up 288 bytes (36 words)
 g2MemSize :: CostingInteger
-g2MemSize = 24
+g2MemSize = 36
 
--- Serialised G2 points take up 96 bytes (12 words)
-g2SerialisedSize :: CostingInteger
-g2SerialisedSize = 12
+-- Compressed G2 points take up 96 bytes (12 words)
+g2CompressedSize :: CostingInteger
+g2CompressedSize = 12
 
--- In-memory G2 points take up ??? bytes (??? words)
+-- In-memory G2 points take up 576 bytes (72 words)
 gtMemSize :: CostingInteger
-gtMemSize = 144
+gtMemSize = 72
 
 bls12_381_G1_add :: GetTwoArgumentCostingFunction
 bls12_381_G1_add cupModelR = do
@@ -792,7 +796,7 @@ bls12_381_G1_hashToCurve = do
 bls12_381_G1_serialise :: GetOneArgumentCostingFunction
 bls12_381_G1_serialise = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
-  let memModel = ModelOneArgumentConstantCost g1SerialisedSize
+  let memModel = ModelOneArgumentConstantCost g1CompressedSize
   pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_deserialise :: GetOneArgumentCostingFunction
@@ -834,7 +838,7 @@ bls12_381_G2_hashToCurve = do
 bls12_381_G2_serialise :: GetOneArgumentCostingFunction
 bls12_381_G2_serialise = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
-  let memModel = ModelOneArgumentConstantCost g2SerialisedSize
+  let memModel = ModelOneArgumentConstantCost g2CompressedSize
   pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_deserialise :: GetOneArgumentCostingFunction
