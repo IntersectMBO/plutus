@@ -489,9 +489,9 @@ modelFun <- function(path) {
 
     ###### Hashing functions #####
 
-    sha2_256Model    <- linearinX ("Sha2_256")
-    sha3_256Model    <- linearinX ("Sha3_256")
-    blake2b_256Model <- linearinX ("Blake2b_256")
+    sha2_256Model    <- linearInX ("Sha2_256")
+    sha3_256Model    <- linearInX ("Sha3_256")
+    blake2b_256Model <- linearInX ("Blake2b_256")
 
     ###### Signature verification #####
 
