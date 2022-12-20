@@ -20,7 +20,6 @@ import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
 import PlutusCore.BLS12_381.GT qualified as GT
 
-
 import Criterion.Main (Benchmark, bgroup)
 import Data.ByteString (ByteString)
 import Hedgehog qualified as H (Seed)
