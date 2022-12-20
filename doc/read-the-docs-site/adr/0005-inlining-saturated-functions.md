@@ -40,6 +40,7 @@ so we know how many term/type arguments they have.
 We also need to decide whether or not to inline based on the call site, which we don’t currently.
 
 This ADR records the details of the design decisions we made for the arity analysis of functions.
+It also lists the weaknesses of the approach and plans to mitigate them.
 The mechanics of whether or not to inline based on the call site will be covered in a separate ADR.
 
 ## Decision
@@ -48,7 +49,7 @@ For a first round of implementation, we are adding a simplified pass.
 We will refine the implementation over time.
 In each round, we benchmark and test and investigate the results.
 
-### The implementation: Counting lambdas
+### The rationale: Counting lambdas
 
 **Arity** is relevant when we talk about a fully applied function.
 A fully applied function has an arity of 0.
@@ -72,7 +73,7 @@ If _v_ is fully applied in the body, i.e., if
 1. the number of type lambdas equals the number of type arguments applied, and
 2. the number of term lambdas equals the number of term arguments applied,
 
-we inline _v_, i.e., replace its occurrence with _rhs_ (**if other call site inlining
+we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_ (**if other call site inlining
 conditions are satisfied**. We currently inline too little, this will be improved later, see below).
 For the rest of the discussion here we focus on the fully applied condition only.
 
@@ -98,9 +99,9 @@ let f = \x . x
 in g a
 ```
 
-`f` and `g` each has arity of 1. However, `g`'s _body_ includes `f` which also has arity of 1.
+`f` and `g` each has an arity of 1. However, `g`'s _body_ includes `f` which also has an arity of 1.
 Since we only count the number of lambdas, `g` is fully applied, and we inline.
-But `g a` reduces to `f`, which has arity of 1.
+But `g a` reduces to `f`, which has an arity of 1.
 So inlining `g` doesn't give the desired result of a fully reducible term in this case.
 
 #### Example 2: function as an argument
@@ -131,9 +132,50 @@ in f 5
 ```
 
 With beta-reduction, `f` becomes `\y.4+y` and it has an arity of 1.
-The _body_ `f 5` has arity of 0 and thus is a fully applied function!
+The _body_ `f 5` has an arity of 0 and thus is a fully applied function!
+We can reduce it to 9.
 However, because the _rhs_ `(\x.\y.x+y) 4` is a function application, not a lambda abstraction,
 we won't inline it with the current implementation.
+
+### The implementation: Counting lambdas and applications
+
+We run `countArity` to the _rhs_ of the binding:
+
+```haskell
+-- | Count the number of type and term lambdas in the RHS of a binding
+countArity :: 
+    Term tyname name uni fun a -- the RHS
+    -> (Natural, Natural) -- ^ Number of type lambdas, number of term lambdas
+countArity = countArityInner 0 0
+    where
+      countArityInner ::
+        Natural -- ^ Number of type lambdas of the function.
+        -> Natural -- ^ Number of term lambdas of the function.
+        -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
+        -> Natural -- ^ The arity of the term.
+      countArityInner typeLambdas termLambdas (LamAbs _a _n _ty body) =
+        -- If the term is a term lambda abstraction, increase the count of the number of term lambdas by one.
+        -- Keep on examining the body.
+        countArityInner typeLambdas (termLambdas + 1) body
+      countArityInner typeLambdas termLambdas (TyAbs _a _n _kind body)) =
+        -- If the term is a type lambda abstraction, increase the count of the number of type lambdas by one.
+        -- Keep on examining the body.
+        countArityInner typeLambdas (termLambdas + 1) body
+      countArityInner typeLambdas termLambdas _ = 
+        -- whenever we encounter a body that is not a lambda abstraction, we are done counting
+        (typeLambdas, termLambdas) 
+```
+
+To count the number of applied arguments, we already have something that collects the applications
+([extractApps](
+https://github.com/input-output-hk/plutus/blob/791e1dc0f6f5b9954da4c4d19e4597f5e75d0727/plutus-core/untyped-plutus-core/src/UntypedPlutusCore/Transform/Inline.hs#L138))
+in the UPLC inliner. We can run `length` to the result to get the number for the UPLC inliner.
+It's straight forward to implement this for the PIR inliner as well.
+
+### The implementation: call site inlining
+
+Another substantial component of this implementation is the actual inlining at the call site.
+Details of this to be worked out.
 
 ## Future plans
 
