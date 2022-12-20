@@ -748,7 +748,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_serialise": {
+    "bls12_381_G1_compress": {
         "cpu": {
             "arguments": 444444,
             "type": "constant_cost"
@@ -758,7 +758,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_deserialise": {
+    "bls12_381_G1_uncompress": {
         "cpu": {
             "arguments": 444444,
             "type": "constant_cost"
@@ -811,7 +811,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_serialise": {
+    "bls12_381_G2_compress": {
         "cpu": {
             "arguments": 444444,
             "type": "constant_cost"
@@ -821,7 +821,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_deserialise": {
+    "bls12_381_G2_uncompress": {
         "cpu": {
             "arguments": 444444,
             "type": "constant_cost"

@@ -742,8 +742,8 @@ mkNilPairData cpuModelR = do
 -- Sizes below from sizeP, compressedSizeP, and sizePT in
 -- Crypto.EllipticCurve.BLS12_381.Internal
 
--- In-memory G1 points take up 144 bytes (18 words)
--- These are *projective* points, so we have *three* 48-byte coordinates.
+-- In-memory G1 points take up 144 bytes (18 words).
+-- These are projective points, so we have *three* 48-byte coordinates.
 g1MemSize :: CostingInteger
 g1MemSize = 18
 
@@ -793,14 +793,14 @@ bls12_381_G1_hashToCurve = do
     let memModel = ModelOneArgumentConstantCost g1MemSize
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G1_serialise :: GetOneArgumentCostingFunction
-bls12_381_G1_serialise = do
+bls12_381_G1_compress :: GetOneArgumentCostingFunction
+bls12_381_G1_compress = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelOneArgumentConstantCost g1CompressedSize
   pure $ CostingFun cpuModel memModel
 
-bls12_381_G1_deserialise :: GetOneArgumentCostingFunction
-bls12_381_G1_deserialise = do
+bls12_381_G1_uncompress :: GetOneArgumentCostingFunction
+bls12_381_G1_uncompress = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelOneArgumentConstantCost g1MemSize
   pure $ CostingFun cpuModel memModel
@@ -835,14 +835,14 @@ bls12_381_G2_hashToCurve = do
     let memModel = ModelOneArgumentConstantCost g2MemSize
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G2_serialise :: GetOneArgumentCostingFunction
-bls12_381_G2_serialise = do
+bls12_381_G2_compress :: GetOneArgumentCostingFunction
+bls12_381_G2_compress = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelOneArgumentConstantCost g2CompressedSize
   pure $ CostingFun cpuModel memModel
 
-bls12_381_G2_deserialise :: GetOneArgumentCostingFunction
-bls12_381_G2_deserialise = do
+bls12_381_G2_uncompress :: GetOneArgumentCostingFunction
+bls12_381_G2_uncompress = do
   cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
   let memModel = ModelOneArgumentConstantCost g2MemSize
   pure $ CostingFun cpuModel memModel

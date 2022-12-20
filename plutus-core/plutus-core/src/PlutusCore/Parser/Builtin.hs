@@ -88,14 +88,14 @@ con0xBS = lexeme . fmap pack $ string "0x" *> many hexByte
 conBLS12_381G1Element :: Parser BLS12_381.G1.Element
 conBLS12_381G1Element = do
     s <- con0xBS
-    case BLS12_381.G1.deserialise s of
+    case BLS12_381.G1.uncompress s of
       Left err -> fail $ "Error decoding BLS12_381 G1 element: " ++ show err
       Right e  -> pure e
 
 conBLS12_381G2Element :: Parser BLS12_381.G2.Element
 conBLS12_381G2Element = do
     s <- con0xBS
-    case BLS12_381.G2.deserialise s of
+    case BLS12_381.G2.uncompress s of
       Left err -> fail $ "Error decoding BLS12_381 G2 element: " ++ show err
       Right e  -> pure e
 

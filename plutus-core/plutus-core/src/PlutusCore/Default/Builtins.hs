@@ -130,16 +130,16 @@ data DefaultFun
     | Bls12_381_G1_neg
     | Bls12_381_G1_equal
     | Bls12_381_G1_hashToCurve
-    | Bls12_381_G1_serialise
-    | Bls12_381_G1_deserialise
+    | Bls12_381_G1_compress
+    | Bls12_381_G1_uncompress
     -- G2
     | Bls12_381_G2_add
     | Bls12_381_G2_mul
     | Bls12_381_G2_neg
     | Bls12_381_G2_equal
     | Bls12_381_G2_hashToCurve
-    | Bls12_381_G2_serialise
-    | Bls12_381_G2_deserialise
+    | Bls12_381_G2_compress
+    | Bls12_381_G2_uncompress
     -- GT
     | Bls12_381_GT_mul
       -- Pairing
@@ -1402,16 +1402,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.neg
             (runCostingFunOneArgument . paramBls12_381_G1_neg)
-    toBuiltinMeaning _var Bls12_381_G1_serialise =
+    toBuiltinMeaning _var Bls12_381_G1_compress =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.G1.serialise
-            (runCostingFunOneArgument . paramBls12_381_G1_serialise)
-    toBuiltinMeaning _var Bls12_381_G1_deserialise =
+            PlutusCore.BLS12_381.G1.compress
+            (runCostingFunOneArgument . paramBls12_381_G1_compress)
+    toBuiltinMeaning _var Bls12_381_G1_uncompress =
         makeBuiltinMeaning
-            deserialiseG1
-            (runCostingFunOneArgument . paramBls12_381_G1_deserialise)
-        where deserialiseG1 s =
-                  case PlutusCore.BLS12_381.G1.deserialise s of
+            uncompressG1
+            (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
+        where uncompressG1 s =
+                  case PlutusCore.BLS12_381.G1.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_hashToCurve =
@@ -1435,16 +1435,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.neg
             (runCostingFunOneArgument . paramBls12_381_G2_neg)
-    toBuiltinMeaning _var Bls12_381_G2_serialise =
+    toBuiltinMeaning _var Bls12_381_G2_compress =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.G2.serialise
-            (runCostingFunOneArgument . paramBls12_381_G2_serialise)
-    toBuiltinMeaning _var Bls12_381_G2_deserialise =
+            PlutusCore.BLS12_381.G2.compress
+            (runCostingFunOneArgument . paramBls12_381_G2_compress)
+    toBuiltinMeaning _var Bls12_381_G2_uncompress =
         makeBuiltinMeaning
-            deserialiseG2
-            (runCostingFunOneArgument . paramBls12_381_G2_deserialise)
-        where deserialiseG2 s =
-                  case PlutusCore.BLS12_381.G2.deserialise s of
+            uncompressG2
+            (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
+        where uncompressG2 s =
+                  case PlutusCore.BLS12_381.G2.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_hashToCurve =
@@ -1564,15 +1564,15 @@ instance Flat DefaultFun where
               Bls12_381_G1_mul                -> 55
               Bls12_381_G1_neg                -> 56
               Bls12_381_G1_equal              -> 57
-              Bls12_381_G1_serialise          -> 58
-              Bls12_381_G1_deserialise        -> 59
+              Bls12_381_G1_compress           -> 58
+              Bls12_381_G1_uncompress         -> 59
               Bls12_381_G1_hashToCurve        -> 60
               Bls12_381_G2_add                -> 61
               Bls12_381_G2_mul                -> 62
               Bls12_381_G2_neg                -> 63
               Bls12_381_G2_equal              -> 64
-              Bls12_381_G2_serialise          -> 65
-              Bls12_381_G2_deserialise        -> 66
+              Bls12_381_G2_compress           -> 65
+              Bls12_381_G2_uncompress         -> 66
               Bls12_381_G2_hashToCurve        -> 67
               Bls12_381_GT_mul                -> 68
               Bls12_381_GT_finalVerify        -> 69
@@ -1637,15 +1637,15 @@ instance Flat DefaultFun where
               go 55 = pure Bls12_381_G1_mul
               go 56 = pure Bls12_381_G1_neg
               go 57 = pure Bls12_381_G1_equal
-              go 58 = pure Bls12_381_G1_serialise
-              go 59 = pure Bls12_381_G1_deserialise
+              go 58 = pure Bls12_381_G1_compress
+              go 59 = pure Bls12_381_G1_uncompress
               go 60 = pure Bls12_381_G1_hashToCurve
               go 61 = pure Bls12_381_G2_add
               go 62 = pure Bls12_381_G2_mul
               go 63 = pure Bls12_381_G2_neg
               go 64 = pure Bls12_381_G2_equal
-              go 65 = pure Bls12_381_G2_serialise
-              go 66 = pure Bls12_381_G2_deserialise
+              go 65 = pure Bls12_381_G2_compress
+              go 66 = pure Bls12_381_G2_uncompress
               go 67 = pure Bls12_381_G2_hashToCurve
               go 68 = pure Bls12_381_GT_mul
               go 69 = pure Bls12_381_GT_finalVerify
