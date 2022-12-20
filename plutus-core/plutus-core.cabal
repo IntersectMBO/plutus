@@ -39,7 +39,7 @@ source-repository head
 flag with-inline-r
   description: Enable build of packages that use `inline-r`.
   manual:      True
-  default:     False
+  default:     True
 
 common lang
   default-language:   Haskell2010
