@@ -86,4 +86,3 @@ main = do
 
   putStrLn "Typechecking succ"
   runSucceedingTests Typecheck succeedingEvalTests
--- TODO: Testing of typecheck command
