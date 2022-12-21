@@ -763,8 +763,9 @@ mkNilPairData cpuModelR = do
 
 ---------------- BLS12_381 operations ----------------
 
--- Group order is 255 bits   -> 32 bytes (4 words)
+-- Group order is 255 bits   -> 32 bytes (4 words).
 -- Field modulus is 381 bits -> 48 bytes (6 words)
+-- (with three spare bits used for encoding purposes).
 
 -- Sizes below from sizeP, compressedSizeP, and sizePT in
 -- Crypto.EllipticCurve.BLS12_381.Internal
