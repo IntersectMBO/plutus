@@ -261,6 +261,11 @@ reportError (runtimeError gasError)         = "gasError"
 reportError (runtimeError userError)        = "userError"
 reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 
+
+{- check if the term is an error term, and in that case 
+  return an ERROR. 
+  This is used when evaluation of the reduction semantics has ended
+-}
 checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
 checkError (error _) = inj₁ (runtimeError userError)
 checkError t         = return t
