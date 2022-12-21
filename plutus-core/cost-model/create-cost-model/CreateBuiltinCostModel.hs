@@ -783,7 +783,7 @@ g1CompressedSize = 6
 g2MemSize :: CostingInteger
 g2MemSize = 36
 
--- Compressed G2 points take up 96 bytes (12 words)
+-- Compressed serialised G2 points take up 96 bytes (12 words)
 g2CompressedSize :: CostingInteger
 g2CompressedSize = 12
 

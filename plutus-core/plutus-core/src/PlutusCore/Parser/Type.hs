@@ -126,7 +126,7 @@ defaultUni = choice $ map try
     , someType @_ @[] <$ symbol "list"
     , someType @_ @(,) <$ symbol "pair"
     , someType @_ @Data <$ symbol "data"
-    , someType @_ @BLS12_381.G1.Element <$ symbol "BLS12_381G1Element"  -- FIXME !!!!  Upper/lower case?
+    , someType @_ @BLS12_381.G1.Element <$ symbol "BLS12_381G1Element"  -- FIXME !!!!  Upper/lower case? Better name?
     , someType @_ @BLS12_381.G2.Element <$ symbol "BLS12_381G2Element"
     , someType @_ @BLS12_381.GT.Element <$ symbol "BLS12_381GTElement"
     ]
