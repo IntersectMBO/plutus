@@ -49,6 +49,10 @@ import Hedgehog.Range qualified as Range
    Haskell result agreee to within a factor of 1/100 (one percent).
 -}
 
+-- | Maximum allowable difference beween R result and Haskell result.
+epsilon :: Double
+epsilon = 1/100
+
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
    'CreateBuiltinCostModel.hs') which are loaded directly from R, based purely
@@ -99,7 +103,7 @@ data TestDomain
 (~=) :: Integral a => a -> a -> Bool
 x ~= y
   | x==0 && y==0 = True
-  | otherwise = err < 1/100
+  | otherwise = err < epsilon
     where x' = fromIntegral x :: Double
           y' = fromIntegral y :: Double
           err = abs ((x'-y')/y')
@@ -372,5 +376,24 @@ main =
                     , $(genTest 2 "mkPairData") Everywhere
                     , $(genTest 1 "mkNilData")
                     , $(genTest 1 "mkNilPairData")
+
+                    -- BLS
+                    , $(genTest 2 "bls12_381_G1_add")         Everywhere
+                    , $(genTest 2 "bls12_381_G1_mul")         Everywhere
+                    , $(genTest 1 "bls12_381_G1_neg")
+                    , $(genTest 2 "bls12_381_G1_equal")       Everywhere
+                    , $(genTest 1 "bls12_381_G1_compress")
+                    , $(genTest 1 "bls12_381_G1_uncompress")
+                    , $(genTest 1 "bls12_381_G1_hashToCurve")
+                    , $(genTest 2 "bls12_381_G2_add")         Everywhere
+                    , $(genTest 2 "bls12_381_G2_mul")         Everywhere
+                    , $(genTest 1 "bls12_381_G2_neg")
+                    , $(genTest 2 "bls12_381_G2_equal")       Everywhere
+                    , $(genTest 1 "bls12_381_G2_compress")
+                    , $(genTest 1 "bls12_381_G2_uncompress")
+                    , $(genTest 1 "bls12_381_G2_hashToCurve")
+                    , $(genTest 2 "bls12_381_GT_mul")         Everywhere
+                    , $(genTest 2 "bls12_381_GT_finalVerify") Everywhere
+                    , $(genTest 2 "bls12_381_GT_millerLoop")  Everywhere
                     ]
 
