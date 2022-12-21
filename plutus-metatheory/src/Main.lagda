@@ -64,7 +64,7 @@ instance
   IOMonad : Monad IO
   IOMonad = record { return = IO.return; _>>=_ = IO._>>=_ }
 
--- For parsing
+-- Parsing stuff
 
 postulate
   FilePath : Set
@@ -95,8 +95,8 @@ postulate
 {-# FOREIGN GHC import Control.Monad.Trans.Except #-}
 
 -- Input Options stuff
-{-# FOREIGN GHC import Common  #-}
-{-# FOREIGN GHC import Parsers #-}
+{-# FOREIGN GHC import PlutusCore.Executable.Common  #-}
+{-# FOREIGN GHC import PlutusCore.Executable.Parsers #-}
 {-# FOREIGN GHC import Opts #-}
 
 postulate 

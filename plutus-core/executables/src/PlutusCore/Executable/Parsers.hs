@@ -2,9 +2,9 @@
 
 -- | Common option parsers for executables
 
-module Parsers where
+module PlutusCore.Executable.Parsers where
 
-import Common
+import PlutusCore.Executable.Common
 
 import Options.Applicative
 

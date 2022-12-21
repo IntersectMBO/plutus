@@ -60,25 +60,10 @@ library
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core           ^>=1.1
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.1
     , process
     , text
     , transformers
-
-  -- added for Common.hs
-  build-depends:
-    , aeson
-    , deepseq
-    , flat
-    , lens
-    , monoidal-containers
-    , mtl
-    , plutus-core:plutus-core-testlib
-    , prettyprinter
-
-  other-modules:
-    Common
-    Parsers
 
   exposed-modules:
     Opts
