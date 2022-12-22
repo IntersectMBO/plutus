@@ -44,7 +44,7 @@ exampleGenerator :: Command -> String
 exampleGenerator (Evaluate "U") = "uplc"
 exampleGenerator _              = "plc"
 
--- |@runTest cmd tst@ generates a @tst@ example and run it with the given @cmd@.
+-- |@runTest cmd tst@ generates a @tst@ example and runs it with the given @cmd@.
 runTest :: Command -> String -> IO ()
 runTest command test = withTempFile $ \tmp -> do
   example <- readProcess (exampleGenerator command) ["example", "-s",test] []
@@ -93,7 +93,7 @@ main = do
   runFailingTests (Evaluate "TL") failingEvalTests
 
   -- Typechecking tests
-  -- NOTE: Evaluation tests beginning with T eun the typechecker.
+  -- NOTE: Evaluation tests beginning with T already run the typechecker.
   --       The following is more of a test that the typechecking command works.
   putStrLn "Typechecking succ"
   runSucceedingTests Typecheck succeedingEvalTests
