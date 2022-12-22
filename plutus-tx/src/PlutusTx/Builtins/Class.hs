@@ -19,6 +19,9 @@ import Data.String (IsString (..))
 import Data.Text (Text, pack)
 
 import GHC.Magic qualified as Magic
+import PlutusCore.BLS12_381.G1 (Element)
+import PlutusCore.BLS12_381.G2 (Element)
+import PlutusCore.BLS12_381.GT (Element)
 import PlutusTx.Base (const, id, ($))
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Integer (Integer)
@@ -195,3 +198,26 @@ instance FromBuiltin BuiltinData BuiltinData where
 instance ToBuiltin BuiltinData BuiltinData where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = id
+
+instance FromBuiltin BuiltinBLS12_381_G1_Element PlutusCore.BLS12_381.G1.Element where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
+instance ToBuiltin PlutusCore.BLS12_381.G1.Element BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_G1_Element
+
+instance FromBuiltin BuiltinBLS12_381_G2_Element PlutusCore.BLS12_381.G2.Element where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
+instance ToBuiltin PlutusCore.BLS12_381.G2.Element BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_G2_Element
+
+instance FromBuiltin BuiltinBLS12_381_GT_Element PlutusCore.BLS12_381.GT.Element where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_GT_Element a) = a
+instance ToBuiltin PlutusCore.BLS12_381.GT.Element BuiltinBLS12_381_GT_Element where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_GT_Element
+
+

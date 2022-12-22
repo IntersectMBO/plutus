@@ -358,6 +358,30 @@ executable ed25519-throughput
     , plutus-tx             ^>=1.1
     , plutus-tx-plugin      ^>=1.1
 
+---------------- BLS pairing experiments ----------------
+
+executable bls-benchmarks
+  import:           lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  default-language: Haskell2010
+  main-is:          Main.hs
+  hs-source-dirs:   bls-benchmarks
+
+  -- Without the line below we get a warning that plutus-tx-plugin is unused which causes a CI failure.
+  ghc-options:      -Wno-unused-packages
+  build-depends:
+    , base                  >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , flat
+    , hedgehog
+    , plutus-core           ^>=1.1
+    , plutus-tx             ^>=1.1
+    , plutus-tx-plugin      ^>=1.1
+
 ---------------- script contexts ----------------
 
 library script-contexts-internal

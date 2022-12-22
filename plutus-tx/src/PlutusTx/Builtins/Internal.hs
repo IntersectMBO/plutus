@@ -29,12 +29,16 @@ import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
+import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
+
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -505,3 +509,125 @@ equalsData (BuiltinData b1) (BuiltinData b2) = BuiltinBool $ b1 Haskell.== b2
 {-# NOINLINE serialiseData #-}
 serialiseData :: BuiltinData -> BuiltinByteString
 serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
+
+
+{-
+BLS12_381
+-}
+
+---------------- G1 ----------------
+
+data BuiltinBLS12_381_G1_Element = BuiltinBLS12_381_G1_Element BLS12_381.G1.Element
+
+instance Haskell.Show BuiltinBLS12_381_G1_Element where
+    show (BuiltinBLS12_381_G1_Element a) = show a
+instance Haskell.Eq BuiltinBLS12_381_G1_Element where
+    (==) (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G1_Element b) = (==) a b
+instance NFData BuiltinBLS12_381_G1_Element where
+     rnf (BuiltinBLS12_381_G1_Element d) = rnf d
+instance Pretty BuiltinBLS12_381_G1_Element where
+    pretty (BuiltinBLS12_381_G1_Element a) = pretty a
+-- Group / Z-module instance??
+
+
+{-# NOINLINE bls12_381_G1_equals #-}
+bls12_381_G1_equals :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBool
+bls12_381_G1_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G1_Element) a b
+
+{-# NOINLINE bls12_381_G1_add #-}
+bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_add (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G1_Element b) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.add a b)
+
+{-# NOINLINE bls12_381_G1_mul #-}
+bls12_381_G1_mul :: BuiltinInteger -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_mul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.mul n a)
+
+{-# NOINLINE bls12_381_G1_neg #-}
+bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_neg (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.neg a)
+
+{-# NOINLINE bls12_381_G1_compress #-}
+bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
+bls12_381_G1_compress (BuiltinBLS12_381_G1_Element a) = BuiltinByteString (BLS12_381.G1.compress a)
+
+{-# NOINLINE bls12_381_G1_uncompress #-}
+bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_uncompress (BuiltinByteString b) =
+    case BLS12_381.G1.uncompress b of
+      Left err -> mustBeReplaced $ "BSL12_381 G1 uncompression error: " ++ show err
+      Right a  -> BuiltinBLS12_381_G1_Element a
+
+{-# NOINLINE bls12_381_G1_hashToCurve #-}
+bls12_381_G1_hashToCurve ::  BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToCurve (BuiltinByteString b) = BuiltinBLS12_381_G1_Element $ BLS12_381.G1.hashToCurve b
+
+---------------- G2 ----------------
+
+data BuiltinBLS12_381_G2_Element = BuiltinBLS12_381_G2_Element BLS12_381.G2.Element
+
+instance Haskell.Show BuiltinBLS12_381_G2_Element where
+    show (BuiltinBLS12_381_G2_Element a) = show a
+instance Haskell.Eq BuiltinBLS12_381_G2_Element where
+    (==) (BuiltinBLS12_381_G2_Element a) (BuiltinBLS12_381_G2_Element b) = (==) a b
+instance NFData BuiltinBLS12_381_G2_Element where
+     rnf (BuiltinBLS12_381_G2_Element d) = rnf d
+instance Pretty BuiltinBLS12_381_G2_Element where
+    pretty (BuiltinBLS12_381_G2_Element a) = pretty a
+
+{-# NOINLINE bls12_381_G2_equals #-}
+bls12_381_G2_equals :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBool
+bls12_381_G2_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G2_Element) a b
+
+{-# NOINLINE bls12_381_G2_add #-}
+bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_add (BuiltinBLS12_381_G2_Element a) (BuiltinBLS12_381_G2_Element b) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.add a b)
+
+{-# NOINLINE bls12_381_G2_mul #-}
+bls12_381_G2_mul :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_mul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.mul n a)
+
+{-# NOINLINE bls12_381_G2_neg #-}
+bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_neg (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.neg a)
+
+{-# NOINLINE bls12_381_G2_compress #-}
+bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
+bls12_381_G2_compress (BuiltinBLS12_381_G2_Element a) = BuiltinByteString (BLS12_381.G2.compress a)
+
+{-# NOINLINE bls12_381_G2_uncompress #-}
+bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_uncompress (BuiltinByteString b) =
+    case BLS12_381.G2.uncompress b of
+      Left err -> mustBeReplaced $ "BSL12_381 G2 uncompression error: " ++ show err
+      Right a  -> BuiltinBLS12_381_G2_Element a
+
+{-# NOINLINE bls12_381_G2_hashToCurve #-}
+bls12_381_G2_hashToCurve ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToCurve (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToCurve b
+
+
+---------------- GT ----------------
+
+data BuiltinBLS12_381_GT_Element = BuiltinBLS12_381_GT_Element BLS12_381.GT.Element
+
+instance Haskell.Show BuiltinBLS12_381_GT_Element where
+    show (BuiltinBLS12_381_GT_Element a) = show a
+instance Haskell.Eq BuiltinBLS12_381_GT_Element where
+    (==) (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = (==) a b
+instance NFData BuiltinBLS12_381_GT_Element where
+     rnf (BuiltinBLS12_381_GT_Element a) = rnf a
+instance Pretty BuiltinBLS12_381_GT_Element where
+    pretty (BuiltinBLS12_381_GT_Element a) = pretty a
+
+{-# NOINLINE bls12_381_GT_mul #-}
+bls12_381_GT_mul :: BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element
+bls12_381_GT_mul (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = BuiltinBLS12_381_GT_Element (BLS12_381.GT.mul a b)
+
+bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
+bls12_381_millerLoop (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
+    case BLS12_381.GT.millerLoop a b of
+      Left err -> mustBeReplaced $ "BSL12_381 Miller loop error: " ++ show err
+      Right c  -> BuiltinBLS12_381_GT_Element c
+
+bls12_381_finalVerify ::  BuiltinBLS12_381_GT_Element ->  BuiltinBLS12_381_GT_Element -> BuiltinBool
+bls12_381_finalVerify (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = BuiltinBool (BLS12_381.GT.finalVerify a b)
