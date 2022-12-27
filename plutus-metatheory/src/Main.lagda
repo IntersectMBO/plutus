@@ -262,13 +262,20 @@ reportError (runtimeError userError)        = "userError"
 reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 
 
+{- check if the term is an error term, and in that case 
+  return an ERROR. 
+  This is used when evaluation of the reduction semantics has ended
+-}
+checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
+checkError (error _) = inj₁ (runtimeError userError)
+checkError t         = return t
+
 executePLC : EvalMode → ScopedTm Z → Either ERROR String
 executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where ◆  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
-
 {-
 just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
@@ -276,7 +283,7 @@ just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 executePLC TL t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  t' ← withE runtimeError $ L.stepper t maxsteps
+  t' ← (withE runtimeError $ L.stepper t maxsteps) >>= checkError
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
 executePLC TCK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
