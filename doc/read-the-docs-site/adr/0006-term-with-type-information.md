@@ -22,6 +22,18 @@ This ADR describes an implementation to add that without disrupting a large port
 
 ## Decision
 
+### Why not do it on the fly
+
+Why do we need to add this type to store the type information when we can get this type information on the fly? GHC's `exprType` basically calculates the type of a `CoreExpr` on the fly. If GHC doesn't need to annotate `CoreExpr`s with types, we probably don't either.
+
+The short answer is that it's expensive for us.
+
+In fact, GHC does have a type field when there's a `case` (see `Note [Why does Case have a 'Type' field?]` in [this](https://downloads.haskell.org/ghc/9.2.4/docs/html/libraries/ghc-9.2.4/src/GHC-Core.html) file) and pattern matching is very common in Haskell.
+
+Moreover, GHC doesn't have a single huge expression like Plutus Core does, instead it has a sequence of bindings, so it never needs to process the entire program at once. However, Plutus Core programs are single expressions and can be quite big.
+
+See also `Note [Kind caching]` in [this](https://hackage.haskell.org/package/base-4.17.0.0/docs/src/Data.Typeable.Internal.html) file (it's about `Typeable`, not internals of the compiler).
+
 ### Adding a term type with type information
 
 Currently, we have one type of terms for each PIR, PLC, and UPLC,
@@ -46,7 +58,7 @@ data Term tyname name uni fun a =
                         deriving stock (Functor, Show, Generic)
 ```
 
-We proposed to add a term type that is distinguished from the current type in that it carries [
+We proposed to add a term type for PIR and PLC that is distinguished from the current type in that it carries [
 type](https://github.com/input-output-hk/plutus/blob/06c5831ea5934beef2f4c4178a8c53771381f1bf/plutus-core/plutus-core/src/PlutusCore/Core/Type.hs#L93)
 information.
 The proposed term types include a generic term type,
@@ -69,10 +81,11 @@ data GenericTerm tyinfo tyname name uni fun a =
     deriving stock (Functor, Show, Generic)
 
 -- the new term type that is similar to our current implementation, with tyinfo set to ()
-type Term = GenericTerm () tyname name uni fun a
+type Term = GenericTerm () 
 
 -- the new term type that has type information
-type TermWithTypeInfo = GenericTerm (Type tyname uni ann) tyname name uni fun a
+type TermWithTypeInfo tyname uni ann
+  = GenericTerm (Type tyname uni ann)
 ```
 
 ### Using the `PatternSynonyms` pragma to minimize code change
