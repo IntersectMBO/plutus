@@ -35,13 +35,9 @@ we should inline `f` on line 3 (even though it’s used more than once), because
 i.e. it has all its arguments, and we can reduce it.
 ([PLT-1146](https://input-output.atlassian.net/browse/PLT-1146))
 
-To do this we need to do some arity analysis of functions,
+To do this we need to count the number of type/term lambda abstractions,
 so we know how many term/type arguments they have.
 We also need to decide whether or not to inline based on the call site, which we don’t currently.
-
-This ADR records the details of the design decisions we made for the arity analysis of functions.
-It also lists the weaknesses of the approach and plans to mitigate them.
-The mechanics of whether or not to inline based on the call site will be covered in a separate ADR.
 
 ## Decision
 
@@ -49,14 +45,9 @@ For a first round of implementation, we are adding a simplified pass.
 We will refine the implementation over time.
 In each round, we benchmark and test and investigate the results.
 
-### The rationale: Counting lambdas
+### The heuristic: Counting lambdas and arguments
 
-**Arity** is relevant when we talk about a fully applied function.
-A fully applied function has an arity of 0.
-The arity of a function is the number of arguments it takes minus the number of arguments applied.
-E.g., `\x.\y.x+y` has an arity of 2. `(\x.\y.x+y) 1` has an arity of 1.
-
-In this inline pass we check for a binding that is a function and is fully applied in the body.
+In this inline pass we check for a binding that is a lambda abstraction and is fully applied in the body.
 
 E.g.,
 
@@ -66,16 +57,17 @@ let v = rhs in body
 
 We pattern match the _rhs_ with `LamAbs` or `TyAbs` (lambda abstraction for terms or types),
 and count the number of lambdas.
-Then, in the _body_, we check for term or type application (`Apply` or `TyInst`)of _v_.
+Then, in the _body_, we check for term or type application (`Apply` or `TyInst`) of _v_.
 
 If _v_ is fully applied in the body, i.e., if
 
 1. the number of type lambdas equals the number of type arguments applied, and
-2. the number of term lambdas equals the number of term arguments applied,
+2. the number of term lambdas equals the number of term arguments applied, and
 
-we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_ (**if other call site inlining
-conditions are satisfied**. We currently inline too little, this will be improved later, see below).
-For the rest of the discussion here we focus on the fully applied condition only.
+if other call site inlining conditions are satisfied, (we currently inline too little, this will be improved later, see below)
+
+we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_.
+For the rest of the discussion here we focus on the conditions 1 and 2 only.
 
 E.g., for
 
@@ -86,10 +78,9 @@ let f = \x.\y.x+y in
 
 the _body_ `f 2 4` is a function application of `f`. Since `f` is fully applied, we inline `f`.
 
-### Cases we miss
+### Examples
 
-The above case is straight forward. But there are other cases that
-may not give us the desired result if we just count the lambdas. Below are some examples.
+Below are some examples that involve a _body_ that is not fully reducible/applied but following our heuristic is beneficial.
 
 #### Example 1: function in body
 
@@ -99,10 +90,9 @@ let f = \x . x
 in g a
 ```
 
-`f` and `g` each has an arity of 1. However, `g`'s _body_ includes `f` which also has an arity of 1.
+`f` and `g` each has 1 lambda. However, `g`'s _body_ includes `f` which also has a lambda.
 Since we only count the number of lambdas, `g` is fully applied, and we inline.
-But `g a` reduces to `f`, which has an arity of 1.
-So inlining `g` doesn't give the desired result of a fully reducible term in this case.
+`g a` reduces to `f`, which reduces the amount of code even though `f` has a lambda that is not applied.
 
 #### Example 2: function as an argument
 
@@ -117,12 +107,8 @@ I.e., it's fully applied in terms of type.
 In terms of terms, `id` takes one argument, and is indeed applied to one.
 So `id` is fully applied! And we inline it.
 
-However, reducing the _body_ `id {int -> int} (\x -> x +1)` leaves us `(\x -> x +1)`,
-a function of arity 1, not 0.
-
-In this case, inlining and reducing `id` reduces the amount of code,
-so even though it reduces to a not fully applied function, it may be desirable.
-Again, we need more sophisticated heuristics to improve the performance of this.
+Reducing the _body_ `id {int -> int} (\x -> x +1)` leaves us `(\x -> x +1)`,
+a function with 1 lambda. Even though it's not fully applied, inlining and reducing `id` reduces the amount of code, as desired.
 
 #### Example 3: function application in _RHS_
 
@@ -131,37 +117,37 @@ let f = (\x.\y.x+y) 4
 in f 5
 ```
 
-With beta-reduction, `f` becomes `\y.4+y` and it has an arity of 1.
-The _body_ `f 5` has an arity of 0 and thus is a fully applied function!
+With beta-reduction, `f` becomes `\y.4+y` and it has 1 lambda.
+The _body_ `f 5` is a fully applied function!
 We can reduce it to 9.
 However, because the _rhs_ `(\x.\y.x+y) 4` is a function application, not a lambda abstraction,
-we won't inline it with the current implementation.
+we won't inline it with the current implementation. This is something we may be able to improve.
 
 ### The implementation: Counting lambdas and applications
 
-We run `countArity` to the _rhs_ of the binding:
+We run `countLam` to the _rhs_ of the binding:
 
 ```haskell
 -- | Count the number of type and term lambdas in the RHS of a binding
-countArity :: 
-    Term tyname name uni fun a -- the RHS
+countLam :: 
+    Term tyname name uni fun a -- ^ the RHS
     -> (Natural, Natural) -- ^ Number of type lambdas, number of term lambdas
-countArity = countArityInner 0 0
+countLam = countLamInner 0 0
     where
-      countArityInner ::
+      countLamInner ::
         Natural -- ^ Number of type lambdas of the function.
         -> Natural -- ^ Number of term lambdas of the function.
         -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
-        -> Natural -- ^ The arity of the term.
-      countArityInner typeLambdas termLambdas (LamAbs _a _n _ty body) =
+        -> (Natural, Natural)
+      countLamInner typeLambdas termLambdas (LamAbs _a _n _ty body) =
         -- If the term is a term lambda abstraction, increase the count of the number of term lambdas by one.
         -- Keep on examining the body.
-        countArityInner typeLambdas (termLambdas + 1) body
-      countArityInner typeLambdas termLambdas (TyAbs _a _n _kind body)) =
+        countLamInner typeLambdas (termLambdas + 1) body
+      countLamInner typeLambdas termLambdas (TyAbs _a _n _kind body) =
         -- If the term is a type lambda abstraction, increase the count of the number of type lambdas by one.
         -- Keep on examining the body.
-        countArityInner typeLambdas (termLambdas + 1) body
-      countArityInner typeLambdas termLambdas _ = 
+        countLamInner (typeLambdas + 1) termLambdas body
+      countLamInner typeLambdas termLambdas _ = 
         -- whenever we encounter a body that is not a lambda abstraction, we are done counting
         (typeLambdas, termLambdas) 
 ```
@@ -197,10 +183,3 @@ See [PLT-1041](https://input-output.atlassian.net/browse/PLT-1041).
 At the moment we inline any lambda with a trivial body.
 This is too aggressive and has been observed to lead to size increases.
 We will optimize this further in PLT-1041.
-
-### Further understanding of the optimization
-
-It is not obvious why inlining saturated functions causes speedups.
-We are doing this because we _observed_ the speedup from Plutonomy's implementation.
-It would be useful if we could understand what's causing the speedup,
-which will enable us to potentially improve the optimization further, or add other optimizations.
