@@ -72,18 +72,16 @@ data Error uni fun a
     | FreeVariableError T.Text
     | InvalidMarkerError String
     | CoreNameLookupError TH.Name
-    | UnsupportedAnnotationTypeError String
 makeClassyPrisms ''Error
 
 instance HasErrorCode (Error _a _b _c) where
-      errorCode CompilationError {}               = ErrorCode 41
-      errorCode UnsupportedError {}               = ErrorCode 42
-      errorCode FreeVariableError {}              = ErrorCode 43
-      errorCode InvalidMarkerError {}             = ErrorCode 49
-      errorCode CoreNameLookupError {}            = ErrorCode 50
-      errorCode UnsupportedAnnotationTypeError {} = ErrorCode 51
-      errorCode (PLCError e)                      = errorCode e
-      errorCode (PIRError e)                      = errorCode e
+      errorCode CompilationError {}    = ErrorCode 41
+      errorCode UnsupportedError {}    = ErrorCode 42
+      errorCode FreeVariableError {}   = ErrorCode 43
+      errorCode InvalidMarkerError {}  = ErrorCode 49
+      errorCode CoreNameLookupError {} = ErrorCode 50
+      errorCode (PLCError e)           = errorCode e
+      errorCode (PIRError e)           = errorCode e
 
 instance HasErrorCode (CompileError _a _b _c) where
     errorCode (NoContext e)        = errorCode e
@@ -129,4 +127,3 @@ instance
         FreeVariableError e -> "Reference to a name which is not a local, a builtin, or an external INLINABLE function:" PP.<+> PP.pretty e
         InvalidMarkerError e -> "Found invalid marker, not applied correctly in expression" PP.<+> PP.pretty e
         CoreNameLookupError n -> "Unable to get Core name needed for the plugin to function: " PP.<+> PP.viaShow n
-        UnsupportedAnnotationTypeError e -> "Unsupported annotation type: " PP.<+> PP.pretty e

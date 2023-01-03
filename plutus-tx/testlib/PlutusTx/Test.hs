@@ -15,7 +15,6 @@ module PlutusTx.Test (
     fitsUnder,
     -- * Compilation testing
     goldenPir,
-    goldenPirBy,
     goldenTPlc,
     goldenUPlc,
     -- * Evaluation testing
@@ -133,12 +132,6 @@ goldenPir
     :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Pretty ann, Flat fun, Flat ann)
     => String -> CompiledCodeIn uni fun ann a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
-
-goldenPirBy
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Pretty ann, Flat fun, Flat ann)
-    => PrettyConfigClassic PrettyConfigName -> String -> CompiledCodeIn uni fun ann a -> TestNested
-goldenPirBy config name value = nestedGoldenVsDoc name $ pretty $
-  AttachPrettyConfig config $ getPir value
 
 -- Evaluation testing
 

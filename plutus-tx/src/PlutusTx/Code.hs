@@ -31,7 +31,6 @@ import ErrorCode
 import GHC.Generics
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
-import Prettyprinter
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
@@ -71,16 +70,7 @@ data SrcSpan = SrcSpan
     }
     deriving stock (Eq, Ord, Generic, Show)
 
-instance Pretty SrcSpan where
-    pretty = viaShow
-
-instance Flat SrcSpan
-
-newtype SrcSpans = SrcSpans { unSrcSpans :: Set SrcSpan }
-    deriving newtype (Eq, Ord, Show, Semigroup, Monoid, Flat)
-
-instance Pretty SrcSpans where
-    pretty = viaShow
+type SrcSpans = Set SrcSpan
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions, and
 -- a set of `SrcSpan`s as annotation.

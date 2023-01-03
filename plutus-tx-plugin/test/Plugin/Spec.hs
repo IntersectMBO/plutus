@@ -5,7 +5,6 @@ import Test.Tasty.Extras
 import Plugin.Basic.Spec
 import Plugin.Coverage.Spec
 import Plugin.Data.Spec
-import Plugin.Debug.Spec
 import Plugin.Errors.Spec
 import Plugin.Functions.Spec
 import Plugin.Laziness.Spec
@@ -20,7 +19,6 @@ tests = testNested "Plugin" [
     basic
   , primitives
   , datat
-  , debug
   , functions
   , laziness
   , noTrace
