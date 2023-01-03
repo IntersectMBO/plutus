@@ -875,13 +875,14 @@ getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
     GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp _) -> Just sp
     GHC.AllCafsCC _ (GHC.RealSrcSpan sp _)    -> Just sp
     _                                         -> Nothing
-getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
+getSourceSpan mmb GHC.Breakpoint{GHC.breakpointId=bid} = do
   mb <- mmb
   let arr = GHC.modBreaks_locs mb
       range = Array.bounds arr
-  GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  GHC.RealSrcSpan sp _ <- if Array.inRange range bid  then Just $ arr Array.! bid else Nothing
   return sp
-getSourceSpan _ _ = Nothing
+-- The `HpcTick` case requires reading mix files via `Trace.Hpc.Mix.readMix`.
+getSourceSpan _ GHC.HpcTick{} = Nothing
 
 spanToSpan :: GHC.RealSrcSpan -> SrcSpan
 spanToSpan sp = SrcSpan

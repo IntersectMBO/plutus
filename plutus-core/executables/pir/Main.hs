@@ -4,7 +4,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
-import Common hiding (runPrint)
 import Control.Lens hiding (argument, set', (<.>))
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
@@ -16,9 +15,10 @@ import Data.List (sortOn)
 import Data.Text qualified as T
 import GHC.Generics
 import Options.Applicative
-import Parsers
 import PlutusCore qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
+import PlutusCore.Executable.Common hiding (runPrint)
+import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuoteT)
 import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
