@@ -164,7 +164,8 @@ library
     PlutusIR.Transform.Beta
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.Inline
-    PlutusIR.Transform.LetFloat
+    PlutusIR.Transform.LetFloatIn
+    PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit

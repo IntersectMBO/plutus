@@ -5,6 +5,7 @@ module PlutusIR (
     termSubtypes,
     termBindings,
     termAnn,
+    bindingAnn,
     Type (..),
     typeSubtypes,
     Datatype (..),
