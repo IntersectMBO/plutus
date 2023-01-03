@@ -8,10 +8,8 @@
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types (
-    module PlutusTx.Compiler.Types,
-    module PlutusTx.Annotation
-    ) where
+module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
+  Ann (..)) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
