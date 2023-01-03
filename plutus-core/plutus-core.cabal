@@ -163,7 +163,9 @@ library
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.DeadCode
-    PlutusIR.Transform.Inline
+    PlutusIR.Transform.Inline.CallSiteInline
+    PlutusIR.Transform.Inline.Heuristics
+    PlutusIR.Transform.Inline.Inline
     PlutusIR.Transform.LetFloat
     PlutusIR.Transform.LetMerge
     PlutusIR.Transform.NonStrict

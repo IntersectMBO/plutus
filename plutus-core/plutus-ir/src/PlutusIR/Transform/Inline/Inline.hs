@@ -2,9 +2,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
+
 {-|
 An inlining pass.
 
@@ -12,13 +11,13 @@ Note that there is (essentially) a copy of this in the UPLC inliner, and the two
 should be KEPT IN SYNC, so if you make changes here please either make them in the other
 one too or add to the comment that summarises the differences.
 -}
-module PlutusIR.Transform.Inline (inline, InlineHints (..)) where
+module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
 
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.MkPir (mkLet)
-import PlutusIR.Purity (isPure)
+import PlutusIR.Transform.Inline.Heuristics
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -35,9 +34,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Algebra.Graph qualified as G
-import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
-import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -113,67 +110,7 @@ turn into a delay/force pair and get simplified away, and then we have something
 inline. This is essentially the reason for the existence of the UPLC inlining pass.
 -}
 
--- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
--- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni fun a =
-    Done (Dupable (Term tyname name uni fun a)) --out expressions
 
--- | Term substitution, 'Subst' in the paper.
--- A map of unprocessed variable and its substitution range.
-newtype TermEnv tyname name uni fun a =
-    TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
-    deriving newtype (Semigroup, Monoid)
-
--- | Type substitution, similar to `TermEnv` but for types.
--- A map of unprocessed type variable and its substitution range.
-newtype TypeEnv tyname uni a =
-    TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
-    deriving newtype (Semigroup, Monoid)
-
--- | Substitution for both terms and types.
--- Similar to 'Subst' in the paper, but the paper only has terms.
-data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
-                                         , _typeEnv :: TypeEnv tyname uni a
-                                         }
-    deriving stock (Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun a))
-
-makeLenses ''TermEnv
-makeLenses ''TypeEnv
-makeLenses ''Subst
-
-type ExternalConstraints tyname name uni fun m =
-    ( HasUnique name TermUnique
-    , HasUnique tyname TypeUnique
-    , Eq name
-    , PLC.ToBuiltinMeaning uni fun
-    , MonadQuote m
-    )
-
-type InliningConstraints tyname name uni fun =
-    ( HasUnique name TermUnique
-    , HasUnique tyname TypeUnique
-    , Eq name
-    , PLC.ToBuiltinMeaning uni fun
-    )
-
-data InlineInfo name fun a = InlineInfo
-    { _iiStrictnessMap :: Deps.StrictnessMap
-    -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages        :: Usages.Usages
-    -- ^ how many times is it used?
-    , _iiHints         :: InlineHints name a
-    -- ^ have we explicitly been told to inline.
-    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
-    -- ^ the builtin version.
-    }
-makeLenses ''InlineInfo
-
--- Using a concrete monad makes a very large difference to the performance of this module
--- (determined from profiling)
--- | The monad the inliner runs in.
-type InlineM tyname name uni fun a =
-    ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm
@@ -378,117 +315,6 @@ maybeAddSubst body a s n rhs = do
             forall b . InlineTerm tyname name uni fun a
             -> InlineM tyname name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
-
--- | Check if term is pure. See Note [Inlining and purity]
-checkPurity
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    =>Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
-checkPurity t = do
-    strctMap <- view iiStrictnessMap
-    builtinVer <- view iiBuiltinVer
-    let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-    pure $ isPure builtinVer strictnessFun t
-
-nameUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => name
-    -> InlineM tyname name uni fun a Bool
-nameUsedAtMostOnce n = do
-    usgs <- view iiUsages
-    -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
-    pure $ Usages.getUsageCount n usgs <= 1
-
-effectSafe :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
-    -> Strictness
-    -> name
-    -> Bool -- ^ is it pure?
-    -> InlineM tyname name uni fun a Bool
-effectSafe body s n purity = do
-    -- This can in the worst case traverse a lot of the term, which could lead to us
-    -- doing ~quadratic work as we process the program. However in practice most term
-    -- types will make it give up, so it's not too bad.
-    let immediatelyEvaluated = case firstEffectfulTerm body of
-            Just (Var _ n') -> n == n'
-            _               -> False
-    pure $ case s of
-        Strict    -> purity || immediatelyEvaluated
-        NonStrict -> True
-
--- | Should we inline? Should only inline things that won't duplicate work or code.
--- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-acceptable ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
-acceptable t =
-    -- See Note [Inlining criteria]
-    pure $ costIsAcceptable t && sizeIsAcceptable t
-
-{- |
-Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that we don't know, this function
-is conservative.
--}
-firstEffectfulTerm :: Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
-firstEffectfulTerm = goTerm
-    where
-      goTerm = \case
-        Let _ NonRec bs b -> case goBindings (NE.toList bs) of
-            Just t' -> Just t'
-            Nothing -> goTerm b
-
-        Apply _ l _ -> goTerm l
-        TyInst _ t _ -> goTerm t
-        IWrap _ _ _ t -> goTerm t
-        Unwrap _ t -> goTerm t
-
-        t@Var{} -> Just t
-        t@Error{} -> Just t
-        t@Builtin{} -> Just t
-
-        -- Hard to know what gets evaluated first in a recursive let-binding,
-        -- just give up and say nothing
-        (Let _ Rec _ _) -> Nothing
-        TyAbs{} -> Nothing
-        LamAbs{} -> Nothing
-        Constant{} -> Nothing
-
-      goBindings :: [Binding tyname name uni fun a] -> Maybe (Term tyname name uni fun a)
-      goBindings [] = Nothing
-      goBindings (b:bs) = case b of
-        -- Only strict term bindings can cause effects
-        TermBind _ Strict _ rhs -> goTerm rhs
-        _                       -> goBindings bs
-
-{- Note [Inlining criteria]
-What gets inlined? Our goals are simple:
-- Make the resulting program faster (or at least no slower)
-- Make the resulting program smaller (or at least no bigger)
-- Inline as much as we can, since it exposes optimization opportunities
-
-There are two easy cases:
-- Inlining approximately variable-sized and variable-costing terms (e.g. builtins, other variables)
-- Inlining single-use terms
-
-After that it gets more difficult. As soon as we're inlining things that are not variable-sized
-and are used more than once, we are at risk of doing more work or making things bigger.
-
-There are a few things we could do to do this in a more principled way, such as call-site inlining
-based on whether a function is fully applied.
--}
-
-{- Note [Inlining and purity]
-When can we inline something that might have effects? We must remember that we often also
-remove a binding that we inline.
-
-For strict bindings, the answer is that we can't: we will delay the effects to the use site,
-so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure,
-or if we can prove that the effects don't change. We take a conservative view on this,
-saying that no effects change if:
-- The variable is clearly the first possibly-effectful term evaluated in the body
-- The variable is used exactly once (so we won't duplicate or remove effects)
-
-For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
-unconditionally.
--}
-
 -- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
 -- just return the type without inlining.
 -- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
@@ -506,51 +332,3 @@ maybeAddTySubst tn rhs = do
         modify' (extendType tn rhs)
         pure Nothing
     else pure $ Just rhs
-
--- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
--- the given term acceptable?
-costIsAcceptable :: Term tyname name uni fun a -> Bool
-costIsAcceptable = \case
-  Builtin{}  -> True
-  Var{}      -> True
-  Constant{} -> True
-  Error{}    -> True
-  -- This will mean that we create closures at each use site instead of
-  -- once, but that's a very low cost which we're okay rounding to 0.
-  LamAbs{}   -> True
-  TyAbs{}    -> True
-
-  -- Arguably we could allow these two, but they're uncommon anyway
-  IWrap{}    -> False
-  Unwrap{}   -> False
-
-  Apply{}    -> False
-  TyInst{}   -> False
-  Let{}      -> False
-
--- | Is the size increase (in the AST) of inlining a variable whose RHS is
--- the given term acceptable?
-sizeIsAcceptable :: Term tyname name uni fun a -> Bool
-sizeIsAcceptable = \case
-  Builtin{}  -> True
-  Var{}      -> True
-  Error{}    -> True
-  LamAbs {}  -> False
-  TyAbs {}   -> False
-
-  -- Arguably we could allow these two, but they're uncommon anyway
-  IWrap{}    -> False
-  Unwrap{}   -> False
-  -- Constants can be big! We could check the size here and inline if they're
-  -- small, but probably not worth it
-  Constant{} -> False
-  Apply{}    -> False
-  TyInst{}   -> False
-  Let{}      -> False
-
--- | Is this a an utterly trivial type which might as well be inlined?
-trivialType :: Type tyname uni a -> Bool
-trivialType = \case
-    TyBuiltin{} -> True
-    TyVar{}     -> True
-    _           -> False
