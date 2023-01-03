@@ -147,7 +147,7 @@ floatOut t = do
 
 -- | Perform floating in/merging of lets in a 'Term'.
 floatIn
-    :: (Compiling m e uni fun a, Semigroup b)
+    :: Compiling m e uni fun a
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
 floatIn t = do
