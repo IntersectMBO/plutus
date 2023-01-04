@@ -167,7 +167,8 @@ floatAlg ver letAnn = go
                 -- A binding can always be placed inside a `TyAbs`.
                 TyAbs (a, Set.union usBind usBody) n k (go b tyAbsBody)
             TyInst (a, usBody) tyInstBody ty ->
-                -- A binding can always be placed inside a `TyInst`.
+                -- A term binding can always be placed inside the body a `TyInst` because the
+                -- type cannot mention the bound variable 
                 TyInst (a, Set.union usBind usBody) (go b tyInstBody) ty
             Let (a, usBody) r bs letBody
                 -- The binding can be placed inside a `Let`, if the right hand sides of the
