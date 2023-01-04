@@ -15,6 +15,7 @@ module PlutusTx.Test (
     fitsUnder,
     -- * Compilation testing
     goldenPir,
+    goldenPirBy,
     goldenTPlc,
     goldenUPlc,
     -- * Evaluation testing
@@ -47,7 +48,7 @@ import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Test
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPlc, sizePlc)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -119,7 +120,7 @@ measureBudget compiledCode =
   let programE = PLC.runQuote
                $ runExceptT @PLC.FreeVariableError
                $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm
-               $ getPlc compiledCode
+               $ getPlcNoAnn compiledCode
    in case programE of
         Left _ -> Nothing
         Right program ->
@@ -131,7 +132,13 @@ measureBudget compiledCode =
 goldenPir
     :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
-goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPir value
+goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPirNoAnn value
+
+goldenPirBy
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
+    => PrettyConfigClassic PrettyConfigName -> String -> CompiledCodeIn uni fun a -> TestNested
+goldenPirBy config name value = nestedGoldenVsDoc name $ pretty $
+  AttachPrettyConfig config $ getPir value
 
 -- Evaluation testing
 
@@ -147,7 +154,7 @@ goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 <$> (r
 instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
             ToUPlc (CompiledCodeIn uni fun a) uni fun where
     toUPlc v = do
-        v' <- catchAll $ getPlc v
+        v' <- catchAll $ getPlcNoAnn v
         toUPlc v'
 
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
@@ -167,4 +174,3 @@ runPlcCekTrace values = do
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)
-

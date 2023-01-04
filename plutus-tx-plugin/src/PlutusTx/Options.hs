@@ -43,7 +43,8 @@ data PluginOptions = PluginOptions
     , _posDumpUPlc                       :: Bool
     , _posOptimize                       :: Bool
     , _posPedantic                       :: Bool
-    , _posVerbosity                      :: Verbosity
+    , _posVerbose                        :: Bool
+    , _posDebug                          :: Bool
     , _posMaxSimplifierIterationsPir     :: Int
     , _posMaxSimplifierIterationsUPlc    :: Int
     , _posDoSimplifierUnwrapCancel       :: Bool
@@ -144,13 +145,12 @@ pluginOptions =
         , let k = "pedantic"
               desc = "Run type checker after each compilation pass"
            in (k, PluginOption typeRep (setTrue k) posPedantic desc)
-        , let k = "verbosity"
-              desc = "Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)"
-              toVerbosity v
-                  | v <= 0 = Quiet
-                  | v == 1 = Verbose
-                  | otherwise = Debug
-           in (k, PluginOption typeRep (fromIntOption k (Success. toVerbosity)) posVerbosity desc)
+        , let k = "verbose"
+              desc = "Set log level to verbose"
+           in (k, PluginOption typeRep (setTrue k) posVerbose desc)
+        , let k = "debug"
+              desc = "Set log level to debug"
+           in (k, PluginOption typeRep (setTrue k) posDebug desc)
         , let k = "max-simplifier-iterations-pir"
               desc = "Set the max iterations for the PIR simplifier"
            in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsPir desc)
@@ -199,18 +199,6 @@ intOption k = \case
         | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
     Nothing -> Failure $ MissingValue k
 
--- | Obtain an option value of type @a@ from an `Int`.
-fromIntOption ::
-    OptionKey ->
-    (Int -> Validation ParseError a) ->
-    Maybe OptionValue ->
-    Validation ParseError (a -> a)
-fromIntOption k f = \case
-    Just v
-        | Just i <- readMaybe (Text.unpack v) -> const <$> f i
-        | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
-    Nothing -> Failure $ MissingValue k
-
 defaultPluginOptions :: PluginOptions
 defaultPluginOptions =
     PluginOptions
@@ -222,7 +210,8 @@ defaultPluginOptions =
         , _posDumpUPlc = False
         , _posOptimize = True
         , _posPedantic = False
-        , _posVerbosity = Quiet
+        , _posVerbose = False
+        , _posDebug = False
         , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
         , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
         , _posDoSimplifierUnwrapCancel = True

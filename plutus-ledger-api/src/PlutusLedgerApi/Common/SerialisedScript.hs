@@ -77,7 +77,7 @@ for CBOR's ability to self-describe it's format.
 -- | Turns a program which was compiled using the \'PlutusTx\' toolchain into
 -- a binary format that is understood by the network and can be stored on-chain.
 serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
-serialiseCompiledCode = serialiseUPLC . toNameless . getPlc
+serialiseCompiledCode = serialiseUPLC . toNameless . getPlcNoAnn
     where
         toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
                 -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()

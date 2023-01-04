@@ -139,6 +139,7 @@ test-suite plutus-tx-tests
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
     Plugin.Data.Spec
+    Plugin.Debug.Spec
     Plugin.Errors.Spec
     Plugin.Functions.Spec
     Plugin.Laziness.Spec

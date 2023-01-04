@@ -5,7 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TemplateHaskellQuotes      #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -388,7 +388,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> AnnInline `elem` toList ann
+            _                                      -> AlwaysInline `elem` fmap annInline (toList ann)
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
@@ -397,8 +397,8 @@ runCompiler moduleName opts expr = do
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
                  & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbosity opts == Verbose)
-                 & set (PIR.ccOpts . PIR.coDebug) (_posVerbosity opts == Debug)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
                  & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
@@ -411,14 +411,15 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    pirT <- PIR.runDefT annMayInline $ compileExprWithDefs expr
     when (_posDumpPir opts) . liftIO $
         dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
-    let spirP = PIR.Program () . void $ spirT
-    when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    let spirPNoAnn = PIR.Program () . void $ spirT
+        spirP = PIR.Program mempty . fmap getSrcSpans $ spirT
+    when (_posDumpPir opts) . liftIO $ dumpFlat spirPNoAnn "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
@@ -427,12 +428,13 @@ runCompiler moduleName opts expr = do
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
-    let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
-    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    let uplcPNoAnn = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
+        uplcP = UPLC.Program mempty (PLC.defaultVersion mempty) . fmap getSrcSpans $ dbT
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcPNoAnn "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
@@ -448,6 +450,9 @@ runCompiler moduleName opts expr = do
         (tPath, tHandle) <- openTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
+
+      getSrcSpans :: PIR.Provenance Ann -> SrcSpans
+      getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name

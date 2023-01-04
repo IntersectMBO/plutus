@@ -26,9 +26,35 @@ import Flat.Decoder (DecodeException)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
+import Data.Set (Set)
 import ErrorCode
+import GHC.Generics
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
+import Prettyprinter
+
+-- | The span between two source locations.
+--
+-- This corresponds roughly to the `SrcSpan` used by GHC, but we define our own version so we don't have to depend on `ghc` to use it.
+--
+-- The line and column numbers are 1-based, and the unit is Unicode code point (or `Char`).
+data SrcSpan = SrcSpan
+    { srcSpanFile  :: FilePath
+    , srcSpanSLine :: Int
+    , srcSpanSCol  :: Int
+    , srcSpanELine :: Int
+    , srcSpanECol  :: Int
+    }
+    deriving stock (Eq, Ord, Generic, Show)
+    deriving anyclass (Flat)
+
+newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
+    deriving newtype (Eq, Ord, Show, Semigroup, Monoid)
+    deriving stock (Generic)
+    deriving anyclass (Flat)
+
+instance Pretty SrcSpans where
+    pretty = viaShow
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
@@ -49,7 +75,10 @@ data CompiledCodeIn uni fun a =
     -- | Serialized UPLC code and possibly serialized PIR code with metadata used for program coverage.
     SerializedCode BS.ByteString (Maybe BS.ByteString) CoverageIndex
     -- | Deserialized UPLC program, and possibly deserialized PIR program with metadata used for program coverage.
-    | DeserializedCode (UPLC.Program UPLC.NamedDeBruijn uni fun ()) (Maybe (PIR.Program PLC.TyName PLC.Name uni fun ())) CoverageIndex
+    | DeserializedCode
+        (UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans)
+        (Maybe (PIR.Program PLC.TyName PLC.Name uni fun SrcSpans))
+        CoverageIndex
 
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
@@ -63,16 +92,6 @@ applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
 sizePlc = UPLC.programSize . getPlc
-
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => Flat (CompiledCodeIn uni fun a) where
-    encode c = encode (getPlc c)
-
-    decode = do
-        p <- decode
-        pure $ DeserializedCode p Nothing mempty
-
-    size c = size (getPlc c)
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
@@ -90,17 +109,22 @@ instance HasErrorCode ImpossibleDeserialisationFailure where
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
+    => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
 getPlc wrapper = case wrapper of
     SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
         Left e  -> throw $ ImpossibleDeserialisationFailure e
         Right p -> p
     DeserializedCode plc _ _ -> plc
 
+getPlcNoAnn
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
+getPlcNoAnn = (() <$) . getPlc
+
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.
 getPir
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
+    => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun SrcSpans)
 getPir wrapper = case wrapper of
     SerializedCode _ pir _ -> case pir of
         Just bs -> case unflat (BSL.fromStrict bs) of
@@ -108,6 +132,11 @@ getPir wrapper = case wrapper of
             Right p -> Just p
         Nothing -> Nothing
     DeserializedCode _ pir _ -> pir
+
+getPirNoAnn
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
+getPirNoAnn = fmap (() <$) . getPir
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
 getCovIdx wrapper = case wrapper of

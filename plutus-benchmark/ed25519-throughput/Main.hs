@@ -68,7 +68,7 @@ type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
 
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
-compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
+compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
 
 {- | Remove the textual names from a NamedDeBruijn program -}
 toAnonDeBruijnProg :: UProg -> UDBProg
@@ -169,7 +169,7 @@ verifyInputs hash d =
 -- verification script to that.
 mkSigCheckScript :: Integer -> UProg
 mkSigCheckScript n =
-    Tx.getPlc $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n haskellHash)
+    Tx.getPlcNoAnn $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n haskellHash)
 
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double

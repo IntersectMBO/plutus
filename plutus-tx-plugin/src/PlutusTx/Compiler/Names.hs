@@ -69,13 +69,13 @@ compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
-    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
+    pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
 compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
-    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
+    pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
 pushName :: GHC.Name -> PLCVar uni-> ScopeStack uni -> ScopeStack uni
 pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack
