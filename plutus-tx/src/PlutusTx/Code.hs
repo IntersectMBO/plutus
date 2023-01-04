@@ -119,7 +119,7 @@ getPlc wrapper = case wrapper of
 getPlcNoAnn
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
-getPlcNoAnn = (() <$) . getPlc
+getPlcNoAnn = void . getPlc
 
 -- | Get the Plutus IR program, if there is one, out of a 'CompiledCodeIn'.
 getPir
