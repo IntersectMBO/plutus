@@ -136,7 +136,7 @@ getPir wrapper = case wrapper of
 getPirNoAnn
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun a -> Maybe (PIR.Program PIR.TyName PIR.Name uni fun ())
-getPirNoAnn = fmap (() <$) . getPir
+getPirNoAnn = fmap void . getPir
 
 getCovIdx :: CompiledCodeIn uni fun a -> CoverageIndex
 getCovIdx wrapper = case wrapper of
