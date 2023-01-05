@@ -100,7 +100,7 @@ library
     , deepseq
     , deriving-compat
     , extra
-    , flat
+    , flat              <0.5
     , ghc-prim
     , hashable
     , lens
@@ -123,7 +123,7 @@ library plutus-tx-testlib
   build-depends:
     , base                                            >=4.9 && <5
     , filepath
-    , flat
+    , flat                                            <0.5
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.1

@@ -15,7 +15,7 @@ jobs:
       - uses: haskell/actions/hlint-setup@v2
         with:
           version: '3.4'
-      - uses: nixbuild/nix-quick-install-action@v19 
+      - uses: nixbuild/nix-quick-install-action@v21 
         with: 
           nix_conf: |
             experimental-features = nix-command flakes

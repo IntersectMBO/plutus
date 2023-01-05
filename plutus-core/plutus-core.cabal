@@ -299,7 +299,7 @@ library
     , exceptions
     , extra
     , filepath
-    , flat
+    , flat                        <0.5
     , ghc-prim
     , hashable                    >=1.4
     , hedgehog                    >=1.0
@@ -349,7 +349,7 @@ library plutus-core-execlib
     , base                  >=4.9 && <5
     , bytestring
     , deepseq
-    , flat
+    , flat                  <0.5
     , lens
     , megaparsec
     , monoidal-containers
@@ -470,7 +470,7 @@ test-suite plutus-core-test
     , containers
     , data-default-class
     , filepath
-    , flat
+    , flat                 <0.5
     , hedgehog
     , hex-text
     , mmorph
@@ -507,7 +507,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                  >=4.9 && <5
     , containers
-    , flat
+    , flat                  <0.5
     , hashable
     , hedgehog
     , lens
@@ -550,7 +550,7 @@ test-suite untyped-plutus-core-test
     , base                  >=4.9 && <5
     , bytestring
     , cardano-crypto-class
-    , flat
+    , flat                  <0.5
     , hedgehog
     , index-envs
     , lens
@@ -725,13 +725,13 @@ executable generate-cost-model
   build-depends:
     , aeson-pretty
     , barbies
-    , base                  >=4.9 && <5
+    , base                  >=4.9   && <5
     , bytestring
     , cassava
     , directory
     , exceptions
     , extra
-    , inline-r
+    , inline-r              >1.0.0
     , optparse-applicative
     , plutus-core           ^>=1.1
     , text
@@ -760,13 +760,13 @@ benchmark cost-model-test
 
   build-depends:
     , barbies
-    , base              >=4.9 && <5
+    , base              >=4.9   && <5
     , bytestring
     , cassava
     , exceptions
     , extra
     , hedgehog
-    , inline-r
+    , inline-r          >1.0.0
     , mmorph
     , plutus-core       ^>=1.1
     , template-haskell
