@@ -81,14 +81,14 @@ floatTerm ver = pure . fmap fst . go <=< PLC.rename
             let body = go body0
              in Unwrap (a, termUniqs body) body
         Let a NonRec bs0 body0 ->
-            let bs = go' <$> bs0
+            let bs = goBinding <$> bs0
                 body = go body0
              in -- The bindings in `bs` should be processed from right to left, since
                 -- a binding may depend on another binding to its left.
                 foldr (floatAlg ver a) body bs
         Let a Rec bs0 body0 ->
             -- Currently we don't move recursive bindings, so we simply descend into the body.
-            let bs = go' <$> bs0
+            let bs = goBinding <$> bs0
                 body = go body0
                 us = Set.union (termUniqs body) (foldMap bindingUniqs bs)
              in Let (a, us) Rec bs body
@@ -99,10 +99,10 @@ floatTerm ver = pure . fmap fst . go <=< PLC.rename
 
     -- | Float bindings in the given `Binding` inwards, and calculate the set of
     -- variable `Unique`s in the result `Binding`.
-    go' ::
+    goBinding ::
         Binding tyname name uni fun a ->
         Binding tyname name uni fun (a, Uniques)
-    go' = \case
+    goBinding = \case
         TermBind a s var rhs ->
             let rhs' = go rhs
              in TermBind (a, termUniqs rhs') s (noUniq var) rhs'
@@ -168,7 +168,7 @@ floatAlg ver letAnn = go
                 TyAbs (a, Set.union usBind usBody) n k (go b tyAbsBody)
             TyInst (a, usBody) tyInstBody ty ->
                 -- A term binding can always be placed inside the body a `TyInst` because the
-                -- type cannot mention the bound variable 
+                -- type cannot mention the bound variable
                 TyInst (a, Set.union usBind usBody) (go b tyInstBody) ty
             Let (a, usBody) r bs letBody
                 -- The binding can be placed inside a `Let`, if the right hand sides of the
