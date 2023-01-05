@@ -90,7 +90,7 @@ library
     , containers
     , deepseq
     , extra
-    , flat
+    , flat               <0.5
     , lens
     , mtl
     , nothunks
