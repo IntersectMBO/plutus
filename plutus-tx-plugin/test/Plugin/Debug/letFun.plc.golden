@@ -1,97 +1,111 @@
 (program
-  fromList []
+  { no-src-span }
   (let
-    fromList []
+    { no-src-span }
     (nonrec)
     (datatypebind
-      fromList []
+      { no-src-span }
       (datatype
-        fromList []
-        (tyvardecl fromList [] Bool (fromList [] type))
+        { no-src-span }
+        (tyvardecl { no-src-span } Bool ({ no-src-span } type))
 
         Bool_match
-        (vardecl fromList [] True fromList [] Bool)
-        (vardecl fromList [] False fromList [] Bool)
+        (vardecl { no-src-span } True { no-src-span } Bool)
+        (vardecl { no-src-span } False { no-src-span } Bool)
       )
     )
     (termbind
-      fromList []
+      { no-src-span }
       (strict)
       (vardecl
-        fromList []
+        { no-src-span }
         equalsInteger
         (fun
-          fromList []
-          (con fromList [] integer)
-          (fun fromList [] (con fromList [] integer) (con fromList [] bool))
+          { no-src-span }
+          (con { no-src-span } integer)
+          (fun
+            { no-src-span }
+            (con { no-src-span } integer)
+            (con { no-src-span } bool)
+          )
         )
       )
-      (builtin fromList [] equalsInteger)
+      (builtin { no-src-span } equalsInteger)
     )
     (termbind
-      fromList []
+      { no-src-span }
       (strict)
       (vardecl
-        fromList []
+        { no-src-span }
         ifThenElse
         (all
-          fromList []
+          { no-src-span }
           a
-          (fromList [] type)
+          ({ no-src-span } type)
           (fun
-            fromList []
-            (con fromList [] bool)
+            { no-src-span }
+            (con { no-src-span } bool)
             (fun
-              fromList []
-              fromList [] a
-              (fun fromList [] fromList [] a fromList [] a)
+              { no-src-span }
+              { no-src-span } a
+              (fun { no-src-span } { no-src-span } a { no-src-span } a)
             )
           )
         )
       )
-      (builtin fromList [] ifThenElse)
+      (builtin { no-src-span } ifThenElse)
     )
     (termbind
-      fromList []
+      { no-src-span }
       (strict)
       (vardecl
-        fromList []
+        { no-src-span }
         equalsInteger
         (fun
-          fromList []
-          (con fromList [] integer)
-          (fun fromList [] (con fromList [] integer) fromList [] Bool)
+          { no-src-span }
+          (con { no-src-span } integer)
+          (fun
+            { no-src-span } (con { no-src-span } integer) { no-src-span } Bool
+          )
         )
       )
       (lam
-        fromList []
+        { no-src-span }
         x
-        (con fromList [] integer)
+        (con { no-src-span } integer)
         (lam
-          fromList []
+          { no-src-span }
           y
-          (con fromList [] integer)
+          (con { no-src-span } integer)
           [
-            fromList []
+            { no-src-span }
             [
-              fromList []
+              { no-src-span }
               [
-                fromList []
-                { fromList [] fromList [] ifThenElse fromList [] Bool }
+                { no-src-span }
+                {
+                  { no-src-span }
+                  { no-src-span } ifThenElse
+                  { no-src-span } Bool
+                }
                 [
-                  fromList []
-                  [ fromList [] fromList [] equalsInteger fromList [] x ]
-                  fromList [] y
+                  { no-src-span }
+                  [
+                    { no-src-span }
+                    { no-src-span } equalsInteger
+                    { no-src-span } x
+                  ]
+                  { no-src-span } y
                 ]
               ]
-              fromList [] True
+              { no-src-span } True
             ]
-            fromList [] False
+            { no-src-span } False
           ]
         )
       )
     )
-    fromList [SrcSpan {srcSpanFile = "test/Plugin/Debug/Spec.hs", srcSpanSLine = 38, srcSpanSCol = 9, srcSpanELine = 38, srcSpanECol = 88},SrcSpan {srcSpanFile = "test/Plugin/Debug/Spec.hs", srcSpanSLine = 38, srcSpanSCol = 54, srcSpanELine = 38, srcSpanECol = 80}]
+    { test/Plugin/Debug/Spec.hs:38:9-38:88, test/Plugin/Debug/Spec.hs:38:54-38:80 }
     equalsInteger
   )
 )

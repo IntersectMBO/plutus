@@ -26,7 +26,9 @@ import Flat.Decoder (DecodeException)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
+import Data.List qualified as List
 import Data.Set (Set)
+import Data.Set qualified as Set
 import ErrorCode
 import GHC.Generics
 -- We do not use qualified import because the whole module contains off-chain code
@@ -45,13 +47,38 @@ data SrcSpan = SrcSpan
     , srcSpanELine :: Int
     , srcSpanECol  :: Int
     }
-    deriving stock (Eq, Ord, Generic, Show)
+    deriving stock (Eq, Ord, Generic)
     deriving anyclass (Flat)
 
+instance Show SrcSpan where
+    showsPrec _ s =
+        showString (srcSpanFile s)
+            . showChar ':'
+            . showsPrec 0 (srcSpanSLine s)
+            . showChar ':'
+            . showsPrec 0 (srcSpanSCol s)
+            . showChar '-'
+            . showsPrec 0 (srcSpanELine s)
+            . showChar ':'
+            . showsPrec 0 (srcSpanECol s)
+
+instance Pretty SrcSpan where
+    pretty = viaShow
+
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
-    deriving newtype (Eq, Ord, Show, Semigroup, Monoid)
+    deriving newtype (Eq, Ord, Semigroup, Monoid)
     deriving stock (Generic)
     deriving anyclass (Flat)
+
+instance Show SrcSpans where
+    showsPrec _ (SrcSpans xs) =
+        showString "{ "
+            . showString
+                ( case Set.toList xs of
+                    [] -> "no-src-span"
+                    ys -> List.intercalate ", " (show <$> ys)
+                )
+            . showString " }"
 
 instance Pretty SrcSpans where
     pretty = viaShow
