@@ -9,7 +9,7 @@
  program size since it simply moves bindings around without changing the number
  of bindings, but it may lead to more efficient evaluation.
 
- Unlike the float-in in GHC, we /can/ float bindings into lambda abstractions,
+ Unlike the float-in in GHC, we /can/ float such bindings into lambda abstractions,
  because doing so cannot duplicate work. Therefore we simply float a binding
  inwards to the deepest possible position.
 
@@ -24,6 +24,18 @@
 
  Currently we only move non-recursive term bindings. In the future we should also
  implement float-in for other kinds of bindings.
+-}
+
+{- Note [Float bindings into lambda abstractions]
+
+Unlike the float-in in GHC, we *can* float a lazy binding, or a strict binding
+whose RHS is a value, into lambda abstractions, because doing so cannot duplicate
+work.
+
+On the other hand, a strict binding whose RHS is *not* a value cannot be floated into
+into lambda abstractions, because doing so obviously may duplicate work. We actually
+avoid moving such bindings at all, because if the RHS has effects, it may also
+change the semantics of the program.
 -}
 module PlutusIR.Transform.LetFloatIn (floatTerm) where
 
@@ -161,10 +173,14 @@ floatInBinding ver letAnn = go
                     -- `arg` does not mention `var`, so we can place the binding inside `fun`.
                     Apply (a, Set.union usBind usBody) (go b fun) arg
             LamAbs (a, usBody) n ty lamAbsBody ->
-                -- A binding can always be placed inside a `LamAbs`.
+                -- A lazy binding, or a strict binding whose RHS is pure, can always
+                -- be placed inside a `LamAbs`.
+                -- See Note [Float bindings into lambda abstractions].
                 LamAbs (a, Set.union usBind usBody) n ty (go b lamAbsBody)
             TyAbs (a, usBody) n k tyAbsBody ->
-                -- A binding can always be placed inside a `TyAbs`.
+                -- A lazy binding, or a strict binding whose RHS is pure, can always
+                -- be placed inside a `TyAbs`.
+                -- See Note [Float bindings into lambda abstractions].
                 TyAbs (a, Set.union usBind usBody) n k (go b tyAbsBody)
             TyInst (a, usBody) tyInstBody ty ->
                 -- A term binding can always be placed inside the body a `TyInst` because the
@@ -173,6 +189,11 @@ floatInBinding ver letAnn = go
             Let (a, usBody) r bs letBody
                 -- The binding can be placed inside a `Let`, if the right hand sides of the
                 -- bindings of the `Let` do not mention `var`.
+                --
+                -- Note that we do *not* float the binding into one of the bindings here.
+                -- We tried it (see commit c88f5b0), but it made things worse. The exact
+                -- reason hasn't been identified, but most likely it affects inlining
+                -- in some way.
                 | (var ^. PLC.unique) `Set.notMember` foldMap bindingUniqs bs ->
                     Let (a, Set.union usBind usBody) r bs (go b letBody)
             IWrap (a, usBody) ty1 ty2 iwrapBody ->
