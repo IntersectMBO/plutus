@@ -236,9 +236,9 @@ In order for Bob's transaction to be able to spend the initial script UTXO Alice
 As shown in the code above, there are two kinds of redeemers in our example: ``NewBid Bid`` and ``Payout``.
 The redeemer in Bob's transaction is a ``NewBid Bid`` where the ``Bid`` contains Bob's wallet address and bid amount.
 
-.. image:: first-bid-simple-auction-1.png
+.. image:: first-bid-simple-auction-v3.png
    :width: 700
-   :alt: First bid 
+   :alt: First bid diagram
 
 Once Bob's transaction is submitted, the node validating this trasaction will run the Plutus script, which checks a number of conditions like whether the bid happens before the deadline, and whether the bid is high enough.
 If the checks pass and everything else about the transaction is valid, the transaction will go through and be included in a block.
@@ -253,9 +253,9 @@ Charlie will create another transaction.
 This transaction should have an additional output compared to Bob's transaction: a UTXO that returns Bob's bid of 100 Ada.
 Recall that this is one of the conditions checked by the Plutus script; the transaction is rejected if the refund output is missing.
 
-.. image:: second-bid-simple-auction-1.png
+.. image:: second-bid-simple-auction-v3.png
    :width: 700
-   :alt: Second bid 
+   :alt: Second bid diagram
 
 Charlie's transaction needs to spend the script UTXO produced by Bob's transaction, so it also needs a redeemer. The redeemer is a ``NewBid Bid`` where ``Bid`` contains Charlie's wallet address and bid amount.
 Charlie's transaction cannot spend the initial UTXO produced by Alice, since it has already been spent by Bob's transaction.
@@ -272,9 +272,9 @@ It can be anybody, but Alice and Charlie have an incentive to create it.
 
 This transaction has one required input: the script UTXO produced by Charlie's transaction, and two required outputs: (1) the payment of the auctioned token to Charlie; (2) the payment of 200 Ada to Alice.
 
-.. image:: closing-tx-simple-auction-1.png
+.. image:: closing-tx-simple-auction-v3.png
    :width: 700
-   :alt: Closing transaction
+   :alt: Closing transaction diagram
 
 Libraries for writing Plutus Tx scripts
 -------------------------------------------

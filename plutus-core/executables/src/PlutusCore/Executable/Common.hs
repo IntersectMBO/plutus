@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 
-module Common where
+module PlutusCore.Executable.Common where
 
 import PlutusPrelude
 
@@ -359,7 +359,7 @@ parseInput inp = do
             -- run @rename@ through the program
             renamed <- PLC.runQuoteT $ rename p
             -- check the program for @UniqueError@'s
-            let checked = through Common.checkUniques renamed
+            let checked = through PlutusCore.Executable.Common.checkUniques renamed
             case checked of
                 -- pretty print the error
                 Left (err :: PLC.UniqueError PLC.SourcePos) ->

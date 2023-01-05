@@ -5,12 +5,12 @@
 
 module Main (main) where
 
-import Common
-import Parsers
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Executable.Common
+import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PP
 
 import Data.Functor (void)

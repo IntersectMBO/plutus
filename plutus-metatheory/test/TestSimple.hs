@@ -11,6 +11,7 @@ import System.Process
 
 import MAlonzo.Code.Main qualified as M
 
+-- |List of tests that are expected to succeed
 succeedingEvalTests = ["succInteger"
         ,"unitval"
         ,"true"
@@ -27,73 +28,72 @@ succeedingEvalTests = ["succInteger"
         ,"ApplyAdd2"
         ]
 
+-- |List of tests that are expected to fail
 failingEvalTests = ["DivideByZero"]
 
-succeedingTCTests = ["succInteger"
-        ,"unitval"
-        ,"true"
-        ,"false"
-        ,"churchZero"
-        ,"churchSucc"
-        ,"overapplication"
-        ,"factorial"
-        ,"fibonacci"
-        ,"NatRoundTrip"
-        ,"ScottListSum"
-        ,"IfIntegers"
-        ,"ApplyAdd1"
-        ,"ApplyAdd2"
-        ]
+type Mode = String
+data Command = Evaluate Mode | Typecheck deriving Show
 
-blah :: String -> [String]
-blah "plc" = []
-blah _     = ["--mode","U"]
+-- |For each Command construct arguments to pass to plc-agda
+mkArgs :: String -> Command -> [String]
+mkArgs file (Evaluate mode) = ["evaluate","--input",file,"--mode",mode]
+mkArgs file Typecheck       = ["typecheck","--input",file]
 
-runTest :: String -> String -> String -> IO ()
-runTest command mode test = withTempFile $ \tmp -> do
-  example <- readProcess mode ["example", "-s",test] []
+-- |For each Command determine which executable should generate examples
+exampleGenerator :: Command -> String
+exampleGenerator (Evaluate "U") = "uplc"
+exampleGenerator _              = "plc"
+
+-- |@runTest cmd tst@ generates a @tst@ example and runs it with the given @cmd@.
+runTest :: Command -> String -> IO ()
+runTest command test = withTempFile $ \tmp -> do
+  example <- readProcess (exampleGenerator command) ["example", "-s",test] []
   writeFile tmp example
-  putStrLn $ "test: " ++ test ++ " [" ++ command ++ "]"
-  withArgs ([command,"--input",tmp] ++ blah mode)  M.main
+  putStrLn $ "test: " ++ test ++ " [" ++ show command ++ "]"
+  withArgs (mkArgs tmp command) M.main
 
-runSucceedingTests :: String -> String -> [String] -> IO ()
-runSucceedingTests command mode [] = return ()
-runSucceedingTests command mode (test:tests) = catch
-  (runTest command mode test)
+-- |Run a list of tests with a given command expecting them to succeed.
+runSucceedingTests :: Command -> [String] -> IO ()
+runSucceedingTests command [] = return ()
+runSucceedingTests command (test:tests) = catch
+  (runTest command test)
   (\case
     ExitFailure _ -> exitFailure
-    ExitSuccess   -> runSucceedingTests command mode tests)
+    ExitSuccess   -> runSucceedingTests command tests)
 
-runFailingTests :: String -> String -> [String] -> IO ()
-runFailingTests command mode [] = return ()
-runFailingTests command mode (test:tests) = catch
-  (runTest command mode test)
+-- |Run a list of tests with a given command expecting them to fail.
+runFailingTests :: Command -> [String] -> IO ()
+runFailingTests command [] = return ()
+runFailingTests command (test:tests) = catch
+  (runTest command test)
   (\case
-    ExitFailure _ -> runFailingTests command mode tests
-    ExitSuccess   -> exitSuccess)
+    ExitFailure _ -> runFailingTests command tests
+    ExitSuccess   -> exitFailure)
 
 main = do
-{-
-putStrLn "running succ L..."
-  runSucceedingTests "evaluate" (Just "L") succeedingEvalTests
-  putStrLn "running fail L"
-  runFailingTests "evaluate" (Just "L") failingEvalTests
-  putStrLn "running succ CK"
-  runSucceedingTests "evaluate" (Just "CK") succeedingEvalTests
-  putStrLn "running fail CK"
-  runFailingTests "evaluate" (Just "CK") failingEvalTests
--}
+  -- Run evaluation tests for each mode
   putStrLn "running succ TCK"
-  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  runSucceedingTests (Evaluate "TCK") succeedingEvalTests
   putStrLn "running fail TCK"
-  runFailingTests "evaluate" "plc" failingEvalTests
+  runFailingTests (Evaluate "TCK") failingEvalTests
+
   putStrLn "running succ TCEK"
-  runSucceedingTests "evaluate" "plc" succeedingEvalTests
+  runSucceedingTests (Evaluate "TCEK") succeedingEvalTests
   putStrLn "running fail TCEK"
-  runFailingTests "evaluate" "plc" failingEvalTests
+  runFailingTests (Evaluate "TCEK") failingEvalTests
+
   putStrLn "running succ U..."
-  runSucceedingTests "evaluate" "uplc" succeedingEvalTests
+  runSucceedingTests (Evaluate "U") succeedingEvalTests
   putStrLn "running fail U..."
-  runFailingTests "evaluate" "uplc" failingEvalTests
-  putStrLn "running succ TC"
-  runSucceedingTests "typecheck" "plc" succeedingTCTests
+  runFailingTests (Evaluate "U") failingEvalTests
+
+  putStrLn "running succ TL"
+  runSucceedingTests (Evaluate "TL") succeedingEvalTests
+  putStrLn "running fail TL"
+  runFailingTests (Evaluate "TL") failingEvalTests
+
+  -- Typechecking tests
+  -- NOTE: Evaluation tests beginning with T already run the typechecker.
+  --       The following is more of a test that the typechecking command works.
+  putStrLn "Typechecking succ"
+  runSucceedingTests Typecheck succeedingEvalTests
