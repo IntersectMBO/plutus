@@ -85,7 +85,7 @@ floatTerm ver = pure . fmap fst . go <=< PLC.rename
                 body = go body0
              in -- The bindings in `bs` should be processed from right to left, since
                 -- a binding may depend on another binding to its left.
-                foldr (floatAlg ver a) body bs
+                foldr (floatInBinding ver a) body bs
         Let a Rec bs0 body0 ->
             -- Currently we don't move recursive bindings, so we simply descend into the body.
             let bs = goBinding <$> bs0
@@ -123,13 +123,13 @@ bindingUniqs b = Set.union (snd (bindingAnn b)) $ case b of
 noUniq :: Functor f => f a -> f (a, Uniques)
 noUniq = fmap (,mempty)
 
-{- | The algebra for floating a `Binding` inwards. Given a `Term` and a `Binding`, determine
- whether the `Binding` can be placed somewhere inside the `Term`.
+{- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
+ placed somewhere inside the `Term`.
 
  If yes, return the result `Term`. Otherwise, return a `Let` constructed from
  the given `Binding` and `Term`.
 -}
-floatAlg ::
+floatInBinding ::
     forall tyname name uni fun a.
     ( PLC.HasUnique name PLC.TermUnique
     , PLC.ToBuiltinMeaning uni fun
@@ -140,7 +140,7 @@ floatAlg ::
     Binding tyname name uni fun (a, Uniques) ->
     Term tyname name uni fun (a, Uniques) ->
     Term tyname name uni fun (a, Uniques)
-floatAlg ver letAnn = go
+floatInBinding ver letAnn = go
   where
     go ::
         Binding tyname name uni fun (a, Uniques) ->
