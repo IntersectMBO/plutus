@@ -455,7 +455,10 @@ hoistExpr var t = do
     -- See Note [Dependency tracking]
     modifyCurDeps (Set.insert lexName)
     maybeDef <- PIR.lookupTerm annMayInline lexName
-    case maybeDef of
+    let addSpan = case getVarSourceSpan var of
+            Nothing  -> id
+            Just src -> fmap . fmap . addSrcSpan $ spanToSpan src
+    addSpan $ case maybeDef of
         Just term -> pure term
         -- See Note [Dependency tracking]
         Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
@@ -882,6 +885,9 @@ getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
   GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
   return sp
 getSourceSpan _ _ = Nothing
+
+getVarSourceSpan :: GHC.Var -> Maybe GHC.RealSrcSpan
+getVarSourceSpan = GHC.srcSpanToRealSrcSpan . GHC.nameSrcSpan . GHC.varName
 
 spanToSpan :: GHC.RealSrcSpan -> SrcSpan
 spanToSpan sp = SrcSpan
