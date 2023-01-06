@@ -26,6 +26,7 @@ import Flat.Decoder (DecodeException)
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
+import Data.Functor (void)
 import Data.List qualified as List
 import Data.Set (Set)
 import Data.Set qualified as Set
