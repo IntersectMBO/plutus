@@ -1,9 +1,8 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+
 module PlutusIR.Purity (isPure, firstEffectfulTerm) where
 
 import PlutusIR
@@ -14,11 +13,13 @@ import PlutusCore.Builtin
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
 
--- | A (not necessarily saturated) builtin application, consisting of the builtin and the arguments it has been applied to.
+-- | A (not necessarily saturated) builtin application,
+-- consisting of the builtin and the arguments it has been applied to.
 data BuiltinApp tyname name uni fun a = BuiltinApp fun [Arg tyname name uni fun a]
 
 saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme val args res -> Maybe Bool
--- We've passed enough arguments that the builtin will reduce. Note that this also accepts over-applied builtins.
+-- We've passed enough arguments that the builtin will reduce.
+-- Note that this also accepts over-applied builtins.
 saturatesScheme _ TypeSchemeResult{}                     = Just True
 -- Consume one argument
 saturatesScheme (TermArg _ : args) (TypeSchemeArrow sch) = saturatesScheme args sch
@@ -26,11 +27,13 @@ saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ sch) = saturatesScheme args 
 -- Under-applied, not saturated
 saturatesScheme [] TypeSchemeArrow{}                     = Just False
 saturatesScheme [] TypeSchemeAll{}                       = Just False
--- These cases are only possible in case we have an ill-typed builtin application, so we can't give an answer.
+-- These cases are only possible in case we have an ill-typed builtin application,
+-- so we can't give an answer.
 saturatesScheme (TypeArg _ : _) TypeSchemeArrow{}        = Nothing
 saturatesScheme (TermArg _ : _) TypeSchemeAll{}          = Nothing
 
--- | Is the given 'BuiltinApp' saturated? Returns 'Nothing' if something is badly wrong and we can't tell.
+-- | Is the given 'BuiltinApp' saturated?
+-- Returns 'Nothing' if something is badly wrong and we can't tell.
 isSaturated
     :: forall tyname name uni fun a
     . ToBuiltinMeaning uni fun
@@ -52,15 +55,19 @@ asBuiltinApp = go []
             _              -> Nothing
 
 {- Note [Purity, strictness, and variables]
-Variables in PLC won't have effects: they can have something else substituted for them, but those will be fully evaluated already.
-However, in PIR we have non-strict variable bindings. References to non-strict variables *can* have effects - after all,
+Variables in PLC won't have effects: they can have something else substituted for them,
+but those will be fully evaluated already.
+However, in PIR we have non-strict variable bindings.
+References to non-strict variables *can* have effects - after all,
 they compile into an application.
 
-So we need to take this into account in our purity calculation. We require the user to tell us which variables are strict, this
+So we need to take this into account in our purity calculation.
+We require the user to tell us which variables are strict, this
 must be *conservative* (i.e. if you don't know, it's non-strict).
 -}
 
--- | Will evaluating this term have side effects (looping or error)?. This is slightly wider than the definition of a value, as
+-- | Will evaluating this term have side effects (looping or error)?
+-- This is slightly wider than the definition of a value, as
 -- it includes things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
     :: ToBuiltinMeaning uni fun
@@ -80,7 +87,7 @@ isPure ver varStrictness = go
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
-                (case isSaturated ver bapp of { Just b -> not b; Nothing -> False; })
+                maybe False not (isSaturated ver bapp)
                 &&
                 -- But all the arguments need to also be effect-free, since they will be evaluated
                 -- when we evaluate the application.
