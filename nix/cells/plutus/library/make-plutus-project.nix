@@ -25,13 +25,7 @@ let
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
     # No source-repository-packages right now
-    #    sha256map = { };
-    # Workaround for inline-r problem
-    sha256map = {
-      "https://github.com/tweag/HaskellR.git"."af3b75aba6c9530d68e3cc0cfad7239a88380349" =
-        "sha256-G7olakpwzzC0DUUPCnF/MuRIH6lfRocdRMAqvgFge6o=";
-    };
-
+    sha256map = { };
 
     # TODO: move this into the cabal.project using the new conditional support?
     # Configuration settings needed for cabal configure to work when cross compiling

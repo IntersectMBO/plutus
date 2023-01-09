@@ -85,6 +85,7 @@ listOfSizedByteStrings n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
 
+
 -------------------------------- Printing --------------------------------
 
 -- Printing utilities
@@ -123,7 +124,7 @@ printStatistics n script = do
 
 ------------------------------- Examples ---------------------------------
 
--- Adding points in G1
+-- Hash some bytestrings onto G1 and add them all together
 
 {-# INLINABLE hashAndAddG1 #-}
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
@@ -143,7 +144,8 @@ testHashAndAddG1 n =
     let script = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
     in printStatistics n script
 
--- Adding points in G2
+
+-- Hash some bytestrings onto G2 and add them all together
 
 {-# INLINABLE hashAndAddG2 #-}
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
@@ -162,6 +164,69 @@ testHashAndAddG2 :: Integer -> IO ()
 testHashAndAddG2 n =
     let script = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
     in printStatistics n script
+
+
+-- Deserialsie a list of compressed G1 points and add them all together
+
+{-# INLINABLE uncompressAndAddG1 #-}
+uncompressAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
+uncompressAndAddG1 [] = error ()
+uncompressAndAddG1 (p:ps) =
+    go ps (Tx.bls12_381_G1_uncompress p)
+    where go [] acc     = acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_uncompress q) acc
+
+mkUncompressAndAddG1Script :: [ByteString] -> UProg
+mkUncompressAndAddG1Script l =
+    let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
+    in Tx.getPlc $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.applyCode` Tx.liftCode points
+
+testUncompressAndAddG1 :: Integer -> IO ()
+testUncompressAndAddG1 n =
+    let script = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
+    in printStatistics n script
+
+testUncompressAndAddG1_Haskell :: Integer -> IO ()
+testUncompressAndAddG1_Haskell n =
+    let l = listOfSizedByteStrings 100 n
+        points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
+        result1 = uncompressAndAddG1 points
+        result2 = uncompressAndAddG1 (reverse points)
+    in do
+      printf "%s\n" (show result1)
+      printf "%s\n" (show result2)
+
+-- Deserialsie a list of compressed G1 points and add them all together
+
+{-# INLINABLE uncompressAndAddG2 #-}
+uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
+uncompressAndAddG2 [] = error ()
+uncompressAndAddG2 (p:ps) =
+    go ps (Tx.bls12_381_G2_uncompress p)
+    where go [] acc     = acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
+
+mkUncompressAndAddG2Script :: [ByteString] -> UProg
+mkUncompressAndAddG2Script l =
+    let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
+    in Tx.getPlc $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.applyCode` Tx.liftCode points
+
+testUncompressAndAddG2 :: Integer -> IO ()
+testUncompressAndAddG2 n =
+    let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
+    in printStatistics n script
+
+testUncompressAndAddG2_Haskell :: Integer -> IO ()
+testUncompressAndAddG2_Haskell n =
+    let l = listOfSizedByteStrings 100 n
+        points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
+        result1 = uncompressAndAddG2 points
+        result2 = uncompressAndAddG2 (reverse points)
+    in do
+      printf "%s\n" (show result1)
+      printf "%s\n" (show result2)
+
+
 
 -- Pairing operations
 
@@ -202,8 +267,31 @@ testPairing = do
 
 main :: IO ()
 main = do
+  printf "Hash n bytestrings onto G1 and add points\n\n"
+  printf "    n     script size             CPU usage               Memory usage\n"
+  printf "  ----------------------------------------------------------------------\n"
+  mapM_ testHashAndAddG1 [0, 10..150]
+  printf "\n\n"
+
+  printf "Hash n bytestrings onto G2 and add points\n\n"
   printf "    n     script size             CPU usage               Memory usage\n"
   printf "  ----------------------------------------------------------------------\n"
   mapM_ testHashAndAddG2 [0, 10..150]
+  printf "\n\n"
+
+  printf "Uncompress n G1 points and add the results\n\n"
+  printf "    n     script size             CPU usage               Memory usage\n"
+  printf "  ----------------------------------------------------------------------\n"
+  mapM_ testUncompressAndAddG1 [0, 10..150]
+  printf "\n\n"
+
+  printf "Uncompress n G2 points and add the results\n\n"
+  printf "    n     script size             CPU usage               Memory usage\n"
+  printf "  ----------------------------------------------------------------------\n"
+  mapM_ testUncompressAndAddG2 [0, 10..150]
+  printf "\n\n"
+
+
+
 --  testPairing
 
