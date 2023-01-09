@@ -11,13 +11,12 @@ Note that there is (essentially) a copy of this in the UPLC inliner, and the two
 should be KEPT IN SYNC, so if you make changes here please either make them in the other
 one too or add to the comment that summarises the differences.
 -}
-module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
-
+module PlutusIR.Transform.Inline.UnconditionalInline (inline, InlineHints (..)) where
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.MkPir (mkLet)
-import PlutusIR.Transform.Inline.Heuristics
+import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -26,7 +25,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
-import PlutusCore.Rename (Dupable, dupable, liftDupable)
+import PlutusCore.Rename (dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
 
 import Control.Lens hiding (Strict)
@@ -109,46 +108,6 @@ But we *can* do it in UPLC! No types, so no problem. The type abstraction/instan
 turn into a delay/force pair and get simplified away, and then we have something that we can
 inline. This is essentially the reason for the existence of the UPLC inlining pass.
 -}
-
-
-
--- | Look up the unprocessed variable in the substitution.
-lookupTerm
-    :: (HasUnique name TermUnique)
-    => name -- ^ The name of the variable.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Maybe (InlineTerm tyname name uni fun a)
-lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
-
--- | Insert the unprocessed variable into the substitution.
-extendTerm
-    :: (HasUnique name TermUnique)
-    => name -- ^ The name of the variable.
-    -> InlineTerm tyname name uni fun a -- ^ The substitution range.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Subst tyname name uni fun a
-extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
-
--- | Look up the unprocessed type variable in the substitution.
-lookupType
-    :: (HasUnique tyname TypeUnique)
-    => tyname
-    -> Subst tyname name uni fun a
-    -> Maybe (Dupable (Type tyname uni a))
-lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
-
--- | Check if the type substitution is empty.
-isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
-isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
-
--- | Insert the unprocessed type variable into the substitution.
-extendType
-    :: (HasUnique tyname TypeUnique)
-    => tyname -- ^ The name of the type variable.
-    -> Type tyname uni a -- ^ Its type.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Subst tyname name uni fun a
-extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
 {- Note [Inlining and global uniqueness]
 Inlining relies on global uniqueness (we store things in a unique map), and *does* currently

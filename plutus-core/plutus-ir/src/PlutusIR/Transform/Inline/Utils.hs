@@ -5,15 +5,14 @@
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-{- | Heuristics for inlining. -}
+{- | Types and their functions, and general utility (including heuristics) for inlining. -}
 
-module PlutusIR.Transform.Inline.Heuristics where
-
+module PlutusIR.Transform.Inline.Utils where
 
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.Purity (isPure)
+import PlutusIR.Purity (firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -21,13 +20,12 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name
 import PlutusCore.Quote
-import PlutusCore.Rename (Dupable)
+import PlutusCore.Rename
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 
@@ -77,6 +75,45 @@ makeLenses ''TermEnv
 makeLenses ''TypeEnv
 makeLenses ''Subst
 
+-- | Look up the unprocessed variable in the substitution.
+lookupTerm
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Maybe (InlineTerm tyname name uni fun a)
+lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
+
+-- | Insert the unprocessed variable into the substitution.
+extendTerm
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> InlineTerm tyname name uni fun a -- ^ The substitution range.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Subst tyname name uni fun a
+extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
+
+-- | Look up the unprocessed type variable in the substitution.
+lookupType
+    :: (HasUnique tyname TypeUnique)
+    => tyname
+    -> Subst tyname name uni fun a
+    -> Maybe (Dupable (Type tyname uni a))
+lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
+
+-- | Check if the type substitution is empty.
+isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
+isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
+
+-- | Insert the unprocessed type variable into the substitution.
+extendType
+    :: (HasUnique tyname TypeUnique)
+    => tyname -- ^ The name of the type variable.
+    -> Type tyname uni a -- ^ Its type.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Subst tyname name uni fun a
+extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
+
+
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
@@ -113,11 +150,11 @@ type InlineM tyname name uni fun a =
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    =>Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
+    => Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
 checkPurity t = do
     strctMap <- view iiStrictnessMap
     builtinVer <- view iiBuiltinVer
-    let strictnessFun = \n' -> Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
+    let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
     pure $ isPure builtinVer strictnessFun t
 
 nameUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
@@ -151,43 +188,6 @@ acceptable ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
 acceptable t =
     -- See Note [Inlining criteria]
     pure $ costIsAcceptable t && sizeIsAcceptable t
-
-{- |
-Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that we don't know, this function
-is conservative.
--}
-firstEffectfulTerm :: Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
-firstEffectfulTerm = goTerm
-    where
-      goTerm = \case
-        Let _ NonRec bs b -> case goBindings (NE.toList bs) of
-            Just t' -> Just t'
-            Nothing -> goTerm b
-
-        Apply _ l _ -> goTerm l
-        TyInst _ t _ -> goTerm t
-        IWrap _ _ _ t -> goTerm t
-        Unwrap _ t -> goTerm t
-
-        t@Var{} -> Just t
-        t@Error{} -> Just t
-        t@Builtin{} -> Just t
-
-        -- Hard to know what gets evaluated first in a recursive let-binding,
-        -- just give up and say nothing
-        (Let _ Rec _ _) -> Nothing
-        TyAbs{} -> Nothing
-        LamAbs{} -> Nothing
-        Constant{} -> Nothing
-
-      goBindings :: [Binding tyname name uni fun a] -> Maybe (Term tyname name uni fun a)
-      goBindings [] = Nothing
-      goBindings (b:bs) = case b of
-        -- Only strict term bindings can cause effects
-        TermBind _ Strict _ rhs -> goTerm rhs
-        _                       -> goBindings bs
-
 
 {- Note [Inlining and purity]
 When can we inline something that might have effects? We must remember that we often also

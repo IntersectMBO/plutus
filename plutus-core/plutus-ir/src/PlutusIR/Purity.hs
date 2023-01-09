@@ -4,10 +4,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
-module PlutusIR.Purity (isPure) where
+module PlutusIR.Purity (isPure, firstEffectfulTerm) where
 
 import PlutusIR
 
+import Data.List.NonEmpty qualified as NE
 import PlutusCore.Builtin
 
 -- | An argument taken by a builtin: could be a term of a type.
@@ -86,3 +87,39 @@ isPure ver varStrictness = go
                 all (\case { TermArg arg -> go arg; TypeArg _ -> True }) args
 
             _ -> False
+
+{- |
+Try to identify the first sub term which will be evaluated in the given term and
+which could have an effect. 'Nothing' indicates that we don't know, this function
+is conservative.
+-}
+firstEffectfulTerm :: Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+firstEffectfulTerm = goTerm
+    where
+      goTerm = \case
+        Let _ NonRec bs b -> case goBindings (NE.toList bs) of
+            Just t' -> Just t'
+            Nothing -> goTerm b
+
+        Apply _ l _ -> goTerm l
+        TyInst _ t _ -> goTerm t
+        IWrap _ _ _ t -> goTerm t
+        Unwrap _ t -> goTerm t
+
+        t@Var{} -> Just t
+        t@Error{} -> Just t
+        t@Builtin{} -> Just t
+
+        -- Hard to know what gets evaluated first in a recursive let-binding,
+        -- just give up and say nothing
+        (Let _ Rec _ _) -> Nothing
+        TyAbs{} -> Nothing
+        LamAbs{} -> Nothing
+        Constant{} -> Nothing
+
+      goBindings :: [Binding tyname name uni fun a] -> Maybe (Term tyname name uni fun a)
+      goBindings [] = Nothing
+      goBindings (b:bs) = case b of
+        -- Only strict term bindings can cause effects
+        TermBind _ Strict _ rhs -> goTerm rhs
+        _                       -> goBindings bs
