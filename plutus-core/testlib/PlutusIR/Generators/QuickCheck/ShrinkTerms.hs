@@ -199,11 +199,12 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
     [ -- TODO: this somehow contributes a huge number of duplicates as reported by the @numShrink@
       -- test. How come? Is it because it's called from 'shrinkBind'? Do we even need this kind of
       -- shrinking?
-      [ (ty', tm')
-      | not $ isHelp ctx0 tm0
-      , ty' <- ty0 : shrinkType (tyctx0 <> Map.fromList (datatypes tm0)) ty0
-      , let tm' = mkHelp ctx0 ty'
-      ]
+      filter (scopeCheckTyVars tyctx0)
+        [ (ty', tm')
+        | not $ isHelp ctx0 tm0
+        , ty' <- ty0 : shrinkType (tyctx0 <> Map.fromList (datatypes tm0)) ty0
+        , let tm' = mkHelp ctx0 ty'
+        ]
     , go tyctx0 ctx0 (ty0, tm0)
     ]
   where
