@@ -29,23 +29,6 @@ import Control.Monad.State
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 
-{- Note [Inlining criteria]
-What gets inlined? Our goals are simple:
-- Make the resulting program faster (or at least no slower)
-- Make the resulting program smaller (or at least no bigger)
-- Inline as much as we can, since it exposes optimization opportunities
-
-There are two easy cases:
-- Inlining approximately variable-sized and variable-costing terms (e.g. builtins, other variables)
-- Inlining single-use terms
-
-After that it gets more difficult. As soon as we're inlining things that are not variable-sized
-and are used more than once, we are at risk of doing more work or making things bigger.
-
-There are a few things we could do to do this in a more principled way, such as call-site inlining
-based on whether a function is fully applied.
--}
-
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun a =
@@ -157,6 +140,21 @@ checkPurity t = do
     let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
     pure $ isPure builtinVer strictnessFun t
 
+{- Note [Inlining and purity]
+When can we inline something that might have effects? We must remember that we often also
+remove a binding that we inline.
+
+For strict bindings, the answer is that we can't: we will delay the effects to the use site,
+so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure,
+or if we can prove that the effects don't change. We take a conservative view on this,
+saying that no effects change if:
+- The variable is clearly the first possibly-effectful term evaluated in the body
+- The variable is used exactly once (so we won't duplicate or remove effects)
+
+For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
+unconditionally.
+-}
+
 nameUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
     => name
     -> InlineM tyname name uni fun a Bool
@@ -189,19 +187,21 @@ acceptable t =
     -- See Note [Inlining criteria]
     pure $ costIsAcceptable t && sizeIsAcceptable t
 
-{- Note [Inlining and purity]
-When can we inline something that might have effects? We must remember that we often also
-remove a binding that we inline.
+{- Note [Inlining criteria]
+What gets inlined? Our goals are simple:
+- Make the resulting program faster (or at least no slower)
+- Make the resulting program smaller (or at least no bigger)
+- Inline as much as we can, since it exposes optimization opportunities
 
-For strict bindings, the answer is that we can't: we will delay the effects to the use site,
-so they may happen multiple times (or none). So we can only inline bindings whose RHS is pure,
-or if we can prove that the effects don't change. We take a conservative view on this,
-saying that no effects change if:
-- The variable is clearly the first possibly-effectful term evaluated in the body
-- The variable is used exactly once (so we won't duplicate or remove effects)
+There are two easy cases:
+- Inlining approximately variable-sized and variable-costing terms (e.g. builtins, other variables)
+- Inlining single-use terms
 
-For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
-unconditionally.
+After that it gets more difficult. As soon as we're inlining things that are not variable-sized
+and are used more than once, we are at risk of doing more work or making things bigger.
+
+There are a few things we could do to do this in a more principled way, such as call-site inlining
+based on whether a function is fully applied.
 -}
 
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is

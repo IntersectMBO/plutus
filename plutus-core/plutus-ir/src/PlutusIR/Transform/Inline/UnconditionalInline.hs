@@ -54,7 +54,9 @@ Inlining recursive bindings: not worth it, complicated.
 
 Context-based inlining: TODO
 
-Beta-reduction: done in `Beta.hs`, not here.
+Dead code elimination: done in `DeadCode.hs`.
+
+Beta-reduction: done in `Beta.hs`.
 
 Implementation
 --------------
@@ -196,13 +198,11 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+    -- Already processed term, just rename and put it in, don't do any further optimization here.
     renameTerm ::
         InlineTerm tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    renameTerm = \case
-        -- Already processed term, just rename and put it in, don't do any
-        -- further optimization here.
-        Done t -> liftDupable t
+    renameTerm (Done t) = liftDupable t
 
 {- Note [Renaming strategy]
 Since we assume global uniqueness, we can take a slightly different approach to
@@ -274,6 +274,7 @@ maybeAddSubst body a s n rhs = do
             forall b . InlineTerm tyname name uni fun a
             -> InlineM tyname name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
+
 -- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
 -- just return the type without inlining.
 -- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
