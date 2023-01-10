@@ -265,33 +265,37 @@ testPairing = do
     printStatistics 1 script
 --    printf $ show $ PP.prettyClassicDebug script
 
+printHeader :: IO ()
+printHeader = do
+  printf "    n     script size             CPU usage               Memory usage\n"
+  printf "  ----------------------------------------------------------------------\n"
+
 main :: IO ()
 main = do
   printf "Hash n bytestrings onto G1 and add points\n\n"
-  printf "    n     script size             CPU usage               Memory usage\n"
-  printf "  ----------------------------------------------------------------------\n"
+  printHeader
   mapM_ testHashAndAddG1 [0, 10..150]
   printf "\n\n"
 
   printf "Hash n bytestrings onto G2 and add points\n\n"
-  printf "    n     script size             CPU usage               Memory usage\n"
-  printf "  ----------------------------------------------------------------------\n"
+  printHeader
   mapM_ testHashAndAddG2 [0, 10..150]
   printf "\n\n"
 
   printf "Uncompress n G1 points and add the results\n\n"
-  printf "    n     script size             CPU usage               Memory usage\n"
-  printf "  ----------------------------------------------------------------------\n"
+  printHeader
   mapM_ testUncompressAndAddG1 [0, 10..150]
   printf "\n\n"
 
   printf "Uncompress n G2 points and add the results\n\n"
-  printf "    n     script size             CPU usage               Memory usage\n"
-  printf "  ----------------------------------------------------------------------\n"
+  printHeader
   mapM_ testUncompressAndAddG2 [0, 10..150]
   printf "\n\n"
 
-
+  printf "Apply millerLoop to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
+  printHeader
+  testPairing
+  printf "\n\n"
 
 --  testPairing
 
