@@ -340,12 +340,12 @@ modelFun <- function(path) {
             discard.upper.outliers () %>%
             discard.overhead ()
         m <- lm(t ~ 1, filtered)
-        adjustModel (m,fname)
+        adjustModel(m,fname)
     }
 
    linearInX <- function (fname) {
         filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
+            filter.and.check.nonempty (fname) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
         adjustModel(m,fname)
@@ -368,7 +368,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
         m <- lm(t ~ pmax(x_mem, y_mem), filtered)
-        adjustModel (m, fname)
+        adjustModel(m, fname)
     }
 
     subtractIntegerModel <- addIntegerModel
@@ -380,7 +380,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem + y_mem), filtered)
-        adjustModel (m, fname)
+        adjustModel(m, fname)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
