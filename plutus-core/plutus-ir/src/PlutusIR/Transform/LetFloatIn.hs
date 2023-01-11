@@ -323,6 +323,7 @@ floatInBinding ver letAnn = \b ->
             _ ->
                 let us = Set.union (termUniqs body) (bindingUniqs b)
                  in Let (letAnn, us) NonRec (pure b) body
+        -- TODO: implement float-in for type and datatype bindings.
         _ ->
             let us = Set.union (termUniqs body) (bindingUniqs b)
              in Let (letAnn, us) NonRec (pure b) body
