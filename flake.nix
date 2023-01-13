@@ -117,11 +117,11 @@
         # Available interactions are determined by the cell block's type.
         # Because this repository does not yet use the TUI, the type is mostly irrelevant.
         cellBlocks = [
-          (inputs.std.devshells "devshells")
-          (inputs.std.installables "packages")
-          (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs" { ci.build = true; })
-          (inputs.std.functions "actions")
+          (inputs.std.blockTypes.devshells "devshells")
+          (inputs.std.blockTypes.installables "packages")
+          (inputs.std.blockTypes.functions "library")
+          (inputs.std.blockTypes.installables "ciJobs" { ci.build = true; })
+          (inputs.std.blockTypes.functions "actions")
           (inputs.tullia.tasks "pipelines")
         ];
       }
