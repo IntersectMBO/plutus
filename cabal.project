@@ -14,10 +14,10 @@ repository cardano-haskell-packages
 -- update either of these.
 
 -- repeating hackage index-state to work around haskell.nix parsing limitation
-index-state: 2022-11-15T00:00:00Z
+index-state: 2023-01-13T00:00:00Z
 index-state:
   -- Bump this if you need newer packages from Hackage
-  , hackage.haskell.org 2022-11-15T00:00:00Z
+  , hackage.haskell.org 2023-01-13T00:00:00Z
   -- Bump this if you need newer packages from CHaP
   , cardano-haskell-packages 2023-01-04T00:00:00Z
 
