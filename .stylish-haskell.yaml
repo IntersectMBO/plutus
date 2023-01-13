@@ -7,6 +7,16 @@ steps:
   - imports:
       align: none
       post_qualify: true
+      group_imports: true
+      group_rules:
+        # Anything with 'Plutus' somewhere in the first component
+        # is one of our packages
+        - match: "^[^.]*Plutus[^.]*"
+          # Within that, group by the first component
+          sub_group: "^[^.]+"
+        # After that, group the rest on the first component of the name
+        - match: ".*"
+          sub_group: "^[^.]+"
   - language_pragmas:
       remove_redundant: false
 
