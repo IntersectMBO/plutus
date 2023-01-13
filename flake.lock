@@ -432,24 +432,6 @@
     },
     "flake-utils_5": {
       "locked": {
-<<<<<<< HEAD
-        "lastModified": 1644229661,
-        "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "3cecb5b042f7f209c56ffd8371b2711a290ec797",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_6": {
-      "locked": {
-=======
->>>>>>> e604b1e9d (Update std flake input)
         "lastModified": 1659877975,
         "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
         "owner": "numtide",
@@ -964,32 +946,8 @@
     },
     "nix2container": {
       "inputs": {
-<<<<<<< HEAD
-        "flake-utils": "flake-utils_2",
-        "nixpkgs": "nixpkgs_3"
-      },
-      "locked": {
-        "lastModified": 1658567952,
-        "narHash": "sha256-XZ4ETYAMU7XcpEeAFP3NOl9yDXNuZAen/aIJ84G+VgA=",
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "rev": "60bb43d405991c1378baf15a40b5811a53e32ffa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nlewo",
-        "repo": "nix2container",
-        "type": "github"
-      }
-    },
-    "nix2container_2": {
-      "inputs": {
-        "flake-utils": "flake-utils_8",
-        "nixpkgs": "nixpkgs_7"
-=======
         "flake-utils": "flake-utils_4",
         "nixpkgs": "nixpkgs_4"
->>>>>>> e604b1e9d (Update std flake input)
       },
       "locked": {
         "lastModified": 1658567952,
@@ -1462,17 +1420,6 @@
         ],
         "n2c": "n2c",
         "nixago": "nixago",
-<<<<<<< HEAD
-        "nixpkgs": "nixpkgs_4",
-        "yants": "yants"
-      },
-      "locked": {
-        "lastModified": 1665513321,
-        "narHash": "sha256-D6Pacw9yf/HMs84KYuCxHXnNDL7v43gtcka5URagFqE=",
-        "owner": "divnix",
-        "repo": "std",
-        "rev": "94a90eedb9cfc115b12ae8f6622d9904788559e4",
-=======
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -1485,7 +1432,6 @@
         "owner": "divnix",
         "repo": "std",
         "rev": "28ab21483243cb32203bc675bebab8306c466e90",
->>>>>>> e604b1e9d (Update std flake input)
         "type": "github"
       },
       "original": {
