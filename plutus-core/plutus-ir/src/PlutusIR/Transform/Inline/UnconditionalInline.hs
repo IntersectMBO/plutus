@@ -34,6 +34,7 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
+import PlutusIR.Transform.Inline.CallSiteInline
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -212,6 +213,11 @@ processSingleBinding
     -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding body = \case
+    -- when the let binding is a function type,
+    -- we consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyFun _ tyArg tyBody)) rhs -> do
+        let lamOrder = countLam rhs --TODO
+        pure Nothing
     TermBind a s v@(VarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddSubst body a s n rhs
         pure $ TermBind a s v <$> maybeRhs'

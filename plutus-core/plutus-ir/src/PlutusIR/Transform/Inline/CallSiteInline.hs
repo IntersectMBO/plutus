@@ -11,6 +11,10 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
+import PlutusCore.Name
+import PlutusIR
+import PlutusIR.Transform.Rename ()
+
 {- Note [Inlining of fully applied functions]
 
 We inline if (1) a function is fully applied (2) if its cost and size are acceptable. We discuss
@@ -126,4 +130,52 @@ Note that all `LamAbs` and `TyAbs` should have been
 counted out already so we should not immediately encounter those in `VBody`.
 Also, we currently reject `Constant` (has acceptable cost but not acceptable size).
 We may want to check their sizes instead of just rejecting them.
+-}
+
+-- | For keeping track of term lambda or type lambda of a binding.
+data LamKind = TermLam | TypeLam
+
+-- | A list of `LamAbs` and `TyAbs`, in order, of a binding.
+type LamOrder = [LamKind]
+
+-- | A mapping of a binding to its term and type lambdas in order.
+newtype FnLam tyname name uni fun a =
+    MkFnLam (UniqueMap TermUnique LamOrder)
+    deriving newtype (Semigroup, Monoid)
+
+-- | Count the number of type and term lambdas in the RHS of a binding and return an ordered list
+countLam ::
+    Term tyname name uni fun a -- ^ the RHS of the let binding
+    -> LamOrder
+countLam = countLamInner []
+    where
+      countLamInner ::
+        LamOrder
+        -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
+        -> LamOrder
+      countLamInner currLamOrder (LamAbs _a _n _ty body) =
+        -- If the term is a term lambda abstraction, add it to the list, and
+        -- keep on examining the body.
+        countLamInner (currLamOrder <> [TermLam]) body
+      countLamInner currLamOrder (TyAbs _a _n _kind body) =
+        -- If the term is a type lambda abstraction, add it to the list, and
+        -- keep on examining the body.
+        countLamInner (currLamOrder <> [TypeLam]) body
+      countLamInner currLamOrder _ =
+        -- whenever we encounter a body that is not a lambda abstraction, we are done counting
+        currLamOrder
+
+{- Note [Inlining a lambda abstraction]
+TODO revise Note [Inlining and global uniqueness]
+We will be inlining a lambda abstraction when we find a fully applied function.
+We follow section 3.2 of the paper:
+
+Consider let v = \x1....\xn.VBody in body
+
+
+Suppose we write the call subst M [E=x] to mean the result of substituting E for x in M.
+The standard rule for substitution when M is a lambda abstraction is:
+subst (\x:M ) [E=x] = \x:M
+subst (\x:M ) [E=y ] = \x:(subst M [E=y ])
+if x does not occur free in E
 -}
