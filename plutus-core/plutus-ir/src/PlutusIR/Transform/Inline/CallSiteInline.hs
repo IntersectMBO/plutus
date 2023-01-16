@@ -19,14 +19,13 @@ import Control.Monad.State
 import Data.Map qualified as Map
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
-import PlutusCore.Name
-import PlutusCore.Name qualified as PLC (Unique)
+import PlutusCore.Name qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Subst
-import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Core
 import PlutusIR.MkPir
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
@@ -249,7 +248,7 @@ type LamOrder = [LamKind]
 
 -- | A mapping of a let-binding to its term and type lambdas in order.
 newtype FnLam tyname name uni fun a =
-    MkFnLam (UniqueMap TermUnique LamOrder)
+    MkFnLam (PLC.UniqueMap PLC.TermUnique LamOrder)
     deriving newtype (Semigroup, Monoid)
 
 -- | Count the number of type and term lambdas in the RHS of a binding and return an ordered list

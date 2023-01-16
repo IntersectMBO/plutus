@@ -12,9 +12,9 @@ should be KEPT IN SYNC, so if you make changes here please either make them in t
 one too or add to the comment that summarises the differences.
 -}
 module PlutusIR.Transform.Inline.UnconditionalInline (inline, InlineHints (..)) where
-import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Core
 import PlutusIR.MkPir (mkLet)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
@@ -22,13 +22,13 @@ import PlutusPrelude
 
 import Annotation
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
+import PlutusCore.InlineUtils (InlineHints (..))
 import PlutusCore.Name qualified as PLC (Unique)
-import PlutusCore.Quote
+import PlutusCore.Quote (MonadQuote (liftQuote))
 import PlutusCore.Rename (dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
 
-import Control.Lens hiding (Strict)
+import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Reader
 import Control.Monad.State
 
