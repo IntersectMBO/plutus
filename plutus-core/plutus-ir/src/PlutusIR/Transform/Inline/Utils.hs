@@ -251,3 +251,21 @@ trivialType = \case
     TyBuiltin{} -> True
     TyVar{}     -> True
     _           -> False
+
+-- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
+-- just return the type without inlining.
+-- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
+maybeAddTySubst
+    :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
+    => tyname -- ^ The type variable
+    -> Type tyname uni a -- ^  The value of the type variable.
+    -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+maybeAddTySubst tn rhs = do
+    usgs <- view iiUsages
+    -- No need for multiple phases here
+    let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
+    if typeUsedAtMostOnce || trivialType rhs
+    then do
+        modify' (extendType tn rhs)
+        pure Nothing
+    else pure $ Just rhs

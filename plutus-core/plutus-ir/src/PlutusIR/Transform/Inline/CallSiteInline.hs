@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 {-|
@@ -9,11 +10,28 @@ See ADR TODO for motivation. We inline fully applied functions if the cost and s
 See note [Inlining of fully applied functions].
 -}
 
-module PlutusIR.Transform.Inline.CallSiteInline where
+module PlutusIR.Transform.Inline.CallSiteInline (callSiteInline) where
 
+import Algebra.Graph qualified as G
+import Control.Lens hiding (Strict)
+import Control.Monad.Reader
+import Control.Monad.State
+import Data.Map qualified as Map
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.InlineUtils
 import PlutusCore.Name
+import PlutusCore.Name qualified as PLC (Unique)
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.Subst
 import PlutusIR
+import PlutusIR.Analysis.Dependencies qualified as Deps
+import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.MkPir
+import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
+import PlutusPrelude
+import Witherable (Witherable (wither))
 
 {- Note [Inlining of fully applied functions]
 
@@ -73,16 +91,16 @@ To find out whether a function is fully applied,
 we first need to count the number of type/term lambda abstractions,
 so we know how many term/type arguments they have.
 
-We pattern match the _rhs_ with `LamAbs` or `TyAbs` (lambda abstraction for terms or types),
-and count the number of lambdas.
-Then, in the _body_, we check for term or type application (`Apply` or `TyInst`) of _v_.
+We pattern match the _rhs_ with `LamAbs` and `TyAbs` (lambda abstraction for terms or types),
+and track the sequence of lambdas.
+Then, in the _body_, we track the term and type application (`Apply` or `TyInst`) of _v_.
 
-If _v_ is fully applied in the body, i.e., if
-
-1. the number of type lambdas equals the number of type arguments applied, and
-2. the number of term lambdas equals the number of term arguments applied, and
-
+If _v_ is fully applied in the body, i.e., if the sequence of type and term lambda abstractions is
+exactly matched by the corresponding sequence of type and term application, then
 we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_.
+
+Because PIR is typed, over-application of a function should not occur, so we don't need to worry
+about that.
 
 Below are some more examples:
 
@@ -109,7 +127,7 @@ In terms of terms, `id` takes one argument, and is indeed applied to one.
 So `id` is fully applied! And we inline it.
 Inlining and reducing `id` reduces the amount of code, as desired.
 
-Example 3: function application in _RHS_
+Example 3: function application in _rhs_
 
 let f = (\x.\y.x+y) 4
 in f 5
@@ -132,13 +150,104 @@ Also, we currently reject `Constant` (has acceptable cost but not acceptable siz
 We may want to check their sizes instead of just rejecting them.
 -}
 
--- | For keeping track of term lambda or type lambda of a binding.
+-- | Inline simple bindings. Preserves global uniqueness.
+-- See Note [Inlining a lambda abstraction].
+callSiteInline
+    :: forall tyname name uni fun a m
+    . ExternalConstraints tyname name uni fun m
+    => InlineHints name a
+    -> PLC.BuiltinVersion fun
+    -> Term tyname name uni fun a
+    -> m (Term tyname name uni fun a)
+callSiteInline hints ver t = let
+        inlineInfo :: InlineInfo name fun a
+        inlineInfo = InlineInfo (snd deps) usgs hints ver
+        -- We actually just want the variable strictness information here!
+        deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
+        deps = Deps.runTermDeps ver t
+        usgs :: Usages.Usages
+        usgs = Usages.termUsages t
+    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
+
+{- Note [Removing inlined bindings]
+We *do not* remove bindings that we inline here, we leave this to the dead code pass.
+TODO
+-}
+
+-- | Run the inliner on a `Core.Type.Term`.
+processTerm
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun a -- ^ Term to be processed.
+    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
+    handleTerm ::
+        Term tyname name uni fun a
+        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    handleTerm = \case
+        v@(Var _ n) -> fromMaybe v <$> substName n
+        Let a NonRec bs t -> do
+            -- Process bindings, eliminating those which will be inlined unconditionally,
+            -- and accumulating the new substitutions
+            -- See Note [Removing inlined bindings]
+            -- Note that we don't *remove* the bindings or scope the state, so the state will carry
+            -- over into "sibling" terms. This is fine because we have global uniqueness
+            -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
+            bs' <- wither (processSingleBinding t) (toList bs)
+            t' <- processTerm t
+            -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
+            -- actually have got rid of all of them!
+            pure $ mkLet a NonRec bs' t'
+        -- We cannot currently soundly do beta for types (see SCP-2570), so we just recognize
+        -- immediately instantiated type abstractions here directly.
+        (TyInst a (TyAbs a' tn k t) rhs) -> do
+            b' <- maybeAddTySubst tn rhs
+            t' <- processTerm t
+            case b' of
+                Just rhs' -> pure $ TyInst a (TyAbs a' tn k t') rhs'
+                Nothing   -> pure t'
+        -- This includes recursive let terms, we don't even consider inlining them at the moment
+        t -> forMOf termSubterms t processTerm
+    applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
+    applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
+        -- The type substitution is very often empty, and there are lots of types in the program,
+        -- so this saves a lot of work (determined from profiling)
+        True -> pure t
+        _    -> typeSubstTyNamesM substTyName t
+    -- See Note [Renaming strategy]
+    substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
+    -- See Note [Renaming strategy]
+    substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
+    substName name = gets (lookupTerm name) >>= traverse renameTerm
+    -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+    -- Already processed term, just rename and put it in, don't do any further optimization here.
+    renameTerm ::
+        InlineTerm tyname name uni fun a
+        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    renameTerm (Done t) = liftDupable t
+
+-- | Run the inliner on a single non-recursive let binding.
+processSingleBinding
+    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun a -- ^ The body of the let binding.
+    -> Binding tyname name uni fun a -- ^ The binding.
+    -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
+processSingleBinding body = \case
+    -- when the let binding is a function type,
+    -- we consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyFun _ tyArg tyBody)) rhs -> do
+        let lamOrder = countLam rhs --TODO
+        pure Nothing
+    -- For anything else, just process all the subterms
+    b -> Just <$> forMOf bindingSubterms b processTerm
+
+-- | For keeping track of term lambda or type lambda of a let-binding.
 data LamKind = TermLam | TypeLam
 
--- | A list of `LamAbs` and `TyAbs`, in order, of a binding.
+-- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
 type LamOrder = [LamKind]
 
--- | A mapping of a binding to its term and type lambdas in order.
+-- | A mapping of a let-binding to its term and type lambdas in order.
 newtype FnLam tyname name uni fun a =
     MkFnLam (UniqueMap TermUnique LamOrder)
     deriving newtype (Semigroup, Monoid)
@@ -166,8 +275,11 @@ countLam = countLamInner []
         currLamOrder
 
 {- Note [Inlining a lambda abstraction]
-TODO revise Note [Inlining and global uniqueness]
-We will be inlining a lambda abstraction when we find a fully applied function.
+
+We inline a lambda abstraction when we find a fully applied function.
+To preserve uniqueness, we rename everything when we perform substitution
+
+TODO remove?
 We follow section 3.2 of the paper:
 
 Consider let v = \x1....\xn.VBody in body

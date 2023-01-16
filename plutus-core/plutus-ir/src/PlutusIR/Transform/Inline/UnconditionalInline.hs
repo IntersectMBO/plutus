@@ -21,9 +21,9 @@ import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import Annotation
-import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
+import PlutusCore.Name qualified as PLC (Unique)
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
@@ -34,7 +34,6 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -113,12 +112,11 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 -}
 
 {- Note [Inlining and global uniqueness]
-Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
-preserve it because we don't currently inline anything with binders.
+Unconditional inlining relies on global uniqueness (we store things in a unique map),
+and *does* currently preserve it because we don't currently inline anything with binders.
 
-If we do start inlining things with binders in them, we should probably try and preserve it by
-doing something like 'The rapier' section from the paper. We could also just bite the bullet
-and rename everything when we substitute in, which GHC considers too expensive but we might accept.
+With `CallSiteInline` we rename everything when we perform substitution,
+which GHC considers too expensive but we can accept.
 -}
 
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
@@ -213,11 +211,6 @@ processSingleBinding
     -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding body = \case
-    -- when the let binding is a function type,
-    -- we consider whether we want to inline at the call site.
-    TermBind a s v@(VarDecl _ n (TyFun _ tyArg tyBody)) rhs -> do
-        let lamOrder = countLam rhs --TODO
-        pure Nothing
     TermBind a s v@(VarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddSubst body a s n rhs
         pure $ TermBind a s v <$> maybeRhs'
@@ -272,21 +265,3 @@ maybeAddSubst body a s n rhs = do
             forall b . InlineTerm tyname name uni fun a
             -> InlineM tyname name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
-
--- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
--- just return the type without inlining.
--- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
-maybeAddTySubst
-    :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
-    => tyname -- ^ The type variable
-    -> Type tyname uni a -- ^  The value of the type variable.
-    -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-maybeAddTySubst tn rhs = do
-    usgs <- view iiUsages
-    -- No need for multiple phases here
-    let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
-    if typeUsedAtMostOnce || trivialType rhs
-    then do
-        modify' (extendType tn rhs)
-        pure Nothing
-    else pure $ Just rhs
