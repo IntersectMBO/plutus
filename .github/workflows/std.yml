@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Standard Discovery
-        uses: divnix/std-action/discover@v0.0.6
+        uses: divnix/std-action/discover@polish-logs
         id: discovery
 
   build-packages:
@@ -31,7 +31,7 @@ jobs:
     name: ${{ matrix.target.action }}->${{ matrix.target.cell }}.${{ matrix.target.block }}.${{ matrix.target.name }}
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: divnix/std-action/run@v0.0.6
+      - uses: divnix/std-action/run@polish-logs
         # env:
         #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
         #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
@@ -51,7 +51,7 @@ jobs:
     name: ${{ matrix.target.action }}->${{ matrix.target.cell }}.${{ matrix.target.block }}.${{ matrix.target.name }}
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: divnix/std-action/run@v0.0.6
+      - uses: divnix/std-action/run@polish-logs
         # env:
         #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
         #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
