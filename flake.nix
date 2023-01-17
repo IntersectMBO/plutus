@@ -139,7 +139,7 @@
       {
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
-      ;
+  ;
 
   nixConfig = {
     extra-substituters = [
