@@ -49,7 +49,7 @@ type family FoldArgs args res where
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
--- its Haskell denotation and a costing function.
+-- its Haskell denotation and its uninstantiated runtime denotation.
 --
 -- The 'TypeScheme' of a built-in function is used for example for
 --
@@ -70,16 +70,14 @@ data BuiltinMeaning val cost =
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
 
 -- | A type class for \"each function from a set of built-in functions has a 'BuiltinMeaning'\".
-class ( Typeable uni
-      , Typeable fun
-      , Bounded fun
-      , Enum fun
-      , Ix fun
-      , Default (BuiltinSemanticsVariant fun)
-      )
-    => ToBuiltinMeaning uni fun
-    where
-
+class
+        ( Typeable uni
+        , Typeable fun
+        , Bounded fun
+        , Enum fun
+        , Ix fun
+        , Default (BuiltinSemanticsVariant fun)
+        ) => ToBuiltinMeaning uni fun where
     -- | The @cost@ part of 'BuiltinMeaning'.
     type CostingPart uni fun
 
@@ -119,8 +117,8 @@ Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
 more builtins --- or none, but what's the point in that?
 
 This 'BuiltinSemanticsVariant' is modelled as a datatype *associated* to the
-`fun`. This associated datatype is required to provide an instance of 'Default'
-for quality-of-life purpose; the `def`ault builtin semantics variant is expected
+@fun@. This associated datatype is required to provide an instance of 'Default'
+for quality-of-life purpose; the 'def'ault builtin semantics variant is expected
 to point to the builtin semantics variant that the plutus-tx/plutus-ir compiler
 is currently targeting.
 
@@ -129,7 +127,7 @@ deprecated once published to the chain.
 
 The way that this feature is implemented buys us more than we currently need:
 - allows also a versioned change to a builtin's *type signature*, i.e. type of arguments/result as
-well as number of arguments.
+  well as number of arguments.
 - allows also a versioned change to a builtin's cost model parameters
 
 Besides having no need for this currently, it complicates the codebase since the
@@ -393,8 +391,8 @@ toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
 {-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].
--- | Calculate runtime info for all built-in functions given denotations of builtins,
--- and a cost model.
+-- | Calculate runtime info for all built-in functions given meanings of builtins (as a constraint),
+-- the semantics variant of the set of builtins and a cost model.
 toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
     => BuiltinSemanticsVariant fun

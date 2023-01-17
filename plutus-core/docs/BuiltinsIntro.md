@@ -193,7 +193,7 @@ Those two representations are very similar. Differences:
 - (1) requires adding another kind of errors: the name of a built-in function is not found in a mapping from built-in function names to their meanings during type checking or evaluation (not a big deal in practice)
 - (1) requires to parameterize the parser by a set of names of built-in functions, while in (2) this set is determined from the type of the result
 
-In general, differences are minor, so either of the approaches is fine. Currently we have (1), but we'll probably change it to (2) at some point.
+In general, differences are minor, so either of the approaches is fine. We use (2).
 
 ### Built-in function meaning
 
@@ -227,7 +227,7 @@ data BuiltinFunctionMeaning uni =
 `TypeScheme` describes the type of a primitive function: its first argument is the list of types of arguments of that function and its second argument is the type of the result. E.g. `Char -> Bool -> Integer` gets encoded as
 
 ```haskell
-charBoolInteger :: (uni `Includes` Char, uni `Includes` Bool) => TypeScheme uni [Char, Bool] Integer`.
+charBoolInteger :: (uni `Includes` Char, uni `Includes` Bool) => TypeScheme uni [Char, Bool] Integer
 charBoolInteger =
     Proxy @Char `TypeSchemeArrow`
     Proxy @Bool `TypeSchemeArrow`
@@ -279,50 +279,6 @@ constHs :: Term -> Term -> Term
 ```
 
 The idea is that we have parametricity in Haskell, so a function that is polymorphic in its argument can't inspect that argument in any way and so we never actually need to convert such an argument from Plutus Core to Haskell just to convert it back later without ever inspecting the value. Instead we can keep the argument intact and apply the Haskell function directly to the Plutus Core AST representing some value.
-
-The implementation is rather straightforward, but there is one catch, namely that it takes some care to adapt the evaluator to handle polymorphic built-in functions, see [this issue](https://github.com/input-output-hk/plutus/issues/1882).
-
-Supporting polymorphic built-in types seems feasible, but we haven't worked that out yet.
-
-## Marshalling data
-
-The Haskell `Bool` data type is represented in Plutus Core as
-
-```
-bool = all a. a -> a -> a
-```
-
-(we use Scott-encoded data types in Plutus Core). Now if we have a built-in function like `EqInteger` having the following type signature in Plutus Core:
-
-```
-eqInteger : integer -> integer -> bool
-```
-
-which gets mapped to this primitive on the Haskell side:
-
-```haskell
-(==) :: Integer -> Integer -> Bool
-```
-
-the following expression:
-
-```haskell
-eval $ AppBuiltinFunction EqInteger
-    [ Constant $ ConstantInteger 1
-    , Constant $ ConstantInteger 2
-    ]
-```
-
-expands to `hsToPlc (1 == 2)`, which reduces to `hsToPlc False` and this is where we need to lift a Haskell `Bool` into a Plutus Core `bool`. Previousy we would just wrap the result with `ConstantInteger`, but now we need to write an actual conversion function on the Haskell side:
-
-```haskell
-liftBool :: Bool -> Term
-liftBool b = if b then truePlc else falsePlc
-```
-
-where `truePlc` and `falsePlc` are the ASTs for `\x y -> x` and `\x y -> y` respectively.
-
-Writing such a conversion function is not a big deal and we can easily generalize it, after all Haskell types/values are convertible to Plutus Core types/terms by design. Problems arise when you need to go in the other direction: unlift a Plutus Core term into a Haskell value. Such unlifting is a much more complicated beast. We did it previously ([docs available here](https://github.com/effectfully/plutus-prototype/blob/7a071a5ed2276ae3119f48fa0ca307422ed86ec2/language-plutus-core/src/Language/PlutusCore/Constant/Typed.hs#L201-L252)), but eventually we decided that every built-in function must reference only those types that are in the universe. This way lifting always amounts to wrapping a constant with a constructor like `ConstantInteger` and unlifting always amounts to directly unwrapping from such a constructor.
 
 ## Saturated vs unsaturated built-in functions
 

@@ -1,17 +1,19 @@
-{-# LANGUAGE BlockArguments        #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE BlockArguments         #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
-{-# LANGUAGE StrictData            #-}
+{-# LANGUAGE StrictData             #-}
 
 module PlutusCore.Builtin.KnownType
     ( KnownTypeError
@@ -40,6 +42,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import Control.Lens.TH (makeClassyPrisms)
 import Control.Monad.Except
 import Data.DList (DList)
 import Data.Either.Extras
@@ -282,6 +285,12 @@ data MakeKnownM a
     | MakeKnownSuccess a
     | MakeKnownSuccessWithLogs (DList Text) a
 
+makeClassyPrisms ''MakeKnownM
+
+instance AsEvaluationFailure (MakeKnownM a) where
+    _EvaluationFailure = _MakeKnownFailure . _EvaluationFailureVia (pure KnownTypeEvaluationFailure)
+    {-# INLINE _EvaluationFailure #-}
+
 -- | Prepend logs to a 'MakeKnownM' computation.
 withLogs :: DList Text -> MakeKnownM a -> MakeKnownM a
 withLogs logs1 = \case
@@ -329,10 +338,10 @@ instance Monad MakeKnownM where
 
 -- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
 -- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
--- make 'ReadKnownM' type synonyms for convenience: that way we don't need to derive all the
--- instances (and add new ones whenever we need them), wrap and unwrap all the time
--- (including in user code), which can be non-trivial for such performance-sensitive code (see e.g.
--- 'coerceVia' and 'coerceArg') and there is no abstraction barrier anyway.
+-- make 'ReadKnownM' a type synonym for convenience: that way we don't need to derive all the
+-- instances (and add new ones whenever we need them), wrap and unwrap all the time (including in
+-- user code), which can be non-trivial for such performance-sensitive code (see e.g. 'coerceVia'
+-- and 'coerceArg') and there is no abstraction barrier anyway.
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either KnownTypeError
 
@@ -359,8 +368,7 @@ readKnownConstant val = asConstant val >>= oneShot \case
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
-    -- See Note [Cause of failure].
-    -- | Convert a Haskell value to the corresponding PLC val.
+    -- | Convert a Haskell value to the corresponding PLC value.
     -- The inverse of 'readKnown'.
     makeKnown :: a -> MakeKnownM val
     default makeKnown :: KnownBuiltinType val a => a -> MakeKnownM val
@@ -379,8 +387,7 @@ type MakeKnown val = MakeKnownIn (UniOf val) val
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => ReadKnownIn uni val a where
-    -- See Note [Cause of failure].
-    -- | Convert a PLC val to the corresponding Haskell value.
+    -- | Convert a PLC value to the corresponding Haskell value.
     -- The inverse of 'makeKnown'.
     readKnown :: val -> ReadKnownM a
     default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
@@ -408,7 +415,7 @@ readKnownSelf val = fromRightM (throwKnownTypeErrorWithCause val) $ readKnown va
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = MakeKnownFailure mempty KnownTypeEvaluationFailure
+    makeKnown EvaluationFailure     = evaluationFailure
     makeKnown (EvaluationSuccess x) = makeKnown x
     {-# INLINE makeKnown #-}
 

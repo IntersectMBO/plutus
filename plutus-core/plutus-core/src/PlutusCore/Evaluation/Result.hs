@@ -21,7 +21,6 @@ import PlutusPrelude
 import PlutusCore.Pretty
 
 import Control.Lens
-import Control.Monad (when)
 import Control.Monad.Except (MonadError, catchError, throwError)
 
 -- Note that we can't just use 'makeClassyPrisms' for 'EvaluationResult' as that would generate
@@ -41,6 +40,7 @@ class AsEvaluationFailure err where
 
 evaluationFailure :: AsEvaluationFailure err => err
 evaluationFailure = _EvaluationFailure # ()
+{-# INLINE evaluationFailure #-}
 
 -- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
 -- that @*EvaluationFailure@ and
@@ -48,7 +48,8 @@ evaluationFailure = _EvaluationFailure # ()
 -- 1. returning it for the setter part of the prism
 -- 2. checking the error for equality with @*EvaluationFailure@ for the opposite direction.
 _EvaluationFailureVia :: Eq err => err -> Prism' err ()
-_EvaluationFailureVia failure = prism (const failure) $ \a -> when (a /= failure) $ Left a
+_EvaluationFailureVia = only
+{-# INLINE _EvaluationFailureVia #-}
 
 -- | The parameterized type of results various evaluation engines return.
 -- On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
@@ -66,6 +67,7 @@ data EvaluationResult a
 -- EvaluationFailure
 instance AsEvaluationFailure () where
     _EvaluationFailure = id
+    {-# INLINE _EvaluationFailure #-}
 
 instance MonadError () EvaluationResult where
     throwError () = EvaluationFailure
@@ -75,22 +77,28 @@ instance MonadError () EvaluationResult where
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
+    {-# INLINE pure #-}
 
     EvaluationSuccess f <*> a = fmap f a
     EvaluationFailure   <*> _ = EvaluationFailure
+    {-# INLINE (<*>) #-}
 
 instance Monad EvaluationResult where
     EvaluationSuccess x >>= f = f x
     EvaluationFailure   >>= _ = EvaluationFailure
+    {-# INLINE (>>=) #-}
 
 instance Alternative EvaluationResult where
     empty = EvaluationFailure
+    {-# INLINE empty #-}
 
     EvaluationSuccess x <|> _ = EvaluationSuccess x
     EvaluationFailure   <|> a = a
+    {-# INLINE (<|>) #-}
 
 instance MonadFail EvaluationResult where
     fail _ = EvaluationFailure
+    {-# INLINE fail #-}
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess x) = prettyBy config x
