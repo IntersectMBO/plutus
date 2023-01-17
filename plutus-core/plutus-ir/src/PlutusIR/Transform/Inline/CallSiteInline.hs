@@ -95,11 +95,14 @@ and track the sequence of lambdas.
 Then, in the _body_, we track the term and type application (`Apply` or `TyInst`) of _v_.
 
 If _v_ is fully applied in the body, i.e., if the sequence of type and term lambda abstractions is
-exactly matched by the corresponding sequence of type and term application, then
-we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_.
+exactly matched by the corresponding sequence of type and term applications, then
+we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_. Because PIR is typed,
+over-application of a function should not occur, so we don't need to worry about that.
 
-Because PIR is typed, over-application of a function should not occur, so we don't need to worry
-about that.
+Because a function can be called in the `body` multiple times and may not be fully applied for all
+its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
+which substitute *all* occurrences of a variable. Also, because we are inlining lambda abstractions,
+we need to keep track of the in-scope set. See note
 
 Below are some more examples:
 
@@ -135,6 +138,13 @@ With beta-reduction, `f` becomes `\y.4+y` and it has 1 lambda.
 The _body_ `f 5` is a fully applied function!
 We can reduce it to 4+5.
 
+Example 4: applications and lambda abstractions in _body_
+
+let f = \x.\y.x+y
+in (\z.f 3 4) 2
+
+With beta-reduction, the _body_ becomes `f 3 4` and thus `f` is fully applied.
+
 (2) How do we decide whether cost and size are acceptable?
 
 We currently reuse the heuristics 'Utils.sizeIsAcceptable' and 'Utils.costIsAcceptable'
@@ -149,8 +159,8 @@ Also, we currently reject `Constant` (has acceptable cost but not acceptable siz
 We may want to check their sizes instead of just rejecting them.
 -}
 
--- | Inline simple bindings. Preserves global uniqueness.
--- See Note [Inlining a lambda abstraction].
+-- | Inline fully applied functions. Note [Inlining of fully applied functions].
+-- Preserves global uniqueness. See Note [Inlining a lambda abstraction].
 callSiteInline
     :: forall tyname name uni fun a m
     . ExternalConstraints tyname name uni fun m
@@ -183,10 +193,11 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         Term tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     handleTerm = \case
+        -- a fully applied function is inlined.
         v@(Var _ n) -> fromMaybe v <$> substName n
         Let a NonRec bs t -> do
-            -- Process bindings, eliminating those which will be inlined unconditionally,
-            -- and accumulating the new substitutions
+            -- Process bindings, checking for fully applied functions and
+            -- put them in the substitution.
             -- See Note [Removing inlined bindings]
             -- Note that we don't *remove* the bindings or scope the state, so the state will carry
             -- over into "sibling" terms. This is fine because we have global uniqueness
@@ -241,7 +252,7 @@ processSingleBinding body = \case
     b -> Just <$> forMOf bindingSubterms b processTerm
 
 -- | For keeping track of term lambda or type lambda of a let-binding.
-data LamKind = TermLam | TypeLam
+data LamKind = TermLam | TypeLam deriving stock (Eq)
 
 -- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
 type LamOrder = [LamKind]
@@ -270,19 +281,49 @@ countLam = countLamInner []
         -- keep on examining the body.
         countLamInner (currLamOrder <> [TypeLam]) body
       countLamInner currLamOrder _ =
-        -- whenever we encounter a body that is not a lambda abstraction, we are done counting
+        -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
         currLamOrder
+
+-- | Count the number of type and term applications in the body and return an ordered list of
+-- applied `LamKind` and its corresponding let variable, if any.
+countApp ::
+    Term tyname name uni fun a -- ^ the RHS of the let binding
+    -> (Maybe name, LamOrder)
+countApp = countAppInner []
+    where
+      countAppInner ::
+        LamOrder
+        -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
+        -> (Maybe name, LamOrder)
+      countAppInner currLamOrder (Apply _ _ body) =
+        -- If the term is a term application, add it to the list, and
+        -- keep on examining the body.
+        countAppInner (currLamOrder <> [TermLam]) body
+      countAppInner currLamOrder (TyInst _ body _) =
+        -- If the term is a type application, add it to the list, and
+        -- keep on examining the body.
+        countAppInner (currLamOrder <> [TypeLam]) body
+      countAppInner currLamOrder (Var _ name) =
+        -- When we encounter a body that is a variable, we are done counting applications.
+        -- Return the variable (function) name along with its applied lambdas.
+        (Just name, currLamOrder)
+      countAppInner currLamOrder tm =
+        -- TODO need to figure out example 4 in note [Inlining of fully applied functions]
+        -- lam and app can cancel out with beta-reduction until we get to the variable
+        (Nothing, countLam tm)
+
 
 {- Note [Inlining a lambda abstraction]
 
 We inline a lambda abstraction when we find a fully applied function.
-To preserve uniqueness, we rename everything when we perform substitution
+To preserve uniqueness, we follow section 3.2 ("The rapier") of the paper:
 
-TODO remove?
-We follow section 3.2 of the paper:
+Our substitution algorithm has three parameters:
+1. the expression to which the substitution is applied,
+2. the substitution itself, and
+3. the set of in-scope variables
 
 Consider let v = \x1....\xn.VBody in body
-
 
 Suppose we write the call subst M [E=x] to mean the result of substituting E for x in M.
 The standard rule for substitution when M is a lambda abstraction is:
