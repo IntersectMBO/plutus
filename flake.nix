@@ -109,10 +109,10 @@
         # Available interactions are determined by the cell block's type.
         # Because this repository does not yet use the TUI, the type is mostly irrelevant.
         cellBlocks = [
-          (inputs.std.devshells "devshells")
-          (inputs.std.installables "packages")
+          (inputs.std.devshells "devshells" { ci.build = true; })
+          (inputs.std.installables "packages" { ci.build = true; })
           (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs" { ci.build = true; })
+          (inputs.std.installables "ciJobs")
         ];
       }
 
@@ -137,7 +137,6 @@
         packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
-        ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
       ;

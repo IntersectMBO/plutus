@@ -28,15 +28,12 @@ let
 
   windows-plutus-924-jobs = make-haskell-jobs library.plutus-project-924.projectCross.mingwW64;
 
-  other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
-
   jobs =
     # Drop these once we switch to 9.2.4 by default
     { ghc8107 = native-plutus-8107-jobs; } //
     { ghc924 = native-plutus-924-jobs; } //
     # Only cross-compile to windows from linux
-    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; } //
-    other-jobs;
+    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; };
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
