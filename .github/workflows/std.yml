@@ -32,15 +32,15 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: divnix/std-action/run@v0.0.6
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
+        # env:
+        #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
+        #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
         with:
           extra_nix_config: ${{ needs.discover.outputs.nix_conf }}
           json: ${{ toJSON(matrix.target) }}
           # optional:
-          nix_key: ${{ secrets.NIX_KEY }}
-          cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
+          # nix_key: ${{ secrets.NIX_KEY }}
+          # cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
 
   build-devshells:
     needs: [discover, build-packages]
@@ -52,12 +52,12 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - uses: divnix/std-action/run@v0.0.6
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
+        # env:
+        #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
+        #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
         with:
-          cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
           extra_nix_config: ${{ needs.discover.outputs.nix_conf }}
           json: ${{ toJSON(matrix.target) }}
           # optional:
-          nix_key: ${{ secrets.NIX_KEY }}
+          # nix_key: ${{ secrets.NIX_KEY }}
+          # cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
