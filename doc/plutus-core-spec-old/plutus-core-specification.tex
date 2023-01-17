@@ -236,17 +236,28 @@
 %% 16th April 2019
 
 \maketitle
+\begin{center}
+\noindent\framebox[0.9\textwidth]{%
+\parbox{0.8\textwidth}{%
+\begin{center}
+  \LARGE{\red{\textsf{SUPERSEDED}}}
+\end{center}
+\textsf{This version of the Plutus Core specification has largely
+ been superseded by a new version which can be found
+ at \url{https://github.com/input-output-hk/plutus/tree/master/doc/plutus-core-spec}.
+ The new version currently only deals with Untyped Plutus Core; this version has
+ been temporarily retained for its account of Typed Plutus Core.  The main
+ semantic difference is that in this version built-in functions must be fully
+ applied but in the new version they can be partially applied.}
+\\
+\rule{0cm}{3mm}
+}
+}
+\end{center}
 
 \thispagestyle{plain}
 \pagestyle{plain}
 
-
-%\begin{abstract}
-%\boldmath
-%The Plutus Language is outlined, together with the major
-%design decisions for implementations. A formal specification of the
-%language is given, including an elaborator and bidirectional type
-%system.
 
 \section{Plutus Core}
 Plutus Core is a typed, eagerly evaluated $\lambda$-calculus designed
