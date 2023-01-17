@@ -43,7 +43,7 @@ jobs:
           cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
 
   build-devshells:
-    needs: [discover, packages]
+    needs: [discover, build-packages]
     strategy:
       fail-fast: false
       matrix:
