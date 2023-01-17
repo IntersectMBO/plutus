@@ -1,7 +1,6 @@
 -- | Defines the type of default machine parameters and a function for creating a value of the type.
--- We keep them separate, because the function unfolds into multiple thousands of lines of Core and
--- we want to instantiate it in two different ways on top of that, which gives another ton of Core
--- that we need to inspect, hence we dedicate an entire folder to that.
+-- We keep them separate, because the function unfolds into multiple thousands of lines of Core that
+-- we need to be able to visually inspect, hence we dedicate a separate file to it.
 module PlutusCore.Evaluation.Machine.MachineParameters.Default where
 
 import PlutusCore.Builtin
@@ -14,6 +13,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Monad.Except
 import GHC.Exts (inline)
 
+-- | 'MachineParameters' instantiated at CEK-machine-specific types and default builtins.
+-- Encompasses everything we need for evaluating a UPLC program with default builtins using the CEK
+-- machine.
 type DefaultMachineParameters =
     MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
@@ -39,8 +41,22 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
+-- | Produce a 'DefaultMachineParameters' given the version of the default set of built-in functions
+-- and a 'CostModelParams', which gets applied on top of 'defaultCekCostModel'.
+--
+-- Whenever you need to evaluate UPLC in a performance-sensitive manner (e.g. in the production,
+-- for benchmarking, for cost calibration etc), you MUST use this definition for creating a
+-- 'DefaultMachineParameters' and not any other. Changing this definition in absolutely any way,
+-- however trivial, requires running the benchmarks and making sure that the resulting GHC Core is
+-- still sensible. E.g. you switch the order of arguments -- you run the benchmarks and check the
+-- Core; you move this definition as-is to a different file -- you run the benchmarks and check the
+-- Core; you change how it's exported (implicitly as a part of a whole-module export or explicitly
+-- as a single definition) -- you get the idea.
+--
+-- This function is expensive, so its result needs to be cached if it's going to be used multiple
+-- times.
 mkMachineParametersFor
-    :: (MonadError CostModelApplyError m)
+    :: MonadError CostModelApplyError m
     => BuiltinSemanticsVariant DefaultFun
     -> CostModelParams
     -> m DefaultMachineParameters

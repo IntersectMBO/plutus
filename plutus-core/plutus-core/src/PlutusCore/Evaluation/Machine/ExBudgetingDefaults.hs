@@ -68,7 +68,6 @@ defaultCekMachineCosts =
 
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
---- defaultCekMachineCosts is CekMachineCosts
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
