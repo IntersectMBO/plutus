@@ -111,12 +111,6 @@ inputs.std.lib.dev.mkShell {
       help = "Nix code formatter";
     }
     {
-      # tullia input isn't de-systemized for some reason
-      package = inputs.tullia.packages.${pkgs.system}.tullia;
-      category = "nix";
-      help = "Tools for working with CI tasks";
-    }
-    {
       package = cell.packages.check-the-flake;
       category = "nix";
       help = "For nix maintainers: build everything in the flake";
