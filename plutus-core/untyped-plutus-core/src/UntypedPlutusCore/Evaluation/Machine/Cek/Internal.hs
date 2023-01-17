@@ -81,6 +81,7 @@ import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
 import Data.Word64Array.Word8 hiding (Index)
+import GHC.Magic (inline)
 import Prettyprinter
 import Universe
 
@@ -625,14 +626,10 @@ enterComputeCek = computeCek (toWordArray 0) where
         returnCek unbudgetedSteps' ctx (VCon val)
     computeCek !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
-        case ctx of
-            FrameAwaitFun arg ctx' -> applyLam unbudgetedSteps ctx' env body arg
-            _                      -> returnCek unbudgetedSteps' ctx (VLamAbs name body env)
+        (inline returnCek) unbudgetedSteps' ctx (VLamAbs name body env)
     computeCek !unbudgetedSteps !ctx !env (Delay _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
-        case ctx of
-            FrameForce ctx' -> forceDelay unbudgetedSteps ctx' env body
-            _               -> returnCek unbudgetedSteps' ctx (VDelay body env)
+        (inline returnCek) unbudgetedSteps' ctx (VDelay body env)
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek !unbudgetedSteps !ctx !env (Force _ body) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps
@@ -682,19 +679,6 @@ enterComputeCek = computeCek (toWordArray 0) where
     returnCek !unbudgetedSteps (FrameAwaitFun arg ctx) fun =
         applyEvaluate unbudgetedSteps ctx fun arg
 
-
-    -- | Evaluate a delay that has been forced.
-    --
-    -- This just exists to share a little code.
-    forceDelay
-        :: WordArray
-        -> Context uni fun
-        -> CekValEnv uni fun
-        -> Term NamedDeBruijn uni fun ()
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    forceDelay !unbudgetedSteps !ctx env body = computeCek unbudgetedSteps ctx env body
-    {-# INLINE forceDelay #-}
-
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
@@ -706,7 +690,7 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> Context uni fun
         -> CekValue uni fun
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = forceDelay unbudgetedSteps ctx env body
+    forceEvaluate !unbudgetedSteps !ctx (VDelay body env) = computeCek unbudgetedSteps ctx env body
     forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) = do
         -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
@@ -724,19 +708,6 @@ enterComputeCek = computeCek (toWordArray 0) where
     forceEvaluate !_ !_ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
-    -- | Evaluate a lambda that has been applied.
-    --
-    -- This just exists to share a little code.
-    applyLam
-        :: WordArray
-        -> Context uni fun
-        -> CekValEnv uni fun
-        -> Term NamedDeBruijn uni fun ()
-        -> CekValue uni fun
-        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    applyLam !unbudgetedSteps !ctx env body arg = computeCek unbudgetedSteps ctx (Env.cons arg env) body
-    {-# INLINE applyLam #-}
-
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
     -- to x@ and call 'computeCek' on the body.
@@ -750,7 +721,8 @@ enterComputeCek = computeCek (toWordArray 0) where
         -> CekValue uni fun   -- lhs of application
         -> CekValue uni fun   -- rhs of application
         -> CekM uni fun s (Term NamedDeBruijn uni fun ())
-    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg = applyLam unbudgetedSteps ctx env body arg
+    applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
+        computeCek unbudgetedSteps ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
     applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) arg = do
