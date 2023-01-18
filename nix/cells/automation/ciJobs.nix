@@ -30,10 +30,10 @@ let
 
   jobs =
     # Drop these once we switch to 9.2.4 by default
-    { ghc8107 = native-plutus-8107-jobs; } //
-    { ghc924 = native-plutus-924-jobs; } //
-    # Only cross-compile to windows from linux
-    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; };
+    { ghc8107 = native-plutus-8107-jobs; };
+  # { ghc924 = native-plutus-924-jobs; } //
+  # Only cross-compile to windows from linux
+  # lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; };
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
