@@ -114,18 +114,20 @@
         cellBlocks = [
           (inputs.std.devshells "devshells" { ci.build = true; })
           (inputs.std.installables "packages" { ci.build = true; })
-          (let
-             # hackinsh way to extract the 'build' action from installables
-             # TODO: expose well crafted shared actions more human friendily
-             actions = { target, fragment, fragmentRelPath, system }@args:
-               [(builtins.head ((inputs.std.installables null).actions args))];
-           in  {
-             # TODO: come up with a sensible actions for the `latex` block type
-             type = "latex";
-             name = "papers";
-             inherit actions;
-             ci.build = true;
-           }
+          (
+            let
+              # hackinsh way to extract the 'build' action from installables
+              # TODO: expose well crafted shared actions more human friendily
+              actions = { target, fragment, fragmentRelPath, system }@args:
+                [ (builtins.head ((inputs.std.installables null).actions args)) ];
+            in
+            {
+              # TODO: come up with a sensible actions for the `latex` block type
+              type = "latex";
+              name = "papers";
+              inherit actions;
+              ci.build = true;
+            }
           )
           (inputs.std.functions "library")
           (inputs.std.installables "ciJobs" { ci.build = true; })
