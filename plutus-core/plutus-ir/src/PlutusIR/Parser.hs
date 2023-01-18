@@ -99,7 +99,9 @@ appTerm tm = do
     inBrackets $ PIR.mkIterApp <$> pure pos <*> tm <*> some tm
 
 tyInstTerm :: Parametric
-tyInstTerm tm = inBraces $ PIR.mkIterInst <$> getSourcePos <*> tm <*> some pType
+tyInstTerm tm = do
+    pos <- getSourcePos
+    inBraces $ PIR.mkIterInst <$> pure pos <*> tm <*> some pType
 
 term' :: Parametric
 term' other = choice $ map try [
