@@ -1,0 +1,183 @@
+\section{Term Reduction}
+\label{sec:reduction}
+
+This section defines the semantics of (untyped) Plutus Core.
+
+\input{untyped-values.tex}
+
+
+\paragraph{More notation.} Suppose that $A$ is a well-formed partial application with
+$\alpha(\beta(A)) = [\iota_1,\ldots,\iota_n]$.  We define a function $\nextArg$
+which extracts the next argument (or \texttt{force}) expected by $A$:
+$$
+    \nextArg(A) = \iota_{\pbasize{A}+1}.
+$$
+\noindent%
+\nomenclature[Fr1]{$\nextArg(A)$}{Next argument type (or \texttt{force}) required by a partial builtin application $A$}
+This makes sense because in a well-formed partial application $A$ we have
+$\pbasize{A} < n$.
+
+\medskip
+\noindent We also define a function $\args{}$ which extracts the arguments which
+$b$ has received so far in $A$:
+$$
+\begin{array}{ll}
+  \args(\builtin{b}) &= []\\
+  \args(\appU{A}{V}) &= \args(A)\snoc V\\
+  \args(\force{A})   &= \args(A).\\
+\end{array}
+$$%
+\nomenclature[Fr2]{$\args(A)$}{Term arguments received so far by partial builtin application $A$}
+
+\subsection{Term reduction}
+
+%% ---------------- Grammar of Reduction Frames ---------------- %%
+\kwxm{Explain what this stuff means. Remember that when we apply the reduction
+  rules we always use the first applicable one.
+
+  I'm somewhat tempted to dump this in favour of SOS.}
+\kwxm{Do we need a uniqueness condition on names somewhere?}
+    
+We define the semantics of Plutus Core using contextual semantics (or reduction
+semantics): see~\cite{Felleisen-Hieb} or~\cite{Felleisen-Semantics-Engineering}
+or~\cite[5.3]{Harper:PFPL}, for example.  We use $A$ to denote a partial
+application of a built-in function as in Section~\ref{sec:uplc-values} above.
+For builtin evaluation, we instantiate the set $\Inputs$ of
+Section~\ref{sec:builtin-inputs} to be the set of Plutus Core values.  Thus all
+builtins take values as arguments and return a value or $\errorX$.  Since values
+are terms here, we can take $\reify{V} = V$.
+
+\medskip
+\noindent The notation $[V/x]M$ below denotes substitution of the value $V$ for
+the variable $x$ in $M$.  This is \textit{capture-avoiding} in that substitution
+is not performed on occurrences of $x$ inside subterms of $M$ of the form
+$\lamU{x}{N}$.%
+\nomenclature[Fr3]{$[V/x]M$}{Capture-avoiding substitution of value $V$ for variable $x$ in term $M$}
+
+\begin{figure}[H]
+\begin{subfigure}[c]{\linewidth}
+    \centering
+    \[\begin{array}{lrclr}
+        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}          & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}            & \textrm{right application}\\
+                       &   &     & \inForceFrame                  & \textrm{force}
+    \end{array}\]
+    \caption{Grammar of reduction frames for Plutus Core}
+    \label{fig:untyped-reduction-frames}
+\end{subfigure}
+%\end{figure}%
+\nomenclature[Fr3]{$f$}{Reduction frame for contextual semantics: $\inAppLeftFrame{M}, \inAppRightFrame{V}, \inForceFrame$}
+
+
+
+\bigskip
+%\begin{figure}[H]
+%\ContinuedFloat
+%% ---------------- Reduction via Contextual Semantics ---------------- %%
+\begin{subfigure}[c]{\linewidth}
+  % \def\labelSpacing{20pt}
+
+  \judgmentdef{$\step{M}{M'}$}{Term $M$ reduces in one step to term $M'$.}
+
+   % [(lam x M) V] -> [V/x]M
+    \begin{prooftree}
+        \AxiomC{}
+        % \RightLabel{\textsf{apply-lambda}}
+        \UnaryInfC{$\step{\app{\lamU{x}{M}}{V}}{\subst{V}{x}{M}}$}
+    \end{prooftree}
+
+    % [A V] saturated
+    \begin{prooftree}
+      \AxiomC{$\length(A) = \chi(\beta(A))-1$}
+      \AxiomC{$\nextArg(A) \in \Unihash \cup \Var_*$}
+        % \RightLabel{\textsf{final-apply}}
+        \BinaryInfC{$\step{\app{A}{V}}{\Eval'(\beta(A), \args(A)\snoc V)}$}
+    \end{prooftree}
+
+    % [A V] unsaturated
+    \begin{prooftree}
+      \AxiomC{$\length(A) < \chi(\beta(A))-1$}
+      \AxiomC{$\nextArg(A) \in \Unihash \cup \Var_*$}
+        % \RightLabel{\textsf{intermediate-apply}}
+        \BinaryInfC{$\step{\app{A}{V}}{\app{A}{V}}$}
+    \end{prooftree}
+
+    % force (delay M) -> M
+    \begin{prooftree}
+        \AxiomC{}
+        % \RightLabel{\textsf{force-delay}}
+        \UnaryInfC{$\step{\force{\delay{M}}}{M}$}
+    \end{prooftree}
+
+    % Saturated force
+    \begin{prooftree}
+      \AxiomC{$\length(A) = \chi(\beta(A))-1$}
+      \AxiomC{$\nextArg(A) \in \QVar$}
+        % \RightLabel{\textsf{final-force}}
+        \BinaryInfC{$\step{\force{A}}{\Eval'(\beta(A), \args(A))}$}
+    \end{prooftree}
+
+
+    % Unsaturated force
+    \begin{prooftree}
+      \AxiomC{$\length(A) < \chi(\beta(A))-1$}
+      \AxiomC{$\nextArg(A) \in \QVar$}
+        % \RightLabel{\textsf{intermediate-force}}
+        \BinaryInfC{$\step{\force{A}}{A}$}
+    \end{prooftree}
+
+%    \hfill\begin{minipage}{0.3\linewidth}  
+      \begin{prooftree}
+        \AxiomC{} % If we're putting these side by side we need \strut here to get rules aligned
+        % \RightLabel{\textsf{error}}
+        \UnaryInfC{$\step{\ctxsubst{f}{\errorU}}{\errorU}$}
+      \end{prooftree}
+%    \end{minipage}
+%    \begin{minipage}{0.3\linewidth}
+    \begin{prooftree}
+        \AxiomC{$\step{M}{M'}$}  % Need \strut for side-by-side alignment again
+        \UnaryInfC{$\step{\ctxsubst{f}{M}}{\ctxsubst{f}{M'}}$}
+    \end{prooftree}
+% \end{minipage}\hfill\hfill %% Don't know why we need two \hfills here but only one at the start
+% \\
+    \caption{Reduction via Contextual Semantics} %% Oops
+    \label{fig:untyped-reduction}
+\end{subfigure}
+
+\bigskip
+
+\begin{subfigure}[c]{\linewidth}
+  $$ \Eval'(b, [V_1, \ldots, V_n]) =
+  \begin{cases}
+  \errorU  & \text{if $\Eval(b,[V_1, \ldots, V_n]) = \errorX$}\\
+  \Eval(b,[V_1, \ldots, V_n]) & \text{otherwise}
+  \end{cases}
+$$
+    \caption{Built-in function application}
+    \label{fig:bif-appl}
+\end{subfigure}
+
+\caption{Term reduction for Plutus Core}
+\label{fig:untyped-term-reduction}
+\end{figure}
+
+\bigskip
+\noindent It can be shown that any closed Plutus Core term whose evaluation
+terminates yields either \texttt{(error)} or a value. Recall from
+Section~\ref{sec:grammar-notes} that we require the body of every Plutus Core
+program to be closed.
+
+\kwxm{I was worried because we only have rules for eg application of a builtin
+  $b$ to a final argument, and when we're applying $b$ to other arguments we
+  don't check that a term argument is actually expected (rather than a
+  \texttt{force}), and that the argument has the right type.  I think this is OK
+  though: for example, if we have a builtin $b$ with $\arity{b} = [\forall a_\#,
+    \texttt{int}]$ and we have a term $M = \texttt{[(builtin b) (con 5)]}$ then
+  none of the rules apply because $M$ isn't in $A$, so the semantics get stuck.
+  This happens in general as well: the definition of $A$ doesn't even let us
+  talk about partial builtin applications where the interleaving is wrong.  We
+  \textit{do} need special rules for the final argument because if $M \in A$ we
+  have to look at $b$ to make sure that the final argument (or force) is the
+  right kind of thing.}
+  
+  
