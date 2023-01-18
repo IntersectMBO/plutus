@@ -152,7 +152,7 @@
         # Here we say that we want the "packages" cell block of the plutus cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
-        packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
+        packages = inputs.std.harvest inputs.self [ [ "plutus" "packages" ] [ "plutus" "papers" ] ];
       }
       {
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
