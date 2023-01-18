@@ -1,0 +1,63 @@
+name: Standard CI
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    outputs:
+      hits: ${{ steps.discovery.outputs.hits }}
+      nix_conf: ${{ steps.discovery.outputs.nix_conf }}
+
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Standard Discovery
+        uses: divnix/std-action/discover@polish-logs
+        id: discovery
+
+  build-packages:
+    needs: discover
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.discover.outputs.hits).packages.build }}
+    name: ${{ matrix.target.action }}->${{ matrix.target.cell }}.${{ matrix.target.block }}.${{ matrix.target.name }}
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: divnix/std-action/run@polish-logs
+        # env:
+        #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
+        #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
+        with:
+          extra_nix_config: ${{ needs.discover.outputs.nix_conf }}
+          json: ${{ toJSON(matrix.target) }}
+          # optional:
+          # nix_key: ${{ secrets.NIX_KEY }}
+          # cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com
+
+  build-devshells:
+    needs: [discover, build-packages]
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.discover.outputs.hits).devshells.build }}
+    name: ${{ matrix.target.action }}->${{ matrix.target.cell }}.${{ matrix.target.block }}.${{ matrix.target.name }}
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: divnix/std-action/run@polish-logs
+        # env:
+        #   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ID }}
+        #   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET }}
+        with:
+          extra_nix_config: ${{ needs.discover.outputs.nix_conf }}
+          json: ${{ toJSON(matrix.target) }}
+          # optional:
+          # nix_key: ${{ secrets.NIX_KEY }}
+          # cache: s3://nix?endpoint=sfo3.digitaloceanspaces.com

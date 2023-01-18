@@ -1,0 +1,22 @@
+name: Standard CI
+
+on:
+  push:
+    branches:
+      - main
+      - zeme-iohk/update-std
+      - zeme-iohk/update-std-blaggacao
+  workflow_dispatch:
+
+jobs:
+  mac:
+    uses: ./.github/workflows/std.yml
+    with:
+      runs-on: macOS-12
+    secrets: inherit
+
+  linux:
+    uses: ./.github/workflows/std.yml
+    with:
+      runs-on: ubuntu-latest
+    secrets: inherit

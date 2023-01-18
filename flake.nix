@@ -56,10 +56,6 @@
       url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    tullia = {
-      url = "github:input-output-hk/tullia/gh-comment";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # The flake outputs are managed by std.
@@ -108,21 +104,15 @@
         #     These are not exposed to the flake
         #   ciJobs :: installables
         #     Jobsets for our Hydra and Cicero CI
-        #   actions :: functions
-        #     Actions added to Cicero with defined triggers, such as any git push
-        #   pipelines :: tullia tasks
-        #     Tasks called by Cicero actions written with tullia
         #
         # std provides a TUI to interact with the cell blocks.
         # Available interactions are determined by the cell block's type.
         # Because this repository does not yet use the TUI, the type is mostly irrelevant.
         cellBlocks = [
-          (inputs.std.devshells "devshells")
-          (inputs.std.installables "packages")
+          (inputs.std.devshells "devshells" { ci.build = true; })
+          (inputs.std.installables "packages" { ci.build = true; })
           (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs" { ci.build = true; })
-          (inputs.std.functions "actions")
-          (inputs.tullia.tasks "pipelines")
+          (inputs.std.installables "ciJobs")
         ];
       }
 
@@ -147,13 +137,9 @@
         packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
-        ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
       }
-      (inputs.tullia.fromStd {
-        actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
-      });
+  ;
 
   nixConfig = {
     extra-substituters = [
