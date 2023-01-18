@@ -46,6 +46,11 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , extractEvaluationResult
     , runCekDeBruijn
     , dischargeCekValue
+    , Context (..)
+    , CekValEnv
+    , GivenCekReqs
+    , GivenCekSpender
+    , Slippage
     )
 where
 
