@@ -114,6 +114,14 @@
         cellBlocks = [
           (inputs.std.devshells "devshells" { ci.build = true; })
           (inputs.std.installables "packages" { ci.build = true; })
+          {
+            type = "pdf";
+            name = "papers";
+            actions = { target, fragment, fragmentRelPath, system }: [
+              (inputs.std.sharedActions.build system target)
+            ];
+            ci.build = true;
+          }
           (inputs.std.functions "library")
           (inputs.std.installables "ciJobs")
         ];
@@ -137,7 +145,7 @@
         # Here we say that we want the "packages" cell block of the plutus cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
-        packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
+        packages = inputs.std.harvest inputs.self [ [ "plutus" "packages" ] [ "plutus" "papers" ] ];
       }
       {
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
