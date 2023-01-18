@@ -13,7 +13,7 @@ cell.library.pkgs.writeShellApplication {
 
     shell_fragments=$(
       find \
-        "$root/nix/cells" \
+        "$root/nix" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
         -and -path "*/devshells*" \
@@ -27,7 +27,7 @@ cell.library.pkgs.writeShellApplication {
 
     derivation_fragments=$(
       find \
-        "$(repo-root)/nix/cells" \
+        "$(repo-root)/nix" \
         -name "*.nix" \
         -and -not -name "*default.nix" \
         -and -path "*/packages*" \

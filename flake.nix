@@ -81,7 +81,10 @@
         #     (top comment in pipelines.nix explains automation and cloud separation)
         #   plutus
         #     Devshell, tooling and packages for plutus and its documentation
-        cellsFrom = ./nix/cells;
+        cellsFrom = inputs.std.incl ./nix [
+          "plutus"
+          "automation"
+        ];
 
         # Each cell contains "cell blocks".
         # Block names are arbitrary.
