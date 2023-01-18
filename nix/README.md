@@ -79,9 +79,9 @@ For example:
 
 ## Reference example
 
-As an example, consider the file `./nix/cells/plutus/packages/eutxo-paper.nix`:
+As an example, consider the file `./nix/plutus/packages/eutxo-paper.nix`:
 
-- `./nix/cells` is the `cellsFrom` value in `flake.nix`
+- `./nix` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
 - `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
@@ -94,9 +94,9 @@ As an example, consider the file `./nix/cells/plutus/packages/eutxo-paper.nix`:
 - And also accessible via `inputs.cells.plutus.packages.eutxo-paper` (everywhere)
 - And also buildable via `nix build .#eutxo-paper`
 
-As another example, consider the file `./nix/cells/plutus/library/default.nix`
+As another example, consider the file `./nix/plutus/library/default.nix`
 
-- `./nix/cells` is the `cellsFrom` value in `flake.nix`
+- `./nix` is the `cellsFrom` value in `flake.nix`
 - `/plutus` is the cell name
 - `/plutus/*` are accessible via `cell.*` from `{ inputs, cell }` (while inside `cells/plutus`)
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
