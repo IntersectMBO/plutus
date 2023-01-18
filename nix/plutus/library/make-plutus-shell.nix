@@ -90,17 +90,17 @@ inputs.std.lib.dev.mkShell {
       help = "Agda and its standard library";
     }
     {
-      package = cell.packages.sphinx-build-readthedocs-site;
+      package = inputs.cells.sphinx.tasks.sphinx-build-readthedocs-site;
       category = "docs";
       help = "Build the docs locally in doc/read-the-docs-site/_build";
     }
     {
-      package = cell.packages.sphinx-autobuild-readthedocs-site;
+      package = inputs.cells.sphinx.tasks.sphinx-autobuild-readthedocs-site;
       category = "docs";
       help = "Start the autobuild server on localhost:8000";
     }
     {
-      package = cell.packages.serve-readthedocs-site;
+      package = inputs.cells.sphinx.tasks.serve-readthedocs-site;
       category = "docs";
       help = "nix build and serve the doc site on localhost:8002";
     }
@@ -121,7 +121,7 @@ inputs.std.lib.dev.mkShell {
     # Only occasionally useful, not worth calling out as a command
     cell.packages.hie-bios
     # Provides sphinx-build and other things, unclear how to represent it as a command
-    cell.packages.sphinx-toolchain
+    inputs.cells.sphinx.packages.sphinx-toolchain
     # R environment
     cell.library.r-with-packages
 

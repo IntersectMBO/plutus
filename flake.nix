@@ -83,6 +83,7 @@
         #     Devshell, tooling and packages for plutus and its documentation
         cellsFrom = inputs.std.incl ./nix [
           "plutus"
+          "sphinx"
           "automation"
         ];
 
@@ -114,6 +115,7 @@
         cellBlocks = [
           (inputs.std.devshells "devshells" { ci.build = true; })
           (inputs.std.installables "packages" { ci.build = true; })
+          (inputs.std.runnables "tasks")
           {
             type = "pdf";
             name = "papers";
@@ -145,7 +147,12 @@
         # Here we say that we want the "packages" cell block of the plutus cell
         # (which contains a number of buildable derivations) to be exposed
         # by the flake and accessible via nix build (or nix run).
-        packages = inputs.std.harvest inputs.self [ [ "plutus" "packages" ] [ "plutus" "papers" ] ];
+        packages = inputs.std.harvest inputs.self [
+          [ "plutus" "packages" ]
+          [ "plutus" "papers" ]
+          [ "sphinx" "packages" ]
+          [ "sphinx" "tasks" ]
+        ];
       }
       {
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];

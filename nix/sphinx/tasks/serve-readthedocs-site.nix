@@ -1,10 +1,10 @@
 { inputs, cell }:
 
-cell.library.pkgs.writeShellApplication {
+inputs.cells.plutus.library.pkgs.writeShellApplication {
   name = "serve-docs";
   runtimeInputs = [
-    cell.library.pkgs.nix
-    cell.library.pkgs.python3
+    inputs.cells.plutus.library.pkgs.nix
+    inputs.cells.plutus.library.pkgs.python3
   ];
   text = ''
     nix build .#read-the-docs-site --out-link result

@@ -74,7 +74,7 @@ cell.library.pkgs.runCommand "combine-haddock"
       interfaceOpts+=("--read-interface=$docdir,$interfaceFile")
       # Jam this in here for now
       pushd $out/share/doc
-      ${cell.packages.sphinxcontrib-haddock}/bin/haddock_inventory $docdir
+      ${inputs.cells.sphinx.packages.sphinxcontrib-haddock}/bin/haddock_inventory $docdir
       popd
     done
     popd

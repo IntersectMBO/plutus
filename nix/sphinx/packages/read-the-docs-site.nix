@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (cell.library) pkgs;
+  inherit (inputs.cells.plutus.library) pkgs;
 in
 
 pkgs.stdenv.mkDerivation {
@@ -22,7 +22,7 @@ pkgs.stdenv.mkDerivation {
   dontInstall = true;
 
   buildPhase = ''
-    cp -aR ${cell.packages.combined-plutus-haddock}/share/doc haddock
+    cp -aR ${inputs.cells.plutus.packages.combined-plutus-haddock}/share/doc haddock
     # -n gives warnings on missing link targets, -W makes warnings into errors
     SPHINX_HADDOCK_DIR=haddock sphinx-build -n -W . $out
     cp -aR haddock $out

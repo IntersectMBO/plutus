@@ -1,9 +1,9 @@
 { inputs, cell }:
 
-cell.library.pkgs.writeShellApplication {
+inputs.cells.plutus.library.pkgs.writeShellApplication {
   name = "build-docs";
   runtimeInputs = [
-    cell.packages.repo-root
+    inputs.cells.plutus.packages.repo-root
     cell.packages.sphinx-toolchain
   ];
   text = ''
