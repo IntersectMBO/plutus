@@ -115,7 +115,7 @@
           (inputs.std.devshells "devshells" { ci.build = true; })
           (inputs.std.installables "packages" { ci.build = true; })
           (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs" { ci.build = true; })
+          (inputs.std.installables "ciJobs")
         ];
       }
 
