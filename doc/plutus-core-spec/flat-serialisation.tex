@@ -177,7 +177,7 @@ $$
 \E_{\Z} (s, n) =
 \begin{cases}
   \E_{\N}(s, 2n) & \text{if $n \geq 0$}\\
-  \E_{\N}(s, 2(1-n)+1) & \text{if $n < 0$}.
+  \E_{\N}(s, -2n-1) & \text{if $n < 0$}.
 \end{cases}
 $$
 The decoder is
@@ -185,7 +185,7 @@ $$
 \D_{\Z}(s) =
 \begin{cases}
   (s', \frac{n}{2}) & \text{if $n \equiv 0 \pmod 2$}\\
-  (s', -\frac{n-1}{2}-1) & \text{if $n \equiv 1 \pmod 2$}
+  (s', -\frac{n+1}{2}) & \text{if $n \equiv 1 \pmod 2$}
 \end{cases} \quad\text{if $\D_{\N}(s) = (s', n)$}.
 $$
 
