@@ -12,10 +12,14 @@ repository cardano-haskell-packages
 
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
--- Bump this if you need newer packages from Hackage
+
+-- repeating hackage index-state to work around haskell.nix parsing limitation
 index-state: 2022-11-15T00:00:00Z
--- Bump this if you need newer packages from CHaP
-index-state: cardano-haskell-packages 2023-01-04T00:00:00Z
+index-state:
+  -- Bump this if you need newer packages from Hackage
+  , hackage.haskell.org 2022-11-15T00:00:00Z
+  -- Bump this if you need newer packages from CHaP
+  , cardano-haskell-packages 2023-01-04T00:00:00Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
