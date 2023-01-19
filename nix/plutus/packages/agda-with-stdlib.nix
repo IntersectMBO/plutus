@@ -6,7 +6,7 @@ let
 
     version = "1.7";
 
-    src = cell.library.pkgs.fetchFromGitHub {
+    src = inputs.cells.toolchain.pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";

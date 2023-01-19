@@ -3,7 +3,7 @@
 { compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
 
 let
-  inherit (cell.library) pkgs haskell-nix;
+  inherit (inputs.cells.toolchain) pkgs haskell-nix;
 
   plutus-project = cell.library.make-plutus-project { inherit compiler-nix-name; };
 

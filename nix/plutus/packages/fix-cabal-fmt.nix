@@ -1,11 +1,11 @@
 { inputs, cell }:
 
-cell.library.pkgs.writeShellApplication {
+inputs.cells.toolchain.pkgs.writeShellApplication {
 
   name = "fix-cabal-fmt";
 
   runtimeInputs = [
-    cell.library.pkgs.fd
+    inputs.cells.toolchain.pkgs.fd
     cell.packages.cabal-fmt
   ];
 

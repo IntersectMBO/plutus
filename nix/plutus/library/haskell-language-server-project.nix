@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-cell.library.haskell-nix.cabalProject' {
+inputs.cells.toolchain.haskell-nix.cabalProject' {
   # See https://github.com/haskell/haskell-language-server/issues/411.
   # We want to use stylish-haskell, hlint, and implicit-hie as standalone tools
   # *and* through HLS. But we need to have consistent versions in both cases,

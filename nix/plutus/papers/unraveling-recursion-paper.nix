@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (cell.library) pkgs;
+  inherit (inputs.cells.toolchain) pkgs;
 
   artifacts = pkgs.runCommand
     "FIR-compiler"

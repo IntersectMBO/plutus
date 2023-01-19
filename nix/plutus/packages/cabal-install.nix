@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  project = cell.library.haskell-nix.hackage-project {
+  project = inputs.cells.toolchain.haskell-nix.hackage-project {
     name = "cabal-install";
 
     version = "3.8.1.0";

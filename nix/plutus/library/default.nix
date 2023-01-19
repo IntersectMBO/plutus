@@ -20,8 +20,6 @@
 
   gitignore-source = import ./gitignore-source.nix block;
 
-  haskell-nix = import ./haskell-nix.nix block;
-
   combine-haddock = import ./combine-haddock.nix block;
 
   r-overlay = import ./r-overlay.nix block;
@@ -33,6 +31,4 @@
   haskell-language-server-project = import ./haskell-language-server-project.nix block;
 
   r-with-packages = import ./r-with-packages.nix block;
-
-  pkgs = import ./pkgs.nix block;
 }

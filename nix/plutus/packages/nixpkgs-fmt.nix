@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-let pkgs = cell.library.pkgs; in
+let pkgs = inputs.cells.toolchain.pkgs; in
 
 pkgs.rustPlatform.buildRustPackage rec {
 

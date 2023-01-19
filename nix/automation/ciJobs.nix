@@ -5,7 +5,7 @@
 let
 
   inherit (inputs.cells.plutus) library;
-  inherit (library) pkgs;
+  inherit (inputs.cells.toolchain) pkgs;
   inherit (pkgs.stdenv) system;
   inherit (pkgs) lib;
 

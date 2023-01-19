@@ -1,12 +1,12 @@
 { inputs, cell }:
 
-cell.library.pkgs.writeShellApplication {
+inputs.cells.toolchain.pkgs.writeShellApplication {
 
   name = "fix-png-optimization";
 
   runtimeInputs = [
-    cell.library.pkgs.fd
-    cell.library.pkgs.optipng
+    inputs.cells.toolchain.pkgs.fd
+    inputs.cells.toolchain.pkgs.optipng
   ];
 
   text = ''

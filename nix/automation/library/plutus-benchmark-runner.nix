@@ -3,7 +3,7 @@
 { PR_NUMBER, BENCHMARK_NAME, GITHUB_TOKEN }:
 
 let
-  inherit (inputs.cells.plutus.library) pkgs;
+  inherit (inputs.cells.toolchain) pkgs;
 in
 
 pkgs.writeShellApplication {

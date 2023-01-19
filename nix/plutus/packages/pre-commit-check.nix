@@ -2,10 +2,10 @@
 
 inputs.pre-commit-hooks-nix.lib.run {
 
-  src = cell.library.pkgs.lib.cleanSource inputs.self;
+  src = inputs.cells.toolchain.pkgs.lib.cleanSource inputs.self;
 
   tools = {
-    shellcheck = cell.library.pkgs.shellcheck;
+    shellcheck = inputs.cells.toolchain.pkgs.shellcheck;
     stylish-haskell = cell.packages.stylish-haskell;
     nixpkgs-fmt = cell.packages.nixpkgs-fmt;
     cabal-fmt = cell.packages.cabal-fmt;
@@ -18,7 +18,7 @@ inputs.pre-commit-hooks-nix.lib.run {
 
     editorconfig-checker = {
       enable = true;
-      entry = "${cell.library.pkgs.editorconfig-checker}/bin/editorconfig-checker";
+      entry = "${inputs.cells.toolchain.pkgs.editorconfig-checker}/bin/editorconfig-checker";
     };
 
     nixpkgs-fmt = {
@@ -38,7 +38,7 @@ inputs.pre-commit-hooks-nix.lib.run {
       enable = true;
       name = "png-optimization";
       description = "Ensure that PNG files are optimized";
-      entry = "${cell.library.pkgs.optipng}/bin/optipng";
+      entry = "${inputs.cells.toolchain.pkgs.optipng}/bin/optipng";
       files = "\\.png$";
     };
   };

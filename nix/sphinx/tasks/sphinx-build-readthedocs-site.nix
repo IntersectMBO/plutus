@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.cells.plutus.library.pkgs.writeShellApplication {
+inputs.cells.toolchain.pkgs.writeShellApplication {
   name = "build-docs";
   runtimeInputs = [
     inputs.cells.plutus.packages.repo-root

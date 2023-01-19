@@ -2,10 +2,10 @@
 
 let
   inherit (cell) library;
-  inherit (library) pkgs;
+  inherit (inputs.cells.toolchain) pkgs haskell-nix;
 in
 
-library.haskell-nix.hackage-project {
+haskell-nix.hackage-project {
   name = "Agda";
 
   version = "2.6.2.2";

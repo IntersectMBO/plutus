@@ -5,7 +5,7 @@
 # `inputs.nixpkgs` directly -- more precisely we reference `inputs.nixpkgs.path`
 # because std treats nixpkgs specially, and already `import`s it under the hood.
 # This also means that *everywhere else* in nix code we use
-# `cell.library.pkgs` to access our overlaid nixpkgs.
+# `inputs.cells.toolchain.pkgs` to access our overlaid nixpkgs.
 # Attempting to maintain two nixpkgs -- one coming from inputs.nixpkgs and one
 # coming from haskell-nix -- has resulted in segfaults.
 
@@ -20,7 +20,7 @@ let
     overlays = [
       inputs.haskell-nix.overlay
       inputs.iohk-nix.overlays.crypto
-      cell.library.r-overlay
+      inputs.cells.plutus.library.r-overlay
     ];
 
   };

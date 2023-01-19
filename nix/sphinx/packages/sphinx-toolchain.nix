@@ -1,6 +1,6 @@
 { inputs, cell }:
 
-inputs.cells.plutus.library.pkgs.python3.withPackages (pkgs: [
+inputs.cells.toolchain.pkgs.python3.withPackages (pkgs: [
 
   cell.packages.sphinxcontrib-haddock
   cell.packages.sphinxcontrib-domaintools

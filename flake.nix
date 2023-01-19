@@ -17,7 +17,7 @@
       url = "github:NixOS/nixpkgs";
     };
     std = {
-      url = "github:divnix/std";
+      url = "github:divnix/std/feat-add-pkgs-blocktype";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     haskell-nix = {
@@ -84,6 +84,7 @@
         cellsFrom = inputs.std.incl ./nix [
           "plutus"
           "sphinx"
+          "toolchain"
           "automation"
         ];
 
@@ -112,20 +113,23 @@
         # std provides a TUI to interact with the cell blocks.
         # Available interactions are determined by the cell block's type.
         # Because this repository does not yet use the TUI, the type is mostly irrelevant.
-        cellBlocks = [
-          (inputs.std.devshells "devshells" { ci.build = true; })
-          (inputs.std.installables "packages" { ci.build = true; })
-          (inputs.std.runnables "tasks")
+        cellBlocks = with inputs.std.blockTypes; [
+          (devshells "devshells" { ci.build = true; })
+          (installables "packages" { ci.build = true; })
+          (runnables "tasks")
+          (pkgs "pkgs")
           {
             type = "pdf";
             name = "papers";
             actions = { target, fragment, fragmentRelPath, system }: [
               (inputs.std.sharedActions.build system target)
             ];
+            cli = true;
             ci.build = true;
           }
-          (inputs.std.functions "library")
-          (inputs.std.installables "ciJobs")
+          (functions "library")
+          (functions "haskell-nix")
+          (installables "ciJobs")
         ];
       }
 

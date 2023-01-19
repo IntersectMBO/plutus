@@ -24,4 +24,4 @@ let
       };
     };
 in
-inputs.cells.plutus.library.pkgs.python3Packages.callPackage package { }
+inputs.cells.toolchain.pkgs.python3Packages.callPackage package { }

@@ -1,9 +1,9 @@
 { inputs, cell }:
 
-cell.library.pkgs.writeShellApplication {
+inputs.cells.toolchain.pkgs.writeShellApplication {
   name = "check-the-flake";
   runtimeInputs = [
-    cell.library.pkgs.nix
+    inputs.cells.toolchain.pkgs.nix
     cell.packages.repo-root
   ];
   text = ''

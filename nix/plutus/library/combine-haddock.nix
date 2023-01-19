@@ -10,12 +10,12 @@
 }:
 
 let
-  lib = cell.library.pkgs.lib;
+  lib = inputs.cells.toolchain.pkgs.lib;
 
   hsdocs = builtins.map (x: x.doc) (builtins.filter (x: x ? doc) hspkgs);
 in
 
-cell.library.pkgs.runCommand "combine-haddock"
+inputs.cells.toolchain.pkgs.runCommand "combine-haddock"
 {
   buildInputs = [ hsdocs ];
 
@@ -100,7 +100,8 @@ cell.library.pkgs.runCommand "combine-haddock"
   echo "[]" > "doc-index.json"
   for file in $(ls **/doc-index.json); do
     project=$(dirname $file);
-    ${cell.library.pkgs.jq}/bin/jq -s ".[0] + [.[1][] | (. + {link: (\"$project/\" + .link)}) ]" \
+    ${inputs.cells.toolchain.pkgs.jq}/bin/jq -s ".[0] + [.[1][] \
+      | (. + {link: (\"$project/\" + .link)}) ]" \
       "doc-index.json" "$file" > doc-index.tmp.json
     mv doc-index.tmp.json "doc-index.json"
   done

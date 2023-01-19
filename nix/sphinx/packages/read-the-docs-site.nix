@@ -1,7 +1,7 @@
 { inputs, cell }:
 
 let
-  inherit (inputs.cells.plutus.library) pkgs;
+  inherit (inputs.cells.toolchain) pkgs;
 in
 
 pkgs.stdenv.mkDerivation {

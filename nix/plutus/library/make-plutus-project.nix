@@ -3,13 +3,13 @@
 { compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
 
 let
-  project = cell.library.haskell-nix.cabalProject' ({ pkgs, lib, ... }: {
+  project = inputs.cells.toolchain.haskell-nix.cabalProject' ({ pkgs, lib, ... }: {
 
     inherit compiler-nix-name;
 
     # This is incredibly difficult to get right, almost everything goes wrong,
     # see https://github.com/input-output-hk/haskell.nix/issues/496
-    src = cell.library.haskell-nix.haskellLib.cleanSourceWith {
+    src = inputs.cells.toolchain.haskell-nix.haskellLib.cleanSourceWith {
 
       src = inputs.self.outPath;
 

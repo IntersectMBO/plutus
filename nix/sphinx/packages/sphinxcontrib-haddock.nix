@@ -1,5 +1,5 @@
 { inputs, cell }:
 
-inputs.cells.plutus.library.pkgs.callPackage inputs.sphinxcontrib-haddock {
-  pythonPackages = inputs.cells.plutus.library.pkgs.python3Packages;
+inputs.cells.toolchain.pkgs.callPackage inputs.sphinxcontrib-haddock {
+  pythonPackages = inputs.cells.toolchain.pkgs.python3Packages;
 }
