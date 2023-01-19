@@ -4,6 +4,7 @@ module GeneratorSpec.Types where
 
 import PlutusCore.Generators.QuickCheck
 
+import Data.Bifunctor
 import Data.Either
 import Data.Map.Strict qualified as Map
 import Test.QuickCheck
@@ -27,7 +28,7 @@ prop_shrinkTypeSound =
   -- See discussion about the same trick in 'prop_shrinkTermSound'.
   isRight (checkKind ctx ty k) ==>
   assertNoCounterexamples $ lefts
-    [ (k', ty', ) <$> checkKind ctx ty' k'
+    [ first (k', ty', ) $ checkKind ctx ty' k'
     | (k', ty') <- shrinkKindAndType ctx (k, ty)
     ]
 
@@ -56,7 +57,7 @@ prop_fixKind =
   forAllDoc "k,ty" genKindAndType (shrinkKindAndType ctx) $ \ (k, ty) ->
   -- Note, fixKind only works on smaller kinds, so we use shrink to get a definitely smaller kind
   assertNoCounterexamples $ lefts
-    [ (ty', k', ) <$> checkKind ctx ty' k'
+    [ first (ty', k', ) $ checkKind ctx ty' k'
     | k' <- shrink k
     , let ty' = fixKind ctx ty k'
     ]
