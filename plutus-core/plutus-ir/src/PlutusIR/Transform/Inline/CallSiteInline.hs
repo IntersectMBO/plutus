@@ -102,7 +102,7 @@ over-application of a function should not occur, so we don't need to worry about
 Because a function can be called in the `body` multiple times and may not be fully applied for all
 its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
 which substitute *all* occurrences of a variable. Also, because we are inlining lambda abstractions,
-we need to keep track of the in-scope set. See note
+we need to keep track of the in-scope set. See note [Inlining a lambda abstraction].
 
 Below are some more examples:
 
@@ -193,8 +193,15 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         Term tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     handleTerm = \case
-        -- a fully applied function is inlined.
-        v@(Var _ n) -> fromMaybe v <$> substName n
+        -- See section 7.1 of the paper.
+        -- When we encounter a variable, look it up in the substitution.
+        v@(Var _ n) -> do
+          substitution <- substName n
+          case substitution of
+            -- if it's not in the substitution, consider inlining it.
+            Nothing  -> considerInline v
+            -- otherwise, inline it.
+            Just sub -> pure sub
         Let a NonRec bs t -> do
             -- Process bindings, checking for fully applied functions and
             -- put them in the substitution.
@@ -235,6 +242,19 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         InlineTerm tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     renameTerm (Done t) = liftDupable t
+    -- | See note [Inlining of fully applied functions].
+    -- Consider inlining the variable that is NOT in the substitution by checking
+    -- (1) Is it fully applied?
+    -- (2) Are the cost and size acceptable?
+    considerInline ::
+        Term tyname name uni fun a
+        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    considerInline v@(Var _ n) = undefined
+    -- look up the variable in the `CalledVar` map
+    -- if it's not in there or its `LamOrder` is an empty list, don't inline.
+    -- if fullyApplied && acceptable then inline else
+    considerInline notVar =
+      Prelude.error "considerInline: should be a variable."
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -257,12 +277,19 @@ data LamKind = TermLam | TypeLam deriving stock (Eq)
 -- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
 type LamOrder = [LamKind]
 
--- | A mapping of a let-binding to its term and type lambdas in order.
-newtype FnLam tyname name uni fun a =
-    MkFnLam (PLC.UniqueMap PLC.TermUnique LamOrder)
+-- | A mapping of a let-binding to its unique name and its definition and `LamOrder`.
+newtype CalledVar tyname name uni fun a =
+    MkCalledVar (PLC.UniqueMap PLC.TermUnique (CalledVarInfo tyname name uni fun a))
     deriving newtype (Semigroup, Monoid)
 
--- | Count the number of type and term lambdas in the RHS of a binding and return an ordered list
+-- | Info attached to a let-binding needed for call site inlining.
+data CalledVarInfo tyname name uni fun a =
+  MkCalledVarInfo {
+    def        :: Term tyname name uni fun a -- ^ its definition
+    , lamOrder :: LamOrder -- ^ its sequence of term and type lambdas
+  }
+
+-- | Counts the number of type and term lambdas in the RHS of a binding and returns an ordered list
 countLam ::
     Term tyname name uni fun a -- ^ the RHS of the let binding
     -> LamOrder
@@ -284,10 +311,12 @@ countLam = countLamInner []
         -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
         currLamOrder
 
+-- findLetVar
+
 -- | Count the number of type and term applications in the body and return an ordered list of
 -- applied `LamKind` and its corresponding let variable, if any.
 countApp ::
-    Term tyname name uni fun a -- ^ the RHS of the let binding
+    Term tyname name uni fun a -- ^ the body
     -> (Maybe name, LamOrder)
 countApp = countAppInner []
     where
@@ -315,15 +344,44 @@ countApp = countAppInner []
 
 {- Note [Inlining a lambda abstraction]
 
-We inline a lambda abstraction when we find a fully applied function.
-To preserve uniqueness, we follow section 3.2 ("The rapier") of the paper:
+Because a function can be called in the `body` multiple times and may not be fully applied for all
+its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
+which substitute *all* occurrences of a variable.
+
+Also, because we are inlining lambda abstractions, to preserve uniqueness,
+we follow section 3.2 ("The rapier") of the paper:
 
 Our substitution algorithm has three parameters:
 1. the expression to which the substitution is applied,
 2. the substitution itself, and
 3. the set of in-scope variables
 
-Consider let v = \x1....\xn.VBody in body
+Consider let x = E in B
+
+We retain the let binding, adds x to the in-scope set. While processing B,
+at *every* occurrence of x, we consider whether to inline it.
+
+If x is not already in scope, the substitution is not changed, but the in-scope set is
+extended by binding x to E'. If x is already in scope, then a new variable
+name x' is invented (by getting a fresh unique); the substitution is extended by binding
+x to DoneEx x', and the in-scope set is extended by binding x' to E'.
+
+
+
+The DEFAULT alternative matches any constructors other
+than Red, Blue, and Green. GHC supports such DEFAULT
+alternatives directly, rather than requiring case expressions
+to be exhaustive, which is dreadful for large data types. In-
+side E, what is known about x? What we know is that it
+is not bound to Red, Blue, or Green. This can be useful;
+if E contains a case expression that scrutinises x, we can
+4 The expression E1 `seq` E2 evaluates E1, discards the result, and
+then evaluates and returns E2.
+13replace x by x1! The right thing to do is to continue with
+the empty substitution.
+The code is simple enough, but it took us a long time before
+the interplay between the substitution and the in-scope set
+became as simple and elegant as it now is.
 
 Suppose we write the call subst M [E=x] to mean the result of substituting E for x in M.
 The standard rule for substitution when M is a lambda abstraction is:

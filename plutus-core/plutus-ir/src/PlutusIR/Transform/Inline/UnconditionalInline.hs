@@ -114,9 +114,6 @@ inline. This is essentially the reason for the existence of the UPLC inlining pa
 {- Note [Inlining and global uniqueness]
 Unconditional inlining relies on global uniqueness (we store things in a unique map),
 and *does* currently preserve it because we don't currently inline anything with binders.
-
-With `CallSiteInline` we rename everything when we perform substitution,
-which GHC considers too expensive but we can accept.
 -}
 
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
