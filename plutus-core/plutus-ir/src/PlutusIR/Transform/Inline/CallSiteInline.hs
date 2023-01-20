@@ -178,11 +178,6 @@ callSiteInline hints ver t = let
         usgs = Usages.termUsages t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
-{- Note [Removing inlined bindings]
-We *do not* remove bindings that we inline here, we leave this to the dead code pass.
-TODO
--}
-
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
@@ -204,11 +199,8 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             Just sub -> pure sub
         Let a NonRec bs t -> do
             -- Process bindings, checking for fully applied functions and
-            -- put them in the substitution.
-            -- See Note [Removing inlined bindings]
-            -- Note that we don't *remove* the bindings or scope the state, so the state will carry
-            -- over into "sibling" terms. This is fine because we have global uniqueness
-            -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
+            -- put them in the substitution. We do NOT remove the inlined binding here because it
+            -- may not be dead. We leave this to the dead code pass.
             bs' <- wither (processSingleBinding t) (toList bs)
             t' <- processTerm t
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
@@ -271,12 +263,25 @@ processSingleBinding
     => Term tyname name uni fun a -- ^ The body of the let binding.
     -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
-processSingleBinding body = \case
-    -- when the let binding is a function type,
-    -- we consider whether we want to inline at the call site.
-    TermBind a s v@(VarDecl _ n (TyFun _ tyArg tyBody)) rhs -> do
-        let lamOrder = countLam rhs --TODO
-        pure Nothing
+processSingleBinding _body = \case
+    -- when the let binding is a function type, we add it to the `CalledVarEnv` and
+    -- consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
+        let nLamOrder = countLam rhs
+        -- add the function to `CalledVarEnv`
+        void $ modify' $ extendCalled n (MkCalledVarInfo rhs nLamOrder)
+        -- we don't remove the binding because we decide *at the call site* whether we want to
+        -- inline, and it may be called more than once
+        pure $ Just $ TermBind a s v rhs
+    -- when the let binding is a type lambda abstraction, we add it to the `CalledVarEnv` and
+    -- consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyLam _a _tyname _tyArg _tyBody)) rhs -> do
+        let nLamOrder = countLam rhs
+        -- add the type abstraction to `CalledVarEnv`
+        void $ modify' $ extendCalled n (MkCalledVarInfo rhs nLamOrder)
+        -- we don't remove the binding because we decide *at the call site* whether we want to
+        -- inline, and it may be called more than once
+        pure $ Just $ TermBind a s v rhs
     -- For anything else, just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
@@ -327,7 +332,7 @@ countApp = countAppInner []
         -- When we encounter a body that is a variable, we are done counting applications.
         -- Return the variable (function) name along with its applied lambdas.
         (Just name, currLamOrder)
-      countAppInner currLamOrder tm =
+      countAppInner _currLamOrder tm =
         -- TODO need to figure out example 4 in note [Inlining of fully applied functions]
         -- lam and app can cancel out with beta-reduction until we get to the variable
         (Nothing, countLam tm)
