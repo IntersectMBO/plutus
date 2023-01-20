@@ -1,9 +1,6 @@
 # ci-plutus-benchmark: Run benchmarks on 2 branches, compare the results and
 # add a comment on the corresponding PR on GitHub.
 #
-# This script is supposed to be executed by https://buildkite.com/input-output-hk/plutus-benchmark
-# which itself is triggered through the GitHub workflow ./.github/workflows/benchmark.yaml
-#
 # USAGE: 
 # In order to trigger benchmarking for an open PR, add `/benchmark` as a comment to
 # the PR. The command will be acknowledged with a :rocket: reaction and when done a bot will
