@@ -5,7 +5,8 @@ on:
 
 jobs:
   benchmark:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, plutus-benchmark]
     steps:
        #
        # Checkout the repository so that we can use scripts from it
