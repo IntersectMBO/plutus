@@ -46,16 +46,39 @@ newtype TypeEnv tyname uni a =
     TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
+
+-- | For keeping track of term lambda or type lambda of a let-binding.
+data LamKind = TermLam | TypeLam deriving stock (Eq)
+
+-- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
+type LamOrder = [LamKind]
+
+-- | A mapping of a let-binding to its unique name and its definition and `LamOrder`.
+newtype CalledVarEnv tyname name uni fun a =
+    CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun a)}
+    deriving newtype (Semigroup, Monoid)
+
+-- | Info attached to a let-binding needed for call site inlining.
+data CalledVarInfo tyname name uni fun a =
+  MkCalledVarInfo {
+    calledVarDef :: Term tyname name uni fun a -- ^ its definition
+    , lamOrder   :: LamOrder -- ^ its sequence of term and type lambdas
+  }
+
+
 -- | Substitution for both terms and types.
 -- Similar to 'Subst' in the paper, but the paper only has terms.
-data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
-                                         , _typeEnv :: TypeEnv tyname uni a
-                                         }
+data Subst tyname name uni fun a =
+    Subst { _termEnv       :: TermEnv tyname name uni fun a
+           , _typeEnv      :: TypeEnv tyname uni a
+           , _calledVarEnv :: CalledVarEnv tyname name uni fun a
+          }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun a))
 
 makeLenses ''TermEnv
 makeLenses ''TypeEnv
+makeLenses ''CalledVarEnv
 makeLenses ''Subst
 
 -- | Look up the unprocessed variable in the substitution.
@@ -85,7 +108,7 @@ lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
 -- | Check if the type substitution is empty.
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
-isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
+isTypeSubstEmpty (Subst _ (TypeEnv tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the substitution.
 extendType
@@ -96,6 +119,22 @@ extendType
     -> Subst tyname name uni fun a
 extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
+-- | Look up the called variable in the substitution.
+lookupCalled
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Maybe (CalledVarInfo tyname name uni fun a)
+lookupCalled n subst = lookupName n $ subst ^. calledVarEnv . unCalledVarEnv
+
+-- | Insert the called variable into the substitution.
+extendCalled
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> CalledVarInfo tyname name uni fun a -- ^ The called variable's info.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Subst tyname name uni fun a
+extendCalled n info subst = subst & calledVarEnv . unCalledVarEnv %~ insertByName n info
 
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique

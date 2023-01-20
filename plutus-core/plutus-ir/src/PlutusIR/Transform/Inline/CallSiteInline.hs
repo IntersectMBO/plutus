@@ -249,11 +249,20 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     considerInline ::
         Term tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    considerInline v@(Var _ n) = undefined
-    -- look up the variable in the `CalledVar` map
-    -- if it's not in there or its `LamOrder` is an empty list, don't inline.
-    -- if fullyApplied && acceptable then inline else
-    considerInline notVar =
+    considerInline v@(Var _ n) = do
+      -- look up the variable in the `CalledVar` map
+      varInfo <- gets (lookupCalled n)
+      case varInfo of
+        -- if it's not in the map, it's not a function, don't inline.
+        Nothing -> pure v
+        Just info -> do
+          let subst = calledVarDef info -- what we substitute in is its definition
+          isItAcceptable <- acceptable subst
+          -- if the size and cost are not acceptable, don't inline
+          if not isItAcceptable then pure v
+          else -- if the size and cost are acceptable, then check if it's fully applied
+            pure v --TODO
+    considerInline _notVar =
       Prelude.error "considerInline: should be a variable."
 
 -- | Run the inliner on a single non-recursive let binding.
@@ -270,24 +279,6 @@ processSingleBinding body = \case
         pure Nothing
     -- For anything else, just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
-
--- | For keeping track of term lambda or type lambda of a let-binding.
-data LamKind = TermLam | TypeLam deriving stock (Eq)
-
--- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
-type LamOrder = [LamKind]
-
--- | A mapping of a let-binding to its unique name and its definition and `LamOrder`.
-newtype CalledVar tyname name uni fun a =
-    MkCalledVar (PLC.UniqueMap PLC.TermUnique (CalledVarInfo tyname name uni fun a))
-    deriving newtype (Semigroup, Monoid)
-
--- | Info attached to a let-binding needed for call site inlining.
-data CalledVarInfo tyname name uni fun a =
-  MkCalledVarInfo {
-    def        :: Term tyname name uni fun a -- ^ its definition
-    , lamOrder :: LamOrder -- ^ its sequence of term and type lambdas
-  }
 
 -- | Counts the number of type and term lambdas in the RHS of a binding and returns an ordered list
 countLam ::
