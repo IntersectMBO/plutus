@@ -23,6 +23,9 @@
 
 set -e
 
+PR_NUMBER="$1"
+BENCHMARK_NAME="$2"
+
 if [ -z "$PR_NUMBER" ] ; then
    echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
    exit 1
