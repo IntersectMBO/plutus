@@ -78,7 +78,6 @@ import Control.Monad.Catch
 import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
-import Data.Array hiding (index)
 import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
@@ -602,7 +601,7 @@ evalBuiltinApp fun term runtime = case runtime of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (Ix fun, PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> Term NamedDeBruijn uni fun ann
@@ -647,8 +646,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !unbudgetedSteps !ctx !_ (Builtin _ bn) = do
         !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
-        meaning <- lookupBuiltin bn ?cekRuntime
-        -- The term is a 'Builtin', so it's fully discharged.
+        let meaning = lookupBuiltin bn ?cekRuntime
+        -- 'Builtin' is fully discharged.
         returnCek unbudgetedSteps' ctx (VBuiltin bn (Builtin () bn) meaning)
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
@@ -774,7 +773,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: (Ix fun, PrettyUni uni fun)
+    :: PrettyUni uni fun
     => MachineParameters CekMachineCosts CekValue uni fun ann
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
