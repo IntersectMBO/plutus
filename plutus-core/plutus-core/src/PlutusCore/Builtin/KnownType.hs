@@ -45,7 +45,7 @@ import Data.DList (DList)
 import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (inline)
 import GHC.TypeLits
 import Universe
 
@@ -345,7 +345,7 @@ liftReadKnownM (Right x)  = MakeKnownSuccess x
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 -- Note [Performance of ReadKnownIn and MakeKnownIn instances]
-readKnownConstant val = asConstant val >>= oneShot \case
+readKnownConstant val = asConstant val >>= \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a
         -- 'geq' matches on its first argument first, so we make the type tag that will be known

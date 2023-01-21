@@ -49,7 +49,7 @@ import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Word
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (inline)
 import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Fixity
@@ -331,7 +331,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
-        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+        inline readKnownConstant term >>= \(i :: Integer) ->
             -- We don't make use here of `toIntegralSized` because of performance considerations,
             -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
             -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
@@ -364,7 +364,7 @@ instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word8 wher
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 where
     readKnown term =
-        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+        inline readKnownConstant term >>= \(i :: Integer) ->
            case toIntegralSized i of
                Just w8 -> pure w8
                _       -> throwing_ _EvaluationFailure
