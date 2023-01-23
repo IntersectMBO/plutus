@@ -17,7 +17,7 @@ jobs:
        # Check for '/benchmark' comments on a PR
        #
        # We need a custom fork that uses node16 in order work around https://github.com/NixOS/nixpkgs/issues/189104
-      - uses: zeme-iohk/pull-request-comment-trigger
+      - uses: zeme-iohk/pull-request-comment-trigger@v1.1.0
         id: find-comment
         with:
           trigger: '/benchmark'
