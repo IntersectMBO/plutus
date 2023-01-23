@@ -131,7 +131,7 @@ inline hints t = let
 Some examples will help:
 [(\x . t) a] -> Just ([(x, a)], t)
 
-[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([(x, a), (y, b), (z, c)]) t)
+[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([(x, a), (y, b), (z, c)]), t)
 
 [[(\x . t) a] b] -> Nothing
 -}
