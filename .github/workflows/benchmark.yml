@@ -7,9 +7,9 @@ jobs:
   benchmark:
     runs-on: [self-hosted, plutus-benchmark]
     steps:
-       #
-       # Checkout the repository so that we can use scripts from it
-       #
+      #
+      # Checkout the repository so that we can use scripts from it
+      #
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
