@@ -7,16 +7,16 @@ jobs:
   benchmark:
     runs-on: [self-hosted, plutus-benchmark]
     steps:
-       #
-       # Checkout the repository so that we can use scripts from it
-       #
+      #
+      # Checkout the repository so that we can use scripts from it
+      #
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
-       #
-       # Check for '/benchmark' comments on a PR
-       #
-      - uses: khan/pull-request-comment-trigger@v1.1.0
+      #
+      # We need a custom fork that uses node16 in order to work around 
+      # https://github.com/NixOS/nixpkgs/issues/189104
+      - uses: zeme-iohk/pull-request-comment-trigger@v1.1.0
         id: find-comment
         with:
           trigger: '/benchmark'
