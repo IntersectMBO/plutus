@@ -12,7 +12,12 @@ jobs:
        #
       - name: Checkout
         uses: actions/checkout@v3 
+        working-directory: /run/github-runner/plutus-benchmark/plutus/plutus
 
+      - run: | 
+          pwd 
+          ls -la
+           
        #
        # Check for '/benchmark' comments on a PR
        #
