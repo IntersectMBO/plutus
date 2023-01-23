@@ -16,8 +16,8 @@ jobs:
        #
        # Check for '/benchmark' comments on a PR
        #
-       # Pinning a particular commit to avoid https://github.com/Khan/pull-request-comment-trigger/issues/22
-      - uses: khan/pull-request-comment-trigger@edab8d9ba7759221187ef7120592a6fbfada0d18
+       # We need a custom fork that uses node16 in order work around https://github.com/NixOS/nixpkgs/issues/189104
+      - uses: zeme-iohk/pull-request-comment-trigger
         id: find-comment
         with:
           trigger: '/benchmark'
