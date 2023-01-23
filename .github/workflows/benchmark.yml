@@ -11,13 +11,12 @@ jobs:
        # Checkout the repository so that we can use scripts from it
        #
       - name: Checkout
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v3.3.0
 
        #
        # Check for '/benchmark' comments on a PR
        #
-       # Pinning a particular commit to avoid https://github.com/Khan/pull-request-comment-trigger/issues/22
-      - uses: khan/pull-request-comment-trigger@edab8d9ba7759221187ef7120592a6fbfada0d18
+      - uses: khan/pull-request-comment-trigger@v1.1.0
         id: find-comment
         with:
           trigger: '/benchmark'
