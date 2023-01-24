@@ -42,6 +42,7 @@ jobs:
           text: ${{ github.event.comment.body }}
           regex: '^\/benchmark\s*(.*?)\s*$'
 
+
       #
       # Run the benchmark if the 'benchmark' command was found
       #
