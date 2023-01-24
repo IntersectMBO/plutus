@@ -6,38 +6,34 @@ on:
 jobs:
   benchmark:
     runs-on: [self-hosted, plutus-benchmark]
+    
+    permissions:
+      pull-requests: write
+  
+    if: | 
+      startsWith(github.event.comment.body, '/benchmark') && 
+      github.event.issue.pull_request 
+
     steps:
-      #
-      # Checkout the repository so that we can use scripts from it
-      #
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
-      #
-      # We need a custom fork that uses node16 in order to work around 
-      # https://github.com/NixOS/nixpkgs/issues/189104
-      - uses: zeme-iohk/pull-request-comment-trigger@v1.1.0
-        id: find-comment
+      - name: React with Rocket 
+        uses: actions/github-script@v6
         with:
-          trigger: '/benchmark'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-
-      #
-      # Extract the branch of that the PR the comment was added to belongs to
-      #
-      - uses: xt0rted/pull-request-comment-branch@v1
-        if: steps.find-comment.outputs.triggered == 'true'
-        id: extract-branch
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.reactions.createForIssueComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              comment_id: context.payload.comment.id,
+              content: "rocket"
+            });  
 
       #
       # Extract the benchmark name from the comment text
       #
       - uses: actions-ecosystem/action-regex-match@v2
-        if: steps.find-comment.outputs.triggered == 'true'
+        if: success()
         id: extract-benchmark
         with:
           # The 'pull-request-comment-trigger` action alleges that you 
@@ -51,4 +47,4 @@ jobs:
       #
       - run: |
          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.group1 }}
-        if: steps.find-comment.outputs.triggered == 'true' && steps.extract-benchmark.outputs.match != ''
+        if: success()
