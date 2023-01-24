@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase   #-}
 {-# LANGUAGE ViewPatterns #-}
 {-|
@@ -20,7 +19,8 @@ Consider two examples where applying beta should be helpful.
 2: [[(\x . (\y . t)) a] b]
 
 (1) is the typical "let-binding" pattern: each binding corresponds to an immediately-applied lambda.
-(2) is the typical "function application" pattern: a multi-argument function applied to multiple arguments.
+(2) is the typical "function application" pattern: a multi-argument function applied to multiple
+arguments.
 
 In both cases we would like to produce something like
 
@@ -45,14 +45,18 @@ to look for immediately-applied lambda abstractions then we will get the followi
   [(let x = a in (\y . t)) b]
 
 Now, if we later lift the let out, then we will be able to see that we can transform (2) further.
-But that means that a) we'd have to do the expensive let-floating pass in every iteration of the simplifier, and
+But that means that
+a) we'd have to do the expensive let-floating pass in every iteration of the
+simplifier, and
 b) we can only inline one function argument per iteration of the  simplifier, so for a function of
 arity N we *must* do at least N passes.
 
-This isn't great, so the solution is to recognize case (2) properly and handle all the arguments in one go.
-That will also match cases like (1) just fine, since it's just made up of unary function applications.
+This isn't great, so the solution is to recognize case (2) properly and handle all the arguments in
+one go. That will also match cases like (1) just fine, since it's just made up of unary function
+applications.
 
-That does mean that we need to do a manual traversal rather than doing standard bottom-up processing.
+That does mean that we need to do a manual traversal rather than doing standard bottom-up
+processing.
 
 Note that multi-beta cannot be used on TypeBinds. For instance, it is unsound to turn
 
@@ -76,12 +80,15 @@ Some examples will help:
 
 [[(\x . t) a] b] -> Nothing
 -}
-extractBindings :: Term tyname name uni fun a -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
+extractBindings ::
+  Term tyname name uni fun a
+  -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
 extractBindings = collectArgs []
   where
       collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
       collectArgs argStack t               = matchArgs argStack [] t
-      matchArgs (arg:rest) acc (LamAbs a n ty body) = matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
+      matchArgs (arg:rest) acc (LamAbs a n ty body) =
+        matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
       matchArgs []         acc t                    =
           case NE.nonEmpty (reverse acc) of
               Nothing   -> Nothing
