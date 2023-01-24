@@ -1,0 +1,31 @@
+name: HLint
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - synchronize
+jobs:
+  hlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: haskell/actions/hlint-setup@v2
+        with:
+          version: '3.4'
+      - uses: nixbuild/nix-quick-install-action@v21 
+        with: 
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true 
+      - name: Build HLint
+        run: nix build .#hlint  
+      - name: Run HLint 
+        uses: haskell/actions/hlint-run@v1
+        with:
+          hlint-bin: "./result/bin/hlint --hint=./.github/.hlint.yaml"
+          fail-on: status
+          path: .
+
