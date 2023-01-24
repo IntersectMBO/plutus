@@ -1,22 +1,21 @@
-# ci-plutus-benchmark: Run benchmarks on 2 branches, compare the results and
-# add a comment on the corresponding PR on GitHub.
+# This script runs the given benchmark and compares the results against origin/master.
 #
 # USAGE: 
-# In order to trigger benchmarking for an open PR, add `/benchmark` as a comment to
+# In order to trigger benchmarking for an open PR, post a comment like `/benchmark NAME` to
 # the PR. The command will be acknowledged with a :rocket: reaction and when done a bot will
-# add the results as comment to the same PR.
+# publish the results to the same PR.
+# 
+# This script can also be run locally inside the nix shell like so: 
+# `./scripts/ci-plutus-benchmark.sh PR_NUMBER BENCHMARK_NAME`
+# Note that PR_NUMBER can be anything, it's only relevant when triggering benchmarking from a PR.
+# For example: `./scripts/ci-plutus-benchmark.sh unused nofib`
 #
 # NOTES:
-# (1) In order to post a comment to GitHub the buildkite runner needs to provide a
-#     GitHub token with permissions to add comments in '/run/keys/buildkite-github-token'
-#     otherwise this will fail.
-# (2) The `cabal update` command below is neccessary because while the whole script
-#     is executed inside a nix-shell, this environment does not provide the hackage
-#     record inside .cabal and we have to fetch/build this each time since we want
-#     to run this in a clean environment.
-# (3) The `jq` invocation below is necessary because we have to POST the PR comment
-#     as JSON data (see the curl command) meaning the script output has to be escaped
-#     first before we can insert it.
+# The `cabal update` command below is neccessary because while the whole script is executed inside
+# a nix shell, this environment does not provide the hackage record inside .cabal and we have to 
+# fetch/build this each time since we want to run this in a clean environment.
+# The `jq` invocation below is necessary because we have to POST the PR comment as JSON data 
+# (see the curl command) meaning the script output has to be escaped first before we can insert it.
 
 set -e
 
@@ -51,7 +50,6 @@ echo "[ci-plutus-benchmark]: Switching branches ..."
 git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
-
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
@@ -78,4 +76,9 @@ echo -e "</details>"
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
-curl -s -H "Authorization: token $(</run/keys/buildkite-github-token)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+if [ -v GITHUB_TOKEN ] ; then
+   echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
+   curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+else
+   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
+fi
