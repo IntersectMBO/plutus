@@ -35,7 +35,9 @@ echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BEN
 PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
+echo what 
 who
+echo waht 
 cabal update
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
