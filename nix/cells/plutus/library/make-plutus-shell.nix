@@ -138,6 +138,7 @@ inputs.std.lib.dev.mkShell {
     pkgs.yq
     pkgs.gnused
     pkgs.awscli2
+    pkgs.act
     pkgs.bzip2
 
     # Needed to make building things work, not for commands
