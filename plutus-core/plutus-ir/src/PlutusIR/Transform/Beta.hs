@@ -13,14 +13,6 @@ import PlutusIR
 import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
 
-{- Note [Beta for types]
-We can do beta on type abstractions too, turning them into type-lets. We don't do that because
-a) It can lead to us inlining types too much, which can slow down compilation a lot.
-b) It's currently unsound: https://input-output.atlassian.net/browse/SCP-2570.
-
-We should fix both of these in due course, though.
--}
-
 {- Note [Multi-beta]
 Consider two examples where applying beta should be helpful.
 
@@ -61,19 +53,6 @@ This isn't great, so the solution is to recognize case (2) properly and handle a
 That will also match cases like (1) just fine, since it's just made up of unary function applications.
 
 That does mean that we need to do a manual traversal rather than doing standard bottom-up processing.
--}
-
-{-| Extract the list of bindings from a term, a bit like a "multi-beta" reduction.
-
-Some examples will help:
-
-[(\x . t) a] -> Just ([x |-> a], t)
-
-[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([x |-> a, y |-> b, z |-> c]) t)
-
-[[(\x . t) a] b] -> Nothing
-
-When we decide that we want to do beta for types, we will need to extend this to handle type instantiations too.
 
 Note that multi-beta cannot be used on TypeBinds. For instance, it is unsound to turn
 
@@ -85,6 +64,17 @@ let a = x in let b = y in t
 
 because in order to check that `b` and `y` have the same type, we need to know that `a = x`,
 but we don't - type-lets are opaque inside their bodies.
+-}
+
+{-| Extract the list of bindings from a term, a bit like a "multi-beta" reduction.
+
+Some examples will help:
+
+[(\x . t) a] -> Just ([x |-> a], t)
+
+[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([x |-> a, y |-> b, z |-> c]) t)
+
+[[(\x . t) a] b] -> Nothing
 -}
 extractBindings :: Term tyname name uni fun a -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
 extractBindings = collectArgs []
