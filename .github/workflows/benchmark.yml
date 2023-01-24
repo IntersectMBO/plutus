@@ -5,8 +5,7 @@ on:
 
 jobs:
   benchmark:
-    runs-on: ubuntu-latest
-    # runs-on: [self-hosted, plutus-benchmark]
+    runs-on: [self-hosted, plutus-benchmark]
     
     permissions:
       pull-requests: write
