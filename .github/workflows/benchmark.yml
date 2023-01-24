@@ -29,22 +29,22 @@ jobs:
               content: "rocket"
             });  
 
-      #
-      # Extract the benchmark name from the comment text
-      #
-      - uses: actions-ecosystem/action-regex-match@v2
-        if: success()
+      - name: Extract Benchmark Name
         id: extract-benchmark
+        uses: actions/github-script@v6
         with:
-          # The 'pull-request-comment-trigger` action alleges that you 
-          # can get the matched comment via its comment_body output, but
-          # this is a lie: https://github.com/Khan/pull-request-comment-trigger/issues/6
-          text: ${{ github.event.comment.body }}
-          regex: '^\/benchmark\s*(.*?)\s*$'
+          script: |
+            const regex = '^\/benchmark\s*(.*?)\s*$';
+            const comment = context.payload.comment.body;
+            const match = comment.match(regex)
+            if (match !== null && match.length == 2)
+              core.setOutput('benchmark', match[1]);
+            else
+              core.setFailed(`Unable to extract benchmark name from {comment}`);
 
       #
       # Run the benchmark if the 'benchmark' command was found
       #
       - run: |
-         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.group1 }}
+         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.benchmark }}
         if: success()
