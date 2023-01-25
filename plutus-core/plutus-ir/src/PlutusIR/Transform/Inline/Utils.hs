@@ -26,6 +26,7 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
 
+import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 
@@ -168,6 +169,32 @@ makeLenses ''InlineInfo
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun a =
     ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
+
+{-| Extract the list of bindings from a term, a bit like a "multi-beta" reduction.
+
+Some examples will help:
+
+[(\x . t) a] -> Just ([x |-> a], t)
+
+[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([x |-> a, y |-> b, z |-> c]) t)
+
+[[(\x . t) a] b] -> Nothing
+-}
+extractBindings ::
+  Term tyname name uni fun a
+  -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
+extractBindings = collectArgs []
+  where
+      collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
+      collectArgs argStack t               = matchArgs argStack [] t
+      matchArgs (arg:rest) acc (LamAbs a n ty body) =
+        matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
+      matchArgs []         acc t                    =
+          case NE.nonEmpty (reverse acc) of
+              Nothing   -> Nothing
+              Just acc' -> Just (acc', t)
+      matchArgs (_:_)      _   _                    = Nothing
+
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
