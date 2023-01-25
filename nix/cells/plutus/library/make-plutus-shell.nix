@@ -140,6 +140,7 @@ inputs.std.lib.dev.mkShell {
     pkgs.awscli2
     pkgs.act
     pkgs.bzip2
+    pkgs.gawk
 
     # Needed to make building things work, not for commands
     pkgs.zlib
