@@ -19,6 +19,7 @@
 
 set -e
 
+
 PR_NUMBER="$1"
 BENCHMARK_NAME="$2"
 
