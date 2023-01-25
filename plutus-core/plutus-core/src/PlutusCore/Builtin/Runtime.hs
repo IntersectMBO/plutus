@@ -4,14 +4,12 @@
 
 module PlutusCore.Builtin.Runtime where
 
+import PlutusPrelude
+
 import PlutusCore.Builtin.KnownType
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.Exception
 
 import Control.DeepSeq
-import Control.Lens (ix, (^?))
-import Control.Monad.Except
-import Data.Array
 import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application.
@@ -55,25 +53,33 @@ instance NFData (BuiltinRuntime val) where
     -- this to WHNF to get it forced to NF.
     rnf = rwhnf
 
--- | A 'BuiltinRuntime' for each builtin from a set of builtins. Just an 'Array' of cached
--- 'BuiltinRuntime's. We could instantiate 'BuiltinMeaning' on the fly and avoid caching
--- 'BuiltinRuntime' in an array, but we've tried it and it was much slower as we do rely on caching
--- (especially for costing).
-newtype BuiltinsRuntime fun val = BuiltinsRuntime
-    { unBuiltinRuntime :: Array fun (BuiltinRuntime val)
+-- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.
+-- We use @data@ rather than @newtype@, because GHC is able to see through @newtype@s and may break
+-- carefully set up optimizations, see
+-- https://github.com/input-output-hk/plutus/pull/4914#issuecomment-1396306606
+--
+-- Using @data@ may make things more expensive, however it was verified at the time of writing that
+-- the wrapper is removed before the CEK machine starts, leaving the stored function to be used
+-- directly.
+--
+-- In order for lookups to be efficient the 'BuiltinRuntime's need to be cached, i.e. pulled out
+-- of the function statically. See 'makeBuiltinMeaning' for how we achieve that.
+data BuiltinsRuntime fun val = BuiltinsRuntime
+    { unBuiltinsRuntime :: fun -> BuiltinRuntime val
     }
 
-deriving newtype instance (NFData fun) => NFData (BuiltinsRuntime fun val)
+instance (Bounded fun, Enum fun) => NFData (BuiltinsRuntime fun val) where
+    -- Force every 'BuiltinRuntime' stored in the environment.
+    rnf (BuiltinsRuntime env) = foldr (\fun res -> env fun `seq` res) () enumerate
 
-instance NoThunks (BuiltinsRuntime fun val) where
-    wNoThunks ctx (BuiltinsRuntime arr) = allNoThunks (noThunks ctx <$> elems arr)
+instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
+    -- Ensure that every 'BuiltinRuntime' doesn't contain thunks after forcing it initially
+    -- (we can't avoid the initial forcing, because we can't lookup the 'BuiltinRuntime' without
+    -- forcing it, see https://stackoverflow.com/q/63441862).
+    wNoThunks ctx (BuiltinsRuntime env) = allNoThunks $ map (wNoThunks ctx . env) enumerate
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
 
 -- | Look up the runtime info of a built-in function during evaluation.
-lookupBuiltin
-    :: (MonadError (ErrorWithCause err cause) m, AsMachineError err fun, Ix fun)
-    => fun -> BuiltinsRuntime fun val -> m (BuiltinRuntime val)
--- @Data.Array@ doesn't seem to have a safe version of @(!)@, hence we use a prism.
-lookupBuiltin fun (BuiltinsRuntime env) = case env ^? ix fun of
-    Nothing      -> throwingWithCause _MachineError (UnknownBuiltin fun) Nothing
-    Just runtime -> pure runtime
+lookupBuiltin :: fun -> BuiltinsRuntime fun val -> BuiltinRuntime val
+lookupBuiltin fun (BuiltinsRuntime env) = env fun
+{-# INLINE lookupBuiltin #-}

@@ -40,7 +40,6 @@ import PlutusCore.Subst
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
-import Data.Array
 import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.STRef
@@ -169,8 +168,7 @@ runCkM runtime emitting a = runST $ do
 -- > s ▷ con cn     ↦ s ◁ con cn
 -- > s ▷ error A    ↦ ◆
 (|>)
-    :: Ix fun
-    => Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
+    :: Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
 stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
 stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
@@ -178,7 +176,7 @@ stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
 stack |> LamAbs  _ name ty body  = stack <| VLamAbs name ty body
 stack |> Builtin _ bn            = do
-    runtime <- asksM $ lookupBuiltin bn . ckEnvRuntime
+    runtime <- lookupBuiltin bn . ckEnvRuntime <$> ask
     stack <| VBuiltin (Builtin () bn) runtime
 stack |> Constant _ val          = stack <| VCon val
 _     |> Error{}                 =
@@ -199,8 +197,7 @@ _     |> var@Var{}               =
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
 (<|)
-    :: Ix fun
-    => Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
+    :: Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
@@ -217,8 +214,7 @@ FrameUnwrap        : stack <| wrapped = case wrapped of
 -- 'TyInst' on top of its 'Term' representation depending on whether the application is saturated or
 -- not. In any other case, fail.
 instantiateEvaluate
-    :: Ix fun
-    => Context uni fun
+    :: Context uni fun
     -> Type TyName uni ()
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
@@ -244,8 +240,7 @@ instantiateEvaluate _ _ val =
 -- and either calculate the builtin application or stick a 'Apply' on top of its 'Term'
 -- representation depending on whether the application is saturated or not.
 applyEvaluate
-    :: Ix fun
-    => Context uni fun
+    :: Context uni fun
     -> CkValue uni fun
     -> CkValue uni fun
     -> CkM uni fun s (Term TyName Name uni fun ())
@@ -266,8 +261,7 @@ applyEvaluate _ val _ =
     throwingWithCause _MachineError NonFunctionalApplicationMachineError $ Just $ ckValueToTerm val
 
 runCk
-    :: Ix fun
-    => BuiltinsRuntime fun (CkValue uni fun)
+    :: BuiltinsRuntime fun (CkValue uni fun)
     -> Bool
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
@@ -275,16 +269,14 @@ runCk runtime emitting term = runCkM runtime emitting $ [] |> term
 
 -- | Evaluate a term using the CK machine with logging enabled.
 evaluateCk
-    :: Ix fun
-    => BuiltinsRuntime fun (CkValue uni fun)
+    :: BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> (Either (CkEvaluationException uni fun) (Term TyName Name uni fun ()), [Text])
 evaluateCk runtime = runCk runtime True
 
 -- | Evaluate a term using the CK machine with logging disabled.
 evaluateCkNoEmit
-    :: Ix fun
-    => BuiltinsRuntime fun (CkValue uni fun)
+    :: BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) (Term TyName Name uni fun ())
 evaluateCkNoEmit runtime = fst . runCk runtime False
@@ -293,7 +285,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 unsafeEvaluateCk
     :: ( Pretty (SomeTypeIn uni), Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun, Ix fun
+       , Pretty fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
@@ -304,7 +296,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 unsafeEvaluateCkNoEmit
     :: ( Pretty (SomeTypeIn uni), Closed uni
        , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun, Ix fun
+       , Pretty fun
        )
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
@@ -313,7 +305,7 @@ unsafeEvaluateCkNoEmit runtime = unsafeExtractEvaluationResult . evaluateCkNoEmi
 
 -- | Unlift a value using the CK machine.
 readKnownCk
-    :: (Ix fun, ReadKnown (Term TyName Name uni fun ()) a)
+    :: ReadKnown (Term TyName Name uni fun ()) a
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> Either (CkEvaluationException uni fun) a

@@ -46,7 +46,9 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
+appTerm = do
+    pos <- getSourcePos
+    inBrackets $ mkIterApp <$> pure pos <*> term <*> some term
 
 delayTerm :: Parser PTerm
 delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term

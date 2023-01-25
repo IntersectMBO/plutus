@@ -69,9 +69,9 @@ The expected output may contain:
 
 The input files are expected to have the concrete syntax. The expected output will show "parse error" when the parser fails to parse the input file.
 
-#### "evaluation error"
+#### "evaluation failure"
 
-If evaluation fails with an error, the expected output will show "evaluation error".
+If evaluation fails with an error, the expected output will show "evaluation failure".
 
 #### An untyped plutus core program
 

@@ -32,6 +32,8 @@
 
   plutus-core-spec = import ./plutus-core-spec.nix block;
 
+  plutus-core-spec-old = import ./plutus-core-spec-old.nix block;
+
   multi-currency-notes = import ./multi-currency-notes.nix block;
 
   extended-utxo-spec = import ./extended-utxo-spec.nix block;

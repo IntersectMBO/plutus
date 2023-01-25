@@ -94,10 +94,14 @@ letTerm
 letTerm = Let <$> wordPos "let" <*> recursivity <*> NE.some (try binding) <*> pTerm
 
 appTerm :: Parametric
-appTerm tm = inBrackets $ PIR.mkIterApp <$> getSourcePos <*> tm <*> some tm
+appTerm tm = do
+    pos <- getSourcePos
+    inBrackets $ PIR.mkIterApp <$> pure pos <*> tm <*> some tm
 
 tyInstTerm :: Parametric
-tyInstTerm tm = inBraces $ PIR.mkIterInst <$> getSourcePos <*> tm <*> some pType
+tyInstTerm tm = do
+    pos <- getSourcePos
+    inBraces $ PIR.mkIterInst <$> pure pos <*> tm <*> some pType
 
 term' :: Parametric
 term' other = choice $ map try [
