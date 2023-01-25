@@ -19,7 +19,6 @@
 
 set -e
 
-
 PR_NUMBER="$1"
 BENCHMARK_NAME="$2"
 
@@ -39,7 +38,7 @@ echo "[ci-plutus-benchmark]: Running as user:"
 whoami 
 
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-cabal update -v
+cabal update
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
