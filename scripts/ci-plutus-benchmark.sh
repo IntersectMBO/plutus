@@ -32,35 +32,35 @@ if [ -z "$BENCHMARK_NAME" ] ; then
    exit 1
 fi
 
-echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
-PR_BRANCH_REF=$(git rev-parse --short HEAD)
+# echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
+# PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
-echo "[ci-plutus-benchmark]: Running as user:"
-whoami 
+# echo "[ci-plutus-benchmark]: Running as user:"
+# whoami 
 
-echo "[ci-plutus-benchmark]: Updating cabal database ..."
-cabal update
+# echo "[ci-plutus-benchmark]: Updating cabal database ..."
+# cabal update
 
-echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
-cabal clean
+# echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
+# cabal clean
 
-echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
-cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
+# echo "[ci-plutus-benchmark]: Running benchmark for PR branch ..."
+# cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
-echo "[ci-plutus-benchmark]: fetching origin ..."
-git fetch origin
+# echo "[ci-plutus-benchmark]: fetching origin ..."
+# git fetch origin
 
-echo "[ci-plutus-benchmark]: Switching branches ..."
-git checkout "$(git merge-base HEAD origin/master)"
-BASE_BRANCH_REF=$(git rev-parse --short HEAD)
+# echo "[ci-plutus-benchmark]: Switching branches ..."
+# git checkout "$(git merge-base HEAD origin/master)"
+# BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
-echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
-cabal clean
+# echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
+# cabal clean
 
-echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
-cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
-
-git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
+# echo "[ci-plutus-benchmark]: Running benchmark for base branch ..."
+# cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
+touch bench-base.log
+# git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
@@ -79,7 +79,7 @@ echo -e "</details>"
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
-if [ -v GITHUB_TOKEN ] ; then
+if [ -v $GITHUB_TOKEN ] ; then
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
    curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
 else
