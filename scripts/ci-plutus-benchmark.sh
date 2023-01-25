@@ -79,7 +79,7 @@ echo -e "</details>"
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
 if [ -z "$GITHUB_TOKEN" ] ; then
-   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
+   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set: not posting results to GitHub"
 else
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
    curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
