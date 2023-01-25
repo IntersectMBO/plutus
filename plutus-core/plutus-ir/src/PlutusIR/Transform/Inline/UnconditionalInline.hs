@@ -175,14 +175,6 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
             -- actually have got rid of all of them!
             pure $ mkLet a NonRec bs' t'
-        -- We cannot currently soundly do beta for types (see SCP-2570), so we just recognize
-        -- immediately instantiated type abstractions here directly.
-        (TyInst a (TyAbs a' tn k t) rhs) -> do
-            b' <- maybeAddTySubst tn rhs
-            t' <- processTerm t
-            case b' of
-                Just rhs' -> pure $ TyInst a (TyAbs a' tn k t') rhs'
-                Nothing   -> pure t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> forMOf termSubterms t processTerm
     applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
