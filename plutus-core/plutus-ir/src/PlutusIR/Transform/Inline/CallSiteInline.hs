@@ -3,7 +3,6 @@
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE ViewPatterns     #-}
 
 {-|
 Call site inlining machinery. For now there's only one part: inlining of fully applied functions.
@@ -17,19 +16,15 @@ import Algebra.Graph qualified as G
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Map qualified as Map
+import Data.Map.Strict qualified as Map
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.InlineUtils
 import PlutusCore.Name qualified as PLC
 import PlutusCore.Quote
-import PlutusCore.Rename
-import PlutusCore.Subst
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Core
-import PlutusIR.MkPir
 import PlutusIR.Transform.Inline.Utils
-import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 import Witherable (Witherable (wither))
 
@@ -164,7 +159,7 @@ We may want to check their sizes instead of just rejecting them.
 -- Preserves global uniqueness. See Note [Inlining a lambda abstraction].
 callSiteInline
     :: forall tyname name uni fun a m
-    . ExternalConstraints tyname name uni fun m
+    . (ExternalConstraints tyname name uni fun m, Eq a, Ord name, Witherable NonEmpty)
     => InlineHints name a
     -> PLC.BuiltinVersion fun
     -> Term tyname name uni fun a
@@ -181,72 +176,32 @@ callSiteInline hints ver t = let
 
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    :: forall tyname name uni fun a. (InliningConstraints tyname name uni fun, Eq a, Ord name,
+       Witherable NonEmpty)
     => Term tyname name uni fun a -- ^ Term to be processed.
     -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
-    handleTerm ::
-        Term tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    handleTerm = \case
-        -- See section 7.1 of the paper.
-        -- When we encounter a variable, look it up in the substitution.
-        v@(Var _ n) -> do
-          substitution <- substName n
-          case substitution of
-            -- if it's not in the substitution, consider inlining it.
-            Nothing  -> considerInline v
-            -- otherwise, inline it as per the substitution map.
-            Just sub -> pure sub
-        Let a NonRec bs t -> do
-            -- Process bindings, checking for fully applied functions and
-            -- put them in the substitution. We do NOT remove the inlined binding here because it
-            -- may not be dead. We leave this to the dead code pass.
-            bs' <- wither (processSingleBinding t) (toList bs)
-            t' <- processTerm t
-            -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
-            -- actually have got rid of all of them!
-            pure $ mkLet a NonRec bs' t'
-        -- We cannot currently soundly do beta for types (see SCP-2570), so we just recognize
-        -- immediately instantiated type abstractions here directly.
-        (extractApps -> Just (bs, t)) -> do
-            bs' <- wither (processSingleBinding t) bs
-            t' <- processTerm t
-            pure $ restoreApps bs' t'
-        (TyInst a (TyAbs a' tn k t) rhs) -> do
-            b' <- maybeAddTySubst tn rhs
-            t' <- processTerm t
-            case b' of
-                Just rhs' -> pure $ TyInst a (TyAbs a' tn k t') rhs'
-                Nothing   -> pure t'
-        -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> forMOf termSubterms t processTerm
-    applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
-    applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
-        -- The type substitution is very often empty, and there are lots of types in the program,
-        -- so this saves a lot of work (determined from profiling)
-        True -> pure t
-        _    -> typeSubstTyNamesM substTyName t
-    -- See Note [Renaming strategy]
-    substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
-    -- See Note [Renaming strategy]
-    substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-    substName name = gets (lookupTerm name) >>= traverse renameTerm
-    -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-    -- Already processed term, just rename and put it in, don't do any further optimization here.
-    renameTerm ::
-        InlineTerm tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    renameTerm (Done t) = liftDupable t
+processTerm = \case
+    -- When we encounter a variable, consider inlining it.
+    v@(Var _a _n) -> do
+      considerInline v
+    Let a NonRec bs t -> do
+        -- Process let bindings, checking for fully applied functions and
+        -- put them in the substitution. We do NOT remove the inlined binding here because it
+        -- may not be dead. We leave this to the dead code pass.
+        bs' <- wither (processSingleBinding t) bs
+        t' <- processTerm t
+        pure $ Let a NonRec bs' t' -- we're not removing any bindings so it should be nonempty!
+    -- This includes recursive let terms, we don't even consider inlining them at the moment
+    t -> forMOf termSubterms t processTerm
     -- | See note [Inlining of fully applied functions].
     -- Consider inlining the variable that is NOT in the substitution by checking
     -- (1) Is it fully applied?
     -- (2) Are the cost and size acceptable?
+    where
     considerInline ::
-        Term tyname name uni fun a
+        Term tyname name uni fun a -- the variable that is a function
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    considerInline v@(Var _ n) = do
+    considerInline v@(Var a n) = do
       -- look up the variable in the `CalledVar` map
       varInfo <- gets (lookupCalled n)
       case varInfo of
@@ -254,148 +209,125 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         Nothing -> pure v
         Just info -> do
           let subst = calledVarDef info -- what we substitute in is its definition
-          isItAcceptable <- acceptable subst
+          isAcceptable <- acceptable subst
           -- if the size and cost are not acceptable, don't inline
-          if not isItAcceptable then pure v
-          else -- if the size and cost are acceptable, then check if it's fully applied
-            pure v --TODO
-    considerInline _notVar =
-      Prelude.error "considerInline: should be a variable."
-
-{-| Extract the list of applications from a term, a bit like a "multi-beta" reduction.
-
-Some examples will help:
-[(\x . t) a] -> Just ([(x, a)], t)
-
-[[[(\x . (\y . (\z . t))) a] b] c] -> Just ([(x, a), (y, b), (z, c)]), t)
-
-[[(\x . t) a] b] -> Nothing
--}
-extractApps ::
-  Term tyname name uni fun a
-  -> Maybe ([Binding tyname name uni fun a], Term tyname name uni fun a)
-extractApps = collectArgs []
-  where
-      collectArgs ::  [Term tyname name uni fun a]
-        -> Term tyname name uni fun a
-        -> Maybe
-            ([Binding tyname name uni fun a], Term tyname name uni fun a)
-      collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
-      -- collectArgs argStack ()
-      collectArgs argStack t               = matchArgs argStack [] t
-      matchArgs :: [Term tyname name uni fun a]
-                   -> [Binding tyname name uni fun a]
-                   -> Term tyname name uni fun a
-                   -> Maybe
-                        ([Binding tyname name uni fun a], Term tyname name uni fun a)
-      matchArgs (arg:rest) acc (LamAbs a n ty body) =
-        -- variables are non-strict by default
-        matchArgs rest (TermBind a NonStrict (VarDecl a n ty) arg:acc) body
-      matchArgs []         acc t                 =
-        if null acc then Nothing else Just (reverse acc, t)
-      matchArgs (_:_)      _   _                 = Nothing
-
--- | The inverse of 'extractApps'.
-restoreApps ::
-  [Binding tyname name uni fun a]
-  -> Term tyname name uni fun a
-  -> Term tyname name uni fun a
-restoreApps defs t = makeLams [] t (reverse defs)
-  where
-      makeLams :: [Term tyname name uni fun a]
-        -> Term tyname name uni fun a
-        -> [Binding tyname name uni fun a]
-        -> Term tyname name uni fun a
-      makeLams args acc (TermBind a NonStrict (VarDecl _a n ty) rhs:rest) =
-        makeLams (rhs:args) (LamAbs a n ty acc) rest
-      -- makeLams args acc (TypeBind a (TyDecl tyn _ kinda) rhs:rest) =
-      --   makeLams
-      -- makeLams args acc (DataBind a (VarDecl _a n ty) rhs:rest) =
-      makeLams args acc []                            = makeApps args acc
-      -- This isn't the best annotation, but it will do
-      makeApps (arg:args) acc = makeApps args (Apply (termAnn acc) acc arg)
-      makeApps [] acc         = acc
-
+          if not isAcceptable then pure v
+          else do -- if the size and cost are acceptable, then check if it's fully applied
+            -- it's fully applied if its annotation (`a`) is in the list of fully applied called
+            -- locations
+            pure $ if a `elem` calledLocation info then subst else v
+    considerInline _notVar = -- this should not happen
+      Prelude.error  "considerInline: should be a variable."
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+    :: forall tyname name uni fun a. (InliningConstraints tyname name uni fun, Eq a, Ord name,
+    Witherable NonEmpty)
     => Term tyname name uni fun a -- ^ The body of the let binding.
     -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
-processSingleBinding _body = \case
+processSingleBinding body = \case
     -- when the let binding is a function type, we add it to the `CalledVarEnv` and
     -- consider whether we want to inline at the call site.
     TermBind a s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
-        let nLamOrder = countLam rhs
-        -- add the function to `CalledVarEnv`
-        void $ modify' $ extendCalled n (MkCalledVarInfo rhs nLamOrder)
-        -- we don't remove the binding because we decide *at the call site* whether we want to
-        -- inline, and it may be called more than once
-        pure $ Just $ TermBind a s v rhs
+        let
+          -- track the term and type lambda abstraction order of the function
+          varLamOrder = countLam rhs
+          -- examine the `body` of the `Let` term and track all term/type applications
+          appSites = countApp body
+          -- list of all call sites of this variable
+          listOfCallSites = Map.lookup n appSites
+        case listOfCallSites of
+          Nothing ->
+            -- we don't remove the binding because we decide *at the call site* whether we want to
+            -- inline, and it may be called more than once
+            pure $ Just $ TermBind a s v rhs
+          Just list -> do
+            let
+              isEqAppOrder :: ApplicationOrder a -> Bool
+              isEqAppOrder appOrder = applicationOrder appOrder == varLamOrder
+              -- filter the list to only call locations that are fully applied
+              filteredFullyApplied = filter isEqAppOrder list
+              fullyAppliedAnns = fmap annotation filteredFullyApplied
+            -- add the function to `CalledVarEnv`
+            void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder fullyAppliedAnns)
+            pure $ Just $ TermBind a s v rhs --TODO change to unit?
     -- when the let binding is a type lambda abstraction, we add it to the `CalledVarEnv` and
-    -- consider whether we want to inline at the call site.
-    TermBind a s v@(VarDecl _ n (TyLam _a _tyname _tyArg _tyBody)) rhs -> do
-        let nLamOrder = countLam rhs
+    -- consider whether we want to inline at the call site. TODO
+    TermBind a s v@(VarDecl _ n (TyLam _ann _tyname _tyArg _tyBody)) rhs -> do
+        let varLamOrder = countLam rhs
+            appSites = countApp body
         -- add the type abstraction to `CalledVarEnv`
-        void $ modify' $ extendCalled n (MkCalledVarInfo rhs nLamOrder)
+        void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder [])
         -- we don't remove the binding because we decide *at the call site* whether we want to
         -- inline, and it may be called more than once
         pure $ Just $ TermBind a s v rhs
     -- For anything else, just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
--- | Counts the number of type and term lambdas in the RHS of a binding and returns an ordered list
+-- | Counts the type and term lambdas in the RHS of a binding and returns an ordered list
 countLam ::
     Term tyname name uni fun a -- ^ the RHS of the let binding
-    -> LamOrder
+    -> TermOrTypeOrder
 countLam = countLamInner []
     where
       countLamInner ::
-        LamOrder
+        TermOrTypeOrder
         -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
-        -> LamOrder
-      countLamInner currLamOrder (LamAbs _a _n _ty body) =
+        -> TermOrTypeOrder
+      countLamInner lamStack (LamAbs _a _n _ty body) =
         -- If the term is a term lambda abstraction, add it to the list, and
         -- keep on examining the body.
-        countLamInner (currLamOrder <> [TermLam]) body
-      countLamInner currLamOrder (TyAbs _a _n _kind body) =
+        countLamInner (lamStack <> [MkTerm]) body
+      countLamInner lamStack (TyAbs _a _n _kind body) =
         -- If the term is a type lambda abstraction, add it to the list, and
         -- keep on examining the body.
-        countLamInner (currLamOrder <> [TypeLam]) body
-      countLamInner currLamOrder _ =
+        countLamInner (lamStack <> [MkType]) body
+      countLamInner lamStack _ =
         -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
-        currLamOrder
+        lamStack
 
--- findLetVar
+-- | A record for each call sites of a variable.
+data ApplicationOrder ann =
+  MkApplicationOrder {
+    annotation         :: ann -- ^ The annotation of the call site.
+    , applicationOrder :: TermOrTypeOrder -- ^ The sequence of term of type applications applied to
+    -- this call site.
+  }
 
--- | Count the number of type and term applications in the body and return an ordered list of
--- applied `LamKind` and its corresponding let variable, if any.
+-- | A mapping of a variable's unique name to a list of `ApplicationOrder` for each of its call
+-- sites.
+type ApplicationMap ann name = Map.Map name [ApplicationOrder ann]
+
+-- | Counts the number of type and term applications in the body, including all its subterms,
+-- and returns an `ApplicationMap`.
 countApp ::
-    Term tyname name uni fun a -- ^ the body
-    -> (Maybe name, LamOrder)
-countApp = countAppInner []
+    Ord name => -- needed for `Map`
+    Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
+    -> ApplicationMap ann name
+countApp = countLocal [] Map.empty
     where
-      countAppInner ::
-        LamOrder
-        -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
-        -> (Maybe name, LamOrder)
-      countAppInner currLamOrder (Apply _ _ body) =
-        -- If the term is a term application, add it to the list, and
+      countLocal ::
+        Ord name =>
+        TermOrTypeOrder -- ^ The application order.
+        -> ApplicationMap ann name -- ^ The stack of called variables.
+        -> Term tyname name uni fun ann -- ^ The rhs term that is being counted.
+        -> ApplicationMap ann name
+      countLocal appStack calledStack (Apply _ _ fnBody) =
+        -- If the term is a term application, add it to the application stack, and
         -- keep on examining the body.
-        countAppInner (currLamOrder <> [TermLam]) body
-      countAppInner currLamOrder (TyInst _ body _) =
-        -- If the term is a type application, add it to the list, and
+        countLocal (appStack <> [MkTerm]) calledStack fnBody
+      countLocal appStack calledStack (TyInst _ fnBody _) =
+        -- If the term is a type application, add it to the application stack, and
         -- keep on examining the body.
-        countAppInner (currLamOrder <> [TypeLam]) body
-      countAppInner currLamOrder (Var _ name) =
-        -- When we encounter a body that is a variable, we are done counting applications.
-        -- Return the variable (function) name along with its applied lambdas.
-        (Just name, currLamOrder)
-      countAppInner _currLamOrder tm =
-        -- TODO need to figure out example 4 in note [Inlining of fully applied functions]
-        -- lam and app can cancel out with beta-reduction until we get to the variable
-        (Nothing, countLam tm)
+        countLocal (appStack <> [MkType]) calledStack fnBody
+      countLocal appStack calledStack (Var ann name) =
+        -- When we encounter a body that is a variable, we have found a call site of the variable.
+        -- Using `insertWith` ensures that if a variable is called more than once, the new
+        -- `ApplicationOrder` map will be appended to the existing one.
+        Map.insertWith (<>) name [MkApplicationOrder ann appStack] calledStack
+      countLocal appStack calledStack body = undefined
+        -- TODO pattern match all terms countLocal [] calledStack (termSubterms body)
 
 
 {- Note [Inlining a lambda abstraction]
@@ -403,7 +335,7 @@ countApp = countAppInner []
 Because a function can be called in the `body` multiple times and may not be fully applied for all
 its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
 which substitute *all* occurrences of a variable.
-
+TODO
 Also, because we are inlining lambda abstractions, to preserve uniqueness,
 we follow section 3.2 ("The rapier") of the paper:
 
@@ -421,27 +353,4 @@ If x is not already in scope, the substitution is not changed, but the in-scope 
 extended by binding x to E'. If x is already in scope, then a new variable
 name x' is invented (by getting a fresh unique); the substitution is extended by binding
 x to DoneEx x', and the in-scope set is extended by binding x' to E'.
-
-
-
-The DEFAULT alternative matches any constructors other
-than Red, Blue, and Green. GHC supports such DEFAULT
-alternatives directly, rather than requiring case expressions
-to be exhaustive, which is dreadful for large data types. In-
-side E, what is known about x? What we know is that it
-is not bound to Red, Blue, or Green. This can be useful;
-if E contains a case expression that scrutinises x, we can
-4 The expression E1 `seq` E2 evaluates E1, discards the result, and
-then evaluates and returns E2.
-13replace x by x1! The right thing to do is to continue with
-the empty substitution.
-The code is simple enough, but it took us a long time before
-the interplay between the substitution and the in-scope set
-became as simple and elegant as it now is.
-
-Suppose we write the call subst M [E=x] to mean the result of substituting E for x in M.
-The standard rule for substitution when M is a lambda abstraction is:
-subst (\x:M ) [E=x] = \x:M
-subst (\x:M ) [E=y ] = \x:(subst M [E=y ])
-if x does not occur free in E
 -}

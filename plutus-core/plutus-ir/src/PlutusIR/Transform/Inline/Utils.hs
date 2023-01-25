@@ -47,14 +47,15 @@ newtype TypeEnv tyname uni a =
     TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
-
--- | For keeping track of term lambda or type lambda of a let-binding.
-data LamKind = TermLam | TypeLam deriving stock (Eq)
-
 -- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
-type LamOrder = [LamKind]
+type TermOrTypeOrder = [TermOrType]
 
--- | A mapping of a let-binding to its unique name and its definition and `LamOrder`.
+-- | Datatype capturing both terms and types.
+data TermOrType =
+    MkTerm | MkType
+    deriving stock (Eq)
+
+-- | A mapping including all let-bindings that are functions.
 newtype CalledVarEnv tyname name uni fun a =
     CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun a)}
     deriving newtype (Semigroup, Monoid)
@@ -62,10 +63,11 @@ newtype CalledVarEnv tyname name uni fun a =
 -- | Info attached to a let-binding needed for call site inlining.
 data CalledVarInfo tyname name uni fun a =
   MkCalledVarInfo {
-    calledVarDef :: Term tyname name uni fun a -- ^ its definition
-    , lamOrder   :: LamOrder -- ^ its sequence of term and type lambdas
+    calledVarDef     :: Term tyname name uni fun a -- ^ its definition
+    , lamOrder       :: TermOrTypeOrder -- ^ its sequence of term and type lambdas
+    , calledLocation :: [a]
+    -- ^ the list of annotations of the fully applied called locations
   }
-
 
 -- | Substitution for both terms and types.
 -- Similar to 'Subst' in the paper, but the paper only has terms.
@@ -195,6 +197,22 @@ extractBindings = collectArgs []
               Just acc' -> Just (acc', t)
       matchArgs (_:_)      _   _                    = Nothing
 
+-- TODO remove
+-- trackTermAndTypeApp ::
+--     Term tyname name uni fun a
+--     -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
+-- trackTermAndTypeApp = collectArgs []
+--   where
+--       collectArgs lamOrder (Apply _ f arg) = collectArgs (arg:lamOrder) f
+--       collectArgs lamOrder (TyInst _ f tyArg) = collectArgs ()
+--       collectArgs lamOrder t               = matchArgs lamOrder [] t
+--       matchArgs (arg:rest) acc (LamAbs a n ty body) =
+--         matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
+--       matchArgs []         acc t                    =
+--           case NE.nonEmpty (reverse acc) of
+--               Nothing   -> Nothing
+--               Just acc' -> Just (acc', t)
+--       matchArgs (_:_)      _   _                    = Nothing
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
