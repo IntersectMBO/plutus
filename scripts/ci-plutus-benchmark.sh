@@ -20,6 +20,7 @@
 set -e
 
 PR_NUMBER="$1"
+
 BENCHMARK_NAME="$2"
 
 if [ -z "$PR_NUMBER" ] ; then
@@ -78,9 +79,9 @@ echo -e "</details>"
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
-if [ -v GITHUB_TOKEN ] ; then
+if [ -v $GITHUB_TOKEN ] ; then
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
-   curl -s -H "Authorization: token $(<$GITHUB_TOKEN)" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+   curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
 else
    echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
 fi
