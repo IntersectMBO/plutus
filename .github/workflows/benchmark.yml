@@ -48,3 +48,5 @@ jobs:
       - run: |
          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.benchmark }}
         if: success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
