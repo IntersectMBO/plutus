@@ -34,8 +34,11 @@ fi
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 PR_BRANCH_REF=$(git rev-parse --short HEAD)
 
+echo "[ci-plutus-benchmark]: Running as user:"
+whoami 
+
 echo "[ci-plutus-benchmark]: Updating cabal database ..."
-cabal update
+cabal update -v
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
