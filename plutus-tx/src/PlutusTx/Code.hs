@@ -12,18 +12,13 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusTx.Code where
 
+import PlutusCore qualified as PLC
+import PlutusIR qualified as PIR
 import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
-
-import PlutusIR qualified as PIR
-
-import PlutusCore qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
-import Flat (Flat (..), unflat)
-import Flat.Decoder (DecodeException)
-
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (void)
@@ -31,6 +26,8 @@ import Data.List qualified as List
 import Data.Set (Set)
 import Data.Set qualified as Set
 import ErrorCode
+import Flat (Flat (..), unflat)
+import Flat.Decoder (DecodeException)
 import GHC.Generics
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell

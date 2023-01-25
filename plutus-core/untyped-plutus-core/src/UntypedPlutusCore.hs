@@ -1,13 +1,13 @@
 module UntypedPlutusCore (
-    module Export,
-    Term (..),
-    Program (..),
-    applyProgram,
-    parseScoped,
-    PLC.DefaultUni,
-    PLC.DefaultFun,
-    mkDefaultProg,
-) where
+    module Export
+    , Term (..)
+    , Program (..)
+    , applyProgram
+    , parseScoped
+    , PLC.DefaultUni
+    , PLC.DefaultFun
+    , mkDefaultProg
+    ) where
 
 import UntypedPlutusCore.Check.Scope as Export
 import UntypedPlutusCore.Core as Export
