@@ -20,6 +20,7 @@
 set -e
 
 PR_NUMBER="$1"
+
 BENCHMARK_NAME="$2"
 
 if [ -z "$PR_NUMBER" ] ; then
