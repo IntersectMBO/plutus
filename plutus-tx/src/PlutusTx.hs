@@ -4,7 +4,9 @@ module PlutusTx (
     CompiledCode,
     CompiledCodeIn,
     getPlc,
+    getPlcNoAnn,
     getPir,
+    getPirNoAnn,
     applyCode,
     BuiltinData,
     Data (..),
@@ -25,7 +27,7 @@ module PlutusTx (
 
 import PlutusCore.Data (Data (..))
 import PlutusTx.Builtins (BuiltinData, builtinDataToData, dataToBuiltinData)
-import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getPir, getPlc)
+import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getPir, getPirNoAnn, getPlc, getPlcNoAnn)
 import PlutusTx.IsData (FromData (..), ToData (..), UnsafeFromData (..), fromData, makeIsDataIndexed, toData,
                         unstableMakeIsData)
 import PlutusTx.Lift (liftCode, makeLift, safeLiftCode)

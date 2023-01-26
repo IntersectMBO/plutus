@@ -90,10 +90,6 @@ serialisedDateValidator = serialiseCompiledCode dateValidator
 showSerialised :: IO ()
 showSerialised = print serialisedDateValidator
 -- BLOCK6
--- We can serialize 'CompiledCode' also
-serialisedCompiledCode :: BS.ByteString
-serialisedCompiledCode = Flat.flat alwaysSucceedsCompiled
-
 -- The 'loadFromFile' function is a drop-in replacement for 'compile', but
 -- takes the file path instead of the code to compile.
 validatorCodeFromFile :: CompiledCode (() -> () -> ScriptContext -> Bool)
