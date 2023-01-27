@@ -78,6 +78,7 @@ echo -e "</details>"
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
+
 if [ -z "$GITHUB_TOKEN" ] ; then
    echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
 else
