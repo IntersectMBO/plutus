@@ -47,9 +47,6 @@ cabal clean
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
 cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
-echo "[ci-plutus-benchmark]: Dumping bench-PR.log"
-cat bench-PR.log
-
 echo "[ci-plutus-benchmark]: fetching origin ..."
 git fetch origin
 
@@ -62,9 +59,6 @@ cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
 cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
-
-echo "[ci-plutus-benchmark]: Dumping bench-base.log"
-cat bench-base.log
 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
