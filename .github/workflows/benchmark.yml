@@ -5,7 +5,7 @@ on:
 
 jobs:
   benchmark:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: ubuntu-latest
     
     permissions:
       pull-requests: write
@@ -42,11 +42,17 @@ jobs:
             else
               core.setFailed(`Unable to extract benchmark name from {comment}`);
 
-      #
-      # Run the benchmark if the 'benchmark' command was found
-      #
+      - name: Extract Comment Branch 
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: extract-branch
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+
       - run: |
-         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.benchmark }}
+         nix develop --command bash ./scripts/ci-plutus-benchmark.sh 
         if: success()
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}

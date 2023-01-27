@@ -6,9 +6,7 @@
 # publish the results to the same PR.
 # 
 # This script can also be run locally inside the nix shell like so: 
-# `./scripts/ci-plutus-benchmark.sh PR_NUMBER BENCHMARK_NAME`
-# Note that PR_NUMBER can be anything, it's only relevant when triggering benchmarking from a PR.
-# For example: `./scripts/ci-plutus-benchmark.sh unused nofib`
+# `BENCHMARK_NAME=nofib ./scripts/ci-plutus-benchmark.sh`
 #
 # NOTES:
 # The `cabal update` command below is neccessary because while the whole script is executed inside
@@ -19,16 +17,21 @@
 
 set -e
 
-PR_NUMBER="$1"
-BENCHMARK_NAME="$2"
-
-if [ -z "$PR_NUMBER" ] ; then
-   echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set! Exiting"
+if [ -z "$BENCHMARK_NAME" ] ; then
+   echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set, exiting."
    exit 1
 fi
-if [ -z "$BENCHMARK_NAME" ] ; then
-   echo "[ci-plutus-benchmark]: 'BENCHMARK_NAME' is not set! Exiting"
-   exit 1
+if [ -z "$PR_NUMBER" ] ; then
+   echo "[ci-plutus-benchmark]: 'PR_NUMBER' is not set, probably running locally."
+   PR_NUMBER="[local]"
+fi
+
+if [ -z "$PR_BRANCH" ] ; then
+   echo "[ci-plutus-benchmark]: 'PR_BRANCH' is not set, probably running locally"
+else 
+   echo "[ci-plutus-benchmark]: 'PR_BRANCH' set to $PR_BRANCH, fetching origin ..."
+   git fetch origin 
+   git checkout "$PR_BRANCH"
 fi
 
 PR_BRANCH_REF=$(git rev-parse --short HEAD)
@@ -47,11 +50,8 @@ cabal clean
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
 cabal bench $BENCHMARK_NAME >bench-PR.log 2>&1
 
-echo "[ci-plutus-benchmark]: fetching origin ..."
-git fetch origin
-
 echo "[ci-plutus-benchmark]: Switching branches ..."
-git checkout "$(git merge-base HEAD origin/master)"
+git checkout master
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
@@ -59,8 +59,11 @@ cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
 cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
-
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
+
+echo "  PR_BRANCH_REF=$PR_BRANCH_REF"
+echo "BASE_BRANCH_REF=$BASE_BRANCH_REF"
+exit 1
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
@@ -79,9 +82,9 @@ echo -e "</details>"
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
-if [ -z "$GITHUB_TOKEN" ] ; then
-   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
-else
+if [ -v GITHUB_TOKEN ] ; then
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
    curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
+else
+   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
 fi
