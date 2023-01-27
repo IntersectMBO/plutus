@@ -61,10 +61,6 @@ echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_R
 cabal bench $BENCHMARK_NAME >bench-base.log 2>&1
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
-echo "  PR_BRANCH_REF=$PR_BRANCH_REF"
-echo "BASE_BRANCH_REF=$BASE_BRANCH_REF"
-exit 1
-
 echo "[ci-plutus-benchmark]: Comparing results ..."
 {
 # The blank line is important, otherwise Github doesn't render markdown in the body of the details element.
@@ -82,9 +78,9 @@ echo -e "</details>"
 
 jq -Rs '.' bench-compare-result.log >bench-compare.json
 
-if [ -v GITHUB_TOKEN ] ; then
+if [ -z "$GITHUB_TOKEN" ] ; then
+   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
+else
    echo "[ci-plutus-benchmark]: Posting results to GitHub ..."
    curl -s -H "Authorization: token $GITHUB_TOKEN" -X POST -d "{\"body\": $(<bench-compare.json)}" "https://api.github.com/repos/input-output-hk/plutus/issues/${PR_NUMBER}/comments"
-else
-   echo "[ci-plutus-benchmark]: GITHUB_TOKEN not set, not posting results to GitHub"
 fi
