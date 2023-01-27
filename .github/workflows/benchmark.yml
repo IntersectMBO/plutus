@@ -43,7 +43,7 @@ jobs:
               core.setFailed(`Unable to extract benchmark name from {comment}`);
 
       - name: Extract Comment Branch 
-        uses: xt0rted/pull-request-comment-branch@v1
+        uses: xt0rted/pull-request-comment-branch@v1.4.0
         id: extract-branch
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
