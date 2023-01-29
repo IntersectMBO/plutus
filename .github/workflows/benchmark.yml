@@ -47,60 +47,11 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: | 
-            name: Benchmarking
-on:
-  issue_comment:
-    types: [created]
-
-jobs:
-  benchmark:
-    runs-on: [self-hosted, plutus-benchmark]
-    
-    permissions:
-      pull-requests: write
-  
-    if: | 
-      startsWith(github.event.comment.body, '/benchmark') && 
-      github.event.issue.pull_request 
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3.3.0
-
-      - name: React with Rocket 
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.reactions.createForIssueComment({
-              owner: context.issue.owner,
-              repo: context.issue.repo,
-              comment_id: context.payload.comment.id,
-              content: "rocket"
-            });  
-
-      - name: Extract Benchmark Name
-        id: extract-benchmark
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const regex = '^\/benchmark\s*(.*?)\s*$';
-            const comment = context.payload.comment.body;
-            const match = comment.match(regex)
-            if (match !== null && match.length == 2)
-              core.setOutput('benchmark', match[1]);
-            else
-              core.setFailed(`Unable to extract benchmark name from {comment}`);
-
-      - name: Extract Comment Branch 
-        id: extract-branch
-        uses: actions/github-script@v6
-        with:
-          script: | 
             async function isPullRequest() {
               const result = await github.rest.issues.get({
                 owner: context.issue.owner,
                 repo: context.issue.repo,
-                issue_number: 2
+                issue_number: context.issue.number
               });
               return !!result.data.pull_request;
             }
@@ -120,7 +71,7 @@ jobs:
               const result = await github.graphql(query, {
                 owner: context.issue.owner,
                 repo: context.issue.repo,
-                number: 2 // context.issue.number
+                number: context.issue.number
               });
 
               return result.repository.pullRequest.headRef.name;
@@ -129,22 +80,12 @@ jobs:
             try {
               if (!await isPullRequest()) {
                 core.setFailed("Comment is not on a pull request");
-              } else { 
+              } else {  
                 core.setOutput("head_ref", await getCommentHeadRef());
               }
-            } catch (error) { 
+            } catch (error) {
               core.setFailed(`Error: ${error}`);
             } 
-            
-      - run: |
-         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
-
             
       - run: |
          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
