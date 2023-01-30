@@ -22,7 +22,6 @@ import PlutusPrelude
 
 import Annotation
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.InlineUtils (InlineHints (..))
 import PlutusCore.Name qualified as PLC (Unique)
 import PlutusCore.Quote (MonadQuote (liftQuote))
 import PlutusCore.Rename (dupable, liftDupable)

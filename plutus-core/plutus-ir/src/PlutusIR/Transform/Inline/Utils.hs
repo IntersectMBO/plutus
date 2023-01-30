@@ -197,23 +197,6 @@ extractBindings = collectArgs []
               Just acc' -> Just (acc', t)
       matchArgs (_:_)      _   _                    = Nothing
 
--- TODO remove
--- trackTermAndTypeApp ::
---     Term tyname name uni fun a
---     -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
--- trackTermAndTypeApp = collectArgs []
---   where
---       collectArgs lamOrder (Apply _ f arg) = collectArgs (arg:lamOrder) f
---       collectArgs lamOrder (TyInst _ f tyArg) = collectArgs ()
---       collectArgs lamOrder t               = matchArgs lamOrder [] t
---       matchArgs (arg:rest) acc (LamAbs a n ty body) =
---         matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
---       matchArgs []         acc t                    =
---           case NE.nonEmpty (reverse acc) of
---               Nothing   -> Nothing
---               Just acc' -> Just (acc', t)
---       matchArgs (_:_)      _   _                    = Nothing
-
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
     :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
