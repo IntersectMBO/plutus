@@ -382,21 +382,10 @@ toBuiltinsRuntime
     => BuiltinVersion fun -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime ver cost =
     let runtime = BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning ver
-        {-# INLINE runtime #-}
-       -- Force each 'BuiltinRuntime' to WHNF. Inlining 'force' manually, since it doesn't have an
-       -- @INLINE@ pragma. This allows GHC to get to the 'NFData' instance for 'BuiltinsRuntime',
-       -- which forces all the freshly created 'BuiltinRuntime' thunks. Which is important, because
-       -- the thunks are behind a lambda binding the @cost@ variable and GHC would supply the @cost@
-       -- value (the one that is in the current scope) at runtime, if we didn't tell it that the
-       -- thunks need to be forced early. Which would be detrimental to performance, since it would
-       -- mean that the thunks would be created at runtime over and over again, each time we go
-       -- under the lambda binding the @cost@ variable, i.e. each time the 'BuiltinRuntime' is
-       -- retrieved from the environment. The 'deepseq' nagging causes GHC to supply the @cost@
-       -- value at compile time, thus allocating the thunks within this entire function allowing
-       -- them to be reused each time the 'BuiltinRuntime' is looked up (after the initial phase
-       -- forcing all of them at once).
-       --
-       -- Note that despite @runtime@ being used twice, we don't get all the multiple thousands of
-       -- Core duplicated, because the 'BuiltinRuntime' thunks are shared in the two @runtime@s.
-    in runtime `deepseq` runtime
+        -- TODO: explain
+        {-# NOINLINE runtime #-}
+       -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
+       -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
+       -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
+    in force runtime
 {-# INLINE toBuiltinsRuntime #-}
