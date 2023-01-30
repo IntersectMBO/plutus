@@ -18,6 +18,7 @@ import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
 import Control.Monad.Reader
+import Data.Bifunctor
 import Data.Char
 import Data.Either
 import Data.Function
@@ -87,7 +88,7 @@ prop_shrinkTermSound =
   -- often.
   not (null shrinks) ==>
   assertNoCounterexamples $ lefts
-    [ ((ty', tm'), ) <$> typeCheckTerm tm' ty'
+    [ first ((ty', tm'), ) $ typeCheckTerm tm' ty'
     | (ty', tm') <- shrinks
     ]
 
@@ -100,7 +101,7 @@ prop_findInstantiation =
   forAllDoc "ty"     (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ ty0 ->
   forAllDoc "target" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ target ->
   assertNoCounterexamples $ lefts
-    [ (n ,) <$> checkInst ctx0 x0 ty0 insts target
+    [ first (n ,) $ checkInst ctx0 x0 ty0 insts target
     | n <- [0 .. arity ty0 + 3]
     , Right insts <- [findInstantiation ctx0 n target ty0]
     ]

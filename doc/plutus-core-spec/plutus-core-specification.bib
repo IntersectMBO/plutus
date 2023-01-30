@@ -1,3 +1,37 @@
+@InProceedings{Wadler-Findler-blame,
+author="Wadler, Philip
+and Findler, Robert Bruce",
+editor="Castagna, Giuseppe",
+title="Well-Typed Programs Can't Be Blamed",
+booktitle="Programming Languages and Systems",
+year="2009",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="1--16",
+abstract="We introduce the blame calculus, which adds the notion of blame from Findler and Felleisen's contracts to a system similar to Siek and Taha's gradual types and Flanagan's hybrid types. We characterise where positive and negative blame can arise by decomposing the usual notion of subtype into positive and negative subtypes, and show that these recombine to yield naive subtypes. Naive subtypes previously appeared in type systems that are unsound, but we believe this is the first time naive subtypes play a role in establishing type soundness.",
+isbn="978-3-642-00590-9"
+}
+
+@inproceedings{Wadler-theorems-for-free,
+  added-at = {2008-03-14T14:02:47.000+0100},
+  address = {New York, NY, USA},
+  author = {Wadler, Philip},
+  biburl = {https://www.bibsonomy.org/bibtex/2542abc69cff9e91ba42719e195208ca9/brightbyte},
+  booktitle = {FPCA '89: Proceedings of the fourth international conference on Functional programming languages and computer architecture},
+  doi = {http://doi.acm.org/10.1145/99370.99404},
+  interhash = {ef1ddbea9fe7bb252540cfb641ddd14f},
+  intrahash = {542abc69cff9e91ba42719e195208ca9},
+  isbn = {0-89791-328-0},
+  keywords = {functional programming},
+  location = {Imperial College, London, United Kingdom},
+  pages = {347--359},
+  publisher = {ACM},
+  timestamp = {2009-01-23T09:58:50.000+0100},
+  title = {Theorems for free!},
+  url = {http://portal.acm.org/citation.cfm?id=99404&coll=portal&dl=ACM},
+  year = 1989
+}
+
 @InProceedings{unravelling-recursion,
 author="Peyton Jones, Michael
 and Gkoumas, Vasilis
@@ -137,6 +171,18 @@ howpublished={\url{https://github.com/input-output-hk/plutus/tree/master/metathe
     year = {1986}
 }
 
+@book{Felleisen-Semantics-Engineering,
+  author = {Felleisen, Matthias and Findler, Robert Bruce and Flatt, Matthew},
+  isbn = {978-0-262-06275-6},
+  pages = {I-XII, 1-502},
+  publisher = {MIT Press},
+  timestamp = {2011-04-29T15:26:00.000+0200},
+  title = {Semantics Engineering with PLT Redex.},
+  year = 2009
+}
+
+
+
 @article{Friedman-Lazy-Krivine,
  author = {Friedman, Daniel P. and Ghuloum, Abdulaziz and Siek, Jeremy G. and Winebarger, Onnie Lynn},
  title = {Improving the {L}azy {K}rivine {M}achine},
@@ -184,7 +230,7 @@ howpublished={\url{https://github.com/input-output-hk/plutus/tree/master/metathe
   year = {1972}
 }
 
-@inproceedings{reynolds-type-structure,
+@inproceedings{Reynolds-type-structure,
   author = {John C. Reynolds},
   title = {Towards a theory of type structure},
   booktitle = {Colloque sur la Programmation},
@@ -194,6 +240,20 @@ howpublished={\url{https://github.com/input-output-hk/plutus/tree/master/metathe
   series = {Lecture Notes in Computer Science},
   month = apr,
   publisher = {Springer}
+}
+
+@inproceedings{Reynolds-parametric,
+  author    = {John C. Reynolds},
+  editor    = {R. E. A. Mason},
+  title     = {Types, Abstraction and Parametric Polymorphism},
+  booktitle = {Information Processing 83, Proceedings of the {IFIP} 9th World Computer
+               Congress, Paris, France, September 19-23, 1983},
+  pages     = {513--523},
+  publisher = {North-Holland/IFIP},
+  year      = {1983},
+  timestamp = {Sun, 28 Jul 2019 17:03:41 +0200},
+  biburl    = {https://dblp.org/rec/conf/ifip/Reynolds83.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
 @unpublished{Scott-encoding,
@@ -329,8 +389,237 @@ howpublished={\url{https://github.com/input-output-hk/plutus/tree/master/metathe
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
+
+@inproceedings{ches-2011-24091,
+  title={High-Speed High-Security Signatures},
+  booktitle={CHES},
+  series={Lecture Notes in Computer Science},
+  publisher={Springer},
+  volume={6917},
+  pages={124-142},
+  url={https://www.iacr.org/archive/ches2011/69170125/69170125.pdf},
+  doi={10.1007/978-3-642-23951-9_9},
+  author={Daniel J. Bernstein and Niels Duif and Tanja Lange and Peter Schwabe and Bo-Yin Yang},
+  year=2011
+}
+
+
 @misc{flat,
 title="Flat format specification",
 author={Pasqualino `Titto' Assini},
 howpublished={\url{http://quid2.org/docs/Flat.pdf}}
+}
+
+@misc{rfc8949-CBOR,
+	series =	{Request for Comments},
+	number =	8949,
+	publisher =	{RFC Editor},
+	doi =		{10.17487/RFC8949},
+	url =		{https://www.rfc-editor.org/info/rfc8949},
+	howpublished =	{\url{https://www.rfc-editor.org/info/rfc8949}},
+        author =	{Carsten Bormann and Paul E. Hoffman},
+	title =		{{RFC 8949: Concise Binary Object Representation (CBOR)}},
+	pagetotal =	66,
+	year =		2020,
+	month =		dec
+}
+
+
+@article{Plotkin-cbn-cbv,
+  author    = {Gordon D. Plotkin},
+  title     = {Call-by-Name, Call-by-Value and the lambda-Calculus},
+  journal   = {Theor. Comput. Sci.},
+  volume    = {1},
+  number    = {2},
+  pages     = {125--159},
+  year      = {1975},
+  url       = {https://doi.org/10.1016/0304-3975(75)90017-1},
+  doi       = {10.1016/0304-3975(75)90017-1},
+  timestamp = {Wed, 17 Feb 2021 21:58:30 +0100},
+  biburl    = {https://dblp.org/rec/journals/tcs/Plotkin75.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+@MISC{Felleisen-pllc,
+    author = {Matthias Felleisen},
+    title = {Programming languages and lambda calculi},
+    year = {2007}
+}
+
+
+@book{Barendregt,
+  author    = {Hendrik Pieter Barendregt},
+  title     = {The Lambda Calculus - its Syntax and Semantics},
+  series    = {Studies in Logic and the Foundations of Mathematics},
+  volume    = {103},
+  publisher = {North-Holland},
+  year      = {1985},
+  isbn      = {978-0-444-86748-3},
+  biburl    = {https://dblp.org/rec/books/daglib/0067558.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+@article{deBruijn,
+title = {Lambda calculus notation with nameless dummies, a tool for automatic
+                  formula manipulation, with application to the {Church-Rosser}
+                  theorem},
+journal = {Indagationes Mathematicae (Proceedings)},
+volume = {75},
+number = {5},
+pages = {381-392},
+year = {1972},
+issn = {1385-7258},
+doi = {https://doi.org/10.1016/1385-7258(72)90034-0},
+url = {https://www.sciencedirect.com/science/article/pii/1385725872900340},
+author = {N.G {de Bruijn}},
+abstract = {In ordinary lambda calculus the occurrences of a bound variable are
+                  made recognizable by the use of one and the same (otherwise
+                  irrelevant) name at all occurrences. This convention is known
+                  to cause considerable trouble in cases of substitution. In the
+                  present paper a different notational system is developed,
+                  where occurrences of variables are indicated by integers
+                  giving the “distance” to the binding λ instead of a name
+                  attached to that λ. The system is claimed to be efficient for
+                  automatic formula manipulation as well as for metalingual
+                  discussion. As an example the most essential part of a proof
+                  of the Church-Rosser theorem is presented in this namefree
+                  calculus.}
+}
+
+@misc{SECP256,
+title={{Standards for Efficient Cryptography 2 (SEC 2)}},
+author={{Certicom Research}},
+url={https://www.secg.org/SEC2-Ver-2.0.pdf},
+howpublished={\url{https://www.secg.org/SEC2-Ver-2.0.pdf}},
+year=2010
+}
+
+
+@misc{BIP-146,
+title={{Bitcoin Improvement Proposal 146: Dealing with signature encoding malleability}},
+author={Johnson Lau and Pieter Wuilie},
+url={https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki},
+howpublished={\url{https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki}},
+year=2016
+}
+https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki#LOW_S
+
+
+@misc{BIP-340,
+title={{Bitcoin Improvement Proposal 340: Schnorr Signatures for secp256k1}},
+author={Johnson Lau and Jonas Nick and Tim Ruffing},
+url={https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki},
+howpublished={\url{https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki}},
+year=2020
+}
+
+@misc{ANSI-X9.62,
+title={{X9.62: Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)}},
+author={{ANSI}},
+insitution={{Accredited Standards Committee/X9 (ASC/X9)}},
+year=2005
+}
+
+@misc{ANSI-X9.142,
+title={{X9.142: Public Key Cryptography for the Financial Services Industry: the Elliptic Curve Digital Signature Algorithm (ECDSA)}},
+author={{ANSI}},
+institution={{Accredited Standards Committee/X9 (ASC/X9)}},
+year=2020
+}
+
+@misc{Bitcoin-ECDSA,
+title={{Elliptic Curve Digital Signature Algorithm}},
+author={{Bitcoin Wiki}},
+url={https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm},
+year=2022
+}
+
+
+@TECHREPORT{Johnson-Menezes-ECDSA-techreport,
+    author = {Don Johnson and Alfred Menezes},
+    title = {{The Elliptic Curve Digital Signature Algorithm (ECDSA)}},
+    number={{CORR-93-94}},
+    institution={{Department of Combinatorics \& Optimization, University of Waterloo}},
+    year = {1999}
+}
+
+@misc{rfc8032-EdDSA,
+    series =    {Request for Comments},
+    number =    8032,
+    howpublished =  {\url{https://www.rfc-editor.org/info/rfc8032}},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC8032},
+    url =       {https://www.rfc-editor.org/info/rfc8032},
+    author =    {Simon Josefsson and Ilari Liusvaara},
+    title =     {{RFC 8032: Edwards-Curve Digital Signature Algorithm (EdDSA)}},
+    pagetotal = 60,
+    year =      2017,
+    month =     jan,
+    abstract =  {This document describes elliptic curve signature scheme
+                  Edwards-curve Digital Signature Algorithm (EdDSA). The
+                  algorithm is instantiated with recommended parameters for the
+                  edwards25519 and edwards448 curves. An example implementation
+                  and test vectors are provided.},
+}
+% See also https://tools.ietf.org/id/draft-irtf-cfrg-eddsa-05.html
+
+
+@article{Johnson-Menezes-Vanstone-ECDSA,
+  author    = {Don Johnson and Alfred Menezes and Scott A. Vanstone},
+  title     = {The Elliptic Curve Digital Signature Algorithm {(ECDSA)}},
+  journal   = {Int. J. Inf. Sec.},
+  volume    = {1},
+  number    = {1},
+  pages     = {36--63},
+  year      = {2001},
+  url       = {https://doi.org/10.1007/s102070100002},
+  doi       = {10.1007/s102070100002},
+  timestamp = {Wed, 14 Nov 2018 10:36:00 +0100},
+  biburl    = {https://dblp.org/rec/journals/ijisec/JohnsonMV01.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Schnorr89,
+  added-at = {2017-05-19T00:00:00.000+0200},
+  author = {Schnorr, Claus-Peter},
+  biburl = {https://www.bibsonomy.org/bibtex/2ac396d806e4aa187e6864aaa5f84c6e5/dblp},
+  booktitle = {CRYPTO},
+  editor = {Brassard, Gilles},
+  ee = {https://doi.org/10.1007/0-387-34805-0_22},
+  interhash = {02860555652ff30ec4741d96ec8b203b},
+  intrahash = {ac396d806e4aa187e6864aaa5f84c6e5},
+  isbn = {0-387-97317-6},
+  keywords = {dblp},
+  pages = {239-252},
+  publisher = {Springer},
+  series = {Lecture Notes in Computer Science},
+  timestamp = {2020-07-24T01:10:46.000+0200},
+  title = {Efficient Identification and Signatures for Smart Cards.},
+  url = {http://dblp.uni-trier.de/db/conf/crypto/crypto89.html#Schnorr89},
+  volume = 435,
+  year = 1989
+}
+
+
+@misc{Unicode-standard,
+title={{The Unicode Standard}},
+author={{The Unicode Consortium}},
+url={https://www.unicode.org/versions/latest/},
+howpublished={\url{https://www.unicode.org/versions/latest/}}
+}
+
+@misc{CBOR-alternatives,
+title={{CBOR Tags for Discriminated Unions}},
+author={Duncan Coutts and Michael {Peyton Jones} and Carsten Bormann},
+url={https://github.com/cabo/cbor-discriminated-unions/},
+howpublished={\url{https://github.com/cabo/cbor-discriminated-unions/}}
+}
+
+@misc{CBOR-notable-tags,
+title={{Notable CBOR Tags}},
+author={Carsten Bormann},
+url={https://www.ietf.org/archive/id/draft-bormann-cbor-notable-tags-06.html},
+howpublished={\url{https://www.ietf.org/archive/id/draft-bormann-cbor-notable-tags-06.html}}
 }

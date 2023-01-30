@@ -33,7 +33,7 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
-import PlutusTx (getPlc)
+import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
 import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
@@ -242,7 +242,7 @@ measureBudget compiledCode =
   let programE = PLC.runQuote
                $ runExceptT @PLC.FreeVariableError
                $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm
-               $ getPlc compiledCode
+               $ getPlcNoAnn compiledCode
    in case programE of
         Left _ -> (-1,-1) -- Something has gone wrong but I don't care.
         Right program ->

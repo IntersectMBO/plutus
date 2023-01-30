@@ -39,7 +39,9 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
+appTerm = do
+    pos <- getSourcePos
+    inBrackets $ mkIterApp <$> pure pos <*> term <*> some term
 
 conTerm :: Parser PTerm
 conTerm = inParens $ Constant <$> wordPos "con" <*> constant
@@ -48,11 +50,12 @@ builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
 
 tyInstTerm :: Parser PTerm
-tyInstTerm = inBraces $ do
+tyInstTerm = do
     pos <- getSourcePos
-    tm <- term
-    tys <- many pType
-    pure $ mkIterInst pos tm tys
+    inBraces $ do
+        tm <- term
+        tys <- many pType
+        pure $ mkIterInst pos tm tys
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term

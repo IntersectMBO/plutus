@@ -1,0 +1,446 @@
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+% correct bad hyphenation here
+\hyphenation{}
+
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum,pageanchor]{hyperref}
+% ^ pageanchor is for nomencl
+
+%% Stuff for index of notation
+%% FYI, the nomencl package seems to discard entries containing '@' 
+\usepackage[intoc,refpage]{nomencl}
+\renewcommand{\nomname}{Index of Notation}
+\renewcommand{\pagedeclaration}[1]{,\ \ \hyperlink{page.#1}{\nobreakspace#1}}
+\setlength{\nomitemsep}{-0.6\parsep} % Adjust vertical spacing between items in index
+\renewcommand{\nomgroup}[1]{\medskip%  Grouping for entries in symbol index
+  \ifthenelse{\equal{#1}{A}}{\item[\textbf{Sets}]}{%
+    \ifthenelse{\equal{#1}{B}}{\item[\textbf{Lists}]}{%
+      \ifthenelse{\equal{#1}{C}}{\item[\textbf{Plutus Core grammar}]}{%
+        \ifthenelse{\equal{#1}{D}}{\item[\textbf{Built-in types}]}{%
+          \ifthenelse{\equal{#1}{E}}{\item[\textbf{Built-in functions}]}{%
+            \ifthenelse{\equal{#1}{F}}{\item[\textbf{Term reduction}]}{%
+              \ifthenelse{\equal{#1}{G}}{\item[\textbf{CEK machine}]}{%
+                \ifthenelse{\equal{#1}{H}}{\item[\textbf{Serialisation and deserialisation}]}{}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+\makenomenclature
+
+\usepackage{tocbibind}  % To get the bibiliograpy in the table of contents
+\usepackage{blindtext, graphicx}
+\usepackage{url}
+%\usepackage[numbers]{natbib}
+\usepackage{natbib}
+
+% *** FONTS ***
+%
+\usepackage{amsmath}
+%\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{stix}
+\usepackage{alltt}
+\usepackage{bussproofs}
+\usepackage[mathscr]{euscript}
+\DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
+
+% *** FIGURES/ALIGNMENT ***
+%
+\usepackage{array}
+\usepackage{float}  %% Try to improve placement of figures.  Doesn't work well with subcaption package.
+\usepackage{subcaption}
+\usepackage{fancyvrb}
+%% \usepackage{caption}
+
+\usepackage{subfiles}
+\usepackage{geometry}
+\usepackage{pdflscape}
+\usepackage[title]{appendix}
+
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  mathescape=true,
+  escapeinside={|}{|}   %% Inside listings you can say things like |\textit{blah blah}|
+}
+
+\usepackage{longtable}
+
+% You're supposed to make this the final package
+\usepackage[disable]{todonotes}
+% \usepackage{todonotes}
+
+
+\newcommand{\kwxm}[1]{\smallskip\todo[inline,color=yellow!72,author=kwxm,caption={}]{#1}\smallskip}
+\renewcommand{\roman}[1]{\smallskip\todo[inline,color=green,author=effectfully,caption={}]{#1}\smallskip}
+
+\newcommand{\TT}[1]{\texttt{#1}}  %% This is used in some tables to make the Latex more compact
+
+\newcommand{\termarg}{\smblkcircle}
+\newcommand{\typearg}{\circ}  % stix redefines \bullet to something smaller
+
+% % Stuff for splitting figures over page breaks
+% \DeclareCaptionLabelFormat{continued}{#1~#2 (Continued)}
+% \captionsetup[ContinuedFloat]{labelformat=continued}
+
+
+%%% General Misc. Definitions
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\redfootnote}[1]{\red{\footnote{\red{#1}}}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\bluefootnote}[1]{\blue{\footnote{\blue{#1}}}}
+
+\newcommand{\diffbox}[1]{\text{\colorbox{lightgray}{\(#1\)}}}
+\newcommand{\judgmentdef}[2]{\fbox{#1}
+
+\vspace{0.5em}
+
+#2}
+
+\newcommand{\hyphen}{\operatorname{-}}
+\newcommand{\repetition}[1]{\overline{#1}}
+\newcommand{\Fomega}{F$^{\omega}$}
+\newcommand{\keyword}[1]{\texttt{#1}}
+\newcommand{\inparens}[1]{\texttt{(} #1 \texttt{)}}
+\newcommand{\construct}[1]{\texttt{(} #1 \texttt{)}}
+% \newcommand\discharge[1]{\widehat{#1}}
+
+%%% Term Grammar
+
+\newcommand{\sig}[3]{[#1](#2)#3}
+\newcommand{\constsig}[1]{#1}
+\newcommand{\con}[2]{\inparens{\keyword{con} ~ #1 ~ #2}}
+\newcommand{\abs}[3]{\inparens{\keyword{abs} ~ #1 ~ #2 ~ #3}}
+\newcommand{\inst}[2]{\texttt{\{}#1 ~ #2\texttt{\}}}
+\newcommand{\lam}[3]{\inparens{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\app}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\iwrap}[3]{\inparens{\keyword{iwrap} ~ #1 ~ #2 ~ #3}}
+\newcommand{\wrap}{\iwrap}
+%% ^ Temporary fix to avoid substituting all occurrences of new keyword
+\newcommand{\unwrap}[1]{\inparens{\keyword{unwrap} ~ #1}}
+\newcommand{\builtin}[1]{\inparens{\keyword{builtin} ~ \mathit{#1}}}
+\newcommand{\error}[1]{\inparens{\keyword{error} ~ #1}}
+
+%% Extra untyped terms
+\newcommand{\lamU}[2]{\inparens{\keyword{lam} ~ #1 ~ #2        }}
+\newcommand{\appU}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+\newcommand{\builtinappU}[3]{\inparens{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
+\newcommand{\errorU}{\inparens{\keyword{error}}}
+\newcommand{\delay}[1]{\inparens{\keyword{delay} ~ #1}}
+\newcommand{\force}[1]{\inparens{\keyword{force} ~ #1}}
+
+\newcommand{\erase}[1]{\llbracket#1\rrbracket}
+
+%%%  Type Grammar
+
+\newcommand{\funT}[2]{\inparens{\keyword{fun} ~ #1 ~ #2}}
+\newcommand{\ifixT}[2]{\inparens{\keyword{ifix} ~ #1 ~ #2}}
+\newcommand{\fixT}{\ifixT}
+%% ^ Temporary fix to avoid substituting all occurrences of new keyword
+\newcommand{\allT}[3]{\inparens{\keyword{all} ~ #1 ~ #2 ~ #3}}
+\newcommand{\conIntegerType}[1]{\keyword{integer}}
+\newcommand{\conBytestringType}[1]{\keyword{bytestring}}
+\newcommand{\conT}[1]{\inparens{\keyword{con} ~ #1}}
+\newcommand{\lamT}[3]{\inparens{\keyword{lam} ~ #1 ~ #2 ~ #3}}
+\newcommand{\appT}[2]{\texttt{[} #1 ~ #2 \texttt{]}}
+
+\newcommand{\typeK}{\inparens{\keyword{type}}}
+\newcommand{\funK}[2]{\inparens{\keyword{fun} ~ #1 ~ #2}}
+
+
+
+%%% Program Grammar
+
+\newcommand{\version}[2]{\inparens{\keyword{program} ~ #1 ~ #2}}
+
+\newcommand{\evalbuiltin}[2]{\llbracket #1 ~ #2 \rrbracket}
+
+%%% Judgments
+
+\newcommand{\hypJ}[2]{#1 \vdash #2}
+\newcommand{\ctxni}[2]{#1 \ni #2}
+\newcommand{\validJ}[1]{#1 \ \operatorname{valid}}
+\newcommand{\termJ}[2]{#1 : #2}
+\newcommand{\typeJ}[2]{#1 :: #2}
+\newcommand{\istermJ}[2]{#1 : #2}
+\newcommand{\istypeJ}[2]{#1 :: #2}
+
+
+
+%%% Contextual Normalization
+\newcommand{\pba}{B}  % Possibly ill-formed partial builtin application
+\newcommand{\pbas}{\mathsf{\pba}} % Set of all partial builtin applications
+\newcommand{\pbasize}[1]{\lVert #1 \rVert}
+
+\newcommand{\ctxsubst}[2]{#1\{#2\}}
+\newcommand{\typeStep}[2]{#1 ~ \rightarrow_{ty} ~ #2}
+\newcommand{\typeMultistep}[2]{#1 ~ \rightarrow_{ty}^{*} ~ #2}
+\newcommand{\typeBoundedMultistep}[3]{#2 ~ \rightarrow_{ty}^{#1} ~ #3}
+\newcommand{\step}[2]{#1 ~ \rightarrow ~ #2}
+\newcommand{\normalform}[1]{\lfloor #1 \rfloor}
+\newcommand{\subst}[3]{[#1/#2]#3}
+\newcommand{\kindEqual}[2]{#1 =_{\mathit{k}} #2}
+\newcommand{\typeEqual}[2]{#1 =_{\mathit{ty}} #2}
+\newcommand{\typeEquiv}[2]{#1 \equiv_{\mathit{ty}} #2}
+
+
+\newcommand{\inConTFrame}[1]{\conT{#1}}
+\newcommand{\inAppTLeftFrame}[1]{\appT{\_}{#1}}
+\newcommand{\inAppTRightFrame}[1]{\appT{#1}{\_}}
+\newcommand{\inFunTLeftFrame}[1]{\funT{\_}{#1}}
+\newcommand{\inFunTRightFrame}[1]{\funT{#1}{\_}}
+\newcommand{\inAllTFrame}[2]{\allT{#1}{#2}{\_}}
+\newcommand{\inFixTLeftFrame}[1]{\fixT{\_}{#1}}
+\newcommand{\inFixTRightFrame}[1]{\fixT{#1}{\_}}
+\newcommand{\inLamTFrame}[2]{\lamT{#1}{#2}{\_}}
+
+\newcommand{\inBuiltin}[5]{\builtin{#1}{#2}{#3 #4 #5}}
+
+%% Inputs for the untyped CEK machine
+\newcommand{\invalue}[1]{\texttt{\textlangle} #1 \texttt{\textrangle}}
+
+\newcommand{\VCon}[2]{\invalue{\keyword{con} ~ #1 ~ #2}}
+\newcommand{\VDelay}[2]{\invalue{\keyword{delay} ~ #1 ~ #2}}
+\newcommand{\VLamAbs}[3]{\invalue{\keyword{lam} ~ #1 ~#2 ~ #3}}
+\newcommand{\VBuiltin}[3]{\invalue{\keyword{builtin} ~ #1 ~ #2 ~ #3}}
+ %% (builtin bn v_1 ... v_k _ m_{k+1} ... m_n, arity)
+
+%%% CK Machine Normalization
+
+\newcommand{\compute}{\triangleright}
+\newcommand{\return}{\triangleleft}
+\newcommand{\cekerror}{\mdblkdiamond}
+\newcommand{\cekhalt}[1]{\mdwhtsquare\,#1}
+\newcommand{\unload}[1]{\mathcal{U}(#1)}
+\newcommand{\Unload}[2]{{#2}@{#1}}
+
+\newcommand{\bcompute}{\color{blue}\compute}  
+\newcommand{\breturn}{\color{blue}\return}  
+\newcommand{\bmapsto}{\color{blue}\mapsto}
+% This is to get blue symbols after an '&' inside an alignat
+% environment.  It seems to mess up the spacing if you do anything
+% else.
+
+
+
+\newcommand{\inInstLeftFrame}[1]{\inst{\_}{#1}}
+\newcommand{\inWrapRightFrame}[2]{\iwrap{#1}{#2}{\_}}
+\newcommand{\inUnwrapFrame}{\unwrap{\_}}
+\newcommand{\inAppLeftFrame}[1]{\app{\_}{#1}}
+\newcommand{\inAppRightFrame}[1]{\app{#1}{\_}}
+
+% Extra frames for untyped term normalisation
+\newcommand{\inForceFrame}{\force{\_}}
+\newcommand{\inBuiltinU}[4]{\builtin{#1}{#2 #3 #4}}
+
+% These are for use inside listings and $...$.  If you just use
+% \textit in listings it uses the italic tt font and the spacing
+% inside the words is a bit strange.  Spacing is also bad if you
+% just put something like "integer" in math text.
+\newcommand\unit{\ensuremath{\mathit{unit}}}
+\newcommand\one{\ensuremath{\mathit{one}}}
+\renewcommand\boolean{\ensuremath{\mathit{boolean}}}
+\newcommand\integer{\ensuremath{\mathit{integer}}}
+\newcommand\bytestring{\ensuremath{\mathit{bytestring}}}
+\newcommand\str{\ensuremath{\mathit{str}}}
+\newcommand\true{\ensuremath{\mathit{true}}}
+\newcommand\false{\ensuremath{\mathit{false}}}
+\newcommand\case{\ensuremath{\mathit{case}}}
+\newcommand\signed{\ensuremath{\mathit{signed}}}
+\newcommand\txhash{\ensuremath{\mathit{txhash}}}
+\newcommand\pubkey{\ensuremath{\mathit{pubkey}}}
+\newcommand\blocknum{\ensuremath{\mathit{blocknum}}}
+%% \newcommand\uniqmem[1]{#1^{\blacktriangledown}}  %% Unique member of size type
+
+\newcommand\listOf[1]{\mathtt{list}\,\mathtt{(}#1\mathtt{)}}
+\newcommand\pairOf[2]{\mathtt{pair}\,\mathtt{(}#1\mathtt{,}\,#2\mathtt{)}}
+
+
+%% \newcommand\disj{\mathbin{\dot{\cup}}}    % Infix disjoint union
+%% \newcommand\bigdisj{\bigcup^{\bullet}}      % Prefix disjoint union
+\newcommand\disj{\uplus}                  % Infix disjoint union
+\newcommand\bigdisj{\biguplus}            % Prefix disjoint union
+\newcommand\TyOp{\mathscr{O}}             % Type operators
+\newcommand\Var{\mathscr{V}}              % Type variables
+\newcommand\QVar{\mathscr{Q}}             % Quantified type variables
+\newcommand\Uni{\mathscr{U}}              % Universe of built-in types
+\newcommand\Unihash{{\mathscr{U}_{\#}}}     % Universe of built-in types extended with type variables
+\newcommand\UniTop{\Uni^{\top}}      % Universe of built-in types extended with a top element
+\newcommand\Unihashn[1]{\Uni_{\#,#1}}
+\newcommand\Sext{\hat{S}}
+\newcommand\UnihashStar{\Unihash \disj \Var_*} % Built-in type or type name
+\newcommand\UnihashTop{\Unihash^{\top}}      % Universe of built-in types extended with a top element
+\newcommand\op{\textit{op}}               % Type operator names
+\newcommand\valency[1]{\left| #1 \right|} % Valency of a type operator
+\newcommand\Fun{\mathscr{B}}              % Built-in functions
+\newcommand\Inputs{\mathscr{I}}           % Built-in functions
+\newcommand\Con[1]{\mathscr{C}_{#1}}  % Constant terms of a given types
+\newcommand\R{\mathscr{R}}           % Things that a builtin can return
+\newcommand\bsig[1]{\lvert{#1}\rvert} % Signature |b| of a built-in function.
+\newcommand\arity[1]{\alpha({#1})}   % Arity \alpha(b) of a built-in function.
+\newcommand\sat[1]{\gamma({#1})} % Interleaving structure of a partial builtin application
+\newcommand\fv[1]{\mathsf{FV}_{\#}(#1)}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Nplus}{\N^{+}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\B}{\mathbb{B}}
+\newcommand{\U}{\mathbb{U}}
+\newcommand{\cn}{\textit{cn}}
+\newcommand{\tn}{\textit{T}}
+\newcommand{\at}{\textit{at}}
+\newcommand{\lit}[1]{\mathbf{\mathsf{lit\,_{#1}}}}
+\newcommand{\alphabar}{\bar{\alpha}}
+\newcommand{\sigmabar}{\bar{\sigma}}
+\newcommand{\Eval}{\mathsf{Eval}}
+\newcommand{\EvalCEK}{\mathsf{Eval_{\,CEK}}}
+%% NOTE!!!  Probably \byte and \Z are only used in builtins-alonzo
+
+\newcommand{\kindstar}[1]{#1::\text{\textasteriskcentered}}  % "v::*"  (The ordinary * is a bit above the centreline)
+\newcommand{\kindhash}[1]{#1::\text{\#}}                     % "v::#" 
+
+\newcommand\errorX{\textbf{\texttimes}}
+\newcommand\ValueOrError{\Inputs\disj\{\errorX\}}
+\newcommand\withError[1]{\ensuremath{#1_{\errorX}}}
+
+
+
+\newcommand{\cons}{\mathbin{\!\cdot\!}}
+\newcommand{\snoc}{\mathbin{\!\cdot\!}}
+
+\newcommand{\forallty}[1]{\mathbf{\forall}#1}
+\newcommand{\denote}[1]{\llbracket\mathit{#1}\rrbracket}
+\newcommand{\reify}[1]{\lBrace{#1}\rBrace}
+%\newcommand{\args}[1]{\textbf{\textsf{args}}(#1)}
+\DeclareMathOperator{\args}{\mathbf{\mathsf{args}}}
+\DeclareMathOperator{\type}{\mathbf{\mathsf{type}}}
+\DeclareMathOperator{\length}{\ell}
+\DeclareMathOperator{\nextArg}{\mathsf{next}}
+\DeclareMathOperator{\divfn}{div}
+\DeclareMathOperator{\modfn}{mod}
+\DeclareMathOperator{\quotfn}{quot}
+\DeclareMathOperator{\remfn}{rem}
+\DeclareMathOperator{\inj}{inj}
+\DeclareMathOperator{\proj}{proj}
+\DeclareMathOperator{\is}{is}
+\DeclareMathOperator{\dom}{dom}
+
+%%% Spacing in tables
+
+\newcommand\sep{4pt}
+% The table of abbreviations previously had \\\\ at the end of each line, which
+% made it quite long. Lines are now separated by a vertical space of size \sep.
+% This makes it a bit more readable than no spacing at all, but not too long
+
+\newcommand{\Strut}{\rule[-2mm]{0mm}{6mm}}
+
+\newcommand{\conUnitType}{\keyword{unit}}
+\newcommand{\conBooleanType}{\keyword{bool}}
+\newcommand{\ty}[1]{\mathtt{#1}}
+
+\newcommand\Nab[2]{\N_{[#1,#2]}}
+\newcommand\halfOpenInterval[2]{\N_{[#1#2)}}
+
+
+%% Macros for CBOR encoders and decoders
+
+\newcommand\e{\mathcal{E}} 
+\renewcommand\d{\mathcal{D}}    %% This usually puts a dot under its argument
+  
+\newcommand\eHead{\e_{\mathsf{head}}}
+\newcommand\dHead{\d_{\mathsf{head}}}
+
+\newcommand\eIndef{\e_{\mathsf{indef}}}
+\newcommand\dIndef{\d_{\mathsf{indef}}}
+
+\newcommand\ecTag{\e_{\texttt{ctag}}}  % A constructor tag, not a CBOR tag.
+\newcommand\dcTag{\d_{\texttt{ctag}}}
+
+\newcommand\hex[1]{$\mathtt{#1_{16}}$}
+
+\newcommand\eZ{\e_{\Z}}
+\newcommand\dZ{\d_{\Z}}
+
+\newcommand\eBS{\e_{\B^*}}
+\newcommand\dBS{\d_{\B^*}}
+
+\newcommand\itos{\mathsf{itos}}
+\newcommand\stoi{\mathsf{stoi}}
+
+\newcommand\byte{\mathsf{b}}
+
+\newcommand\dBytes{\d_{\mathsf{bytes}}}
+\newcommand\dBlock{\d_{\mathsf{block}}}
+\newcommand\dBlocks{\d_{\mathsf{blocks}}}
+
+\newcommand\intToBS{\mathsf{e}}
+\newcommand\bsToInt{\mathsf{d}}  % bytestring -> integer
+
+%% Macros for flat encoders and decoders
+
+\newcommand\T{\mathsf{T}}  % Type tags
+
+\newcommand\E{\mathsf{E}}  % Encoders
+\newcommand\Elist{\overrightarrow{\mathsf{E}}}
+\newcommand\Eblock{\mathsf{E}_{\mathsf{block}}}
+
+\newcommand\encode[1]{\E_{\mathsf{#1}}}
+\newcommand\encodelist[1]{\Elist_{\mathsf{#1}}}
+
+\newcommand\Eprogram{\encode{program}}
+\newcommand\Eterm{\encode{term}}
+\newcommand\Ebuiltin{\encode{builtin}}
+\newcommand\Econstant[1]{\encode{constant}^{#1}}
+\newcommand\Ename{\encode{name}}
+\newcommand\Ebinder{\encode{\text{$\lambda$}var}}
+\newcommand\Etype{\encode{type}}
+\newcommand\zigzag{\mathbb{z}}
+
+\newcommand\D{\mathsf{D}}  % Decoders
+\newcommand\Dlist{\overrightarrow{\mathsf{D}}}
+
+\newcommand\decode[1]{\D_{\mathsf{#1}}}
+\newcommand\decodelist[1]{\Dlist_{\mathsf{#1}}}
+
+\newcommand\Dprogram{\decode{program}}
+\newcommand\Dterm{\decode{term}}
+\newcommand\Dbuiltin{\decode{builtin}}
+\newcommand\dConstant[1]{\decode{constant}^{#1}}
+\newcommand\Dname{\decode{name}}
+\newcommand\Dbinder{\decode{\text{$\lambda$}var}}
+\newcommand\Dtype{\decode{type}}
+
+\newcommand\Bits{\mathbb{S}}
+\newcommand\bit{\mathsf{b}}
+\newcommand\bits[1]{\mathtt{#1}}
+
+\newcommand\pad{\mathsf{pad}}
+% \newcommand\Pad{\mathsf{pad}^{+}}
+\newcommand\unpad{\mathsf{unpad}}
+% \newcommand\unPad{\mathsf{unpad}^{+}}
+\newcommand\pp[1]{\mathsf{p}_{#1}}
+
+\newcommand\plc[2]{\texttt{(#1}\ #2\texttt{)}}
+
+\newcommand\Prog[4]{\plc{program}{#1.#2.#3\ #4}}
+\newcommand\Const[2]{\plc{const}{#1\ #2}}
+\newcommand\Builtin[1]{\plc{builtin}{#1}}
+\newcommand\Lam[2]{\plc{lam}{#1\ #2}}
+\newcommand\Apply[2]{\texttt{[}#1\ #2\texttt{]}}
+\newcommand\Delay[1]{\plc{delay}{#1}}
+\newcommand\Force[1]{\plc{force}{#1}}
+\newcommand\Error{\texttt{(error)}}
+
+\newcommand{\Tag}{\mathsf{tag}}  %% \renewcommand{\tag} gave odd results inside alignat*
+\newcommand{\unTag}{\mathsf{tag}^{-1}}
+
+
+  

@@ -20,7 +20,7 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline qualified as Inline
+import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -153,7 +153,7 @@ instance Monoid SourcePos where
 inline :: TestNested
 inline =
     testNested "inline"
-    $ map (goldenPir (runQuote . (Inline.inline mempty def <=< PLC.rename)) $ pTerm)
+    $ map (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) $ pTerm)
     [ "var"
     , "builtin"
     , "constant"

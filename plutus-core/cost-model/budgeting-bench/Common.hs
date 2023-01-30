@@ -23,7 +23,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.DeepSeq (NFData, force)
 import Criterion.Main
 import Data.ByteString qualified as BS
-import Data.Ix (Ix)
 import Data.Typeable (Typeable)
 
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
@@ -74,8 +73,8 @@ copyData =
 ---------------- Creating benchmarks ----------------
 
 benchWith
-    :: (Ix fun, Pretty fun, Typeable fun)
-    => MachineParameters CekMachineCosts CekValue DefaultUni fun
+    :: (Pretty fun, Typeable fun)
+    => MachineParameters CekMachineCosts CekValue DefaultUni fun ()
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark

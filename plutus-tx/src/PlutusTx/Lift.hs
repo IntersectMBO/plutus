@@ -102,8 +102,12 @@ safeLiftCode
        , PLC.Typecheckable uni fun
        , PrettyPrintable uni fun
        )
-    => a -> m (CompiledCodeIn uni fun () a)
-safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing <*> pure mempty
+    => a -> m (CompiledCodeIn uni fun a)
+safeLiftCode x =
+    DeserializedCode
+        <$> ((const mempty <$>) <$> safeLiftProgram x)
+        <*> pure Nothing
+        <*> pure mempty
 
 unsafely
     :: Throwable uni fun
@@ -135,7 +139,7 @@ liftProgramDef = liftProgram
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun)
-    => a -> CompiledCodeIn uni fun () a
+    => a -> CompiledCodeIn uni fun a
 liftCode x = unsafely $ safeLiftCode x
 
 {- Note [Checking the type of a term with Typeable]
@@ -205,9 +209,9 @@ typeCode
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
-    -> m (CompiledCodeIn uni fun () a)
+    -> m (CompiledCodeIn uni fun a)
 typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
     db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
-    pure $ DeserializedCode db Nothing mempty
+    pure $ DeserializedCode (const mempty <$> db) Nothing mempty

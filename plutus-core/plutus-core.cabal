@@ -64,6 +64,7 @@ common lang
 library
   import:          lang
   exposed-modules:
+    Annotation
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -163,7 +164,9 @@ library
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.DeadCode
-    PlutusIR.Transform.Inline
+    PlutusIR.Transform.Inline.CallSiteInline
+    PlutusIR.Transform.Inline.UnconditionalInline
+    PlutusIR.Transform.Inline.Utils
     PlutusIR.Transform.LetFloatIn
     PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge
@@ -186,6 +189,8 @@ library
     UntypedPlutusCore.DeBruijn
     UntypedPlutusCore.Evaluation.Machine.Cek
     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
+    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
@@ -226,7 +231,6 @@ library
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq
-    PlutusCore.InlineUtils
     PlutusCore.Parser.Builtin
     PlutusCore.Parser.ParserCommon
     PlutusCore.Parser.Type
@@ -300,6 +304,7 @@ library
     , extra
     , filepath
     , flat                        <0.5
+    , free
     , ghc-prim
     , hashable                    >=1.4
     , hedgehog                    >=1.0
@@ -308,6 +313,7 @@ library
     , lens
     , megaparsec
     , mmorph
+    , mono-traversable
     , monoidal-containers
     , mtl
     , multiset
@@ -539,6 +545,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
+    Evaluation.Debug
     Evaluation.FreeVars
     Evaluation.Golden
     Evaluation.Machines
@@ -586,7 +593,8 @@ executable uplc
   build-depends:
     , base                  >=4.9 && <5
     , deepseq
-    , lens
+    , haskeline
+    , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
     , plutus-core-execlib
@@ -644,8 +652,10 @@ executable debugger
     , extra
     , microlens
     , microlens-th
+    , mono-traversable
     , mtl
     , optparse-applicative
+    , plutus-core           ^>=1.1
     , text
     , vty
 

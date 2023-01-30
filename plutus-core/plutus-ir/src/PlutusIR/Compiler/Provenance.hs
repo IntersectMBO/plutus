@@ -16,7 +16,7 @@ import Prettyprinter qualified as PP
 -- | Indicates where a value comes from.
 --
 -- This is either an original annotation or a pieces of context explaining how the term
--- relates to a previous 'Provenance'. We also provide 'NoProvenance' for convenience.
+-- relates to a previous 'Provenance'. We also provide 'noProvenance' for convenience.
 --
 -- The provenance should always be just the original annotation, if we have one. It should only be another
 -- kind of provenance if we're in the process of generating some term that doesn't correspond directly to a term in

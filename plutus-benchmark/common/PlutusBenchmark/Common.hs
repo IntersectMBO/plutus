@@ -65,8 +65,8 @@ toAnonDeBruijnTerm = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBru
 
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun () a -> Term
-compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
+compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
 
 {- | Lift a Haskell value to a PLC term.  The constraints get a bit out of control
    if we try to do this over an arbitrary universe.-}
