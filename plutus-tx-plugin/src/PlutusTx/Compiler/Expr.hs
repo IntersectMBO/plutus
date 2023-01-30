@@ -26,7 +26,6 @@ import GHC.Types.Id.Make qualified as GHC
 import GHC.Types.Tickish qualified as GHC
 import GHC.Types.TyThing qualified as GHC
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Code
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error

@@ -59,7 +59,6 @@ library
     PlutusTx.Plugin
 
   other-modules:
-    PlutusTx.Annotation
     PlutusTx.Compiler.Binders
     PlutusTx.Compiler.Builtins
     PlutusTx.Compiler.Expr

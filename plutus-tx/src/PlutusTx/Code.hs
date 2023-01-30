@@ -18,68 +18,16 @@ import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
 
+import Annotation
 import Control.Exception
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (void)
-import Data.List qualified as List
-import Data.Set (Set)
-import Data.Set qualified as Set
 import ErrorCode
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
-import GHC.Generics
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
-import Prettyprinter
-
--- | The span between two source locations.
---
--- This corresponds roughly to the `SrcSpan` used by GHC, but we define our own version so we don't have to depend on `ghc` to use it.
---
--- The line and column numbers are 1-based, and the unit is Unicode code point (or `Char`).
-data SrcSpan = SrcSpan
-    { srcSpanFile  :: FilePath
-    , srcSpanSLine :: Int
-    , srcSpanSCol  :: Int
-    , srcSpanELine :: Int
-    , srcSpanECol  :: Int
-    }
-    deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Flat)
-
-instance Show SrcSpan where
-    showsPrec _ s =
-        showString (srcSpanFile s)
-            . showChar ':'
-            . showsPrec 0 (srcSpanSLine s)
-            . showChar ':'
-            . showsPrec 0 (srcSpanSCol s)
-            . showChar '-'
-            . showsPrec 0 (srcSpanELine s)
-            . showChar ':'
-            . showsPrec 0 (srcSpanECol s)
-
-instance Pretty SrcSpan where
-    pretty = viaShow
-
-newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
-    deriving newtype (Eq, Ord, Semigroup, Monoid)
-    deriving stock (Generic)
-    deriving anyclass (Flat)
-
-instance Show SrcSpans where
-    showsPrec _ (SrcSpans xs) =
-        showString "{ "
-            . showString
-                ( case Set.toList xs of
-                    [] -> "no-src-span"
-                    ys -> List.intercalate ", " (show <$> ys)
-                )
-            . showString " }"
-
-instance Pretty SrcSpans where
-    pretty = viaShow
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
 -- role, since it corresponds to the Haskell type of the program that was compiled into
