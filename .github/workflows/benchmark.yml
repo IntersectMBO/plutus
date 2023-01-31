@@ -1,4 +1,4 @@
-name: Benchmarking
+name: Benchmark
 on:
   issue_comment:
     types: [created]
@@ -87,8 +87,9 @@ jobs:
               core.setFailed(`Error: ${error}`);
             } 
             
-      - run: |
-         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+      - name: Run
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
         if: success()
         env:
           GITHUB_TOKEN: ${{ github.token }}

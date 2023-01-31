@@ -23,7 +23,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_ENDPOINT_URL: https://s3.devx.iog.io
 
-      - name: Run Script Evaluation Test
+      - name: Run
         # Run the test cases sequentially. This ensures we don't need to simultaneously store
         # multiple `ScriptEvaluationEvents`, which are large, in memory. Each test case
         # contains many script evaluation events, and those are run in parallel based on
