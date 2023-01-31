@@ -225,7 +225,7 @@ applyEvaluate !_ !_ val _ =
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
     :: (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term NamedDeBruijn uni fun ann
@@ -340,7 +340,7 @@ defaultSlippage = 200
 runCekM
     :: forall a cost uni fun ann.
     (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
