@@ -44,7 +44,6 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
-import ErrorCode
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -229,23 +228,3 @@ instance (PrettyPlc cause, PrettyPlc err) =>
 
 deriving anyclass instance
     (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) => Exception (ErrorWithCause err cause)
-
-instance HasErrorCode UnliftingError where
-      errorCode        UnliftingErrorE {}        = ErrorCode 30
-
-instance HasErrorCode (MachineError err) where
-      errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
-      errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
-      errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
-      errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
-      errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
-      errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
-      errorCode        (UnliftingMachineError e)                    = errorCode e
-      errorCode        UnknownBuiltin {}                            = ErrorCode 17
-
-instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
-  errorCode (InternalEvaluationError e) = errorCode e
-  errorCode (UserEvaluationError e)     = errorCode e
-
-instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
-    errorCode (ErrorWithCause e _) = errorCode e

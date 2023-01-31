@@ -62,7 +62,6 @@ import Prettyprinter
 
 import Control.DeepSeq (NFData)
 import Data.Coerce
-import ErrorCode
 import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
@@ -213,10 +212,6 @@ instance Pretty FreeVariableError where
     pretty (FreeUnique u) = "Free unique:" <+> pretty u
     pretty (FreeIndex i)  = "Free index:" <+> pretty i
 makeClassyPrisms ''FreeVariableError
-
-instance HasErrorCode FreeVariableError where
-    errorCode  FreeIndex {}  = ErrorCode 23
-    errorCode  FreeUnique {} = ErrorCode 22
 
 -- | Get the 'Index' corresponding to a given 'Unique'.
 -- Uses supplied handler for free names (uniques).

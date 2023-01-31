@@ -25,7 +25,6 @@ packages: doc/read-the-docs-site
           plutus-benchmark
           plutus-conformance
           plutus-core
-          plutus-errors
           plutus-ledger-api
           plutus-metatheory
           plutus-tx

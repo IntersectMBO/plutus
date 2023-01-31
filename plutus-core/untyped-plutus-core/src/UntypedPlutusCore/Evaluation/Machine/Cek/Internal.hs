@@ -54,7 +54,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
 
-import ErrorCode
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
@@ -362,10 +361,6 @@ data CekUserError
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
-
-instance HasErrorCode CekUserError where
-    errorCode CekEvaluationFailure {} = ErrorCode 37
-    errorCode CekOutOfExError {}      = ErrorCode 36
 
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.

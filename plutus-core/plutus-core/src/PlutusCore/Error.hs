@@ -40,7 +40,6 @@ import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Data.Text qualified as T
-import ErrorCode
 import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe
@@ -161,8 +160,7 @@ instance
         , Pretty fun
         , Pretty ann
         ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
-    prettyBy config e@(KindMismatch ann ty k k')          =
-        pretty (errorCode e) <> ":" <+>
+    prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
         ". Expected kind" <+> squotes (prettyBy config k) <+>
@@ -216,40 +214,6 @@ instance
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
-
-instance HasErrorCode ParserError where
-    errorCode InvalidBuiltinConstant {} = ErrorCode 10
-    errorCode UnknownBuiltinFunction {} = ErrorCode 9
-    errorCode UnknownBuiltinType {}     = ErrorCode 8
-    errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-
-instance HasErrorCode ParserErrorBundle where
-    errorCode _ = ErrorCode 52
-
-instance HasErrorCode (UniqueError _a) where
-      errorCode FreeVariable {}    = ErrorCode 21
-      errorCode IncoherentUsage {} = ErrorCode 12
-      errorCode MultiplyDefined {} = ErrorCode 11
-
-instance HasErrorCode (NormCheckError _a _b _c _d _e) where
-      errorCode BadTerm {} = ErrorCode 14
-      errorCode BadType {} = ErrorCode 13
-
-instance HasErrorCode (TypeError _a _b _c _d) where
-    errorCode FreeVariableE {}           = ErrorCode 20
-    errorCode FreeTypeVariableE {}       = ErrorCode 19
-    errorCode TypeMismatch {}            = ErrorCode 16
-    errorCode KindMismatch {}            = ErrorCode 15
-    errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
-    errorCode TyNameMismatch {}          = ErrorCode 53
-    errorCode NameMismatch {}            = ErrorCode 54
-
-instance HasErrorCode (Error _a _b _c) where
-    errorCode (ParseErrorE e)           = errorCode e
-    errorCode (UniqueCoherencyErrorE e) = errorCode e
-    errorCode (TypeErrorE e)            = errorCode e
-    errorCode (NormCheckErrorE e)       = errorCode e
-    errorCode (FreeVariableErrorE e)    = errorCode e
 
 makeClassyPrisms ''ParseError
 makeClassyPrisms ''ParserErrorBundle
