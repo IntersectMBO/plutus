@@ -70,9 +70,12 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- This is slightly wider than the definition of a value, as
 -- it includes applications that are known to be pure, as well as
 -- things that can't be returned from the machine (as they'd be ill-scoped).
-isPure
-    :: ToBuiltinMeaning uni fun
-    => BuiltinVersion fun -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
+isPure ::
+    ToBuiltinMeaning uni fun =>
+    BuiltinVersion fun ->
+    (name -> Strictness) ->
+    Term tyname name uni fun a ->
+    Bool
 isPure ver varStrictness = go
     where
         go = \case
@@ -85,9 +88,9 @@ isPure ver varStrictness = go
             TyAbs {} -> True
             Constant {} -> True
             IWrap _ _ _ t -> go t
-            Let _ _ bs t -> all isPureBinding bs && go t
-            Apply _ (LamAbs _ _ _ body) arg -> go body && go arg
-            TyInst _ (TyAbs _ _ _ body) _ -> go body
+            -- A non-recursive `Let` is pure if all bindings are pure and the body is pure.
+            -- A recursive `Let` may loop, so we consider it non-pure.
+            Let _ NonRec bs t -> all isPureBinding bs && go t
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
