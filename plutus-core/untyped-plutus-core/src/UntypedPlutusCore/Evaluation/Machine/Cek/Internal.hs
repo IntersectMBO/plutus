@@ -61,7 +61,7 @@ import UntypedPlutusCore.Core
 
 
 import Data.RandomAccessList.Class qualified as Env
-import Data.RandomAccessList.SkewBinary qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env (RAList)
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -569,12 +569,9 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
     pure (errOrRes, st, logs)
 
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
-lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
-    case varEnv `Env.indexOne` coerce varIx of
-        Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
-            var = Var () varName
-        Just val -> pure val
+{-# INLINE lookupVarName #-}
+lookupVarName :: forall uni fun ann s. NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName (NamedDeBruijn _ varIx) varEnv = pure $ Env.unsafeIndexOne varEnv $ coerce varIx
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
