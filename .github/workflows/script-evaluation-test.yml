@@ -6,6 +6,7 @@ on:
 
 concurrency:
   group: script-evaluation-test
+  cancel-in-progress: true # We only want at most one job running at a time
 
 jobs: 
   script-evaluation-test: 
