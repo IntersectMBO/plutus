@@ -60,11 +60,11 @@ import Prelude as Haskell
 type RTCompileScope uni fun = ReaderT (LocalVars uni) (RTCompile uni fun)
 type THCompile = StateT Deps (ReaderT THLocalVars (ExceptT LiftError TH.Q))
 
-data LiftError = UnsupportedLiftKind TH.Kind
-               | UnsupportedLiftType TH.Type
-               | UserLiftError T.Text
-               | LiftMissingDataCons TH.Name
-               | LiftMissingVar TH.Name
+data LiftError = UnsupportedLiftKind !TH.Kind
+               | UnsupportedLiftType !TH.Type
+               | UserLiftError !T.Text
+               | LiftMissingDataCons !TH.Name
+               | LiftMissingVar !TH.Name
                deriving anyclass (Prelude.Exception)
 
 instance PP.Pretty LiftError where

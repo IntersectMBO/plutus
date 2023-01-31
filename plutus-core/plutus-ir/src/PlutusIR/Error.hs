@@ -29,18 +29,18 @@ import Prettyprinter as PP
 
 data TypeErrorExt uni ann =
       MalformedDataConstrResType
-         ann
+         !ann
          -- the expected constructor's type
-         (PLC.Type PLC.TyName uni ann)
+         !(PLC.Type PLC.TyName uni ann)
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeErrorExt
 
-data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation error.
-                     | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.
-                     | PLCError (PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
-                     | PLCTypeError (PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
-                     | PIRTypeError (TypeErrorExt uni a)
+data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation error.
+                     | UnsupportedError !a !T.Text -- ^ An error relating specifically to an unsupported feature.
+                     | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
+                     | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
+                     | PIRTypeError !(TypeErrorExt uni a)
 makeClassyPrisms ''Error
 
 instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a where

@@ -54,7 +54,7 @@ newtype UnliftingError
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data KnownTypeError
-    = KnownTypeUnliftingError UnliftingError
+    = KnownTypeUnliftingError !UnliftingError
     | KnownTypeEvaluationFailure
     deriving stock (Eq)
 
@@ -74,16 +74,16 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin fun
+    | UnknownBuiltin !fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
 data EvaluationError user internal
-    = InternalEvaluationError internal
+    = InternalEvaluationError !internal
       -- ^ Indicates bugs.
-    | UserEvaluationError user
+    | UserEvaluationError !user
       -- ^ Indicates user errors.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
@@ -111,8 +111,8 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
 
 -- | An error and (optionally) what caused it.
 data ErrorWithCause err cause = ErrorWithCause
-    { _ewcError :: err
-    , _ewcCause :: Maybe cause
+    { _ewcError :: !err
+    , _ewcCause :: !(Maybe cause)
     } deriving stock (Eq, Functor, Foldable, Traversable, Generic)
     deriving anyclass (NFData)
 

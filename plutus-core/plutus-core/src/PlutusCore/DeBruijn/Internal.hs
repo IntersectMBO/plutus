@@ -203,8 +203,8 @@ withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 -- | We cannot do a correct translation to or from de Bruijn indices if the program is not well-scoped.
 -- So we throw an error in such a case.
 data FreeVariableError
-    = FreeUnique Unique
-    | FreeIndex Index
+    = FreeUnique !Unique
+    | FreeIndex !Index
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Exception, NFData)
 

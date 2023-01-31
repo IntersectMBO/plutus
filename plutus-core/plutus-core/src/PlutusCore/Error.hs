@@ -52,10 +52,10 @@ throwingEither r e = case e of
 
 -- | An error encountered during parsing.
 data ParserError
-    = UnknownBuiltinType T.Text SourcePos
-    | BuiltinTypeNotAStar T.Text SourcePos
-    | UnknownBuiltinFunction T.Text SourcePos [T.Text]
-    | InvalidBuiltinConstant T.Text T.Text SourcePos
+    = UnknownBuiltinType !T.Text !SourcePos
+    | BuiltinTypeNotAStar !T.Text !SourcePos
+    | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
+    | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
 
@@ -64,15 +64,15 @@ instance Show ParserError
       show = show . pretty
 
 data UniqueError ann
-    = MultiplyDefined Unique ann ann
-    | IncoherentUsage Unique ann ann
-    | FreeVariable Unique ann
+    = MultiplyDefined !Unique !ann !ann
+    | IncoherentUsage !Unique !ann !ann
+    | FreeVariable !Unique !ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
 data NormCheckError tyname name uni fun ann
-    = BadType ann (Type tyname uni ann) T.Text
-    | BadTerm ann (Term tyname name uni fun ann) T.Text
+    = BadType !ann !(Type tyname uni ann) !T.Text
+    | BadTerm !ann !(Term tyname name uni fun ann) !T.Text
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 deriving stock instance
@@ -83,25 +83,25 @@ deriving stock instance
     ) => Eq (NormCheckError tyname name uni fun ann)
 
 data TypeError term uni fun ann
-    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
-    | TypeMismatch ann
-        term
-        (Type TyName uni ())
+    = KindMismatch !ann !(Type TyName uni ()) !(Kind ()) !(Kind ())
+    | TypeMismatch !ann
+        !term
+        !(Type TyName uni ())
         -- ^ Expected type
-        (Normalized (Type TyName uni ()))
+        !(Normalized (Type TyName uni ()))
         -- ^ Actual type
-    | TyNameMismatch ann TyName TyName
-    | NameMismatch ann Name Name
-    | FreeTypeVariableE ann TyName
-    | FreeVariableE ann Name
-    | UnknownBuiltinFunctionE ann fun
+    | TyNameMismatch !ann !TyName !TyName
+    | NameMismatch !ann !Name !Name
+    | FreeTypeVariableE !ann !TyName
+    | FreeVariableE !ann !Name
+    | UnknownBuiltinFunctionE !ann !fun
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.
 data ParserErrorBundle
-    = ParseErrorB (ParseErrorBundle T.Text ParserError)
+    = ParseErrorB !(ParseErrorBundle T.Text ParserError)
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 
@@ -109,11 +109,11 @@ instance Pretty ParserErrorBundle where
     pretty (ParseErrorB err) = pretty $ errorBundlePretty err
 
 data Error uni fun ann
-    = ParseErrorE ParserErrorBundle
-    | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
-    | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
-    | FreeVariableErrorE FreeVariableError
+    = ParseErrorE !ParserErrorBundle
+    | UniqueCoherencyErrorE !(UniqueError ann)
+    | TypeErrorE !(TypeError (Term TyName Name uni fun ()) uni fun ann)
+    | NormCheckErrorE !(NormCheckError TyName Name uni fun ann)
+    | FreeVariableErrorE !FreeVariableError
     deriving stock (Eq, Generic, Functor)
     deriving anyclass (NFData)
 deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)

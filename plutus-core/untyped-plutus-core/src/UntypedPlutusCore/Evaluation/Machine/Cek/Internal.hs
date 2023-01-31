@@ -356,8 +356,7 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
-    -- @plutus-errors@ prevents this from being strict. Not that it matters anyway.
-    = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)

@@ -64,13 +64,13 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             ]
 
 data Error uni fun a
-    = PLCError (PLC.Error uni fun a)
-    | PIRError (PIR.Error uni fun (PIR.Provenance a))
-    | CompilationError T.Text
-    | UnsupportedError T.Text
-    | FreeVariableError T.Text
-    | InvalidMarkerError String
-    | CoreNameLookupError TH.Name
+    = PLCError !(PLC.Error uni fun a)
+    | PIRError !(PIR.Error uni fun (PIR.Provenance a))
+    | CompilationError !T.Text
+    | UnsupportedError !T.Text
+    | FreeVariableError !T.Text
+    | InvalidMarkerError !String
+    | CoreNameLookupError !TH.Name
 makeClassyPrisms ''Error
 
 instance (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
