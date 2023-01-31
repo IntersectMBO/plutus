@@ -92,7 +92,7 @@ A wrapper around the internal runCek to debruijn input and undebruijn output.
 -}
 runCek
     :: PrettyUni uni fun
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term Name uni fun ann
@@ -123,7 +123,7 @@ runCek params mode emitMode term =
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 runCekNoEmit
     :: PrettyUni uni fun
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
@@ -140,7 +140,7 @@ unsafeRunCekNoEmit
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), cost)
@@ -153,7 +153,7 @@ unsafeRunCekNoEmit params mode =
 evaluateCek
     :: PrettyUni uni fun
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun ann
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params =
@@ -164,7 +164,7 @@ evaluateCek emitMode params =
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCekNoEmit
     :: PrettyUni uni fun
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
@@ -177,7 +177,7 @@ unsafeEvaluateCek
        , Pretty fun, Typeable fun
        )
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun ann
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), [Text])
 unsafeEvaluateCek emitTime params =
@@ -191,7 +191,7 @@ unsafeEvaluateCekNoEmit
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEmit params
@@ -202,7 +202,7 @@ readKnownCek
     :: ( ReadKnown (Term Name uni fun ()) a
        , PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) a
 readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf
