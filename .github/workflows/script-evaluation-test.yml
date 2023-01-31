@@ -6,7 +6,8 @@ on:
 
 concurrency:
   group: script-evaluation-test
-  cancel-in-progress: true # We only want at most one job running at a time
+  # We only want at most one evaluation test running at a time
+  cancel-in-progress: true 
 
 jobs: 
   script-evaluation-test: 
