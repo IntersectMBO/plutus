@@ -19,10 +19,5 @@
       [ f [ f (con integer 1) ] ]
     )
   )
-  (termbind
-    (strict)
-    (vardecl variableCapture (con integer))
-    [ (lam y (con integer) x) (con integer 24) ]
-  )
   x
 )

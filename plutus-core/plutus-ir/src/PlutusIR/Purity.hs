@@ -68,7 +68,8 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 
 -- | Will evaluating this term have side effects (looping or error)?
 -- This is slightly wider than the definition of a value, as
--- it includes things that can't be returned from the machine (as they'd be ill-scoped).
+-- it includes applications that are known to be pure, as well as
+-- things that can't be returned from the machine (as they'd be ill-scoped).
 isPure
     :: ToBuiltinMeaning uni fun
     => BuiltinVersion fun -> (name -> Strictness) -> Term tyname name uni fun a -> Bool
@@ -84,6 +85,9 @@ isPure ver varStrictness = go
             TyAbs {} -> True
             Constant {} -> True
             IWrap _ _ _ t -> go t
+            Let _ _ bs t -> all isPureBinding bs && go t
+            Apply _ (LamAbs _ _ _ body) arg -> go body && go arg
+            TyInst _ (TyAbs _ _ _ body) _ -> go body
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
@@ -94,6 +98,10 @@ isPure ver varStrictness = go
                 all (\case { TermArg arg -> go arg; TypeArg _ -> True }) args
 
             _ -> False
+
+        isPureBinding = \case
+            TermBind _ Strict _ rhs -> go rhs
+            _                       -> True
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
