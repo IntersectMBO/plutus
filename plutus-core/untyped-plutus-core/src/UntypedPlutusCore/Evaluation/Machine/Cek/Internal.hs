@@ -550,7 +550,7 @@ tryError a = (Right <$> a) `catchError` (pure . Left)
 runCekM
     :: forall a cost uni fun ann.
     (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
@@ -774,7 +774,7 @@ enterComputeCek = computeCek (toWordArray 0) where
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
     :: PrettyUni uni fun
-    => MachineParameters CekMachineCosts CekValue uni fun ann
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
     -> Term NamedDeBruijn uni fun ann

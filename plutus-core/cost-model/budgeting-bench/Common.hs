@@ -74,7 +74,7 @@ copyData =
 
 benchWith
     :: (Pretty fun, Typeable fun)
-    => MachineParameters CekMachineCosts CekValue DefaultUni fun ()
+    => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
     -> String
     -> PlainTerm DefaultUni fun
     -> Benchmark

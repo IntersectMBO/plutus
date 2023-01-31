@@ -28,8 +28,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
+-- Not using 'noinline' from "GHC.Exts", because our CI was unable to find it there, somehow.
+import GHC.Magic (noinline)
 import PlutusPrelude
-
 
 -- | The default cost model for built-in functions.
 defaultBuiltinCostModel :: BuiltinCostModel
@@ -74,12 +75,15 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
-defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun ann
+defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParameters = mkMachineParameters def defaultCekCostModel
 
-unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun ann
+unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
-    mkMachineParameters def $
+    -- @noinline@ is purely for saving on simplifier ticks, since we don't care about the
+    -- performance of this definition. Otherwise compilation for this module is slower and GHC may
+    -- end up exhausting simplifier ticks leading to a compilation error.
+    noinline . mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term

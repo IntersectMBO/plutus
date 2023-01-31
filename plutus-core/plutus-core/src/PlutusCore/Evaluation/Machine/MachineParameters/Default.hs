@@ -14,7 +14,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Monad.Except
 import GHC.Exts (inline)
 
-type DefaultMachineParameters = MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun ()
+type DefaultMachineParameters =
+    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
