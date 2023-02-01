@@ -214,10 +214,23 @@ processTerm = \case
           if not isAcceptable then pure v
           else do -- if the size and cost are acceptable, then check if it's fully applied
             -- it's fully applied if its annotation (`a`) is in the list of fully applied called
-            -- locations
+            -- locations. See note [Identifying fully applied call sites].
             pure $ if a `elem` calledLocation info then subst else v
     considerInline _notVar = -- this should not happen
       Prelude.error  "considerInline: should be a variable."
+
+{- Note [Identifying fully applied call sites]
+To identify call sites that are "fully applied" (see note [Inlining of fully applied functions] for
+our definition of fully applied), we examine the `body` of the let term with `countApp` (a pure
+function).
+We track all term or type applications, and add them to a map if they are associated with a
+variable. This map contains all variable call sites, each call site is uniquely identified by an
+annotation (the annotation therefore has to be unique and constant).
+We then compare this with the variable's lambda abstraction order. If any call sites application
+order is the same as the lambda abstraction order, we add the annotations of these call sites into
+the `calledLocation` field of `Utils.CalledVarInfo`, which lists the annotations of a variable's
+fully applied called locations. We only inline a variable if its annotation is in this list.
+-}
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -232,7 +245,7 @@ processSingleBinding body = \case
         let
           -- track the term and type lambda abstraction order of the function
           varLamOrder = countLam rhs
-          -- examine the `body` of the `Let` term and track all term/type applications
+          -- examine the `body` of the `Let` term and track all term/type applications.
           appSites = countApp body
           -- list of all call sites of this variable
           listOfCallSites = Map.lookup n appSites
@@ -313,7 +326,7 @@ data ApplicationOrder ann =
 type ApplicationMap ann name = Map.Map name [ApplicationOrder ann]
 
 -- | Counts the number of type and term applications in the let body, including all its subterms,
--- and returns an `ApplicationMap`.
+-- and returns an `ApplicationMap`.  See note [Identifying fully applied call sites].
 countApp ::
     Ord name => -- needed for `Map`
     Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
