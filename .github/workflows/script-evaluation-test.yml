@@ -3,6 +3,7 @@ name: Script Evaluation Test
 on:
   schedule:
     - cron: 30 3 * * * # 3:30am every day 
+  workflow_dispatch:
 
 concurrency:
   group: script-evaluation-test
