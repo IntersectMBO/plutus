@@ -3,9 +3,6 @@ on:
   issue_comment:
     types: [created]
 
-concurrency:
-  group: plutus-benchmark
-
 jobs:
   benchmark:
     runs-on: [self-hosted, plutus-benchmark]
