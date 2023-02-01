@@ -62,7 +62,6 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import ErrorCode (HasErrorCode (errorCode))
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -221,7 +220,7 @@ runPluginM pctx act = do
     case res of
         Right x -> pure x
         Left err ->
-            let errInGhc = GHC.ProgramError $ "GHC Core to PLC plugin: " ++ show (PP.pretty (errorCode err) <> ":" <> PP.pretty err)
+            let errInGhc = GHC.ProgramError . show $ "GHC Core to PLC plugin:" PP.<+> PP.pretty err
             in liftIO $ GHC.throwGhcExceptionIO errInGhc
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.

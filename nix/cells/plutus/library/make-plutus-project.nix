@@ -57,7 +57,6 @@ let
         packages = {
           # Things that need plutus-tx-plugin
           plutus-benchmark.package.buildable = false;
-          plutus-errors.package.buildable = false;
           plutus-tx-plugin.package.buildable = false;
           # Needs agda
           plutus-metatheory.package.buildable = false;
@@ -151,7 +150,6 @@ let
           #plutus-metatheory.package.ghcOptions = "-Werror";
 
           plutus-benchmark.ghcOptions = [ "-Werror" ];
-          plutus-errors.ghcOptions = [ "-Werror" ];
           plutus-ledger-api.ghcOptions = [ "-Werror" ];
           plutus-tx.ghcOptions = [ "-Werror" ];
           plutus-tx-plugin.ghcOptions = [ "-Werror" ];

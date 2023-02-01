@@ -48,8 +48,8 @@ The `Serialise` instances for `Datum` and `Redeemer` exist for several reasons:
 -- | A higher-level evaluation error.
 -- FIXME: move to /plutus-apps/.
 data ScriptError =
-    EvaluationError [Text] Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
-    | EvaluationException Haskell.String Haskell.String -- ^ Unexpected behavior of the engine (a bug)
+    EvaluationError ![Text] !Haskell.String -- ^ Expected behavior of the engine (e.g. user-provided error)
+    | EvaluationException !Haskell.String !Haskell.String -- ^ Unexpected behavior of the engine (a bug)
     deriving stock (Haskell.Show, Haskell.Eq, Generic)
     deriving anyclass (NFData)
 

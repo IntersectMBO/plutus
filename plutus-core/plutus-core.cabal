@@ -70,7 +70,6 @@ library
     Data.Either.Extras
     Data.MultiSet.Lens
     Data.SatInt
-    ErrorCode
     PlutusCore
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug

@@ -28,7 +28,6 @@ import Control.Lens
 import Control.Monad.Except
 
 import Data.Text qualified as T
-import ErrorCode
 import Prettyprinter qualified as PP
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents
@@ -65,27 +64,14 @@ instance (PP.Pretty c, PP.Pretty e) => PP.Pretty (WithContext c e) where
             ]
 
 data Error uni fun a
-    = PLCError (PLC.Error uni fun a)
-    | PIRError (PIR.Error uni fun (PIR.Provenance a))
-    | CompilationError T.Text
-    | UnsupportedError T.Text
-    | FreeVariableError T.Text
-    | InvalidMarkerError String
-    | CoreNameLookupError TH.Name
+    = PLCError !(PLC.Error uni fun a)
+    | PIRError !(PIR.Error uni fun (PIR.Provenance a))
+    | CompilationError !T.Text
+    | UnsupportedError !T.Text
+    | FreeVariableError !T.Text
+    | InvalidMarkerError !String
+    | CoreNameLookupError !TH.Name
 makeClassyPrisms ''Error
-
-instance HasErrorCode (Error _a _b _c) where
-      errorCode CompilationError {}    = ErrorCode 41
-      errorCode UnsupportedError {}    = ErrorCode 42
-      errorCode FreeVariableError {}   = ErrorCode 43
-      errorCode InvalidMarkerError {}  = ErrorCode 49
-      errorCode CoreNameLookupError {} = ErrorCode 50
-      errorCode (PLCError e)           = errorCode e
-      errorCode (PIRError e)           = errorCode e
-
-instance HasErrorCode (CompileError _a _b _c) where
-    errorCode (NoContext e)        = errorCode e
-    errorCode (WithContextC _ _ w) = errorCode w
 
 instance (PLC.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a) =>
             PP.Pretty (Error uni fun a) where
