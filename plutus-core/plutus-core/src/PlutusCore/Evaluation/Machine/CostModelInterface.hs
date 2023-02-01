@@ -159,20 +159,20 @@ extractParams cm = case toJSON cm of
 
 -- | A fatal error when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyError =
-      CMUnknownParamError Text.Text
+      CMUnknownParamError !Text.Text
       -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
     | CMInternalReadError
       -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
-    | CMInternalWriteError String
+    | CMInternalWriteError !String
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
-    | CMTooFewParamsError { cmTooFewExpected :: Int, cmTooFewActual :: Int }
+    | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
     deriving stock Show
     deriving anyclass Exception
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
-    CMTooManyParamsWarn { cmTooManyExpected :: Int, cmTooManyActual :: Int }
+    CMTooManyParamsWarn { cmTooManyExpected :: !Int, cmTooManyActual :: !Int }
     {- ^ More costmodel parameters given, than expected
 
     See Note [Cost model parameters from the ledger's point of view]

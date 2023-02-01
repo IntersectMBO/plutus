@@ -44,7 +44,6 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
-import ErrorCode
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -55,7 +54,7 @@ newtype UnliftingError
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data KnownTypeError
-    = KnownTypeUnliftingError UnliftingError
+    = KnownTypeUnliftingError !UnliftingError
     | KnownTypeEvaluationFailure
     deriving stock (Eq)
 
@@ -75,16 +74,16 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin fun
+    | UnknownBuiltin !fun
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
 data EvaluationError user internal
-    = InternalEvaluationError internal
+    = InternalEvaluationError !internal
       -- ^ Indicates bugs.
-    | UserEvaluationError user
+    | UserEvaluationError !user
       -- ^ Indicates user errors.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
@@ -112,8 +111,8 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
 
 -- | An error and (optionally) what caused it.
 data ErrorWithCause err cause = ErrorWithCause
-    { _ewcError :: err
-    , _ewcCause :: Maybe cause
+    { _ewcError :: !err
+    , _ewcCause :: !(Maybe cause)
     } deriving stock (Eq, Functor, Foldable, Traversable, Generic)
     deriving anyclass (NFData)
 
@@ -229,23 +228,3 @@ instance (PrettyPlc cause, PrettyPlc err) =>
 
 deriving anyclass instance
     (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) => Exception (ErrorWithCause err cause)
-
-instance HasErrorCode UnliftingError where
-      errorCode        UnliftingErrorE {}        = ErrorCode 30
-
-instance HasErrorCode (MachineError err) where
-      errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
-      errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
-      errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
-      errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
-      errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
-      errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
-      errorCode        (UnliftingMachineError e)                    = errorCode e
-      errorCode        UnknownBuiltin {}                            = ErrorCode 17
-
-instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
-  errorCode (InternalEvaluationError e) = errorCode e
-  errorCode (UserEvaluationError e)     = errorCode e
-
-instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
-    errorCode (ErrorWithCause e _) = errorCode e

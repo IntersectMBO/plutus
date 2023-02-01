@@ -78,16 +78,21 @@ defaultCostModelParams = extractCostModelParams defaultCekCostModel
 defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 defaultCekParameters = mkMachineParameters def defaultCekCostModel
 
+{- Note [noinline for saving on ticks]
+We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
+matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
+ticks leading to a compilation error.
+-}
+
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
-    -- @noinline@ is purely for saving on simplifier ticks, since we don't care about the
-    -- performance of this definition. Otherwise compilation for this module is slower and GHC may
-    -- end up exhausting simplifier ticks leading to a compilation error.
-    noinline . mkMachineParameters def $
+    -- See Note [noinline for saving on ticks].
+    noinline mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime def defaultBuiltinCostModel
+-- See Note [noinline for saving on ticks].
+defaultBuiltinsRuntime = noinline toBuiltinsRuntime def defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called

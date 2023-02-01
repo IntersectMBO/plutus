@@ -80,10 +80,10 @@ data PluginOption = forall a.
     }
 
 data ParseError
-    = CannotParseValue OptionKey OptionValue SomeTypeRep
-    | UnexpectedValue OptionKey OptionValue
-    | MissingValue OptionKey
-    | UnrecognisedOption OptionKey [OptionKey]
+    = CannotParseValue !OptionKey !OptionValue !SomeTypeRep
+    | UnexpectedValue !OptionKey !OptionValue
+    | MissingValue !OptionKey
+    | UnrecognisedOption !OptionKey ![OptionKey]
     deriving stock (Show)
 
 newtype ParseErrors = ParseErrors (NonEmpty ParseError)

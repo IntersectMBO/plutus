@@ -54,7 +54,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
 
-import ErrorCode
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
@@ -357,15 +356,10 @@ type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 type GivenCekReqs uni fun ann s = (GivenCekRuntime uni fun ann, GivenCekEmitter uni fun s, GivenCekSpender uni fun s, GivenCekSlippage, GivenCekCosts)
 
 data CekUserError
-    -- @plutus-errors@ prevents this from being strict. Not that it matters anyway.
-    = CekOutOfExError ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
+    = CekOutOfExError !ExRestrictingBudget -- ^ The final overspent (i.e. negative) budget.
     | CekEvaluationFailure -- ^ Error has been called or a builtin application has failed
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
-
-instance HasErrorCode CekUserError where
-    errorCode CekEvaluationFailure {} = ErrorCode 37
-    errorCode CekOutOfExError {}      = ErrorCode 36
 
 type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.Type
 -- | The monad the CEK machine runs in.
