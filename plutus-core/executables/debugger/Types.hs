@@ -1,13 +1,52 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 -- | Debugger TUI Types.
 module Types where
 
+import Annotation
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal (CekState)
+
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
+import Data.MonoTraversable
 import Data.Text (Text)
 import Lens.Micro.TH
+
+type Breakpoints = [Breakpoint]
+
+data Breakpoint = UplcBP SourcePos
+                | TxBP SourcePos
+
+-- | Annotation used in the debugger. Contains source locations for the UPLC program
+-- and the source program.
+data DAnn = DAnn
+    { uplcAnn :: SourcePos
+    , txAnn   :: SrcSpans
+    }
+
+instance D.Breakpointable DAnn Breakpoints where
+    hasBreakpoints ann = any breakpointFired
+        where
+          breakpointFired :: Breakpoint -> Bool
+          breakpointFired = \case
+              UplcBP p -> sourceLine p == sourceLine (uplcAnn ann)
+              TxBP p   -> oany (lineInSrcSpan $ sourceLine p) $ txAnn ann
+
+-- | The custom events that can arrive at our brick mailbox.
+data CustomBrickEvent =
+    UpdateClientEvent (CekState UPLC.DefaultUni UPLC.DefaultFun DAnn)
+    -- ^ the driver passes a new cek state to the brick client
+    -- this should mean that the brick client should update its tui
+  | LogEvent String
+    -- ^ the driver logged some text, the brick client can decide to show it in the tui
+
+
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
     deriving stock (Eq, Ord, Show)
@@ -38,6 +77,8 @@ data DebuggerState = DebuggerState
     , _dsCekStateEditor      :: BE.Editor Text ResourceName
     , _dsVLimitBottomEditors :: Int
     -- ^ Controls the height limit of the bottom windows.
+    , _dsHLimitRightEditors  :: Int
+    -- ^ Controls the width limit of the right windows.
     }
 
 makeLenses ''DebuggerState

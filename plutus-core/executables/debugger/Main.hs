@@ -15,11 +15,15 @@
 -}
 module Main (main) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Pretty qualified as PLC
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Parser qualified as UPLC
 
 import Draw
 import Event
@@ -35,11 +39,12 @@ import Control.Concurrent
 import Control.Monad.Except
 import Control.Monad.Extra
 import Control.Monad.ST (RealWorld)
-import Data.Text qualified as Text
+import Data.ByteString.Lazy qualified as Lazy
 import Data.Text.IO qualified as Text
+import Flat
 import Graphics.Vty qualified as Vty
+import Lens.Micro
 import Options.Applicative qualified as OA
-import PlutusPrelude
 import System.Directory.Extra
 
 debuggerAttrMap :: B.AttrMap
@@ -55,16 +60,22 @@ debuggerAttrMap =
 darkGreen :: Vty.Color
 darkGreen = Vty.rgbColor @Int 0 100 0
 
-newtype Options = Options
-    {optPath :: FilePath}
+data Options = Options
+    {optUplcPath :: FilePath, optHsPath :: FilePath}
 
 parseOptions :: OA.Parser Options
 parseOptions = do
-    optPath <-
+    optUplcPath <-
         OA.argument OA.str $
             mconcat
                 [ OA.metavar "UPLC_FILE"
                 , OA.help "UPLC File"
+                ]
+    optHsPath <-
+        OA.argument OA.str $
+            mconcat
+                [ OA.metavar "HS_FILE"
+                , OA.help "HS File"
                 ]
     pure Options{..}
 
@@ -76,9 +87,18 @@ main = do
                 (parseOptions OA.<**> OA.helper)
                 (OA.fullDesc <> OA.header "Plutus Core Debugger")
 
-    unlessM (doesFileExist (optPath opts)) . fail $
-        "Does not exist or not a file: " <> optPath opts
-    uplcText <- Text.readFile (optPath opts)
+    unlessM (doesFileExist (optUplcPath opts)) . fail $
+        "Does not exist or not a file: " <> optUplcPath opts
+    uplcFlat <- Lazy.readFile (optUplcPath opts)
+    uplcDebruijn <- either (\e -> fail $ "UPLC deserialisation failure:" <> show e)
+        pure (unflat uplcFlat)
+    uplcNoAnn <- unDeBruijnProgram uplcDebruijn
+    let uplcText = PLC.displayPlcDef uplcNoAnn
+    uplcSourcePos <- either (error . show @ParserErrorBundle) pure . PLC.runQuoteT $
+        UPLC.parseProgram uplcText
+    let uplc = fmap (\pos -> DAnn pos mempty) uplcSourcePos
+
+    hsText <- Text.readFile (optHsPath opts)
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -110,18 +130,19 @@ main = do
                     BE.editorText
                         EditorSource
                         Nothing
-                        "Source code will be shown here"
+                        hsText
                 , _dsReturnValueEditor =
                     BE.editorText
                         EditorReturnValue
                         Nothing
-                        "The value being returned will be shown here"
+                        ""
                 , _dsCekStateEditor =
                     BE.editorText
                         EditorCekState
                         Nothing
-                        "The CEK machine state will be shown here"
+                        "What to show here is TBD"
                 , _dsVLimitBottomEditors = 20
+                , _dsHLimitRightEditors = 100
                 }
 
     let builder = Vty.mkVty Vty.defaultConfig
@@ -129,34 +150,30 @@ main = do
 
     -- TODO: find out if the driver-thread exits when brick exits
     -- or should we wait for driver-thread?
-    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplcText
+    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplc
 
     void $ B.customMain initialVty builder (Just brickMailbox) app initialState
-
--- | The custom events that can arrive at our brick mailbox.
-data CustomBrickEvent =
-    UpdateClientEvent (D.CekState DefaultUni DefaultFun DAnn)
-    -- ^ the driver passes a new cek state to the brick client
-    -- this should mean that the brick client should update its tui
-  | LogEvent String
-    -- ^ the driver logged some text, the brick client can decide to show it in the tui
-
 
 -- | The main entrypoint of the driver thread.
 --
 -- The driver operates in IO (not in BrickM): the only way to "influence" Brick is via the mailboxes
-driverThread :: MVar (D.Cmd Breakpoints) -> B.BChan CustomBrickEvent -> Text.Text -> IO ()
-driverThread driverMailbox brickMailbox _uplcText = do
-    let term = undefined -- void $ prog ^. UPLC.progTerm
+driverThread ::
+    MVar (D.Cmd Breakpoints) ->
+    B.BChan CustomBrickEvent ->
+    Program Name DefaultUni DefaultFun DAnn ->
+    IO ()
+driverThread driverMailbox brickMailbox prog = do
+    let term = prog ^. UPLC.progTerm
         MachineParameters cekcosts cekruntime = PLC.defaultCekParameters
-    let ndterm = fromRight undefined $ runExcept @FreeVariableError $ deBruijnTerm term
-        emptySrcSpansNdDterm = fmap (undefined) ndterm
+    ndterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
+        Right t -> pure t
+        Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
     let ?cekRuntime = cekruntime
         ?cekEmitter = const $ pure ()
         ?cekBudgetSpender = CekBudgetSpender $ \_ _ -> pure ()
         ?cekCosts = cekcosts
         ?cekSlippage = defaultSlippage
-      in D.iterM handle $ D.runDriver emptySrcSpansNdDterm
+      in D.iterM handle $ D.runDriver ndterm
   where
     -- | Peels off one Free monad layer
     handle :: GivenCekReqs DefaultUni DefaultFun DAnn RealWorld
@@ -171,3 +188,11 @@ driverThread driverMailbox brickMailbox _uplcText = do
         handleInput = takeMVar driverMailbox
         handleUpdate = B.writeBChan brickMailbox . UpdateClientEvent
         handleLog = B.writeBChan brickMailbox . LogEvent
+
+unDeBruijnProgram ::
+    UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> IO (UPLC.Program UPLC.Name DefaultUni DefaultFun ())
+unDeBruijnProgram p = do
+    either (fail . show) pure . PLC.runQuote .
+        runExceptT @UPLC.FreeVariableError $
+            traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p

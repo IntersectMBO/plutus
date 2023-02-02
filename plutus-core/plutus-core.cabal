@@ -647,13 +647,17 @@ executable debugger
   build-depends:
     , base                  >=4.9 && <5
     , brick
+    , bytestring
     , extra
+    , flat
+    , megaparsec
     , microlens
     , microlens-th
     , mono-traversable
     , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
+    , prettyprinter
     , text
     , vty
 

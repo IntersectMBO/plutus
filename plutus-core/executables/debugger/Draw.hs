@@ -52,16 +52,17 @@ drawDebugger st =
                 (BE.renderEditor (B.txt . Text.unlines))
                 (st ^. dsReturnValueEditor)
     cekStateEditor =
-        BB.borderWithLabel (B.txt "CEK machine state") $
+        BB.borderWithLabel (B.txt "Placeholder") $
             B.withFocusRing
                 focusRing
                 (BE.renderEditor (B.txt . Text.unlines))
                 (st ^. dsCekStateEditor)
     ui =
         B.vBox
-            [ BC.center uplcEditor B.<+> BC.center sourceEditor
+            [ BC.center uplcEditor B.<+> B.hLimit (st ^. dsHLimitRightEditors) sourceEditor
             , B.vLimit (st ^. dsVLimitBottomEditors) $
-                BC.center returnValueEditor B.<+> BC.center cekStateEditor
+                BC.center returnValueEditor B.<+>
+                    B.hLimit (st ^. dsHLimitRightEditors) cekStateEditor
             , footer
             ]
 
@@ -142,7 +143,7 @@ debuggerKeyBindings =
             [ B.txt "Step            (s)"
             , B.txt "Move cursor     (Arrow)"
             , B.txt "Switch window   (Tab)"
-            , B.txt "Resize windows  (^Up/^Down)"
+            , B.txt "Resize windows  (^Up/^Down/^Left/^Right)"
             , B.txt "Quit            (Esc)"
             ]
         , B.txt "Press any key to exit"
