@@ -36,6 +36,7 @@ jobs:
         # the number of available processors.
         run: |
           export EVENT_DUMP_DIR="$HOME/mainnet-script-dump-downloaded"
-          nix run .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
+          nix run --no-warn-dirty --accept-flake-config \
+            .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
 
              
