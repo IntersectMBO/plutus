@@ -9,19 +9,21 @@ module PlutusIR.Analysis.RetainedSize
     , annotateWithRetainedSize
     ) where
 
-import PlutusPrelude
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin as PLC
+import PlutusCore.Name
 
 import PlutusIR.Analysis.Dependencies
 import PlutusIR.Analysis.Size
 import PlutusIR.Core
 
-import PlutusCore qualified as PLC
-import PlutusCore.Builtin as PLC
-import PlutusCore.Name
+import PlutusPrelude
 
 import Algebra.Graph qualified as C
 import Algebra.Graph.ToGraph
+
 import Control.Lens
+
 import Data.Graph.Dom (domTree)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap

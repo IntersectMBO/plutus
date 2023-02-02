@@ -4,10 +4,12 @@ module Untyped where
 
 import PlutusCore.Data
 import PlutusCore.Default
+
 import UntypedPlutusCore
 
 import Data.ByteString as BS
 import Data.Text as T
+
 import Universe
 
 

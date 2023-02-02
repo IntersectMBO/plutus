@@ -6,11 +6,13 @@
 module AuctionValidator where
 
 import PlutusCore.Default qualified as PLC
+
 import PlutusLedgerApi.V1 (POSIXTime, PubKeyHash, Value, adaSymbol, adaToken, singleton)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
 import PlutusLedgerApi.V1.Interval (contains)
 import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxInfo (..), TxOut (..), from, to)
 import PlutusLedgerApi.V2.Contexts (getContinuingOutputs)
+
 import PlutusTx
 import PlutusTx.Bool
 import PlutusTx.Builtins
@@ -18,6 +20,7 @@ import PlutusTx.Lift
 import PlutusTx.Maybe
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
+
 import Prelude qualified as Haskell
 
 -- BLOCK1

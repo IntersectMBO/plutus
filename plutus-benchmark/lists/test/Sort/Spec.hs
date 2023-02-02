@@ -1,12 +1,11 @@
 -- editorconfig-checker-disable-file
 module Sort.Spec (tests) where
 
+import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
+import PlutusBenchmark.Lists.Sort qualified as Sort
+
 import Test.Tasty
 import Test.Tasty.QuickCheck
-
-import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
-
-import PlutusBenchmark.Lists.Sort qualified as Sort
 
 isSorted :: Ord a => [a] -> Bool
 isSorted []       = True

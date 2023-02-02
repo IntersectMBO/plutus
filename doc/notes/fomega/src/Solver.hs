@@ -2,6 +2,7 @@
 module Solver where
 
 import AlgTypes
+
 import Data.Set qualified as S
 
 -----------------------------------------------------

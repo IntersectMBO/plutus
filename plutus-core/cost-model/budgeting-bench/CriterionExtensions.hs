@@ -5,6 +5,7 @@ module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
 
 import Control.Monad (unless)
 import Control.Monad.Trans (liftIO)
+
 import Criterion.Internal (runAndAnalyse, runFixedIters)
 import Criterion.IO.Printf (printError, writeCsv)
 import Criterion.Main (makeMatcher)
@@ -15,7 +16,9 @@ import Criterion.Types
 
 import Data.List (sort)
 import Data.Time.Clock (getCurrentTime)
+
 import Options.Applicative (execParser)
+
 import System.Directory (doesFileExist, renameFile)
 import System.Environment (getProgName)
 import System.Exit (exitFailure)

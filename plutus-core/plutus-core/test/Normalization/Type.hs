@@ -14,6 +14,7 @@ import Control.Monad.Morph (hoist)
 
 import Hedgehog
 import Hedgehog.Internal.Property (forAllT)
+
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit

@@ -18,7 +18,6 @@ module PlutusLedgerApi.Common.Eval
     , assertWellFormedCostModelParams
     ) where
 
-import Control.Lens
 import PlutusCore
 import PlutusCore as ScriptPlutus (Version, defaultVersion)
 import PlutusCore.Data as Plutus
@@ -29,18 +28,24 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
 import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.MkPlc qualified as UPLC
 import PlutusCore.Pretty
+
 import PlutusLedgerApi.Common.SerialisedScript
 import PlutusLedgerApi.Common.Versions
+
 import PlutusPrelude
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-
+import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Writer
+
 import Data.Text as Text
 import Data.Tuple
+
 import NoThunks.Class
+
 import Prettyprinter
 
 -- | Errors that can be thrown when evaluating a Plutus script.

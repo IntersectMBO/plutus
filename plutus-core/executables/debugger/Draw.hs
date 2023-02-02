@@ -4,8 +4,6 @@
 -- | Renders the debugger in the terminal.
 module Draw where
 
-import Types
-
 import Brick.AttrMap qualified as B
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
@@ -13,11 +11,15 @@ import Brick.Widgets.Border qualified as BB
 import Brick.Widgets.Center qualified as BC
 import Brick.Widgets.Core qualified as B
 import Brick.Widgets.Edit qualified as BE
+
 import Data.Bifunctor
 import Data.Maybe
 import Data.Text (Text)
 import Data.Text qualified as Text
+
 import Lens.Micro
+
+import Types
 
 drawDebugger ::
     DebuggerState ->

@@ -4,14 +4,19 @@
 module Examples where
 
 import AlgTypes
-import Large
-import Scott
-import Solver
 
 import Control.Applicative
 import Control.Monad
+
+import Large
+
+import Scott
+
+import Solver
+
 import System.IO
 import System.Random
+
 import Test.QuickCheck
 
 -- (use the runExample :: AlgSignature -> IO () from AlgTypes)

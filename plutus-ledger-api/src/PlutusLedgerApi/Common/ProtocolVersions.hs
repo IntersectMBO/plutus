@@ -13,7 +13,9 @@ module PlutusLedgerApi.Common.ProtocolVersions
     ) where
 
 import Codec.Serialise (Serialise)
+
 import GHC.Generics (Generic)
+
 import Prettyprinter
 
 -- | This represents the Cardano protocol version, with its major and minor components.

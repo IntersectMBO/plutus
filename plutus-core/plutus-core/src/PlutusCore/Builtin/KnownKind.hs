@@ -11,7 +11,9 @@ import PlutusCore.Core
 
 import Data.Kind as GHC
 import Data.Proxy
+
 import GHC.Types
+
 import Universe
 
 infixr 5 `SingKindArrow`

@@ -6,7 +6,6 @@ module Evaluation.Machines
     )
 where
 
-import GHC.Exts (fromString)
 import PlutusCore
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -14,6 +13,8 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.Generators.Hedgehog.Test
 import PlutusCore.Pretty
+
+import GHC.Exts (fromString)
 
 import Test.Tasty
 import Test.Tasty.Hedgehog

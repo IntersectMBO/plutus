@@ -42,13 +42,16 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
 import Control.Monad.Except
 import Control.Search (Enumerable (..), Options (..), search')
+
 import Data.Maybe
 import Data.Stream qualified as Stream
 import Data.Tagged
 import Data.Text qualified as Text
+
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Options
+
 import Text.Printf
 
 -- * Property-based tests

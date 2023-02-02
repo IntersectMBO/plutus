@@ -6,14 +6,20 @@ module PlutusIR.Transform.RecSplit
     (recSplit) where
 
 import PlutusCore.Name qualified as PLC
+
 import PlutusIR
+import PlutusIR.MkPir (mkLet)
 import PlutusIR.Subst
+
+import PlutusPrelude ((<^>))
 
 import Algebra.Graph.AdjacencyMap qualified as AM
 import Algebra.Graph.AdjacencyMap.Algorithm qualified as AM hiding (isAcyclic)
 import Algebra.Graph.NonEmpty.AdjacencyMap qualified as AMN
 import Algebra.Graph.ToGraph (isAcyclic)
+
 import Control.Lens
+
 import Data.Either
 import Data.Foldable (foldl')
 import Data.List (nub)
@@ -22,8 +28,6 @@ import Data.Map qualified as M
 import Data.Semigroup.Foldable
 import Data.Set qualified as S
 import Data.Set.Lens (setOf)
-import PlutusIR.MkPir (mkLet)
-import PlutusPrelude ((<^>))
 
 {- Note [LetRec splitting pass]
 

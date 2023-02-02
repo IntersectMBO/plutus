@@ -14,9 +14,13 @@ where
 import PlutusCore.Evaluation.Machine.ExBudget
 
 import Control.DeepSeq
+
 import Data.Text qualified as Text
+
 import Deriving.Aeson
+
 import Language.Haskell.TH.Syntax (Lift)
+
 import NoThunks.Class
 
 -- | The prefix of the field names in the CekMachineCosts type, used for

@@ -1,29 +1,34 @@
 -- editorconfig-checker-disable-file
 module Main where
 
-import Control.Monad.Except
-import Data.Coolean
-import Data.Either
-import Data.List
 import PlutusCore
 import PlutusCore.Compiler.Erase
+import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.NEAT.Spec
 import PlutusCore.Generators.NEAT.Term
 import PlutusCore.Normalize
 import PlutusCore.Pretty
-import Test.Tasty
-import Test.Tasty.HUnit
+
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda, normalizeTypeAgda,
-                          normalizeTypeTermAgda, runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
-import PlutusCore.DeBruijn
-import Raw hiding (TypeError, tynames)
+import Control.Monad.Except
+
+import Data.Coolean
+import Data.Either
+import Data.List
 
 import Debug.Trace
+
+import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda, normalizeTypeAgda,
+                          normalizeTypeTermAgda, runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
+
+import Raw hiding (TypeError, tynames)
+
+import Test.Tasty
+import Test.Tasty.HUnit
 
 main :: IO ()
 main = defaultMain allTests

@@ -5,9 +5,10 @@
 {-# LANGUAGE TemplateHaskell     #-}
 module TH.TestTH where
 
-import Language.Haskell.TH
 import PlutusTx.Builtins
 import PlutusTx.Prelude
+
+import Language.Haskell.TH
 
 {- HLINT ignore -}
 

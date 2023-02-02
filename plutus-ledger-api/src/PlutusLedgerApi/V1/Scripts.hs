@@ -21,18 +21,24 @@ module PlutusLedgerApi.V1.Scripts
     , ScriptHash(..)
     ) where
 
-import Prelude qualified as Haskell
-
-import Codec.Serialise (Serialise (..))
-import Control.DeepSeq (NFData)
-import Data.String
-import Data.Text (Text)
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
+
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), makeLift)
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal as BI
 import PlutusTx.Prelude
+
+import Codec.Serialise (Serialise (..))
+
+import Control.DeepSeq (NFData)
+
+import Data.String
+import Data.Text (Text)
+
+import GHC.Generics (Generic)
+
+import Prelude qualified as Haskell
+
 import Prettyprinter
 
 {- Note [Serialise instances for Datum and Redeemer]

@@ -8,18 +8,19 @@
 
 module Plugin.Coverage.Spec (coverage) where
 
-import Control.Lens
-
-
-import Data.Map qualified as Map
-import Data.Proxy
-import Data.Set (Set)
-import Data.Set qualified as Set
 import PlutusTx.Code
 import PlutusTx.Coverage
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
+
+import Control.Lens
+
+import Data.Map qualified as Map
+import Data.Proxy
+import Data.Set (Set)
+import Data.Set qualified as Set
+
 import Prelude as Haskell
 
 import Test.Tasty

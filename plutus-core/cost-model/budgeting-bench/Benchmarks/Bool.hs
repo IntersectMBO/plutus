@@ -1,11 +1,13 @@
 module Benchmarks.Bool (makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 
+import Common
+
 import Criterion.Main
+
+import Generators
+
 import System.Random (StdGen)
 
 -- We only have ifThenElse at the moment, which should be constant cost.

@@ -12,11 +12,12 @@ module PlutusCore.Pretty.Readable
     , module PlutusCore.Pretty.Readable
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Pretty.ConfigName
 
+import PlutusPrelude
+
 import Control.Lens
+
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 

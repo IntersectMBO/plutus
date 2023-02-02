@@ -12,7 +12,6 @@ module PlutusCore.StdLib.Everything
 
 import PlutusCore.Default
 import PlutusCore.FsTree
-
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.ChurchNat
 import PlutusCore.StdLib.Data.Data

@@ -17,20 +17,20 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 where
 
 import PlutusCore.Builtin
-
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.MachineParameters
 
+import PlutusPrelude
+
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
--- Not using 'noinline' from "GHC.Exts", because our CI was unable to find it there, somehow.
+
 import GHC.Magic (noinline)
-import PlutusPrelude
 
 -- | The default cost model for built-in functions.
 defaultBuiltinCostModel :: BuiltinCostModel

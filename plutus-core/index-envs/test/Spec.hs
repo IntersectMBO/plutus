@@ -3,6 +3,7 @@ module Main
     ) where
 
 import RAList.Spec qualified as RAList
+
 import Test.Tasty
 
 main :: IO ()

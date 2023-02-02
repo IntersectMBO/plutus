@@ -25,13 +25,15 @@ module UntypedPlutusCore.Core.Type
     , uvarDeclAnn
     ) where
 
-import Control.Lens
-import PlutusPrelude
-
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
 import PlutusCore.Name qualified as TPLC
+
+import PlutusPrelude
+
+import Control.Lens
+
 import Universe
 
 {- Note [Term constructor ordering and numbers]

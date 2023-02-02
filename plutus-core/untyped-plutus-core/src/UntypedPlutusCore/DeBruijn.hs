@@ -24,9 +24,9 @@ module UntypedPlutusCore.DeBruijn
     ) where
 
 import PlutusCore.DeBruijn.Internal
-
 import PlutusCore.Name
 import PlutusCore.Quote
+
 import UntypedPlutusCore.Core
 
 import Control.Lens hiding (Index, Level, index)

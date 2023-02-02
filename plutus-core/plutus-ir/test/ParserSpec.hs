@@ -4,23 +4,23 @@
 
 module ParserSpec (parsing) where
 
-import PlutusPrelude
-
-import Data.Char
-import Data.Text qualified as T
-
+import PlutusCore (runQuoteT)
 import PlutusCore.Default qualified as PLC
+import PlutusCore.Error (ParserErrorBundle)
 
 import PlutusIR
 import PlutusIR.Generators.AST
 import PlutusIR.Parser
 
+import PlutusPrelude
+
+import Data.Char
+import Data.Text qualified as T
+
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
-import PlutusCore (runQuoteT)
-import PlutusCore.Error (ParserErrorBundle)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog

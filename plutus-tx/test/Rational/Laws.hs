@@ -9,6 +9,7 @@ import Rational.Laws.Ord (ordLaws)
 import Rational.Laws.Other (otherLaws)
 import Rational.Laws.Ring (ringLaws)
 import Rational.Laws.Serialization (serializationLaws)
+
 import Test.Tasty (TestTree, testGroup)
 
 lawsTests :: TestTree

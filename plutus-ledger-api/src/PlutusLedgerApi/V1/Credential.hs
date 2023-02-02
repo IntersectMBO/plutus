@@ -13,13 +13,17 @@ module PlutusLedgerApi.V1.Credential
     , Credential(..)
     ) where
 
-import Control.DeepSeq (NFData)
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
+
 import PlutusTx qualified
 import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
+
+import Control.DeepSeq (NFData)
+
+import GHC.Generics (Generic)
+
 import Prettyprinter (Pretty (..), (<+>))
 
 -- | Staking credential used to assign rewards.

@@ -17,6 +17,7 @@ import Control.Lens
 
 import Data.Text qualified as T
 import Data.Typeable
+
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
 

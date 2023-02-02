@@ -12,13 +12,13 @@
 
 module PlutusCore.Core.Instance.Eq () where
 
-import PlutusPrelude
-
 import PlutusCore.Core.Type
 import PlutusCore.DeBruijn
 import PlutusCore.Eq
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
+
+import PlutusPrelude
 
 import Universe
 

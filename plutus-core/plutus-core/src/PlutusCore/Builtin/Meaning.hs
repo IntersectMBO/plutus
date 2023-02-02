@@ -17,8 +17,6 @@
 
 module PlutusCore.Builtin.Meaning where
 
-import PlutusPrelude
-
 import PlutusCore.Builtin.Elaborate
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.KnownKind
@@ -31,11 +29,15 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
+import PlutusPrelude
+
 import Control.DeepSeq
+
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
+
 import GHC.Exts (inline, lazy, oneShot)
 import GHC.TypeLits
 

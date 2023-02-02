@@ -6,6 +6,7 @@
 module AlgTypes where
 
 import Data.Set qualified as S
+
 import Language.LBNF
 
 -------------------------------------

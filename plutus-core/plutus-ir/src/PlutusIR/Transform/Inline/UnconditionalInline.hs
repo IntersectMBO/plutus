@@ -12,15 +12,6 @@ should be KEPT IN SYNC, so if you make changes here please either make them in t
 one too or add to the comment that summarises the differences.
 -}
 module PlutusIR.Transform.Inline.UnconditionalInline (inline, InlineHints (..)) where
-import PlutusIR
-import PlutusIR.Analysis.Dependencies qualified as Deps
-import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.MkPir (mkLet)
-import PlutusIR.Transform.Inline.Utils
-import PlutusIR.Transform.Rename ()
-import PlutusPrelude
-
-import Annotation
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
@@ -28,12 +19,25 @@ import PlutusCore.Quote
 import PlutusCore.Rename (dupable, liftDupable)
 import PlutusCore.Subst (typeSubstTyNamesM)
 
+import PlutusIR
+import PlutusIR.Analysis.Dependencies qualified as Deps
+import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.MkPir (mkLet)
+import PlutusIR.Transform.Inline.Utils
+import PlutusIR.Transform.Rename ()
+
+import PlutusPrelude
+
+import Algebra.Graph qualified as G
+
+import Annotation
+
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Algebra.Graph qualified as G
 import Data.Map qualified as Map
+
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']

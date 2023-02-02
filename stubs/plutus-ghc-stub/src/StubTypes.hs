@@ -9,10 +9,12 @@ module StubTypes where
 import Control.Exception qualified as Exception
 import Control.Monad
 import Control.Monad.IO.Class (MonadIO (..))
+
 import Data.ByteString
 import Data.Data (Data)
 import Data.Functor.Identity
 import Data.String (IsString (..))
+
 import Language.Haskell.TH qualified as TH
 
 data DynFlags    = DynFlags_

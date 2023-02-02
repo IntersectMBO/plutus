@@ -19,18 +19,21 @@ module PlutusCore.Generators.Hedgehog.TypedBuiltinGen
     , genTypedBuiltinDef
     ) where
 
-import PlutusPrelude
-
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
 import Data.ByteString qualified as BS
 import Data.Functor.Identity
+
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Prettyprinter
+
 import Type.Reflection
 
 -- | Generate a UTF-8 lazy 'ByteString' containg lower-case letters.

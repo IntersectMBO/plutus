@@ -13,8 +13,6 @@ module PlutusCore.Parser
     , ParserError(..)
     ) where
 
-import Control.Monad.Except (MonadError)
-import Data.Text (Text)
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (AsParserErrorBundle, ParserError (..))
@@ -24,6 +22,11 @@ import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
+
+import Control.Monad.Except (MonadError)
+
+import Data.Text (Text)
+
 import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
 
 -- | A parsable PLC term.

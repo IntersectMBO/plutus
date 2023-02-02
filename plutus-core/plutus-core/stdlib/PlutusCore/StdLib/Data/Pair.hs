@@ -11,13 +11,13 @@ module PlutusCore.StdLib.Data.Pair
     , uncurry
     ) where
 
-import Prelude hiding (fst, snd, uncurry)
-
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
+
+import Prelude hiding (fst, snd, uncurry)
 
 -- | @(,)@ as a built-in PLC type.
 pair :: uni `Contains` (,) => Type TyName uni ()

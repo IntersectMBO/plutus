@@ -2,13 +2,14 @@
 module GeneratorSpec.Substitution where
 
 import PlutusCore.Generators.QuickCheck
-
 import PlutusCore.Name
 import PlutusCore.Quote (runQuote)
 import PlutusCore.Rename
+
 import PlutusIR.Subst
 
 import Control.Monad
+
 import Data.Either
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set

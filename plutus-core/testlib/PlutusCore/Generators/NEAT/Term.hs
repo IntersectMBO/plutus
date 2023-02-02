@@ -36,8 +36,15 @@ module PlutusCore.Generators.NEAT.Term
   , Neutral (..)
   ) where
 
+import PlutusCore
+import PlutusCore.Data
+import PlutusCore.Default
+import PlutusCore.Generators.NEAT.Common
+import PlutusCore.Generators.NEAT.Type
+
 import Control.Enumerable
 import Control.Monad.Except
+
 import Data.Bifunctor.TH
 import Data.ByteString (ByteString, pack)
 import Data.Coolean (Cool, false, toCool, true, (&&&))
@@ -45,13 +52,8 @@ import Data.Map qualified as Map
 import Data.Stream qualified as Stream
 import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8)
-import PlutusCore
-import PlutusCore.Data
-import PlutusCore.Default
-import PlutusCore.Generators.NEAT.Common
-import Text.Printf
 
-import PlutusCore.Generators.NEAT.Type
+import Text.Printf
 
 {-
 

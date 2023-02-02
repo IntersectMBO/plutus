@@ -14,10 +14,20 @@
 -- Most users should not use this module directly, but rather use 'PlutusTx.Builtins'.
 module PlutusTx.Builtins.Internal where
 
+import PlutusCore.Builtin.Emitter (Emitter (Emitter))
+import PlutusCore.Data qualified as PLC
+import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Pretty (Pretty (..))
+
+import PlutusTx.Utils (mustBeReplaced)
+
 import Codec.Serialise
+
 import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
+
 import Crypto qualified
+
 import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -29,18 +39,10 @@ import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
-import PlutusCore.Builtin.Emitter (Emitter (Emitter))
-import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Pretty (Pretty (..))
-import PlutusTx.Utils (mustBeReplaced)
-import Prettyprinter (viaShow)
 
-{-
-We do not use qualified import because the whole module contains off-chain code
-which is replaced later with on-chain implementations by the plutus-tx-plugin.
--}
 import Prelude as Haskell
+
+import Prettyprinter (viaShow)
 
 {- Note [Builtin name definitions]
 The builtins here have definitions so they can be used in off-chain code too.

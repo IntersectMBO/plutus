@@ -37,12 +37,6 @@ module PlutusLedgerApi.V2.Contexts
     , ownCurrencySymbol
     ) where
 
-import GHC.Generics (Generic)
-import PlutusTx
-import PlutusTx.AssocMap hiding (filter, mapMaybe)
-import PlutusTx.Prelude hiding (toList)
-import Prettyprinter (Pretty (..), nest, vsep, (<+>))
-
 import PlutusLedgerApi.V1.Address (Address (..))
 import PlutusLedgerApi.V1.Contexts (ScriptPurpose (..))
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
@@ -53,7 +47,15 @@ import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Value (CurrencySymbol, Value)
 import PlutusLedgerApi.V2.Tx (TxId (..), TxOut (..), TxOutRef (..))
 
+import PlutusTx
+import PlutusTx.AssocMap hiding (filter, mapMaybe)
+import PlutusTx.Prelude hiding (toList)
+
+import GHC.Generics (Generic)
+
 import Prelude qualified as Haskell
+
+import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
 -- | An input of a pending transaction.
 data TxInInfo = TxInInfo

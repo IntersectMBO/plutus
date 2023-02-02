@@ -26,6 +26,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Monad.Except
+
 import Data.Text (Text)
 
 -- | Type check and evaluate a term.

@@ -8,7 +8,9 @@ import PlutusPrelude
 
 import Data.ByteString qualified as BS
 import Data.Text qualified as T
+
 import Numeric (showHex)
+
 import Prettyprinter.Internal
 
 asBytes :: Word8 -> Doc ann

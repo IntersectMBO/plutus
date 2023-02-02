@@ -5,14 +5,18 @@ module PlutusBenchmark.Lists.Sum.HandWritten where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import Control.Monad.Except
-import Data.Either
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.StdLib.Data.List qualified as BuiltinList
 import PlutusCore.StdLib.Data.ScottList qualified as ScottList
+
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins.Internal qualified as BI
+
 import UntypedPlutusCore qualified as UPLC
+
+import Control.Monad.Except
+
+import Data.Either
 
 
 ---------------- Hand-written folds, using stuff from PlutusCore.StdLib.Data  ----------------

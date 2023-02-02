@@ -16,16 +16,17 @@ module Default
     ( test_default
     ) where
 
-import Text.Pretty
-import Text.PrettyBy
-import Text.PrettyBy.Fixity
-
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Text.Arbitrary
+
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
+
+import Text.Pretty
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 
 newtype OnlyType = OnlyType RenderContext
 

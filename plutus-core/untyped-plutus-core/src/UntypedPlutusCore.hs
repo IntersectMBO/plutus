@@ -9,6 +9,10 @@ module UntypedPlutusCore (
     , mkDefaultProg
     ) where
 
+import PlutusCore.Core qualified as PLC
+import PlutusCore.Default qualified as PLC
+import PlutusCore.Name as Export
+
 import UntypedPlutusCore.Check.Scope as Export
 import UntypedPlutusCore.Core as Export
 import UntypedPlutusCore.DeBruijn as Export
@@ -16,10 +20,6 @@ import UntypedPlutusCore.Parser as Parser (parseScoped)
 import UntypedPlutusCore.Simplify as Export
 import UntypedPlutusCore.Size as Export
 import UntypedPlutusCore.Subst as Export
-
-import PlutusCore.Core qualified as PLC
-import PlutusCore.Default qualified as PLC
-import PlutusCore.Name as Export
 
 -- | Take one UPLC program and apply it to another.
 applyProgram ::

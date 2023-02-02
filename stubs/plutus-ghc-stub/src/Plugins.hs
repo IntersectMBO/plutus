@@ -10,9 +10,12 @@ module Plugins (
 
 
 import Control.Monad
+
 import Data.List
 import Data.Semigroup qualified
+
 import StubTypes
+
 import TcRnTypes qualified
 
 plugins :: DynFlags -> [LoadedPlugin]

@@ -14,8 +14,10 @@ import Data.Deriving.Internal (isInfixDataCon, isNonUnitTuple, isSym, varTToName
 import Data.List.Extra (dropEnd, foldl', intersperse)
 import Data.Maybe
 import Data.Traversable (for)
+
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
+
 import Prelude (pure, (+), (<$>), (<>))
 import Prelude qualified as Haskell
 

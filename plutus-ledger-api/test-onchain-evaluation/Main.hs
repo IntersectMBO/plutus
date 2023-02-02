@@ -7,22 +7,26 @@
 module Main (main) where
 
 import PlutusCore.Pretty
+
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
 import Codec.Serialise qualified as CBOR
+
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
+import Control.Monad.Writer.Strict
+
 import Data.List.NonEmpty (nonEmpty, toList)
 import Data.Maybe (catMaybes)
 
-import Control.Monad.Writer.Strict
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
+
 import Test.Tasty
 import Test.Tasty.HUnit
 

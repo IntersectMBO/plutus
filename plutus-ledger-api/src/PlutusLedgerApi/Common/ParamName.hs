@@ -16,11 +16,13 @@ import PlutusCore.Evaluation.Machine.CostModelInterface
 
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
+
 import Data.Bifunctor
 import Data.Char (toLower)
 import Data.List.Extra
 import Data.Map as Map
 import Data.Text qualified as Text
+
 import GHC.Generics
 
 {-| A parameter name for different plutus versions.

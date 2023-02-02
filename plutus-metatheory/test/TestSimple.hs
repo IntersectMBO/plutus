@@ -4,12 +4,13 @@
 module Main where
 
 import Control.Exception
+
+import MAlonzo.Code.Main qualified as M
+
 import System.Environment
 import System.Exit
 import System.IO.Extra
 import System.Process
-
-import MAlonzo.Code.Main qualified as M
 
 -- |List of tests that are expected to succeed
 succeedingEvalTests = ["succInteger"

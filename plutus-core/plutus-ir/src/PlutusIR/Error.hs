@@ -20,11 +20,15 @@ module PlutusIR.Error
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
+
 import PlutusIR qualified as PIR
+
 import PlutusPrelude
 
 import Control.Lens
+
 import Data.Text qualified as T
+
 import Prettyprinter as PP
 
 data TypeErrorExt uni ann =

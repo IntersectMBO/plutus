@@ -7,9 +7,11 @@
 module Main where
 
 import Control.Exception as E
+
 import Data.List
 import Data.Maybe
 import Data.SatInt
+
 import Test.Framework as TF
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2

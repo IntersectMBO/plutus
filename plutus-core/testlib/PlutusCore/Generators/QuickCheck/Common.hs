@@ -12,17 +12,21 @@ import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.TypeCheck (defKindCheckConfig)
 import PlutusCore.TypeCheck.Internal (inferKindM, runTypeCheckM, withTyVar)
+
 import PlutusIR
 import PlutusIR.Error
 
 import Data.Bifunctor
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+
 import GHC.Stack
+
 import Test.QuickCheck.Gen (Gen)
 import Test.QuickCheck.Gen qualified as Gen
 import Test.QuickCheck.Modifiers (NonNegative (..))
 import Test.QuickCheck.Property
+
 import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Internal

@@ -6,16 +6,18 @@ module PlutusTx.TH (
     compileUntyped,
     loadFromFile) where
 
-import Data.Proxy
-import Language.Haskell.TH qualified as TH
-import Language.Haskell.TH.Syntax qualified as TH
-import Language.Haskell.TH.Syntax.Compat qualified as TH
 import PlutusTx.Code
 import PlutusTx.Plugin.Utils
 
--- We do not use qualified import because the whole module contains off-chain code
 import Control.Monad.IO.Class
+
 import Data.ByteString qualified as BS
+import Data.Proxy
+
+import Language.Haskell.TH qualified as TH
+import Language.Haskell.TH.Syntax qualified as TH
+import Language.Haskell.TH.Syntax.Compat qualified as TH
+
 import Prelude
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.

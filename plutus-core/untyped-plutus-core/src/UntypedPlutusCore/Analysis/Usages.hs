@@ -3,11 +3,11 @@
 -- | Functions for computing variable usage inside terms.
 module UntypedPlutusCore.Analysis.Usages (termUsages, Usages, getUsageCount, allUsed) where
 
-import UntypedPlutusCore.Core.Type
-import UntypedPlutusCore.Subst
-
 import PlutusCore qualified as PLC
 import PlutusCore.Name qualified as PLC
+
+import UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Subst
 
 import Control.Lens
 

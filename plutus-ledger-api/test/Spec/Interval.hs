@@ -5,12 +5,15 @@
 
 module Spec.Interval where
 
+import PlutusLedgerApi.V1.Interval qualified as Interval
+
 import Data.List (sort)
+
 import Hedgehog (Property, forAll, property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusLedgerApi.V1.Interval qualified as Interval
+
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (assertBool, testCase)

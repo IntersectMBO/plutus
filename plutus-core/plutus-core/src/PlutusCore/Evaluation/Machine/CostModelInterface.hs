@@ -16,16 +16,19 @@ where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel ()
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts, cekMachineCostsPrefix)
 
 import Control.Exception
 import Control.Monad.Except
+
 import Data.Aeson
 import Data.Aeson.Flatten
 import Data.HashMap.Strict qualified as HM
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
 import Data.Text qualified as Text
+
 import Prettyprinter
 
 {- Note [Cost model parameters]

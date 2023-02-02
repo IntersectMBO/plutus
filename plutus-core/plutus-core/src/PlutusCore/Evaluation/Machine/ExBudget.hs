@@ -146,14 +146,20 @@ module PlutusCore.Evaluation.Machine.ExBudget
 where
 
 import PlutusCore.Evaluation.Machine.ExMemory
+
 import PlutusPrelude hiding (toList)
 
 import Codec.Serialise (Serialise (..))
+
 import Data.Char (toLower)
 import Data.Semigroup
+
 import Deriving.Aeson
+
 import Language.Haskell.TH.Lift (Lift)
+
 import NoThunks.Class
+
 import Prettyprinter
 
 

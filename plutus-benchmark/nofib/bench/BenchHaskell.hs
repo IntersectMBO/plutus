@@ -3,16 +3,15 @@
 
 module Main (main) where
 
-import Shared (mkBenchMarks)
-
-import Criterion.Main
-
 import PlutusBenchmark.Common (getConfig)
-
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
+
+import Criterion.Main
+
+import Shared (mkBenchMarks)
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = nf Clausify.runClausify f

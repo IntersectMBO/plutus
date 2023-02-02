@@ -6,15 +6,16 @@
 module BasicPolicies where
 
 import PlutusCore.Default qualified as PLC
-import PlutusTx
-import PlutusTx.Lift
-import PlutusTx.Prelude
 
 import PlutusLedgerApi.V1.Contexts
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
+
+import PlutusTx
 import PlutusTx.AssocMap qualified as Map
+import PlutusTx.Lift
+import PlutusTx.Prelude
 
 tname :: TokenName
 tname = error ()

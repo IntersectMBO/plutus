@@ -12,6 +12,7 @@ module PlutusCore.Core.Instance.Recursive
     ) where
 
 import PlutusCore.Core.Type
+
 import PlutusPrelude
 
 import Data.Functor.Foldable.TH

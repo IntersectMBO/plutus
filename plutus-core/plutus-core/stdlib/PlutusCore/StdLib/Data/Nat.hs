@@ -14,16 +14,15 @@ module PlutusCore.StdLib.Data.Nat
     , natToInteger
     ) where
 
-import Prelude hiding (succ)
-
 import PlutusCore.Core
 import PlutusCore.Default.Builtins
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Type
+
+import Prelude hiding (succ)
 
 import Universe
 

@@ -2,17 +2,18 @@
 
 module PlutusCore.Generators.QuickCheck.Substitutions where
 
+import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenerateTypes
 import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Utils
-
-import PlutusCore.Default
 import PlutusCore.Name
+
 import PlutusIR
 import PlutusIR.Subst
 
 import Control.Monad.Except
+
 import Data.Map.Strict (Map)
 import Data.Map.Strict.Internal qualified as Map
 import Data.Maybe
@@ -21,7 +22,9 @@ import Data.MultiSet.Lens
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens
+
 import GHC.Stack
+
 import Test.QuickCheck hiding (reason)
 
 type TypeSub = Map TyName (Type TyName DefaultUni ())

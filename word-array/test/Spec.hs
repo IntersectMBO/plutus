@@ -5,6 +5,7 @@ import Data.MonoTraversable
 import Data.Vector
 import Data.Word
 import Data.Word64Array.Word8 as WordArray
+
 import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck

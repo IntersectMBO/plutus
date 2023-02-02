@@ -9,13 +9,17 @@ module Main (
     main,
 ) where
 
-import Data.Foldable (for_)
-import Data.Text.IO qualified as T
-import Options.Applicative
-import Options.Applicative.Help.Pretty (Doc, string)
 import PlutusConformance.Common
+
 import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
+
+import Data.Foldable (for_)
+import Data.Text.IO qualified as T
+
+import Options.Applicative
+import Options.Applicative.Help.Pretty (Doc, string)
+
 import Test.Tasty.Golden (findByExtension)
 
 -- |  The arguments to the executable.

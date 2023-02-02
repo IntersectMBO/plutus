@@ -29,19 +29,23 @@ module PlutusCore.Error
     , ShowErrorComponent (..)
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
+
 import Data.Text qualified as T
+
 import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
+
 import Text.Megaparsec as M
+
 import Universe
 
 -- | Lifts an 'Either' into an error context where we can embed the 'Left' value into the error.

@@ -10,7 +10,9 @@ import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
 import PlutusTx.Test
 import PlutusTx.TH (compile)
+
 import Prelude
+
 import Test.Tasty (defaultMain, testGroup)
 
 main :: IO ()

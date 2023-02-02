@@ -8,19 +8,17 @@ module PlutusCore.Examples.Data.Data
 import PlutusCore.Core
 import PlutusCore.Data
 import PlutusCore.Default
+import PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Data.List
+import PlutusCore.Examples.Data.Pair
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.List
 import PlutusCore.StdLib.Data.Pair
-
-import PlutusCore.Examples.Builtins
-import PlutusCore.Examples.Data.List
-import PlutusCore.Examples.Data.Pair
 
 import Data.ByteString (ByteString)
 

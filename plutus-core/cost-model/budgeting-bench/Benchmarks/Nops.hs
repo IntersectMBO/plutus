@@ -14,9 +14,6 @@
 
 module Benchmarks.Nops (makeBenchmarks) where
 
-import Common
-import Generators (randBool, randNwords)
-
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
@@ -24,13 +21,20 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
 import PlutusCore.Pretty
+
 import PlutusPrelude
+
 import UntypedPlutusCore.Evaluation.Machine.Cek
+
+import Common
 
 import Criterion.Main (Benchmark, bgroup)
 
 import Data.Char (toLower)
 import Data.Ix (Ix)
+
+import Generators (randBool, randNwords)
+
 import System.Random (StdGen)
 
 {- | A benchmark that just loads the unit constant, which is about the minimal

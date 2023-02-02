@@ -7,25 +7,29 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import PlutusPrelude
-
-import GeneratorSpec
-import NamesSpec
-import ParserSpec
-import TransformSpec
-import TypeSpec
+import PlutusCore qualified as PLC
 
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
 
-import PlutusCore qualified as PLC
+import PlutusPrelude
+
+import Flat (flat, unflat)
+
+import GeneratorSpec
+
+import NamesSpec
+
+import ParserSpec
 
 import Test.Tasty
 import Test.Tasty.Extras
 
-import Flat (flat, unflat)
+import TransformSpec
+
+import TypeSpec
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests

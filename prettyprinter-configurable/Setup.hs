@@ -12,7 +12,6 @@ module Main where
 
 #if MIN_VERSION_cabal_doctest(1,0,0)
 import Distribution.Extra.Doctest (defaultMainWithDoctests)
-#else
 import Distribution.Simple
 #endif
 

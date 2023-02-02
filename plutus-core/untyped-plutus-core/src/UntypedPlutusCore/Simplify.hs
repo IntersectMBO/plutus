@@ -2,17 +2,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 module UntypedPlutusCore.Simplify ( simplifyTerm, simplifyProgram, SimplifyOpts (..), soMaxSimplifierIterations, soInlineHints, defaultSimplifyOpts, InlineHints (..) ) where
 
-import UntypedPlutusCore.Core.Type
-import UntypedPlutusCore.Transform.ForceDelay
-import UntypedPlutusCore.Transform.Inline
-
-import Control.Monad
-import Data.List
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 
+import UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Transform.ForceDelay
+import UntypedPlutusCore.Transform.Inline
+
 import Control.Lens.TH
+import Control.Monad
+
+import Data.List
 
 data SimplifyOpts name a = SimplifyOpts { _soMaxSimplifierIterations  :: Int, _soInlineHints :: InlineHints name a }
   deriving stock (Show)

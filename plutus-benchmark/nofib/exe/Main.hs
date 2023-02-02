@@ -4,23 +4,7 @@
 
 module Main where
 
-import Prelude ((<>))
-import Prelude qualified as Hs
-
-import Control.Lens hiding (argument)
-import Control.Monad ()
-import Control.Monad.Trans.Except (runExceptT)
-import Data.ByteString qualified as BS
-import Data.Char (isSpace)
-import Flat qualified
-import Options.Applicative as Opt hiding (action)
-import System.Exit (exitFailure)
-import System.IO
-import Text.PrettyPrint.ANSI.Leijen (Doc, indent, line, string, text, vsep)
-import Text.Printf (printf)
-
 import PlutusBenchmark.Common (toAnonDeBruijnTerm)
-
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.LastPiece qualified as LastPiece
@@ -33,11 +17,33 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
+
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
 import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+
+import Control.Lens hiding (argument)
+import Control.Monad ()
+import Control.Monad.Trans.Except (runExceptT)
+
+import Data.ByteString qualified as BS
+import Data.Char (isSpace)
+
+import Flat qualified
+
+import Options.Applicative as Opt hiding (action)
+
+import Prelude ((<>))
+import Prelude qualified as Hs
+
+import System.Exit (exitFailure)
+import System.IO
+
+import Text.PrettyPrint.ANSI.Leijen (Doc, indent, line, string, text, vsep)
+import Text.Printf (printf)
 
 failWithMsg :: Hs.String -> IO a
 failWithMsg s = hPutStrLn stderr s >> exitFailure

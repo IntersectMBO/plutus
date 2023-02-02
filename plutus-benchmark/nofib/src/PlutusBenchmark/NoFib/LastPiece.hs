@@ -21,12 +21,14 @@ module PlutusBenchmark.NoFib.LastPiece where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
-import Data.Char (isSpace)
-
 import PlutusCore.Pretty qualified as PLC
+
 import PlutusTx as PlutusTx
 import PlutusTx.Builtins as Tx
 import PlutusTx.Prelude as PLC hiding (Semigroup (..), check, foldMap)
+
+import Data.Char (isSpace)
+
 import Prelude qualified as Haskell
 
 -------------------------------------

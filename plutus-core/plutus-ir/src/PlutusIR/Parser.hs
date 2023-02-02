@@ -14,18 +14,23 @@ module PlutusIR.Parser
     , topSourcePos
     ) where
 
+import PlutusCore (MonadQuote)
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
+import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.Parser hiding (parseProgram, program)
+
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
+
 import PlutusPrelude
-import Prelude hiding (fail)
 
 import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
+
 import Data.Text (Text)
-import PlutusCore (MonadQuote)
-import PlutusCore.Error (AsParserErrorBundle)
+
+import Prelude hiding (fail)
+
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 -- | A parsable PIR pTerm.

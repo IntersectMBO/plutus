@@ -5,6 +5,7 @@ module GHC.Natural.Extras (naturalToWord64Maybe, Natural (..)) where
 
 import Data.IntCast (intCastEq)
 import Data.Word (Word64)
+
 import GHC.Natural
 
 -- Note this will only work on 64bit platforms, but that's all we build on

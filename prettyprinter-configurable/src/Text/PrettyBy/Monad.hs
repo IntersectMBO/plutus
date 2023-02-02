@@ -14,13 +14,14 @@ module Text.PrettyBy.Monad
     , displayM
     ) where
 
+import Control.Monad.Reader
+
+import Lens.Micro
+
 import Text.Pretty
 import Text.PrettyBy.Default
 import Text.PrettyBy.Internal
 import Text.PrettyBy.Internal.Utils
-
-import Control.Monad.Reader
-import Lens.Micro
 
 -- | A constraint for \"@config@ is a part of @env@\".
 class HasPrettyConfig env config | env -> config where

@@ -14,6 +14,7 @@ import Data.Maybe (fromJust, fromMaybe)
 import Data.RAList qualified as RAL
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
+
 import GHC.Exts
 
 -- | Typeclass for various types implementing the "signature" of a random-access list.

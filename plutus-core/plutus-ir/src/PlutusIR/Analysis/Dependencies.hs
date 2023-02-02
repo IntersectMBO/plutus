@@ -16,17 +16,16 @@ import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity
 
+import Algebra.Graph.Class qualified as G
+
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Algebra.Graph.Class qualified as G
+import Data.Foldable
+import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-
-import Data.List.NonEmpty qualified as NE
-
-import Data.Foldable
 
 type StrictnessMap = Map.Map PLC.Unique Strictness
 type DepState = StrictnessMap

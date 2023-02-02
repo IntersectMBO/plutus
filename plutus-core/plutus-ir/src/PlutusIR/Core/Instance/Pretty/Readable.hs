@@ -19,8 +19,11 @@ import PlutusCore.Default.Universe
 import PlutusCore.Pretty.ConfigName
 import PlutusCore.Pretty.PrettyConst
 import PlutusCore.Pretty.Readable
+
 import PlutusIR.Core.Type
+
 import PlutusPrelude
+
 import Prettyprinter
 import Prettyprinter.Custom
 

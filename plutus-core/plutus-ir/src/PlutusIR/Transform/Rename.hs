@@ -18,14 +18,14 @@ module PlutusIR.Transform.Rename
     , renameProgramM
     ) where
 
-import PlutusPrelude
+import PlutusCore qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusCore.Rename.Internal qualified as PLC
 
 import PlutusIR
 import PlutusIR.Mark
 
-import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
-import PlutusCore.Rename.Internal qualified as PLC
+import PlutusPrelude
 
 import Control.Monad.Reader
 import Control.Monad.Trans.Cont (ContT (..))

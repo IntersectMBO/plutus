@@ -15,14 +15,13 @@ import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name
 
-import Data.Functor.Foldable
-
 import Control.Lens hiding (use, uses)
 import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Writer
 
 import Data.Foldable
+import Data.Functor.Foldable
 import Data.Set qualified as Set
 
 {- Note [Unique usage errors]

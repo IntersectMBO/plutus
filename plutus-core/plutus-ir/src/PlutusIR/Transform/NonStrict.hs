@@ -5,12 +5,12 @@
 -- | Compile non-strict bindings into strict bindings.
 module PlutusIR.Transform.NonStrict (compileNonStrictBindings) where
 
+import PlutusCore.Quote
+import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
+
 import PlutusIR
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.Substitute
-
-import PlutusCore.Quote
-import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
 
 import Control.Lens hiding (Strict)
 import Control.Monad.State

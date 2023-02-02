@@ -19,21 +19,28 @@ module PlutusCore.Evaluation.Machine.ExMemory
 
 import PlutusCore.Data
 import PlutusCore.Pretty
+
 import PlutusPrelude
 
 import Codec.Serialise (Serialise)
+
 import Control.Monad.RWS.Strict
+
 import Data.Aeson
 import Data.ByteString qualified as BS
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
+
 import GHC.Exts (Int (I#))
 import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Prim
+
 import Language.Haskell.TH.Syntax (Lift)
+
 import NoThunks.Class
+
 import Universe
 
 {-

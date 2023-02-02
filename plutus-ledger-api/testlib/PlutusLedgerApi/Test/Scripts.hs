@@ -6,6 +6,7 @@ module PlutusLedgerApi.Test.Scripts
     ) where
 
 import PlutusLedgerApi.V1.Scripts
+
 import PlutusTx
 
 -- | @()@ as a datum.

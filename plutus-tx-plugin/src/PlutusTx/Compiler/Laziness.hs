@@ -6,12 +6,12 @@
 -- | Simulating laziness.
 module PlutusTx.Compiler.Laziness where
 
-import PlutusTx.Compiler.Types
-import PlutusTx.PIRTypes
+import PlutusCore.Quote
 
 import PlutusIR qualified as PIR
 
-import PlutusCore.Quote
+import PlutusTx.Compiler.Types
+import PlutusTx.PIRTypes
 
 {- Note [Object- vs meta-language combinators]
 Many of the things we define as *meta*-langugage combinators (i.e. operations on terms) could be defined

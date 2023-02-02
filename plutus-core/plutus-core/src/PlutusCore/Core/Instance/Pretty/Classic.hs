@@ -12,15 +12,16 @@
 
 module PlutusCore.Core.Instance.Pretty.Classic () where
 
-import PlutusPrelude
-
 import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Core.Type
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
 
+import PlutusPrelude
+
 import Prettyprinter
 import Prettyprinter.Custom
+
 import Universe
 
 instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) where

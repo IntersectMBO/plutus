@@ -6,20 +6,23 @@
 
 module PlutusCore.Parser.ParserCommon where
 
-import Data.Char (isAlphaNum)
-import Data.Map qualified as M
-import Data.Text qualified as T
-import PlutusPrelude
-import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1)
-import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
-
-import Control.Monad.Except
-import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
 import PlutusCore.Quote
+
+import PlutusPrelude
+
+import Control.Monad.Except
+import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
+
+import Data.Char (isAlphaNum)
+import Data.Map qualified as M
+import Data.Text qualified as T
+
+import Text.Megaparsec hiding (ParseError, State, parse, some)
+import Text.Megaparsec.Char (char, letterChar, space1)
+import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 {- Note [Whitespace invariant]
 Every top-level 'Parser' must consume all whitespace after the thing that it parses, hence make

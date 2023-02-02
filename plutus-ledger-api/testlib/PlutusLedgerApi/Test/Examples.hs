@@ -5,10 +5,13 @@ module PlutusLedgerApi.Test.Examples (alwaysSucceedingNAryFunction, alwaysFailin
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
+
 import PlutusLedgerApi.V1
+
 import UntypedPlutusCore qualified as UPLC
 
 import Numeric.Natural
+
 import Universe (Some (Some))
 
 {- Note [Manually constructing scripts]

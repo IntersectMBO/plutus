@@ -1,6 +1,7 @@
 module PlutusCore.Compiler.Erase (eraseTerm, eraseProgram) where
 
 import PlutusCore.Core
+
 import UntypedPlutusCore.Core qualified as UPLC
 
 -- | Erase a Typed Plutus Core term to its untyped counterpart.

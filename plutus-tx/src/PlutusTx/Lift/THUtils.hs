@@ -3,10 +3,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.Lift.THUtils where
 
+import PlutusCore.Quote
+
 import PlutusIR
 import PlutusIR.Compiler.Names
-
-import PlutusCore.Quote
 
 import Control.Monad
 
@@ -16,7 +16,6 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH
 
--- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
 -- | Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to

@@ -46,10 +46,11 @@ module PlutusCore.MkPlc
     , mkIterKindArrow
     ) where
 
-import PlutusPrelude
-import Prelude hiding (error)
-
 import PlutusCore.Core
+
+import PlutusPrelude
+
+import Prelude hiding (error)
 
 import Universe
 

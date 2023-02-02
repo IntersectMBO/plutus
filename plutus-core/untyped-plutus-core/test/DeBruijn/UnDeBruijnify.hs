@@ -2,16 +2,20 @@
 {-# LANGUAGE TypeApplications #-}
 module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 
-import Control.Monad.Except
-import Control.Monad.State
-import DeBruijn.Common
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
-import Test.Tasty.Extras
+
 import UntypedPlutusCore as UPLC
+
+import Control.Monad.Except
+import Control.Monad.State
+
+import DeBruijn.Common
+
+import Test.Tasty.Extras
 
 -- Note: The point of these tests is that
 -- binders with wrong indices will be undebruinified successfully, whereas

@@ -4,11 +4,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module PlutusIR.Compiler.Lower where
 
+import PlutusCore qualified as PLC
+
 import PlutusIR
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
-
-import PlutusCore qualified as PLC
 
 import Control.Monad.Error.Lens
 

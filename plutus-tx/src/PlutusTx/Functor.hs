@@ -1,11 +1,13 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Functor (Functor(..), (<$>), (<$)) where
 
-import Control.Applicative (Const (..))
-import Data.Functor.Identity (Identity (..))
-
 import PlutusTx.Base
 import PlutusTx.Either (Either (..))
+
+import Control.Applicative (Const (..))
+
+import Data.Functor.Identity (Identity (..))
+
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}

@@ -2,16 +2,15 @@
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
-import Shared (mkBenchMarks)
-
-import Criterion.Main
-
 import PlutusBenchmark.Common (benchTermCek, getConfig)
-
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
+
+import Criterion.Main
+
+import Shared (mkBenchMarks)
 
 benchClausify :: Clausify.StaticFormula -> Benchmarkable
 benchClausify f = benchTermCek $ Clausify.mkClausifyTerm f

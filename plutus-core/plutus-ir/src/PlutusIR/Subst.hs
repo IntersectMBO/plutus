@@ -13,6 +13,7 @@ module PlutusIR.Subst
     , tvTy
     ) where
 
+import PlutusCore.Core.Plated (typeTyVars)
 import PlutusCore.Core.Type qualified as PLC
 import PlutusCore.Subst (ftvTy, ftvTyCtx, tvTy)
 
@@ -20,10 +21,10 @@ import PlutusIR.Core
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
+
 import Data.Set as S hiding (foldr)
 import Data.Set.Lens (setOf)
 import Data.Traversable (mapAccumL)
-import PlutusCore.Core.Plated (typeTyVars)
 
 -- | Get all the free term variables in a PIR term.
 fvTerm :: Ord name => Traversal' (Term tyname name uni fun ann) name

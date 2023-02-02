@@ -14,11 +14,14 @@ module PlutusLedgerApi.Common.Versions
     ) where
 
 import PlutusCore
+
 import PlutusLedgerApi.Common.ProtocolVersions
+
 import PlutusPrelude
 
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+
 import Prettyprinter
 
 {- Note [New builtins and protocol versions]

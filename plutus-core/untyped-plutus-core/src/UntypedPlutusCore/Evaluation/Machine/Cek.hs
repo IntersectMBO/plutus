@@ -53,6 +53,13 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     )
 where
 
+import PlutusCore.Builtin
+import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusCore.Quote
+
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
@@ -62,17 +69,12 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
-import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Name
-import PlutusCore.Pretty
-import PlutusCore.Quote
-
 import Control.Monad.Except
 import Control.Monad.State
+
 import Data.Bifunctor
 import Data.Text (Text)
+
 import Universe
 
 {- Note [CEK runners naming convention]

@@ -3,19 +3,22 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main where
 
-import GHC.IO.Encoding (setLocaleEncoding, utf8)
-
 import DeBruijn.Spec (test_debruijn)
+
 import Evaluation.Builtins (test_builtins)
 import Evaluation.Debug (test_debug)
 import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines
 import Evaluation.Regressions (schnorrVerifyRegressions)
+
+import GHC.IO.Encoding (setLocaleEncoding, utf8)
+
 import Generators (test_parsing)
-import Transform.Simplify (test_simplify)
 
 import Test.Tasty
+
+import Transform.Simplify (test_simplify)
 
 main :: IO ()
 main = do

@@ -15,23 +15,29 @@ module PlutusLedgerApi.Common.SerialisedScript
     ) where
 
 import PlutusCore
+
 import PlutusLedgerApi.Common.Versions
+
 import PlutusTx.Code
+
 import UntypedPlutusCore qualified as UPLC
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
 import Codec.Serialise
+
 import Control.Arrow ((>>>))
 import Control.Exception
 import Control.Lens
 import Control.Monad.Error.Lens
 import Control.Monad.Except
+
 import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
+
 import Prettyprinter
 
 -- | An error that occurred during script deserialization.

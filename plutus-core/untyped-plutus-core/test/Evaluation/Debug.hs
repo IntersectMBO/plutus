@@ -14,15 +14,19 @@ module Evaluation.Debug
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
+
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
 import Control.Monad.RWS
 import Control.Monad.ST (RealWorld)
+
 import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.Void
+
 import Prettyprinter
+
 import Test.Tasty
 import Test.Tasty.Golden
 

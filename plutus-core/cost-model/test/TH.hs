@@ -9,6 +9,7 @@ module TH (genTest)
 where
 
 import Data.Char (toUpper)
+
 import Language.Haskell.TH
 
 toUpper1 :: String -> String

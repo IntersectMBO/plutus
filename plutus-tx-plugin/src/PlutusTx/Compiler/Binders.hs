@@ -6,17 +6,17 @@
 -- | Convenient functions for compiling binders.
 module PlutusTx.Compiler.Binders where
 
+import PlutusIR qualified as PIR
+
 import PlutusTx.Compiler.Names
 import PlutusTx.Compiler.Types
 import PlutusTx.PIRTypes
 
-import GHC.Plugins qualified as GHC
-
-import PlutusIR qualified as PIR
-
 import Control.Monad.Reader
 
 import Data.Traversable
+
+import GHC.Plugins qualified as GHC
 
 -- Binder helpers
 

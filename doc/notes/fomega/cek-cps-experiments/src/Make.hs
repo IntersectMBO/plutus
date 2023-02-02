@@ -18,6 +18,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.Type
+
 import PlutusPrelude
 
 import Data.Bits (bit)

@@ -12,10 +12,11 @@
 -- a lot of time optimizing loads of Core whose performance doesn't matter.
 module PlutusCore.Evaluation.Machine.CostingFun.JSON () where
 
-import Data.Aeson
-import Deriving.Aeson
-
 import PlutusCore.Evaluation.Machine.CostingFun.Core
+
+import Data.Aeson
+
+import Deriving.Aeson
 
 type ModelJSON prefix = CustomJSON '[FieldLabelModifier (StripPrefix prefix, CamelToSnake)]
 

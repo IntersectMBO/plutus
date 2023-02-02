@@ -14,9 +14,8 @@
 
 module Plugin.Errors.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusCore.Test
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
@@ -25,9 +24,9 @@ import PlutusTx.Test ()
 import Data.Proxy
 import Data.String
 
--- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
--- explicitly here, so we need to see the constructors.
 import GHC.Num.Integer
+
+import Test.Tasty.Extras
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}

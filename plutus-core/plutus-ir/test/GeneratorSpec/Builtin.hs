@@ -5,6 +5,7 @@ import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck
 
 import Codec.Serialise
+
 import Test.QuickCheck
 
 -- | This mainly tests that the `Data` generator isn't non-terminating or too slow.

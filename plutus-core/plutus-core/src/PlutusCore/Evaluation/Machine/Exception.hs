@@ -32,18 +32,20 @@ module PlutusCore.Evaluation.Machine.Exception
     , unsafeExtractEvaluationResult
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
 import Control.Lens
 import Control.Monad.Error.Lens (throwing, throwing_)
 import Control.Monad.Except
+
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
+
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.

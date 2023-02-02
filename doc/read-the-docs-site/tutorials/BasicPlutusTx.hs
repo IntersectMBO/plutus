@@ -7,13 +7,10 @@
 module BasicPlutusTx where
 
 import PlutusCore.Default qualified as PLC
--- Main Plutus Tx module.
+
 import PlutusTx
--- Additional support for lifting.
-import PlutusTx.Lift
--- Builtin functions.
 import PlutusTx.Builtins
--- The Plutus Tx Prelude, discussed further below.
+import PlutusTx.Lift
 import PlutusTx.Prelude
 
 -- Setup for doctest examples.

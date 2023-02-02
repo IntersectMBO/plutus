@@ -6,8 +6,6 @@
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
-import PlutusPrelude (display, fold, on, void)
-
 import PlutusCore (Name, _nameText)
 import PlutusCore.Compiler.Erase (eraseProgram)
 import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
@@ -18,6 +16,9 @@ import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
+
+import PlutusPrelude (display, fold, on, void)
+
 import UntypedPlutusCore.Core.Type (Program (Program),
                                     Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var))
 import UntypedPlutusCore.Parser (SourcePos, parseProgram, parseTerm)
@@ -25,12 +26,13 @@ import UntypedPlutusCore.Parser (SourcePos, parseProgram, parseTerm)
 import Data.Text (Text)
 import Data.Text qualified as T
 
+import Flat qualified
+
 import Hedgehog (property, tripping)
+
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase, (@?=))
-
-import Flat qualified
 
 -- | A 'Program' which we compare using textual equality of names rather than alpha-equivalence.
 newtype TextualProgram a = TextualProgram

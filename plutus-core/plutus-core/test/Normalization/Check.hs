@@ -4,6 +4,7 @@ module Normalization.Check ( test_normalizationCheck ) where
 
 import PlutusCore
 import PlutusCore.Check.Normal
+
 import Test.Tasty
 import Test.Tasty.HUnit
 

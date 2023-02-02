@@ -8,8 +8,13 @@ module Evaluation.Golden
     , namesAndTests
     ) where
 
-import Prelude hiding (even)
-
+import PlutusCore
+import PlutusCore.Compiler.Erase
+import PlutusCore.Evaluation.Machine.Ck
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Generators.Hedgehog.Interesting
+import PlutusCore.MkPlc
+import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Nat
@@ -18,19 +23,15 @@ import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Tuple
 import PlutusCore.StdLib.Type
 
-import PlutusCore
-import PlutusCore.Compiler.Erase
-import PlutusCore.Evaluation.Machine.Ck
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators.Hedgehog.Interesting
-import PlutusCore.MkPlc
-import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Data.Bifunctor
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
+
+import Prelude hiding (even)
+
 import Test.Tasty
 import Test.Tasty.Golden
 

@@ -17,7 +17,6 @@ import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Type
 
 import Universe

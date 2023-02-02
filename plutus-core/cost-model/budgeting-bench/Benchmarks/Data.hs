@@ -2,13 +2,15 @@
 
 module Benchmarks.Data (makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 import PlutusCore.Data
 
+import Common
+
 import Criterion.Main
+
+import Generators
+
 import System.Random (StdGen)
 
 {- | Benchmarks for builtins operating on Data.  Recall that Data is defined by

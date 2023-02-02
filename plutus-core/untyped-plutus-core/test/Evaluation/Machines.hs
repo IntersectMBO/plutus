@@ -9,9 +9,6 @@ module Evaluation.Machines
     , test_tallying
     ) where
 
-import UntypedPlutusCore
-import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
-
 import PlutusCore qualified as Plc
 import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase
@@ -19,22 +16,28 @@ import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plc
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Examples.Builtins
 import PlutusCore.FsTree
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-import PlutusPrelude
-
-import PlutusCore.Examples.Builtins
 import PlutusCore.StdLib.Data.Nat qualified as Plc
 import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 
+import PlutusPrelude
+
+import UntypedPlutusCore
+import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+
 import GHC.Exts (fromString)
 import GHC.Ix
+
 import Hedgehog hiding (Size, Var, eval)
+
 import Prettyprinter
 import Prettyprinter.Render.Text
+
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog

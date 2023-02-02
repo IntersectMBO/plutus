@@ -37,10 +37,14 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 
 import Control.DeepSeq
+
 import Data.Default.Class
 import Data.Hashable
+
 import Deriving.Aeson
+
 import GHC.Exts
+
 import Language.Haskell.TH.Syntax hiding (Name, newName)
 
 -- | A class used for convenience in this module, don't export it.

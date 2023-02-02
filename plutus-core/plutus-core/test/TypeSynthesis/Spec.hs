@@ -9,21 +9,22 @@ module TypeSynthesis.Spec
     ( test_typecheck
     ) where
 
-import PlutusPrelude
-
 import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Error
+import PlutusCore.Examples.Builtins
+import PlutusCore.Examples.Everything (builtins, examples)
 import PlutusCore.FsTree
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-
-import PlutusCore.Examples.Builtins
-import PlutusCore.Examples.Everything (builtins, examples)
 import PlutusCore.StdLib.Everything (stdLib)
 
+import PlutusPrelude
+
 import Control.Monad.Except
+
 import System.FilePath ((</>))
+
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.HUnit

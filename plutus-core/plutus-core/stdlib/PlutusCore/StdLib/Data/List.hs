@@ -14,16 +14,15 @@ module PlutusCore.StdLib.Data.List
     , product
     ) where
 
-import Prelude hiding (enumFromTo, map, product, reverse, sum)
-
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
+
+import Prelude hiding (enumFromTo, map, product, reverse, sum)
 
 -- | @[]@ as a built-in PLC type.
 list :: uni `Contains` [] => Type TyName uni ()

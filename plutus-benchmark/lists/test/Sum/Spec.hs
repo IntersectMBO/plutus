@@ -1,13 +1,12 @@
 -- editorconfig-checker-disable-file
 module Sum.Spec (tests) where
 
-import Test.Tasty
-import Test.Tasty.QuickCheck
-
 import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
-
 import PlutusBenchmark.Lists.Sum.Compiled qualified as Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as HandWritten
+
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 -- | Check that the various summation functions all give the same result as 'sum'
 

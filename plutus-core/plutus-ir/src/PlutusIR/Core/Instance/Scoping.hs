@@ -7,11 +7,11 @@
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Scoping where
 
-import PlutusIR.Core.Type
-
 import PlutusCore.Check.Scoping
 import PlutusCore.MkPlc
 import PlutusCore.Quote
+
+import PlutusIR.Core.Type
 
 import Data.Foldable
 import Data.List.NonEmpty (NonEmpty (..), (<|))

@@ -15,6 +15,7 @@
 module PlutusTx.Lift.Instances () where
 
 import PlutusCore.Data
+
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Either (Either (..))
 import PlutusTx.Lift.TH

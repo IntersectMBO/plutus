@@ -6,13 +6,13 @@
 -- | Functions for compiling GHC kinds into PlutusCore kinds.
 module PlutusTx.Compiler.Kind (compileKind) where
 
+import PlutusCore qualified as PLC
+
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 
 import GHC.Plugins qualified as GHC
-
-import PlutusCore qualified as PLC
 
 compileKind :: Compiling uni fun m ann => GHC.Kind -> m (PLC.Kind ())
 compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $ case k of

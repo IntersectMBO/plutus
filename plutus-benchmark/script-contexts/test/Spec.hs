@@ -1,15 +1,15 @@
 module Main (main) where
 
-import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestNestedIn)
-import Test.Tasty.HUnit
-
 import PlutusBenchmark.Common (compiledCodeToTerm, runTermCek)
-
 import PlutusBenchmark.ScriptContexts
 
 import PlutusCore.Evaluation.Result
+
 import PlutusTx.Test qualified as Tx
+
+import Test.Tasty
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
+import Test.Tasty.HUnit
 
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn ["script-contexts", "test"]

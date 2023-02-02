@@ -97,11 +97,10 @@ module PlutusLedgerApi.V1 (
     , ScriptDecodeError (..)
     ) where
 
-import Control.Monad.Except (MonadError)
-import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+
 import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
@@ -118,9 +117,14 @@ import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
 import PlutusLedgerApi.V1.Time
 import PlutusLedgerApi.V1.Value
+
 import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toData)
 import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
+
+import Control.Monad.Except (MonadError)
+
+import Data.SatInt
 
 -- | An alias to the language version this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.

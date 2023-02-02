@@ -27,7 +27,9 @@ import PlutusCore.Name
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Text qualified as Text
+
 import GHC.TypeLits
+
 import Type.Reflection
 
 infixr 9 `TypeSchemeArrow`

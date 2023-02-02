@@ -30,9 +30,11 @@ import Data.Kind qualified as GHC
 import Data.Text (Text)
 import Data.Type.Equality
 import Data.Word (Word8)
+
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Type.Reflection
 
 -- | This class exists so we can provide an ad-hoc typed term generator

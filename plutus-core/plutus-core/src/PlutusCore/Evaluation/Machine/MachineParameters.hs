@@ -12,8 +12,10 @@ import PlutusCore.Builtin
 
 import Control.DeepSeq
 import Control.Lens
+
 import GHC.Exts (inline)
 import GHC.Generics
+
 import NoThunks.Class
 
 {-| We need to account for the costs of evaluator steps and also built-in function

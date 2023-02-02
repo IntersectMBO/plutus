@@ -5,10 +5,11 @@
 
 module PlutusIR.Purity (isPure, firstEffectfulTerm) where
 
+import PlutusCore.Builtin
+
 import PlutusIR
 
 import Data.List.NonEmpty qualified as NE
-import PlutusCore.Builtin
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)

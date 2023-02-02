@@ -10,18 +10,6 @@ module Main
     ( main
     ) where
 
-import PlutusPrelude
-
-import CBOR.DataStability qualified
-import Check.Spec qualified as Check
-import CostModelInterface.Spec
-import Evaluation.Spec (test_evaluation)
-import Names.Spec
-import Normalization.Check
-import Normalization.Type
-import Pretty.Readable
-import TypeSynthesis.Spec (test_typecheck)
-
 import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
 import PlutusCore.DeBruijn
@@ -32,7 +20,16 @@ import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
+import CBOR.DataStability qualified
+
+import Check.Spec qualified as Check
+
 import Control.Monad.Except
+
+import CostModelInterface.Spec
+
 import Data.ByteString.Lazy qualified as BSL
 import Data.Either (isLeft)
 import Data.Foldable (for_)
@@ -41,16 +38,31 @@ import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
 import Data.Word (Word64)
+
+import Evaluation.Spec (test_evaluation)
+
 import Flat (flat, unflat)
+
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
+import Names.Spec
+
+import Normalization.Check
+import Normalization.Type
+
 import Prelude hiding (readFile)
+
+import Pretty.Readable
+
 import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
 import Test.Tasty.Options
+
+import TypeSynthesis.Spec (test_typecheck)
 
 main :: IO ()
 main = do

@@ -8,15 +8,15 @@ module UntypedPlutusCore.Rename
     ( Rename (..)
     ) where
 
+import PlutusCore.Core (HasUniques)
+import PlutusCore.Name
+import PlutusCore.Rename (Rename (..))
+
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
-
-import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
-import PlutusCore.Rename (Rename (..))
 
 instance HasUniques (Term name uni fun ann) => Rename (Term name uni fun ann) where
     -- See Note [Marking].

@@ -9,6 +9,7 @@ module UntypedPlutusCore.Size
 import UntypedPlutusCore.Core
 
 import Data.ByteString qualified as BS
+
 import Flat
 
 -- | Count the number of AST nodes in a term.

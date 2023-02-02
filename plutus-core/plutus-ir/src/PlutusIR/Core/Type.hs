@@ -26,9 +26,6 @@ module PlutusIR.Core.Type (
     progTerm,
     ) where
 
-import PlutusPrelude
-
-import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
@@ -37,6 +34,10 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
+
+import PlutusPrelude
+
+import Control.Lens.TH
 
 import Data.Text qualified as T
 

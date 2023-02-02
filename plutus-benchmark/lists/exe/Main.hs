@@ -6,9 +6,6 @@
 
 module Main where
 
-import Data.HashMap.Monoidal qualified as H
-import Text.Printf (printf)
-
 import PlutusBenchmark.Common (Term)
 import PlutusBenchmark.Lists.Sort
 
@@ -16,7 +13,12 @@ import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory
+
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+
+import Data.HashMap.Monoidal qualified as H
+
+import Text.Printf (printf)
 
 getBudgetUsage :: Term -> Maybe Integer
 getBudgetUsage term =

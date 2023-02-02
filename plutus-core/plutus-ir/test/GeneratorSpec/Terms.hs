@@ -7,17 +7,18 @@
 
 module GeneratorSpec.Terms where
 
-import PlutusCore.Generators.QuickCheck
-import PlutusIR.Generators.QuickCheck
-
 import PlutusCore.Default
+import PlutusCore.Generators.QuickCheck
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename
+
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Generators.QuickCheck
 
 import Control.Monad.Reader
+
 import Data.Bifunctor
 import Data.Char
 import Data.Either
@@ -26,6 +27,7 @@ import Data.Hashable
 import Data.HashMap.Strict qualified as HashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict qualified as Map
+
 import Test.QuickCheck
 
 -- | 'rename' a 'Term' and 'show' it afterwards.

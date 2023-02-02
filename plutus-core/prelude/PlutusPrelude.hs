@@ -95,6 +95,7 @@ import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
 import Control.Lens
 import Control.Monad.Reader
+
 import Data.Array
 import Data.Bifunctor (first, second)
 import Data.Coerce (Coercible, coerce)
@@ -111,10 +112,14 @@ import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
+
 import Debug.Trace
+
 import GHC.Generics
 import GHC.Natural (Natural)
+
 import Prettyprinter
+
 import Text.PrettyBy.Default
 import Text.PrettyBy.Internal
 

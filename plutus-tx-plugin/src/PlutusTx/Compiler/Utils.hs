@@ -8,17 +8,17 @@ module PlutusTx.Compiler.Utils where
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Types
 
+import Control.Monad.Except
+import Control.Monad.Reader
+
+import Data.Map qualified as Map
+import Data.Text qualified as T
+
 import GHC.Core qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
 
-import Control.Monad.Except
-import Control.Monad.Reader
-
 import Language.Haskell.TH.Syntax qualified as TH
-
-import Data.Map qualified as Map
-import Data.Text qualified as T
 
 -- | Get the 'GHC.TyThing' for a given 'TH.Name' which was stored in the builtin name info,
 -- failing if it is missing.

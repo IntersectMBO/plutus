@@ -4,9 +4,8 @@
 
 module PlutusCore.Generators.QuickCheck.GenerateKinds where
 
-import PlutusCore.Generators.QuickCheck.GenTm
-
 import PlutusCore
+import PlutusCore.Generators.QuickCheck.GenTm
 
 {- Note [Shriking order on kinds]
 A kind @k1 = foldr (->) * ks1@ is less than or equal to a kind @k2 = foldr (->) * ks2@ when @ks1@

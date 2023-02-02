@@ -12,21 +12,24 @@ module UntypedPlutusCore.Parser
     , SourcePos
     ) where
 
-import Prelude hiding (fail)
-
-import Control.Monad.Except (MonadError, (<=<))
-
 import PlutusCore qualified as PLC
+import PlutusCore.Error (AsParserErrorBundle)
+import PlutusCore.MkPlc (mkIterApp)
+import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
+
 import PlutusPrelude (through)
-import Text.Megaparsec hiding (ParseError, State, parse)
+
 import UntypedPlutusCore.Check.Uniques (checkProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
+import Control.Monad.Except (MonadError, (<=<))
+
 import Data.Text (Text)
-import PlutusCore.Error (AsParserErrorBundle)
-import PlutusCore.MkPlc (mkIterApp)
-import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
+
+import Prelude hiding (fail)
+
+import Text.Megaparsec hiding (ParseError, State, parse)
 
 -- Parsers for UPLC terms
 

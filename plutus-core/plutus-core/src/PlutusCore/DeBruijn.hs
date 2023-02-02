@@ -32,9 +32,8 @@ module PlutusCore.DeBruijn
     , fromFake, toFake
     ) where
 
-import PlutusCore.DeBruijn.Internal
-
 import PlutusCore.Core.Type
+import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
 import PlutusCore.Quote
 

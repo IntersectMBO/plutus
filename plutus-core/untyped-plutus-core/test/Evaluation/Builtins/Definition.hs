@@ -20,12 +20,10 @@ import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Generators.Hedgehog.Interesting
-import PlutusCore.MkPlc hiding (error)
-import PlutusPrelude
-
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
+import PlutusCore.Generators.Hedgehog.Interesting
+import PlutusCore.MkPlc hiding (error)
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Data
 import PlutusCore.StdLib.Data.Function qualified as Plc
@@ -36,17 +34,22 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
+import PlutusPrelude
+
+import Control.Exception
+
+import Data.ByteString (ByteString)
+import Data.Proxy
+import Data.Text (Text)
+
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
                                                   schnorrSecp256k1Prop)
 
-import Control.Exception
-import Data.ByteString (ByteString)
-import Data.Proxy
-import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit

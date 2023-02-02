@@ -47,6 +47,7 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Quote
 
+import Control.DeepSeq (NFData)
 import Control.Exception
 import Control.Lens hiding (Index, Level, index, ix)
 import Control.Monad.Error.Lens
@@ -55,14 +56,14 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Bimap qualified as BM
+import Data.Coerce
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Data.Word
-import Prettyprinter
 
-import Control.DeepSeq (NFData)
-import Data.Coerce
 import GHC.Generics
+
+import Prettyprinter
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Word64

@@ -19,10 +19,10 @@ module PlutusCore.Eq
     , eqM
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
+
+import PlutusPrelude
 
 import Control.Lens
 

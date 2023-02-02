@@ -3,9 +3,11 @@
 {-# LANGUAGE TypeFamilies     #-}
 module DeBruijn.Common where
 
-import Data.Semigroup
 import PlutusCore.MkPlc
+
 import UntypedPlutusCore as UPLC
+
+import Data.Semigroup
 
 timesT :: Index -> (a -> a)  -> a -> a
 timesT n = appEndo . stimes n . Endo

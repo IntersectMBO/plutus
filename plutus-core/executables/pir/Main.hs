@@ -4,27 +4,34 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Error (ParserErrorBundle (..))
+import PlutusCore.Executable.Common hiding (runPrint)
+import PlutusCore.Executable.Parsers
+import PlutusCore.Quote (runQuoteT)
+
+import PlutusIR as PIR
+import PlutusIR.Analysis.RetainedSize qualified as PIR
+import PlutusIR.Compiler qualified as PIR
+import PlutusIR.Core.Plated
+
+import PlutusPrelude
+
 import Control.Lens hiding (argument, set', (<.>))
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
+
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Data.Coerce
 import Data.Csv qualified as Csv
 import Data.IntMap qualified as IM
 import Data.List (sortOn)
 import Data.Text qualified as T
+
 import GHC.Generics
+
 import Options.Applicative
-import PlutusCore qualified as PLC
-import PlutusCore.Error (ParserErrorBundle (..))
-import PlutusCore.Executable.Common hiding (runPrint)
-import PlutusCore.Executable.Parsers
-import PlutusCore.Quote (runQuoteT)
-import PlutusIR as PIR
-import PlutusIR.Analysis.RetainedSize qualified as PIR
-import PlutusIR.Compiler qualified as PIR
-import PlutusIR.Core.Plated
-import PlutusPrelude
+
 import Text.Megaparsec (errorBundlePretty)
 
 type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())

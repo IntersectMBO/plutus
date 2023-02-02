@@ -21,8 +21,10 @@ control this with the '--column' argument.
 module Main where
 
 import Common
+
 import Data.ByteString.Lazy qualified as BSL
 import Data.List (intercalate)
+
 import Options.Applicative
 
 column :: Parser Int

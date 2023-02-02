@@ -14,8 +14,6 @@
 
 module PlutusCore.Default.Builtins where
 
-import PlutusPrelude
-
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
@@ -25,9 +23,13 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
 import Codec.Serialise (serialise)
+
 import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
                verifySchnorrSecp256k1Signature)
+
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
@@ -35,9 +37,11 @@ import Data.Char
 import Data.Ix
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
+
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].

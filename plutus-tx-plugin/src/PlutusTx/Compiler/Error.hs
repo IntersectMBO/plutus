@@ -17,17 +17,19 @@ module PlutusTx.Compiler.Error (
     , throwPlain
     , pruneContext) where
 
-import PlutusIR.Compiler qualified as PIR
-
-import Language.Haskell.TH qualified as TH
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
+
 import PlutusIR qualified as PIR
+import PlutusIR.Compiler qualified as PIR
 
 import Control.Lens
 import Control.Monad.Except
 
 import Data.Text qualified as T
+
+import Language.Haskell.TH qualified as TH
+
 import Prettyprinter qualified as PP
 
 -- | An error with some (nested) context. The integer argument to 'WithContextC' represents

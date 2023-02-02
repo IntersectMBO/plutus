@@ -7,11 +7,14 @@ import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
+
 import UntypedPlutusCore
 
 import Control.Lens ((&), (.~))
+
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text.Encoding (encodeUtf8)
+
 import Test.Tasty
 import Test.Tasty.Golden
 

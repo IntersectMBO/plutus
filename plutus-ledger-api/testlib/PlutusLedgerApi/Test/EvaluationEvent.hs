@@ -18,17 +18,22 @@ module PlutusLedgerApi.Test.EvaluationEvent (
 
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Pretty
+
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 
 import Codec.Serialise (Serialise (..))
+
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Short qualified as BS
 import Data.List.NonEmpty (NonEmpty, toList)
 import Data.Text.Encoding qualified as Text
+
 import GHC.Generics (Generic)
+
 import Prettyprinter
+
 import PyF (fmt)
 
 

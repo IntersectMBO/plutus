@@ -6,7 +6,9 @@ module PlutusTx.Annotation where
 import PlutusTx.Code
 
 import Data.Set qualified as Set
+
 import GHC.Generics
+
 import Prettyprinter
 
 -- | An annotation type used during the compilation.

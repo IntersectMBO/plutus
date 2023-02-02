@@ -27,15 +27,16 @@ import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
 import PlutusCore.Quote
 import PlutusCore.Rename
+
 import PlutusPrelude
 
 import Control.Lens
 import Control.Monad.Error.Lens
 import Control.Monad.Except
--- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
--- on 'local'.
 import Control.Monad.Trans.Reader
+
 import Data.Array
+
 import Universe
 
 {- Note [Global uniqueness]

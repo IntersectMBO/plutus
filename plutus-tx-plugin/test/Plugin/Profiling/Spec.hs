@@ -15,9 +15,8 @@
 
 module Plugin.Profiling.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalProfile)
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
@@ -25,7 +24,10 @@ import PlutusTx.Test (goldenPir)
 
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
+
 import Prelude
+
+import Test.Tasty.Extras
 
 profiling :: TestNested
 profiling = testNested "Profiling" [

@@ -25,32 +25,40 @@ module PlutusTx.Test (
     goldenBudget
     ) where
 
-import Prelude
-
-import Control.Exception
-import Control.Lens
-import Control.Monad.Except
-import Control.Monad.Reader qualified as Reader
-import Data.Either.Extras
-import Data.Kind (Type)
-import Data.Tagged (Tagged (Tagged))
-import Data.Text (Text)
-import Flat (Flat)
-import Prettyprinter
-import System.FilePath ((</>))
-import Test.Tasty (TestName, TestTree)
-import Test.Tasty.Extras
-import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
-import Type.Reflection (Typeable)
-
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Test
+
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
+
+import Control.Exception
+import Control.Lens
+import Control.Monad.Except
+import Control.Monad.Reader qualified as Reader
+
+import Data.Either.Extras
+import Data.Kind (Type)
+import Data.Tagged (Tagged (Tagged))
+import Data.Text (Text)
+
+import Flat (Flat)
+
+import Prelude
+
+import Prettyprinter
+
+import System.FilePath ((</>))
+
+import Test.Tasty (TestName, TestTree)
+import Test.Tasty.Extras
+import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
+
+import Type.Reflection (Typeable)
 
 
 -- Size testing for Tasty

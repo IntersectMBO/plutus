@@ -10,17 +10,20 @@ module Crypto (
   verifySchnorrSecp256k1Signature,
   ) where
 
+import PlutusCore.Builtin.Emitter (Emitter, emit)
+import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
+
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
+
 import Crypto.ECC.Ed25519Donna (publicKey, signature, verify)
 import Crypto.Error (CryptoFailable (..))
+
 import Data.ByteString qualified as BS
 import Data.Kind (Type)
 import Data.Text (Text, pack)
-import PlutusCore.Builtin.Emitter (Emitter, emit)
-import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Ed25519 signature verification
 -- This will fail if the key or the signature are not of the expected length.

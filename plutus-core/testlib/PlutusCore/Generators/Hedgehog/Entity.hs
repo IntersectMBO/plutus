@@ -24,27 +24,30 @@ module PlutusCore.Generators.Hedgehog.Entity
     , withAnyTermLoose
     ) where
 
-import PlutusPrelude
-
-import PlutusCore.Generators.Hedgehog.Denotation
-import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
-import PlutusCore.Generators.Hedgehog.Utils
-
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
+import PlutusCore.Generators.Hedgehog.Denotation
+import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+import PlutusCore.Generators.Hedgehog.Utils
 import PlutusCore.Name
 import PlutusCore.Pretty (PrettyConst, prettyConst)
 import PlutusCore.Quote
 
+import PlutusPrelude
+
 import Control.Monad.Morph qualified as Morph
 import Control.Monad.Reader
+
 import Data.ByteString qualified as BS
 import Data.Kind as GHC
 import Data.Proxy
+
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
+
 import Prettyprinter
+
 import Type.Reflection
 
 type Plain f (uni :: GHC.Type -> GHC.Type) (fun :: GHC.Type) = f TyName Name uni fun ()

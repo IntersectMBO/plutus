@@ -17,10 +17,6 @@
 
 module TH.Spec (tests) where
 
-import Test.Tasty.Extras
-
-import Lib
-
 import PlutusCore.Pretty
 
 import PlutusTx
@@ -28,9 +24,13 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Prelude
 import PlutusTx.Show (show)
 
+import Lib
+
 import Prelude qualified as Haskell
 
 import TH.TestTH
+
+import Test.Tasty.Extras
 
 data SomeType = One Integer | Two | Three ()
 

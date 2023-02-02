@@ -9,23 +9,23 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import Prelude qualified as Haskell (Int, error)
-
 import PlutusCore.Data qualified as PLC
+
+import PlutusTx.Applicative
 import PlutusTx.Base
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal (BuiltinData (..))
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.Maybe (Maybe (..))
-
-import PlutusTx.Applicative
 import PlutusTx.ErrorCodes
+import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Trace
 
 import Data.Kind
 import Data.Void
 
 import GHC.TypeLits (ErrorMessage (..), TypeError)
+
+import Prelude qualified as Haskell (Int, error)
 
 
 {- HLINT ignore -}

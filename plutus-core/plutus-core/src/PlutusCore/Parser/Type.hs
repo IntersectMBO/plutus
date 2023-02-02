@@ -5,8 +5,6 @@
 
 module PlutusCore.Parser.Type where
 
-import PlutusPrelude
-
 import PlutusCore.Core.Type
 import PlutusCore.Data
 import PlutusCore.Default
@@ -14,9 +12,13 @@ import PlutusCore.MkPlc (mkIterTyApp)
 import PlutusCore.Name
 import PlutusCore.Parser.ParserCommon
 
+import PlutusPrelude
+
 import Control.Monad
+
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 -- | A PLC @Type@ to be parsed. ATM the parser only works

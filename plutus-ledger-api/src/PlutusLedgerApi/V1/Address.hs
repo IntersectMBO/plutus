@@ -16,16 +16,19 @@ module PlutusLedgerApi.V1.Address
     , stakingCredential
     ) where
 
-import Control.DeepSeq (NFData)
-import GHC.Generics (Generic)
-import PlutusTx qualified
-import PlutusTx.Bool qualified as PlutusTx
-import PlutusTx.Eq qualified as PlutusTx
-import Prettyprinter
-
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
+
+import PlutusTx qualified
+import PlutusTx.Bool qualified as PlutusTx
+import PlutusTx.Eq qualified as PlutusTx
+
+import Control.DeepSeq (NFData)
+
+import GHC.Generics (Generic)
+
+import Prettyprinter
 
 -- | An address may contain two credentials, the payment credential and optionally a 'StakingCredential'.
 data Address = Address

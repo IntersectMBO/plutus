@@ -23,8 +23,10 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Word
+
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
+
 import Universe
 
 instance Arbitrary Data where

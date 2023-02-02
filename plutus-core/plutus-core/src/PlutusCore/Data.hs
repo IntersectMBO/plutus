@@ -16,8 +16,10 @@ import Codec.CBOR.Encoding qualified as CBOR
 import Codec.CBOR.Magic qualified as CBOR
 import Codec.Serialise (Serialise (decode, encode))
 import Codec.Serialise.Decoding (decodeSequenceLenIndef, decodeSequenceLenN)
+
 import Control.DeepSeq (NFData)
 import Control.Monad.Except
+
 import Data.Bits (shiftR)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as Base64
@@ -25,9 +27,13 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Data qualified
 import Data.Text.Encoding qualified as Text
 import Data.Word (Word64, Word8)
+
 import GHC.Generics
+
 import NoThunks.Class
+
 import Prelude
+
 import Prettyprinter
 
 -- Attempting to make this strict made code slower by 2%,

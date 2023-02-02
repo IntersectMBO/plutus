@@ -36,7 +36,9 @@ import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.Text qualified as Text
 import Data.Type.Bool
+
 import GHC.TypeLits
+
 import Universe
 
 {- Note [Rep vs Type context]

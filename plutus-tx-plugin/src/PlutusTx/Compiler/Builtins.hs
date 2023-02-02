@@ -18,14 +18,10 @@ module PlutusTx.Compiler.Builtins (
     , lookupBuiltinType
     , errorFunc) where
 
-import PlutusTx.Builtins.Class qualified as Builtins
-import PlutusTx.Builtins.Internal qualified as Builtins
-
-import PlutusTx.Compiler.Error
-import PlutusTx.Compiler.Names
-import PlutusTx.Compiler.Types
-import PlutusTx.Compiler.Utils
-import PlutusTx.PIRTypes
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Data qualified as PLC
+import PlutusCore.Quote
 
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
@@ -33,15 +29,13 @@ import PlutusIR.Compiler.Names
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
-import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Data qualified as PLC
-import PlutusCore.Quote
-
-import GHC.Plugins qualified as GHC
-import GHC.Types.TyThing qualified as GHC
-
-import Language.Haskell.TH.Syntax qualified as TH
+import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as Builtins
+import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Types
+import PlutusTx.Compiler.Utils
+import PlutusTx.PIRTypes
 
 import Control.Monad.Reader (ask, asks)
 
@@ -49,6 +43,11 @@ import Data.ByteString qualified as BS
 import Data.Functor
 import Data.Proxy
 import Data.Text (Text)
+
+import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
+
+import Language.Haskell.TH.Syntax qualified as TH
 
 {- Note [Mapping builtins]
 We want the user to be able to call the Plutus builtins as normal Haskell functions.

@@ -18,6 +18,7 @@ module PlutusIR.TypeCheck
 
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
+
 import PlutusIR
 import PlutusIR.Error
 import PlutusIR.Transform.Rename ()

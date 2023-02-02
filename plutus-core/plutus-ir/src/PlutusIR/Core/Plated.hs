@@ -37,6 +37,7 @@ import PlutusCore.Name qualified as PLC
 import PlutusIR.Core.Type
 
 import Control.Lens hiding (Strict, (<.>))
+
 import Data.Functor.Apply
 import Data.Functor.Bind.Class
 

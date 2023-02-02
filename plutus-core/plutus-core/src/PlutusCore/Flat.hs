@@ -25,14 +25,18 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
+
 import Data.Coerce
 import Data.Functor
 import Data.Proxy
 import Data.Word (Word8)
+
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+
 import GHC.Natural.Extras
+
 import Universe
 
 {- Note [Stable encoding of PLC]

@@ -7,11 +7,11 @@ module PlutusIR.Mark
 
 import PlutusCore.Core qualified as PLC
 import PlutusCore.Name qualified as PLC
-
 import PlutusCore.Quote
 
-import Data.Set.Lens (setOf)
 import PlutusIR.Core
+
+import Data.Set.Lens (setOf)
 
 -- | Marks all the 'Unique's in a term as used, so they will not be generated in future. Useful if you
 -- have a term which was not generated in 'Quote'.

@@ -1,11 +1,15 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
-import Common
-import Control.DeepSeq (force)
-import Criterion
 import PlutusBenchmark.Common
+
 import UntypedPlutusCore as UPLC
+
+import Common
+
+import Control.DeepSeq (force)
+
+import Criterion
 
 {-|
  Benchmarks only for the CEK execution time of the data/*.flat validation scripts

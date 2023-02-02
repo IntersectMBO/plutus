@@ -4,10 +4,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module UntypedPlutusCore.Check.Scope (checkScope) where
 
-import Control.Lens hiding (index)
 import UntypedPlutusCore.Core.Type as UPLC
 import UntypedPlutusCore.DeBruijn as UPLC
 
+import Control.Lens hiding (index)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 

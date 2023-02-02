@@ -18,7 +18,9 @@ module PlutusIR.Compiler.Datatype
     , resultTypeName
     ) where
 
-import PlutusPrelude (showText)
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Quote
+import PlutusCore.StdLib.Type qualified as Types
 
 import PlutusIR
 import PlutusIR.Compiler.Names
@@ -28,16 +30,13 @@ import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Substitute
 
-import PlutusCore.MkPlc qualified as PLC
-import PlutusCore.Quote
-import PlutusCore.StdLib.Type qualified as Types
+import PlutusPrelude (showText)
 
 import Control.Monad.Error.Lens
 
+import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
 import Data.Traversable
-
-import Data.List.NonEmpty qualified as NE
 
 {- NOTE [Normalization of data-constructors' types]
 

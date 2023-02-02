@@ -1,14 +1,18 @@
 {-# LANGUAGE TypeApplications #-}
 module DeBruijn.Scope (test_scope) where
 
+import PlutusCore.Default
+import PlutusCore.MkPlc
+
 import UntypedPlutusCore as UPLC
 
 import Control.Monad.Except
+
 import Data.Bifunctor
 import Data.Either
+
 import DeBruijn.Common
-import PlutusCore.Default
-import PlutusCore.MkPlc
+
 import Test.Tasty.Extras
 import Test.Tasty.HUnit
 

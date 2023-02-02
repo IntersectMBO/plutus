@@ -3,25 +3,27 @@
 
 module PlutusCore.Generators.QuickCheck.GenerateTypes where
 
+import PlutusCore.Builtin
+import PlutusCore.Core
+import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
 import PlutusCore.Generators.QuickCheck.GenTm
-
-import PlutusCore.Builtin
-import PlutusCore.Core
-import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Normalize
 import PlutusCore.Quote (runQuote)
+
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
 import Control.Monad.Reader
+
 import Data.Foldable
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String
+
 import Test.QuickCheck (shuffle)
 
 {- Note [Debugging generators that don't generate well-typed/kinded terms/types]

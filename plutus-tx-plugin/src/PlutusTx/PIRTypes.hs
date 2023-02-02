@@ -1,7 +1,8 @@
 module PlutusTx.PIRTypes where
 
-import Annotation
 import PlutusIR qualified as PIR
+
+import Annotation
 
 type PIRKind = PIR.Kind Ann
 type PIRType uni = PIR.Type PIR.TyName uni Ann

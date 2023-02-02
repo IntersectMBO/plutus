@@ -1,13 +1,15 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Semigroup (Semigroup (..), Max (..), Min (..)) where
 
-import Data.Monoid (First (..))
-import Data.Semigroup (Dual (..), Endo (..))
 import PlutusTx.Base
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Functor
 import PlutusTx.List ((++))
 import PlutusTx.Ord (Ord (..), Ordering (..))
+
+import Data.Monoid (First (..))
+import Data.Semigroup (Dual (..), Endo (..))
+
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}

@@ -3,13 +3,14 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
 
-import Data.Monoid (First (..))
-import Data.Semigroup (Dual (..), Endo (..))
 import PlutusTx.Base (id)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.List
 import PlutusTx.Maybe
 import PlutusTx.Semigroup
+
+import Data.Monoid (First (..))
+import Data.Semigroup (Dual (..), Endo (..))
 
 {- HLINT ignore -}
 

@@ -22,12 +22,15 @@ module Data.Word64Array.Word8
   ) where
 
 import Control.DeepSeq
+
 import Data.Bits
 import Data.Functor
 import Data.Maybe (fromMaybe)
 import Data.MonoTraversable
 import Data.Word
+
 import Numeric (showHex)
+
 import Text.Show (showListWith)
 
 {- Note [Representation of WordArray]

@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Flat () where
 
-import PlutusIR.Core.Type
-
 import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
+
+import PlutusIR.Core.Type
 
 import Flat (Flat)
 

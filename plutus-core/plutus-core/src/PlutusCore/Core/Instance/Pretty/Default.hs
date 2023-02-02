@@ -9,13 +9,13 @@
 
 module PlutusCore.Core.Instance.Pretty.Default () where
 
-import PlutusPrelude
-
 import PlutusCore.Core.Instance.Pretty.Classic ()
 import PlutusCore.Core.Type
 import PlutusCore.Name
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
+
+import PlutusPrelude
 
 import Universe
 

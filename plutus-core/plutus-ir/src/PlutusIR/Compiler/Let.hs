@@ -14,11 +14,10 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 
+import Control.Lens hiding (Strict)
 import Control.Monad
 import Control.Monad.Error.Lens
 import Control.Monad.Trans
-
-import Control.Lens hiding (Strict)
 
 import Data.List.NonEmpty hiding (partition, reverse)
 import Data.List.NonEmpty qualified as NE

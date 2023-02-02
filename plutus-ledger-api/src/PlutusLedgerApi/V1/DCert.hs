@@ -11,12 +11,16 @@ module PlutusLedgerApi.V1.DCert
     ( DCert(..)
     ) where
 
-import Control.DeepSeq (NFData)
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
+
 import PlutusTx qualified
 import PlutusTx.Prelude qualified as P
+
+import Control.DeepSeq (NFData)
+
+import GHC.Generics (Generic)
+
 import Prettyprinter.Extras
 
 -- | A representation of the ledger DCert. Some information is digested, and

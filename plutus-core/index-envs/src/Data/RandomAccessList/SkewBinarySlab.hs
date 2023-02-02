@@ -15,11 +15,11 @@ module Data.RandomAccessList.SkewBinarySlab
     ) where
 
 import Data.Bits (unsafeShiftR)
+import Data.RandomAccessList.Class qualified as RAL
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
-import GHC.Exts
 
-import Data.RandomAccessList.Class qualified as RAL
+import GHC.Exts
 
 {- Note [Skew binary slab lists]
 This module implements a very similar structure to the one in 'SkewBinary', but

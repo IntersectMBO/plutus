@@ -10,13 +10,13 @@ module PlutusCore.StdLib.Type
     , makeRecursiveType
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Quote
+
+import PlutusPrelude
 
 {- Note [Arity of patterns functors]
 The arity of a pattern functor is the number of arguments the pattern functor receives in addition

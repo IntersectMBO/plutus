@@ -11,7 +11,6 @@ module PlutusCore.StdLib.Meta
 import PlutusCore.Core
 import PlutusCore.MkPlc
 import PlutusCore.Name
-
 import PlutusCore.StdLib.Data.Nat as Plc
 import PlutusCore.StdLib.Data.ScottList
 import PlutusCore.StdLib.Data.Sum

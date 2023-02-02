@@ -11,15 +11,16 @@
 
 module Plugin.Debug.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusCore.Pretty
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Test
 
 import Data.Proxy
+
+import Test.Tasty.Extras
 
 debug :: TestNested
 debug =

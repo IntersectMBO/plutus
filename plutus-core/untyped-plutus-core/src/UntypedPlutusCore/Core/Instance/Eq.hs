@@ -7,14 +7,14 @@
 
 module UntypedPlutusCore.Core.Instance.Eq () where
 
-import PlutusPrelude
-
-import UntypedPlutusCore.Core.Type
-
 import PlutusCore.DeBruijn
 import PlutusCore.Eq
 import PlutusCore.Name
 import PlutusCore.Rename.Monad
+
+import PlutusPrelude
+
+import UntypedPlutusCore.Core.Type
 
 import Universe
 

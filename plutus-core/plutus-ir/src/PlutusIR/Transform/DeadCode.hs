@@ -6,26 +6,27 @@
 -- | Optimization passes for removing dead code, mainly dead let bindings.
 module PlutusIR.Transform.DeadCode (removeDeadBindings) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name qualified as PLC
+import PlutusCore.Quote (MonadQuote, freshTyName, liftQuote)
+import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
+
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.MkPir
 import PlutusIR.Transform.Rename ()
 
-import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name qualified as PLC
+import Algebra.Graph qualified as G
+import Algebra.Graph.ToGraph qualified as T
 
 import Control.Lens
 import Control.Monad.Reader
 
 import Data.Coerce
+import Data.List.NonEmpty qualified as NE
 import Data.Set qualified as Set
 
-import Algebra.Graph qualified as G
-import Algebra.Graph.ToGraph qualified as T
-import Data.List.NonEmpty qualified as NE
-import PlutusCore.Quote (MonadQuote, freshTyName, liftQuote)
-import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
 import Witherable (Witherable (wither))
 
 -- | Remove all the dead let bindings in a term.

@@ -13,19 +13,25 @@
 module PlutusTx.Code where
 
 import PlutusCore qualified as PLC
+
 import PlutusIR qualified as PIR
+
 import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
+
 import UntypedPlutusCore qualified as UPLC
 
 import Annotation
+
 import Control.Exception
+
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (void)
+
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
--- We do not use qualified import because the whole module contains off-chain code
+
 import Prelude as Haskell
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal

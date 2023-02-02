@@ -12,9 +12,9 @@ module PlutusIR.Transform.Substitute (
     , bindingSubstTyNames
     ) where
 
-import PlutusIR
-
 import PlutusCore.Subst (substTyVar, typeSubstTyNames)
+
+import PlutusIR
 
 import Control.Lens
 

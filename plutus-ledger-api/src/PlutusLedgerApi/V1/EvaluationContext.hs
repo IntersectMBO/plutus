@@ -8,10 +8,10 @@ module PlutusLedgerApi.V1.EvaluationContext
     , CostModelApplyError (..)
     ) where
 
+import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV1))
+
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1.ParamName as V1
-
-import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV1))
 
 import Control.Monad
 import Control.Monad.Except

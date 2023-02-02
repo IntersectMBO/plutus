@@ -21,41 +21,40 @@ module PlutusTx.Lift.TH (
     , LiftError (..)
     ) where
 
-import PlutusTx.Lift.Class
-import PlutusTx.Lift.THUtils
+import PlutusCore.Default qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
 
 import PlutusIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Compiler.Names
 import PlutusIR.MkPir
 
-import PlutusCore.Default qualified as PLC
-import PlutusCore.MkPlc qualified as PLC
+import PlutusTx.Lift.Class
+import PlutusTx.Lift.THUtils
 
+import Control.Exception qualified as Prelude (Exception, throw)
 import Control.Monad.Except hiding (lift)
 import Control.Monad.Reader hiding (lift)
 import Control.Monad.State hiding (lift)
 import Control.Monad.Trans qualified as Trans
+
+import Data.Foldable
+import Data.List (sortBy)
+import Data.Map qualified as Map
+import Data.Maybe
+import Data.Proxy
+import Data.Set qualified as Set
+import Data.Text qualified as T
+import Data.Traversable
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Syntax qualified as TH hiding (newName)
 import Language.Haskell.TH.Syntax.Compat qualified as TH
 
-import Data.Map qualified as Map
-import Data.Set qualified as Set
-
-import Control.Exception qualified as Prelude (Exception, throw)
-import Data.Foldable
-import Data.List (sortBy)
-import Data.Maybe
-import Data.Proxy
-import Data.Text qualified as T
-import Data.Traversable
-import Prettyprinter qualified as PP
-
--- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
+
+import Prettyprinter qualified as PP
 
 type RTCompileScope uni fun = ReaderT (LocalVars uni) (RTCompile uni fun)
 type THCompile = StateT Deps (ReaderT THLocalVars (ExceptT LiftError TH.Q))

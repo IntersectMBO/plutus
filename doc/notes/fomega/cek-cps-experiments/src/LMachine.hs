@@ -44,9 +44,11 @@ import PlutusCore
 import PlutusCore.Constant
 import PlutusCore.Evaluation.MachineException
 import PlutusCore.View
+
 import PlutusPrelude
 
 import Control.Monad.Identity
+
 import Data.IntMap (IntMap)
 import Data.IntMap qualified as IntMap
 

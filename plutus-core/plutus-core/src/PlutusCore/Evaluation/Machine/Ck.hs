@@ -26,8 +26,6 @@ module PlutusCore.Evaluation.Machine.Ck
     , readKnownCk
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
@@ -37,13 +35,17 @@ import PlutusCore.Name
 import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
 import PlutusCore.Subst
 
+import PlutusPrelude
+
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
+
 import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.STRef
 import Data.Text (Text)
+
 import Universe
 
 infix 4 |>, <|

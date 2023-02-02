@@ -13,11 +13,13 @@ import PlutusCore.Normalize as Export (normalizeType)
 import PlutusCore.Normalize.Internal hiding (normalizeTypesInM)
 import PlutusCore.Quote
 import PlutusCore.Rename (rename)
+
 import PlutusIR
 import PlutusIR.Transform.Rename ()
 
 import Control.Lens
 import Control.Monad ((>=>))
+
 import Universe (HasUniApply)
 
 -- | Normalize every 'Type' in a 'Term'.

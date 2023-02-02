@@ -10,6 +10,7 @@ module PlutusIR.Transform.Beta (
 import PlutusIR
 
 import Control.Lens (over)
+
 import Data.List.NonEmpty qualified as NE
 
 {- Note [Multi-beta]

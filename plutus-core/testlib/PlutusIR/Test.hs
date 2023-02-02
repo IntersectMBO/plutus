@@ -9,8 +9,21 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module PlutusIR.Test where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
+import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Name
+import PlutusCore.Pretty
+import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Quote (runQuoteT)
+import PlutusCore.Test
+
+import PlutusIR as PIR
+import PlutusIR.Compiler as PIR
+import PlutusIR.Parser (Parser, parse)
+import PlutusIR.TypeCheck
+
 import PlutusPrelude
-import Test.Tasty.Extras
 
 import Control.Exception
 import Control.Lens hiding (op, transform)
@@ -18,26 +31,15 @@ import Control.Monad.Except
 import Control.Monad.Morph
 import Control.Monad.Reader as Reader
 
-import PlutusCore qualified as PLC
-import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Pretty
-import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Quote (runQuoteT)
-import PlutusCore.Test
-import PlutusIR as PIR
-import PlutusIR.Compiler as PIR
-import PlutusIR.Parser (Parser, parse)
-import PlutusIR.TypeCheck
-import System.FilePath (joinPath, (</>))
-
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 
-import PlutusCore.Error (ParserErrorBundle)
-
 import Prettyprinter
 import Prettyprinter.Render.Text
+
+import System.FilePath (joinPath, (</>))
+
+import Test.Tasty.Extras
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a

@@ -15,6 +15,14 @@ module Evaluation.Builtins.SignatureVerification (
   ) where
 
 
+import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
+                   EvaluationResult (EvaluationFailure, EvaluationSuccess))
+import PlutusCore.Default as Plutus (BuiltinVersion (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+
+import PlutusPrelude
+
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
                                    rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
                                    rawSerialiseVerKeyDSIGN, signDSIGN)
@@ -23,23 +31,21 @@ import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, MessageHash, Si
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
+
 import Control.Lens.Extras (is)
 import Control.Lens.Fold (preview)
 import Control.Lens.Prism (Prism', prism')
 import Control.Lens.Review (review)
+
 import Data.ByteString (ByteString)
 import Data.Kind (Type)
+
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
+
 import Hedgehog (Gen, PropertyT, annotateShow, cover, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
-                   EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Default as Plutus (BuiltinVersion (..))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
-import PlutusPrelude
 import Text.Show.Pretty (ppShow)
 
 ecdsaSecp256k1Prop :: PropertyT IO ()

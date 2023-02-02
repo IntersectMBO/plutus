@@ -2,9 +2,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.ErrorCodes where
 
+import PlutusTx.Builtins as Builtins
+
 import Data.Map (Map)
 import Data.Map qualified as Map
-import PlutusTx.Builtins as Builtins
+
 import Prelude (String)
 
 {-

@@ -7,20 +7,25 @@ module Spec.Versions (tests) where
 import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
+
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
 import PlutusLedgerApi.V3 qualified as V3
+
 import PlutusPrelude
+
 import UntypedPlutusCore as UPLC
 
 import Control.Monad.Except
+
 import Data.ByteString.Short as BSS
 import Data.Either
 import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck

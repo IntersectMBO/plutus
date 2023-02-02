@@ -16,9 +16,9 @@ module PlutusCore.Evaluation.Result
     , isEvaluationFailure
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Pretty
+
+import PlutusPrelude
 
 import Control.Lens
 import Control.Monad.Except

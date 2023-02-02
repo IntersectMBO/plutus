@@ -31,8 +31,6 @@ module PlutusCore.Builtin.KnownType
     , readKnownSelf
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Builtin.Emitter
 import PlutusCore.Builtin.HasConstant
 import PlutusCore.Builtin.Polymorphism
@@ -40,13 +38,18 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
+import PlutusPrelude
+
 import Control.Monad.Except
+
 import Data.DList (DList)
 import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
+
 import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
+
 import Universe
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included

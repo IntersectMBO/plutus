@@ -16,6 +16,7 @@ module PlutusCore.Pretty.PrettyConst where
 import PlutusCore.Data
 
 import Codec.Serialise (serialise)
+
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce
@@ -23,11 +24,15 @@ import Data.Foldable (fold)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Word (Word8)
+
 import Numeric (showHex)
+
 import Prettyprinter
 import Prettyprinter.Internal (Doc (Text))
+
 import Text.PrettyBy
 import Text.PrettyBy.Internal (DefaultPrettyBy (..))
+
 import Universe
 
 {- Note [Prettyprinting built-in constants]

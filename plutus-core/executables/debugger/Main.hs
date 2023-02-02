@@ -20,14 +20,11 @@ import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty qualified as PLC
+
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 import UntypedPlutusCore.Parser qualified as UPLC
-
-import Draw
-import Event
-import Types
 
 import Brick.AttrMap qualified as B
 import Brick.BChan qualified as B
@@ -35,17 +32,30 @@ import Brick.Focus qualified as B
 import Brick.Main qualified as B
 import Brick.Util qualified as B
 import Brick.Widgets.Edit qualified as BE
+
 import Control.Concurrent
 import Control.Monad.Except
 import Control.Monad.Extra
 import Control.Monad.ST (RealWorld)
+
 import Data.ByteString.Lazy qualified as Lazy
 import Data.Text.IO qualified as Text
+
+import Draw
+
+import Event
+
 import Flat
+
 import Graphics.Vty qualified as Vty
+
 import Lens.Micro
+
 import Options.Applicative qualified as OA
+
 import System.Directory.Extra
+
+import Types
 
 debuggerAttrMap :: B.AttrMap
 debuggerAttrMap =

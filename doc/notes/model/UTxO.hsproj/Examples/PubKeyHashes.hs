@@ -15,8 +15,11 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 import Examples.Keys
+
 import Ledger
+
 import UTxO
+
 import Witness
 
 

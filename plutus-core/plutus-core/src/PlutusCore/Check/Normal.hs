@@ -10,10 +10,10 @@ module PlutusCore.Check.Normal
     , NormCheckError (..)
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 import PlutusCore.Error
+
+import PlutusPrelude
 
 import Control.Monad.Except
 

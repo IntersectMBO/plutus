@@ -39,9 +39,6 @@ module PlutusTx.AssocMap (
     , mapThese
     ) where
 
-import Control.DeepSeq (NFData)
-import Data.Data
-import GHC.Generics (Generic)
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
@@ -49,7 +46,15 @@ import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
+
+import Control.DeepSeq (NFData)
+
+import Data.Data
+
+import GHC.Generics (Generic)
+
 import Prelude qualified as Haskell
+
 import Prettyprinter (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}

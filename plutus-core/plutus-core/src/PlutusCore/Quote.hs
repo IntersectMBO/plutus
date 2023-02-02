@@ -24,9 +24,9 @@ module PlutusCore.Quote
     , markNonFreshMax
     ) where
 
-import PlutusPrelude (fromMaybe)
-
 import PlutusCore.Name (Name (Name), TyName (TyName), Unique (..))
+
+import PlutusPrelude (fromMaybe)
 
 import Control.Monad.Except
 import Control.Monad.Morph as MM
@@ -34,10 +34,12 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Maybe
 import Control.Monad.Writer
+
 import Data.Functor.Identity
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text qualified as Text
+
 import Hedgehog (GenT, PropertyT)
 
 -- | The state contains the "next" 'Unique' that should be used for a name

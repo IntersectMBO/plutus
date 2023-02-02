@@ -36,12 +36,6 @@ module PlutusTx.Foldable (
   product
   ) where
 
-import Control.Applicative (Alternative (..), Const (..))
-import Data.Coerce (Coercible, coerce)
-import Data.Functor.Identity (Identity (..))
-import Data.Monoid (First (..))
-import Data.Semigroup (Dual (..), Endo (..), Product (..), Sum (..))
-import GHC.Exts (build)
 import PlutusTx.Applicative (Applicative (pure), (*>))
 import PlutusTx.Base
 import PlutusTx.Bool (Bool (..), not)
@@ -52,6 +46,15 @@ import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid (..))
 import PlutusTx.Numeric (AdditiveMonoid, AdditiveSemigroup ((+)), MultiplicativeMonoid)
 import PlutusTx.Semigroup ((<>))
+
+import Control.Applicative (Alternative (..), Const (..))
+
+import Data.Coerce (Coercible, coerce)
+import Data.Functor.Identity (Identity (..))
+import Data.Monoid (First (..))
+import Data.Semigroup (Dual (..), Endo (..), Product (..), Sum (..))
+
+import GHC.Exts (build)
 
 import Prelude qualified as Haskell (Monad, return, (>>), (>>=))
 

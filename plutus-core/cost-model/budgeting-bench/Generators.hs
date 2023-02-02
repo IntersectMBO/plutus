@@ -7,6 +7,7 @@ import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage (..))
 
 import Control.Monad
+
 import Data.Bits
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
@@ -18,8 +19,10 @@ import Hedgehog qualified as H
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import Hedgehog.Internal.Tree qualified as T
+
 import System.IO.Unsafe (unsafePerformIO)
 import System.Random (StdGen, randomR)
+
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
 

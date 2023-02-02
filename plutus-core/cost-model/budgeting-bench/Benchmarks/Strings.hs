@@ -3,13 +3,16 @@
 
 module Benchmarks.Strings (makeSizedTextStrings, makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 
+import Common
+
 import Criterion.Main
+
 import Data.Text qualified as T
+
+import Generators
+
 import System.Random (StdGen)
 
 

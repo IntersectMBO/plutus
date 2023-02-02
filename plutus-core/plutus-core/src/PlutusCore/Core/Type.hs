@@ -53,16 +53,20 @@ module PlutusCore.Core.Type
     )
 where
 
-import PlutusPrelude
-
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
 
+import PlutusPrelude
+
 import Control.Lens
+
 import Data.Hashable
 import Data.Kind qualified as GHC
+
 import Instances.TH.Lift ()
+
 import Language.Haskell.TH.Lift
+
 import Universe
 
 data Kind ann

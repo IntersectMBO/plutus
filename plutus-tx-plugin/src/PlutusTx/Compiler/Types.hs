@@ -12,20 +12,17 @@ module PlutusTx.Compiler.Types (
     module Annotation
     ) where
 
-import PlutusTx.Compiler.Error
-import PlutusTx.Coverage
-import PlutusTx.PLCTypes
-
-import PlutusIR.Compiler.Definitions
-
-import Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
 
-import GHC qualified
-import GHC.Core.FamInstEnv qualified as GHC
-import GHC.Plugins qualified as GHC
+import PlutusIR.Compiler.Definitions
+
+import PlutusTx.Compiler.Error
+import PlutusTx.Coverage
+import PlutusTx.PLCTypes
+
+import Annotation
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -36,7 +33,12 @@ import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
 
+import GHC qualified
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Plugins qualified as GHC
+
 import Language.Haskell.TH.Syntax qualified as TH
+
 import Prettyprinter
 
 type NameInfo = Map.Map TH.Name GHC.TyThing

@@ -3,10 +3,14 @@
 
 module Rational.Laws.Ring (ringLaws) where
 
-import Hedgehog (Property, property, (===))
 import PlutusTx.Prelude qualified as Plutus
+
+import Hedgehog (Property, property, (===))
+
 import Prelude
+
 import Rational.Laws.Helpers (forAllWithPP, genRational)
+
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

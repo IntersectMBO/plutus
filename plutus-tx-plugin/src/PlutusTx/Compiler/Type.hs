@@ -17,6 +17,12 @@ module PlutusTx.Compiler.Type (
     getMatch,
     getMatchInstantiated) where
 
+import PlutusCore.Name qualified as PLC
+
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.MkPir qualified as PIR
+
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Kind
@@ -25,17 +31,6 @@ import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.PIRTypes
 
-import GHC.Builtin.Types.Prim qualified as GHC
-import GHC.Core.FamInstEnv qualified as GHC
-import GHC.Core.Multiplicity qualified as GHC
-import GHC.Plugins qualified as GHC
-
-import PlutusIR qualified as PIR
-import PlutusIR.Compiler.Definitions qualified as PIR
-import PlutusIR.MkPir qualified as PIR
-
-import PlutusCore.Name qualified as PLC
-
 import Control.Monad.Extra
 import Control.Monad.Reader
 
@@ -43,6 +38,11 @@ import Data.List (sortBy)
 import Data.List.NonEmpty qualified as NE
 import Data.Set qualified as Set
 import Data.Traversable
+
+import GHC.Builtin.Types.Prim qualified as GHC
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Core.Multiplicity qualified as GHC
+import GHC.Plugins qualified as GHC
 
 -- Types
 

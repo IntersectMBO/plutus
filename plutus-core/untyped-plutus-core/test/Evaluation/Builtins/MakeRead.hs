@@ -14,20 +14,22 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Pretty
 import PlutusCore.StdLib.Data.Unit
+
 import PlutusPrelude
 
 import UntypedPlutusCore as UPLC (Name, Term, TyName)
+
+import Data.Text (Text)
 
 import Evaluation.Builtins.Common
 
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
-
-import Data.Text (Text)
 
 -- | Convert a Haskell value to a PLC term and then convert back to a Haskell value
 -- of a different type.

@@ -8,6 +8,7 @@ We export off-chain Haskell's Maybe type as on-chain Plutus's Maybe type since t
 import PlutusTx.Base (id)
 import PlutusTx.Bool
 import PlutusTx.List (foldr)
+
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}

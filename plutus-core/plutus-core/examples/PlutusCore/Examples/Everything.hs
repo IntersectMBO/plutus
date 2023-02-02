@@ -11,15 +11,8 @@ module PlutusCore.Examples.Everything
     , builtins
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.FsTree
-import PlutusCore.MkPlc
-
-import PlutusCore.StdLib.Type
-
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
 import PlutusCore.Examples.Data.InterList
@@ -28,6 +21,11 @@ import PlutusCore.Examples.Data.Pair
 import PlutusCore.Examples.Data.Shad
 import PlutusCore.Examples.Data.TreeForest
 import PlutusCore.Examples.Data.Vec
+import PlutusCore.FsTree
+import PlutusCore.MkPlc
+import PlutusCore.StdLib.Type
+
+import PlutusPrelude
 
 -- | All examples exported as a single value.
 examples :: PlcFolderContents DefaultUni (Either DefaultFun ExtensionFun)

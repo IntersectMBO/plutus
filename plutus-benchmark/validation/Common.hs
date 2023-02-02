@@ -16,17 +16,21 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.Exception
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Criterion.Main
 import Criterion.Main.Options (Mode, parseWith)
 import Criterion.Types (Config (..))
-import Options.Applicative
 
 import Data.ByteString qualified as BS
 import Data.List (isPrefixOf)
+
 import Flat
+
+import Options.Applicative
+
 import System.Directory (listDirectory)
 import System.FilePath
 

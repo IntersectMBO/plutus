@@ -12,7 +12,6 @@ import PlutusCore.Core
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type

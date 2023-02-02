@@ -5,6 +5,12 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
 import PlutusLedgerApi.V1
+
+import Control.Monad (void)
+
+import Data.Either
+import Data.Word (Word8)
+
 import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
@@ -14,10 +20,6 @@ import Spec.Versions qualified
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
-
-import Control.Monad (void)
-import Data.Either
-import Data.Word (Word8)
 
 main :: IO ()
 main = defaultMain tests

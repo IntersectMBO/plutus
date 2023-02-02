@@ -6,7 +6,9 @@ module Text.PrettyBy.Internal.Utils
     ) where
 
 import Control.Monad.Reader
+
 import Data.Functor.Const
+
 import Lens.Micro
 import Lens.Micro.Internal ((#.))
 

@@ -6,8 +6,6 @@
 module Main where
 
 import Criterion.Main
-import Data.Semigroup
-import System.Random
 
 import Data.Maybe (fromJust)
 import Data.Proxy
@@ -16,8 +14,11 @@ import Data.RandomAccessList.Class
 import Data.RandomAccessList.RelativizedMap qualified as RM
 import Data.RandomAccessList.SkewBinary qualified as B
 import Data.RandomAccessList.SkewBinarySlab qualified as BS
+import Data.Semigroup
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
+
+import System.Random
 
 ralWorkloads :: forall e . (RandomAccessList e, Element e ~ ()) => Proxy e -> [Benchmark]
 ralWorkloads _ =

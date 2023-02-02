@@ -101,7 +101,7 @@ module PlutusLedgerApi.V2 (
     , ScriptDecodeError (..)
     ) where
 
-import Control.Monad.Except (MonadError)
+import PlutusCore.Data qualified as PLC
 
 import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
                                          evaluateScriptRestricting)
@@ -115,8 +115,9 @@ import PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.V2.ParamName
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 
-import PlutusCore.Data qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
+
+import Control.Monad.Except (MonadError)
 
 -- | An alias to the language version this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.

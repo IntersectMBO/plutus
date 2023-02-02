@@ -6,16 +6,19 @@
 -- | Debugger TUI Types.
 module Types where
 
-import Annotation
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal (CekState)
 
+import Annotation
+
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
+
 import Data.MonoTraversable
 import Data.Text (Text)
+
 import Lens.Micro.TH
 
 type Breakpoints = [Breakpoint]

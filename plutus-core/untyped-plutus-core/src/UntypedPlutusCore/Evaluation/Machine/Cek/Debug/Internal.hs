@@ -42,30 +42,24 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
+
 import PlutusPrelude
+
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 
 import Control.Lens hiding (Context, ix)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.ST
+
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word64Array.Word8 hiding (Index)
+
 import GHC.IO (ioToST)
-
-{- Note [Debuggable vs Original versions of CEK]
-
-The debuggable version of CEK was created from copying over the original CEK/Internal.hs module
-and modifying the `computeCek`, `returnCek` functions.
-These functions were modified so as to execute a single step (Compute or Return resp.) and immediately
-return with the CEK's machine new state (`CekState`), whereas previously these two functions would iteratively run to completion.
-
-The interface otherwise remains the same. Moreover, the `Original.runCekDeBruijn` and `Debug.runCekDeBruijn` must behave equivalently.
--}
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 
 data CekState uni fun ann =
     -- loaded a term but not fired the cek yet

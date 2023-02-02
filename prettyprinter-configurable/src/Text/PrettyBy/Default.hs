@@ -10,13 +10,14 @@ module Text.PrettyBy.Default
     , displayBy
     ) where
 
-import Text.Pretty
-import Text.PrettyBy.Internal
-
 import Data.Text qualified as Strict
 import Data.Text.Lazy qualified as Lazy
+
 import Prettyprinter.Render.String (renderString)
 import Prettyprinter.Render.Text (renderLazy, renderStrict)
+
+import Text.Pretty
+import Text.PrettyBy.Internal
 
 -- | A default layout for default rendering.
 layoutDef :: Doc ann -> SimpleDocStream ann

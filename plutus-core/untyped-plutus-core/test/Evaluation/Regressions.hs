@@ -6,17 +6,23 @@ module Evaluation.Regressions (
   schnorrVerifyRegressions
   ) where
 
-import Data.Bits (zeroBits)
-import Data.ByteString (ByteString)
-import Data.List.Split (chunksOf)
-import Evaluation.Builtins.Common (typecheckEvaluateCek)
-import GHC.Exts (fromListN)
 import PlutusCore (DefaultFun (VerifySchnorrSecp256k1Signature), EvaluationResult (EvaluationFailure))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+
 import PlutusPrelude
+
+import Data.Bits (zeroBits)
+import Data.ByteString (ByteString)
+import Data.List.Split (chunksOf)
+
+import Evaluation.Builtins.Common (typecheckEvaluateCek)
+
+import GHC.Exts (fromListN)
+
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
+
 import Text.Read (readMaybe)
 
 schnorrVerifyRegressions :: TestTree

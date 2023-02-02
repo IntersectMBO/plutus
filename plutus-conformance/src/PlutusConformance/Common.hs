@@ -5,29 +5,38 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
-import Control.Lens (traverseOf)
-import Control.Monad.Trans.Except
-import Data.Text qualified as T
-import Data.Text.IO qualified as T
-import MAlonzo.Code.Main (runUAgda)
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (Error (..), ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (Quote, runQuote, runQuoteT)
+
 import PlutusPrelude (display, void)
+
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.DeBruijn
+import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
+import UntypedPlutusCore.Parser qualified as UPLC
+
+import Control.Lens (traverseOf)
+import Control.Monad.Trans.Except
+
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+
+import MAlonzo.Code.Main (runUAgda)
+
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
+
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
+
 import Text.Megaparsec (SourcePos)
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.DeBruijn
-import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
-import UntypedPlutusCore.Parser qualified as UPLC
+
 import Witherable (Witherable (wither))
 
 -- Common functions for all tests

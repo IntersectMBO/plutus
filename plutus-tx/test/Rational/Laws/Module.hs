@@ -2,10 +2,14 @@
 
 module Rational.Laws.Module (moduleLaws) where
 
-import Hedgehog (Property, property)
 import PlutusTx.Prelude qualified as Plutus
+
+import Hedgehog (Property, property)
+
 import Prelude
+
 import Rational.Laws.Helpers (forAllWithPP, genInteger, genRational, normalAndEquivalentTo)
+
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

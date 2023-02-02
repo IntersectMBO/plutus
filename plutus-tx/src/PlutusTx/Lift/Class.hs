@@ -19,26 +19,27 @@ module PlutusTx.Lift.Class
     , RTCompile
     ) where
 
-import PlutusIR
-import PlutusIR.Compiler.Definitions
-
 import PlutusCore qualified as PLC
 import PlutusCore.Data
 import PlutusCore.Quote
+
+import PlutusIR
+import PlutusIR.Compiler.Definitions
 import PlutusIR.MkPir
+
 import PlutusTx.Builtins
 import PlutusTx.Builtins.Class (FromBuiltin)
 import PlutusTx.Builtins.Internal (BuiltinList)
-
-import Language.Haskell.TH qualified as TH hiding (newName)
 
 import Data.ByteString qualified as BS
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Text qualified as T
+
 import GHC.TypeLits (ErrorMessage (..), TypeError)
 
--- We do not use qualified import because the whole module contains off-chain code
+import Language.Haskell.TH qualified as TH hiding (newName)
+
 import Prelude as Haskell
 
 {- Note [Compiling at TH time and runtime]

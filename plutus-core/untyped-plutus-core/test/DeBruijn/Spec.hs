@@ -3,6 +3,7 @@ module DeBruijn.Spec (test_debruijn) where
 
 import DeBruijn.Scope (test_scope)
 import DeBruijn.UnDeBruijnify (test_undebruijnify)
+
 import Test.Tasty
 import Test.Tasty.Extras
 

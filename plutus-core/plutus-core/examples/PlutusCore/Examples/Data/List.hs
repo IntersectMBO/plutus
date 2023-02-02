@@ -6,14 +6,12 @@ module PlutusCore.Examples.Data.List
 
 import PlutusCore.Core
 import PlutusCore.Default
+import PlutusCore.Examples.Builtins
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.List
-
-import PlutusCore.Examples.Builtins
 
 -- | Monomorphic @map@ over built-in lists.
 --

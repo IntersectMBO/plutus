@@ -25,10 +25,10 @@ module PlutusCore.Core.Plated
     , termUniquesDeep
     ) where
 
-import PlutusPrelude ((<^>))
-
 import PlutusCore.Core.Type
 import PlutusCore.Name
+
+import PlutusPrelude ((<^>))
 
 import Control.Lens
 

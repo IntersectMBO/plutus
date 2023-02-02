@@ -21,10 +21,10 @@ module PlutusCore.Rename.Monad
     , withRenamedName
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Name
 import PlutusCore.Quote
+
+import PlutusPrelude
 
 import Control.Lens
 import Control.Monad.Reader

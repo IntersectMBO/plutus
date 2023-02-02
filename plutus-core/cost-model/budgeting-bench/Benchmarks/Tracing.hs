@@ -3,9 +3,11 @@ module Benchmarks.Tracing (makeBenchmarks) where
 import PlutusCore
 
 import Common
-import Generators
 
 import Criterion.Main
+
+import Generators
+
 import System.Random (StdGen)
 
 

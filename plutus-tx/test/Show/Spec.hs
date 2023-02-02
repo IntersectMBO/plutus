@@ -11,14 +11,19 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Show
 
 import Control.Monad.Trans.Reader as Reader
+
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Char8 qualified as Char8
 import Data.Text qualified as Text
+
 import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Prelude hiding (Show (..))
+
 import System.FilePath
+
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog

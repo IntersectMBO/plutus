@@ -7,9 +7,9 @@ module PlutusIR.MkPir ( module MkPlc
                                , mkLet
                                ) where
 
-import PlutusIR
-
 import PlutusCore.MkPlc as MkPlc
+
+import PlutusIR
 
 import Data.List.NonEmpty qualified as NE
 

@@ -6,17 +6,19 @@ module Evaluation.FreeVars
     ( test_freevars
     ) where
 
-import Test.Tasty
-import Test.Tasty.HUnit
-
-import Data.Either
-import Data.RandomAccessList.Class qualified as Env
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.MkPlc
+
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+
+import Data.Either
+import Data.RandomAccessList.Class qualified as Env
+
+import Test.Tasty
+import Test.Tasty.HUnit
 
 -- TODO: share examples with plutus-ledger-api:Spec.Eval
 

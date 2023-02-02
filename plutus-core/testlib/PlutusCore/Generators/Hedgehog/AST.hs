@@ -18,17 +18,19 @@ module PlutusCore.Generators.Hedgehog.AST
     , mangleNames
     ) where
 
-import PlutusPrelude
-
 import PlutusCore
 import PlutusCore.Subst
+
+import PlutusPrelude
 
 import Control.Lens (coerced)
 import Control.Monad.Morph (hoist)
 import Control.Monad.Reader
+
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
+
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Internal.Gen qualified as Gen
 import Hedgehog.Range qualified as Range

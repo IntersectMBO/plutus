@@ -5,13 +5,16 @@
 -- compilable to PLC. See Note [Thunking recursions] for details.
 module PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
 
-import Control.Lens (transformOf)
-import Data.List.NonEmpty (partition)
-import Data.Maybe (mapMaybe)
 import PlutusCore.Builtin
+
 import PlutusIR
 import PlutusIR.MkPir (mkLet, mkVar)
 import PlutusIR.Purity (isPure)
+
+import Control.Lens (transformOf)
+
+import Data.List.NonEmpty (partition)
+import Data.Maybe (mapMaybe)
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values

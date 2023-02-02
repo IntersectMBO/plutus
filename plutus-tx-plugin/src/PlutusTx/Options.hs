@@ -11,10 +11,14 @@
 module PlutusTx.Options where
 
 import PlutusIR.Compiler qualified as PIR
+
 import PlutusTx.Compiler.Types
+
+import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
 import Control.Lens
+
 import Data.Bifunctor (first)
 import Data.Either.Validation
 import Data.Foldable (foldl', toList)
@@ -26,13 +30,16 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Type.Equality
+
 import GHC.Plugins qualified as GHC
+
 import Prettyprinter
+
 import PyF (fmt)
 
 import Text.Read (readMaybe)
+
 import Type.Reflection
-import UntypedPlutusCore qualified as UPLC
 
 data PluginOptions = PluginOptions
     { _posDoTypecheck                    :: Bool

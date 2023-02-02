@@ -1,14 +1,16 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Applicative where
 
-import Control.Applicative (Const (..))
-import Data.Functor.Identity (Identity (..))
 import PlutusTx.Base
 import PlutusTx.Bool (Bool)
 import PlutusTx.Either (Either (..))
 import PlutusTx.Functor
 import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid (..), mappend)
+
+import Control.Applicative (Const (..))
+
+import Data.Functor.Identity (Identity (..))
 
 {- HLINT ignore -}
 

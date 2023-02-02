@@ -7,18 +7,16 @@
 module PlutusTx.Compiler.Names where
 
 
-import PlutusTx.Compiler.Kind
-import {-# SOURCE #-} PlutusTx.Compiler.Type
-import PlutusTx.Compiler.Types
-import PlutusTx.PLCTypes
-
-import GHC.Plugins qualified as GHC
-
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Quote
 
 import PlutusIR.Compiler.Names
+
+import PlutusTx.Compiler.Kind
+import {-# SOURCE #-} PlutusTx.Compiler.Type
+import PlutusTx.Compiler.Types
+import PlutusTx.PLCTypes
 
 import Data.Char
 import Data.Functor
@@ -26,6 +24,8 @@ import Data.List
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Text qualified as T
+
+import GHC.Plugins qualified as GHC
 
 lookupName :: Scope uni -> GHC.Name -> Maybe (PLCVar uni)
 lookupName (Scope ns _) n = Map.lookup n ns

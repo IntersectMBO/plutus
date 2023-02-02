@@ -21,11 +21,13 @@ import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Name
+
 import PlutusPrelude
 
 import Data.Dependent.Map (DMap)
 import Data.Dependent.Map qualified as DMap
 import Data.Functor.Compose
+
 import Type.Reflection
 
 type KnownType val a = (KnownTypeAst (UniOf val) a, MakeKnown val a)

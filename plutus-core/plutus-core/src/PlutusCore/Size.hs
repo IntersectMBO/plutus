@@ -11,13 +11,15 @@ module PlutusCore.Size
     , serialisedSize
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 
+import PlutusPrelude
+
 import Control.Lens
+
 import Data.ByteString qualified as BS
 import Data.Monoid
+
 import Flat hiding (to)
 
 newtype Size = Size

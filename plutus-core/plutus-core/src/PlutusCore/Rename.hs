@@ -15,13 +15,13 @@ module PlutusCore.Rename
     , liftDupable
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
 import PlutusCore.Mark
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename.Internal
+
+import PlutusPrelude
 
 {- Note [Marking]
 We use functions from the @markNonFresh*@ family in order to ensure that bound variables never get

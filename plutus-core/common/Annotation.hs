@@ -21,9 +21,13 @@ import Data.MonoTraversable
 import Data.Semigroup (Any (..))
 import Data.Set (Set)
 import Data.Set qualified as Set
+
 import Flat (Flat (..))
+
 import GHC.Generics
+
 import Prettyprinter
+
 import Text.Megaparsec.Pos as Megaparsec
 
 newtype InlineHints name a = InlineHints { shouldInline :: a -> name -> Bool }

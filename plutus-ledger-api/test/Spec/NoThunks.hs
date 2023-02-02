@@ -3,21 +3,23 @@
 
 module Spec.NoThunks (tests) where
 
-import NoThunks.Class
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults as Plutu
+import PlutusCore.Pretty
 
 import PlutusLedgerApi.V1 as V1
 import PlutusLedgerApi.V2 as V2
 import PlutusLedgerApi.V3 as V3
 
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults as Plutu
-import PlutusCore.Pretty
-
 import Control.Monad.Except
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer.Strict
+
 import Data.List.Extra (enumerate)
 import Data.Map qualified as Map
 import Data.Maybe (fromJust)
+
+import NoThunks.Class
+
 import Test.Tasty
 import Test.Tasty.HUnit
 

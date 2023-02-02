@@ -2,7 +2,9 @@ module Codec.CBOR.Extras where
 
 import Codec.CBOR.Decoding as CBOR
 import Codec.Serialise (Serialise, decode, encode)
+
 import Data.Either.Extras
+
 import Flat qualified
 import Flat.Decoder qualified as Flat
 

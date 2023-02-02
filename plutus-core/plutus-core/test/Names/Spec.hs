@@ -7,21 +7,21 @@
 
 module Names.Spec where
 
-import PlutusCore.Test
-
 import PlutusCore
 import PlutusCore.DeBruijn
-import PlutusCore.Mark
-import PlutusCore.Pretty
-import PlutusCore.Rename.Internal
-
 import PlutusCore.Generators.Hedgehog
 import PlutusCore.Generators.Hedgehog.AST as AST
 import PlutusCore.Generators.Hedgehog.Interesting
+import PlutusCore.Mark
+import PlutusCore.Pretty
+import PlutusCore.Rename.Internal
+import PlutusCore.Test
 
 import GHC.Exts (fromString)
+
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
+
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit

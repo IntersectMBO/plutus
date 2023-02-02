@@ -7,17 +7,17 @@
 {-# LANGUAGE TypeApplications      #-}
 module Raw where
 
-import Data.ByteString as BS
-import Data.Text qualified as T
 import PlutusCore
 import PlutusCore.Data
 import PlutusCore.DeBruijn
 import PlutusCore.Default
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Parser
 import PlutusCore.Pretty
 
+import Data.ByteString as BS
 import Data.Either
-import PlutusCore.Error (ParserErrorBundle)
+import Data.Text qualified as T
 
 data RType = RTyVar Integer
            | RTyFun RType RType

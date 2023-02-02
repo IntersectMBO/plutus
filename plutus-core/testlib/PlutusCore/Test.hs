@@ -40,20 +40,17 @@ module PlutusCore.Test
     , module TastyExtras
     ) where
 
-import Test.Tasty.Extras as TastyExtras
-
-import PlutusPrelude
-
-import PlutusCore.Generators.Hedgehog.AST
-import PlutusCore.Generators.Hedgehog.Utils
-
 import PlutusCore qualified as TPLC
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
+import PlutusCore.Generators.Hedgehog.AST
+import PlutusCore.Generators.Hedgehog.Utils
 import PlutusCore.Pretty
 import PlutusCore.Rename.Monad qualified as TPLC
+
+import PlutusPrelude
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -63,20 +60,25 @@ import Control.Lens
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
+
 import Data.Either.Extras
 import Data.Text (Text)
-import Hedgehog
-import Prettyprinter qualified as PP
-import System.IO.Unsafe
-import Test.Tasty
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
 
+import Hedgehog
 import Hedgehog.Internal.Config
 import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
+
+import Prettyprinter qualified as PP
+
+import System.IO.Unsafe
+
+import Test.Tasty
+import Test.Tasty.Extras as TastyExtras
+import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 -- | Map the 'TestLimit' of a 'Property' with a given function.
 mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property

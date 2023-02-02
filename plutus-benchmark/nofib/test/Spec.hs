@@ -8,13 +8,7 @@ run to completion. -}
 
 module Main where
 
-import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestNestedIn)
-import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck
-
 import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
-
 import PlutusBenchmark.NoFib.Clausify qualified as Clausify
 import PlutusBenchmark.NoFib.Knights qualified as Knights
 import PlutusBenchmark.NoFib.Prime (Result (Composite, Prime))
@@ -22,8 +16,14 @@ import PlutusBenchmark.NoFib.Prime qualified as Prime
 import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 import PlutusCore.Default
+
 import PlutusTx qualified as Tx
 import PlutusTx.Test qualified as Tx
+
+import Test.Tasty
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
+import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck
 
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn ["nofib", "test"]

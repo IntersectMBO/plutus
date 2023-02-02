@@ -9,15 +9,17 @@
 module PlutusBenchmark.NoFib.Knights where
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
-
-import Data.Char
 import PlutusBenchmark.NoFib.Knights.ChessSetList
 import PlutusBenchmark.NoFib.Knights.KnightHeuristic
 import PlutusBenchmark.NoFib.Knights.Queue
 
 import PlutusCore.Pretty qualified as PLC
+
 import PlutusTx qualified as Tx
 import PlutusTx.Prelude as Tx
+
+import Data.Char
+
 import Prelude qualified as Haskell
 
 {-# INLINABLE zipConst #-}

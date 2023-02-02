@@ -4,8 +4,6 @@
 -- See CostModelGeneration.md
 module Main (main) where
 
-import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
-
 import Benchmarks.Bool qualified
 import Benchmarks.ByteStrings qualified
 import Benchmarks.CryptoAndHashes qualified
@@ -21,6 +19,9 @@ import Benchmarks.Unit qualified
 
 import Criterion.Main
 import Criterion.Types as C
+
+import CriterionExtensions (BenchmarkingPhase (Continue, Start), criterionMainWith)
+
 import System.Random (getStdGen)
 
 ---------------- Miscellaneous ----------------

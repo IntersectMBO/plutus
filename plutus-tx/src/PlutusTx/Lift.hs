@@ -18,12 +18,12 @@ module PlutusTx.Lift (
     makeLift,
     LiftError(..)) where
 
-import PlutusTx.Code
-import PlutusTx.Lift.Class qualified as Lift
-import PlutusTx.Lift.Instances ()
-import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
+import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
+import PlutusCore.Pretty (PrettyConst)
+import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Function qualified as PLC
 
-import Data.Bifunctor
 import PlutusIR
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler
@@ -31,11 +31,10 @@ import PlutusIR.Compiler.Definitions
 import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 
-import PlutusCore qualified as PLC
-import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Pretty (PrettyConst)
-import PlutusCore.Quote
-import PlutusCore.StdLib.Data.Function qualified as PLC
+import PlutusTx.Code
+import PlutusTx.Lift.Class qualified as Lift
+import PlutusTx.Lift.Instances ()
+import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
 import UntypedPlutusCore qualified as UPLC
 
@@ -44,12 +43,13 @@ import Control.Lens hiding (lifted)
 import Control.Monad.Except hiding (lift)
 import Control.Monad.Reader hiding (lift)
 
+import Data.Bifunctor
 import Data.Proxy
 import Data.Typeable qualified as GHC
-import Prettyprinter
 
--- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
+
+import Prettyprinter
 
 type PrettyPrintable uni fun = (Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 

@@ -35,8 +35,10 @@ module PlutusIR.Compiler (
     AllowEscape(..),
     toDefaultCompilationCtx) where
 
-import PlutusIR
+import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 
+import PlutusIR
 import PlutusIR.Compiler.Let qualified as Let
 import PlutusIR.Compiler.Lower
 import PlutusIR.Compiler.Provenance
@@ -54,15 +56,14 @@ import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck.Internal
 
-import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
+import PlutusPrelude
 
 import Control.Lens
 import Control.Monad
 import Control.Monad.Extra (orM, whenM)
 import Control.Monad.Reader
+
 import Debug.Trace (traceM)
-import PlutusPrelude
 
 -- Simplifier passes
 data Pass uni fun =

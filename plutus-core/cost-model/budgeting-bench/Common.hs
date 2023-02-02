@@ -17,11 +17,14 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.MkPlc
 import PlutusCore.Pretty (Pretty)
+
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)
+
 import Criterion.Main
+
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
 

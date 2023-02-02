@@ -21,7 +21,9 @@ import PlutusCore.Pretty
 
 import Control.Monad.Morph
 import Control.Monad.Reader
+
 import Data.Functor.Identity
+
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Internal.Property (forAllWithT)

@@ -10,6 +10,7 @@ import Cardano.Crypto.Hash.Blake2b
 import Cardano.Crypto.Hash.Class
 import Cardano.Crypto.Hash.SHA256
 import Cardano.Crypto.Hash.SHA3_256
+
 import Data.ByteString qualified as BS
 import Data.Proxy
 

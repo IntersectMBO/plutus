@@ -47,23 +47,28 @@ module PlutusLedgerApi.V1.Value(
     , flattenValue
     ) where
 
-import Prelude qualified as Haskell
-
-import Control.DeepSeq (NFData)
-import Data.ByteString qualified as BS
-import Data.Data (Data)
-import Data.String (IsString (fromString))
-import Data.Text (Text)
-import Data.Text qualified as Text
-import Data.Text.Encoding qualified as E
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
+
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.These (These (..))
+
+import Control.DeepSeq (NFData)
+
+import Data.ByteString qualified as BS
+import Data.Data (Data)
+import Data.String (IsString (fromString))
+import Data.Text (Text)
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as E
+
+import GHC.Generics (Generic)
+
+import Prelude qualified as Haskell
+
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
 

@@ -7,25 +7,34 @@
 -- | Handler of debugger events.
 module Event where
 
-import Annotation
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
-import Types
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+
+import Annotation
 
 import Brick.Focus qualified as B
 import Brick.Main qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
+
 import Control.Concurrent.MVar
 import Control.Monad.State
+
 import Data.Text qualified as Text
+
 import Graphics.Vty qualified as Vty
+
 import Lens.Micro
+
 import Prettyprinter
+
 import Text.Megaparsec
+
+import Types
 
 handleDebuggerEvent :: MVar (D.Cmd Breakpoints)
                     -> B.BrickEvent ResourceName CustomBrickEvent

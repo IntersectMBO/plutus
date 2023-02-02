@@ -10,36 +10,39 @@
 
 module StdLib.Spec where
 
+import PlutusCore.Data qualified as PLC
+import PlutusCore.Test (TestNested, goldenUEval, testNested)
+
+import PlutusPrelude (reoption)
+
+import PlutusTx.Builtins.Internal (BuiltinData (BuiltinData))
+import PlutusTx.Code (CompiledCode, getPlcNoAnn)
+import PlutusTx.Eq qualified as PlutusTx
+import PlutusTx.Lift qualified as Lift
+import PlutusTx.Ord qualified as PlutusTx
+import PlutusTx.Plugin (plc)
+import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Ratio qualified as Ratio
+import PlutusTx.Test (goldenPir)
+
 import Control.DeepSeq (NFData, force)
 import Control.Exception (SomeException, evaluate, try)
 import Control.Monad.IO.Class (MonadIO (liftIO))
+
+import Data.Proxy (Proxy (Proxy))
 import Data.Ratio ((%))
+import Data.Ratio qualified as GHCRatio
+
 import GHC.Exts (fromString)
 import GHC.Real (reduce)
+
 import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test (TestNested, goldenUEval, testNested)
-import PlutusTx.Test (goldenPir)
+
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testPropertyNamed)
-
-import PlutusTx.Eq qualified as PlutusTx
-import PlutusTx.Ord qualified as PlutusTx
-import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Ratio qualified as Ratio
-
-import PlutusTx.Builtins.Internal (BuiltinData (BuiltinData))
-import PlutusTx.Code (CompiledCode, getPlcNoAnn)
-import PlutusTx.Lift qualified as Lift
-import PlutusTx.Plugin (plc)
-
-import PlutusCore.Data qualified as PLC
-
-import Data.Proxy (Proxy (Proxy))
-import Data.Ratio qualified as GHCRatio
-import PlutusPrelude (reoption)
 
 roundPlc :: CompiledCode (Ratio.Rational -> Integer)
 roundPlc = plc (Proxy @"roundPlc") Ratio.round

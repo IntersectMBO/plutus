@@ -82,8 +82,8 @@ module PlutusTx.Prelude (
     toBuiltin
     ) where
 
-import Data.String (IsString (..))
 import PlutusCore.Data (Data (..))
+
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
@@ -110,6 +110,8 @@ import PlutusTx.Ratio as Ratio
 import PlutusTx.Semigroup as Semigroup
 import PlutusTx.Trace as Trace
 import PlutusTx.Traversable as Traversable
+
+import Data.String (IsString (..))
 
 import Prelude qualified as Haskell (return, (=<<), (>>), (>>=))
 

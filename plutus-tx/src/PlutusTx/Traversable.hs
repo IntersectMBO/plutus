@@ -3,9 +3,6 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Traversable (Traversable(..), sequenceA, mapM, sequence, for, fmapDefault, foldMapDefault) where
 
-import Control.Applicative (Const (..))
-import Data.Coerce (coerce)
-import Data.Functor.Identity (Identity (..))
 import PlutusTx.Applicative (Applicative (..), liftA2)
 import PlutusTx.Base
 import PlutusTx.Either (Either (..))
@@ -13,6 +10,11 @@ import PlutusTx.Foldable (Foldable)
 import PlutusTx.Functor (Functor, (<$>))
 import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid)
+
+import Control.Applicative (Const (..))
+
+import Data.Coerce (coerce)
+import Data.Functor.Identity (Identity (..))
 
 -- | Plutus Tx version of 'Data.Traversable.Traversable'.
 class (Functor t, Foldable t) => Traversable t where

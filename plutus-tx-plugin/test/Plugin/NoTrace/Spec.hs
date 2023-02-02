@@ -10,16 +10,17 @@
 
 module Plugin.NoTrace.Spec where
 
-import Test.Tasty.Extras
-
-import Data.Proxy
-import Prelude qualified as H
-
 import PlutusTx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
+
+import Data.Proxy
+
+import Prelude qualified as H
+
+import Test.Tasty.Extras
 
 noTrace :: TestNested
 noTrace = testNested "NoTrace"

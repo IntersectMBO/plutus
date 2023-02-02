@@ -10,7 +10,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import Annotation
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -19,28 +18,33 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
-import Data.Foldable
-import Data.List (nub)
-import Data.List.Split (splitOn)
-import Data.Text qualified as T
 import PlutusPrelude
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
+
+import Annotation
 
 import Control.DeepSeq (rnf)
 import Control.Monad.Except
+import Control.Monad.ST (RealWorld)
+
+import Data.Foldable
+import Data.List (nub)
+import Data.List.Split (splitOn)
+import Data.Maybe
+import Data.Text qualified as T
+
 import Options.Applicative
+
+import System.Console.Haskeline qualified as Repl
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
-import Text.Read (readMaybe)
 
-import Control.Monad.ST (RealWorld)
-import Data.Maybe
-import System.Console.Haskeline qualified as Repl
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
+import Text.Read (readMaybe)
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"

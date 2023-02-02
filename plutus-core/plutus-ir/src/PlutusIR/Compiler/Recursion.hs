@@ -5,6 +5,12 @@
 -- | Functions for compiling PIR recursive let-bound functions into PLC.
 module PlutusIR.Compiler.Recursion where
 
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Quote
+import PlutusCore.StdLib.Data.Function qualified as Function
+import PlutusCore.StdLib.Meta.Data.Tuple qualified as Tuple
+
 import PlutusIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Compiler.Provenance
@@ -18,12 +24,6 @@ import Control.Monad.Trans
 
 import Data.List.NonEmpty hiding (length)
 import Data.Set qualified as Set
-
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc qualified as PLC
-import PlutusCore.Quote
-import PlutusCore.StdLib.Data.Function qualified as Function
-import PlutusCore.StdLib.Meta.Data.Tuple qualified as Tuple
 
 {- Note [Recursive lets]
 We need to define these with a fixpoint. We can derive a fixpoint operator for values

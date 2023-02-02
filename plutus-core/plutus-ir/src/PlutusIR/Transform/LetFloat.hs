@@ -10,6 +10,7 @@ module PlutusIR.Transform.LetFloat (floatTerm) where
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
+
 import PlutusIR
 import PlutusIR.Purity
 import PlutusIR.Subst
@@ -19,6 +20,7 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.Writer
+
 import Data.Coerce
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as M
@@ -27,6 +29,7 @@ import Data.Semigroup.Foldable
 import Data.Semigroup.Generic
 import Data.Set qualified as S
 import Data.Set.Lens (setOf)
+
 import GHC.Generics
 
 {- Note [Let Floating pass]

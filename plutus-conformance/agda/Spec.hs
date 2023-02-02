@@ -2,14 +2,18 @@
 
 module Main (main) where
 
-import Control.Monad.Trans.Except
-import MAlonzo.Code.Main (runUAgda)
 import PlutusConformance.Common
+
 import PlutusCore (Error (..))
 import PlutusCore.Default
 import PlutusCore.Quote
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
+
+import Control.Monad.Trans.Except
+
+import MAlonzo.Code.Main (runUAgda)
 
 -- | Our `evaluator` for the Agda UPLC tests is the CEK machine.
 agdaEvalUplcProg :: UplcProg -> Maybe UplcProg

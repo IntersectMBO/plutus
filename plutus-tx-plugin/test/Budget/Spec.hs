@@ -13,8 +13,6 @@
 
 module Budget.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
@@ -22,6 +20,8 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test (goldenBudget, goldenPir)
 import PlutusTx.TH (compile)
+
+import Test.Tasty.Extras
 
 tests :: TestNested
 tests = testNested "Budget" [

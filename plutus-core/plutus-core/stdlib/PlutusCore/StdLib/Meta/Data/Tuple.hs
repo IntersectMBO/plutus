@@ -17,14 +17,15 @@ module PlutusCore.StdLib.Meta.Data.Tuple
     , getSpineToTuple
     ) where
 
-import PlutusPrelude (showText)
-
 import PlutusCore.Core
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
 
+import PlutusPrelude (showText)
+
 import Control.Lens.Indexed (ifor, itraverse)
+
 import Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.

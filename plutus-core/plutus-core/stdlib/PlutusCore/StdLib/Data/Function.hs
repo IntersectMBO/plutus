@@ -20,19 +20,19 @@ module PlutusCore.StdLib.Data.Function
     , getSingleFixOf
     ) where
 
-import PlutusPrelude
-import Prelude hiding (const)
-
 import PlutusCore.Core
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Meta.Data.Tuple
 import PlutusCore.StdLib.Type
 
+import PlutusPrelude
+
 import Control.Lens.Indexed (ifor)
 import Control.Monad
+
+import Prelude hiding (const)
 
 -- | 'id' as a PLC term.
 --

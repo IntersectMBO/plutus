@@ -4,19 +4,21 @@
 
 module PlutusCore.Parser.Builtin where
 
-import PlutusPrelude (Word8, reoption)
-
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
+import PlutusPrelude (Word8, reoption)
+
 import Control.Monad.Combinators
+
 import Data.ByteString (ByteString, pack)
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
+
 import Text.Megaparsec (customFailure, getSourcePos, takeWhileP)
 import Text.Megaparsec.Char (char, hexDigitChar)
 import Text.Megaparsec.Char.Lexer qualified as Lex

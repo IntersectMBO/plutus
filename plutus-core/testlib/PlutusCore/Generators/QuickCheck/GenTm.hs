@@ -12,17 +12,18 @@ module PlutusCore.Generators.QuickCheck.GenTm
   , Gen
   ) where
 
+import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.Utils
-
-import PlutusCore.Default
 import PlutusCore.Name
+
 import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Subst
 
 import Control.Monad.Except
 import Control.Monad.Reader
+
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
@@ -30,6 +31,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import Data.String
+
 import Test.QuickCheck (Arbitrary (..), Gen)
 import Test.QuickCheck qualified as QC
 import Test.QuickCheck.GenT as Export hiding (var)

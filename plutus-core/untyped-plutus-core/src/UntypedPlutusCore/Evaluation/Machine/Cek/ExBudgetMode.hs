@@ -22,16 +22,17 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     )
 where
 
-import PlutusPrelude
-
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
+import PlutusPrelude
+
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+
 import Control.Lens (ifoldMap)
 import Control.Monad.Except
+
 import Data.Hashable (Hashable)
 import Data.HashMap.Monoidal as HashMap
 import Data.List (intersperse)
@@ -40,7 +41,9 @@ import Data.Primitive.PrimArray
 import Data.SatInt
 import Data.Semigroup.Generic
 import Data.STRef
+
 import Prettyprinter
+
 import Text.PrettyBy (IgnorePrettyConfig (..))
 
 -- | Construct an 'ExBudgetMode' out of a function returning a value of the budgeting state type.

@@ -1,12 +1,14 @@
 -- editorconfig-checker-disable-file
 module Benchmarks.Integers (makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 
+import Common
+
 import Criterion.Main
+
+import Generators
+
 import System.Random (StdGen)
 
 ---------------- Integer builtins ----------------

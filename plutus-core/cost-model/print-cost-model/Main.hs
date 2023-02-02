@@ -7,16 +7,18 @@
    builtins and print it in readable form. -}
 module Main where
 
-import Paths_plutus_core
-
 import Data.Aeson
 import Data.Aeson.Key as Key (toString)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.ByteString.Lazy as BSL (getContents, readFile)
 import Data.List (intercalate)
 import Data.Text (Text)
+
+import Paths_plutus_core
+
 import System.Environment (getArgs, getProgName)
 import System.Exit
+
 import Text.Printf (printf)
 
 data ModelComponent = Cpu | Memory

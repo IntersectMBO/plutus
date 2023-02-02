@@ -9,8 +9,6 @@
 
 module Plugin.Strict.Spec (strict) where
 
-import Test.Tasty.Extras
-
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
@@ -19,6 +17,8 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
 
 import Data.Proxy
+
+import Test.Tasty.Extras
 
 strict :: TestNested
 strict = testNested "Strict" [

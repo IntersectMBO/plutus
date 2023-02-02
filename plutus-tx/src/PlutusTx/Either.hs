@@ -6,6 +6,7 @@ We export off-chain Haskell's Either type as on-chain Plutus's Either type since
 -}
 
 import PlutusTx.Bool (Bool (..))
+
 import Prelude (Either (..))
 
 

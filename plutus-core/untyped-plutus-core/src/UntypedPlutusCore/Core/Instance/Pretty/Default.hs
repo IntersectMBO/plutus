@@ -9,10 +9,10 @@
 
 module UntypedPlutusCore.Core.Instance.Pretty.Default () where
 
-import PlutusPrelude
-
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
+
+import PlutusPrelude
 
 import UntypedPlutusCore.Core.Instance.Pretty.Classic ()
 import UntypedPlutusCore.Core.Type

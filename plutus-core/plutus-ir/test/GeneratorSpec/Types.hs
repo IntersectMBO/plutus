@@ -7,6 +7,7 @@ import PlutusCore.Generators.QuickCheck
 import Data.Bifunctor
 import Data.Either
 import Data.Map.Strict qualified as Map
+
 import Test.QuickCheck
 
 -- | Check that the types we generate are kind-correct.

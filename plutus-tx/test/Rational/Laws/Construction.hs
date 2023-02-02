@@ -4,12 +4,16 @@
 
 module Rational.Laws.Construction (constructionLaws) where
 
-import Hedgehog (Gen, Property, cover, property, (===))
-import Hedgehog.Gen qualified as Gen
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
+
+import Hedgehog (Gen, Property, cover, property, (===))
+import Hedgehog.Gen qualified as Gen
+
 import Prelude
+
 import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, normalAndEquivalentToMaybe, testCoverProperty)
+
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

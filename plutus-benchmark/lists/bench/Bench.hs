@@ -3,14 +3,12 @@
 
 module Main (main) where
 
-import Criterion.Main
-
 import PlutusBenchmark.Common (benchTermCek, getConfig)
-
 import PlutusBenchmark.Lists.Sort qualified as Sort
-
 import PlutusBenchmark.Lists.Sum.Compiled qualified as Sum.Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as Sum.HandWritten
+
+import Criterion.Main
 
 benchmarks :: [Benchmark]
 benchmarks =

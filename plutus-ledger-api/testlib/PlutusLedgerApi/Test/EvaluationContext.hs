@@ -6,7 +6,9 @@ module PlutusLedgerApi.Test.EvaluationContext
 
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
+
 import PlutusLedgerApi.Common
+
 import PlutusPrelude
 
 import Data.Either.Extras

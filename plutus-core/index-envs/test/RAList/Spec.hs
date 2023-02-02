@@ -10,6 +10,7 @@
 module RAList.Spec (tests) where
 
 import Control.Exception
+
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (fromJust, isNothing)
@@ -19,7 +20,9 @@ import Data.RandomAccessList.RelativizedMap qualified as RM
 import Data.RandomAccessList.SkewBinary qualified as B
 import Data.RandomAccessList.SkewBinarySlab qualified as BS
 import Data.Vector.NonEmpty qualified as NEV
+
 import GHC.Exts
+
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Instances ()
 import Test.Tasty

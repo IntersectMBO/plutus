@@ -23,7 +23,9 @@ module PlutusIR.TypeCheck.Internal
     ) where
 
 
-import PlutusPrelude
+import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
+import PlutusCore.Error as PLC
+import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 
 import PlutusIR
 import PlutusIR.Compiler.Datatype
@@ -33,17 +35,14 @@ import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
-import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
-import PlutusCore.Error as PLC
--- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
-import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
+import PlutusPrelude
 
 import Control.Monad.Error.Lens
 import Control.Monad.Except
--- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
--- on 'local'.
 import Control.Monad.Trans.Reader
+
 import Data.Foldable
+
 import Universe
 
 {- Note [PLC Typechecker code reuse]

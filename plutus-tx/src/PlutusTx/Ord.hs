@@ -11,6 +11,7 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
 import PlutusTx.Eq
+
 import Prelude (Maybe (..), Ordering (..))
 
 {- HLINT ignore -}

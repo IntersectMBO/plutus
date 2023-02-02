@@ -11,17 +11,18 @@
 
 module Plugin.Laziness.Spec where
 
-import Test.Tasty.Extras
-
-import Plugin.Lib
-
 import PlutusCore.Test
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Test
 
 import Data.Proxy
+
+import Plugin.Lib
+
+import Test.Tasty.Extras
 
 laziness :: TestNested
 laziness = testNested "Laziness" [

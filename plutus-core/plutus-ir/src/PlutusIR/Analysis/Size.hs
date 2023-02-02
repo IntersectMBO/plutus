@@ -7,11 +7,11 @@ module PlutusIR.Analysis.Size
     , varDeclSize
     ) where
 
-import PlutusPrelude
+import PlutusCore.Size (Size (..), kindSize, tyVarDeclSize, typeSize, varDeclSize)
 
 import PlutusIR.Core
 
-import PlutusCore.Size (Size (..), kindSize, tyVarDeclSize, typeSize, varDeclSize)
+import PlutusPrelude
 
 import Control.Lens
 

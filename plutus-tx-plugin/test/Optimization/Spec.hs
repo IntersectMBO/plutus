@@ -11,13 +11,14 @@
 
 module Optimization.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusCore.Test
+
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Test ()
 import PlutusTx.TH (compile)
+
+import Test.Tasty.Extras
 
 -- These are tests that run with the simplifier on, and run all the way to UPLC.
 -- This can be interesting to make sure that important optimizations fire, including

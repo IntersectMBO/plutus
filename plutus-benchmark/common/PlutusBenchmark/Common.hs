@@ -19,18 +19,20 @@ module PlutusBenchmark.Common
      )
 where
 
-import Paths_plutus_benchmark as Export
-
-import PlutusTx qualified as Tx
-
 import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+
+import PlutusTx qualified as Tx
+
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import Criterion.Main
 import Criterion.Types (Config (..))
+
+import Paths_plutus_benchmark as Export
+
 import System.FilePath
 
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report

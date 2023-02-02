@@ -30,14 +30,14 @@ import PlutusCore
 import PlutusCore.Constant
 import PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
-import PlutusCore.View
-import PlutusPrelude
-
-import Data.Text qualified as T
 import PlutusCore.Pretty qualified as PLC
+import PlutusCore.View
+
+import PlutusPrelude
 
 import Data.IntMap (IntMap)
 import Data.IntMap qualified as IntMap
+import Data.Text qualified as T
 
 termStr :: Plain Term -> String
 termStr = T.unpack . PLC.prettyPlcDefText

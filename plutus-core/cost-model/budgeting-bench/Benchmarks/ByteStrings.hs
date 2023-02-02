@@ -1,16 +1,19 @@
 -- editorconfig-checker-disable-file
 module Benchmarks.ByteStrings (makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 
+import Common
+
 import Criterion.Main
+
 import Data.ByteString qualified as BS
-import System.Random (StdGen, randomR)
+
+import Generators
 
 import Hedgehog qualified as H
+
+import System.Random (StdGen, randomR)
 
 ---------------- ByteString builtins ----------------
 

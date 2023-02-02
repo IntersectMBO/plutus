@@ -5,14 +5,10 @@
 
 module TransformSpec (transform) where
 
-import Test.Tasty.Extras
-
-import PlutusCore.Quote
-
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
+import PlutusCore.Quote
 import PlutusCore.Test
-import PlutusPrelude
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
 import PlutusIR.Error as PIR
@@ -29,6 +25,10 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
+
+import PlutusPrelude
+
+import Test.Tasty.Extras
 
 import Text.Megaparsec.Pos
 

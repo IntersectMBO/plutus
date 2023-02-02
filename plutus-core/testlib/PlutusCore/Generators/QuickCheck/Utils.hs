@@ -7,6 +7,7 @@ import PlutusCore.Default
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
 import PlutusCore.Pretty
+
 import PlutusIR
 import PlutusIR.Compiler.Datatype
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -18,7 +19,9 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import Data.String
+
 import Prettyprinter
+
 import Test.QuickCheck
 
 -- | Show a `Doc` when a property fails.

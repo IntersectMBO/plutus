@@ -54,13 +54,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
 
-import PlutusPrelude
-
-import UntypedPlutusCore.Core
-
-
-import Data.RandomAccessList.Class qualified as Env
-import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -70,6 +63,9 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusPrelude
+
+import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 
 import Control.Lens.Review
@@ -77,14 +73,19 @@ import Control.Monad.Catch
 import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
+
 import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.RandomAccessList.Class qualified as Env
+import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
 import Data.Word64Array.Word8 hiding (Index)
+
 import Prettyprinter
+
 import Universe
 
 {- Note [Compilation peculiarities]

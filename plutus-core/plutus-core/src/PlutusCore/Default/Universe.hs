@@ -42,6 +42,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 
 import Control.Applicative
+
 import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
 import Data.Int
@@ -49,10 +50,13 @@ import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Word
+
 import GHC.Exts (inline, oneShot)
+
 import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Fixity
+
 import Universe as Export
 
 {- Note [PLC types and universes]

@@ -21,18 +21,16 @@ module PlutusCore.Generators.Hedgehog.Interesting
     , fromInterestingTermGens
     ) where
 
-import PlutusCore.Generators.Hedgehog.Denotation
-import PlutusCore.Generators.Hedgehog.Entity
-import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
-
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Evaluation.Result
+import PlutusCore.Generators.Hedgehog.Denotation
+import PlutusCore.Generators.Hedgehog.Entity
+import PlutusCore.Generators.Hedgehog.TypedBuiltinGen
 import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
-
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Function as Function
 import PlutusCore.StdLib.Data.Nat
@@ -42,9 +40,11 @@ import PlutusCore.StdLib.Meta
 import PlutusCore.StdLib.Type
 
 import Data.List (genericIndex)
+
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+
 import Type.Reflection
 
 -- | The type of terms-and-their-values generators.

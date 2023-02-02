@@ -18,18 +18,25 @@ import PlutusCore.Builtin as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
+
 import PlutusPrelude
 
 import Control.Exception
 import Control.Monad.Except
+
 import Data.Ix
 import Data.Kind qualified as GHC
+
 import Evaluation.Machines (test_machines)
+
 import GHC.Exts (fromString)
+
 import Hedgehog hiding (Opaque, Var, eval)
 import Hedgehog.Gen qualified as Gen
+
 import Test.Tasty
 import Test.Tasty.Hedgehog
+
 import Type.Reflection
 
 type Term uni fun = PLC.Term TyName Name uni fun ()

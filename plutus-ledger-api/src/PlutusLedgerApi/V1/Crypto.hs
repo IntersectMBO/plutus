@@ -8,14 +8,19 @@ module PlutusLedgerApi.V1.Crypto
     ( PubKeyHash(..)
     ) where
 
-import Control.DeepSeq (NFData)
-import Data.String
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (..))
+
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
+
+import Control.DeepSeq (NFData)
+
+import Data.String
+
+import GHC.Generics (Generic)
+
 import Prettyprinter
 
 {- | The hash of a public key. This is frequently used to identify the public key,

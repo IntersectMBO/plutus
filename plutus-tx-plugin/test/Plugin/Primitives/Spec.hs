@@ -11,9 +11,8 @@
 
 module Plugin.Primitives.Spec where
 
-import Test.Tasty.Extras
-
 import PlutusCore.Test
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Lift
@@ -22,6 +21,8 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
 
 import Data.Proxy
+
+import Test.Tasty.Extras
 
 primitives :: TestNested
 primitives = testNested "Primitives" [

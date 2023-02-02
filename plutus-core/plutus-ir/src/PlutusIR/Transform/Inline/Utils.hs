@@ -9,18 +9,20 @@
 
 module PlutusIR.Transform.Inline.Utils where
 
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename
+
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity (firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
+
 import PlutusPrelude
 
 import Annotation
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusCore.Rename
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader

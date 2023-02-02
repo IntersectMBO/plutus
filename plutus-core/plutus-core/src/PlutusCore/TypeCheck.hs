@@ -26,8 +26,6 @@ module PlutusCore.TypeCheck
     , checkTypeOfProgram
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
@@ -36,6 +34,8 @@ import PlutusCore.Normalize
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck.Internal
+
+import PlutusPrelude
 
 -- | The constraint for built-in types/functions are kind/type-checkable.
 --

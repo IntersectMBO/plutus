@@ -1,11 +1,13 @@
 module Benchmarks.Pairs (makeBenchmarks) where
 
-import Common
-import Generators
-
 import PlutusCore
 
+import Common
+
 import Criterion.Main
+
+import Generators
+
 import System.Random (StdGen)
 
 

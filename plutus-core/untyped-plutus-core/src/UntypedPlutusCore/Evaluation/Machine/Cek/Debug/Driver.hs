@@ -25,6 +25,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 import Control.Lens hiding (Context)
 import Control.Monad.Reader
 import Control.Monad.Trans.Free as F
+
 import Data.Function
 
 {- Note [Stepping the driver]

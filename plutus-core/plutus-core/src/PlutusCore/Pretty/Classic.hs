@@ -15,9 +15,9 @@ module PlutusCore.Pretty.Classic
     , prettyClassicDebug
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Pretty.ConfigName
+
+import PlutusPrelude
 
 import Prettyprinter.Internal (Doc (Empty))
 

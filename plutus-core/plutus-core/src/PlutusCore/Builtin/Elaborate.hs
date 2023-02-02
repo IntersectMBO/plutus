@@ -24,6 +24,7 @@ import PlutusCore.Core.Type
 import Data.Kind qualified as GHC
 import Data.Type.Bool
 import Data.Type.Equality
+
 import GHC.TypeLits
 
 -- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify

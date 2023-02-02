@@ -4,21 +4,19 @@
 {-# LANGUAGE TemplateHaskell #-}
 module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
 
+import PlutusTx.Applicative qualified as PlutusTx
+import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.ErrorCodes
+import PlutusTx.IsData.Class
+import PlutusTx.Trace (traceError)
+
 import Data.Foldable
 import Data.Traversable
 
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
-import PlutusTx.ErrorCodes
 
-import PlutusTx.Applicative qualified as PlutusTx
-
-import PlutusTx.Builtins as Builtins
-import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.IsData.Class
-import PlutusTx.Trace (traceError)
-
--- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause

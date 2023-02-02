@@ -4,6 +4,7 @@ module PlutusTx.Eq (Eq(..), (/=)) where
 import PlutusTx.Bool
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either (Either (..))
+
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}

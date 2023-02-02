@@ -12,9 +12,11 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
 import Barbies (bmap, bsequence)
+
 import Control.Applicative (Const (Const, getConst))
 import Control.Exception (TypeError (TypeError))
 import Control.Monad.Catch (throwM)
+
 import Data.ByteString.Hash qualified as PlutusHash
 import Data.ByteString.Lazy qualified as BSL (fromStrict)
 import Data.Coerce (coerce)
@@ -24,9 +26,11 @@ import Data.Functor.Compose (Compose (Compose))
 import Data.Text (Text)
 import Data.Text.Encoding qualified as T (encodeUtf8)
 import Data.Vector (Vector, find)
+
 import GHC.Generics (Generic)
 
 import H.Prelude (MonadR, Region)
+
 import Language.R (SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, withEmbeddedR)
 import Language.R.QQ (r)
 

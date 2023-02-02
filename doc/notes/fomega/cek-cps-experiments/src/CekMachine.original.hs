@@ -21,6 +21,7 @@ import PlutusCore.Constant
 import PlutusCore.Evaluation.MachineException (MachineError (..), MachineException (..))
 import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.View
+
 import PlutusPrelude
 
 import Data.IntMap (IntMap)

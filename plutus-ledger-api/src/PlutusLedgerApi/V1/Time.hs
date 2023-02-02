@@ -17,13 +17,18 @@ module PlutusLedgerApi.V1.Time
     , fromMilliSeconds
     ) where
 
-import Control.DeepSeq (NFData)
-import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Interval
+
 import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude
+
+import Control.DeepSeq (NFData)
+
+import GHC.Generics (Generic)
+
 import Prelude qualified as Haskell
+
 import Prettyprinter (Pretty (pretty), (<+>))
 
 

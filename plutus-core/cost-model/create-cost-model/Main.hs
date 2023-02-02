@@ -5,7 +5,9 @@ import CreateBuiltinCostModel (createBuiltinCostModel)
 
 import Data.Aeson.Encode.Pretty
 import Data.ByteString.Lazy qualified as BSL (ByteString, putStr, writeFile)
+
 import Options.Applicative
+
 import System.Directory
 import System.Exit
 import System.IO (hPutStrLn, stderr)

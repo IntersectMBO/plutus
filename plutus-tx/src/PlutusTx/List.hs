@@ -34,6 +34,7 @@ import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
 import PlutusTx.Trace (traceError)
+
 import Prelude (Maybe (..))
 
 {- HLINT ignore -}

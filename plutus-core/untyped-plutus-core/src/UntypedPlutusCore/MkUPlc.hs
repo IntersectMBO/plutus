@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
 module UntypedPlutusCore.MkUPlc (UVarDecl (..), uvarDeclName, uvarDeclAnn, mkVar, mkIterApp, mkIterLamAbs, Def(..), UTermDef) where
 
-import Data.List
 import PlutusCore.MkPlc (Def (..))
+
 import UntypedPlutusCore.Core.Type
+
+import Data.List
 
 -- | A term definition as a variable.
 type UTermDef name uni fun ann = Def (UVarDecl name ann) (Term name uni fun ann)

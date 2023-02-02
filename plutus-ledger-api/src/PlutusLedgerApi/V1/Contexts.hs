@@ -36,12 +36,6 @@ module PlutusLedgerApi.V1.Contexts
     , ownCurrencySymbol
     ) where
 
-import GHC.Generics (Generic)
-import PlutusTx
-import PlutusTx.Prelude
-import Prettyprinter
-import Prettyprinter.Extras
-
 import PlutusLedgerApi.V1.Address (Address (..))
 import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash (..))
@@ -50,7 +44,16 @@ import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Time (POSIXTimeRange)
 import PlutusLedgerApi.V1.Tx (TxId (..), TxOut (..), TxOutRef (..))
 import PlutusLedgerApi.V1.Value (CurrencySymbol (..), Value)
+
+import PlutusTx
+import PlutusTx.Prelude
+
+import GHC.Generics (Generic)
+
 import Prelude qualified as Haskell
+
+import Prettyprinter
+import Prettyprinter.Extras
 
 {- Note [Script types in pending transactions]
 To validate a transaction, we have to evaluate the validation script of each of

@@ -15,18 +15,19 @@
 
 module Plugin.Functions.Spec where
 
-import Test.Tasty.Extras
-
-import Plugin.Data.Spec
-import Plugin.Lib
-
 import PlutusCore.Test
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Test
 
 import Data.Proxy
+
+import Plugin.Data.Spec
+import Plugin.Lib
+
+import Test.Tasty.Extras
 
 functions :: TestNested
 functions = testNested "Functions" [

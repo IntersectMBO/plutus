@@ -24,12 +24,13 @@ module PlutusCore.Subst
     , tvTy
     ) where
 
-import PlutusPrelude
-
 import PlutusCore.Core
+
+import PlutusPrelude
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
+
 import Data.Set as Set
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d

@@ -15,17 +15,20 @@
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
-import GHC.Builtin.Names qualified as GHC
-import GHC.ByteCode.Types qualified as GHC
-import GHC.Core qualified as GHC
-import GHC.Core.Class qualified as GHC
-import GHC.Core.Multiplicity qualified as GHC
-import GHC.Plugins qualified as GHC
-import GHC.Types.CostCentre qualified as GHC
-import GHC.Types.Id.Make qualified as GHC
-import GHC.Types.Tickish qualified as GHC
-import GHC.Types.TyThing qualified as GHC
+import PlutusCore qualified as PLC
+import PlutusCore.MkPlc qualified as PLC
+import PlutusCore.Pretty qualified as PP
+import PlutusCore.Subst qualified as PLC
+
+import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.Compiler.Names (safeFreshName)
+import PlutusIR.Core.Type (Term (..))
+import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Purity qualified as PIR
+
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -37,25 +40,12 @@ import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
--- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
-import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
-
-import PlutusIR qualified as PIR
-import PlutusIR.Compiler.Definitions qualified as PIR
-import PlutusIR.Compiler.Names (safeFreshName)
-import PlutusIR.Core.Type (Term (..))
-import PlutusIR.MkPir qualified as PIR
-import PlutusIR.Purity qualified as PIR
-
-import PlutusCore qualified as PLC
-import PlutusCore.MkPlc qualified as PLC
-import PlutusCore.Pretty qualified as PP
-import PlutusCore.Subst qualified as PLC
 
 import Control.Lens hiding (index, strict)
 import Control.Monad
 import Control.Monad.Reader (ask, asks)
+
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.List (elemIndex)
@@ -65,6 +55,17 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
+
+import GHC.Builtin.Names qualified as GHC
+import GHC.ByteCode.Types qualified as GHC
+import GHC.Core qualified as GHC
+import GHC.Core.Class qualified as GHC
+import GHC.Core.Multiplicity qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.CostCentre qualified as GHC
+import GHC.Types.Id.Make qualified as GHC
+import GHC.Types.Tickish qualified as GHC
+import GHC.Types.TyThing qualified as GHC
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
