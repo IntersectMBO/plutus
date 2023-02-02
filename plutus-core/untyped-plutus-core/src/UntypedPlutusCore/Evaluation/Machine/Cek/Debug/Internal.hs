@@ -21,6 +21,7 @@
 module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     ( CekState (..)
     , Context (..)
+    , contextAnn
     , ioToCekM
     , cekMToIO
     , lenContext
@@ -288,10 +289,10 @@ cekStateAnn = \case
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
-  FrameApplyFun ann _ _   -> pure ann
-  FrameApplyArg ann _ _ _ -> pure ann
-  FrameForce ann _        -> pure ann
-  NoFrame                 -> empty
+    FrameApplyFun ann _ _   -> pure ann
+    FrameApplyArg ann _ _ _ -> pure ann
+    FrameForce ann _        -> pure ann
+    NoFrame                 -> empty
 
 lenContext :: Context uni fun ann -> Word
 lenContext = go 0
@@ -417,4 +418,3 @@ stepAndMaybeSpend !kind !unbudgetedSteps = do
     if unbudgetedStepsTotal >= ?cekSlippage
     then spendAccumulatedBudget unbudgetedSteps' >> pure (toWordArray 0)
     else pure unbudgetedSteps'
-
