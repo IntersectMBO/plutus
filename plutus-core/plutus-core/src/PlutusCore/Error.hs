@@ -36,7 +36,6 @@ import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
 import PlutusCore.Pretty
 
-import Codec.Serialise
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
