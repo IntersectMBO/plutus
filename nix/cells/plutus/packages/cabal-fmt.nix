@@ -1,14 +1,14 @@
 { inputs, cell }:
 
 # TODO(std) Remove this patch once the PR makes it into a hackage release.
-# See https://github.com/phadej/cabal-fmt/pull/45
+# See https://github.com/phadej/cabal-fmt/pull/68
 let
   project = cell.library.haskell-nix.cabalProject' {
 
     src = cell.library.pkgs.fetchgit {
       url = "https://github.com/zeme-iohk/cabal-fmt.git";
-      rev = "7b5c9b4fac55aad15a0b33bcd22b40a244bf30af";
-      sha256 = "04w1dy83ml7wgm5ay1rd4kiwfmdd9sc2y8bp3l0ja7xwvh4fgkmr";
+      rev = "0940d6afe980e32a1c6470464380fb48286576b1";
+      sha256 = "sha256-800i8vsbyZgvIKJqUJ6OtWcz/G6jak4nVAqA9T3aaPk=";
     };
 
     # Cabal is a boot library, so haskell.nix would normally use the one coming
