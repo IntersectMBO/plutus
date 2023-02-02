@@ -6,14 +6,17 @@ module PlutusCore.Parser.Builtin where
 
 import PlutusPrelude (Word8, reoption)
 
+import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
+import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
+import Codec.Serialise
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
+import Data.ByteString.Lazy qualified as Lazy
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -77,6 +80,13 @@ conPair uniA uniB = inParens $ do
     b <- constantOf uniB
     pure (a, b)
 
+conData :: Parser Data
+conData = do
+    b <- conBS
+    case deserialiseOrFail (Lazy.fromStrict b) of
+        Right d  -> pure d
+        Left err -> getSourcePos >>= customFailure . InvalidData (T.pack (show err))
+
 -- | Parser for constants of the given type.
 constantOf :: DefaultUni (Esc a) -> Parser a
 constantOf uni = case uni of
@@ -88,8 +98,7 @@ constantOf uni = case uni of
     DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
-    DefaultUniData                                                    ->
-        fail "Data not supported"
+    DefaultUniData                                                    -> conData
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))
