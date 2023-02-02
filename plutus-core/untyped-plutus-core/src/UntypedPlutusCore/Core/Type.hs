@@ -77,6 +77,8 @@ data Term name uni fun ann
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
+    | Fake1 !ann !(Term name uni fun ann)
+    | Fake2 !ann !(Term name uni fun ann)
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -130,6 +132,8 @@ termAnn (Apply ann _ _)  = ann
 termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
+termAnn (Fake1 ann _)    = ann
+termAnn (Fake2 ann _)    = ann
 
 bindFunM
     :: Monad m
@@ -145,6 +149,8 @@ bindFunM f = go where
     go (Delay ann term)       = Delay ann <$> go term
     go (Force ann term)       = Force ann <$> go term
     go (Error ann)            = pure $ Error ann
+    go (Fake1 ann t)          = Fake1 ann <$> go t
+    go (Fake2 ann t)          = Fake2 ann <$> go t
 
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)

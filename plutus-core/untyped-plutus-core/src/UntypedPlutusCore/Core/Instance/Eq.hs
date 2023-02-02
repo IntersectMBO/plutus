@@ -70,6 +70,8 @@ eqTermM (Force ann1 term1) (Force ann2 term2) = do
     eqM ann1 ann2
     eqTermM term1 term2
 eqTermM (Error ann1) (Error ann2) = eqM ann1 ann2
+eqTermM (Fake1 ann1 t1) (Fake1 ann2 t2) = eqM ann1 ann2 >> eqTermM t1 t2
+eqTermM (Fake2 ann1 t1) (Fake2 ann2 t2) = eqM ann1 ann2 >> eqTermM t1 t2
 eqTermM Constant{} _ = empty
 eqTermM Builtin{}  _ = empty
 eqTermM Var{}      _ = empty
@@ -78,3 +80,5 @@ eqTermM Apply{}    _ = empty
 eqTermM Delay{}    _ = empty
 eqTermM Force{}    _ = empty
 eqTermM Error{}    _ = empty
+eqTermM Fake1{}    _ = empty
+eqTermM Fake2{}    _ = empty

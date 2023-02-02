@@ -525,6 +525,8 @@ data Context uni fun ann
     = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameApplyArg !(CekValEnv uni fun ann) !(Term NamedDeBruijn uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameForce !(Context uni fun ann)                                               -- ^ @(force _)@
+    | FrameFake1 !(Context uni fun ann)                                               -- ^ @(force _)@
+    | FrameFake2 !(Context uni fun ann)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
 
@@ -646,6 +648,12 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- s ; ρ ▻ error A  ↦  <> A
     computeCek !_ !_ !_ (Error _) =
         throwing_ _EvaluationFailure
+    computeCek !unbudgetedSteps !ctx !env (Fake1 _ body) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
+        computeCek unbudgetedSteps' ctx env body
+    computeCek !unbudgetedSteps !ctx !env (Fake2 _ body) = do
+        !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
+        computeCek unbudgetedSteps' ctx env body
 
     {- | The returning phase of the CEK machine.
     Returns 'EvaluationSuccess' in case the context is empty, otherwise pops up one frame
@@ -675,6 +683,8 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
+    returnCek !unbudgetedSteps (FrameFake1 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
+    returnCek !unbudgetedSteps (FrameFake2 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
