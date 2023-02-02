@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TupleSections         #-}
 
 -- | Handler of debugger events.
 module Event where
@@ -23,6 +24,7 @@ import Control.Monad.State
 import Data.Text qualified as Text
 import Graphics.Vty qualified as Vty
 import Lens.Micro
+import Prettyprinter
 import Text.Megaparsec
 
 handleDebuggerEvent :: MVar (D.Cmd Breakpoints)
@@ -76,35 +78,29 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
         _ -> handleEditorEvent
 handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = do
     let mHighlightedTerm = case cekState of
-            Computing _ _ _ t -> Just $ t
-            Returning _ ctx v -> do
-                ann <- contextAnn ctx
-                pure $ const ann <$> dischargeCekValue v
-            _ -> Nothing
+            Computing _ _ _ t -> Just (void t, UPLC.termAnn t)
+            Returning _ ctx v -> (dischargeCekValue v, ) <$> contextAnn ctx
+            _                 -> Nothing
         uplcHighlight = do
-            highlightedTerm <- mHighlightedTerm
-            let uplcPos = uplcAnn $ UPLC.termAnn highlightedTerm
+            (highlightedTerm, ann) <- mHighlightedTerm
+            let uplcPos = uplcAnn ann
             pure $ mkUplcSpan uplcPos highlightedTerm
     modify' $ \st -> case cekState of
         Computing{} ->
+            st & dsUplcHighlight .~ uplcHighlight
+               -- Clear the return value editor.
+               & dsReturnValueEditor .~
+                BE.editorText
+                    EditorReturnValue
+                    Nothing
+                    mempty
+        Returning _ _ v ->
             st & dsUplcHighlight .~ uplcHighlight
                & dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
                     Nothing
-                    ""
-        Returning _ _ v ->
-            let vtag = case v of
-                    VCon{}     -> "VCon"
-                    VDelay{}   -> "VDelay"
-                    VLamAbs{}  -> "VLamAbs"
-                    VBuiltin{} -> "VBuiltin"
-            in st & dsUplcHighlight .~ uplcHighlight
-                  & dsReturnValueEditor .~
-                BE.editorText
-                    EditorReturnValue
-                    Nothing
-                    (vtag <> ": " <> PLC.displayPlcDef (dischargeCekValue v))
+                    (PLC.displayPlcDef (dischargeCekValue v))
 
         Terminating t ->
             st & dsUplcHighlight .~ Nothing
@@ -112,7 +108,7 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                 BE.editorText
                     EditorReturnValue
                     Nothing
-                    ("Evaluation Finished. Result: \n\n" <> PLC.displayPlcDef t)
+                    (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
         Starting{} -> st
 handleDebuggerEvent _ _ = pure ()
 
@@ -122,25 +118,22 @@ handleDebuggerEvent _ _ = pure ()
 -- a @SourcePos@ to each Term, while we'd need it to attach a @SrcSpan@.
 mkUplcSpan
     :: PLC.SourcePos ->
-    D.DTerm UPLC.DefaultUni UPLC.DefaultFun DAnn ->
+    D.DTerm UPLC.DefaultUni UPLC.DefaultFun ann ->
     HighlightSpan
 mkUplcSpan pos term = HighlightSpan sloc eloc
     where
         sline = unPos $ sourceLine pos
         scol = unPos $ sourceColumn pos
         sloc = B.Location (sline, scol)
-        eloc = case delta of
-            Nothing -> Nothing
-            Just d ->
-                let eline = sline
-                    ecol = scol + d - 1
-                 in Just $ B.Location (eline, ecol)
-        delta = length <$> case term of
-            UPLC.Var _ name -> Just . Text.unpack $ UPLC.ndbnString name
-            UPLC.LamAbs{}   -> Just "lam"
-            UPLC.Apply{}    -> Just "["
-            UPLC.Force{}    -> Just "force"
-            UPLC.Delay{}    -> Just "delay"
-            UPLC.Constant{} -> Just "con"
-            UPLC.Builtin{}  -> Just "builtin"
-            UPLC.Error{}    -> Just "error"
+        eline = sline
+        ecol = scol + delta - 1
+        eloc = Just $ B.Location (eline, ecol)
+        delta = length $ case term of
+            UPLC.Var _ name -> Text.unpack $ UPLC.ndbnString name
+            UPLC.LamAbs{}   -> "lam"
+            UPLC.Apply{}    -> "["
+            UPLC.Force{}    -> "force"
+            UPLC.Delay{}    -> "delay"
+            UPLC.Constant{} -> "con"
+            UPLC.Builtin{}  -> "builtin"
+            UPLC.Error{}    -> "error"

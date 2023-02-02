@@ -657,6 +657,7 @@ executable debugger
     , mtl
     , optparse-applicative
     , plutus-core           ^>=1.1
+    , prettyprinter
     , text
     , vty
 

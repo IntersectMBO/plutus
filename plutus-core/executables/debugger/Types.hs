@@ -19,8 +19,12 @@ import Data.Text (Text)
 import Lens.Micro.TH
 
 type Breakpoints = [Breakpoint]
+
 data Breakpoint = UplcBP SourcePos
                 | TxBP SourcePos
+
+-- | Annotation used in the debugger. Contains source locations for the UPLC program
+-- and the source program.
 data DAnn = DAnn
     { uplcAnn :: SourcePos
     , txAnn   :: SrcSpans
