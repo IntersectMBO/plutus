@@ -7,8 +7,8 @@ let
 
     src = cell.library.pkgs.fetchgit {
       url = "https://github.com/zeme-iohk/cabal-fmt.git";
-      rev = "0940d6afe980e32a1c6470464380fb48286576b1";
-      sha256 = "sha256-800i8vsbyZgvIKJqUJ6OtWcz/G6jak4nVAqA9T3aaPk=";
+      rev = "22ee9ffcad6735a8b913fbc211816a55e67a9205";
+      sha256 = "sha256-+1pGc3agcAeOhQxe3zOZbx/z2++5pzdSoVlfdl1CBvQ=";
     };
 
     # Cabal is a boot library, so haskell.nix would normally use the one coming
