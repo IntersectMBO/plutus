@@ -525,9 +525,6 @@ data Context uni fun ann
     = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameApplyArg !(CekValEnv uni fun ann) !(Term NamedDeBruijn uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameForce !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameFake1 !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameFake2 !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameFake3 !(Context uni fun ann)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
 
@@ -684,9 +681,6 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
-    returnCek !unbudgetedSteps (FrameFake1 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
-    returnCek !unbudgetedSteps (FrameFake2 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
-    returnCek !unbudgetedSteps (FrameFake3 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
