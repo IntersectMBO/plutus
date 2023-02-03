@@ -8,7 +8,6 @@
 module Event where
 
 import Annotation
-import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import Types
 import UntypedPlutusCore qualified as UPLC
@@ -21,11 +20,9 @@ import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent.MVar
 import Control.Monad.State
-import Data.Text qualified as Text
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Prettyprinter
-import Text.Megaparsec
 
 handleDebuggerEvent :: MVar (D.Cmd Breakpoints)
                     -> B.BrickEvent ResourceName CustomBrickEvent
@@ -77,14 +74,15 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             pure ()
         _ -> handleEditorEvent
 handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = do
-    let mHighlightedTerm = case cekState of
-            Computing _ _ _ t -> Just (void t, UPLC.termAnn t)
-            Returning _ ctx v -> (dischargeCekValue v, ) <$> contextAnn ctx
-            _                 -> Nothing
-        uplcHighlight = do
-            (highlightedTerm, ann) <- mHighlightedTerm
-            let uplcPos = uplcAnn ann
-            pure $ mkUplcSpan uplcPos highlightedTerm
+    let uplcHighlight = do
+            uplcSpan <- uplcAnn <$> case cekState of
+                Computing _ _ _ t -> Just (UPLC.termAnn t)
+                Returning _ ctx _ -> contextAnn ctx
+                _                 -> Nothing
+            pure HighlightSpan
+                { _hcSLoc = B.Location (srcSpanSLine uplcSpan, srcSpanSCol uplcSpan),
+                  _hcELoc = Just $ B.Location (srcSpanELine uplcSpan, srcSpanECol uplcSpan)
+                }
     modify' $ \st -> case cekState of
         Computing{} ->
             st & dsUplcHighlight .~ uplcHighlight
@@ -111,29 +109,3 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
         Starting{} -> st
 handleDebuggerEvent _ _ = pure ()
-
--- | Attempt to highlight the first token of a Term. This is a temporary workaround.
---
--- Ideally we want to highlight the entire Term, but currently the UPLC parser only attaches
--- a @SourcePos@ to each Term, while we'd need it to attach a @SrcSpan@.
-mkUplcSpan
-    :: PLC.SourcePos ->
-    D.DTerm UPLC.DefaultUni UPLC.DefaultFun ann ->
-    HighlightSpan
-mkUplcSpan pos term = HighlightSpan sloc eloc
-    where
-        sline = unPos $ sourceLine pos
-        scol = unPos $ sourceColumn pos
-        sloc = B.Location (sline, scol)
-        eline = sline
-        ecol = scol + delta - 1
-        eloc = Just $ B.Location (eline, ecol)
-        delta = length $ case term of
-            UPLC.Var _ name -> Text.unpack $ UPLC.ndbnString name
-            UPLC.LamAbs{}   -> "lam"
-            UPLC.Apply{}    -> "["
-            UPLC.Force{}    -> "force"
-            UPLC.Delay{}    -> "delay"
-            UPLC.Constant{} -> "con"
-            UPLC.Builtin{}  -> "builtin"
-            UPLC.Error{}    -> "error"

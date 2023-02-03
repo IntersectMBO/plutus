@@ -17,6 +17,7 @@ import Brick.Widgets.Edit qualified as BE
 import Data.MonoTraversable
 import Data.Text (Text)
 import Lens.Micro.TH
+import Text.Megaparsec
 
 type Breakpoints = [Breakpoint]
 
@@ -26,7 +27,7 @@ data Breakpoint = UplcBP SourcePos
 -- | Annotation used in the debugger. Contains source locations for the UPLC program
 -- and the source program.
 data DAnn = DAnn
-    { uplcAnn :: SourcePos
+    { uplcAnn :: SrcSpan
     , txAnn   :: SrcSpans
     }
 
@@ -35,7 +36,7 @@ instance D.Breakpointable DAnn Breakpoints where
         where
           breakpointFired :: Breakpoint -> Bool
           breakpointFired = \case
-              UplcBP p -> sourceLine p == sourceLine (uplcAnn ann)
+              UplcBP p -> unPos (sourceLine p) == srcSpanSLine (uplcAnn ann)
               TxBP p   -> oany (lineInSrcSpan $ sourceLine p) $ txAnn ann
 
 -- | The custom events that can arrive at our brick mailbox.
