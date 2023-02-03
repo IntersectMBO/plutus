@@ -7,7 +7,7 @@
 -- | Handler of debugger events.
 module Event where
 
-import Annotation
+import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
 import Types
 import UntypedPlutusCore qualified as UPLC
