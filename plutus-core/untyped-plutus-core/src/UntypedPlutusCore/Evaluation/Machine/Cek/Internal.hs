@@ -684,9 +684,9 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek !unbudgetedSteps (FrameApplyFun fun ctx) arg =
         applyEvaluate unbudgetedSteps ctx fun arg
-    returnCek !unbudgetedSteps (FrameFake1 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
-    returnCek !unbudgetedSteps (FrameFake2 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
-    returnCek !unbudgetedSteps (FrameFake3 ctx) fun = forceEvaluate unbudgetedSteps ctx fun
+    returnCek !unbudgetedSteps (FrameFake1 ctx) fun = returnCek unbudgetedSteps ctx fun
+    returnCek !unbudgetedSteps (FrameFake2 ctx) fun = returnCek unbudgetedSteps ctx fun
+    returnCek !unbudgetedSteps (FrameFake3 ctx) fun = returnCek unbudgetedSteps ctx fun
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
