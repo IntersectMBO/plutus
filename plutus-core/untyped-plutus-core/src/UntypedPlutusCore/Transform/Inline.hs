@@ -326,14 +326,19 @@ sizeIsAcceptable = \case
   Delay _ t  -> sizeIsAcceptable t
 
 isPure :: Term name uni fun a -> Bool
-isPure = go
+isPure = go True
     where
-        go = \case
-            Var {}      -> True
+        go delayIsPure = \case
+            Var {}                        -> True
             -- These are syntactically values that won't reduce further
-            LamAbs {}   -> True
-            Constant {} -> True
-            Delay {}    -> True
-
+            LamAbs {}                     -> True
+            Constant {}                   -> True
+            Delay _ body                  -> delayIsPure || go delayIsPure body
+            Apply _ (LamAbs _ _ body) arg -> go delayIsPure arg && go delayIsPure body
+            -- Once we recurse into Force's body, we can no longer consider `Delay` to be
+            -- unconditionally pure, so that we don't treat terms like this as pure:
+            -- `force (force (delay (delay impure)))`.
+            Force _ body                  -> go False body
             -- See Note [Differences from PIR inliner] 5
-            _           -> False
+            Builtin{}                     -> True
+            _                             -> False
