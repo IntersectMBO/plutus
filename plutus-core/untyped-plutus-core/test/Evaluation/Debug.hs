@@ -37,7 +37,7 @@ newtype EmptyAnn = EmptyAnn ()
 instance Breakpointable EmptyAnn Breakpoints where
     hasBreakpoints _ = absurd
 
-examples :: [(String, [Cmd Breakpoints], DTerm DefaultUni DefaultFun EmptyAnn)]
+examples :: [(String, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)]
 examples = [
              ("ex1", repeat Step, Delay mempty $ Error mempty)
            , ("ex2", replicate 4 Step, Force mempty $ Delay mempty $ Error mempty)
@@ -46,7 +46,7 @@ examples = [
            -- , ("ex1", repeat Step, Error mempty)
            ]
 
-goldenVsDebug :: (TestName, [Cmd Breakpoints], DTerm DefaultUni DefaultFun EmptyAnn) -> TestTree
+goldenVsDebug :: (TestName, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn) -> TestTree
 goldenVsDebug (name, cmds, term) =
     goldenVsString name
     ("untyped-plutus-core/test/Evaluation/Debug/" ++ name ++ ".golden")
@@ -55,7 +55,7 @@ goldenVsDebug (name, cmds, term) =
 -- A Mocking interpreter
 
 mock :: [Cmd Breakpoints] -- ^ commands to feed
-     -> DTerm DefaultUni DefaultFun EmptyAnn -- ^ term to debug
+     -> NTerm DefaultUni DefaultFun EmptyAnn -- ^ term to debug
      -> IO [String] -- ^ mocking output
 mock cmds = cekMToIO . runMocking . runDriver
     where

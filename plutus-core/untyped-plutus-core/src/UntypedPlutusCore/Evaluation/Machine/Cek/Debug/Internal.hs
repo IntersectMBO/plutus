@@ -31,7 +31,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     , computeCek
     , returnCek
     , handleStep
-    , defaultSlippage
     , module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
@@ -69,13 +68,13 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), r
 
 data CekState uni fun ann =
     -- loaded a term but not fired the cek yet
-    Starting (Term NamedDeBruijn uni fun ann)
+    Starting (NTerm uni fun ann)
     -- the next state is computing
-    | Computing WordArray (Context uni fun ann) (CekValEnv uni fun ann) (Term NamedDeBruijn uni fun ann)
+    | Computing WordArray (Context uni fun ann) (CekValEnv uni fun ann) (NTerm uni fun ann)
     -- the next state is returning
     | Returning WordArray (Context uni fun ann) (CekValue uni fun ann)
     -- evaluation finished
-    | Terminating (Term NamedDeBruijn uni fun ())
+    | Terminating (NTerm uni fun ())
 
 instance Pretty (CekState uni fun ann) where
     pretty = \case
@@ -86,7 +85,7 @@ instance Pretty (CekState uni fun ann) where
 
 data Context uni fun ann
     = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
-    | FrameApplyArg ann !(CekValEnv uni fun ann) !(Term NamedDeBruijn uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
+    | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | NoFrame
     deriving stock (Show)
@@ -97,7 +96,7 @@ computeCek
     => WordArray
     -> Context uni fun ann
     -> CekValEnv uni fun ann
-    -> Term NamedDeBruijn uni fun ann
+    -> NTerm uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
 computeCek !unbudgetedSteps !ctx !env (Var _ varName) = do
@@ -229,8 +228,8 @@ runCekDeBruijn
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
-    -> Term NamedDeBruijn uni fun ann
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (Term NamedDeBruijn uni fun ()), cost, [Text])
+    -> NTerm uni fun ann
+    -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
@@ -243,11 +242,11 @@ enterComputeCek
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
-    -> Term NamedDeBruijn uni fun ann
-    -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    -> NTerm uni fun ann
+    -> CekM uni fun s (NTerm uni fun ())
 enterComputeCek ctx env term = iterToFinalState $ Computing (toWordArray 0) ctx env term
  where
-   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+   iterToFinalState :: CekState uni fun ann -> CekM uni fun s (NTerm uni fun ())
    iterToFinalState = handleStep
                       >=>
                       \case
@@ -260,7 +259,7 @@ handleStep :: forall uni fun ann s.
            => CekState uni fun ann
            -> CekM uni fun s (CekState uni fun ann)
 handleStep = \case
-    Starting term                           ->  pure $ Computing (toWordArray 0) NoFrame Env.empty term
+    Starting term                           -> pure $ Computing (toWordArray 0) NoFrame Env.empty term
     Computing !unbudgetedSteps ctx env term -> computeCek unbudgetedSteps ctx env term
     Returning !unbudgetedSteps ctx val      -> returnCek unbudgetedSteps ctx val
     self@(Terminating _)                    -> pure self -- FINAL STATE, idempotent
@@ -285,7 +284,7 @@ cekStateAnn = \case
     Computing _ _ _ t -> pure $ termAnn t
     Returning _ ctx _ -> contextAnn ctx
     Terminating{}     -> empty
-    Starting t        -> pure $ termAnn t -- TODO: not sure if we want the annotation here
+    Starting{}        -> empty
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
@@ -333,11 +332,6 @@ throwingDischarged
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
--- See Note [Cost slippage]
--- | The default number of slippage (in machine steps) to allow.
-defaultSlippage :: Slippage
-defaultSlippage = 200
-
 runCekM
     :: forall a cost uni fun ann.
     (PrettyUni uni fun)
@@ -373,7 +367,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 evalBuiltinApp
     :: (GivenCekReqs uni fun ann s, PrettyUni uni fun)
     => fun
-    -> Term NamedDeBruijn uni fun ()
+    -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of

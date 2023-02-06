@@ -1,6 +1,6 @@
 module PlutusTx.PIRTypes where
 
-import Annotation
+import PlutusCore.Annotation
 import PlutusIR qualified as PIR
 
 type PIRKind = PIR.Kind Ann

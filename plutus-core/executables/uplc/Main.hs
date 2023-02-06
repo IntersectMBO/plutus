@@ -10,8 +10,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main (main) where
 
-import Annotation
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))

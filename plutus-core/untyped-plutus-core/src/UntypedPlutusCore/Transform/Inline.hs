@@ -30,8 +30,8 @@ import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
 import UntypedPlutusCore.Rename ()
 
-import Annotation
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
