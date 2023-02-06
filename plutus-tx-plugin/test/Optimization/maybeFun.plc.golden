@@ -24,13 +24,10 @@
                               [
                                 (lam
                                   arg_0_i0
-                                  (delay
+                                  (lam
+                                    case_Just_i0
                                     (lam
-                                      case_Just_i0
-                                      (lam
-                                        case_Nothing_i0
-                                        [ case_Just_i2 arg_0_i3 ]
-                                      )
+                                      case_Nothing_i0 [ case_Just_i2 arg_0_i3 ]
                                     )
                                   )
                                 )
@@ -51,6 +48,6 @@
         )
       )
     )
-    (delay (delay (lam case_Just_i0 (lam case_Nothing_i0 case_Nothing_i1))))
+    (lam case_Just_i0 (lam case_Nothing_i0 case_Nothing_i1))
   ]
 )
