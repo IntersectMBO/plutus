@@ -42,6 +42,8 @@ mkInlinePurityTest ::
 mkInlinePurityTest termToInline = runQuote $ do
     a <- freshName "a"
     b <- freshName "b"
+    -- In `[(\a . \b . a) termToInline]`, `termToInline` will be inlined
+    -- if and only if it is pure.
     Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
 
 inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -59,6 +61,16 @@ inlinePure3 = mkInlinePurityTest $ do
             ()
             (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
             (mkConstant @Integer () 1)
+
+inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure4 = mkInlinePurityTest $ do
+    x <- freshName "x"
+    y <- freshName "y"
+    pure . Force () $
+        Apply
+            ()
+            (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
+            (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
 
 inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure1 = mkInlinePurityTest $ pure $ Error ()
@@ -107,6 +119,7 @@ test_simplify =
         , goldenVsSimplified "inlinePure1" inlinePure1
         , goldenVsSimplified "inlinePure2" inlinePure2
         , goldenVsSimplified "inlinePure3" inlinePure3
+        , goldenVsSimplified "inlinePure4" inlinePure4
         , goldenVsSimplified "inlineImpure1" inlineImpure1
         , goldenVsSimplified "inlineImpure2" inlineImpure2
         , goldenVsSimplified "inlineImpure3" inlineImpure3

@@ -337,7 +337,7 @@ isPure = go True
             Delay _ body                  -> delayAndVarIsPure || go delayAndVarIsPure body
             -- This case is not needed in PIR's `isPure`, because PIR's beta-reduction pass
             -- turns terms like this into `Let` bindings.
-            Apply _ (LamAbs _ _ body) arg -> go delayAndVarIsPure arg && go delayAndVarIsPure body
+            Apply _ (LamAbs _ _ body) arg -> go True arg && go delayAndVarIsPure body
             Force _ body                  -> go False body
             -- See Note [Differences from PIR inliner] 5
             Builtin{}                     -> True
