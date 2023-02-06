@@ -22,7 +22,7 @@ jobs:
         run: |
           export LOCAL_DIR="$HOME/mainnet-script-dump-downloaded" 
           nix develop --no-warn-dirty --accept-flake-config --command \
-            bash ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump/ \*.event.bz2
+            bash ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump-1-35-3/ \*.event.bz2
         env: 
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
