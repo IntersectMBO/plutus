@@ -1,0 +1,21 @@
+{-
+Multiple occurrences of the const function:
+The const function should not be inlined by the unconditional inlining optimization.
+The first constFun should be inlined the the optimization that inlines fully applied functions.
+The second constFun is not fully applied so it should not be inlined.
+ 
+let 
+  constFun :: Integer -> Integer -> Integer
+  constFun x y = x
+in constFun 3 (constFun 3) 
+  -}
+
+(let
+  (nonrec)
+  (termbind 
+    (strict) 
+    (vardecl constFun (fun (con integer) (fun (con integer) (con integer)))) 
+    (lam x (con integer) (lam y (con integer) x)) 
+  ) 
+  [ [ constFun (con integer 3) ] [ constFun (con integer 3) ] ] 
+)

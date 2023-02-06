@@ -1,0 +1,40 @@
+{- 
+Multiple occurrences of a let binding that is a function application (funApp). It should not get 
+inlined by the unconditional inlining optimization. However, the optimization that inlines fully
+applied function should inline funApp.
+
+let 
+  appNum :: Integer
+  appNum = 4
+  in 
+    let funApp :: Integer -> Integer
+        funApp = addInteger appNum
+    in
+      let k :: Integer -> Integer
+      k = funApp
+in funApp appNum
+
+-}
+
+(let
+    (nonrec)
+    
+    (termbind (strict) (vardecl appNum (con integer)) (con integer 4))
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl funApp (fun (con integer) (con integer)))
+        [ (builtin addInteger) appNum ]
+      )
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl k (fun (con integer) (con integer)))
+          funApp
+        )
+      [ funApp appNum ]
+      )
+    )
+)

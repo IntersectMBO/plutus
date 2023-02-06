@@ -1,0 +1,31 @@
+{- 
+funApp gets inlined because it only occurs once.
+idFun should not get inlined by the unconditional inline optimization because it occurs more than
+once. It should get inlined by the optimization that inlines fully applied functions because it is
+fully applied.
+
+let 
+    idFun :: Integer -> Integer
+    idFun = \y.y
+    funApp :: (Integer -> Integer) -> (Integer -> Integer)
+    funApp = \x.idFun
+in funApp idFun 6
+-}
+
+(let
+  (nonrec)
+  
+  (termbind
+    (strict)
+    (vardecl idFun (fun (con integer) (con integer)))
+    (lam y (con integer) y)
+  )
+  
+  (termbind
+    (strict)
+    (vardecl funApp (fun (con integer) (fun (con integer) (con integer))))
+    (lam x (con integer) idFun)
+  )
+  
+  [ funApp idFun (con integer 6) ]
+)
