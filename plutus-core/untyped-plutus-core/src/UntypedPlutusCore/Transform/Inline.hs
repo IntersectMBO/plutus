@@ -328,17 +328,48 @@ sizeIsAcceptable = \case
 isPure :: Term name uni fun a -> Bool
 isPure = go True
     where
-        go delayIsPure = \case
-            Var {}                        -> True
+        -- See Note [delayAndVarIsPure]
+        go delayAndVarIsPure = \case
+            Var {}                        -> delayAndVarIsPure
             -- These are syntactically values that won't reduce further
             LamAbs {}                     -> True
             Constant {}                   -> True
-            Delay _ body                  -> delayIsPure || go delayIsPure body
-            Apply _ (LamAbs _ _ body) arg -> go delayIsPure arg && go delayIsPure body
-            -- Once we recurse into Force's body, we can no longer consider `Delay` to be
-            -- unconditionally pure, so that we don't treat terms like this as pure:
-            -- `force (force (delay (delay impure)))`.
+            Delay _ body                  -> delayAndVarIsPure || go delayAndVarIsPure body
+            -- This case is not needed in PIR's `isPure`, because PIR's beta-reduction pass
+            -- turns terms like this into `Let` bindings.
+            Apply _ (LamAbs _ _ body) arg -> go delayAndVarIsPure arg && go delayAndVarIsPure body
             Force _ body                  -> go False body
             -- See Note [Differences from PIR inliner] 5
             Builtin{}                     -> True
             _                             -> False
+
+{- Note [delayAndVarIsPure]
+
+To determine whether a `Term` is pure, we recurse into the `Term`. If we do not descend
+into a `Force` node, then a `Var` node and a `Delay` node is always pure
+(see Note [Purity, strictness, and variables] for why `Var` nodes are pure).
+
+Once we descend into the body of a `Force` node, however, `Var` and `Delay` nodes can
+no longer be considered unconditionally pure, because the following terms are impure:
+
+```
+force (delay impure)
+force (force (delay (delay impure)))
+force x  -- because `x` may expand into an impure `Term`
+force (force (delay x))
+```
+
+This is the purpose of the `delayAndVarIsPure` flag, which is set to `False` when
+descending into the body of `Force`.
+
+This can potentially be improved, e.g., it would consider the following pure terms
+as impure:
+
+```
+force (delay (delay impure))
+force (delay x)
+```
+
+However, since we can rely on `forceDelayCancel` to cancel adjacent `force` and `delay`
+nodes, we do not need to be too clever here.
+-}

@@ -36,6 +36,44 @@ basicInline = runQuote $ do
     n <- freshName "a"
     pure $ Apply () (LamAbs () n (Var () n)) (mkConstant @Integer () 1)
 
+mkInlinePurityTest ::
+    Quote (Term Name PLC.DefaultUni PLC.DefaultFun ()) ->
+    Term Name PLC.DefaultUni PLC.DefaultFun ()
+mkInlinePurityTest termToInline = runQuote $ do
+    a <- freshName "a"
+    b <- freshName "b"
+    Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
+
+inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure1 = mkInlinePurityTest $ Var () <$> freshName "a"
+
+inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure2 = mkInlinePurityTest $ Force () . Delay () . Var () <$> freshName "a"
+
+inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure3 = mkInlinePurityTest $ do
+    x <- freshName "x"
+    y <- freshName "y"
+    pure $
+        Apply
+            ()
+            (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
+            (mkConstant @Integer () 1)
+
+inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure1 = mkInlinePurityTest $ pure $ Error ()
+
+inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure2 = mkInlinePurityTest $ pure . Force () . Delay () $ Error ()
+
+inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure3 = mkInlinePurityTest $ pure .
+    Force () . Force () . Force () . Delay () . Delay () . Delay () $ Error ()
+
+inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure4 = mkInlinePurityTest $
+    Force () . Force () . Force () . Delay () . Delay () . Var () <$> freshName "a"
+
 multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 multiApp = runQuote $ do
     a <- freshName "a"
@@ -66,5 +104,12 @@ test_simplify =
         , goldenVsSimplified "extraDelays" extraDelays
         , goldenVsSimplified "interveningLambda" interveningLambda
         , goldenVsSimplified "basicInline" basicInline
+        , goldenVsSimplified "inlinePure1" inlinePure1
+        , goldenVsSimplified "inlinePure2" inlinePure2
+        , goldenVsSimplified "inlinePure3" inlinePure3
+        , goldenVsSimplified "inlineImpure1" inlineImpure1
+        , goldenVsSimplified "inlineImpure2" inlineImpure2
+        , goldenVsSimplified "inlineImpure3" inlineImpure3
+        , goldenVsSimplified "inlineImpure4" inlineImpure4
         , goldenVsSimplified "multiApp" multiApp
         ]
