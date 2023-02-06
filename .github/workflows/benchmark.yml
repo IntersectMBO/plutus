@@ -20,83 +20,83 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
-      - name: React with Rocket 
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.reactions.createForIssueComment({
-              owner: context.issue.owner,
-              repo: context.issue.repo,
-              comment_id: context.payload.comment.id,
-              content: "rocket"
-            });  
+      # - name: React with Rocket 
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       github.rest.reactions.createForIssueComment({
+      #         owner: context.issue.owner,
+      #         repo: context.issue.repo,
+      #         comment_id: context.payload.comment.id,
+      #         content: "rocket"
+      #       });  
 
-      - name: Extract Benchmark Name
-        id: extract-benchmark
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const regex = '^\/benchmark\s*(.*?)\s*$';
-            const comment = context.payload.comment.body;
-            const match = comment.match(regex)
-            if (match !== null && match.length == 2)
-              core.setOutput('benchmark', match[1]);
-            else
-              core.setFailed(`Unable to extract benchmark name from {comment}`);
+      # - name: Extract Benchmark Name
+      #   id: extract-benchmark
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: |
+      #       const regex = '^\/benchmark\s*(.*?)\s*$';
+      #       const comment = context.payload.comment.body;
+      #       const match = comment.match(regex)
+      #       if (match !== null && match.length == 2)
+      #         core.setOutput('benchmark', match[1]);
+      #       else
+      #         core.setFailed(`Unable to extract benchmark name from {comment}`);
 
-      - name: Extract Comment Branch 
-        id: extract-branch
-        uses: actions/github-script@v6
-        with:
-          script: | 
-            async function isPullRequest() {
-              const result = await github.rest.issues.get({
-                owner: context.issue.owner,
-                repo: context.issue.repo,
-                issue_number: context.issue.number
-              });
-              return !!result.data.pull_request;
-            }
+      # - name: Extract Comment Branch 
+      #   id: extract-branch
+      #   uses: actions/github-script@v6
+      #   with:
+      #     script: | 
+      #       async function isPullRequest() {
+      #         const result = await github.rest.issues.get({
+      #           owner: context.issue.owner,
+      #           repo: context.issue.repo,
+      #           issue_number: context.issue.number
+      #         });
+      #         return !!result.data.pull_request;
+      #       }
 
-            async function getCommentHeadRef() {
-              const query = `
-                query pullRequestDetails($repo:String!, $owner:String!, $number:Int!) {
-                  repository(name: $repo, owner: $owner) {
-                    pullRequest(number: $number) {
-                      headRef {
-                        name
-                      }
-                    }
-                  }
-                }`;
+      #       async function getCommentHeadRef() {
+      #         const query = `
+      #           query pullRequestDetails($repo:String!, $owner:String!, $number:Int!) {
+      #             repository(name: $repo, owner: $owner) {
+      #               pullRequest(number: $number) {
+      #                 headRef {
+      #                   name
+      #                 }
+      #               }
+      #             }
+      #           }`;
 
-              const result = await github.graphql(query, {
-                owner: context.issue.owner,
-                repo: context.issue.repo,
-                number: context.issue.number
-              });
+      #         const result = await github.graphql(query, {
+      #           owner: context.issue.owner,
+      #           repo: context.issue.repo,
+      #           number: context.issue.number
+      #         });
 
-              return result.repository.pullRequest.headRef.name;
-            }
+      #         return result.repository.pullRequest.headRef.name;
+      #       }
 
-            try {
-              if (!await isPullRequest()) {
-                core.setFailed("Comment is not on a pull request");
-              } else {  
-                core.setOutput("head_ref", await getCommentHeadRef());
-              }
-            } catch (error) {
-              core.setFailed(`Error: ${error}`);
-            } 
+      #       try {
+      #         if (!await isPullRequest()) {
+      #           core.setFailed("Comment is not on a pull request");
+      #         } else {  
+      #           core.setOutput("head_ref", await getCommentHeadRef());
+      #         }
+      #       } catch (error) {
+      #         core.setFailed(`Error: ${error}`);
+      #       } 
             
-      - name: Run
-        run: |
-          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
+      # - name: Run
+      #   run: |
+      #     nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+      #   env:
+      #     GITHUB_TOKEN: ${{ github.token }}
+      #     BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
+      #     PR_NUMBER: ${{ github.event.issue.number }}
+      #     PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
 
       - name: Publish Link To Action Run
         uses: actions/github-script@v6
@@ -107,32 +107,31 @@ jobs:
               const result = await github.rest.actions.listJobsForWorkflowRun({
                 owner: context.issue.owner,
                 repo: context.issue.repo,
-                run_id: github.run_id
+                run_id: 4102717722 // context.runId
               });
-              // NOTE: github.job_id is the job "name" in the .yml file
-              const jobId = result.jobs.find(job => job.name === github.job_id);
-              if (jobId === null) {
-                core.error(`Could not find job '${github.job_id}' in ${result.jobs}`);
+              // NOTE: context.job is the job "name" in the .yml file
+              const job = result.data.jobs.find(job => job.name === context.job);
+              if (job === null) {
+                core.error(`Could not find job '${context.job}' in ${result.jobs}`);
                 core.setFailed("Could not find required job");
               } else {
-                return jobId;
+                return job.id;
               }
             }
             
             async function getJobUrl() {
               const part1 = `https://github.com/${context.issue.owner}/${context.issue.repo}`;
-              const part2 = `actions/runs/${github.run_id}/jobs/${await getJobId()}`;
-              return `${part1}/${part2};
+              // const part2 = `actions/runs/${context.runId}/jobs/${await getJobId()}`;
+              const part2 = `actions/runs/${4102717722}/jobs/${await getJobId()}`;
+              return `${part1}/${part2}`;
             }
 
-            const result = await github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.issue.owner,
               repo: context.issue.repo,
-              issue_number: context.issue.number,
+              issue_number: 5111,
               body: `Click [here](${await getJobUrl()}) to check the status of your benchmark.`
             });
-
-            console.log(result);
 
       - name: Publish Results
         uses: actions/github-script@v6
@@ -140,13 +139,9 @@ jobs:
           script: | 
             const { promises: fs } = require("fs");
 
-            const result = await github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.issue.owner,
               repo: context.issue.repo,
-              issue_number: context.issue.number,
+              issue_number: 5111,
               body: fs.readFile("bench-compare.json")
             });
-
-            console.log(result);
-
-        
