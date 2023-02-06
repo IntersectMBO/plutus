@@ -3,7 +3,11 @@ on:
   issue_comment:
     types: [created]
   workflow_dispatch:
-  
+    inputs:
+      benchmark:
+        default: "nofib"
+        description: "Which benchmark to run"
+
 jobs:
   benchmark:
     runs-on: [self-hosted, plutus-benchmark]
@@ -12,8 +16,17 @@ jobs:
       pull-requests: write
   
     if: | 
-      startsWith(github.event.comment.body, '/benchmark') && 
-      github.event.issue.pull_request 
+      function hasBenchmarkComment() {
+        return 
+          startsWith(github.event.comment.body, '/benchmark') && 
+          github.event.issue.pull_request;
+      }
+
+      function isWorkflowDispatch() {
+        return github.event.name == "workflow_dispatch"
+      }
+
+      return hasBenchmarkComment() || isWorkflowDispatch();
 
     steps:
       - name: Checkout
