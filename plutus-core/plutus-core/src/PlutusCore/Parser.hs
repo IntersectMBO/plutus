@@ -69,18 +69,20 @@ errorTerm = inParens $ Error <$> wordPos "error" <*> pType
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = whitespace >> (choice $ map try
-    [ tyAbsTerm
-    , lamTerm
-    , appTerm
-    , conTerm
-    , builtinTerm
-    , tyInstTerm
-    , unwrapTerm
-    , iwrapTerm
-    , errorTerm
-    , varTerm
-    ])
+term = do
+    whitespace
+    choice $ map try
+        [ tyAbsTerm
+        , lamTerm
+        , appTerm
+        , conTerm
+        , builtinTerm
+        , tyInstTerm
+        , unwrapTerm
+        , iwrapTerm
+        , errorTerm
+        , varTerm
+        ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes
