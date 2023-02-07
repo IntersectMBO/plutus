@@ -102,7 +102,7 @@ class ProgramLike p where
     serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
 
     -- | Read and deserialise a Flat-encoded AST
-    loadASTfromFlat :: AstNameType -> Input -> IO (p ())
+    loadASTfromFlat :: Flat ann => AstNameType -> Input -> IO (p ann)
 
 -- For PIR and PLC
 serialiseTProgramFlat :: Flat a => AstNameType -> a -> IO BSL.ByteString
@@ -346,7 +346,7 @@ parseInput ::
     -- | The source program
     Input ->
     -- | The output is either a UPLC or PLC program with annotation
-    IO (p PLC.SrcSpan)
+    IO (T.Text, p PLC.SrcSpan)
 parseInput inp = do
     contents <- getInput inp
     -- parse the program
@@ -364,7 +364,7 @@ parseInput inp = do
                 -- pretty print the error
                 Left (err :: PLC.UniqueError PLC.SrcSpan) ->
                     error $ PP.render $ pretty err
-                Right _ -> pure p
+                Right _ -> pure (contents, p)
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
 getBinaryInput :: Input -> IO BSL.ByteString
@@ -407,7 +407,7 @@ loadTplcASTfromFlat flatMode inp =
             Right r -> return r
 
 -- | Read and deserialise a Flat-encoded UPLC AST
-loadUplcASTfromFlat :: AstNameType -> Input -> IO (UplcProg ())
+loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
@@ -426,7 +426,7 @@ loadUplcASTfromFlat flatMode inp = do
             Right r -> return r
 
 -- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
-getProgram ::
+getProgram :: forall p.
     ( ProgramLike p
     , Functor p
     , PLC.Rename (p PLC.SrcSpan)
@@ -436,9 +436,9 @@ getProgram ::
     IO (p PLC.SrcSpan)
 getProgram fmt inp =
     case fmt of
-        Textual -> parseInput inp
+        Textual -> snd <$> parseInput inp
         Flat flatMode -> do
-            prog <- loadASTfromFlat flatMode inp
+            prog <- loadASTfromFlat @p @() flatMode inp
             return $ topSrcSpan <$ prog
 
 -- | A made-up `SrcSpan` since there's no source locations in Flat.
@@ -735,7 +735,7 @@ runPrintBuiltinSignatures = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions iospec mode) = do
-    parsed <- (parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
+    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
     let printed = show $ getPrintMethod mode parsed
     case outputSpec iospec of
         FileOutput path -> writeFile path printed
