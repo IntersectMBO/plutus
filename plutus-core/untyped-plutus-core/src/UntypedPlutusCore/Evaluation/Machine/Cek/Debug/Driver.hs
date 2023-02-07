@@ -6,7 +6,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     ( Breakpointable (..)
     , CekState
     , Cmd (..)
-    , DTerm
     , runDriver
     , DebugF (..)
     -- | Reexport some functions for convenience
@@ -19,7 +18,6 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     , FreeT
     ) where
 
-import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
 import Control.Lens hiding (Context)
@@ -54,9 +52,6 @@ The sensible interpretation to this is the CEK's state transition function (`han
 class Breakpointable ann bps | ann -> bps where
     -- MAYBE: we cannot know which breakpoint fired, return instead `Maybe Breakpoint`?
     hasBreakpoints :: ann -> bps -> Bool
-
--- | The `Term`s that makes sense to debug
-type DTerm uni fun ann = Term NamedDeBruijn uni fun ann
 
 -- | The commands that the driver may receive from the client (tui,cli,test,etc)
 data Cmd bps
@@ -93,10 +88,10 @@ type Driving m uni fun ann bps =
 -- | Entrypoint of the driver
 runDriver :: forall uni fun ann bps m.
             (Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m)
-          => DTerm uni fun ann -> m ()
+          => NTerm uni fun ann -> m ()
 runDriver = void . runReaderT driver . initState
     where
-      initState :: DTerm uni fun ann -> CekState uni fun ann
+      initState :: NTerm uni fun ann -> CekState uni fun ann
       initState = Starting
 
 -- | The driver action. The driver repeatedly:

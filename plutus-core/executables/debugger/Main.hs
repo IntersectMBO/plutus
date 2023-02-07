@@ -16,8 +16,8 @@
 -}
 module Main (main) where
 
-import Annotation
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters

@@ -6,7 +6,7 @@
 -- | Debugger TUI Types.
 module Types where
 
-import Annotation
+import PlutusCore.Annotation
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal (CekState)
