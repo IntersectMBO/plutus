@@ -46,14 +46,14 @@ the actual one. Thus "type-eval checking".
 
 -- | The type of errors that can occur during type-eval checking.
 data TypeEvalCheckError uni fun
-    = TypeEvalCheckErrorIllFormed (Error uni fun ())
+    = TypeEvalCheckErrorIllFormed !(Error uni fun ())
     | TypeEvalCheckErrorIllTyped
-          (Normalized (Type TyName uni ()))
-          (Normalized (Type TyName uni ()))
-    | TypeEvalCheckErrorException String
+          !(Normalized (Type TyName uni ()))
+          !(Normalized (Type TyName uni ()))
+    | TypeEvalCheckErrorException !String
     | TypeEvalCheckErrorIllEvaled
-          (EvaluationResult (Term TyName Name uni fun ()))
-          (EvaluationResult (Term TyName Name uni fun ()))
+          !(EvaluationResult (Term TyName Name uni fun ()))
+          !(EvaluationResult (Term TyName Name uni fun ()))
       -- ^ The former is an expected result of evaluation, the latter -- is an actual one.
 makeClassyPrisms ''TypeEvalCheckError
 

@@ -124,7 +124,7 @@ nopCostModel =
                   (ModelSixArgumentsConstantCost 600)
     }
 
-nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun ()
+nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
     mkMachineParameters def $
         CostModel defaultCekMachineCosts nopCostModel

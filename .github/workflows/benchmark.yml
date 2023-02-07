@@ -1,7 +1,13 @@
-name: Benchmarking
+name: Benchmark
 on:
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      benchmark:
+        default: "nofib"
+        description: "Which benchmark to run"
+        required: true 
 
 jobs:
   benchmark:
@@ -11,36 +17,83 @@ jobs:
       pull-requests: write
   
     if: | 
-      startsWith(github.event.comment.body, '/benchmark') && 
-      github.event.issue.pull_request 
+      ( startsWith(github.event.comment.body, '/benchmark') && 
+        github.event.issue.pull_request 
+      ) || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
+
+      - name: Detect GitHub Event 
+        id: detect-event
+        uses: actions/github-script@v6
+        with:
+          script: |
+            function hasBenchmarkComment() {
+              return 
+                startsWith(github.event.comment.body, '/benchmark') && 
+                github.event.issue.pull_request;
+            }
+
+            function workflowWasDispatched() {
+              return context.eventName == "workflow_dispatch"
+            }
+
+            if (hasBenchmarkComment()) {
+              core.setOutput("event", "issue_comment");
+            } else if (workflowWasDispatched()) {
+              core.setOutput("event", "workflow_dispatch");
+            } else {
+              core.setFailed("An unexpeced event triggered this workflow.");
+            }
+
+
       - name: React with Rocket 
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.reactions.createForIssueComment({
-              owner: context.issue.owner,
-              repo: context.issue.repo,
-              comment_id: context.payload.comment.id,
-              content: "rocket"
-            });  
+            async function reactWithRocket() {
+              github.rest.reactions.createForIssueComment({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                comment_id: context.payload.comment.id,
+                content: "rocket"
+              });  
+            }
+
+            if (core.getInput("event") === "issue_comment") {
+              await reactWithRocket();
+            } else {
+              core.debug("Workflow dispacted from GitHub GUI, not reacting with Rocket.")
+            }
+
 
       - name: Extract Benchmark Name
         id: extract-benchmark
         uses: actions/github-script@v6
         with:
           script: |
-            const regex = '^\/benchmark\s*(.*?)\s*$';
-            const comment = context.payload.comment.body;
-            const match = comment.match(regex)
-            if (match !== null && match.length == 2)
-              core.setOutput('benchmark', match[1]);
-            else
-              core.setFailed(`Unable to extract benchmark name from {comment}`);
+            function extractBenchmarkFromCommentOrFail() {
+              const regex = '^\/benchmark\s*(.*?)\s*$';
+              const comment = context.payload.comment.body;
+              const match = comment.match(regex)
+              if (match !== null && match.length == 2) {
+                return match[1];
+              } else {
+                core.setFailed(`Unable to extract benchmark name from ${comment}`);
+              }
+            }
+
+            if (core.getInput("event") === "issue_comment") {
+              core.setOutput('benchmark', extractBenchmarkFromCommentOrFail());
+            } else {
+              console.log(${{ github.event }});
+              console.log(${{ github.event.inputs }});
+              core.setOutput('benchmark', ${{ github.event.inputs.benchmark }});
+            }
+
 
       - name: Extract Comment Branch 
         id: extract-branch
@@ -86,12 +139,63 @@ jobs:
             } catch (error) {
               core.setFailed(`Error: ${error}`);
             } 
+
+
+      - name: Publish Link To Action Run
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            // https://github.com/community/community/discussions/8945
+            async function getJobId() {
+              const result = await github.rest.actions.listJobsForWorkflowRun({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                run_id: context.runId
+              });
+              // NOTE: context.job is the job "name" in the .yml file
+              const job = result.data.jobs.find(job => job.name === context.job);
+              if (job === null) {
+                core.error(`Could not find job '${context.job}' in ${result.jobs}`);
+                core.setFailed("Could not find required job");
+              } else {
+                return job.id;
+              }
+            }
             
-      - run: |
-         nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
-        if: success()
+            async function getJobUrl() {
+              const part1 = `https://github.com/${context.issue.owner}/${context.issue.repo}`;
+              const part2 = `actions/runs/${context.runId}/jobs/${await getJobId()}`;
+              return `${part1}/${part2}`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: context.issue.number,
+              body: `Click [here](${await getJobUrl()}) to check the status of your benchmark.`
+            });
+        
+
+      - name: Run
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
         env:
           GITHUB_TOKEN: ${{ github.token }}
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
+
+
+      - name: Publish Results
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            const fs = require("fs");
+
+            await github.rest.issues.createComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: context.issue.number,
+              // bench-compare.json is generated by ci-plutus-benchmark.sh
+              body: fs.readFileSync("bench-compare.json", "utf-8").toString()  
+            });

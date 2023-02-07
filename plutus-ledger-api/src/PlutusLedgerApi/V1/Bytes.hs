@@ -32,7 +32,7 @@ import Prettyprinter.Extras (Pretty, PrettyShow (..))
 {- | An error that is encountered when converting a `ByteString` to a `LedgerBytes`. -}
 data LedgerBytesError =
     UnpairedDigit -- ^ Odd number of bytes in the original bytestring.
-    | NotHexit Char -- ^ A non-hex digit character ([^A-Fa-f0-9]) encountered during decoding.
+    | NotHexit !Char -- ^ A non-hex digit character ([^A-Fa-f0-9]) encountered during decoding.
     deriving stock (Show)
     deriving anyclass (Exception)
 

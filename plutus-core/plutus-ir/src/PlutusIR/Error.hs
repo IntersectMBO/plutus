@@ -20,42 +20,28 @@ module PlutusIR.Error
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
+import PlutusIR qualified as PIR
 import PlutusPrelude
 
-import PlutusIR qualified as PIR
-
 import Control.Lens
-
 import Data.Text qualified as T
-import ErrorCode
 import Prettyprinter as PP
 
 data TypeErrorExt uni ann =
       MalformedDataConstrResType
-         ann
+         !ann
          -- the expected constructor's type
-         (PLC.Type PLC.TyName uni ann)
+         !(PLC.Type PLC.TyName uni ann)
     deriving stock (Show, Eq, Generic)
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeErrorExt
 
-instance HasErrorCode (TypeErrorExt _a _b) where
-  errorCode MalformedDataConstrResType {} = ErrorCode 1
-
-data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation error.
-                     | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.
-                     | PLCError (PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
-                     | PLCTypeError (PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
-                     | PIRTypeError (TypeErrorExt uni a)
+data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation error.
+                     | UnsupportedError !a !T.Text -- ^ An error relating specifically to an unsupported feature.
+                     | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
+                     | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
+                     | PIRTypeError !(TypeErrorExt uni a)
 makeClassyPrisms ''Error
-
-instance HasErrorCode (Error _a _b _c) where
-   errorCode UnsupportedError {} = ErrorCode 3
-   errorCode CompilationError {} = ErrorCode 2
-   errorCode (PIRTypeError e)    = errorCode e
-   errorCode (PLCTypeError e)    = errorCode e
-   errorCode (PLCError e)        = errorCode e
-
 
 instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a where
     _TypeError = _PLCTypeError
@@ -97,7 +83,7 @@ instance
 
 instance (PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
             PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
-     prettyBy config er = PP.pretty (errorCode er) <> ":" <+> case er of
+     prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
         PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]

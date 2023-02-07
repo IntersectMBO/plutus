@@ -101,7 +101,7 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
             let parseTxt :: T.Text -> Either ParserErrorBundle a
                 parseTxt txt = runQuoteT $ parse parser name txt
             in
-            either (return . T.pack . show) (fmap display . op)
+            either (return . display) (fmap display . op)
                          . parseTxt
 
 goldenPirDocM :: forall a ann. (a -> IO (Doc ann)) -> Parser a -> String -> TestNested
@@ -112,7 +112,7 @@ goldenPirDocM op parser name = withGoldenFileM name parseOrError
             let parseTxt :: T.Text -> Either ParserErrorBundle a
                 parseTxt txt = runQuoteT $ parse parser name txt
             in
-            either (return . T.pack . show) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
+            either (return . display) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
                          . parseTxt
 
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text

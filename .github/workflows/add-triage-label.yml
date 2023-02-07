@@ -1,16 +1,17 @@
-name: Add triage label
+name: Add Triage Label
 on:
   issues:
     types:
       - reopened
       - opened
 jobs:
-  add_triage_label:
+  add-triage-label:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v6
+      - name: Run
+        uses: actions/github-script@v6
         with:
           script: |
             github.rest.issues.addLabels({

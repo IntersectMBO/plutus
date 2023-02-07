@@ -1,0 +1,9 @@
+(lam
+  b_1
+  (force
+    [
+      (lam x_4 (delay (lam y_5 [ x_4 x_4 ])))
+      (delay [ (error ) (con integer 1) ])
+    ]
+  )
+)

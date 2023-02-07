@@ -9,7 +9,7 @@
 
 module PlutusTx.Compiler.Types (
     module PlutusTx.Compiler.Types,
-    module Annotation
+    module PlutusCore.Annotation
     ) where
 
 import PlutusTx.Compiler.Error
@@ -18,7 +18,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
-import Annotation
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote

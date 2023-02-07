@@ -18,14 +18,13 @@ import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
 
-import Annotation
 import Control.Exception
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (void)
-import ErrorCode
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
+import PlutusCore.Annotation
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
@@ -75,9 +74,6 @@ newtype ImpossibleDeserialisationFailure = ImpossibleDeserialisationFailure Deco
     deriving anyclass (Exception)
 instance Show ImpossibleDeserialisationFailure where
     show (ImpossibleDeserialisationFailure e) = "Failed to deserialise our own program! This is a bug, please report it. Caused by: " ++ show e
-
-instance HasErrorCode ImpossibleDeserialisationFailure where
-      errorCode ImpossibleDeserialisationFailure {} = ErrorCode 40
 
 -- | Get the actual Plutus Core program out of a 'CompiledCodeIn'.
 getPlc

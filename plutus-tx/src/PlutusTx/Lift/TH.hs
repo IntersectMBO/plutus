@@ -52,7 +52,6 @@ import Data.Maybe
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Traversable
-import ErrorCode
 import Prettyprinter qualified as PP
 
 -- We do not use qualified import because the whole module contains off-chain code
@@ -61,11 +60,11 @@ import Prelude as Haskell
 type RTCompileScope uni fun = ReaderT (LocalVars uni) (RTCompile uni fun)
 type THCompile = StateT Deps (ReaderT THLocalVars (ExceptT LiftError TH.Q))
 
-data LiftError = UnsupportedLiftKind TH.Kind
-               | UnsupportedLiftType TH.Type
-               | UserLiftError T.Text
-               | LiftMissingDataCons TH.Name
-               | LiftMissingVar TH.Name
+data LiftError = UnsupportedLiftKind !TH.Kind
+               | UnsupportedLiftType !TH.Type
+               | UserLiftError !T.Text
+               | LiftMissingDataCons !TH.Name
+               | LiftMissingVar !TH.Name
                deriving anyclass (Prelude.Exception)
 
 instance PP.Pretty LiftError where
@@ -77,13 +76,6 @@ instance PP.Pretty LiftError where
 
 instance Show LiftError where
     show = show . PP.pretty -- for Control.Exception
-
-instance HasErrorCode LiftError where
-    errorCode UnsupportedLiftType {} = ErrorCode 44
-    errorCode UnsupportedLiftKind {} = ErrorCode 45
-    errorCode UserLiftError {}       = ErrorCode 46
-    errorCode LiftMissingDataCons {} = ErrorCode 47
-    errorCode LiftMissingVar {}      = ErrorCode 48
 
 {- Note [Impredicative function universe wrappers]
 We are completely independent of the function universe. We generate constants (so we care about the type universe),

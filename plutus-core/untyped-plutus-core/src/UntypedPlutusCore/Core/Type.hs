@@ -48,6 +48,9 @@ at 7 or fewer.
 
 We've got 8 constructors, *but* the last one is Error, which is only going to be seen at most
 once per program, so it's not too big a deal if it doesn't get a tag.
+
+See the GHC Notes "Tagging big families" and "Double switching for big families" in
+GHC.StgToCmm.Expr for more details.
 -}
 
 {-| The type of Untyped Plutus Core terms. Mirrors the type of Typed Plutus Core terms except
