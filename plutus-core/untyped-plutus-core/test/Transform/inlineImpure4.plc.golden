@@ -1,0 +1,1 @@
+[ (lam a_0 (lam b_1 a_0)) (force a_2) ]
