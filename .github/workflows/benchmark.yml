@@ -7,6 +7,7 @@ on:
       benchmark:
         default: "nofib"
         description: "Which benchmark to run"
+        required: true 
 
 jobs:
   benchmark:
@@ -16,45 +17,84 @@ jobs:
       pull-requests: write
   
     if: | 
-      function hasBenchmarkComment() {
-        return 
-          startsWith(github.event.comment.body, '/benchmark') && 
-          github.event.issue.pull_request;
-      }
-
-      function isWorkflowDispatch() {
-        return github.event.name == "workflow_dispatch"
-      }
-
-      return hasBenchmarkComment() || isWorkflowDispatch();
+      startsWith(github.event.comment.body, '/benchmark') && 
+      github.event.issue.pull_request || 
+      github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
-      - name: React with Rocket 
+
+      - name: Detect GitHub Event 
+        id: detect-event
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.reactions.createForIssueComment({
-              owner: context.issue.owner,
-              repo: context.issue.repo,
-              comment_id: context.payload.comment.id,
-              content: "rocket"
-            });  
+            function hasBenchmarkComment() {
+              return 
+                startsWith(github.event.comment.body, '/benchmark') && 
+                github.event.issue.pull_request;
+            }
+
+            function workflowWasDispatched() {
+              return context.eventName == "workflow_dispatch"
+            }
+
+            if (hasBenchmarkComment()) {
+              core.setOutput("event", "issue_comment");
+            } else if (workflowWasDispatched()) {
+              core.setOutput("event", "workflow_dispatch");
+            } else {
+              core.setFailed("An unexpeced event triggered this workflow.");
+            }
+
+
+      - name: React with Rocket 
+        uses: actions/github-script@v6
+        if: steps.detect-event.outputs.is_comment
+        with:
+          script: |
+            async function reactWithRocket() {
+              github.rest.reactions.createForIssueComment({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                comment_id: context.payload.comment.id,
+                content: "rocket"
+              });  
+            }
+
+            if (core.getInput("event") === "issue_comment") {
+              await reactWithRocket();
+            } else {
+              core.debug("Workflow dispacted from GitHub GUI, not reacting with Rocket.")
+            }
+
 
       - name: Extract Benchmark Name
         id: extract-benchmark
         uses: actions/github-script@v6
         with:
           script: |
-            const regex = '^\/benchmark\s*(.*?)\s*$';
-            const comment = context.payload.comment.body;
-            const match = comment.match(regex)
-            if (match !== null && match.length == 2)
-              core.setOutput('benchmark', match[1]);
-            else
-              core.setFailed(`Unable to extract benchmark name from {comment}`);
+            function extractBenchmarkFromCommentOrFail() {
+              const regex = '^\/benchmark\s*(.*?)\s*$';
+              const comment = context.payload.comment.body;
+              const match = comment.match(regex)
+              if (match !== null && match.length == 2) {
+                return match[1];
+              } else {
+                core.setFailed(`Unable to extract benchmark name from ${comment}`);
+              }
+            }
+
+            if (core.getInput("event") === "issue_comment") {
+              core.setOutput('benchmark', extractBenchmarkFromCommentOrFail());
+            } else {
+              console.log(${{ github.event }});
+              console.log(${{ github.event.inputs }});
+              core.setOutput('benchmark', ${{ github.event.inputs.benchmark }});
+            }
+
 
       - name: Extract Comment Branch 
         id: extract-branch
@@ -101,6 +141,7 @@ jobs:
               core.setFailed(`Error: ${error}`);
             } 
 
+
       - name: Publish Link To Action Run
         uses: actions/github-script@v6
         with:
@@ -135,6 +176,7 @@ jobs:
               body: `Click [here](${await getJobUrl()}) to check the status of your benchmark.`
             });
         
+
       - name: Run
         run: |
           nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
@@ -143,6 +185,7 @@ jobs:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
+
 
       - name: Publish Results
         uses: actions/github-script@v6
