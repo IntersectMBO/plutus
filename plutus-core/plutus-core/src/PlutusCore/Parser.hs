@@ -69,7 +69,7 @@ errorTerm = inParens $ Error <$> wordPos "error" <*> pType
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = choice $ map try
+term = whitespace >> (choice $ map try
     [ tyAbsTerm
     , lamTerm
     , appTerm
@@ -80,7 +80,7 @@ term = choice $ map try
     , iwrapTerm
     , errorTerm
     , varTerm
-    ]
+    ])
 
 -- | Parse a PLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes

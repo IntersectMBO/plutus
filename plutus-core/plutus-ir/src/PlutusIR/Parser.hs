@@ -120,7 +120,7 @@ term' other = choice $ map try [
     where self = term' other
 
 pTerm :: Parser PTerm
-pTerm = term' letTerm
+pTerm = whitespace >> term' letTerm
 
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code

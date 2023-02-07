@@ -62,7 +62,7 @@ errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = choice $ map try [
+term = whitespace >> (choice $ map try [
     conTerm
     , builtinTerm
     , varTerm
@@ -71,7 +71,7 @@ term = choice $ map try [
     , delayTerm
     , forceTerm
     , errorTerm
-    ]
+    ])
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
