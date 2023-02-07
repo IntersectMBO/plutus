@@ -17,9 +17,9 @@ jobs:
       pull-requests: write
   
     if: | 
-      startsWith(github.event.comment.body, '/benchmark') && 
-      github.event.issue.pull_request || 
-      github.event_name == 'workflow_dispatch'
+      ( startsWith(github.event.comment.body, '/benchmark') && 
+        github.event.issue.pull_request 
+      ) || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout
@@ -52,7 +52,6 @@ jobs:
 
       - name: React with Rocket 
         uses: actions/github-script@v6
-        if: steps.detect-event.outputs.is_comment
         with:
           script: |
             async function reactWithRocket() {
