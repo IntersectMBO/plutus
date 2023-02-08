@@ -99,7 +99,7 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Executable.Parsers #-}
 {-# FOREIGN GHC import Opts #-}
 
-postulate 
+postulate
    Format : Set
    Input : Set
 
@@ -138,7 +138,7 @@ postulate
   convPU : ProgramU → U.Untyped
   convTmU : TermU → U.Untyped
   unconvTmU : U.Untyped → TermU
-  
+
 
 {-# FOREIGN GHC import PlutusCore.Name #-}
 {-# FOREIGN GHC import PlutusCore.Parser #-}
@@ -164,7 +164,7 @@ postulate
 {-# COMPILE GHC parseU = getProgram #-}
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType #-}
-{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
+{-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm' #-}
 {-# COMPILE GHC deBruijnify = \ (Program ann ver tm) -> second (void . Program ann ver) . runExcept $ deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
@@ -262,8 +262,8 @@ reportError (runtimeError userError)        = "userError"
 reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 
 
-{- check if the term is an error term, and in that case 
-  return an ERROR. 
+{- check if the term is an error term, and in that case
+  return an ERROR.
   This is used when evaluation of the reduction semantics has ended
 -}
 checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
@@ -551,12 +551,12 @@ postulate showU : TermU -> String
 -- Note that according to the specification ◆ should reduce to an error term,
 -- but here the untyped PLC term evaluator
 -- matches the behaviour of the Haskell implementation:
--- an error is thrown with ◆. 
+-- an error is thrown with ◆.
 runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where      
+    where
     ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
     _ → inj₁ (runtimeError gasError)
   return (unconvTmU (U.extricateU0 (U.discharge V)))

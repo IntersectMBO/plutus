@@ -9,6 +9,7 @@ module Generators where
 import PlutusPrelude (display, fold, on, void)
 
 import PlutusCore (Name, _nameText)
+import PlutusCore.Annotation
 import PlutusCore.Compiler.Erase (eraseProgram)
 import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
 import PlutusCore.Error (ParserErrorBundle)
@@ -20,7 +21,7 @@ import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
 import UntypedPlutusCore.Core.Type (Program (Program),
                                     Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var))
-import UntypedPlutusCore.Parser (SourcePos, parseProgram, parseTerm)
+import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -76,7 +77,7 @@ propParser = testPropertyNamed "Parser" "parser" $ property $ do
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg
-            :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
+            :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SrcSpan)
         parseProg = runQuoteT . parseProgram
 
 propUnit :: TestTree

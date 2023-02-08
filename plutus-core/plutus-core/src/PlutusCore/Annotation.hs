@@ -76,6 +76,8 @@ data SrcSpan = SrcSpan
     , srcSpanSCol  :: Int
     , srcSpanELine :: Int
     , srcSpanECol  :: Int
+    -- ^ The ending column is one more than the column of the last character (same as
+    -- GHC's @SrcSpan@).
     }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Flat)

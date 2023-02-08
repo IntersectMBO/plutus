@@ -81,7 +81,9 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                 _                 -> Nothing
             pure HighlightSpan
                 { _hcSLoc = B.Location (srcSpanSLine uplcSpan, srcSpanSCol uplcSpan),
-                  _hcELoc = Just $ B.Location (srcSpanELine uplcSpan, srcSpanECol uplcSpan)
+                  -- The ending column of a `SrcSpan` is one more than the column of the last
+                  -- character (same as GHC's `SrcSpan`), hence the `- 1`.
+                  _hcELoc = Just $ B.Location (srcSpanELine uplcSpan, srcSpanECol uplcSpan - 1)
                 }
     modify' $ \st -> case cekState of
         Computing{} ->

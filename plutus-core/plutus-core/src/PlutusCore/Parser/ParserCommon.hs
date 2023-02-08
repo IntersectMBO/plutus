@@ -6,16 +6,16 @@
 
 module PlutusCore.Parser.ParserCommon where
 
+import Control.Monad.Except
+import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
-import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
-import Control.Monad.Except
-import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
+import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
@@ -77,17 +77,37 @@ whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNe
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
+-- | Like `lexeme`, but captures the ending position before consuming trailing whitespaces.
+-- The other ticked functions below are similar.
+--
+-- TODO: these ticked functions should replace the original ones once PIR and TPLC parsers
+-- are migrated to `SrcSpan`.
+lexeme' :: Parser a -> Parser (a, SourcePos)
+lexeme' p = (,) <$> p <*> (getSourcePos <* whitespace)
+
 symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
+
+between' :: Parser open -> Parser close -> Parser a -> Parser (a, SourcePos)
+between' po pc p = (,) <$> (po *> p <* pc) <*> (getSourcePos <* whitespace)
 
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
+inParens' :: Parser a -> Parser (a, SourcePos)
+inParens' = between' (symbol "(") (char ')')
+
 inBrackets :: Parser a -> Parser a
 inBrackets = between (symbol "[") (symbol "]")
 
-inBraces :: Parser a-> Parser a
+inBrackets' :: Parser a -> Parser (a, SourcePos)
+inBrackets' = between' (symbol "[") (char ']')
+
+inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (symbol "}")
+
+inBraces' :: Parser a -> Parser (a, SourcePos)
+inBraces' = between' (symbol "{") (char '}')
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
@@ -99,6 +119,24 @@ wordPos ::
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
+-- | Given a `Parser` that captures the ending position, supply the starting position
+-- to make it a `SrcSpan`.
+withSpan :: (SrcSpan -> a -> b) -> Parser (a, SourcePos) -> Parser b
+withSpan f p = do
+    start <- getSourcePos
+    (a, end) <- p
+    pure $ f (toSrcSpan start end) a
+
+toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
+toSrcSpan start end =
+    SrcSpan
+        { srcSpanFile = sourceName start
+        , srcSpanSLine = unPos (sourceLine start)
+        , srcSpanSCol = unPos (sourceColumn start)
+        , srcSpanELine = unPos (sourceLine end)
+        , srcSpanECol = unPos (sourceColumn end)
+        }
+
 version :: Parser (Version SourcePos)
 version = lexeme $ do
     p <- getSourcePos
@@ -108,8 +146,23 @@ version = lexeme $ do
     void $ char '.'
     Version p x y <$> Lex.decimal
 
+version' :: Parser (Version SourcePos, SourcePos)
+version' = lexeme' $ do
+    p <- getSourcePos
+    x <- Lex.decimal
+    void $ char '.'
+    y <- Lex.decimal
+    void $ char '.'
+    Version p x y <$> Lex.decimal
+
 name :: Parser Name
 name = lexeme $ try $ do
+    void $ lookAhead letterChar
+    str <- takeWhileP (Just "identifier") isIdentifierChar
+    Name str <$> intern str
+
+name' :: Parser (Name, SourcePos)
+name' = lexeme' $ try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str
