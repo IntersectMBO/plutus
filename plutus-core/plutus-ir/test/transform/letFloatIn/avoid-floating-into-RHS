@@ -15,11 +15,8 @@
     (vardecl x (con integer))
     [ [ addInteger (con integer 1) ] (con integer 2) ]
   )
-  (termbind
-    (strict)
-    (vardecl f (fun (con integer) (con integer)))
-    (lam y (con integer) [ [ addInteger y ] x ])
-  )
-  [ [ addInteger [ f (con integer 1) ] ] [ f (con integer 2) ] ]
+  (termbind (nonstrict) (vardecl y (con integer)) [ [ addInteger x ] x ])
+  [ [ addInteger y ] y ]
 )
--- Similar to -1, except the RHS (of `f`) is a lambda abstraction.
+-- `x` should not be floated into the RHS of `y`, since `y` is a non-strict
+-- binding that is used twice.

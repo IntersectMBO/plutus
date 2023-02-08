@@ -16,14 +16,17 @@
     )
   )
   (termbind
-    (nonstrict)
-    (vardecl x (con integer))
-    [ [ addInteger (con integer 1) ] (con integer 2) ]
-  )
-  (termbind
     (strict)
     (vardecl f (fun (con integer) (con integer)))
-    (lam y (con integer) [ [ addInteger y ] (con integer 3) ])
+    (let
+      (nonrec)
+      (termbind
+        (nonstrict)
+        (vardecl x (con integer))
+        [ [ addInteger (con integer 1) ] (con integer 2) ]
+      )
+      (lam y (con integer) [ [ addInteger y ] x ])
+    )
   )
-  [ [ addInteger [ f x ] ] [ f x ] ]
+  [ [ addInteger [ f (con integer 1) ] ] [ f (con integer 2) ] ]
 )

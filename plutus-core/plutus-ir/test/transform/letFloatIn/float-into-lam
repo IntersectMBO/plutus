@@ -17,4 +17,4 @@
   )
   (lam x (con integer) [ [ addInteger [ [ addInteger y ] x ] ] y ])
 )
--- `y` should be float into the lambda.
+-- `y` should be float into the lambda, since the lambda is not on the RHS of a binding.

@@ -10,7 +10,6 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
-
 module Budget.Spec where
 
 import Test.Tasty.Extras

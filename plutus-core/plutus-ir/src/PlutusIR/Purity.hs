@@ -3,7 +3,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 
-module PlutusIR.Purity (isPure, firstEffectfulTerm) where
+module PlutusIR.Purity
+    ( isPure
+    , firstEffectfulTerm
+    , asBuiltinApp
+    , isSaturated
+    , BuiltinApp (..)
+    , Arg (..)
+    ) where
 
 import PlutusIR
 

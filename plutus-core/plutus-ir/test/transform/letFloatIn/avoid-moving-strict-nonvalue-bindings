@@ -11,14 +11,10 @@
     (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
   )
   (termbind
-    (nonstrict)
-    (vardecl x (con integer))
+    (strict)
+    (vardecl y (con integer))
     [ [ addInteger (con integer 1) ] (con integer 2) ]
   )
-  (termbind
-    (strict)
-    (vardecl f (fun (con integer) (con integer)))
-    (lam y (con integer) [ [ addInteger y ] x ])
-  )
-  [ [ addInteger [ f (con integer 1) ] ] [ f (con integer 2) ] ]
+  (lam x (con integer) [ [ addInteger [ [ addInteger y ] x ] ] y ])
 )
+-- `y` should not be moved since it is strict and isn't a value

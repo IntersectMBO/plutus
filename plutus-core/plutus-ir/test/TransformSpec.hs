@@ -113,13 +113,14 @@ letFloatIn :: TestNested
 letFloatIn =
     testNested "letFloatIn"
     $ map (goldenPirM goldenFloatTC pTerm)
-  [ "avoid-floating-into-RHSs-1"
-  , "avoid-floating-into-RHSs-2"
-  , "avoid-moving-strict-nonpure-bindings"
+  [ "avoid-floating-into-lam"
+  , "avoid-floating-into-RHS"
+  , "avoid-moving-strict-nonvalue-bindings"
   , "cannot-float-into-app"
   , "float-into-fun-and-arg-1"
   , "float-into-fun-and-arg-2"
   , "float-into-lam"
+  , "float-into-RHS"
   , "float-into-tylam"
   ]
  where

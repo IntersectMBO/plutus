@@ -5,14 +5,13 @@
     [
       [
         [
-          (lam
-            appendByteString_i0
+          (lam appendByteString_i0 (force appendByteString_i1))
+          (delay
             [
-              (lam appendByteString_i0 (force appendByteString_i1))
-              (delay appendByteString_i1)
+              (lam appendByteString_i0 appendByteString_i1)
+              (builtin appendByteString)
             ]
           )
-          (builtin appendByteString)
         ]
         (con bytestring #68656c6c6f)
       ]

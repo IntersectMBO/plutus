@@ -40,6 +40,7 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fforce-recomp
 
 flag use-ghc-stub
   description: Use the `plutus-ghc-stub` package instead of `ghc`.

@@ -1,46 +1,64 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-{- | Float bindings inwards.
-
-This usually reduces the evaluation cost of the program, but can sometimes lead to
-increased cost. However, the latter is uncommon and the additional cost is almost
-always small compared to the total cost.
--}
+-- | Float bindings inwards.
 module PlutusIR.Transform.LetFloatIn (floatTerm) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 import PlutusIR
-import PlutusIR.Purity (isPure)
+import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
 
 import Control.Lens hiding (Strict)
-import Control.Monad ((<=<))
+import Control.Monad.Extra (ifM)
+import Control.Monad.Trans.Reader
+import Data.Foldable (foldrM)
+import Data.List.Extra qualified as List
+import Data.List.NonEmpty.Extra (NonEmpty (..))
+import Data.List.NonEmpty.Extra qualified as NonEmpty
 import Data.Set (Set)
 import Data.Set qualified as Set
 
-{- Note [Which bindings can be floated inwards?]
+{- Note [Float-in]
 
-Moving a lazy binding obviously doesn't change the semantics of the program, since the RHS of
-a lazy binding is always evaluated whenever needed, and only evaluated when needed, regardless
-of where the binding is placed. Lazy bindings therefore can be floated inwards.
+-------------------------------------------------------------------------------
+1. Which bindings can be floated in?
+-------------------------------------------------------------------------------
 
-Why, one might ask, does floating lazy bindings inwards save cost, if the RHS is always
-evaluated the same number of times? Because when we move a lazy binding `let x (nonstrict) = rhs`,
-what we are really moving around is `delay rhs` and lambda applications, and neither
-`delay rhs` nor lambda application is free - they incur additional `Delay`, `LamAbs`
-and `Apply` steps in the CEK machine. Thus cost can be saved by floating bindings into
-unevaluated branches.
+Strict bindings whose RHSs are impure should never be moved, since they can change the
+semantics of the program. We can only move non-strict bindings or strict bindings
+whose RHSs are pure.
 
-The same applies to strict bindings, because `let x (nonstrict) = rhs` is really nothing
-but `let x (strict) = forall a. rhs`.
+We also need to be very careful about moving a strict binding whose RHS is not a value
+(though pure). Consider a strict binding whose RHS is a pure, expensive application. If we
+move it into, e.g., a lambda, its RHS may end up being evaluated more times. Although this
+doesn't change the semantics of the program, it can make it much more expensive. For
+simplicity, we do not move such bindings either.
 
-Here's a concrete example:
+In the rest of this Note, we may simply use "binding" to refer to either a non-strict
+binding, or a strict binding whose RHS is a value. Usually there's no need to distinguish
+between these two, since `let x (nonstrict) = rhs` is essentially equivalent to
+`let x (strict) = all a rhs`.
+
+-------------------------------------------------------------------------------
+2. The effect of floating in
+-------------------------------------------------------------------------------
+
+If we only float in bindings that are either non-strict, or whose RHSs is a value, then
+why does that make a difference? Because such bindings are not completely free: when we
+move a non-strict binding `let x (nonstrict) = rhs`, what we are really moving around is
+`delay rhs`, lambda abstractions and lambda applications. None of them is free because
+they incur CEK machine costs.
+
+Here's a concrete example where floating a non-strict binding inwards saves cost:
 
 let a (nonstrict) = rhs in if True then t else ..a..
 
@@ -56,108 +74,66 @@ Since the `else` branch is not taken, the former incurs additional `LamAbs`, `Ap
 and `Delay` steps when evaluated by the CEK machine. Note that `rhs` itself is
 evaluated the same number of times (i.e., zero time) in both cases.
 
-We are using pseudo-UPLC here for better readibility. In the actual UPLC, if-then-else
-is compiled into Scott-encoded Booleans (basically a bunch of lambdas), but the same
-reasoning remains.
+And floating a binding inwards can also increases cost. Here's an example:
 
-Moving a strict binding can change the semantics of the program. For example, if `rhs`
-evaluates to bottom, then
+let a (nonstrict) = rhs in let b (nonstrict) = a in b+b
 
-let a (strict) = rhs in if True then t else ..a..
+Because `b` is non-strict and occurs twice in the body, floating the definition of `a` into
+the RHS of `b` will incur one more of each of these steps: `Delay`, `LamAbs` and `Apply`.
 
-evaluates to bottom, since `rhs` is evaluated immediately. But if we float `rhs` into
-the `else` branch, then `rhs` is no longer evaluated. Therefore we only move a strict
-binding if its RHS is guaranteed to be effect-free.
+-------------------------------------------------------------------------------
+3. When can floating-in increase costs?
+-------------------------------------------------------------------------------
 
-Furthermore, moving a strict binding is much more likely to increase the cost of the
-program. Floating a strict binding into the RHS of another binding, or into the
-argument of an application, can cause its RHS to be evaluated multiple times.
-See Note [Where can a binding be floated into?] for examples. We therefore only move
-strict bindings whose RHS is trivial to evaluated (such as a variable or a
-lambda abstraction). Since being trivial to evaluate implies being effect-free, we
-only need to check the former.
--}
+Floating-in a binding can increase cost only if the binding is originally outside of `X`,
+and is floated into `X`, and `X` satisfies both of the following conditions:
 
-{- Note [Where can a binding be floated into?]
+(1) `X` is a lambda abstraction, a type abstraction, or the RHS of a non-strict binding
+(recall that the RHS of a non-strict binding is equivalent to a type abstraction).
 
-TL;DR: Floating a binding into the RHS of another binding, the argument of an application,
-or a (term or type) lambda abstraction, can all lead to increased costs, even if
-we only float lazy bindings, and strict bindings that are trivial to evaluate.
+(2) `X` is in the RHS of a (either strict or non-strict) binding whose LHS is used more than once.
 
-The reason for the cost increase is the same as why floating bindings inwards can
-save cost: when we are moving a bind `let x (nonstrict) = rhs`, what is really
-being moved around is `delay rhs` and lambda applications, which are not free.
+Note the "only if" - the above are the necessary conditions, but not sufficient. Also note
+that this is in the context of the float-in pass itself. Floating a binding in /can/ affect
+ther subsequent optimizations in a negative way (e.g., inlining).
 
-We choose to avoid floating bindings into the RHS of another binding. By doing so,
-floating bindings into lambda abstractions can no longer increase costs. On the other
-hand, we _do_ float bindings into arguments of applications. This may lead to increased
-costs, but when it occurs, the increase is almost always small compared to the total
-cost of the program.
+-------------------------------------------------------------------------------
+4. Implementation of the float-in pass
+-------------------------------------------------------------------------------
 
-Next we explain the above statements in details.
+This float-in pass is a conservative optimization which tries to avoid increasing costs.
+The implementation recurses into the top-level `Term` using the following context type:
 
-==== Floating a binding into the RHS of another binding ====
+data FloatInContext = FloatInContext
+    { _ctxtInManyOccRhs :: Bool
+    , _ctxtUsages       :: Usages.Usages
+    }
 
-Here's an example where floating a binding into the RHS of another binding leads to
-increased cost due to the CEK machine taking more steps to evaluate the program:
+`ctxtUsages` is the usage counts of variables, and `ctxtInManyOccRhs` is initially `False`.
+`ctxtInManyOccRhs` is set to `True` if we descend into:
 
-let x (nonstrict) = rhs_x
- in let y = x+x in y+y
+(1) The RHS of a binding whose LHS is used more than once
+(2) The argument of an application, unless the function is a LamAbs whose bound variable
+is used at most once, or a Builtin.
 
-Without floating, it is compiled into
+The value of `ctxtInManyOccRhs` is used as follows:
 
-[(\x -> [(\y -> y+y) (delay (x+x))] (delay rhs_x)]
+(1) When `ctxtInManyOccRhs = False`, we avoid descending into the RHS of a non-strict binding
+whose LHS is used more than once, and we descend in all other cases;
+(2) When `ctxtInManyOccRhs = True`, we additionally avoid descending into `LamAbs` or `TyAbs`.
 
-and evaluating this program involves two `Delay` steps, one for each `delay`.
-
-If we float `x` into the RHS of `y`, it will be compiled into
-
-[(\y -> y+y) (delay [(\x -> x+x) (delay rhs_x)])]
-
-and evaluating this program involves three `Delay` steps, one for the first `delay` and
-two for the second `delay`. Note that the second `delay` is inside the first `delay`.
-
-Again we are using pseudo-UPLC here for better readability, e.g., we omitted such things
-as `force`. The number of `Force` steps are the same with or without floating in,
-which follows from the fact that `rhs_x` is always evaluated the same number of times
-however we do the floating.
-
-==== Floating a binding into the argument of an application ====
-
-Since floating a binding into the RHS of another binding can lead to increased costs,
-it follows that floating a binding into the argument of an application can as well,
-because `let x (nonstrict) = rhs in body` is the same as `(\x -> force body) (delay rhs)`,
-and `let x (strict) = rhs in body` is the same as `(\x -> body) rhs`.
-
-However, we _do_ float bindings into arguments due to the following considerations:
-
-  - Due to transformations done by GHC, it is unlikely that the plugin gets expressions
-    like `(\x -> body) rhs`. Much more often, it is something like
-    `let fun = \x -> body in let arg = rhs in fun arg`.
-  - Test results show that not floating bindings into arguments negates almost all
-    benefits of floating bindings inwards.
-  - The additional cost is almost always small compared to the total cost. As explained
-    above, the additional cost is caused by moving `delay rhs` (in the case of lazy bindings)
-    and lambda applications around. Intuitively, Although these are not free, they are
-    almost always much cheaper than the cost of "doing the real work".
-
-==== Floating a binding into a (term or type) lambda abstraction ====
-
-It is easy to see that floating a binding into a lambda abstraction can increase cost,
-if the lambda abstraction is applied multiple times. This is also the reason why
-GHC avoids floating bindings into lambda abstractions. But note that if a lambda
-abstraction is applied multiple times, it can only be because it is in the RHS of
-a binding. Since we already avoid floating a binding into the RHS of another binding,
-we do not need to treat lambda abstractions specially, i.e., we can safely float
-bindings into lambda abstractions.
-
-It is also worth mentioning that in GHC Core, lazy bindings are thunks, which are
-evaluated at most once. Therefore, for GHC, floating bindings into lambda abstractions
-can lead to unbounded cost increases, since the RHS itself, which can be arbitrarily
-expensive, can be evaluated more times. This is not the case for PIR.
 -}
 
 type Uniques = Set PLC.TermUnique
+
+data FloatInContext = FloatInContext
+    { _ctxtInManyOccRhs :: Bool
+    -- ^ Whether we are in the RHS of a binding whose LHS is used more than once.
+    -- See Note [Float-in] #4
+    , _ctxtUsages       :: Usages.Usages
+    }
+
+makeLenses ''FloatInContext
 
 -- | Float bindings in the given `Term` inwards.
 floatTerm ::
@@ -170,61 +146,71 @@ floatTerm ::
     PLC.BuiltinVersion fun ->
     Term tyname name uni fun a ->
     m (Term tyname name uni fun a)
-floatTerm ver = pure . fmap fst . go <=< PLC.rename
+floatTerm ver t0 = do
+    t1 <- PLC.rename t0
+    pure . fmap fst $ floatTermInner (Usages.termUsages t1) t1
   where
-    -- \| Float bindings in the given `Term` inwards, and calculate the set of
-    -- variable `Unique`s in the result `Term`.
-    go ::
+    floatTermInner ::
+        Usages.Usages ->
         Term tyname name uni fun a ->
         Term tyname name uni fun (a, Uniques)
-    go t = case t of
-        Apply a fun0 arg0 ->
-            let fun = go fun0
-                arg = go arg0
-                us = termUniqs fun `Set.union` termUniqs arg
-             in Apply (a, us) fun arg
-        LamAbs a n ty body0 ->
-            let body = go body0
-             in LamAbs (a, termUniqs body) n (noUniq ty) body
-        TyAbs a n k body0 ->
-            let body = go body0
-             in TyAbs (a, termUniqs body) n (noUniq k) body
-        TyInst a body0 ty ->
-            let body = go body0
-             in TyInst (a, termUniqs body) body (noUniq ty)
-        IWrap a ty1 ty2 body0 ->
-            let body = go body0
-             in IWrap (a, termUniqs body) (noUniq ty1) (noUniq ty2) body
-        Unwrap a body0 ->
-            let body = go body0
-             in Unwrap (a, termUniqs body) body
-        Let a NonRec bs0 body0 ->
-            let bs = goBinding <$> bs0
-                body = go body0
-             in -- The bindings in `bs` should be processed from right to left, since
-                -- a binding may depend on another binding to its left.
-                foldr (floatInBinding ver a) body bs
-        Let a Rec bs0 body0 ->
-            -- Currently we don't move recursive bindings, so we simply descend into the body.
-            let bs = goBinding <$> bs0
-                body = go body0
-                us = Set.union (termUniqs body) (foldMap bindingUniqs bs)
-             in Let (a, us) Rec bs body
-        Var a n -> Var (a, Set.singleton (n ^. PLC.unique)) n
-        Constant{} -> (,mempty) <$> t
-        Builtin{} -> (,mempty) <$> t
-        Error{} -> (,mempty) <$> t
+    floatTermInner usgs = go
+      where
+        -- \| Float bindings in the given `Term` inwards, and calculate the set of
+        -- variable `Unique`s in the result `Term`.
+        go ::
+            Term tyname name uni fun a ->
+            Term tyname name uni fun (a, Uniques)
+        go t = case t of
+            Apply a fun0 arg0 ->
+                let fun = go fun0
+                    arg = go arg0
+                    us = termUniqs fun `Set.union` termUniqs arg
+                 in Apply (a, us) fun arg
+            LamAbs a n ty body0 ->
+                let body = go body0
+                 in LamAbs (a, termUniqs body) n (noUniq ty) body
+            TyAbs a n k body0 ->
+                let body = go body0
+                 in TyAbs (a, termUniqs body) n (noUniq k) body
+            TyInst a body0 ty ->
+                let body = go body0
+                 in TyInst (a, termUniqs body) body (noUniq ty)
+            IWrap a ty1 ty2 body0 ->
+                let body = go body0
+                 in IWrap (a, termUniqs body) (noUniq ty1) (noUniq ty2) body
+            Unwrap a body0 ->
+                let body = go body0
+                 in Unwrap (a, termUniqs body) body
+            Let a NonRec bs0 body0 ->
+                let bs = goBinding <$> bs0
+                    body = go body0
+                 in -- The bindings in `bs` should be processed from right to left, since
+                    -- a binding may depend on another binding to its left.
+                    runReader
+                        (foldrM (floatInBinding ver a) body bs)
+                        (FloatInContext False usgs)
+            Let a Rec bs0 body0 ->
+                -- Currently we don't move recursive bindings, so we simply descend into the body.
+                let bs = goBinding <$> bs0
+                    body = go body0
+                    us = Set.union (termUniqs body) (foldMap bindingUniqs bs)
+                 in Let (a, us) Rec bs body
+            Var a n -> Var (a, Set.singleton (n ^. PLC.unique)) n
+            Constant{} -> (,mempty) <$> t
+            Builtin{} -> (,mempty) <$> t
+            Error{} -> (,mempty) <$> t
 
-    -- \| Float bindings in the given `Binding` inwards, and calculate the set of
-    -- variable `Unique`s in the result `Binding`.
-    goBinding ::
-        Binding tyname name uni fun a ->
-        Binding tyname name uni fun (a, Uniques)
-    goBinding = \case
-        TermBind a s var rhs ->
-            let rhs' = go rhs
-             in TermBind (a, termUniqs rhs') s (noUniq var) rhs'
-        other -> noUniq other
+        -- \| Float bindings in the given `Binding` inwards, and calculate the set of
+        -- variable `Unique`s in the result `Binding`.
+        goBinding ::
+            Binding tyname name uni fun a ->
+            Binding tyname name uni fun (a, Uniques)
+        goBinding = \case
+            TermBind a s var rhs ->
+                let rhs' = go rhs
+                 in TermBind (a, termUniqs rhs') s (noUniq var) rhs'
+            other -> noUniq other
 
 termUniqs :: Term tyname name uni fun (a, Uniques) -> Uniques
 termUniqs = snd . termAnn
@@ -241,18 +227,36 @@ bindingUniqs b = Set.union (snd (bindingAnn b)) $ case b of
 noUniq :: Functor f => f a -> f (a, Uniques)
 noUniq = fmap (,mempty)
 
--- See Note [Which bindings can be floated inwards?]
+-- See Note [Float-in] #1
 floatable ::
     PLC.ToBuiltinMeaning uni fun =>
     PLC.BuiltinVersion fun ->
     Binding tyname name uni fun a ->
     Bool
 floatable ver = \case
-    TermBind _a Strict _var rhs     -> isPure ver (const NonStrict) rhs
+    TermBind _a Strict _var rhs     -> isValue ver rhs
     TermBind _a NonStrict _var _rhs -> True
     -- We currently don't move type and datatype bindings.
     TypeBind{}                      -> False
     DatatypeBind{}                  -> False
+
+{- | Whether a given `Term` is a value, i.e., evaluating it is essentially work-free.
+
+ See Note [Float-in] #1
+-}
+isValue ::
+    PLC.ToBuiltinMeaning uni fun => PLC.BuiltinVersion fun -> Term tyname name uni fun a -> Bool
+isValue ver = go
+  where
+    go = \case
+        LamAbs{} -> True
+        TyAbs{} -> True
+        Constant{} -> True
+        x
+            | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
+                maybe False not (isSaturated ver bapp)
+                    && all (\case TermArg arg -> go arg; TypeArg _ -> True) args
+        _ -> False
 
 {- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
  placed somewhere inside the `Term`.
@@ -270,60 +274,133 @@ floatInBinding ::
     a ->
     Binding tyname name uni fun (a, Uniques) ->
     Term tyname name uni fun (a, Uniques) ->
-    Term tyname name uni fun (a, Uniques)
+    Reader FloatInContext (Term tyname name uni fun (a, Uniques))
 floatInBinding ver letAnn = \b ->
     if floatable ver b
         then go b
         else \body ->
             let us = Set.union (termUniqs body) (bindingUniqs b)
-             in Let (letAnn, us) NonRec (pure b) body
+             in pure $ Let (letAnn, us) NonRec (pure b) body
   where
     go ::
         Binding tyname name uni fun (a, Uniques) ->
         Term tyname name uni fun (a, Uniques) ->
-        Term tyname name uni fun (a, Uniques)
+        Reader FloatInContext (Term tyname name uni fun (a, Uniques))
     go b !body = case b of
         TermBind (_, usBind) _s var _rhs -> case body of
             Apply (a, usBody) fun arg
-                | (var ^. PLC.unique) `Set.notMember` termUniqs fun ->
+                | (var ^. PLC.unique) `Set.notMember` termUniqs fun -> do
                     -- `fun` does not mention `var`, so we can place the binding inside `arg`.
-                    -- See Note [Where can a binding be floated into?].
-                    Apply (a, Set.union usBind usBody) fun (go b arg)
+                    -- See Note [Float-in] #3
+                    usgs <- asks _ctxtUsages
+                    let inManyOccRhs = case fun of
+                            LamAbs _ name _ _ ->
+                                Usages.getUsageCount name usgs > 1
+                            Builtin{} -> False
+                            _ -> True
+                    Apply (a, Set.union usBind usBody) fun
+                        <$> local (over ctxtInManyOccRhs (|| inManyOccRhs)) (go b arg)
                 | (var ^. PLC.unique) `Set.notMember` termUniqs arg ->
                     -- `arg` does not mention `var`, so we can place the binding inside `fun`.
-                    Apply (a, Set.union usBind usBody) (go b fun) arg
+                    Apply (a, Set.union usBind usBody) <$> go b fun <*> pure arg
             LamAbs (a, usBody) n ty lamAbsBody ->
-                -- A lazy binding, or a strict binding whose RHS is pure, can always
-                -- be placed inside a `LamAbs`.
-                -- See Note [Where can a binding be floated into?].
-                LamAbs (a, Set.union usBind usBody) n ty (go b lamAbsBody)
+                -- We float into lambdas only if `_ctxtInManyOccRhs = False`.
+                -- See Note [Float-in] #3
+                ifM
+                    (asks _ctxtInManyOccRhs)
+                    giveup
+                    (LamAbs (a, Set.union usBind usBody) n ty <$> go b lamAbsBody)
             TyAbs (a, usBody) n k tyAbsBody ->
-                -- A lazy binding, or a strict binding whose RHS is pure, can always
-                -- be placed inside a `TyAbs`.
-                -- See Note [Where can a binding be floated into?].
-                TyAbs (a, Set.union usBind usBody) n k (go b tyAbsBody)
+                -- We float into type abstractions only if `_ctxtInManyOccRhs = False`.
+                -- See Note [Float-in] #3
+                ifM
+                    (asks _ctxtInManyOccRhs)
+                    giveup
+                    (TyAbs (a, Set.union usBind usBody) n k <$> go b tyAbsBody)
             TyInst (a, usBody) tyInstBody ty ->
                 -- A term binding can always be placed inside the body a `TyInst` because the
                 -- type cannot mention the bound variable
-                TyInst (a, Set.union usBind usBody) (go b tyInstBody) ty
-            Let (a, usBody) r bs letBody
+                TyInst (a, Set.union usBind usBody) <$> go b tyInstBody <*> pure ty
+            Let (a, usBody) NonRec bs letBody
                 -- The binding can be placed inside a `Let`, if the right hand sides of the
                 -- bindings of the `Let` do not mention `var`.
-                --
-                -- Note that we do *not* float the binding into one of the bindings here.
-                -- See Note [Where can a binding be floated into?]
                 | (var ^. PLC.unique) `Set.notMember` foldMap bindingUniqs bs ->
-                    Let (a, Set.union usBind usBody) r bs (go b letBody)
+                    Let (a, Set.union usBind usBody) NonRec bs <$> go b letBody
+                | (var ^. PLC.unique) `Set.notMember` termUniqs letBody -> do
+                    splitBindings (var ^. PLC.unique) (NonEmpty.toList bs) >>= \case
+                        Just
+                            ( before
+                                , TermBind (a', usBind') s' var' rhs'
+                                , after
+                                , inManyOccRhs
+                                ) -> do
+                                -- `letBody` does not mention `var`, and there is exactly one
+                                -- RHS in `bs` that mentions `var`, so we can place `b`
+                                -- inside one of the RHSs in `bs`.
+                                b'' <-
+                                    TermBind (a', Set.union usBind usBind') s' var'
+                                        <$> local
+                                            (over ctxtInManyOccRhs (|| inManyOccRhs))
+                                            (go b rhs')
+                                let bs' = NonEmpty.appendr before (b'' :| after)
+                                pure $ Let (a, Set.union usBind usBody) NonRec bs' letBody
+                        _ -> giveup
             IWrap (a, usBody) ty1 ty2 iwrapBody ->
                 -- A binding can always be placed inside an `IWrap`.
-                IWrap (a, Set.union usBind usBody) ty1 ty2 (go b iwrapBody)
+                IWrap (a, Set.union usBind usBody) ty1 ty2 <$> go b iwrapBody
             Unwrap (a, usBody) unwrapBody ->
                 -- A binding can always be placed inside an `Unwrap`.
-                Unwrap (a, Set.union usBind usBody) (go b unwrapBody)
-            _ ->
-                let us = Set.union (termUniqs body) (bindingUniqs b)
-                 in Let (letAnn, us) NonRec (pure b) body
+                Unwrap (a, Set.union usBind usBody) <$> go b unwrapBody
+            _ -> giveup
         -- TODO: implement float-in for type and datatype bindings.
-        _ ->
+        _ -> giveup
+      where
+        giveup =
             let us = Set.union (termUniqs body) (bindingUniqs b)
-             in Let (letAnn, us) NonRec (pure b) body
+             in pure $ Let (letAnn, us) NonRec (pure b) body
+
+{- | Split the given list of bindings, if possible.
+ If the input contains exactly one binding @b@ that mentions the given `PLC.TermUnique`,
+ return @Just (before_b, b, after_b)@.
+ Otherwise, return `Nothing`.
+-}
+splitBindings ::
+    PLC.HasUnique name PLC.TermUnique =>
+    PLC.TermUnique ->
+    [Binding tyname name uni fun (a, Uniques)] ->
+    Reader
+        FloatInContext
+        ( Maybe
+            ( [Binding tyname name uni fun (a, Uniques)]
+            , Binding tyname name uni fun (a, Uniques)
+            , [Binding tyname name uni fun (a, Uniques)]
+            , Bool
+            -- \^ Whether the chosen binding occurs more than once.
+            )
+        )
+splitBindings u bs = case is of
+    [(TermBind _ Strict var _, i)] -> do
+        usgs <- asks _ctxtUsages
+        pure $
+            Just
+                ( take i bs
+                , bs !! i
+                , drop (i + 1) bs
+                , Usages.getUsageCount var usgs > 1
+                )
+    [(TermBind _ NonStrict var _, i)] -> do
+        ctxt <- ask
+        pure $
+            if (ctxt ^. ctxtInManyOccRhs)
+                -- Descending into a non-strict binding whose LHS is used more than once
+                -- should be avoided, regardless of `ctxtInManyOccRhs`.
+                -- See Note [Float-in] #3
+                || Usages.getUsageCount var (ctxt ^. ctxtUsages) > 1
+                then Nothing
+                else Just (take i bs, bs !! i, drop (i + 1) bs, True)
+    _ -> pure Nothing
+  where
+    is = List.filter containsUniq (bs `zip` [0 ..])
+    containsUniq = \case
+        (TermBind _ _ _ rhs, _) -> u `Set.member` termUniqs rhs
+        _                       -> False

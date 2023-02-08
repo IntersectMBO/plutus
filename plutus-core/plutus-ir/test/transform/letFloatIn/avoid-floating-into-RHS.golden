@@ -3,12 +3,17 @@
   (termbind
     (strict)
     (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (builtin addInteger)
-  )
-  (termbind
-    (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
+        )
+        (builtin addInteger)
+      )
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    )
   )
   (termbind
     (nonstrict)
@@ -18,4 +23,3 @@
   (termbind (nonstrict) (vardecl y (con integer)) [ [ addInteger x ] x ])
   [ [ addInteger y ] y ]
 )
--- `x` should not be floated into the RHS of `y`
