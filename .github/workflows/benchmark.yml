@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       benchmark:
-        default: "nofib"
-        description: "Which benchmark to run"
+        description: 'Which benchmark to run'
         required: true 
+        type: string
 
 jobs:
   benchmark:
