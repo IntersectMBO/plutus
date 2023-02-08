@@ -13,7 +13,6 @@ module PlutusCore.Executable.Common where
 import PlutusPrelude
 
 import PlutusCore qualified as PLC
-import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Check.Uniques as PLC (checkProgram)
 import PlutusCore.Compiler.Erase qualified as PLC
@@ -62,7 +61,7 @@ import Prettyprinter ((<+>))
 import System.CPUTime (getCPUTime)
 import System.Exit (exitFailure, exitSuccess)
 import System.Mem (performGC)
-import Text.Megaparsec (errorBundlePretty, mkPos)
+import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- ProgramLike type class -----------
