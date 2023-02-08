@@ -62,16 +62,18 @@ errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = choice $ map try [
-    conTerm
-    , builtinTerm
-    , varTerm
-    , lamTerm
-    , appTerm
-    , delayTerm
-    , forceTerm
-    , errorTerm
-    ]
+term = do
+    whitespace
+    choice $ map try [
+        conTerm
+        , builtinTerm
+        , varTerm
+        , lamTerm
+        , appTerm
+        , delayTerm
+        , forceTerm
+        , errorTerm
+        ]
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
