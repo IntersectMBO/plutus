@@ -1,0 +1,45 @@
+name: Check Changelog
+on:
+  pull_request:
+jobs:
+  check-changelog:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+
+      - name: Find Changed Files in changelog.d
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: '**/changelog.d/**'
+
+      - name: Enforce New File or DISABLE_CHANGELOG_CHECK
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            function shouldCheckChangelog() {
+              const prDescription = '${{ github.event.pull_request.body }}';
+              return !prDescription.includes("DISABLE_CHANGELOG_CHECK");
+            }
+
+            function getNewChangelogFiles() {
+              return '${{ steps.changed-files.outputs.added_files }}'.trim().split(' ');
+            }
+
+            function checkChangelog() {
+              const newFiles = getNewChangelogFiles();
+              if (newFiles.length == 0) {
+                core.debug("No files were added by this PR in any of the changelog.d directories.");
+                core.debug("Either commit a new file, or add the string DISABLE_CHANGELOG_CHECK to your PR description.");
+                core.setFailure("Changelog check failed.");
+              } else {
+                core.debug(`The following changelog files were added by this PR:\n${newFiles}`);
+              }
+            }
+
+            if (shouldCheckChangelog()) {
+              checkChangelog();
+            } else {
+              core.debug("PR description contains the string DISABLE_CHANGELOG_CHECK, skipping changelog check.");
+            }
