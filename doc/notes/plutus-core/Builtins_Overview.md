@@ -134,7 +134,7 @@ the denotation has in its type `Int`[^3], `Int64`, or
 Builtin functions must take at least one argument (either a type or term).
 
 In the specification there is a distinction between variables that
-range over built-in types $v\#$ (type operators such as `list`
+range over built-in types $v$# (type operators such as `list`
 may be applied to these variables), and variables that range over
 any type $v⋆$ (such as the case of `ifThenElse`). However this
 distinction is not currently made in the implementation.
@@ -216,7 +216,7 @@ A signature is given by a typing context ϕ, a term context
 (dependent on ϕ) that describes the types and order of the arguments
 of the built-in, and a result type (of kind ⋆). Hence the allowable
 types coincide with the specification, except that it doesn't
-distinguish between variables of built-in types $v\#$ and general type
+distinguish between variables of built-in types $v$# and general type
 variables $v⋆$. In that sense, it behaves like the implementation.
 
 Signatures are defined twice, one for the algorithmic syntax and the
