@@ -146,7 +146,7 @@ jobs:
         with:
           script: | 
             async function getJobUrl() {
-              return `https://github.com/${context.issue.owner}/${context.issue.repo/actions/runs/${context.runId}`;
+              return `https://github.com/${context.issue.owner}/${context.issue.repo}/actions/runs/${context.runId}`;
             }
 
             await github.rest.issues.createComment({
