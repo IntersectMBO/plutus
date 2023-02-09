@@ -1,25 +1,12 @@
 (let
   (nonrec)
   (termbind
-    (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (let
-      (nonrec)
-      (termbind
-        (strict)
-        (vardecl
-          addInteger (fun (con integer) (fun (con integer) (con integer)))
-        )
-        (builtin addInteger)
-      )
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
-    )
-  )
-  (termbind
     (nonstrict)
     (vardecl x (con integer))
-    [ [ addInteger (con integer 1) ] (con integer 2) ]
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
   )
-  (termbind (nonstrict) (vardecl y (con integer)) [ [ addInteger x ] x ])
-  [ [ addInteger y ] y ]
+  (termbind
+    (nonstrict) (vardecl y (con integer)) [ [ (builtin addInteger) x ] x ]
+  )
+  [ [ (builtin addInteger) y ] y ]
 )
