@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecursiveDo       #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -74,40 +75,54 @@ parseGen stuff = parse stuff "test"
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
+-- | Returns a parser for @a@ by calling the supplied function on the starting
+-- and ending positions of @a@.
+--
+-- The supplied function should usually return a parser that does /not/ consume trailing
+-- whitespaces. Otherwise, the end position will be the first character after the
+-- trailing whitespaces.
+withSpan :: (SrcSpan -> Parser a) -> Parser a
+withSpan f = mdo
+  start <- getSourcePos
+  res <- f sp
+  end <- getSourcePos
+  let sp = toSrcSpan start end
+  pure res
+
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
--- | Like `lexeme`, but captures the ending position before consuming trailing whitespaces.
--- The other ticked functions below are similar.
+-- | Like `withSpan`, but the result parser consumes whitespaces.
 --
--- TODO: these ticked functions should replace the original ones once PIR and TPLC parsers
--- are migrated to `SrcSpan`.
-lexeme' :: Parser a -> Parser (a, SourcePos)
-lexeme' p = (,) <$> p <*> (getSourcePos <* whitespace)
+-- @lexemeWithSpan = lexeme . withSpan
+lexemeWithSpan :: (SrcSpan -> Parser a) -> Parser a
+lexemeWithSpan = lexeme . withSpan
 
 symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
 
-between' :: Parser open -> Parser close -> Parser a -> Parser (a, SourcePos)
-between' po pc p = (,) <$> (po *> p <* pc) <*> (getSourcePos <* whitespace)
-
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
-inParens' :: Parser a -> Parser (a, SourcePos)
-inParens' = between' (symbol "(") (char ')')
+-- | Like `inParens` but does not consume trailing whitespaces.
+-- The other ticked functions below are similar.
+--
+-- TODO: these ticked functions should replace the original ones once PIR and TPLC parsers
+-- are migrated to `SrcSpan`.
+inParens' :: Parser a -> Parser a
+inParens' = between (symbol "(") (char ')')
 
 inBrackets :: Parser a -> Parser a
 inBrackets = between (symbol "[") (symbol "]")
 
-inBrackets' :: Parser a -> Parser (a, SourcePos)
-inBrackets' = between' (symbol "[") (char ']')
+inBrackets' :: Parser a -> Parser a
+inBrackets' = between (symbol "[") (char ']')
 
 inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (symbol "}")
 
-inBraces' :: Parser a -> Parser (a, SourcePos)
-inBraces' = between' (symbol "{") (char '}')
+inBraces' :: Parser a -> Parser a
+inBraces' = between (symbol "{") (char '}')
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
@@ -118,14 +133,6 @@ wordPos ::
     -- | The word to match
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
-
--- | Given a `Parser` that captures the ending position, supply the starting position
--- to make it a `SrcSpan`.
-withSpan :: (SrcSpan -> a -> b) -> Parser (a, SourcePos) -> Parser b
-withSpan f p = do
-    start <- getSourcePos
-    (a, end) <- p
-    pure $ f (toSrcSpan start end) a
 
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
@@ -146,23 +153,16 @@ version = lexeme $ do
     void $ char '.'
     Version p x y <$> Lex.decimal
 
-version' :: Parser (Version SourcePos, SourcePos)
-version' = lexeme' $ do
-    p <- getSourcePos
+version' :: Parser (Version SrcSpan)
+version' = lexemeWithSpan $ \sp -> do
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
     void $ char '.'
-    Version p x y <$> Lex.decimal
+    Version sp x y <$> Lex.decimal
 
 name :: Parser Name
 name = lexeme $ try $ do
-    void $ lookAhead letterChar
-    str <- takeWhileP (Just "identifier") isIdentifierChar
-    Name str <$> intern str
-
-name' :: Parser (Name, SourcePos)
-name' = lexeme' $ try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str

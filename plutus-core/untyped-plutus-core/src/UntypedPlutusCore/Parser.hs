@@ -37,46 +37,36 @@ import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 conTerm :: Parser PTerm
-conTerm =
-    withSpan
-        (\sp (_, c) -> UPLC.Constant sp c)
-        (inParens' $ (,) <$> symbol "con" <*> constant)
+conTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.Constant sp <$> (symbol "con" *> constant)
 
 builtinTerm :: Parser PTerm
-builtinTerm =
-    withSpan
-        (\sp (_, fn) -> UPLC.Builtin sp fn)
-        (inParens' $ (,) <$> symbol "builtin" <*> builtinFunction)
+builtinTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
 varTerm :: Parser PTerm
-varTerm = withSpan UPLC.Var name'
+varTerm = lexemeWithSpan $ \sp ->
+    UPLC.Var sp <$> name
 
 lamTerm :: Parser PTerm
-lamTerm =
-    withSpan
-        (\sp (_, n, body) -> UPLC.LamAbs sp n body)
-        (inParens' $ (,,) <$> symbol "lam" <*> name <*> term)
+lamTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.LamAbs sp <$> (symbol "lam" *> name) <*> term
 
 appTerm :: Parser PTerm
-appTerm =
-    withSpan
-        (\sp (fun, args) -> mkIterApp sp fun args)
-        (inBrackets' $ (,) <$> term <*> some term)
+appTerm = lexemeWithSpan $ \sp ->
+    inBrackets' $ mkIterApp sp <$> term <*> some term
 
 delayTerm :: Parser PTerm
-delayTerm =
-    withSpan
-        (\sp (_, body) -> UPLC.Delay sp body)
-        (inParens' $ (,) <$> symbol "delay" <*> term)
+delayTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.Delay sp <$> (symbol "delay" *> term)
 
 forceTerm :: Parser PTerm
-forceTerm =
-    withSpan
-        (\sp (_, body) -> UPLC.Force sp body)
-        (inParens' $ (,) <$> symbol "force" <*> term)
+forceTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.Force sp <$> (symbol "force" *> term)
 
 errorTerm :: Parser PTerm
-errorTerm = withSpan (const . UPLC.Error) (inParens' $ symbol "error")
+errorTerm = lexemeWithSpan $ \sp ->
+    inParens' $ UPLC.Error sp <$ symbol "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
@@ -95,18 +85,12 @@ term = do
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
-program =
-    whitespace >>
-        withSpan
-            (\sp (_, ver, body) -> UPLC.Program sp (toSpan ver) body)
-            ( do
-                prog <- inParens' $ (,,) <$> symbol "program" <*> version' <*> term
-                notFollowedBy anySingle
-                pure prog
-            )
-    where
-        toSpan :: (UPLC.Version SourcePos, SourcePos) -> UPLC.Version SrcSpan
-        toSpan (UPLC.Version start x y z, end) = UPLC.Version (toSrcSpan start end) x y z
+program = do
+    whitespace
+    lexemeWithSpan $ \sp -> do
+        prog <- inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
+        notFollowedBy anySingle
+        pure prog
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.

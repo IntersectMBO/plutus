@@ -99,8 +99,9 @@ main = do
     uplcNoAnn <- unDeBruijnProgram uplcDebruijn
     let uplcText = PLC.displayPlcDef uplcNoAnn
     uplcParsed <-
-        either (error . show @ParserErrorBundle) pure . PLC.runQuoteT $
-            UPLC.parseProgram uplcText
+        either (error . PLC.display @_ @ParserErrorBundle) pure
+            . PLC.runQuoteT
+            $ UPLC.parseProgram uplcText
     let uplc = fmap (\sp -> DAnn sp mempty) uplcParsed
     hsText <- Text.readFile (optHsPath opts)
 
