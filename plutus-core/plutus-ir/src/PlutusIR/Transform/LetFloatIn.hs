@@ -156,7 +156,7 @@ floatTerm ver t0 = do
         Term tyname name uni fun (a, Uniques)
     floatTermInner usgs = go
       where
-        -- \| Float bindings in the given `Term` inwards, and calculate the set of
+        -- | Float bindings in the given `Term` inwards, and annotate each term with the set of
         -- variable `Unique`s in the result `Term`.
         go ::
             Term tyname name uni fun a ->
