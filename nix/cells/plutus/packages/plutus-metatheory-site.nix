@@ -5,13 +5,7 @@ let
   # that's very slow. Makes it easier to iterate on the site build.
   plutus-metatheory-agda-html = cell.library.pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
-    # Not doing this seems to lead to spurious rebuilds, I think because it
-    # depends on the store path of the flake once it is copied to the store,
-    # which will change every time regardless.
-    src = builtins.path {
-      path = inputs.self + /plutus-metatheory;
-      name = "plutus-metatheory-src";
-    };
+    src = inputs.self + /plutus-metatheory;
     buildInputs = [ cell.packages.agda-with-stdlib ];
     buildPhase = ''
       mkdir "$out"
