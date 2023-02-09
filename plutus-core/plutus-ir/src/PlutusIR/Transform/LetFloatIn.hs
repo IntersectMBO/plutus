@@ -37,14 +37,14 @@ Strict bindings whose RHSs are impure should never be moved, since they can chan
 semantics of the program. We can only move non-strict bindings or strict bindings
 whose RHSs are pure.
 
-We also need to be very careful about moving a strict binding whose RHS is not a value
+We also need to be very careful about moving a strict binding whose RHS is not a work-free
 (though pure). Consider a strict binding whose RHS is a pure, expensive application. If we
 move it into, e.g., a lambda, its RHS may end up being evaluated more times. Although this
 doesn't change the semantics of the program, it can make it much more expensive. For
 simplicity, we do not move such bindings either.
 
 In the rest of this Note, we may simply use "binding" to refer to either a non-strict
-binding, or a strict binding whose RHS is a value. Usually there's no need to distinguish
+binding, or a strict binding whose RHS is work-free. Usually there's no need to distinguish
 between these two, since `let x (nonstrict) = rhs` is essentially equivalent to
 `let x (strict) = all a rhs`.
 
@@ -52,7 +52,7 @@ between these two, since `let x (nonstrict) = rhs` is essentially equivalent to
 2. The effect of floating in
 -------------------------------------------------------------------------------
 
-If we only float in bindings that are either non-strict, or whose RHSs is a value, then
+If we only float in bindings that are either non-strict, or whose RHSs is a work-free, then
 why does that make a difference? Because such bindings are not completely free: when we
 move a non-strict binding `let x (nonstrict) = rhs`, what we are really moving around is
 `delay rhs`, lambda abstractions and lambda applications. None of them is free because
@@ -236,19 +236,19 @@ floatable ::
     Binding tyname name uni fun a ->
     Bool
 floatable ver = \case
-    TermBind _a Strict _var rhs     -> isValue ver rhs
+    TermBind _a Strict _var rhs     -> isEssentiallyWorkFree ver rhs
     TermBind _a NonStrict _var _rhs -> True
     -- We currently don't move type and datatype bindings.
     TypeBind{}                      -> False
     DatatypeBind{}                  -> False
 
-{- | Whether a given `Term` is a value, i.e., evaluating it is essentially work-free.
+{- | Whether evaluating a given `Term` is essentially work-free (barring the CEK machine overhead).
 
  See Note [Float-in] #1
 -}
-isValue ::
+isEssentiallyWorkFree ::
     PLC.ToBuiltinMeaning uni fun => PLC.BuiltinVersion fun -> Term tyname name uni fun a -> Bool
-isValue ver = go
+isEssentiallyWorkFree ver = go
   where
     go = \case
         LamAbs{} -> True
