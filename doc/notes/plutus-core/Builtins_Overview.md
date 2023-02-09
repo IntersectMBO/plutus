@@ -24,15 +24,15 @@ As a convention, the version may be left implicit. When the version is left
 implicit, the version should be clear from the context. Without the version 
 we cannot talk about a built-in's existence, type, or denotation.
 
-    * In the implementation the version is a
-      parameter of the built-in in the call to function
-      `toBuiltinMeaning`.
-    * In the specification, a set of atomic types, a
-      set of type operators, and a set of built-in functions is assumed.
-      Built-in functions are given by a name, a signature, and a
-      denotation.
-    * The current formalisation only supports one
-      fixed set of builtins.
+* In the implementation the version is a
+  parameter of the built-in in the call to function
+ `toBuiltinMeaning`.
+* In the specification, a set of atomic types, a
+  set of type operators, and a set of built-in functions is assumed.
+  Built-in functions are given by a name, a signature, and a
+  denotation.
+* The current formalisation only supports one
+  fixed set of builtins.
 
 ## Requirements
    
@@ -134,7 +134,7 @@ the denotation has in its type `Int`[^3], `Int64`, or
 Builtin functions must take at least one argument (either a type or term).
 
 In the specification there is a distinction between variables that
-range over built-in types $v\#$ (type operators such as `list`
+range over built-in types $v$# (type operators such as `list`
 may be applied to these variables), and variables that range over
 any type $v⋆$ (such as the case of `ifThenElse`). However this
 distinction is not currently made in the implementation.
@@ -216,7 +216,7 @@ A signature is given by a typing context ϕ, a term context
 (dependent on ϕ) that describes the types and order of the arguments
 of the built-in, and a result type (of kind ⋆). Hence the allowable
 types coincide with the specification, except that it doesn't
-distinguish between variables of built-in types $v\#$ and general type
+distinguish between variables of built-in types $v$# and general type
 variables $v⋆$. In that sense, it behaves like the implementation.
 
 Signatures are defined twice, one for the algorithmic syntax and the
