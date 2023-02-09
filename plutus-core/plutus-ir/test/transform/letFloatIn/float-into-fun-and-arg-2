@@ -2,24 +2,14 @@
   (nonrec)
   (termbind
     (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (builtin addInteger)
-  )
-  (termbind
-    (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
-  )
-  (termbind
-    (strict)
     (vardecl f (fun (con integer) (con integer)))
-    (lam y (con integer) [ [ addInteger y ] (con integer 3) ])
+    (lam y (con integer) [ [ (builtin addInteger) y ] (con integer 3) ])
   )
   (termbind
     (nonstrict)
     (vardecl x (con integer))
-    [ [ addInteger (con integer 1) ] (con integer 2) ]
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
   )
-  [ [ addInteger [ f x ] ] (con integer 1) ]
+  [ [ (builtin addInteger) [ f x ] ] (con integer 1) ]
 )
 -- Both `f` and `x` can be floated in.

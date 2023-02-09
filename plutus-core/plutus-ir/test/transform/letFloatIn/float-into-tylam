@@ -17,22 +17,15 @@
     )
   )
   (termbind
-    (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (lam
-      x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
-    )
-  )
-  (termbind
     (nonstrict)
     (vardecl y (con integer))
-    [ [ addInteger (con integer 1) ] (con integer 2) ]
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
   )
   (abs
     a
     (type)
     (lam
-      a a [ [ { { Tuple2 a } (con integer) } a ] [ [ addInteger y ] y ] ]
+      a a [ [ { { Tuple2 a } (con integer) } a ] [ [ (builtin addInteger) y ] y ] ]
     )
   )
 )

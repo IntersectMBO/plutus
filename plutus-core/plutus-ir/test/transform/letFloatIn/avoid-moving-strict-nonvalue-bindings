@@ -2,19 +2,9 @@
   (nonrec)
   (termbind
     (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (builtin addInteger)
-  )
-  (termbind
-    (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
-  )
-  (termbind
-    (strict)
     (vardecl y (con integer))
-    [ [ addInteger (con integer 1) ] (con integer 2) ]
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
   )
-  (lam x (con integer) [ [ addInteger [ [ addInteger y ] x ] ] y ])
+  (lam x (con integer) [ [ (builtin addInteger) [ [ (builtin addInteger) y ] x ] ] y ])
 )
 -- `y` should not be moved since it is strict and isn't a value
