@@ -75,5 +75,3 @@ EOF
 ./plutus-benchmark/bench-compare-markdown bench-base.log bench-PR.log "${BASE_BRANCH_REF:0:7}" "${PR_BRANCH_REF:0:7}"
 echo -e "</details>"
 } > bench-compare-result.log
-
-jq -Rs '.' bench-compare-result.log >bench-compare.json
