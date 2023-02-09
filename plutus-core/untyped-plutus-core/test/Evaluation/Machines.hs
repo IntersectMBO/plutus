@@ -37,6 +37,7 @@ import Prettyprinter
 import Prettyprinter.Render.Text
 import Test.Tasty
 import Test.Tasty.Extras
+import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -114,7 +115,8 @@ bunchOfIfThenElseNats =
 
 test_budget :: TestTree
 test_budget
-    = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+    = localOption (SizeCutoff 1000000)
+    . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
