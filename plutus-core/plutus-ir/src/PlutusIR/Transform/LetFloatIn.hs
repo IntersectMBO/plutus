@@ -299,6 +299,8 @@ floatInBinding ver letAnn = \b ->
                             LamAbs _ name _ _ ->
                                 Usages.getUsageCount name usgs > 1
                             Builtin{} -> False
+                            -- We need to be conservative here, this could be something 
+                            -- that computes to a function that uses its argument repeatedly.
                             _ -> True
                     Apply (a, Set.union usBind usBody) fun
                         <$> local (over ctxtInManyOccRhs (|| inManyOccRhs)) (go b arg)
