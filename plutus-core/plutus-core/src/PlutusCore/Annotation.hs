@@ -78,7 +78,7 @@ data SrcSpan = SrcSpan
     , srcSpanECol  :: Int
     -- ^ Same as GHC's @SrcSpan@, @srcSpanECol@ is usually one more than the column of
     -- the last character of the thing this @SrcSpan@ is for (unless the last character
-    -- is the link break).
+    -- is the line break).
     }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Flat)
