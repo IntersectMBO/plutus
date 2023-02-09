@@ -145,27 +145,8 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: | 
-            // https://github.com/community/community/discussions/8945
-            async function getJobId() {
-              const result = await github.rest.actions.listJobsForWorkflowRun({
-                owner: context.issue.owner,
-                repo: context.issue.repo,
-                run_id: context.runId
-              });
-              // NOTE: context.job is the job "name" in the .yml file
-              const job = result.data.jobs.find(job => job.name === context.job);
-              if (job === null) {
-                core.error(`Could not find job '${context.job}' in ${result.jobs}`);
-                core.setFailed("Could not find required job");
-              } else {
-                return job.id;
-              }
-            }
-            
             async function getJobUrl() {
-              const part1 = `https://github.com/${context.issue.owner}/${context.issue.repo}`;
-              const part2 = `actions/runs/${context.runId}/jobs/${await getJobId()}`;
-              return `${part1}/${part2}`;
+              return `https://github.com/${context.issue.owner}/${context.issue.repo/actions/runs/${context.runId}`;
             }
 
             await github.rest.issues.createComment({
