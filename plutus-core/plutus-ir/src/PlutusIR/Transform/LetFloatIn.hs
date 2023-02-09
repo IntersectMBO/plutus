@@ -201,7 +201,7 @@ floatTerm ver t0 = do
             Var a n -> Var (a, Set.singleton (n ^. PLC.unique)) n
             Constant{} -> (,mempty) <$> t
             Builtin{} -> (,mempty) <$> t
-            Error{} -> (,mempty) <$> t
+            Error{} -> noUniq t
 
         -- | Float bindings in the given `Binding` inwards, and calculate the set of
         -- variable `Unique`s in the result `Binding`.
