@@ -203,7 +203,7 @@ floatTerm ver t0 = do
             Builtin{} -> (,mempty) <$> t
             Error{} -> (,mempty) <$> t
 
-        -- \| Float bindings in the given `Binding` inwards, and calculate the set of
+        -- | Float bindings in the given `Binding` inwards, and calculate the set of
         -- variable `Unique`s in the result `Binding`.
         goBinding ::
             Binding tyname name uni fun a ->
