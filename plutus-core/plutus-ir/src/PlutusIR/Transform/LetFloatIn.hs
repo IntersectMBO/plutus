@@ -187,6 +187,8 @@ floatTerm ver t0 = do
                     body = go body0
                  in -- The bindings in `bs` should be processed from right to left, since
                     -- a binding may depend on another binding to its left.
+                    -- e.g. let x = 1; y = x in ... y ...
+                    -- we want to float y in first otherwise it will block us from floating in x
                     runReader
                         (foldrM (floatInBinding ver a) body bs)
                         (FloatInContext False usgs)
