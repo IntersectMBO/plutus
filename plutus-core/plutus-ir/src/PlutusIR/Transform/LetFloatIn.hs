@@ -330,25 +330,34 @@ floatInBinding ver letAnn = \b ->
                 -- bindings of the `Let` do not mention `var`.
                 | (var ^. PLC.unique) `Set.notMember` foldMap bindingUniqs bs ->
                     Let (a, Set.union usBind usBody) NonRec bs <$> go b letBody
-                | (var ^. PLC.unique) `Set.notMember` termUniqs letBody ->
-                    splitBindings (var ^. PLC.unique) (NonEmpty.toList bs) >>= \case
-                        Just
-                            ( before
-                                , TermBind (a', usBind') s' var' rhs'
-                                , after
-                                , inManyOccRhs
-                                ) -> do
-                                -- `letBody` does not mention `var`, and there is exactly one
-                                -- RHS in `bs` that mentions `var`, so we can place `b`
-                                -- inside one of the RHSs in `bs`.
-                                b'' <-
-                                    TermBind (a', Set.union usBind usBind') s' var'
-                                        <$> local
-                                            (over ctxtInManyOccRhs (|| inManyOccRhs))
-                                            (go b rhs')
-                                let bs' = NonEmpty.appendr before (b'' :| after)
-                                pure $ Let (a, Set.union usBind usBody) NonRec bs' letBody
-                        _ -> giveup
+                | (var ^. PLC.unique) `Set.notMember` termUniqs letBody
+                , Just (before, TermBind (a', usBind') s' var' rhs', after) <-
+                    splitBindings (var ^. PLC.unique) (NonEmpty.toList bs) -> do
+                    -- `letBody` does not mention `var`, and there is exactly one
+                    -- RHS in `bs` that mentions `var`, so we can place `b`
+                    -- inside one of the RHSs in `bs`.
+                    ctxt <- ask
+                    let usageCnt = Usages.getUsageCount var' (ctxt ^. ctxtUsages)
+                        safe = case s' of
+                            Strict -> True
+                            NonStrict ->
+                                not (ctxt ^. ctxtInManyOccRhs)
+                                    -- Descending into a non-strict binding whose LHS is used
+                                    -- more than once should be avoided, regardless of
+                                    -- `ctxtInManyOccRhs`.
+                                    -- See Note [Float-in] #3
+                                    && usageCnt <= 1
+                        inManyOccRhs = usageCnt > 1
+                    if safe
+                        then do
+                            b'' <-
+                                TermBind (a', Set.union usBind usBind') s' var'
+                                    <$> local
+                                        (over ctxtInManyOccRhs (|| inManyOccRhs))
+                                        (go b rhs')
+                            let bs' = NonEmpty.appendr before (b'' :| after)
+                            pure $ Let (a, Set.union usBind usBody) NonRec bs' letBody
+                        else giveup
             IWrap (a, usBody) ty1 ty2 iwrapBody ->
                 -- A binding can always be placed inside an `IWrap`.
                 IWrap (a, Set.union usBind usBody) ty1 ty2 <$> go b iwrapBody
@@ -369,40 +378,16 @@ floatInBinding ver letAnn = \b ->
  Otherwise, return `Nothing`.
 -}
 splitBindings ::
-    PLC.HasUnique name PLC.TermUnique =>
     PLC.TermUnique ->
     [Binding tyname name uni fun (a, Uniques)] ->
-    Reader
-        FloatInContext
-        ( Maybe
-            ( [Binding tyname name uni fun (a, Uniques)]
-            , Binding tyname name uni fun (a, Uniques)
-            , [Binding tyname name uni fun (a, Uniques)]
-            , Bool
-            -- \^ Whether the chosen binding occurs more than once.
-            )
+    Maybe
+        ( [Binding tyname name uni fun (a, Uniques)]
+        , Binding tyname name uni fun (a, Uniques)
+        , [Binding tyname name uni fun (a, Uniques)]
         )
 splitBindings u bs = case is of
-    [(TermBind _ Strict var _, i)] -> do
-        usgs <- asks _ctxtUsages
-        pure $
-            Just
-                ( take i bs
-                , bs !! i
-                , drop (i + 1) bs
-                , Usages.getUsageCount var usgs > 1
-                )
-    [(TermBind _ NonStrict var _, i)] -> do
-        ctxt <- ask
-        pure $
-            if (ctxt ^. ctxtInManyOccRhs)
-                -- Descending into a non-strict binding whose LHS is used more than once
-                -- should be avoided, regardless of `ctxtInManyOccRhs`.
-                -- See Note [Float-in] #3
-                || Usages.getUsageCount var (ctxt ^. ctxtUsages) > 1
-                then Nothing
-                else Just (take i bs, bs !! i, drop (i + 1) bs, True)
-    _ -> pure Nothing
+    [(TermBind{}, i)] -> Just (take i bs, bs !! i, drop (i + 1) bs)
+    _                 -> Nothing
   where
     is = List.filter containsUniq (bs `zip` [0 ..])
     containsUniq = \case
