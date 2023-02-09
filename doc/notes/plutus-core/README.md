@@ -9,3 +9,6 @@ This directory contains some documentation related to Plutus Core.
   * [cek-budgeting-profiling](./cek-budgeting-profiling): some profiling experiments to see how resource budgeting affects execution time
 
   * [Serialisation-flat.md](./Serialisation-flat.md): a comparison of a number of serialisation formats for Plutus Core scripts, showing that the `flat` format performs well.
+
+  * [Builtins_Overview.md](./Builtins_Overview.md): An overview of requirements and desirable properties of built-in types and functions in the implementation, specification, and formalisation.
+  
