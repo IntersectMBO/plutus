@@ -24,15 +24,15 @@ As a convention, the version may be left implicit. When the version is left
 implicit, the version should be clear from the context. Without the version 
 we cannot talk about a built-in's existence, type, or denotation.
 
-    * In the implementation the version is a
-      parameter of the built-in in the call to function
-      `toBuiltinMeaning`.
-    * In the specification, a set of atomic types, a
-      set of type operators, and a set of built-in functions is assumed.
-      Built-in functions are given by a name, a signature, and a
-      denotation.
-    * The current formalisation only supports one
-      fixed set of builtins.
+* In the implementation the version is a
+  parameter of the built-in in the call to function
+ `toBuiltinMeaning`.
+* In the specification, a set of atomic types, a
+  set of type operators, and a set of built-in functions is assumed.
+  Built-in functions are given by a name, a signature, and a
+  denotation.
+* The current formalisation only supports one
+  fixed set of builtins.
 
 ## Requirements
    
