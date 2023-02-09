@@ -299,7 +299,7 @@ floatInBinding ver letAnn = \b ->
                             LamAbs _ name _ _ ->
                                 Usages.getUsageCount name usgs > 1
                             Builtin{} -> False
-                            -- We need to be conservative here, this could be something 
+                            -- We need to be conservative here, this could be something
                             -- that computes to a function that uses its argument repeatedly.
                             _ -> True
                     Apply (a, Set.union usBind usBody) fun
@@ -330,7 +330,7 @@ floatInBinding ver letAnn = \b ->
                 -- bindings of the `Let` do not mention `var`.
                 | (var ^. PLC.unique) `Set.notMember` foldMap bindingUniqs bs ->
                     Let (a, Set.union usBind usBody) NonRec bs <$> go b letBody
-                | (var ^. PLC.unique) `Set.notMember` termUniqs letBody -> do
+                | (var ^. PLC.unique) `Set.notMember` termUniqs letBody ->
                     splitBindings (var ^. PLC.unique) (NonEmpty.toList bs) >>= \case
                         Just
                             ( before
