@@ -87,10 +87,10 @@ term = do
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = do
     whitespace
-    lexemeWithSpan $ \sp -> do
-        prog <- inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
-        notFollowedBy anySingle
-        pure prog
+    prog <- lexemeWithSpan $ \sp ->
+        inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
+    notFollowedBy anySingle
+    pure prog
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
