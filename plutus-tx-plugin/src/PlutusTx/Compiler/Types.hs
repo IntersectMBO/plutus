@@ -3,14 +3,13 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
 module PlutusTx.Compiler.Types (
     module PlutusTx.Compiler.Types,
-    module PlutusTx.Annotation
+    module PlutusCore.Annotation
     ) where
 
 import PlutusTx.Compiler.Error
@@ -19,10 +18,10 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
-import PlutusTx.Annotation
 
 import GHC qualified
 import GHC.Core.FamInstEnv qualified as GHC

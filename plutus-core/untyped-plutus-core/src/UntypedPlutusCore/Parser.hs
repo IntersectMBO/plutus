@@ -46,7 +46,9 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
+appTerm = do
+    pos <- getSourcePos
+    inBrackets $ mkIterApp <$> pure pos <*> term <*> some term
 
 delayTerm :: Parser PTerm
 delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term
@@ -60,16 +62,18 @@ errorTerm = inParens $ UPLC.Error <$> wordPos "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = choice $ map try [
-    conTerm
-    , builtinTerm
-    , varTerm
-    , lamTerm
-    , appTerm
-    , delayTerm
-    , forceTerm
-    , errorTerm
-    ]
+term = do
+    whitespace
+    choice $ map try [
+        conTerm
+        , builtinTerm
+        , varTerm
+        , lamTerm
+        , appTerm
+        , delayTerm
+        , forceTerm
+        , errorTerm
+        ]
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)

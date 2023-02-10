@@ -14,7 +14,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Monad.Except
 import GHC.Exts (inline)
 
-type DefaultMachineParameters = MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+type DefaultMachineParameters =
+    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -45,6 +46,6 @@ mkMachineParametersFor :: (MonadError CostModelApplyError m)
 mkMachineParametersFor ver newCMP =
     inline mkMachineParameters ver <$>
         applyCostModelParams defaultCekCostModel newCMP
--- {-# INLINE mkMachineParametersFor #-} was removed because [benchmarking
--- results](https://github.com/input-output-hk/plutus/pull/4879#issuecomment-1301052379) show that
--- the pragma isn't helping anymore.
+-- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
+-- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
+-- the line.

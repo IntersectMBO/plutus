@@ -56,8 +56,8 @@ type DefaultFunExt = Either DefaultFun ExtensionFun
 defaultBuiltinCostModelExt :: CostingPart DefaultUni DefaultFunExt
 defaultBuiltinCostModelExt = (defaultBuiltinCostModel, ())
 
--- | Check that 'Factorial' from the above computes to the same thing as
--- a factorial defined in PLC itself.
+-- | Check that the 'Factorial' builtin computes to the same thing as factorial defined in PLC
+-- itself.
 test_Factorial :: TestTree
 test_Factorial =
     testCase "Factorial" $ do
@@ -84,6 +84,16 @@ test_Const =
             rhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ mapFun @DefaultFun Left Plc.const
         lhs === Right (Right c)
         lhs === rhs
+
+-- | Test that forcing a builtin accepting one type argument and no term arguments makes the
+-- builtin compute properly.
+test_ForallFortyTwo :: TestTree
+test_ForallFortyTwo =
+    testCase "ForallFortyTwo" $ do
+        let term = tyInst () (builtin () ForallFortyTwo) $ mkTyBuiltin @_ @() ()
+            lhs = typecheckEvaluateCekNoEmit def () term
+            rhs = Right $ EvaluationSuccess $ mkConstant @Integer () 42
+        lhs @?= rhs
 
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
 -- See https://github.com/input-output-hk/plutus/issues/1882
@@ -185,8 +195,7 @@ test_ScottToMetaUnit =
             applyTerm = apply () (builtin () ScottToMetaUnit)
         -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
         typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
-        let runtime = mkMachineParameters def $
-                CostModel defaultCekMachineCosts ()
+        let runtime = mkMachineParameters def $ CostModel defaultCekMachineCosts ()
         -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
         -- doesn't look at the argument.
         unsafeEvaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map) @?= res
@@ -635,6 +644,7 @@ test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_Factorial
+        , test_ForallFortyTwo
         , test_Const
         , test_Id
         , test_IdFInteger

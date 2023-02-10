@@ -62,13 +62,12 @@ import Prettyprinter
 
 import Control.DeepSeq (NFData)
 import Data.Coerce
-import ErrorCode
 import GHC.Generics
 
 -- | A relative index used for de Bruijn identifiers.
 newtype Index = Index Word64
     deriving stock (Generic)
-    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData)
+    deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData, Read)
 
 -- | The LamAbs index (for debruijn indices) and the starting level of DeBruijn monad
 deBruijnInitIndex :: Index
@@ -77,7 +76,7 @@ deBruijnInitIndex = 0
 -- The bangs gave us a speedup of 6%.
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn { ndbnString :: !T.Text, ndbnIndex :: !Index }
-    deriving stock (Show, Generic)
+    deriving stock (Show, Generic, Read)
     deriving anyclass NFData
 
 -- | A wrapper around nameddebruijn that must hold the invariant of name=`fakeName`.
@@ -204,8 +203,8 @@ withScope = local $ \(Levels current ls) -> Levels (current+1) ls
 -- | We cannot do a correct translation to or from de Bruijn indices if the program is not well-scoped.
 -- So we throw an error in such a case.
 data FreeVariableError
-    = FreeUnique Unique
-    | FreeIndex Index
+    = FreeUnique !Unique
+    | FreeIndex !Index
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (Exception, NFData)
 
@@ -213,10 +212,6 @@ instance Pretty FreeVariableError where
     pretty (FreeUnique u) = "Free unique:" <+> pretty u
     pretty (FreeIndex i)  = "Free index:" <+> pretty i
 makeClassyPrisms ''FreeVariableError
-
-instance HasErrorCode FreeVariableError where
-    errorCode  FreeIndex {}  = ErrorCode 23
-    errorCode  FreeUnique {} = ErrorCode 22
 
 -- | Get the 'Index' corresponding to a given 'Unique'.
 -- Uses supplied handler for free names (uniques).

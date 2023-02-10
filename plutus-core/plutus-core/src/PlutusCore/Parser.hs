@@ -39,7 +39,9 @@ lamTerm :: Parser PTerm
 lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
+appTerm = do
+    pos <- getSourcePos
+    inBrackets $ mkIterApp <$> pure pos <*> term <*> some term
 
 conTerm :: Parser PTerm
 conTerm = inParens $ Constant <$> wordPos "con" <*> constant
@@ -48,11 +50,12 @@ builtinTerm :: Parser PTerm
 builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
 
 tyInstTerm :: Parser PTerm
-tyInstTerm = inBraces $ do
+tyInstTerm = do
     pos <- getSourcePos
-    tm <- term
-    tys <- many pType
-    pure $ mkIterInst pos tm tys
+    inBraces $ do
+        tm <- term
+        tys <- many pType
+        pure $ mkIterInst pos tm tys
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term
@@ -66,18 +69,20 @@ errorTerm = inParens $ Error <$> wordPos "error" <*> pType
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = choice $ map try
-    [ tyAbsTerm
-    , lamTerm
-    , appTerm
-    , conTerm
-    , builtinTerm
-    , tyInstTerm
-    , unwrapTerm
-    , iwrapTerm
-    , errorTerm
-    , varTerm
-    ]
+term = do
+    whitespace
+    choice $ map try
+        [ tyAbsTerm
+        , lamTerm
+        , appTerm
+        , conTerm
+        , builtinTerm
+        , tyInstTerm
+        , unwrapTerm
+        , iwrapTerm
+        , errorTerm
+        , varTerm
+        ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes

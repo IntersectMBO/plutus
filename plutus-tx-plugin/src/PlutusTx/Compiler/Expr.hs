@@ -53,12 +53,11 @@ import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
 
+import Control.Lens hiding (index, strict)
 import Control.Monad
 import Control.Monad.Reader (ask, asks)
-
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
-import Data.Functor ((<&>))
 import Data.List (elemIndex)
 import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
@@ -454,6 +453,9 @@ hoistExpr var t = do
     -- See Note [Dependency tracking]
     modifyCurDeps (Set.insert lexName)
     maybeDef <- PIR.lookupTerm annMayInline lexName
+    let addSpan = case getVarSourceSpan var of
+            Nothing  -> id
+            Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
     case maybeDef of
         Just term -> pure term
         -- See Note [Dependency tracking]
@@ -465,7 +467,7 @@ hoistExpr var t = do
                 (PIR.Def var' (PIR.mkVar annMayInline var', PIR.Strict))
                 mempty
 
-            t' <- maybeProfileRhs var' =<< compileExpr t
+            t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
             ver <- asks ccBuiltinVer
             -- See Note [Non-strict let-bindings]
             let strict = PIR.isPure ver (const PIR.NonStrict) t'
@@ -831,7 +833,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
               CompileContext {ccOpts=coverageOpts} <- ask
               -- See Note [Coverage annotations]
               let anns = Set.toList $ activeCoverageTypes coverageOpts
-              compiledBody <- compileExpr body
+              compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
               foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
 
         -- ignore other annotations
@@ -882,6 +884,24 @@ getSourceSpan mmb GHC.Breakpoint{GHC.breakpointId=bid} = do
   return sp
 -- The `HpcTick` case requires reading mix files via `Trace.Hpc.Mix.readMix`.
 getSourceSpan _ GHC.HpcTick{} = Nothing
+
+getVarSourceSpan :: GHC.Var -> Maybe GHC.RealSrcSpan
+getVarSourceSpan = GHC.srcSpanToRealSrcSpan . GHC.nameSrcSpan . GHC.varName
+
+srcSpanIso :: Iso' GHC.RealSrcSpan SrcSpan
+srcSpanIso = iso fromGHC toGHC
+    where
+        fromGHC sp = SrcSpan
+            { srcSpanFile = GHC.unpackFS (GHC.srcSpanFile sp),
+              srcSpanSLine = GHC.srcSpanStartLine sp,
+              srcSpanSCol = GHC.srcSpanStartCol sp,
+              srcSpanELine = GHC.srcSpanEndLine sp,
+              srcSpanECol = GHC.srcSpanEndCol sp
+            }
+        toGHC sp = GHC.mkRealSrcSpan
+            (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanSLine sp) (srcSpanSCol sp))
+            (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanELine sp) (srcSpanECol sp))
+        fileNameFs = GHC.fsLit . srcSpanFile
 
 -- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
 toCovLoc :: GHC.RealSrcSpan -> CovLoc

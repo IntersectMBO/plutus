@@ -51,13 +51,13 @@ tests = testNested "Lift" [
     goldenUPlc "int" (Lift.liftProgramDef (1::Integer))
     , goldenUPlc "tuple" (Lift.liftProgramDef (1::Integer, 2::Integer))
     , goldenUPlc "mono" (Lift.liftProgramDef (Mono2 2))
-    , goldenUEval "monoInterop" [ getPlc monoCase, Lift.liftProgramDef (Mono1 1 2) ]
+    , goldenUEval "monoInterop" [ getPlcNoAnn monoCase, Lift.liftProgramDef (Mono1 1 2) ]
     , goldenUPlc "poly" (Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)))
-    , goldenUEval "polyInterop" [ getPlc defaultCasePoly, Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)) ]
+    , goldenUEval "polyInterop" [ getPlcNoAnn defaultCasePoly, Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)) ]
     , goldenUPlc "record" (Lift.liftProgramDef (MyMonoRecord 1 2))
-    , goldenUEval "boolInterop" [ getPlc andPlc, Lift.liftProgramDef True, Lift.liftProgramDef True ]
+    , goldenUEval "boolInterop" [ getPlcNoAnn andPlc, Lift.liftProgramDef True, Lift.liftProgramDef True ]
     , goldenUPlc "list" (Lift.liftProgramDef ([1]::[Integer]))
-    , goldenUEval "listInterop" [ getPlc listMatch, Lift.liftProgramDef ([1]::[Integer]) ]
+    , goldenUEval "listInterop" [ getPlcNoAnn listMatch, Lift.liftProgramDef ([1]::[Integer]) ]
     , goldenUPlc "nested" (Lift.liftProgramDef (NestedRecord (Just (1, 2))))
     , goldenUPlc "bytestring" (Lift.liftProgramDef (WrappedBS "hello"))
     , goldenUPlc "newtypeInt" (Lift.liftProgramDef (NewtypeInt 1))

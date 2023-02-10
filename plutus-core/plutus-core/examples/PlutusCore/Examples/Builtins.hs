@@ -10,6 +10,7 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
@@ -31,10 +32,12 @@ import Data.Either
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
+import Data.Some.GADT qualified as GADT
 import Data.Tuple
 import Data.Void
 import GHC.Generics
 import GHC.Ix
+import GHC.TypeLits
 import Prettyprinter
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
@@ -94,6 +97,7 @@ instance (Bounded a, Bounded b, Ix a, Ix b) => Ix (Either a b) where
 -- See Note [Representable built-in functions over polymorphic built-in types]
 data ExtensionFun
     = Factorial
+    | ForallFortyTwo  -- A builtin for @42 :: forall a. Integer@.
     | SumInteger
     | Const
     | Id
@@ -147,12 +151,30 @@ instance (Default (BuiltinVersion fun1), Default (BuiltinVersion fun2))
          => Default (BuiltinVersion (Either fun1 fun2)) where
     def = PairV def def
 
+-- | Normally @forall@ in the type of a Haskell function gets detected and instantiated
+-- automatically, however there's no way of doing that for a @forall@ that binds a never referenced
+-- type variable. Which is OK, because that would be a pretty weird builtin, however it's definable
+-- and for the purpose of testing we do introduce such a builtin, hence this definition allowing us
+-- to create an @all@ that binds a never referenced type variable in Plutus while still using
+-- 'makeBuiltinMeaning'.
+newtype MetaForall name a = MetaForall a
+instance
+        ( name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
+        , KnownKind kind, KnownTypeAst uni a
+        ) => KnownTypeAst uni (MetaForall name a) where
+    type IsBuiltin (MetaForall name a) = 'False
+    type ToHoles (MetaForall name a) = '[TypeHole a]
+    type ToBinds (MetaForall name a) = Merge '[ 'GADT.Some name ] (ToBinds a)
+    toTypeAst _ = toTypeAst $ Proxy @a
+instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
+    makeKnown (MetaForall x) = makeKnown x
+-- 'ReadKnownIn' doesn't make sense for 'MetaForall'.
+
 data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     type IsBuiltin (PlcListRep a) = 'False
     type ToHoles (PlcListRep a) = '[RepHole a]
     type ToBinds (PlcListRep a) = ToBinds a
-
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
 instance KnownTypeAst DefaultUni Void where
@@ -193,6 +215,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
             mempty  -- Whatever.
+
+    toBuiltinMeaning _ver ForallFortyTwo =
+        makeBuiltinMeaning
+            forallFortyTwo
+            (\_ -> ExBudget 1 0)
+      where
+        forallFortyTwo :: MetaForall ('TyNameRep @GHC.Type "a" 0) Integer
+        forallFortyTwo = MetaForall 42
 
     toBuiltinMeaning _ver SumInteger =
         makeBuiltinMeaning
@@ -258,7 +288,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
-                :: afa ~ Opaque val (TyForallRep a (TyVarRep f `TyAppRep` TyVarRep a))
+                :: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
             (\_ _ -> ExBudget 1 0)
 

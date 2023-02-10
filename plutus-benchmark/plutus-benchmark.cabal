@@ -352,7 +352,7 @@ executable ed25519-throughput
     , base                  >=4.9 && <5
     , bytestring
     , cardano-crypto-class
-    , flat                  <0.5
+    , flat
     , hedgehog
     , plutus-core           ^>=1.1
     , plutus-tx             ^>=1.1
@@ -370,17 +370,6 @@ executable bls-benchmarks
   main-is:          Main.hs
   hs-source-dirs:   bls-benchmarks
 
-  -- Without the line below we get a warning that plutus-tx-plugin is unused which causes a CI failure.
-  ghc-options:      -Wno-unused-packages
-  build-depends:
-    , base                  >=4.9 && <5
-    , bytestring
-    , cardano-crypto-class
-    , flat
-    , hedgehog
-    , plutus-core           ^>=1.1
-    , plutus-tx             ^>=1.1
-    , plutus-tx-plugin      ^>=1.1
 
 ---------------- script contexts ----------------
 

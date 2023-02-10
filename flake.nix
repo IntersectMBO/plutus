@@ -45,7 +45,7 @@
     };
     haskell-language-server = {
       # Pinned to a release
-      url = "github:haskell/haskell-language-server?ref=1.8.0.0";
+      url = "github:haskell/haskell-language-server?ref=1.9.0.0";
       flake = false;
     };
     pre-commit-hooks-nix = {

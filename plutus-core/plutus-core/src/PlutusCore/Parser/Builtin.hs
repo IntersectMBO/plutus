@@ -9,14 +9,17 @@ import PlutusPrelude (Word8, reoption)
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
+import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
+import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
+import Codec.Serialise
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
+import Data.ByteString.Lazy qualified as Lazy
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -80,6 +83,13 @@ conPair uniA uniB = inParens $ do
     b <- constantOf uniB
     pure (a, b)
 
+conData :: Parser Data
+conData = do
+    b <- conBS
+    case deserialiseOrFail (Lazy.fromStrict b) of
+        Right d  -> pure d
+        Left err -> getSourcePos >>= customFailure . InvalidData (T.pack (show err))
+
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.
 con0xBS :: Parser ByteString
@@ -114,8 +124,7 @@ constantOf uni = case uni of
     DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
-    DefaultUniData                                                    ->
-        fail "Data not supported"
+    DefaultUniData                                                    -> conData
     DefaultUniBLS12_381G1Element                                      -> conBLS12_381G1Element
     DefaultUniBLS12_381G2Element                                      -> conBLS12_381G2Element
     DefaultUniBLS12_381GTElement                                      -> conBLS12_381GTElement

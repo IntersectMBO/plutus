@@ -36,12 +36,12 @@ import Prettyprinter
 
 -- | An error that occurred during script deserialization.
 data ScriptDecodeError =
-      CBORDeserialiseError CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
-    | RemainderError BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
+      CBORDeserialiseError !CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
+    | RemainderError !BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
     | LanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
-        { sdeAffectedLang :: LedgerPlutusVersion -- ^ the script's plutus version
-        , sdeIntroPv      :: ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
-        , sdeThisPv       :: ProtocolVersion -- ^ the protocol version in which the error occurred
+        { sdeAffectedLang :: !LedgerPlutusVersion -- ^ the script's plutus version
+        , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
+        , sdeThisPv       :: !ProtocolVersion -- ^ the protocol version in which the error occurred
         }
     deriving stock (Eq, Show)
     deriving anyclass Exception
@@ -77,7 +77,7 @@ for CBOR's ability to self-describe it's format.
 -- | Turns a program which was compiled using the \'PlutusTx\' toolchain into
 -- a binary format that is understood by the network and can be stored on-chain.
 serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
-serialiseCompiledCode = serialiseUPLC . toNameless . getPlc
+serialiseCompiledCode = serialiseUPLC . toNameless . getPlcNoAnn
     where
         toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
                 -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()

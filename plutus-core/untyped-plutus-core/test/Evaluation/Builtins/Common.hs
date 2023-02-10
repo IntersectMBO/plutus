@@ -34,7 +34,8 @@ typecheckAnd
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinVersion fun
-    -> (MachineParameters CekMachineCosts CekValue uni fun -> UPLC.Term Name uni fun () -> a)
+    -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
+            UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd ver action costingPart term = TPLC.runQuoteT $ do
     -- here we don't use `getDefTypeCheckConfig`, to cover the
