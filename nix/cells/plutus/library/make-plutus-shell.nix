@@ -104,6 +104,11 @@ inputs.std.lib.dev.mkShell {
       category = "docs";
       help = "nix build and serve the doc site on localhost:8002";
     }
+    {
+      package = pkgs.jekyll;
+      category = "docs";
+      help = "Static site builder, used for the metatheory documentation";
+    }
 
     {
       package = cell.packages.nixpkgs-fmt;
