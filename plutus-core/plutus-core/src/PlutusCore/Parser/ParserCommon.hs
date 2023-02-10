@@ -81,22 +81,22 @@ whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNe
 -- The supplied function should usually return a parser that does /not/ consume trailing
 -- whitespaces. Otherwise, the end position will be the first character after the
 -- trailing whitespaces.
-withSpan :: (SrcSpan -> Parser a) -> Parser a
-withSpan f = mdo
+withSpan' :: (SrcSpan -> Parser a) -> Parser a
+withSpan' f = mdo
   start <- getSourcePos
   res <- f sp
   end <- getSourcePos
   let sp = toSrcSpan start end
   pure res
 
+-- | Like `withSpan'`, but the result parser consumes whitespaces.
+--
+-- @withSpan = (<* whitespace) . withSpan'
+withSpan :: (SrcSpan -> Parser a) -> Parser a
+withSpan = (<* whitespace) . withSpan'
+
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
-
--- | Like `withSpan`, but the result parser consumes whitespaces.
---
--- @lexemeWithSpan = lexeme . withSpan
-lexemeWithSpan :: (SrcSpan -> Parser a) -> Parser a
-lexemeWithSpan = lexeme . withSpan
 
 symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
@@ -154,7 +154,7 @@ version = lexeme $ do
     Version p x y <$> Lex.decimal
 
 version' :: Parser (Version SrcSpan)
-version' = lexemeWithSpan $ \sp -> do
+version' = withSpan $ \sp -> do
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal

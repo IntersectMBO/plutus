@@ -37,35 +37,35 @@ import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 conTerm :: Parser PTerm
-conTerm = lexemeWithSpan $ \sp ->
+conTerm = withSpan $ \sp ->
     inParens' $ UPLC.Constant sp <$> (symbol "con" *> constant)
 
 builtinTerm :: Parser PTerm
-builtinTerm = lexemeWithSpan $ \sp ->
+builtinTerm = withSpan $ \sp ->
     inParens' $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
 varTerm :: Parser PTerm
-varTerm = lexemeWithSpan $ \sp ->
+varTerm = withSpan $ \sp ->
     UPLC.Var sp <$> name
 
 lamTerm :: Parser PTerm
-lamTerm = lexemeWithSpan $ \sp ->
+lamTerm = withSpan $ \sp ->
     inParens' $ UPLC.LamAbs sp <$> (symbol "lam" *> name) <*> term
 
 appTerm :: Parser PTerm
-appTerm = lexemeWithSpan $ \sp ->
+appTerm = withSpan $ \sp ->
     inBrackets' $ mkIterApp sp <$> term <*> some term
 
 delayTerm :: Parser PTerm
-delayTerm = lexemeWithSpan $ \sp ->
+delayTerm = withSpan $ \sp ->
     inParens' $ UPLC.Delay sp <$> (symbol "delay" *> term)
 
 forceTerm :: Parser PTerm
-forceTerm = lexemeWithSpan $ \sp ->
+forceTerm = withSpan $ \sp ->
     inParens' $ UPLC.Force sp <$> (symbol "force" *> term)
 
 errorTerm :: Parser PTerm
-errorTerm = lexemeWithSpan $ \sp ->
+errorTerm = withSpan $ \sp ->
     inParens' $ UPLC.Error sp <$ symbol "error"
 
 -- | Parser for all UPLC terms.
@@ -87,7 +87,7 @@ term = do
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = do
     whitespace
-    prog <- lexemeWithSpan $ \sp ->
+    prog <- withSpan $ \sp ->
         inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
     notFollowedBy anySingle
     pure prog
