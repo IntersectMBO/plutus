@@ -81,4 +81,6 @@
   scriv = import ./scriv.nix block;
 
   repo-root = import ./repo-root.nix block;
+
+  plutus-metatheory-site = import ./plutus-metatheory-site.nix block;
 }

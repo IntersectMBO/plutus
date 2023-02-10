@@ -197,10 +197,9 @@ instance Monoid ExBudget where
     mempty = ExBudget mempty mempty
 
 instance Pretty ExBudget where
-    pretty (ExBudget cpu memory) = parens $ fold
-        [ "{ cpu: ", pretty cpu, line
-        , "| mem: ", pretty memory, line
-        , "}"
+    pretty (ExBudget cpu memory) = parens $ braces $ vsep
+        [ "cpu:" <+> pretty cpu
+        , "| mem:" <+> pretty memory
         ]
 
 newtype ExRestrictingBudget = ExRestrictingBudget
