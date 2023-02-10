@@ -33,10 +33,9 @@ import PlutusCore.StdLib.Meta.Data.Function (etaExpand)
 import GHC.Exts (fromString)
 import GHC.Ix
 import Hedgehog hiding (Size, Var, eval)
-import Prettyprinter
-import Prettyprinter.Render.Text
 import Test.Tasty
 import Test.Tasty.Extras
+import Test.Tasty.Golden
 import Test.Tasty.Hedgehog
 
 testMachine
@@ -69,7 +68,7 @@ testBudget
 testBudget runtime name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+    (render $
         prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
 
 bunchOfFibs :: PlcFolderContents DefaultUni DefaultFun
@@ -114,7 +113,9 @@ bunchOfIfThenElseNats =
 
 test_budget :: TestTree
 test_budget
-    = runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+    -- Error diffs are very big
+    = localOption (SizeCutoff 1000000)
+    . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
     . testNested "Budget"
     $ concat
         [ folder Plc.defaultBuiltinsRuntime bunchOfFibs
@@ -132,12 +133,14 @@ testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
                        nestedGoldenVsText
     name
-    (renderStrict $ layoutPretty defaultLayoutOptions {layoutPageWidth = AvailablePerLine maxBound 1.0} $
+    (render $
         prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
 
 test_tallying :: TestTree
 test_tallying =
-    runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
+    -- Error diffs are very big
+    localOption (SizeCutoff 1000000)
+        . runTestNestedIn ["untyped-plutus-core", "test", "Evaluation", "Machines"]
         .  testNested "Tallying"
         .  foldPlcFolderContents testNested
                                  (\name _ -> pure $ testGroup name [])
