@@ -105,7 +105,7 @@
         )
       )
     )
-    { test/Plugin/Debug/Spec.hs:38:9-38:88, test/Plugin/Debug/Spec.hs:38:54-38:80 }
+    { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:54-38:79 }
     equalsInteger
   )
 )

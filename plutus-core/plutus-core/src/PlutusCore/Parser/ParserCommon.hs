@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecursiveDo       #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -6,16 +7,16 @@
 
 module PlutusCore.Parser.ParserCommon where
 
+import Control.Monad.Except
+import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
-import PlutusPrelude
 import Text.Megaparsec hiding (ParseError, State, parse, some)
 import Text.Megaparsec.Char (char, letterChar, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
-import Control.Monad.Except
-import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
+import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Error
 import PlutusCore.Name
@@ -74,6 +75,26 @@ parseGen stuff = parse stuff "test"
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
+-- | Returns a parser for @a@ by calling the supplied function on the starting
+-- and ending positions of @a@.
+--
+-- The supplied function should usually return a parser that does /not/ consume trailing
+-- whitespaces. Otherwise, the end position will be the first character after the
+-- trailing whitespaces.
+withSpan' :: (SrcSpan -> Parser a) -> Parser a
+withSpan' f = mdo
+  start <- getSourcePos
+  res <- f sp
+  end <- getSourcePos
+  let sp = toSrcSpan start end
+  pure res
+
+-- | Like `withSpan'`, but the result parser consumes whitespaces.
+--
+-- @withSpan = (<* whitespace) . withSpan'
+withSpan :: (SrcSpan -> Parser a) -> Parser a
+withSpan = (<* whitespace) . withSpan'
+
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme whitespace
 
@@ -83,11 +104,25 @@ symbol = Lex.symbol whitespace
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (symbol ")")
 
+-- | Like `inParens` but does not consume trailing whitespaces.
+-- The other ticked functions below are similar.
+--
+-- TODO: these ticked functions should replace the original ones once PIR and TPLC parsers
+-- are migrated to `SrcSpan`.
+inParens' :: Parser a -> Parser a
+inParens' = between (symbol "(") (char ')')
+
 inBrackets :: Parser a -> Parser a
 inBrackets = between (symbol "[") (symbol "]")
 
-inBraces :: Parser a-> Parser a
+inBrackets' :: Parser a -> Parser a
+inBrackets' = between (symbol "[") (char ']')
+
+inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (symbol "}")
+
+inBraces' :: Parser a -> Parser a
+inBraces' = between (symbol "{") (char '}')
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
@@ -99,6 +134,16 @@ wordPos ::
     T.Text -> Parser SourcePos
 wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
+toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
+toSrcSpan start end =
+    SrcSpan
+        { srcSpanFile = sourceName start
+        , srcSpanSLine = unPos (sourceLine start)
+        , srcSpanSCol = unPos (sourceColumn start)
+        , srcSpanELine = unPos (sourceLine end)
+        , srcSpanECol = unPos (sourceColumn end)
+        }
+
 version :: Parser (Version SourcePos)
 version = lexeme $ do
     p <- getSourcePos
@@ -107,6 +152,14 @@ version = lexeme $ do
     y <- Lex.decimal
     void $ char '.'
     Version p x y <$> Lex.decimal
+
+version' :: Parser (Version SrcSpan)
+version' = withSpan $ \sp -> do
+    x <- Lex.decimal
+    void $ char '.'
+    y <- Lex.decimal
+    void $ char '.'
+    Version sp x y <$> Lex.decimal
 
 name :: Parser Name
 name = lexeme $ try $ do

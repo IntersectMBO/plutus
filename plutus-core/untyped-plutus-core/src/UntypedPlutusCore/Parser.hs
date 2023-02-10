@@ -6,8 +6,10 @@ module UntypedPlutusCore.Parser
     , term
     , program
     , parseTerm
+    , parseTerm'
     , parseProgram
     , parseScoped
+    , spanToPos
     , Parser
     , SourcePos
     ) where
@@ -17,6 +19,7 @@ import Prelude hiding (fail)
 import Control.Monad.Except (MonadError, (<=<))
 
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusPrelude (through)
 import Text.Megaparsec hiding (ParseError, State, parse)
 import UntypedPlutusCore.Check.Uniques (checkProgram)
@@ -31,34 +34,39 @@ import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
 -- Parsers for UPLC terms
 
 -- | A parsable UPLC term.
-type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos
+type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 conTerm :: Parser PTerm
-conTerm = inParens $ UPLC.Constant <$> wordPos "con" <*> constant
+conTerm = withSpan $ \sp ->
+    inParens' $ UPLC.Constant sp <$> (symbol "con" *> constant)
 
 builtinTerm :: Parser PTerm
-builtinTerm = inParens $ UPLC.Builtin <$> wordPos "builtin" <*> builtinFunction
+builtinTerm = withSpan $ \sp ->
+    inParens' $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
 varTerm :: Parser PTerm
-varTerm = UPLC.Var <$> getSourcePos <*> name
+varTerm = withSpan $ \sp ->
+    UPLC.Var sp <$> name
 
 lamTerm :: Parser PTerm
-lamTerm = inParens $ UPLC.LamAbs <$> wordPos "lam" <*> name <*> term
+lamTerm = withSpan $ \sp ->
+    inParens' $ UPLC.LamAbs sp <$> (symbol "lam" *> name) <*> term
 
 appTerm :: Parser PTerm
-appTerm = do
-    pos <- getSourcePos
-    inBrackets $ mkIterApp <$> pure pos <*> term <*> some term
+appTerm = withSpan $ \sp ->
+    inBrackets' $ mkIterApp sp <$> term <*> some term
 
 delayTerm :: Parser PTerm
-delayTerm = inParens $ UPLC.Delay <$> wordPos "delay" <*> term
+delayTerm = withSpan $ \sp ->
+    inParens' $ UPLC.Delay sp <$> (symbol "delay" *> term)
 
 forceTerm :: Parser PTerm
-forceTerm = inParens $ UPLC.Force <$> wordPos "force" <*> term
+forceTerm = withSpan $ \sp ->
+    inParens' $ UPLC.Force sp <$> (symbol "force" *> term)
 
-errorTerm
-    :: Parser PTerm
-errorTerm = inParens $ UPLC.Error <$> wordPos "error"
+errorTerm :: Parser PTerm
+errorTerm = withSpan $ \sp ->
+    inParens' $ UPLC.Error sp <$ symbol "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
@@ -76,16 +84,33 @@ term = do
         ]
 
 -- | Parser for UPLC programs.
-program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-program = whitespace >> do
-    prog <- inParens $ UPLC.Program <$> wordPos "program" <*> version <*> term
+program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
+program = do
+    whitespace
+    prog <- withSpan $ \sp ->
+        inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
     notFollowedBy anySingle
-    return prog
+    pure prog
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m PTerm
 parseTerm = parseGen term
+
+-- TODO: Temporary - remove once TPLC and PIR parsers are migrated to SrcSpan
+parseTerm' ::
+    (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) =>
+    Text ->
+    m (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+parseTerm' = fmap (fmap spanToPos) . parseTerm
+
+-- TODO: Temporary - remove once TPLC and PIR parsers are migrated to SrcSpan
+spanToPos :: SrcSpan -> SourcePos
+spanToPos sp = SourcePos
+    { sourceName = srcSpanFile sp
+    , sourceLine = mkPos $ srcSpanSLine sp
+    , sourceColumn = mkPos $ srcSpanSCol sp
+    }
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes
@@ -94,14 +119,14 @@ parseTerm = parseGen term
 parseProgram ::
     (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m)
     => Text
-    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 parseProgram = parseGen program
 
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 parseScoped ::
-    (AsParserErrorBundle e, PLC.AsUniqueError e SourcePos, MonadError e m, PLC.MonadQuote m)
+    (AsParserErrorBundle e, PLC.AsUniqueError e SrcSpan, MonadError e m, PLC.MonadQuote m)
     => Text
-    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+    -> m (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (checkProgram (const True)) <=< rename <=< parseProgram
