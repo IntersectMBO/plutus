@@ -166,7 +166,8 @@ library
     PlutusIR.Transform.Inline.CallSiteInline
     PlutusIR.Transform.Inline.UnconditionalInline
     PlutusIR.Transform.Inline.Utils
-    PlutusIR.Transform.LetFloat
+    PlutusIR.Transform.LetFloatIn
+    PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit

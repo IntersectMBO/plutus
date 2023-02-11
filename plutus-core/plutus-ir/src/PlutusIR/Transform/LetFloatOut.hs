@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-module PlutusIR.Transform.LetFloat (floatTerm) where
+module PlutusIR.Transform.LetFloatOut (floatTerm) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC

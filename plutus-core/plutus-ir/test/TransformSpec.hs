@@ -21,7 +21,8 @@ import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
-import PlutusIR.Transform.LetFloat qualified as LetFloat
+import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
+import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
@@ -36,7 +37,8 @@ transform :: TestNested
 transform = testNested "transform" [
     thunkRecursions
     , nonStrict
-    , letFloat
+    , letFloatOut
+    , letFloatIn
     , recSplit
     , inline
     , beta
@@ -60,9 +62,9 @@ nonStrict = testNested "nonStrict"
     [ "nonStrict1"
     ]
 
-letFloat :: TestNested
-letFloat =
-    testNested "letFloat"
+letFloatOut :: TestNested
+letFloatOut =
+    testNested "letFloatOut"
     $ map (goldenPirM goldenFloatTC pTerm)
   [ "letInLet"
   ,"listMatch"
@@ -101,7 +103,29 @@ letFloat =
   ]
  where
    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-       let pirFloated = RecSplit.recSplit . LetFloat.floatTerm def . runQuote $ PLC.rename pir
+       let pirFloated = RecSplit.recSplit . LetFloatOut.floatTerm def . runQuote $ PLC.rename pir
+       -- make sure the floated result typechecks
+       _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
+       -- letmerge is not necessary for floating, but is a nice visual transformation
+       pure $ LetMerge.letMerge pirFloated
+
+letFloatIn :: TestNested
+letFloatIn =
+    testNested "letFloatIn"
+    $ map (goldenPirM goldenFloatTC pTerm)
+  [ "avoid-floating-into-lam"
+  , "avoid-floating-into-RHS"
+  , "avoid-moving-strict-nonvalue-bindings"
+  , "cannot-float-into-app"
+  , "float-into-fun-and-arg-1"
+  , "float-into-fun-and-arg-2"
+  , "float-into-lam"
+  , "float-into-RHS"
+  , "float-into-tylam"
+  ]
+ where
+   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+       let pirFloated = runQuote $ LetFloatIn.floatTerm def pir
        -- make sure the floated result typechecks
        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
        -- letmerge is not necessary for floating, but is a nice visual transformation
