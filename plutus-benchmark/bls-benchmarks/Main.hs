@@ -20,6 +20,7 @@ module Main (main)
 where
 
 import PlutusCore (DefaultFun, DefaultUni)
+import PlutusCore.Annotation (SrcSpans)
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (exBudgetCPU, exBudgetMemory))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -65,19 +66,19 @@ max_tx_ex_mem = 14_000_000
 
 -------------------------------- PLC stuff--------------------------------
 
-type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type UProg   = UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
+type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun SrcSpans
+type UProg   = UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun SrcSpans
+type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun SrcSpans
 
 
 compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun () a -> UTerm
+    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
 compiledCodeToTerm (Tx.getPlc -> UPLC.Program _ _ body) = body
 
 {- | Remove the textual names from a NamedDeBruijn program -}
 toAnonDeBruijnProg :: UProg -> UDBProg
-toAnonDeBruijnProg (UPLC.Program () ver body) =
-    UPLC.Program () ver $ UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) body
+toAnonDeBruijnProg (UPLC.Program span ver body) =
+    UPLC.Program span ver $ UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) body
 
 -- Create a list containing n bytestrings of length l.  This could be better.
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]

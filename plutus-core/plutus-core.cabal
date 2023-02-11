@@ -81,7 +81,6 @@ library
     PlutusCore.BLS12_381.G1
     PlutusCore.BLS12_381.G2
     PlutusCore.BLS12_381.GT
-    PlutusCore.BLS12_381.Pairing
     PlutusCore.BLS12_381.Utils
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
@@ -349,7 +348,8 @@ library
     , witherable
     , word-array                  ^>=1.1
 
-  --  extra-libraries: blst
+  -- *** Comment out the next line to start "nix develop" ***
+  extra-libraries: blst
   c-sources:       cbits/blst_util.c
 
   if impl(ghc <9.0)
