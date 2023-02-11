@@ -124,6 +124,7 @@ whose LHS is used more than once, and we descend in all other cases;
 
 -}
 
+-- | The uniques of all used variables in a term.
 type Uniques = Set PLC.TermUnique
 
 data FloatInContext = FloatInContext
@@ -217,14 +218,9 @@ floatTerm ver t0 = do
 termUniqs :: Term tyname name uni fun (a, Uniques) -> Uniques
 termUniqs = snd . termAnn
 
--- | The result includes both the `Unique` of the bound var and the `Unique`s in the RHS.
-bindingUniqs ::
-    PLC.HasUnique name PLC.TermUnique =>
-    Binding tyname name uni fun (a, Uniques) ->
-    Uniques
-bindingUniqs b = Set.union (snd (bindingAnn b)) $ case b of
-    TermBind _a _s var _rhs -> Set.singleton $ var ^. PLC.varDeclName . PLC.unique
-    _                       -> mempty
+-- | Returns the set of `Unique`s in the RHS of a `Binding`.
+bindingUniqs :: Binding tyname name uni fun (a, Uniques) -> Uniques
+bindingUniqs = snd . bindingAnn
 
 noUniq :: Functor f => f a -> f (a, Uniques)
 noUniq = fmap (,mempty)
