@@ -50,7 +50,6 @@ library
     , directory
     , filepath
     , lens
-    , megaparsec
     , plutus-core             ^>=1.1
     , plutus-metatheory
     , tasty

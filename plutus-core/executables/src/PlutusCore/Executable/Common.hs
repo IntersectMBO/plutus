@@ -35,7 +35,7 @@ import PlutusCore.StdLib.Data.Unit qualified as StdLib
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
+import UntypedPlutusCore.Parser qualified as UPLC (parse, program, spanToPos)
 
 import PlutusIR.Core.Type qualified as PIR
 import PlutusIR.Parser qualified as PIR (parse, program)
@@ -128,7 +128,8 @@ instance ProgramLike PlcProg where
 
 -- | Instance for UPLC program.
 instance ProgramLike UplcProg where
-    parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
+    parseNamedProgram inputName =
+        fmap (fmap UPLC.spanToPos) . PLC.runQuoteT . UPLC.parse UPLC.program inputName
     checkUniques = UPLC.checkProgram (const True)
     serialiseProgramFlat nameType p =
         case nameType of

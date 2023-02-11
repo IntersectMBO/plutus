@@ -76,6 +76,9 @@ data SrcSpan = SrcSpan
     , srcSpanSCol  :: Int
     , srcSpanELine :: Int
     , srcSpanECol  :: Int
+    -- ^ Same as GHC's @SrcSpan@, @srcSpanECol@ is usually one more than the column of
+    -- the last character of the thing this @SrcSpan@ is for (unless the last character
+    -- is the line break).
     }
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (Flat)
@@ -90,7 +93,7 @@ instance Show SrcSpan where
             . showChar '-'
             . showsPrec 0 (srcSpanELine s)
             . showChar ':'
-            . showsPrec 0 (srcSpanECol s)
+            . showsPrec 0 (if srcSpanECol s == 0 then 0 else srcSpanECol s - 1)
 
 instance Pretty SrcSpan where
     pretty = viaShow

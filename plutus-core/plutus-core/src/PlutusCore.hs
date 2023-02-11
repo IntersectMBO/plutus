@@ -10,6 +10,7 @@ module PlutusCore
     , parseType
     , SourcePos
     , topSourcePos
+    , SrcSpan (..)
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
@@ -122,6 +123,7 @@ module PlutusCore
     ) where
 
 
+import PlutusCore.Annotation
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.DeBruijn

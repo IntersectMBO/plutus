@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -46,10 +45,21 @@ type FreshState = Unique
 emptyFreshState :: FreshState
 emptyFreshState = Unique 0
 
--- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC terms using quasiquotation,
--- fresh-name generation, and parsing.
-newtype QuoteT m a = QuoteT { unQuoteT :: StateT FreshState m a }
-    deriving newtype (Functor, Applicative, Monad, MonadTrans, MM.MFunctor, MonadError e, MonadReader r, MonadIO, MonadWriter w)
+-- | The "quotation" monad transformer. Within this monad you can do safe construction of PLC
+-- terms using quasiquotation, fresh-name generation, and parsing.
+newtype QuoteT m a = QuoteT {unQuoteT :: StateT FreshState m a}
+    deriving newtype
+        ( Functor
+        , Applicative
+        , Monad
+        , MonadTrans
+        , MonadFix
+        , MM.MFunctor
+        , MonadError e
+        , MonadReader r
+        , MonadIO
+        , MonadWriter w
+        )
 
 -- Need to write this by hand, deriving wants to derive the one for DefState
 instance MonadState s m => MonadState s (QuoteT m) where
@@ -60,8 +70,9 @@ instance MonadState s m => MonadState s (QuoteT m) where
 -- | A monad that allows lifting of quoted expressions.
 class Monad m => MonadQuote m where
     liftQuote :: Quote a -> m a
-    -- This means we don't have to implement it when we're writing an instance for a MonadTrans monad. We can't just
-    -- add an instance declaration for that, because it overlaps with the base instance.
+    -- This means we don't have to implement it when we're writing an instance for a MonadTrans
+    -- monad. We can't just add an instance declaration for that, because it overlaps with the
+    -- base instance.
     default liftQuote :: (MonadQuote n, MonadTrans t, t n ~ m) => Quote a -> m a
     liftQuote = lift . liftQuote
 
@@ -110,11 +121,13 @@ freshTyName = fmap TyName <$> freshName
 freshenTyName :: MonadQuote m => TyName -> m TyName
 freshenTyName (TyName name) = TyName <$> freshenName name
 
--- | Mark all 'Unique's less than the given 'Unique' as used, so they will not be generated in future.
+-- | Mark all 'Unique's less than the given 'Unique' as used, so they will not be generated
+-- in future.
 markNonFreshBelow :: MonadQuote m => Unique -> m ()
 markNonFreshBelow = liftQuote . QuoteT . modify . max
 
--- | Mark a given 'Unique' (and implicitly all 'Unique's less than it) as used, so they will not be generated in future.
+-- | Mark a given 'Unique' (and implicitly all 'Unique's less than it) as used, so they will
+-- not be generated in future.
 markNonFresh :: MonadQuote m => Unique -> m ()
 markNonFresh = markNonFreshBelow . succ
 
