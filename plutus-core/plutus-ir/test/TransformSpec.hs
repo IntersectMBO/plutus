@@ -178,10 +178,9 @@ inline =
     , "letFunConstInt" -- const fn fully applied (integer)
     , "letFunConstBool" -- const fn fully applied (bool)
     , "letFunConstMulti" -- multiple occurrences of a let binding of the const fn.
-    , "letFunInFun" -- fully applied fn inside another let
-    , "letFunInFunAllMulti"
-    , "letFunInFunMulti"
-    , "letFunInFunMultiFullyApplied"
+    , "letFunInFun" -- fully applied fn inside another let, single occurrence.
+    , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
+    , "letFunInFunMultiFullyApplied" --
     , "letIdFunForall" -- singe occurrence of a polymorphic id function that is fully applied
     -- multiple occurrences of a polymorphic id function that is fully applied
     , "letIdFunForallMulti"
