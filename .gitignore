@@ -89,6 +89,7 @@ plutus-playground-server/playground.yaml
 plutus-pab/plutus-pab.yaml
 
 # Misc
+act-event.json
 .history/
 .virtualenv
 .vscode/
