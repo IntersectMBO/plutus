@@ -370,7 +370,7 @@ To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog manageme
 ==== When to write a changelog entry
 
 We have no clear policy here, it is up to the judgement of the contributor.
-Now all PRs need changelog entries.
+Not all PRs need changelog entries.
 However our CI will check for changelog entries unless the 'No Changelog Required' label is applied.
 
 The broad heuristic is to put yourself in the position of the consumer of the piece of software in question and ask if you would want to know about this change.
