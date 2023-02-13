@@ -37,16 +37,16 @@ jobs:
             function checkChangelog() {
               const newFiles = getNewChangelogFiles();
               if (newFiles.length == 0) {
-                core.debug("No files were added by this PR in any of the changelog.d directories.");
-                core.debug("Either commit a new file, or add the label 'No Changelog Required' to your PR.");
+                core.info("No files were added by this PR in any of the changelog.d directories.");
+                core.info("Either commit a new file, or add the label 'No Changelog Required' to your PR.");
                 core.setFailed("Changelog check failed.");
               } else {
-                core.debug(`The following changelog files were added by this PR:\n${newFiles}`);
+                core.info(`The following changelog files were added by this PR:\n${newFiles}`);
               }
             }
 
             if (shouldCheckChangelog()) {
               checkChangelog();
             } else {
-              core.debug("PR contains the label 'No Changelog Required', skipping changelog check.");
+              core.info("PR contains the label 'No Changelog Required', skipping changelog check.");
             }
