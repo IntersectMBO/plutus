@@ -180,11 +180,11 @@ inline =
     , "letFunConstMulti" -- multiple occurrences of a let binding of the const fn.
     , "letFunInFun" -- fully applied fn inside another let, single occurrence.
     , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
-    , "letFunInFunMultiFullyApplied" --
+    , "letFunInFunMultiFullyApplied" -- similar to "letFunInFunMulti" but all fns are fully applied.
     , "letIdFunForall" -- singe occurrence of a polymorphic id function that is fully applied
-    -- multiple occurrences of a polymorphic id function that is fully applied
+    -- multiple occurrences of a polymorphic id function that IS fully applied
     , "letIdFunForallMulti"
-    -- multiple occurrences of a polymorphic id function that is not fully applied
+    -- multiple occurrences of a polymorphic id function that is NOT fully applied
     , "letIdFunForallMultiNotSat"
     , "letApp" -- single occurrence of a function application in rhs
     , "letAppMulti" -- multiple occurrences of a function application in rhs
