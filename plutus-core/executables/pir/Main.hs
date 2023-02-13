@@ -140,7 +140,7 @@ runPrint (PrintOptions iospec _mode) = do
       Left (ParseErrorB err) ->
           errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
-      Right (p::PirProg PLC.SourcePos) -> do
+      Right (p::PirProg PLC.SrcSpan) -> do
         -- pretty print the program. Print mode may be added later on.
         let
             printed :: String

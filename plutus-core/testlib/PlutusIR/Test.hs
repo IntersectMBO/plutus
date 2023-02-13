@@ -7,7 +7,12 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module PlutusIR.Test where
+module PlutusIR.Test (
+    module PlutusIR.Test,
+    initialSrcSpan,
+    topSrcSpan,
+    rethrow,
+) where
 
 import PlutusPrelude
 import Test.Tasty.Extras

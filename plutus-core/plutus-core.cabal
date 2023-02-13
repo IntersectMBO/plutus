@@ -464,6 +464,7 @@ test-suite plutus-core-test
     Names.Spec
     Normalization.Check
     Normalization.Type
+    Parser.Spec
     Pretty.Readable
     TypeSynthesis.Spec
 

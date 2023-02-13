@@ -33,4 +33,3 @@ main = do
     , test_debug
     , schnorrVerifyRegressions
     ]
-

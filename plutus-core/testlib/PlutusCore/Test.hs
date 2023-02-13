@@ -24,6 +24,8 @@ module PlutusCore.Test
     , goldenTEvalCatch
     , goldenUEvalCatch
     , goldenUEvalProfile
+    , initialSrcSpan
+    , topSrcSpan
     , NoMarkRenameT(..)
     , noMarkRename
     , NoRenameT(..)
@@ -48,6 +50,7 @@ import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.Generators.Hedgehog.Utils
 
 import PlutusCore qualified as TPLC
+import PlutusCore.Annotation
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
@@ -250,6 +253,12 @@ goldenUEvalProfile
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+
+initialSrcSpan :: FilePath -> SrcSpan
+initialSrcSpan fp = SrcSpan fp 1 1 1 2
+
+topSrcSpan :: SrcSpan
+topSrcSpan = initialSrcSpan "top"
 
 -- See Note [Marking].
 -- | A version of 'RenameT' that fails to take free variables into account.

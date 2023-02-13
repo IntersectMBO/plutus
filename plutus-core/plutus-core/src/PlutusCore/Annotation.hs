@@ -16,6 +16,7 @@ module PlutusCore.Annotation
     , lineInSrcSpan
     ) where
 
+import Control.DeepSeq
 import Data.List qualified as List
 import Data.MonoTraversable
 import Data.Semigroup (Any (..))
@@ -98,8 +99,10 @@ instance Show SrcSpan where
 instance Pretty SrcSpan where
     pretty = viaShow
 
+instance NFData SrcSpan
+
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
-    deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable)
+    deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable, NFData)
     deriving stock (Generic)
     deriving anyclass (Flat)
 

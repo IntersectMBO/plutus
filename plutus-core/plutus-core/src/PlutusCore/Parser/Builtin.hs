@@ -74,7 +74,7 @@ conList uniA = inBrackets $ constantOf uniA `sepBy` symbol ","
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
-conPair uniA uniB = inParens $ do
+conPair uniA uniB = inParensSpc $ do
     a <- constantOf uniA
     _ <- symbol ","
     b <- constantOf uniB
