@@ -1,7 +1,7 @@
 name: Check Changelog
 on:
   pull_request:
-    types: [ opened, synchronize, labeled ]
+    types: [ opened, synchronize, labeled, unlabeled ]
 jobs:
   check-changelog:
     runs-on: [ubuntu-latest]
@@ -39,6 +39,7 @@ jobs:
               if (newFiles.length == 0) {
                 core.info("No files were added by this PR in any of the changelog.d directories.");
                 core.info("Either commit a new file, or add the label 'No Changelog Required' to your PR.");
+                core.error("No files found in **/changelog.d");
                 core.setFailed("Changelog check failed.");
               } else {
                 core.info(`The following changelog files were added by this PR:\n${newFiles}`);
@@ -48,5 +49,6 @@ jobs:
             if (shouldCheckChangelog()) {
               checkChangelog();
             } else {
+              core.notice("Skipping changelog check.");
               core.info("PR contains the label 'No Changelog Required', skipping changelog check.");
             }
