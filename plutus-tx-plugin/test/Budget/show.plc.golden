@@ -2573,180 +2573,246 @@
                                       )
                                       [
                                         concatBuiltinStrings
-                                        [
-                                          (let
-                                            (nonrec)
-                                            (termbind
-                                              (strict)
-                                              (vardecl
-                                                showElem
+                                        (let
+                                          (nonrec)
+                                          (termbind
+                                            (strict)
+                                            (vardecl
+                                              w
+                                              (fun
+                                                (con integer)
                                                 (fun
-                                                  (con integer)
-                                                  (fun
-                                                    [ List (con string) ]
-                                                    [ List (con string) ]
-                                                  )
+                                                  [ List (con string) ]
+                                                  [ List (con string) ]
                                                 )
                                               )
-                                              [
-                                                [
-                                                  { showsPrec (con integer) }
-                                                  dShow
-                                                ]
-                                                (con integer 0)
-                                              ]
                                             )
                                             [
                                               [
+                                                { showsPrec (con integer) }
+                                                dShow
+                                              ]
+                                              (con integer 0)
+                                            ]
+                                          )
+                                          (termbind
+                                            (strict)
+                                            (vardecl w [ List (con string) ])
+                                            { Nil (con string) }
+                                          )
+                                          [
+                                            {
+                                              [
+                                                {
+                                                  { UTuple2_match (con string) }
+                                                  [ List (con string) ]
+                                                }
                                                 {
                                                   [
-                                                    { Nil_match (con integer) }
-                                                    x
-                                                  ]
-                                                  (fun
-                                                    [ List (con string) ]
-                                                    [ List (con string) ]
-                                                  )
-                                                }
-                                                (lam
-                                                  ds
-                                                  [ List (con string) ]
-                                                  [
                                                     [
-                                                      { Cons (con string) }
-                                                      (con string "[]")
-                                                    ]
-                                                    ds
-                                                  ]
-                                                )
-                                              ]
-                                              (lam
-                                                x
-                                                (con integer)
-                                                (lam
-                                                  xs
-                                                  [ List (con integer) ]
-                                                  (lam
-                                                    x
-                                                    [ List (con string) ]
-                                                    [
-                                                      [
-                                                        { Cons (con string) }
-                                                        (con string "[")
-                                                      ]
-                                                      [
-                                                        [ showElem x ]
+                                                      {
                                                         [
+                                                          {
+                                                            Nil_match
+                                                            (con integer)
+                                                          }
+                                                          x
+                                                        ]
+                                                        (all
+                                                          dead
+                                                          (type)
                                                           [
                                                             [
-                                                              [
-                                                                {
-                                                                  {
-                                                                    foldr
-                                                                    (con
-                                                                      integer
-                                                                    )
-                                                                  }
-                                                                  (fun
-                                                                    [
-                                                                      List
-                                                                      (con
-                                                                        string
-                                                                      )
-                                                                    ]
-                                                                    [
-                                                                      List
-                                                                      (con
-                                                                        string
-                                                                      )
-                                                                    ]
-                                                                  )
-                                                                }
-                                                                (lam
-                                                                  a
-                                                                  (con integer)
-                                                                  (lam
-                                                                    acc
-                                                                    (fun
-                                                                      [
-                                                                        List
-                                                                        (con
-                                                                          string
-                                                                        )
-                                                                      ]
-                                                                      [
-                                                                        List
-                                                                        (con
-                                                                          string
-                                                                        )
-                                                                      ]
-                                                                    )
-                                                                    (lam
-                                                                      x
-                                                                      [
-                                                                        List
-                                                                        (con
-                                                                          string
-                                                                        )
-                                                                      ]
-                                                                      [
-                                                                        [
-                                                                          {
-                                                                            Cons
-                                                                            (con
-                                                                              string
-                                                                            )
-                                                                          }
-                                                                          (con
-                                                                            string
-                                                                            ","
-                                                                          )
-                                                                        ]
-                                                                        [
-                                                                          [
-                                                                            showElem
-                                                                            a
-                                                                          ]
-                                                                          [
-                                                                            acc
-                                                                            x
-                                                                          ]
-                                                                        ]
-                                                                      ]
-                                                                    )
-                                                                  )
-                                                                )
-                                                              ]
+                                                              UTuple2
+                                                              (con string)
+                                                            ]
+                                                            [
+                                                              List (con string)
+                                                            ]
+                                                          ]
+                                                        )
+                                                      }
+                                                      (abs
+                                                        dead
+                                                        (type)
+                                                        [
+                                                          [
+                                                            {
                                                               {
-                                                                id
+                                                                UTuple2
+                                                                (con string)
+                                                              }
+                                                              [
+                                                                List
+                                                                (con string)
+                                                              ]
+                                                            }
+                                                            (con string "[]")
+                                                          ]
+                                                          w
+                                                        ]
+                                                      )
+                                                    ]
+                                                    (lam
+                                                      x
+                                                      (con integer)
+                                                      (lam
+                                                        xs
+                                                        [ List (con integer) ]
+                                                        (abs
+                                                          dead
+                                                          (type)
+                                                          [
+                                                            [
+                                                              {
+                                                                {
+                                                                  UTuple2
+                                                                  (con string)
+                                                                }
                                                                 [
                                                                   List
                                                                   (con string)
                                                                 ]
                                                               }
+                                                              (con string "[")
                                                             ]
-                                                            xs
-                                                          ]
-                                                          [
                                                             [
-                                                              {
-                                                                Cons
-                                                                (con string)
-                                                              }
-                                                              (con string "]")
+                                                              [ w x ]
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      {
+                                                                        {
+                                                                          foldr
+                                                                          (con
+                                                                            integer
+                                                                          )
+                                                                        }
+                                                                        (fun
+                                                                          [
+                                                                            List
+                                                                            (con
+                                                                              string
+                                                                            )
+                                                                          ]
+                                                                          [
+                                                                            List
+                                                                            (con
+                                                                              string
+                                                                            )
+                                                                          ]
+                                                                        )
+                                                                      }
+                                                                      (lam
+                                                                        a
+                                                                        (con
+                                                                          integer
+                                                                        )
+                                                                        (lam
+                                                                          acc
+                                                                          (fun
+                                                                            [
+                                                                              List
+                                                                              (con
+                                                                                string
+                                                                              )
+                                                                            ]
+                                                                            [
+                                                                              List
+                                                                              (con
+                                                                                string
+                                                                              )
+                                                                            ]
+                                                                          )
+                                                                          (lam
+                                                                            x
+                                                                            [
+                                                                              List
+                                                                              (con
+                                                                                string
+                                                                              )
+                                                                            ]
+                                                                            [
+                                                                              [
+                                                                                {
+                                                                                  Cons
+                                                                                  (con
+                                                                                    string
+                                                                                  )
+                                                                                }
+                                                                                (con
+                                                                                  string
+                                                                                  ","
+                                                                                )
+                                                                              ]
+                                                                              [
+                                                                                [
+                                                                                  w
+                                                                                  a
+                                                                                ]
+                                                                                [
+                                                                                  acc
+                                                                                  x
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          )
+                                                                        )
+                                                                      )
+                                                                    ]
+                                                                    {
+                                                                      id
+                                                                      [
+                                                                        List
+                                                                        (con
+                                                                          string
+                                                                        )
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                  xs
+                                                                ]
+                                                                [
+                                                                  [
+                                                                    {
+                                                                      Cons
+                                                                      (con
+                                                                        string
+                                                                      )
+                                                                    }
+                                                                    (con
+                                                                      string "]"
+                                                                    )
+                                                                  ]
+                                                                  w
+                                                                ]
+                                                              ]
                                                             ]
-                                                            x
                                                           ]
-                                                        ]
-                                                      ]
-                                                    ]
-                                                  )
-                                                )
+                                                        )
+                                                      )
+                                                    )
+                                                  ]
+                                                  (all dead (type) dead)
+                                                }
+                                              ]
+                                              [ List (con string) ]
+                                            }
+                                            (lam
+                                              ww
+                                              (con string)
+                                              (lam
+                                                ww
+                                                [ List (con string) ]
+                                                [
+                                                  [ { Cons (con string) } ww ]
+                                                  ww
+                                                ]
                                               )
-                                            ]
-                                          )
-                                          { Nil (con string) }
-                                        ]
+                                            )
+                                          ]
+                                        )
                                       ]
                                     )
                                   ]
