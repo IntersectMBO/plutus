@@ -1,6 +1,7 @@
 name: Check Changelog
 on:
   pull_request:
+    types: [ opened, synchronize, labeled ]
 jobs:
   check-changelog:
     runs-on: [ubuntu-latest]
@@ -14,25 +15,31 @@ jobs:
         with:
           files: '**/changelog.d/**'
 
-      - name: Enforce New File or DISABLE_CHANGELOG_CHECK
+      - name: Enforce New File or 'No Changelog Required' Label
         uses: actions/github-script@v6
         with:
           script: | 
             function shouldCheckChangelog() {
-              const prDescription = '${{ github.event.pull_request.body }}';
-              return !prDescription.includes("DISABLE_CHANGELOG_CHECK");
+              return !${{ contains(github.event.pull_request.labels.*.name, 'No Changelog Required') }};
             }
 
             function getNewChangelogFiles() {
-              return '${{ steps.changed-files.outputs.added_files }}'.trim().split(' ');
+              const newFiles = '${{ steps.changed-files.outputs.added_files }}'.trim().split(' ');
+              // We check that added_files is the singleton array containing the empty string.
+              // This is probably a bug in tj-actions/changed-files
+              if (newFiles.length === 1 && newFiles[0] === "") {
+                return [];
+              } else {
+                return newFiles;
+              }
             }
 
             function checkChangelog() {
               const newFiles = getNewChangelogFiles();
               if (newFiles.length == 0) {
                 core.debug("No files were added by this PR in any of the changelog.d directories.");
-                core.debug("Either commit a new file, or add the string DISABLE_CHANGELOG_CHECK to your PR description.");
-                core.setFailure("Changelog check failed.");
+                core.debug("Either commit a new file, or add the label 'No Changelog Required' to your PR.");
+                core.setFailed("Changelog check failed.");
               } else {
                 core.debug(`The following changelog files were added by this PR:\n${newFiles}`);
               }
@@ -41,5 +48,5 @@ jobs:
             if (shouldCheckChangelog()) {
               checkChangelog();
             } else {
-              core.debug("PR description contains the string DISABLE_CHANGELOG_CHECK, skipping changelog check.");
+              core.debug("PR contains the label 'No Changelog Required', skipping changelog check.");
             }
