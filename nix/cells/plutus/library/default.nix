@@ -6,7 +6,7 @@
 
   plutus-project-8107 = import ./plutus-project-8107.nix block;
 
-  plutus-project-924 = import ./plutus-project-924.nix block;
+  plutus-project-925 = import ./plutus-project-925.nix block;
 
   agda-project = import ./agda-project.nix block;
 

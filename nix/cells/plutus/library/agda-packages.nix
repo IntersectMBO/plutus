@@ -36,7 +36,7 @@ let
     {
       haskellPackages = pkgs.haskellPackages //
       {
-        ghcWithPackages = cell.library.plutus-project-924.ghcWithPackages;
+        ghcWithPackages = cell.library.plutus-project-925.ghcWithPackages;
       };
     };
 in
