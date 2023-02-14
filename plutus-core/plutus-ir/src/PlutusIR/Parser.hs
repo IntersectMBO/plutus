@@ -31,18 +31,20 @@ import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 type PTerm = PIR.Term TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 recursivity :: Parser Recursivity
-recursivity = inParensSpc $ (symbol "rec" $> Rec) <|> (symbol "nonrec" $> NonRec)
+recursivity = trailingWhitespace . inParens $
+    (symbol "rec" $> Rec) <|> (symbol "nonrec" $> NonRec)
 
 strictness :: Parser Strictness
-strictness = inParensSpc $ (symbol "strict" $> Strict) <|> (symbol "nonstrict" $> NonStrict)
+strictness = trailingWhitespace . inParens $
+    (symbol "strict" $> Strict) <|> (symbol "nonstrict" $> NonStrict)
 
 varDecl :: Parser (VarDecl TyName Name PLC.DefaultUni SrcSpan)
 varDecl = withSpan $ \sp ->
-    inParens $ VarDecl sp <$> (symbol "vardecl" *> name) <*> pType
+    inParens $ VarDecl sp <$> (symbol "vardecl" *> trailingWhitespace name) <*> pType
 
 tyVarDecl :: Parser (TyVarDecl TyName SrcSpan)
 tyVarDecl = withSpan $ \sp ->
-    inParens $ TyVarDecl sp <$> (symbol "tyvardecl" *> tyName) <*> kind
+    inParens $ TyVarDecl sp <$> (symbol "tyvardecl" *> trailingWhitespace tyName) <*> kind
 
 datatype :: Parser (Datatype TyName Name PLC.DefaultUni SrcSpan)
 datatype = withSpan $ \sp ->
@@ -50,7 +52,7 @@ datatype = withSpan $ \sp ->
         Datatype sp
             <$> (symbol "datatype" *> tyVarDecl)
             <*> many tyVarDecl
-            <*> name
+            <*> trailingWhitespace name
             <*> many varDecl
 
 binding :: Parser (Binding TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
@@ -63,7 +65,7 @@ binding = withSpan $ \sp ->
 
 varTerm :: Parser PTerm
 varTerm = withSpan $ \sp ->
-    PIR.Var sp <$> name'
+    PIR.Var sp <$> name
 
 -- A small type wrapper for parsers that are parametric in the type of term they parse
 type Parametric
@@ -71,11 +73,11 @@ type Parametric
 
 absTerm :: Parametric
 absTerm tm = withSpan $ \sp ->
-    inParens $ PIR.tyAbs sp <$> (symbol "abs" *> tyName) <*> kind <*> tm
+    inParens $ PIR.tyAbs sp <$> (symbol "abs" *> trailingWhitespace tyName) <*> kind <*> tm
 
 lamTerm :: Parametric
 lamTerm tm = withSpan $ \sp ->
-    inParens $ PIR.lamAbs sp <$> (symbol "lam" *> name) <*> pType <*> tm
+    inParens $ PIR.lamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> pType <*> tm
 
 conTerm :: Parametric
 conTerm _tm = withSpan $ \sp ->

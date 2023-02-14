@@ -34,11 +34,11 @@ funType = withSpan $ \sp ->
 
 allType :: Parser PType
 allType = withSpan $ \sp ->
-    inParens $ TyForall sp <$> (symbol "all" *> tyName) <*> kind <*> pType
+    inParens $ TyForall sp <$> (symbol "all" *> trailingWhitespace tyName) <*> kind <*> pType
 
 lamType :: Parser PType
 lamType = withSpan $ \sp ->
-    inParens $ TyLam sp <$> (symbol "lam" *> tyName) <*> kind <*> pType
+    inParens $ TyLam sp <$> (symbol "lam" *> trailingWhitespace tyName) <*> kind <*> pType
 
 ifixType :: Parser PType
 ifixType = withSpan $ \sp ->
@@ -118,7 +118,7 @@ defaultUniApplication = do
 -- doing it.
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
-    [ inParensSpc defaultUniApplication
+    [ trailingWhitespace (inParens defaultUniApplication)
     , someType @_ @Integer <$ symbol "integer"
     , someType @_ @ByteString <$ symbol "bytestring"
     , someType @_ @Text <$ symbol "string"

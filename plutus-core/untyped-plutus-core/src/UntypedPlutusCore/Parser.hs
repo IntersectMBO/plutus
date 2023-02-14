@@ -44,11 +44,11 @@ builtinTerm = withSpan $ \sp ->
 
 varTerm :: Parser PTerm
 varTerm = withSpan $ \sp ->
-    UPLC.Var sp <$> name'
+    UPLC.Var sp <$> name
 
 lamTerm :: Parser PTerm
 lamTerm = withSpan $ \sp ->
-    inParens $ UPLC.LamAbs sp <$> (symbol "lam" *> name) <*> term
+    inParens $ UPLC.LamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> term
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->

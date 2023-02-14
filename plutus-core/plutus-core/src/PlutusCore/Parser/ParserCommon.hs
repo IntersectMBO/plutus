@@ -72,6 +72,12 @@ parseGen stuff = parse stuff "test"
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
+leadingWhitespace :: Parser a -> Parser a
+leadingWhitespace = (whitespace *>)
+
+trailingWhitespace :: Parser a -> Parser a
+trailingWhitespace = (<* whitespace)
+
 -- | Returns a parser for @a@ by calling the supplied function on the starting
 -- and ending positions of @a@.
 --
@@ -101,16 +107,8 @@ symbol = Lex.symbol whitespace
 inParens :: Parser a -> Parser a
 inParens = between (symbol "(") (char ')')
 
--- | Like `inParens` but also consumes trailing whitespaces.
-inParensSpc :: Parser a -> Parser a
-inParensSpc = (<* whitespace) . inParens
-
 inBrackets :: Parser a -> Parser a
 inBrackets = between (symbol "[") (char ']')
-
--- | Like `inBrackets` but also consumes trailing whitespaces.
-inBracketsSpc :: Parser a -> Parser a
-inBracketsSpc = (<* whitespace) . inBrackets
 
 inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (char '}')
@@ -136,12 +134,9 @@ version = withSpan $ \sp -> do
     void $ char '.'
     Version sp x y <$> Lex.decimal
 
+-- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
-name = lexeme name'
-
--- | Like `name` but does not consume trailing whitespaces.
-name' :: Parser Name
-name' = try $ do
+name = try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str

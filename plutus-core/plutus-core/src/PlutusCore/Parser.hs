@@ -32,15 +32,15 @@ type PTerm = Term TyName Name DefaultUni DefaultFun SrcSpan
 
 varTerm :: Parser PTerm
 varTerm = withSpan $ \sp ->
-    Var sp <$> name'
+    Var sp <$> name
 
 tyAbsTerm :: Parser PTerm
 tyAbsTerm = withSpan $ \sp ->
-    inParens $ TyAbs sp <$> (symbol "abs" *> tyName)  <*> kind <*> term
+    inParens $ TyAbs sp <$> (symbol "abs" *> trailingWhitespace tyName)  <*> kind <*> term
 
 lamTerm :: Parser PTerm
 lamTerm = withSpan $ \sp ->
-    inParens $ LamAbs sp <$> (symbol "lam" *> name) <*> pType <*> term
+    inParens $ LamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> pType <*> term
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
