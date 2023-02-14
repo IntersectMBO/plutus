@@ -189,7 +189,6 @@ inline =
     , "letApp" -- single occurrence of a function application in rhs
     , "letAppMulti" -- multiple occurrences of a function application in rhs
     , "letOverApp" -- over-application of a function, single occurrence
-    , "letOverAppMultiId" -- like "letOverApp" but with its argument occurring more than once
     , "letOverAppMulti" -- multiple occurrences of an over-application of a function
     ]
 

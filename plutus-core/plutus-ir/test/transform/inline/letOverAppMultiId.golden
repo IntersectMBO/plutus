@@ -1,9 +1,0 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl idFun (fun (con integer) (con integer)))
-    (lam y (con integer) y)
-  )
-  [ [ (lam x (con integer) idFun) idFun ] (con integer 6) ]
-)

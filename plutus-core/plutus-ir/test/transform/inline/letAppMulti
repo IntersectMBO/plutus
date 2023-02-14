@@ -1,14 +1,16 @@
 {- 
 Multiple occurrences of a let binding that is a function application (funApp). It should not get 
-inlined by the unconditional inlining optimization. However, the optimization that inlines fully
-applied function should inline funApp.
+inlined by the unconditional inlining optimization. The optimization that inlines fully
+applied function should also not inline funApp, even though it is fully applied.
+Because it is an application, so it's not acceptable in terms of both cost and size. This test
+verifies that the cost and size heuristics are checked.
 
 let 
   appNum :: Integer
   appNum = 4
   in 
     let funApp :: Integer -> Integer
-        funApp = addInteger appNum
+        funApp x = addInteger appNum x
     in
       let k :: Integer -> Integer
       k = funApp
@@ -25,7 +27,7 @@ in funApp appNum
       (termbind
         (strict)
         (vardecl funApp (fun (con integer) (con integer)))
-        [ (builtin addInteger) appNum ]
+        (lam x (con integer) [[ (builtin addInteger) appNum ] x])
       )
       (let
         (nonrec)
