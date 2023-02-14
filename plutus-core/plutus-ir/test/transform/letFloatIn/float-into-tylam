@@ -2,14 +2,6 @@
   (nonrec)
   (datatypebind
     (datatype
-      (tyvardecl Bool (type))
-
-      Bool_match
-      (vardecl True Bool) (vardecl False Bool)
-    )
-  )
-  (datatypebind
-    (datatype
       (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
       (tyvardecl a (type)) (tyvardecl b (type))
       Tuple2_match
@@ -29,4 +21,4 @@
     )
   )
 )
--- Both `termbind`s can be floated into the `abs`.
+-- The `datatypebind` and the `termbind` can both be floated into the `abs`.

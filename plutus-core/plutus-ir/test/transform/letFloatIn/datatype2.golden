@@ -1,0 +1,26 @@
+(lam
+  x
+  (con integer)
+  (lam
+    y
+    (con integer)
+    (let
+      (nonrec)
+      (datatypebind
+        (datatype
+          (tyvardecl Bool (type))
+
+          Bool_match
+          (vardecl True Bool) (vardecl False Bool)
+        )
+      )
+      [
+        [
+          [ { (builtin ifThenElse) Bool } [ [ (builtin equalsInteger) x ] y ] ]
+          True
+        ]
+        False
+      ]
+    )
+  )
+)
