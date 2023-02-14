@@ -402,8 +402,8 @@ floatInBinding ver letAnn = \b ->
                 (TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody)
         TyInst (a, usBody) tyInstBody ty
             | Set.disjoint declaredUniqs (typeUniqs ty) ->
-                -- A term binding can always be placed inside the body a `TyInst` because the
-                -- type cannot mention the bound variable
+                -- A binding can always be placed inside the body a `TyInst` if `ty`
+                -- doesn't use any of the `declaredUniqs`.
                 TyInst (a, usBind <> usBody) <$> go b tyInstBody <*> pure ty
         Let (a, usBody) NonRec bs letBody
             -- The binding can be placed inside a `Let`, if the right hand sides of the
@@ -441,7 +441,8 @@ floatInBinding ver letAnn = \b ->
         IWrap (a, usBody) ty1 ty2 iwrapBody
             | Set.disjoint declaredUniqs (typeUniqs ty1)
             , Set.disjoint declaredUniqs (typeUniqs ty2) ->
-                -- A binding can always be placed inside an `IWrap`.
+                -- A binding can be placed inside an `IWrap`, if `ty1` and `ty2`
+                -- do not use any of the `declaredUniqs`.
                 IWrap (a, usBind <> usBody) ty1 ty2 <$> go b iwrapBody
         Unwrap (a, usBody) unwrapBody ->
             -- A binding can always be placed inside an `Unwrap`.
