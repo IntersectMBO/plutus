@@ -82,7 +82,7 @@ data SrcSpan = SrcSpan
     -- is the line break).
     }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Flat)
+    deriving anyclass (Flat, NFData)
 
 instance Show SrcSpan where
     showsPrec _ s =
@@ -98,8 +98,6 @@ instance Show SrcSpan where
 
 instance Pretty SrcSpan where
     pretty = viaShow
-
-instance NFData SrcSpan
 
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
     deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable, NFData)
