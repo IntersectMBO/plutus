@@ -34,218 +34,235 @@ import PlutusIR.TypeCheck as TC
 import Text.Megaparsec.Pos
 
 transform :: TestNested
-transform = testNested "transform" [
-    thunkRecursions
-    , nonStrict
-    , letFloatOut
-    , letFloatIn
-    , recSplit
-    , inline
-    , beta
-    , unwrapCancel
-    , deadCode
-    , retainedSize
-    , rename
-    ]
+transform =
+    testNested
+        "transform"
+        [ thunkRecursions
+        , nonStrict
+        , letFloatOut
+        , letFloatIn
+        , recSplit
+        , inline
+        , beta
+        , unwrapCancel
+        , deadCode
+        , retainedSize
+        , rename
+        ]
 
 thunkRecursions :: TestNested
-thunkRecursions = testNested "thunkRecursions"
-    $ map (goldenPir (ThunkRec.thunkRecursions def) pTerm)
-    [ "listFold"
-    , "monoMap"
-    , "errorBinding"
-    ]
+thunkRecursions =
+    testNested "thunkRecursions" $
+        map
+            (goldenPir (ThunkRec.thunkRecursions def) pTerm)
+            [ "listFold"
+            , "monoMap"
+            , "errorBinding"
+            ]
 
 nonStrict :: TestNested
-nonStrict = testNested "nonStrict"
-    $ map (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) pTerm)
-    [ "nonStrict1"
-    ]
+nonStrict =
+    testNested "nonStrict" $
+        map
+            (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) pTerm)
+            [ "nonStrict1"
+            ]
 
 letFloatOut :: TestNested
 letFloatOut =
-    testNested "letFloatOut"
-    $ map (goldenPirM goldenFloatTC pTerm)
-  [ "letInLet"
-  ,"listMatch"
-  ,"maybe"
-  ,"ifError"
-  ,"mutuallyRecursiveTypes"
-  ,"mutuallyRecursiveValues"
-  ,"nonrec1"
-  ,"nonrec2"
-  ,"nonrec3"
-  ,"nonrec4"
-  ,"nonrec6"
-  ,"nonrec7"
-  ,"nonrec8"
-  ,"nonrec9"
-  ,"rec1"
-  ,"rec2"
-  ,"rec3"
-  ,"rec4"
-  ,"nonrecToRec"
-  ,"nonrecToNonrec"
-  ,"oldLength"
-  ,"strictValue"
-  ,"strictNonValue"
-  ,"strictNonValue2"
-  ,"strictNonValue3"
-  ,"strictValueNonValue"
-  ,"strictValueValue"
-  ,"even3Eval"
-  ,"strictNonValueDeep"
-  ,"oldFloatBug"
-  ,"outRhs"
-  ,"outLam"
-  ,"inLam"
-  ,"rhsSqueezeVsNest"
-  ]
- where
-   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-       let pirFloated = RecSplit.recSplit . LetFloatOut.floatTerm def . runQuote $ PLC.rename pir
-       -- make sure the floated result typechecks
-       _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
-       -- letmerge is not necessary for floating, but is a nice visual transformation
-       pure $ LetMerge.letMerge pirFloated
+    testNested "letFloatOut" $
+        map
+            (goldenPirM goldenFloatTC pTerm)
+            [ "letInLet"
+            , "listMatch"
+            , "maybe"
+            , "ifError"
+            , "mutuallyRecursiveTypes"
+            , "mutuallyRecursiveValues"
+            , "nonrec1"
+            , "nonrec2"
+            , "nonrec3"
+            , "nonrec4"
+            , "nonrec6"
+            , "nonrec7"
+            , "nonrec8"
+            , "nonrec9"
+            , "rec1"
+            , "rec2"
+            , "rec3"
+            , "rec4"
+            , "nonrecToRec"
+            , "nonrecToNonrec"
+            , "oldLength"
+            , "strictValue"
+            , "strictNonValue"
+            , "strictNonValue2"
+            , "strictNonValue3"
+            , "strictValueNonValue"
+            , "strictValueValue"
+            , "even3Eval"
+            , "strictNonValueDeep"
+            , "oldFloatBug"
+            , "outRhs"
+            , "outLam"
+            , "inLam"
+            , "rhsSqueezeVsNest"
+            ]
+  where
+    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+        let pirFloated = RecSplit.recSplit . LetFloatOut.floatTerm def . runQuote $ PLC.rename pir
+        -- make sure the floated result typechecks
+        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
+        -- letmerge is not necessary for floating, but is a nice visual transformation
+        pure $ LetMerge.letMerge pirFloated
 
 letFloatIn :: TestNested
 letFloatIn =
-    testNested "letFloatIn"
-    $ map (goldenPirM goldenFloatTC pTerm)
-  [ "avoid-floating-into-lam"
-  , "avoid-floating-into-RHS"
-  , "avoid-moving-strict-nonvalue-bindings"
-  , "cannot-float-into-app"
-  , "float-into-fun-and-arg-1"
-  , "float-into-fun-and-arg-2"
-  , "float-into-lam"
-  , "float-into-RHS"
-  , "float-into-tylam"
-  ]
- where
-   goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-       let pirFloated = runQuote $ LetFloatIn.floatTerm def pir
-       -- make sure the floated result typechecks
-       _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
-       -- letmerge is not necessary for floating, but is a nice visual transformation
-       pure $ LetMerge.letMerge pirFloated
+    testNested "letFloatIn" $
+        map
+            (goldenPirM goldenFloatTC pTerm)
+            [ "avoid-floating-into-lam"
+            , "avoid-floating-into-RHS"
+            , "avoid-moving-strict-nonvalue-bindings"
+            , "cannot-float-into-app"
+            , "datatype1"
+            , "datatype2"
+            , "float-into-fun-and-arg-1"
+            , "float-into-fun-and-arg-2"
+            , "float-into-lam"
+            , "float-into-RHS"
+            , "float-into-tylam"
+            , "type"
+            ]
+  where
+    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+        let pirFloated = runQuote $ LetFloatIn.floatTerm def pir
+        -- make sure the floated result typechecks
+        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
+        -- letmerge is not necessary for floating, but is a nice visual transformation
+        pure $ LetMerge.letMerge pirFloated
 
 recSplit :: TestNested
 recSplit =
-    testNested "recSplit"
-    $ map (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
-  [
-    "truenonrec"
-  , "mutuallyRecursiveTypes"
-  , "mutuallyRecursiveValues"
-  , "selfrecursive"
-  , "small"
-  , "big"
-  ]
-
+    testNested "recSplit" $
+        map
+            (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
+            [ "truenonrec"
+            , "mutuallyRecursiveTypes"
+            , "mutuallyRecursiveValues"
+            , "selfrecursive"
+            , "small"
+            , "big"
+            ]
 
 instance Semigroup SourcePos where
-  p1 <> _ = p1
+    p1 <> _ = p1
 
 instance Monoid SourcePos where
-  mempty = initialPos ""
+    mempty = initialPos ""
 
 inline :: TestNested
 inline =
-    testNested "inline"
-    $ map (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) $ pTerm)
-    [ "var"
-    , "builtin"
-    , "constant"
-    , "transitive"
-    , "tyvar"
-    , "single"
-    , "immediateVar"
-    , "immediateApp"
-    ]
-
+    testNested "inline" $
+        map
+            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) $ pTerm)
+            [ "var"
+            , "builtin"
+            , "constant"
+            , "transitive"
+            , "tyvar"
+            , "single"
+            , "immediateVar"
+            , "immediateApp"
+            ]
 
 beta :: TestNested
 beta =
-    testNested "beta"
-    $ map (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
-    [ "lamapp"
-    , "lamapp2"
-    , "absapp"
-    , "multiapp"
-    , "multilet"
-    ]
+    testNested "beta" $
+        map
+            (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
+            [ "lamapp"
+            , "lamapp2"
+            , "absapp"
+            , "multiapp"
+            , "multilet"
+            ]
 
 unwrapCancel :: TestNested
 unwrapCancel =
-    testNested "unwrapCancel"
-    $ map (goldenPir Unwrap.unwrapCancel pTerm)
-    -- Note: these examples don't typecheck, but we don't care
-    [ "unwrapWrap"
-    , "wrapUnwrap"
-    ]
+    testNested "unwrapCancel" $
+        map
+            (goldenPir Unwrap.unwrapCancel pTerm)
+            -- Note: these examples don't typecheck, but we don't care
+            [ "unwrapWrap"
+            , "wrapUnwrap"
+            ]
 
 deadCode :: TestNested
 deadCode =
-    testNested "deadCode"
-    $ map (goldenPir (runQuote . DeadCode.removeDeadBindings def) pTerm)
-    [ "typeLet"
-    , "termLet"
-    , "strictLet"
-    , "nonstrictLet"
-    , "datatypeLiveType"
-    , "datatypeLiveConstr"
-    , "datatypeLiveDestr"
-    , "datatypeDead"
-    , "singleBinding"
-    , "builtinBinding"
-    , "etaBuiltinBinding"
-    , "nestedBindings"
-    , "nestedBindingsIndirect"
-    , "recBindingSimple"
-    , "recBindingComplex"
-    , "pruneDatatype"
-    ]
+    testNested "deadCode" $
+        map
+            (goldenPir (runQuote . DeadCode.removeDeadBindings def) pTerm)
+            [ "typeLet"
+            , "termLet"
+            , "strictLet"
+            , "nonstrictLet"
+            , "datatypeLiveType"
+            , "datatypeLiveConstr"
+            , "datatypeLiveDestr"
+            , "datatypeDead"
+            , "singleBinding"
+            , "builtinBinding"
+            , "etaBuiltinBinding"
+            , "nestedBindings"
+            , "nestedBindingsIndirect"
+            , "recBindingSimple"
+            , "recBindingComplex"
+            , "pruneDatatype"
+            ]
 
 retainedSize :: TestNested
 retainedSize =
-    testNested "retainedSize"
-    $ map (goldenPir renameAndAnnotate pTerm)
-    [ "typeLet"
-    , "termLet"
-    , "strictLet"
-    , "nonstrictLet"
-    -- @Maybe@ is referenced, so it retains all of the data type.
-    , "datatypeLiveType"
-    -- @Nothing@ is referenced, so it retains all of the data type.
-    , "datatypeLiveConstr"
-    -- @match_Maybe@ is referenced, so it retains all of the data type.
-    , "datatypeLiveDestr"
-    , "datatypeDead"
-    , "singleBinding"
-    , "builtinBinding"
-    , "etaBuiltinBinding"
-    , "etaBuiltinBindingUsed"
-    , "nestedBindings"
-    , "nestedBindingsIndirect"
-    , "recBindingSimple"
-    , "recBindingComplex"
-    ] where
-        displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
-        renameAndAnnotate
-            = PLC.AttachPrettyConfig displayAnnsConfig
+    testNested "retainedSize" $
+        map
+            (goldenPir renameAndAnnotate pTerm)
+            [ "typeLet"
+            , "termLet"
+            , "strictLet"
+            , "nonstrictLet"
+            , -- @Maybe@ is referenced, so it retains all of the data type.
+              "datatypeLiveType"
+            , -- @Nothing@ is referenced, so it retains all of the data type.
+              "datatypeLiveConstr"
+            , -- @match_Maybe@ is referenced, so it retains all of the data type.
+              "datatypeLiveDestr"
+            , "datatypeDead"
+            , "singleBinding"
+            , "builtinBinding"
+            , "etaBuiltinBinding"
+            , "etaBuiltinBindingUsed"
+            , "nestedBindings"
+            , "nestedBindingsIndirect"
+            , "recBindingSimple"
+            , "recBindingComplex"
+            ]
+  where
+    displayAnnsConfig = PLC.PrettyConfigClassic PLC.defPrettyConfigName True
+    renameAndAnnotate =
+        PLC.AttachPrettyConfig displayAnnsConfig
             . RetainedSize.annotateWithRetainedSize def
             . runQuote
             . PLC.rename
 
 rename :: TestNested
 rename =
-    testNested "rename"
-    $ map (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
-    [ "allShadowedDataNonRec"
-    , "allShadowedDataRec"
-    , "paramShadowedDataNonRec"
-    , "paramShadowedDataRec"
-    ] where
-        debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
+    testNested "rename" $
+        map
+            (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
+            [ "allShadowedDataNonRec"
+            , "allShadowedDataRec"
+            , "paramShadowedDataNonRec"
+            , "paramShadowedDataRec"
+            ]
+  where
+    debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
