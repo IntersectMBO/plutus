@@ -20,6 +20,12 @@ jobs:
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
+        with: 
+          payload: |
+            {
+              "key": "value",
+              "foo": "bar"
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
