@@ -48,21 +48,18 @@ binding, or a strict binding whose RHS is work-free. Usually there's no need to 
 between these two, since `let x (nonstrict) = rhs` is essentially equivalent to
 `let x (strict) = all a rhs`.
 
--- Floating a `TypeBind` inwards has no impact on cost (since there's no type in UPLC),
-    -- cannot enable other bindings to be floated inwards, and there is no known example
-    -- where it
-
 -------------------------------------------------------------------------------
 2. What about type and datatype bindings?
 -------------------------------------------------------------------------------
 
-There is no reason to float in a `TypeBind`:
-- Doing so has no impact on cost (since there's no type in UPLC);
-- Doing so cannot enable other bindings to be floated inwards;
-- There is no known example where doing so makes another optimization easier.
-  If anything, doing so may negatively impact the inliner.
+Type bindings can always be floated in. Doing so has no impact on cost since the a type
+binding is compiled into a `force`/`delay` pair that will be optimized away. However,
+doing so may enable other type and datatype bindings to be floated inwards.
 
-`DatatypeBind`s can always be floated inwards. A `DatatypeBind` defines ???
+Datatype bindings can also always be floated inwards. A `DatatypeBind` defines both new types
+and new terms. The types can always be floated in, and because we use Scott encoding
+in Plutus Core, the terms are all lambda abstractions or type abstractions, which are
+essentially work free.
 
 -------------------------------------------------------------------------------
 3. The effect of floating in
