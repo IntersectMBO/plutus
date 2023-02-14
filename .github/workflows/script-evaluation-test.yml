@@ -18,6 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.23.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Download and Unzip Dump Files
         # NOTE: the S3 location s3://plutus/mainnet-script-dump/ must match that in
         # plutus-apps/.github/script-evaluation-dump.yml
