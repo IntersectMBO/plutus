@@ -318,7 +318,7 @@ floatable ver = \case
     TermBind _a Strict _var rhs     -> isEssentiallyWorkFree ver rhs
     TermBind _a NonStrict _var _rhs -> True
     -- See Note [Float-in] #2
-    TypeBind{}                      -> False
+    TypeBind{}                      -> True
     -- See Note [Float-in] #2
     DatatypeBind{}                  -> True
 
@@ -369,9 +369,7 @@ floatInBinding ver letAnn = \b ->
         Binding tyname name uni fun (a, Uniques) ->
         Term tyname name uni fun (a, Uniques) ->
         Reader FloatInContext (Term tyname name uni fun (a, Uniques))
-    go b !body = case b of
-        TypeBind{} -> giveup
-        _ -> case body of
+    go b !body = case body of
             Apply (a, usBody) fun arg
                 | noCommonUniqs declaredUniqs (termUniqs fun) -> do
                     -- `fun` does not mention the binding, so we can place the binding
@@ -460,13 +458,11 @@ floatInBinding ver letAnn = \b ->
 
         declaredUniqs = case b of
             TermBind _ _ var _ -> (Set.singleton (var ^. PLC.unique), mempty)
+            TypeBind _ tvar _ -> (mempty, Set.singleton (tvar ^. PLC.unique))
             DatatypeBind _ (Datatype _ tv tvs destr constrs) ->
                 ( Set.fromList $ view PLC.unique destr : fmap (view PLC.unique) constrs
                 , Set.fromList $ fmap (view PLC.unique) (tv : tvs)
                 )
-            -- unreachable
-            TypeBind{} -> mempty
-
         usBind = bindingUniqs b
 
 {- | Split the given list of bindings, if possible.
