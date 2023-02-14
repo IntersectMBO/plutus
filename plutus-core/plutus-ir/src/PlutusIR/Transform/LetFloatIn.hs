@@ -57,9 +57,8 @@ binding is compiled into a `force`/`delay` pair that will be optimized away. How
 doing so may enable other type and datatype bindings to be floated inwards.
 
 Datatype bindings can also always be floated inwards. A `DatatypeBind` defines both new types
-and new terms. The types can always be floated in, and because we use Scott encoding
-in Plutus Core, the terms are all lambda abstractions or type abstractions, which are
-essentially work free.
+and new terms. The types can always be floated in, and the terms are all lambda abstractions
+or type abstractions, which are essentially work free.
 
 -------------------------------------------------------------------------------
 3. The effect of floating in
