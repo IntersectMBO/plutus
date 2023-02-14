@@ -112,7 +112,7 @@ tyInstTerm tm = withSpan $ \sp ->
     inBraces $ PIR.mkIterInst sp <$> tm <*> some pType
 
 pTerm :: Parser PTerm
-pTerm = whitespace >> go
+pTerm = leadingWhitespace go
   where
     go = choice $ try <$>
         [ varTerm
@@ -131,12 +131,13 @@ pTerm = whitespace >> go
 -- Note that PIR programs do not actually carry a version number
 -- we (optionally) parse it all the same so we can parse all PLC code
 program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
-program = do
-    whitespace
-    prog <- withSpan $ \sp ->
-        inParens $ Program sp <$> (symbol "program" *> option () (void version) *> pTerm)
-    notFollowedBy anySingle
-    pure prog
+program = leadingWhitespace go
+  where
+    go = do
+        prog <- withSpan $ \sp ->
+            inParens $ Program sp <$> (symbol "program" *> option () (void version) *> pTerm)
+        notFollowedBy anySingle
+        pure prog
 
 -- | Parse a PIR program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes

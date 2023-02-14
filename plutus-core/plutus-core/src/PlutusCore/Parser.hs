@@ -72,20 +72,21 @@ errorTerm = withSpan $ \sp ->
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = do
-    whitespace
-    choice $ map try
-        [ tyAbsTerm
-        , lamTerm
-        , appTerm
-        , conTerm
-        , builtinTerm
-        , tyInstTerm
-        , unwrapTerm
-        , iwrapTerm
-        , errorTerm
-        , varTerm
-        ]
+term = leadingWhitespace go
+  where
+    go =
+        choice $ map try
+            [ tyAbsTerm
+            , lamTerm
+            , appTerm
+            , conTerm
+            , builtinTerm
+            , tyInstTerm
+            , unwrapTerm
+            , iwrapTerm
+            , errorTerm
+            , varTerm
+            ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes
@@ -99,12 +100,13 @@ parseProgram = parseGen program
 
 -- | Parser for PLC programs.
 program :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
-program = do
-    whitespace
-    prog <- withSpan $ \sp ->
-        inParens $ Program sp <$> (symbol "program" *> version) <*> term
-    notFollowedBy anySingle
-    pure prog
+program = leadingWhitespace go
+  where
+    go = do
+        prog <- withSpan $ \sp ->
+            inParens $ Program sp <$> (symbol "program" *> version) <*> term
+        notFollowedBy anySingle
+        pure prog
 
 -- | Parse a PLC term. The resulting program will have fresh names. The underlying monad
 -- must be capable of handling any parse errors.

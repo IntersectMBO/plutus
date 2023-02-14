@@ -254,6 +254,7 @@ goldenUEvalProfile
     => String -> [a] -> TestNested
 goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
 
+-- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan
 initialSrcSpan fp = SrcSpan fp 1 1 1 2
 

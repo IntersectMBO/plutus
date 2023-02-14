@@ -68,27 +68,29 @@ errorTerm = withSpan $ \sp ->
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = do
-    whitespace
-    choice $ map try [
-        conTerm
-        , builtinTerm
-        , varTerm
-        , lamTerm
-        , appTerm
-        , delayTerm
-        , forceTerm
-        , errorTerm
-        ]
+term = leadingWhitespace go
+  where
+    go =
+        choice $ map try [
+            conTerm
+            , builtinTerm
+            , varTerm
+            , lamTerm
+            , appTerm
+            , delayTerm
+            , forceTerm
+            , errorTerm
+            ]
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
-program = do
-    whitespace
-    prog <- withSpan $ \sp ->
-        inParens $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
-    notFollowedBy anySingle
-    pure prog
+program = leadingWhitespace go
+  where
+    go = do
+        prog <- withSpan $ \sp ->
+            inParens $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
+        notFollowedBy anySingle
+        pure prog
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
