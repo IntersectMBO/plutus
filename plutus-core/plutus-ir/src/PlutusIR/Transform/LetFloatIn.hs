@@ -452,17 +452,7 @@ floatInBinding ver letAnn = \b ->
         giveup =
             let us = termUniqs body <> bindingUniqs b
              in pure $ Let (letAnn, us) NonRec (pure b) body
-
-        declaredUniqs :: Uniques
-        declaredUniqs = case b of
-            TermBind _ _ var _ -> Set.singleton (var ^. PLC.theUnique)
-            TypeBind _ tvar _ -> Set.singleton (tvar ^. PLC.theUnique)
-            DatatypeBind _ (Datatype _ tv tvs destr constrs) ->
-                Set.unions $
-                    [ Set.singleton (destr ^. PLC.theUnique)
-                    , Set.fromList (fmap (^. PLC.theUnique) constrs)
-                    , Set.fromList (fmap (^. PLC.theUnique) (tv : tvs))
-                    ]
+        declaredUniqs = Set.fromList $ b ^.. bindingIds
         usBind = bindingUniqs b
 
 {- | Split the given list of bindings, if possible.
