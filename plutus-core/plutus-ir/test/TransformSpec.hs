@@ -125,13 +125,14 @@ letFloatIn =
             , "avoid-floating-into-RHS"
             , "avoid-moving-strict-nonvalue-bindings"
             , "cannot-float-into-app"
-            , "datatype"
+            , "datatype1"
             , "datatype2"
             , "float-into-fun-and-arg-1"
             , "float-into-fun-and-arg-2"
             , "float-into-lam"
             , "float-into-RHS"
             , "float-into-tylam"
+            , "type"
             ]
   where
     goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
