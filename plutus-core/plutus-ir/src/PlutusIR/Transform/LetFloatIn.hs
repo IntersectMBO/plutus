@@ -138,11 +138,7 @@ whose LHS is used more than once, and we descend in all other cases;
 -}
 
 -- | The uniques of all used variables in a term.
-type Uniques = (Set PLC.TermUnique, Set PLC.TypeUnique)
-
-noCommonUniqs :: Uniques -> Uniques -> Bool
-noCommonUniqs (us1, us2) (us3, us4) =
-    Set.null (us1 `Set.intersection` us3) && Set.null (us2 `Set.intersection` us4)
+type Uniques = Set PLC.Unique
 
 data FloatInContext = FloatInContext
     { _ctxtInManyOccRhs :: Bool
@@ -224,7 +220,7 @@ floatTerm ver t0 = do
                     body = go body0
                     us = termUniqs body <> foldMap bindingUniqs bs
                  in Let (a, us) Rec bs body
-            Var a n -> Var (a, (Set.singleton (n ^. PLC.unique), mempty)) n
+            Var a n -> Var (a, Set.singleton (n ^. PLC.theUnique)) n
             Error a ty0 ->
                 let ty = goType ty0
                  in Error (a, typeUniqs ty) ty
@@ -256,7 +252,7 @@ floatTerm ver t0 = do
         -- Calculate the set of `Unique`s of used variables in a `Type`.
         goType :: Type tyname uni a -> Type tyname uni (a, Uniques)
         goType = \case
-            TyVar a n -> TyVar (a, (mempty, Set.singleton (n ^. PLC.unique))) n
+            TyVar a n -> TyVar (a, Set.singleton (n ^. PLC.theUnique)) n
             TyFun a argTy0 resTy0 ->
                 let argTy = goType argTy0
                     resTy = goType resTy0
@@ -269,12 +265,12 @@ floatTerm ver t0 = do
                  in TyIFix (a, us) patTy argTy
             TyForall a n k bodyTy0 ->
                 let bodyTy = goType bodyTy0
-                    us = (mempty, Set.singleton (n ^. PLC.unique)) <> typeUniqs bodyTy
+                    us = typeUniqs bodyTy
                  in TyForall (a, us) n ((,mempty) <$> k) bodyTy
             TyBuiltin a t -> TyBuiltin (a, mempty) t
             TyLam a n k bodyTy0 ->
                 let bodyTy = goType bodyTy0
-                    us = (mempty, Set.singleton (n ^. PLC.unique)) <> typeUniqs bodyTy
+                    us = typeUniqs bodyTy
                  in TyLam (a, us) n ((,mempty) <$> k) bodyTy
             TyApp a funTy0 argTy0 ->
                 let funTy = goType funTy0
@@ -370,99 +366,102 @@ floatInBinding ver letAnn = \b ->
         Term tyname name uni fun (a, Uniques) ->
         Reader FloatInContext (Term tyname name uni fun (a, Uniques))
     go b !body = case body of
-            Apply (a, usBody) fun arg
-                | noCommonUniqs declaredUniqs (termUniqs fun) -> do
-                    -- `fun` does not mention the binding, so we can place the binding
-                    -- inside `arg`.
-                    -- See Note [Float-in] #4
-                    usgs <- asks _ctxtUsages
-                    let inManyOccRhs = case fun of
-                            LamAbs _ name _ _ ->
-                                Usages.getUsageCount name usgs > 1
-                            Builtin{} -> False
-                            -- We need to be conservative here, this could be something
-                            -- that computes to a function that uses its argument repeatedly.
-                            _ -> True
-                    Apply (a, usBind <> usBody) fun
-                        <$> local (over ctxtInManyOccRhs (|| inManyOccRhs)) (go b arg)
-                | noCommonUniqs declaredUniqs (termUniqs arg) ->
-                    -- `arg` does not mention the binding, so we can place the binding
-                    -- inside `fun`.
-                    Apply (a, usBind <> usBody) <$> go b fun <*> pure arg
-            LamAbs (a, usBody) n ty lamAbsBody
-                | noCommonUniqs declaredUniqs (typeUniqs ty) ->
-                    -- We float into lambdas only if `_ctxtInManyOccRhs = False`.
-                    -- See Note [Float-in] #4
-                    ifM
-                        (asks _ctxtInManyOccRhs)
-                        giveup
-                        (LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody)
-            TyAbs (a, usBody) n k tyAbsBody ->
-                -- We float into type abstractions only if `_ctxtInManyOccRhs = False`.
+        Apply (a, usBody) fun arg
+            | Set.disjoint declaredUniqs (termUniqs fun) -> do
+                -- `fun` does not mention the binding, so we can place the binding
+                -- inside `arg`.
+                -- See Note [Float-in] #4
+                usgs <- asks _ctxtUsages
+                let inManyOccRhs = case fun of
+                        LamAbs _ name _ _ ->
+                            Usages.getUsageCount name usgs > 1
+                        Builtin{} -> False
+                        -- We need to be conservative here, this could be something
+                        -- that computes to a function that uses its argument repeatedly.
+                        _ -> True
+                Apply (a, usBind <> usBody) fun
+                    <$> local (over ctxtInManyOccRhs (|| inManyOccRhs)) (go b arg)
+            | Set.disjoint declaredUniqs (termUniqs arg) ->
+                -- `arg` does not mention the binding, so we can place the binding
+                -- inside `fun`.
+                Apply (a, usBind <> usBody) <$> go b fun <*> pure arg
+        LamAbs (a, usBody) n ty lamAbsBody
+            | Set.disjoint declaredUniqs (typeUniqs ty) ->
+                -- We float into lambdas only if `_ctxtInManyOccRhs = False`.
                 -- See Note [Float-in] #4
                 ifM
                     (asks _ctxtInManyOccRhs)
                     giveup
-                    (TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody)
-            TyInst (a, usBody) tyInstBody ty
-                | noCommonUniqs declaredUniqs (typeUniqs ty) ->
-                    -- A term binding can always be placed inside the body a `TyInst` because the
-                    -- type cannot mention the bound variable
-                    TyInst (a, usBind <> usBody) <$> go b tyInstBody <*> pure ty
-            Let (a, usBody) NonRec bs letBody
-                -- The binding can be placed inside a `Let`, if the right hand sides of the
-                -- bindings of the `Let` do not mention `var`.
-                | noCommonUniqs declaredUniqs (foldMap bindingUniqs bs) ->
-                    Let (a, usBind <> usBody) NonRec bs <$> go b letBody
-                | noCommonUniqs declaredUniqs (termUniqs letBody)
-                , Just (before, TermBind (a', usBind') s' var' rhs', after) <-
-                    splitBindings declaredUniqs (NonEmpty.toList bs) -> do
-                    -- `letBody` does not mention `var`, and there is exactly one
-                    -- RHS in `bs` that mentions `var`, so we can place `b`
-                    -- inside one of the RHSs in `bs`.
-                    ctxt <- ask
-                    let usageCnt = Usages.getUsageCount var' (ctxt ^. ctxtUsages)
-                        safe = case s' of
-                            Strict -> True
-                            NonStrict ->
-                                not (ctxt ^. ctxtInManyOccRhs)
-                                    -- Descending into a non-strict binding whose LHS is used
-                                    -- more than once should be avoided, regardless of
-                                    -- `ctxtInManyOccRhs`.
-                                    -- See Note [Float-in] #4
-                                    && usageCnt <= 1
-                        inManyOccRhs = usageCnt > 1
-                    if safe
-                        then do
-                            b'' <-
-                                TermBind (a', usBind <> usBind') s' var'
-                                    <$> local
-                                        (over ctxtInManyOccRhs (|| inManyOccRhs))
-                                        (go b rhs')
-                            let bs' = NonEmpty.appendr before (b'' :| after)
-                            pure $ Let (a, usBind <> usBody) NonRec bs' letBody
-                        else giveup
-            IWrap (a, usBody) ty1 ty2 iwrapBody
-                | noCommonUniqs declaredUniqs (typeUniqs ty1)
-                , noCommonUniqs declaredUniqs (typeUniqs ty2) ->
-                    -- A binding can always be placed inside an `IWrap`.
-                    IWrap (a, usBind <> usBody) ty1 ty2 <$> go b iwrapBody
-            Unwrap (a, usBody) unwrapBody ->
-                -- A binding can always be placed inside an `Unwrap`.
-                Unwrap (a, usBind <> usBody) <$> go b unwrapBody
-            _ -> giveup
+                    (LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody)
+        TyAbs (a, usBody) n k tyAbsBody ->
+            -- We float into type abstractions only if `_ctxtInManyOccRhs = False`.
+            -- See Note [Float-in] #4
+            ifM
+                (asks _ctxtInManyOccRhs)
+                giveup
+                (TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody)
+        TyInst (a, usBody) tyInstBody ty
+            | Set.disjoint declaredUniqs (typeUniqs ty) ->
+                -- A term binding can always be placed inside the body a `TyInst` because the
+                -- type cannot mention the bound variable
+                TyInst (a, usBind <> usBody) <$> go b tyInstBody <*> pure ty
+        Let (a, usBody) NonRec bs letBody
+            -- The binding can be placed inside a `Let`, if the right hand sides of the
+            -- bindings of the `Let` do not mention `var`.
+            | Set.disjoint declaredUniqs (foldMap bindingUniqs bs) ->
+                Let (a, usBind <> usBody) NonRec bs <$> go b letBody
+            | Set.disjoint declaredUniqs (termUniqs letBody)
+            , Just (before, TermBind (a', usBind') s' var' rhs', after) <-
+                splitBindings declaredUniqs (NonEmpty.toList bs) -> do
+                -- `letBody` does not mention `var`, and there is exactly one
+                -- RHS in `bs` that mentions `var`, so we can place `b`
+                -- inside one of the RHSs in `bs`.
+                ctxt <- ask
+                let usageCnt = Usages.getUsageCount var' (ctxt ^. ctxtUsages)
+                    safe = case s' of
+                        Strict -> True
+                        NonStrict ->
+                            not (ctxt ^. ctxtInManyOccRhs)
+                                -- Descending into a non-strict binding whose LHS is used
+                                -- more than once should be avoided, regardless of
+                                -- `ctxtInManyOccRhs`.
+                                -- See Note [Float-in] #4
+                                && usageCnt <= 1
+                    inManyOccRhs = usageCnt > 1
+                if safe
+                    then do
+                        b'' <-
+                            TermBind (a', usBind <> usBind') s' var'
+                                <$> local
+                                    (over ctxtInManyOccRhs (|| inManyOccRhs))
+                                    (go b rhs')
+                        let bs' = NonEmpty.appendr before (b'' :| after)
+                        pure $ Let (a, usBind <> usBody) NonRec bs' letBody
+                    else giveup
+        IWrap (a, usBody) ty1 ty2 iwrapBody
+            | Set.disjoint declaredUniqs (typeUniqs ty1)
+            , Set.disjoint declaredUniqs (typeUniqs ty2) ->
+                -- A binding can always be placed inside an `IWrap`.
+                IWrap (a, usBind <> usBody) ty1 ty2 <$> go b iwrapBody
+        Unwrap (a, usBody) unwrapBody ->
+            -- A binding can always be placed inside an `Unwrap`.
+            Unwrap (a, usBind <> usBody) <$> go b unwrapBody
+        _ -> giveup
       where
         giveup =
             let us = termUniqs body <> bindingUniqs b
              in pure $ Let (letAnn, us) NonRec (pure b) body
 
+        declaredUniqs :: Uniques
         declaredUniqs = case b of
-            TermBind _ _ var _ -> (Set.singleton (var ^. PLC.unique), mempty)
-            TypeBind _ tvar _ -> (mempty, Set.singleton (tvar ^. PLC.unique))
+            TermBind _ _ var _ -> Set.singleton (var ^. PLC.theUnique)
+            TypeBind _ tvar _ -> Set.singleton (tvar ^. PLC.theUnique)
             DatatypeBind _ (Datatype _ tv tvs destr constrs) ->
-                ( Set.fromList $ view PLC.unique destr : fmap (view PLC.unique) constrs
-                , Set.fromList $ fmap (view PLC.unique) (tv : tvs)
-                )
+                Set.unions $
+                    [ Set.singleton (destr ^. PLC.theUnique)
+                    , Set.fromList (fmap (^. PLC.theUnique) constrs)
+                    , Set.fromList (fmap (^. PLC.theUnique) (tv : tvs))
+                    ]
         usBind = bindingUniqs b
 
 {- | Split the given list of bindings, if possible.
@@ -483,13 +482,12 @@ splitBindings us bs = case is of
         -- The LHS (declared variable) must not use any uniques in `us`. Only the RHS is
         -- allowed to use them. Otherwise we cannot float a binding whose unique set is `us`
         -- into the RHS of this `TermBind`.
-        | noCommonUniqs us (varDeclUniqs var) -> Just (take i bs, bs !! i, drop (i + 1) bs)
+        | Set.disjoint us (varDeclUniqs var) -> Just (take i bs, bs !! i, drop (i + 1) bs)
     _ -> Nothing
   where
     is = List.filter usesUniqs (bs `zip` [0 ..])
     usesUniqs = \case
-        (TermBind _ _ var rhs, _) -> hasCommonUniqs us (varDeclUniqs var <> termUniqs rhs)
-        (TypeBind _ _ rhs, _) -> hasCommonUniqs us (typeUniqs rhs)
+        (TermBind _ _ var rhs, _) -> not (Set.disjoint us (varDeclUniqs var <> termUniqs rhs))
+        (TypeBind _ _ rhs, _) -> not (Set.disjoint us (typeUniqs rhs))
         (DatatypeBind _ (Datatype _ _ _ _ constrs), _) ->
-            hasCommonUniqs us (foldMap varDeclUniqs constrs)
-    hasCommonUniqs x y = not (noCommonUniqs x y)
+            not (Set.disjoint us (foldMap varDeclUniqs constrs))
