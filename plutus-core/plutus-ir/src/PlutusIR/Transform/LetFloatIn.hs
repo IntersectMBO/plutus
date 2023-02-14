@@ -224,8 +224,8 @@ floatTerm ver t0 = do
             Error a ty0 ->
                 let ty = goType ty0
                  in Error (a, typeUniqs ty) ty
-            Constant{} -> (,mempty) <$> t
-            Builtin{} -> (,mempty) <$> t
+            Constant{} -> noUniq t
+            Builtin{} -> noUniq t
 
         -- Float bindings in the given `Binding` inwards, and calculate the set of
         -- `Unique`s of used variables in the result `Binding`.
@@ -266,12 +266,12 @@ floatTerm ver t0 = do
             TyForall a n k bodyTy0 ->
                 let bodyTy = goType bodyTy0
                     us = typeUniqs bodyTy
-                 in TyForall (a, us) n ((,mempty) <$> k) bodyTy
+                 in TyForall (a, us) n (noUniq k) bodyTy
             TyBuiltin a t -> TyBuiltin (a, mempty) t
             TyLam a n k bodyTy0 ->
                 let bodyTy = goType bodyTy0
                     us = typeUniqs bodyTy
-                 in TyLam (a, us) n ((,mempty) <$> k) bodyTy
+                 in TyLam (a, us) n (noUniq k) bodyTy
             TyApp a funTy0 argTy0 ->
                 let funTy = goType funTy0
                     argTy = goType argTy0
