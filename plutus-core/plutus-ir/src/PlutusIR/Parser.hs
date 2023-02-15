@@ -15,6 +15,7 @@ module PlutusIR.Parser
 import PlutusCore.Annotation
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
 import PlutusCore.Parser hiding (parseProgram, program)
+import PlutusCore.Version qualified as PLC
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
@@ -128,14 +129,12 @@ pTerm = leadingWhitespace go
         , appTerm go
         ]
 
--- Note that PIR programs do not actually carry a version number
--- we (optionally) parse it all the same so we can parse all PLC code
 program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = leadingWhitespace go
   where
     go = do
         prog <- withSpan $ \sp ->
-            inParens $ Program sp <$> (symbol "program" *> option () (void version) *> pTerm)
+            inParens $ Program sp <$> (symbol "program" *> version) <*> pTerm
         notFollowedBy anySingle
         pure prog
 

@@ -21,17 +21,19 @@ module PlutusIR.Core.Type (
     Binding (..),
     Term (..),
     Program (..),
+    Version (..),
     applyProgram,
     termAnn,
     bindingAnn,
     progAnn,
+    progVersion,
     progTerm,
     ) where
 
 import PlutusPrelude
 
 import Control.Lens.TH
-import PlutusCore (Kind, Name, TyName, Type (..))
+import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
@@ -158,10 +160,12 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
--- no version as PIR is not versioned
 data Program tyname name uni fun ann = Program
-    { _progAnn  :: ann
-    , _progTerm :: Term tyname name uni fun ann
+    { _progAnn     :: ann
+    -- | The version of the program. This corresponds to the underlying
+    -- Plutus Core version.
+    , _progVersion :: Version
+    , _progTerm    :: Term tyname name uni fun ann
     }
     deriving stock (Show, Functor, Generic)
 makeLenses ''Program
@@ -170,11 +174,11 @@ type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyn
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
 
 applyProgram
-    :: Monoid a
+    :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
-applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2) = Program (a1 <> a2) (max v1 v2) (Apply (termAnn t1 <> termAnn t2) t1 t2)
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case

@@ -249,7 +249,7 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
-    establishScoping (Program _ term) = Program NotAName <$> establishScoping term
+    establishScoping (Program _ v term) = Program NotAName v <$> establishScoping term
 
 instance tyname ~ TyName => CollectScopeInfo (TyVarDecl tyname) where
     collectScopeInfo (TyVarDecl ann tyname kind) = handleSname ann tyname <> collectScopeInfo kind
@@ -288,4 +288,4 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
     collectScopeInfo (Builtin _ _) = mempty
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
-    collectScopeInfo (Program _ term) = collectScopeInfo term
+    collectScopeInfo (Program _ _ term) = collectScopeInfo term

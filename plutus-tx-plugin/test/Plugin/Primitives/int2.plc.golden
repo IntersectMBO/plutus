@@ -1,1 +1,1 @@
-(program (con integer 2))
+(program 1.1.0 (con integer 2))
