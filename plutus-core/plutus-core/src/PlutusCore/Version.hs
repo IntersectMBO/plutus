@@ -6,6 +6,9 @@ module PlutusCore.Version (
   , versionMajor
   , versionMinor
   , versionPatch
+  , plcVersion100
+  , plcVersion110
+  , firstVersion
   , latestVersion) where
 
 import PlutusPrelude
@@ -48,6 +51,22 @@ instance Ord Version where
   compare (Version major1 minor1 patch1) (Version major2 minor2 patch2) =
     compare major1 major2 <> compare minor1 minor2 <> compare patch1 patch2
 
+-- | The first version of Plutus Core supported by this library.
+firstVersion :: Version
+firstVersion = plcVersion110
+
+-- | Plutus Core version 1.0.0
+plcVersion100 :: Version
+plcVersion100 = Version 1 0 0
+
+-- | Plutus Core version 1.1.0
+plcVersion110 :: Version
+plcVersion110 = Version 1 1 0
+
 -- | The latest version of Plutus Core supported by this library.
 latestVersion :: Version
-latestVersion = Version 1 0 0
+latestVersion = plcVersion110
+
+instance Bounded Version where
+  minBound = firstVersion
+  maxBound = latestVersion
