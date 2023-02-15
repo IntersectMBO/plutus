@@ -187,7 +187,6 @@ library
     PlutusCore.Core.Instance.Eq
     PlutusCore.Core.Instance.Pretty
     PlutusCore.Core.Instance.Pretty.Classic
-    PlutusCore.Core.Instance.Pretty.Common
     PlutusCore.Core.Instance.Pretty.Default
     PlutusCore.Core.Instance.Pretty.Plc
     PlutusCore.Core.Instance.Pretty.Readable

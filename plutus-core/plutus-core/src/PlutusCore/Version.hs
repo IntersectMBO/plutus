@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module PlutusCore.Version (
   Version(..)
@@ -70,3 +71,6 @@ latestVersion = plcVersion110
 instance Bounded Version where
   minBound = firstVersion
   maxBound = latestVersion
+
+instance Pretty Version where
+    pretty (Version i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
