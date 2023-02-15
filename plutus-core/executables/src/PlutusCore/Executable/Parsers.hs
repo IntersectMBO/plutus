@@ -131,6 +131,9 @@ printOpts = PrintOptions <$> ioSpec <*> printmode
 convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
+optimiseOpts :: Parser OptimiseOptions
+optimiseOpts = OptimiseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
 

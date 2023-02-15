@@ -33,7 +33,8 @@ module PlutusIR.Compiler (
     ccTypeCheckConfig,
     PirTCConfig(..),
     AllowEscape(..),
-    toDefaultCompilationCtx) where
+    toDefaultCompilationCtx,
+    simplifyTerm) where
 
 import PlutusIR
 
