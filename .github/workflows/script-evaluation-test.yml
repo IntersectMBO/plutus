@@ -45,10 +45,10 @@ jobs:
         uses: slackapi/slack-github-action@v1.23.0
         if: always()
         run: | 
-        cat << EOF > ./payload-slack-content.json
-        Status update from \`script-evaluation-test\`: ${{ job.status }}
-        Link to logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}                
-        EOF
+          cat << EOF > ./payload-slack-content.json
+          Status update from \`script-evaluation-test\`: ${{ job.status }}
+          Link to logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}                
+          EOF
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
