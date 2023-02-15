@@ -142,11 +142,9 @@ import PlutusCore.TypeCheck as TypeCheck
 
 -- | Take one PLC program and apply it to another.
 applyProgram
-    :: Monoid a
+    :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
     -> Program tyname name uni fun a
--- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
--- what a mess. Needs to be fixed.
-applyProgram (Program a1 _ t1) (Program a2 _ t2) =
-    Program (a1 <> a2) latestVersion (Apply mempty t1 t2)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2) =
+    Program (a1 <> a2) (max v1 v2) (Apply (termAnn t1 <> termAnn t2) t1 t2)
