@@ -3,6 +3,7 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -37,6 +38,7 @@ import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
+import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Type qualified as PIR
 import PlutusIR.Parser qualified as PIR (parse, program)
 
@@ -314,6 +316,7 @@ instance Show Format where
     show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
 
 data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
+data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode
 data PrintOptions = PrintOptions IOSpec PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
@@ -733,9 +736,16 @@ runPrintBuiltinSignatures = do
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
 
-runPrint :: PrintOptions -> IO ()
+runPrint ::
+    forall (p :: Type -> Type).
+    ( ProgramLike p
+    , PLC.Rename (p PLC.SourcePos)
+    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SourcePos)
+    ) =>
+    PrintOptions ->
+    IO ()
 runPrint (PrintOptions iospec mode) = do
-    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
+    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (p PLC.SrcSpan))
     let printed = show $ getPrintMethod mode parsed
     case outputSpec iospec of
         FileOutput path -> writeFile path printed

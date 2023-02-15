@@ -64,10 +64,11 @@ data DbgOptions =
 
 data Command = Apply     ApplyOptions
              | Convert   ConvertOptions
+             | Optimise  OptimiseOptions
              | Print     PrintOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
-             | Dbg     DbgOptions
+             | Dbg       DbgOptions
              | DumpModel
              | PrintBuiltinSignatures
 
@@ -165,6 +166,12 @@ plutusOpts = hsubparser (
     <> command "convert"
            (info (Convert <$> convertOpts)
             (progDesc "Convert a program between various formats"))
+    <> command "optimise"
+           (info (Optimise <$> optimiseOpts)
+            (progDesc "Run the UPLC optimisation pipeline on the input"))
+    <> command "optimize"
+           (info (Optimise <$> optimiseOpts)
+            (progDesc "Run the UPLC optimisation pipeline on the input"))
     <> command "example"
            (info (Example <$> exampleOpts)
             (progDesc $ "Show a program example. "
@@ -185,6 +192,17 @@ plutusOpts = hsubparser (
             (progDesc "Print the signatures of the built-in functions"))
   )
 
+
+---------------- Optimisation ----------------
+
+-- | Run the UPLC optimisations
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+    prog <- getProgram ifmt inp :: IO (UplcProg SourcePos)
+    simplified <- PLC.runQuoteT $ do
+                    renamed <- PLC.rename prog
+                    UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
+    writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------
 
@@ -301,11 +319,12 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts         -> runApply        opts
-        Eval      opts         -> runEval         opts
-        Dbg     opts           -> runDbg         opts
-        Example   opts         -> runUplcPrintExample opts
-        Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert @UplcProg     opts
+        Apply     opts         -> runApply             opts
+        Eval      opts         -> runEval              opts
+        Dbg       opts         -> runDbg               opts
+        Example   opts         -> runUplcPrintExample  opts
+        Optimise  opts         -> runOptimisations     opts
+        Print     opts         -> runPrint   @UplcProg opts
+        Convert   opts         -> runConvert @UplcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

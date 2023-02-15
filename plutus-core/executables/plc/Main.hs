@@ -35,6 +35,7 @@ data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 -- Main commands
 data Command = Apply     ApplyOptions
              | Typecheck TypecheckOptions
+             | Optimise  OptimiseOptions
              | Convert   ConvertOptions
              | Print     PrintOptions
              | Example   ExampleOptions
@@ -85,6 +86,12 @@ plutusOpts = hsubparser (
     <> command "typecheck"
            (info (Typecheck <$> typecheckOpts)
             (progDesc "Typecheck a typed Plutus Core program."))
+    <> command "optimise"
+           (info (Optimise <$> optimiseOpts)
+            (progDesc "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations."))
+    <> command "optimize"
+           (info (Optimise <$> optimiseOpts)
+            (progDesc "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations."))
     <> command "erase"
            (info (Erase <$> eraseOpts)
             (progDesc "Convert a typed Plutus Core program to an untyped one."))
@@ -125,6 +132,15 @@ runTypecheck (TypecheckOptions inp fmt) = do
       Right ty                                               ->
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
+---------------- Optimisation ----------------
+
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+  prog <- getProgram ifmt inp  :: IO (PlcProg PLC.SourcePos)
+  let optimised = prog  -- No PLC optimisations at present!
+  writeProgram outp ofmt mode optimised
+
+
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
@@ -162,12 +178,13 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts         -> runApply        opts
-        Typecheck opts         -> runTypecheck    opts
-        Eval      opts         -> runEval         opts
-        Example   opts         -> runPlcPrintExample opts
-        Erase     opts         -> runErase        opts
-        Print     opts         -> runPrint        opts
+        Apply     opts         -> runApply            opts
+        Typecheck opts         -> runTypecheck        opts
+        Optimise  opts         -> runOptimisations    opts
+        Eval      opts         -> runEval             opts
+        Example   opts         -> runPlcPrintExample  opts
+        Erase     opts         -> runErase            opts
+        Print     opts         -> runPrint   @PlcProg opts
         Convert   opts         -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

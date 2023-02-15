@@ -1,9 +1,14 @@
 {-# LANGUAGE LambdaCase            #-}
+-- MonoLocalBinds is here just to turn off a warning for the
+-- PrettyBy PrettyConfigPlc instances at the end of the file.
+-- There's probably a better way to do this.
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
+
 module PlutusIR.Core.Instance.Pretty () where
 
 import PlutusPrelude
@@ -12,6 +17,9 @@ import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 import PlutusCore.Pretty qualified as PLC
 
+import PlutusCore.Pretty.Plc
+
+import PlutusIR.Core.Instance.Pretty.Readable ()
 import PlutusIR.Core.Type
 
 import Prettyprinter
@@ -175,3 +183,12 @@ instance ( PLC.PrettyClassic tyname
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where
     pretty = PLC.prettyClassicDef
+
+
+deriving via PrettyAny (Term tyname name uni fun ann)
+    instance DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
+        PrettyBy PrettyConfigPlc (Term tyname name uni fun ann)
+
+deriving via PrettyAny (Program tyname name uni fun ann)
+    instance DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
+        PrettyBy PrettyConfigPlc (Program tyname name uni fun ann)
