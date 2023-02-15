@@ -20,6 +20,16 @@ jobs:
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
+        if: ${{ github.event_name == 'workflow_job' }}
+        with:
+          payload: |
+            {
+              "job_name": "${{ github.event.workflow_job.name }}",
+              "job_url": "${{ github.event.workflow_job.html_url }}",
+              "job_status": "${{ github.event.workflow_job.status }}",
+              "job_conclusion": "${{ github.event.workflow_job.conclusion }}",
+              "action": "${{ github.event.action }}"
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}    
 
