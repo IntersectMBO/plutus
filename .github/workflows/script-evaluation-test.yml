@@ -42,7 +42,6 @@ jobs:
             .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
 
       - name: Prepare Slack Payload
-        uses: slackapi/slack-github-action@v1.23.0
         if: always()
         run: | 
           cat << EOF > ./payload-slack-content.json
