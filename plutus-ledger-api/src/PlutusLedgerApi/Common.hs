@@ -51,6 +51,9 @@ module PlutusLedgerApi.Common
     , EvaluationContext (..)
     , mkDynEvaluationContext
     , toMachineParameters
+    -- While not strictly used by the ledger, this is useful for people trying to
+    -- reconstruct the term evaluated by the ledger from the arguments, e.g.
+    -- for profiling purposes.
     , mkTermToEvaluate
     ) where
 
