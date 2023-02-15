@@ -121,15 +121,15 @@ letFloatIn =
     testNested "letFloatIn" $
         map
             (goldenPirM goldenFloatTC pTerm)
-            [ "avoid-floating-into-lam"
-            , "avoid-floating-into-RHS"
+            [ "avoid-floating-into-RHS"
             , "avoid-moving-strict-nonvalue-bindings"
             , "cannot-float-into-app"
             , "datatype1"
             , "datatype2"
             , "float-into-fun-and-arg-1"
             , "float-into-fun-and-arg-2"
-            , "float-into-lam"
+            , "float-into-lam1"
+            , "float-into-lam2"
             , "float-into-RHS"
             , "float-into-tylam"
             , "type"
