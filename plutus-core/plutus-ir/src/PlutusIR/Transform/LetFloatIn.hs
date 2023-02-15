@@ -18,7 +18,6 @@ import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
 
 import Control.Lens hiding (Strict)
-import Control.Monad.Extra (ifM)
 import Control.Monad.Trans.Reader
 import Data.Foldable (foldrM)
 import Data.List.Extra qualified as List
@@ -109,8 +108,31 @@ Note the "only if" - the above are the necessary conditions, but not sufficient.
 that this is in the context of the float-in pass itself. Floating a binding in /can/ affect
 ther subsequent optimizations in a negative way (e.g., inlining).
 
+Therefore, to avoid the possibility of float-in increasing costs, we should avoid
+floating-in if the above conditions are met.
+
 -------------------------------------------------------------------------------
-5. Implementation of the float-in pass
+5. Relaxation of the float-in criteria
+-------------------------------------------------------------------------------
+
+Experimentation using our test suites indicates that the above criteria is too
+conservative (there's no cost saving if we adhere to them). We relax the criteria
+by allowing a binding to be floated into lambda abstractions or type abstractions,
+even if they are in the RHS of a multi-use binding or the argument of an application.
+
+Why does that make sense? Because, as said before, the savings created by float-in
+comes from floating bindings into unused branches. A branch of an `if`-expression
+is either a value, or a type abstraction (see Note [Case expressions and laziness]).
+If it is a value and contains an unused variable, the unused variable is most likely
+(if not always) behind a lambda abstraction or a type abstraction. Therefore, by
+always allowing a binding to be floated into lambda/type abstractions, the chance
+that it is floated into an unused branch is greatly increased.
+
+The relaxation reduces the costs of several test cases (in one case, "formulaBudget",
+the saving is significant), although it does increase the cost of one test case ("knightsBudget").
+
+-------------------------------------------------------------------------------
+6. Implementation of the float-in pass
 -------------------------------------------------------------------------------
 
 This float-in pass is a conservative optimization which tries to avoid increasing costs.
@@ -132,7 +154,9 @@ The value of `ctxtInManyOccRhs` is used as follows:
 
 (1) When `ctxtInManyOccRhs = False`, we avoid descending into the RHS of a non-strict binding
 whose LHS is used more than once, and we descend in all other cases;
-(2) When `ctxtInManyOccRhs = True`, we additionally avoid descending into `LamAbs` or `TyAbs`.
+(2) When `ctxtInManyOccRhs = True`, we additionally avoid descending into the RHS of a non-strict
+binding whose LHS is used only once (without the above relaxation, we'd also avoid descending
+into `LamAbs` or `TyAbs`).
 
 -}
 
@@ -142,7 +166,7 @@ type Uniques = Set PLC.Unique
 data FloatInContext = FloatInContext
     { _ctxtInManyOccRhs :: Bool
     -- ^ Whether we are in the RHS of a binding whose LHS is used more than once.
-    -- See Note [Float-in] #5
+    -- See Note [Float-in] #6
     , _ctxtUsages       :: Usages.Usages
     }
 
@@ -386,19 +410,11 @@ floatInBinding ver letAnn = \b ->
                 Apply (a, usBind <> usBody) <$> go b fun <*> pure arg
         LamAbs (a, usBody) n ty lamAbsBody
             | Set.disjoint declaredUniqs (typeUniqs ty) ->
-                -- We float into lambdas only if `_ctxtInManyOccRhs = False`.
-                -- See Note [Float-in] #4
-                ifM
-                    (asks _ctxtInManyOccRhs)
-                    giveup
-                    (LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody)
+                -- See Note [Float-in] #5
+                LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody
         TyAbs (a, usBody) n k tyAbsBody ->
-            -- We float into type abstractions only if `_ctxtInManyOccRhs = False`.
-            -- See Note [Float-in] #4
-            ifM
-                (asks _ctxtInManyOccRhs)
-                giveup
-                (TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody)
+            -- See Note [Float-in] #5
+            TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody
         TyInst (a, usBody) tyInstBody ty
             | Set.disjoint declaredUniqs (typeUniqs ty) ->
                 -- A binding can always be placed inside the body a `TyInst` if `ty`
