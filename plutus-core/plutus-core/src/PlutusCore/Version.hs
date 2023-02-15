@@ -6,7 +6,7 @@ module PlutusCore.Version (
   , versionMajor
   , versionMinor
   , versionPatch
-  , defaultVersion) where
+  , latestVersion) where
 
 import PlutusPrelude
 
@@ -48,6 +48,6 @@ instance Ord Version where
   compare (Version major1 minor1 patch1) (Version major2 minor2 patch2) =
     compare major1 major2 <> compare minor1 minor2 <> compare patch1 patch2
 
--- | The default version of Plutus Core supported by this library.
-defaultVersion :: Version
-defaultVersion = Version 1 0 0
+-- | The latest version of Plutus Core supported by this library.
+latestVersion :: Version
+latestVersion = Version 1 0 0

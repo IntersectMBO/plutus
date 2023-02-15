@@ -21,7 +21,7 @@ module PlutusLedgerApi.Common.Eval
 
 import Control.Lens
 import PlutusCore
-import PlutusCore as ScriptPlutus (Version, defaultVersion)
+import PlutusCore as ScriptPlutus (Version, latestVersion)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -96,7 +96,7 @@ mkTermToEvaluate
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v == ScriptPlutus.defaultVersion) $ throwError $ IncompatibleVersionError v
+    unless (v == ScriptPlutus.latestVersion) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
 

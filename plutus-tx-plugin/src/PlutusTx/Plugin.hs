@@ -423,7 +423,7 @@ runCompiler moduleName opts expr = do
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
-    let plcP = PLC.Program () (PLC.defaultVersion) $ void plcT
+    let plcP = PLC.Program () (PLC.latestVersion) $ void plcT
     when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
@@ -432,8 +432,8 @@ runCompiler moduleName opts expr = do
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
-    let uplcPNoAnn = UPLC.Program () (PLC.defaultVersion) $ void dbT
-        uplcP = UPLC.Program mempty (PLC.defaultVersion) . fmap getSrcSpans $ dbT
+    let uplcPNoAnn = UPLC.Program () (PLC.latestVersion) $ void dbT
+        uplcP = UPLC.Program mempty (PLC.latestVersion) . fmap getSrcSpans $ dbT
     when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcPNoAnn "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
