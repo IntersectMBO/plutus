@@ -439,8 +439,11 @@ getProgram fmt inp =
         Textual -> parseInput inp
         Flat flatMode -> do
             prog <- loadASTfromFlat flatMode inp
-            -- No source locations in Flat, so we have to make them up.
-            return $ PLC.SrcSpan "top" 1 1 1 2 <$ prog
+            return $ topSrcSpan <$ prog
+
+-- | A made-up `SrcSpan` since there's no source locations in Flat.
+topSrcSpan :: PLC.SrcSpan
+topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
