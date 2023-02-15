@@ -141,6 +141,7 @@ library
     PlutusCore.Subst
     PlutusCore.TypeCheck
     PlutusCore.TypeCheck.Internal
+    PlutusCore.Version
     PlutusIR
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Compiler

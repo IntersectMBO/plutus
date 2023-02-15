@@ -126,13 +126,13 @@ toSrcSpan start end =
         , srcSpanECol = unPos (sourceColumn end)
         }
 
-version :: Parser (Version SrcSpan)
-version = withSpan $ \sp -> do
+version :: Parser Version
+version = trailingWhitespace $ do
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
     void $ char '.'
-    Version sp x y <$> Lex.decimal
+    Version x y <$> Lex.decimal
 
 -- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
