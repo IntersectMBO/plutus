@@ -18,6 +18,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: | 
+            {
+              "text": "Job `script-evaluation-test` started.\nLink to logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
       - name: Download and Unzip Dump Files
         # NOTE: the S3 location s3://plutus/mainnet-script-dump/ must match that in
         # plutus-apps/.github/script-evaluation-dump.yml
@@ -41,17 +51,13 @@ jobs:
           nix run --no-warn-dirty --accept-flake-config \
             .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
 
-      - name: Prepare Slack Payload
-        if: always()
-        run: | 
-          cat << EOF > ./payload-slack-content.json
-          Status update from \`script-evaluation-test\`: *${{ job.status }}*
-          Link to logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}                
-          EOF
-
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
+        if: always()
         with:
-          payload-file-path: "./payload-slack-content.json"
+          payload: | 
+            {
+              "text": "Status update from `script-evaluation-test`: *${{ job.status }}*\nLink to logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
