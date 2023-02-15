@@ -2,14 +2,15 @@
 The unconditional inlining optimization should inline g because it only occurs once.
 idFun is in the body and g's binding. Because it occurs more than once, it should not be inlined by
 the unconditional inlining optimization.
-Because it's fully applied, the optimization that inlines fully applied function should inline it.
+Because the last instance of idFun is fully applied, the optimization that inlines fully applied
+function should inline it.
 
 let 
   idFun :: Integer -> Integer
   idFun x = x
   g :: (Integer -> Integer) -> (Integer -> Integer)
   g y = idFun
-in g idFun 1
+in g idFun (idFun 1)
  -}
 
 (let
@@ -35,6 +36,6 @@ in g idFun 1
           idFun
         )
       )
-      [ [ g idFun ] (con integer 1) ]
+      [ [ g idFun ] [ idFun (con integer 1) ] ]
     )
 )
