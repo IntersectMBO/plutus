@@ -149,4 +149,4 @@ applyProgram
 -- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
 -- what a mess. Needs to be fixed.
 applyProgram (Program a1 _ t1) (Program a2 _ t2) =
-    Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)
+    Program (a1 <> a2) defaultVersion (Apply mempty t1 t2)

@@ -521,15 +521,15 @@ prettyExample =
     \case
         SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlcDef ty
         SomeTypedExample (SomeTypedTermExample (TypedTermExample _ term)) ->
-            PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
+            PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion) term
         SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
-            PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion ()) term
+            PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion) term
 
 toTypedTermExample ::
     PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
 toTypedTermExample term = TypedTermExample ty term
   where
-    program = PLC.Program () (PLC.defaultVersion ()) term
+    program = PLC.Program () (PLC.defaultVersion) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
         PLC.inferTypeOfProgram tcConfig program

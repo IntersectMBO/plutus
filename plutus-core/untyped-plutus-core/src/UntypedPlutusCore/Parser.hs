@@ -88,7 +88,7 @@ program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = do
     whitespace
     prog <- withSpan $ \sp ->
-        inParens' $ UPLC.Program sp <$> (symbol "program" *> version') <*> term
+        inParens' $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
     notFollowedBy anySingle
     pure prog
 
