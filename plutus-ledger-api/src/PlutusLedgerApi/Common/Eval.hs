@@ -15,6 +15,7 @@ module PlutusLedgerApi.Common.Eval
     , evaluateScriptCounting
     , mkDynEvaluationContext
     , toMachineParameters
+    , mkTermToEvaluate
     , assertWellFormedCostModelParams
     ) where
 

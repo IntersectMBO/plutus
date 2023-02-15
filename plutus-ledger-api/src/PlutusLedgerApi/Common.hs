@@ -51,6 +51,7 @@ module PlutusLedgerApi.Common
     , EvaluationContext (..)
     , mkDynEvaluationContext
     , toMachineParameters
+    , mkTermToEvaluate
     ) where
 
 import PlutusCore.Data as PlutusCore (Data (..))
