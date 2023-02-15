@@ -51,8 +51,8 @@ runAstGen a = do
     names <- genNames
     Gen.fromGenT $ hoist (return . flip runReader names) a
 
-genVersion :: MonadGen m => m (Version ())
-genVersion = Version () <$> int' <*> int' <*> int' where
+genVersion :: MonadGen m => m Version
+genVersion = Version <$> int' <*> int' <*> int' where
     int' = Gen.integral_ $ Range.linear 0 10
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it

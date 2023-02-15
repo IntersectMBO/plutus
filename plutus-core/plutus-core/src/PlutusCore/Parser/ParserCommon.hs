@@ -144,22 +144,13 @@ toSrcSpan start end =
         , srcSpanECol = unPos (sourceColumn end)
         }
 
-version :: Parser (Version SourcePos)
+version :: Parser Version
 version = lexeme $ do
-    p <- getSourcePos
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
     void $ char '.'
-    Version p x y <$> Lex.decimal
-
-version' :: Parser (Version SrcSpan)
-version' = withSpan $ \sp -> do
-    x <- Lex.decimal
-    void $ char '.'
-    y <- Lex.decimal
-    void $ char '.'
-    Version sp x y <$> Lex.decimal
+    Version x y <$> Lex.decimal
 
 name :: Parser Name
 name = lexeme $ try $ do
