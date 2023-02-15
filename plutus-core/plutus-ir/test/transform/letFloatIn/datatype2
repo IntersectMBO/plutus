@@ -1,0 +1,21 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
+
+      Bool_match
+      (vardecl True Bool) (vardecl False Bool)
+    )
+  )
+  (lam
+    x
+    (con integer)
+    (lam
+      y
+      (con integer)
+      [ [ [ { (builtin ifThenElse) Bool } [ [ (builtin equalsInteger) x ] y ] ] True ] False ]
+    )
+  )
+)
+-- The `datatypebind` can be floated into the lambda.
