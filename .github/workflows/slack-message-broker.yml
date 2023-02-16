@@ -6,6 +6,8 @@
 name: Slack Message Broker
 on:
   workflow_run:
+    workflows: [Script Evaluation Test, Benchmark]
+    types: [completed, requested, in_progress]
 
 jobs:
   slack-broker:
@@ -16,7 +18,6 @@ jobs:
       - name: Prepare Slack Message
         uses: actions/github-script@v6
         id: prepare-slack-message
-        if: contains(fromJSON('["script-evaluation-test", "benchmark"]'), github.event.workflow_job.name)
         with:
           script: | 
             const name = "${{ github.event.workflow_job.name }}";
