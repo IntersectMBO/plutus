@@ -37,7 +37,8 @@ transform =
         [ thunkRecursions
         , nonStrict
         , letFloatOut
-        , letFloatIn
+        , letFloatInConservative
+        , letFloatInRelaxed
         , recSplit
         , inline
         , beta
@@ -113,9 +114,25 @@ letFloatOut =
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
 
-letFloatIn :: TestNested
-letFloatIn =
-    testNested "letFloatIn" $
+letFloatInConservative :: TestNested
+letFloatInConservative =
+    testNested "letFloatIn/conservative" $
+        map
+            (goldenPirM goldenFloatTC pTerm)
+            [ "avoid-floating-into-lam"
+            , "avoid-floating-into-tyabs"
+            ]
+  where
+    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+        let pirFloated = runQuote $ LetFloatIn.floatTerm def False pir
+        -- make sure the floated result typechecks
+        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
+        -- letmerge is not necessary for floating, but is a nice visual transformation
+        pure $ LetMerge.letMerge pirFloated
+
+letFloatInRelaxed :: TestNested
+letFloatInRelaxed =
+    testNested "letFloatIn/relaxed" $
         map
             (goldenPirM goldenFloatTC pTerm)
             [ "avoid-floating-into-RHS"
@@ -128,7 +145,8 @@ letFloatIn =
             , "float-into-lam1"
             , "float-into-lam2"
             , "float-into-RHS"
-            , "float-into-tylam"
+            , "float-into-tyabs1"
+            , "float-into-tyabs2"
             , "type"
             ]
   where
