@@ -405,6 +405,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
+                 & set (PIR.ccOpts . PIR.coRelaxedFloatin) (_posRelaxedFloatin opts)
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints

@@ -133,7 +133,7 @@ letFloatIn =
             ]
   where
     goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let pirFloated = runQuote $ LetFloatIn.floatTerm def pir
+        let pirFloated = runQuote $ LetFloatIn.floatTerm def True pir
         -- make sure the floated result typechecks
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation

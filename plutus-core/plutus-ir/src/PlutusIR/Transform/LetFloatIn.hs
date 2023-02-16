@@ -18,6 +18,7 @@ import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
 
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Trans.Reader
 import Data.Foldable (foldrM)
 import Data.List.Extra qualified as List
@@ -112,27 +113,7 @@ Therefore, to avoid the possibility of float-in increasing costs, we should avoi
 floating-in if the above conditions are met.
 
 -------------------------------------------------------------------------------
-5. Relaxation of the float-in criteria
--------------------------------------------------------------------------------
-
-Experimentation using our test suites indicates that the above criteria is too
-conservative (there's no cost saving if we adhere to them). We relax the criteria
-by allowing a binding to be floated into lambda abstractions or type abstractions,
-even if they are in the RHS of a multi-use binding or the argument of an application.
-
-Why does that make sense? Because, as said before, the savings created by float-in
-comes from floating bindings into unused branches. A branch of an `if`-expression
-is either a value, or a type abstraction (see Note [Case expressions and laziness]).
-If it is a value and contains an unused variable, the unused variable is most likely
-(if not always) behind a lambda abstraction or a type abstraction. Therefore, by
-always allowing a binding to be floated into lambda/type abstractions, the chance
-that it is floated into an unused branch is greatly increased.
-
-The relaxation reduces the costs of several test cases (in one case, "formulaBudget",
-the saving is significant), although it does increase the cost of one test case ("knightsBudget").
-
--------------------------------------------------------------------------------
-6. Implementation of the float-in pass
+5. Implementation of the float-in pass
 -------------------------------------------------------------------------------
 
 This float-in pass is a conservative optimization which tries to avoid increasing costs.
@@ -154,9 +135,31 @@ The value of `ctxtInManyOccRhs` is used as follows:
 
 (1) When `ctxtInManyOccRhs = False`, we avoid descending into the RHS of a non-strict binding
 whose LHS is used more than once, and we descend in all other cases;
-(2) When `ctxtInManyOccRhs = True`, we additionally avoid descending into the RHS of a non-strict
-binding whose LHS is used only once (without the above relaxation, we'd also avoid descending
-into `LamAbs` or `TyAbs`).
+(2) When `ctxtInManyOccRhs = True`, we additionally avoid descending into `LamAbs`, `TyAbs`,
+and the RHS of a non-strict binding whose LHS is used only once.
+
+-------------------------------------------------------------------------------
+6. Relaxation of the float-in criteria
+-------------------------------------------------------------------------------
+
+Experimentation using our test suites indicates that the above criteria is too
+conservative (there's no cost saving if we adhere to them). We relax the criteria
+by allowing a binding to be floated into lambda abstractions or type abstractions,
+even if they are in the RHS of a multi-use binding or the argument of an application.
+
+Why does that make sense? Because, as said before, the savings created by float-in
+comes from floating bindings into unused branches. A branch of an `if`-expression
+is either a value, or a type abstraction (see Note [Case expressions and laziness]).
+If it is a value and contains an unused variable, the unused variable is most likely
+(if not always) behind a lambda abstraction or a type abstraction. Therefore, by
+always allowing a binding to be floated into lambda/type abstractions, the chance
+that it is floated into an unused branch is greatly increased.
+
+The relaxation reduces the costs of several test cases (in one case, "formulaBudget",
+the saving is significant), although it does increase the cost of one test case ("knightsBudget").
+
+The relaxation is on by default, and can be turned off with flag `no-relaxed-float-in`
+or flag `conservative-optimisation`.
 
 -}
 
@@ -166,8 +169,10 @@ type Uniques = Set PLC.Unique
 data FloatInContext = FloatInContext
     { _ctxtInManyOccRhs :: Bool
     -- ^ Whether we are in the RHS of a binding whose LHS is used more than once.
-    -- See Note [Float-in] #6
+    -- See Note [Float-in] #5
     , _ctxtUsages       :: Usages.Usages
+    , _ctxtRelaxed      :: Bool
+    -- ^ Whether to float-in more aggressively. See Note [Float-in] #6
     }
 
 makeLenses ''FloatInContext
@@ -181,9 +186,11 @@ floatTerm ::
     , PLC.MonadQuote m
     ) =>
     PLC.BuiltinVersion fun ->
+    -- | Whether to float-in more aggressively. See Note [Float-in] #6
+    Bool ->
     Term tyname name uni fun a ->
     m (Term tyname name uni fun a)
-floatTerm ver t0 = do
+floatTerm ver relaxed t0 = do
     t1 <- PLC.rename t0
     pure . fmap fst $ floatTermInner (Usages.termUsages t1) t1
   where
@@ -236,7 +243,7 @@ floatTerm ver t0 = do
                     -- we want to float y in first otherwise it will block us from floating in x
                     runReader
                         (foldrM (floatInBinding ver a) body bs)
-                        (FloatInContext False usgs)
+                        (FloatInContext False usgs relaxed)
             Let a Rec bs0 body0 ->
                 -- Currently we don't move recursive bindings, so we simply descend into the body.
                 let bs = goBinding <$> bs0
@@ -394,7 +401,7 @@ floatInBinding ver letAnn = \b ->
                 -- `fun` does not mention the binding, so we can place the binding
                 -- inside `arg`.
                 -- See Note [Float-in] #4
-                usgs <- asks _ctxtUsages
+                usgs <- asks (view ctxtUsages)
                 let inManyOccRhs = case fun of
                         LamAbs _ name _ _ ->
                             Usages.getUsageCount name usgs > 1
@@ -410,11 +417,17 @@ floatInBinding ver letAnn = \b ->
                 Apply (a, usBind <> usBody) <$> go b fun <*> pure arg
         LamAbs (a, usBody) n ty lamAbsBody
             | Set.disjoint declaredUniqs (typeUniqs ty) ->
-                -- See Note [Float-in] #5
-                LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody
+                -- See Note [Float-in] #6
+                ifM
+                    (asks (view ctxtInManyOccRhs) &&^ notM (asks (view ctxtRelaxed)))
+                    giveup
+                    (LamAbs (a, usBind <> usBody) n ty <$> go b lamAbsBody)
         TyAbs (a, usBody) n k tyAbsBody ->
-            -- See Note [Float-in] #5
-            TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody
+            -- See Note [Float-in] #6
+            ifM
+                (asks (view ctxtInManyOccRhs) &&^ notM (asks (view ctxtRelaxed)))
+                giveup
+                (TyAbs (a, usBind <> usBody) n k <$> go b tyAbsBody)
         TyInst (a, usBody) tyInstBody ty
             | Set.disjoint declaredUniqs (typeUniqs ty) ->
                 -- A binding can always be placed inside the body a `TyInst` if `ty`
