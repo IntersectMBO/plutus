@@ -40,6 +40,7 @@ import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
 import Control.Monad.Except
 import Control.Monad.ST (RealWorld)
+import Data.Maybe
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
 import Graphics.Vty qualified as Vty
@@ -63,20 +64,19 @@ darkGreen = Vty.rgbColor @Int 0 100 0
 data Options = Options
     { optUplcInput       :: Input
     , optUplcInputFormat :: Format
-    -- MAYBE: make tx file optional? the SourceEditor should be hidden in that case then
-    , optHsPath          :: FilePath
+    , optHsPath          :: Maybe FilePath
     }
 
 parseOptions :: OA.Parser Options
 parseOptions = do
     optUplcInput <- input
     optUplcInputFormat <- inputformat
-    optHsPath <-
-        OA.argument OA.str $
-            mconcat
-                [ OA.metavar "HS_FILE"
-                , OA.help "HS File"
-                ]
+    optHsPath <- OA.optional $ OA.strOption $
+                   mconcat
+                      [ OA.metavar "HS_FILE"
+                      , OA.long "hs-file"
+                      , OA.help "HS File"
+                      ]
     pure Options{..}
 
 main :: IO ()
@@ -89,7 +89,7 @@ main = do
 
     (uplcText, uplcDAnn) <- getProgramWithText optUplcInputFormat optUplcInput
 
-    hsText <- Text.readFile optHsPath
+    hsText <- traverse Text.readFile optHsPath
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -109,18 +109,18 @@ main = do
             DebuggerState
                 { _dsKeyBindingsMode = KeyBindingsHidden
                 , _dsFocusRing =
-                    B.focusRing
-                        [ EditorUplc
-                        , EditorSource
-                        , EditorReturnValue
-                        , EditorCekState
+                    B.focusRing $ catMaybes
+                        [ Just EditorUplc
+                        , EditorSource <$ optHsPath
+                        , Just EditorReturnValue
+                        , Just EditorCekState
                         ]
                 , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
                 , _dsUplcHighlight = Nothing
                 , _dsSourceEditor =
                     BE.editorText
                         EditorSource
-                        Nothing
+                        Nothing <$>
                         hsText
                 , _dsSourceHighlight = Nothing
                 , _dsReturnValueEditor =

@@ -32,7 +32,7 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             Just EditorUplc ->
                 B.zoom dsUplcEditor $ BE.handleEditorEvent bev
             Just EditorSource ->
-                B.zoom dsSourceEditor $ BE.handleEditorEvent bev
+                B.zoom (dsSourceEditor.traversed) $ BE.handleEditorEvent bev
             Just EditorReturnValue ->
                 B.zoom dsReturnValueEditor $ BE.handleEditorEvent bev
             Just EditorCekState ->

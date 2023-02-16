@@ -73,7 +73,7 @@ data DebuggerState = DebuggerState
     -- ^ Controls which window is in focus.
     , _dsUplcEditor          :: BE.Editor Text ResourceName
     , _dsUplcHighlight       :: Maybe HighlightSpan
-    , _dsSourceEditor        :: BE.Editor Text ResourceName
+    , _dsSourceEditor        :: Maybe (BE.Editor Text ResourceName)
     , _dsSourceHighlight     :: Maybe HighlightSpan
     , _dsReturnValueEditor   :: BE.Editor Text ResourceName
     , _dsCekStateEditor      :: BE.Editor Text ResourceName
