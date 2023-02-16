@@ -1,6 +1,6 @@
-# This workflow can be used to notify Slack channels when workflow_run events occur.
-# TODO this must be turned into a standalone GitHub action so that it can be used 
-# for arbitrary channels and workflows. 
+# This workflow is triggered whenever any of the workflows listed in on.workflow_run.workflows 
+# has been cancelled or has failed, and will send a message to the specified Slack channel ids.
+# TODO turn this into a standalone GitHub action so that it can be used in other repositories.
 name: Slack Message Broker
 on:
   workflow_run:
