@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | Tests for PIR parser.
 module ParserSpec (parsing) where
 
 import PlutusPrelude
@@ -9,8 +10,10 @@ import PlutusPrelude
 import Data.Char
 import Data.Text qualified as T
 
+import PlutusCore (runQuoteT)
+import PlutusCore.Annotation
 import PlutusCore.Default qualified as PLC
-
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusIR
 import PlutusIR.Generators.AST
 import PlutusIR.Parser
@@ -19,13 +22,11 @@ import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
-import PlutusCore (runQuoteT)
-import PlutusCore.Error (ParserErrorBundle)
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
-newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos }
+newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan }
 instance Show PrettyProg where
     show = display . prog
 
@@ -75,17 +76,38 @@ propRoundTrip = property $ do
         forward = fmap PrettyProg . parseProg
     tripping code forward backward
 
-parseProg :: T.Text
-    -> Either
+-- | The `SrcSpan` of a parsed `Term` should not including trailing whitespaces.
+propTermSrcSpan :: Property
+propTermSrcSpan = property $ do
+    code <- display <$> forAllWith display (runAstGen genTerm)
+    let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
+    trailingSpaces <- forAll $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
+    case parseTerm (code <> trailingSpaces) of
+        Right term ->
+            let sp = termAnn term
+             in (srcSpanELine sp, srcSpanECol sp) === (endingLine, endingCol + 1)
+        Left err -> annotate (display err) >> failure
+
+parseProg ::
+    T.Text ->
+    Either
         ParserErrorBundle
-        (Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos)
+        (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 parseProg p =
     runQuoteT $ parse program "test" p
+
+parseTerm ::
+    T.Text ->
+    Either
+        ParserErrorBundle
+        (Term TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
+parseTerm p =
+    runQuoteT $ parse pTerm "test" p
 
 propIgnores :: Gen String -> Property
 propIgnores splice = property $ do
     (original, scrambled) <- forAll (genScrambledWith splice)
-    let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SourcePos -> String
+    let displayProgram :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan -> String
         displayProgram = display
         parse1 = displayProgram <$> (parseProg $ T.pack original)
         parse2 = displayProgram <$> (parseProg $ T.pack scrambled)
@@ -96,4 +118,5 @@ parsing = return $ testGroup "parsing"
     [ testPropertyNamed "parser round-trip" "propRoundTrip" propRoundTrip
     , testPropertyNamed "parser ignores whitespace" "propIgnores whitespace" (propIgnores whitespace)
     , testPropertyNamed "parser ignores comments" "propIgnores comments" (propIgnores comment)
+    , testPropertyNamed "parser captures ending positions correctly" "propTermSrcSpan" propTermSrcSpan
     ]

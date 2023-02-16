@@ -7,6 +7,7 @@ module PlutusCore.Parser.Type where
 
 import PlutusPrelude
 
+import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Data
 import PlutusCore.Default
@@ -21,41 +22,44 @@ import Text.Megaparsec hiding (ParseError, State, many, parse, some)
 
 -- | A PLC @Type@ to be parsed. ATM the parser only works
 -- for types in the @DefaultUni@ with @DefaultFun@.
-type PType = Type TyName DefaultUni SourcePos
+type PType = Type TyName DefaultUni SrcSpan
 
 varType :: Parser PType
-varType = TyVar <$> getSourcePos <*> tyName
+varType = withSpan $ \sp ->
+    TyVar sp <$> tyName
 
 funType :: Parser PType
-funType = inParens $ TyFun <$> wordPos "fun" <*> pType <*> pType
+funType = withSpan $ \sp ->
+    inParens $ TyFun sp <$> (symbol "fun" *> pType) <*> pType
 
 allType :: Parser PType
-allType = inParens $ TyForall <$> wordPos "all" <*> tyName <*> kind <*> pType
+allType = withSpan $ \sp ->
+    inParens $ TyForall sp <$> (symbol "all" *> trailingWhitespace tyName) <*> kind <*> pType
 
 lamType :: Parser PType
-lamType = inParens $ TyLam <$> wordPos "lam" <*> tyName <*> kind <*> pType
+lamType = withSpan $ \sp ->
+    inParens $ TyLam sp <$> (symbol "lam" *> trailingWhitespace tyName) <*> kind <*> pType
 
 ifixType :: Parser PType
-ifixType = inParens $ TyIFix <$> wordPos "ifix" <*> pType <*> pType
+ifixType = withSpan $ \sp ->
+    inParens $ TyIFix sp <$> (symbol "ifix" *> pType) <*> pType
 
 builtinType :: Parser PType
-builtinType = inParens $ do
-    ann <- wordPos "con"
-    SomeTypeIn (Kinded uni) <- defaultUni
-    pure . TyBuiltin ann $ SomeTypeIn uni
+builtinType = withSpan $ \sp -> inParens $ do
+    SomeTypeIn (Kinded uni) <- (symbol "con" *> defaultUni)
+    pure $ TyBuiltin sp (SomeTypeIn uni)
 
 appType :: Parser PType
-appType = inBrackets $ do
-    pos  <- getSourcePos
+appType = withSpan $ \sp -> inBrackets $ do
     fn   <- pType
     args <- some pType
-    pure $ mkIterTyApp pos fn args
+    pure $ mkIterTyApp sp fn args
 
-kind :: Parser (Kind SourcePos)
-kind = inParens (typeKind <|> funKind)
-    where
-        typeKind = Type <$> wordPos "type"
-        funKind  = KindArrow <$> wordPos "fun" <*> kind <*> kind
+kind :: Parser (Kind SrcSpan)
+kind = withSpan $ \sp ->
+    let typeKind = Type sp <$ symbol "type"
+        funKind = KindArrow sp <$> (symbol "fun" *> kind) <*> kind
+     in inParens (typeKind <|> funKind)
 
 -- | Parser for @PType@.
 pType :: Parser PType
@@ -114,7 +118,7 @@ defaultUniApplication = do
 -- doing it.
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
-    [ inParens defaultUniApplication
+    [ trailingWhitespace (inParens defaultUniApplication)
     , someType @_ @Integer <$ symbol "integer"
     , someType @_ @ByteString <$ symbol "bytestring"
     , someType @_ @Text <$ symbol "string"

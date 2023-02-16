@@ -9,7 +9,6 @@ module PlutusCore
     , parseTerm
     , parseType
     , SourcePos
-    , topSourcePos
     , SrcSpan (..)
     -- * Builtins
     , Some (..)

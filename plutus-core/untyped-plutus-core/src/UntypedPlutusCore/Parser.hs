@@ -6,10 +6,8 @@ module UntypedPlutusCore.Parser
     , term
     , program
     , parseTerm
-    , parseTerm'
     , parseProgram
     , parseScoped
-    , spanToPos
     , Parser
     , SourcePos
     ) where
@@ -38,11 +36,11 @@ type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
 conTerm :: Parser PTerm
 conTerm = withSpan $ \sp ->
-    inParens' $ UPLC.Constant sp <$> (symbol "con" *> constant)
+    inParens $ UPLC.Constant sp <$> (symbol "con" *> constant)
 
 builtinTerm :: Parser PTerm
 builtinTerm = withSpan $ \sp ->
-    inParens' $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
+    inParens $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
 varTerm :: Parser PTerm
 varTerm = withSpan $ \sp ->
@@ -50,67 +48,54 @@ varTerm = withSpan $ \sp ->
 
 lamTerm :: Parser PTerm
 lamTerm = withSpan $ \sp ->
-    inParens' $ UPLC.LamAbs sp <$> (symbol "lam" *> name) <*> term
+    inParens $ UPLC.LamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> term
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
-    inBrackets' $ mkIterApp sp <$> term <*> some term
+    inBrackets $ mkIterApp sp <$> term <*> some term
 
 delayTerm :: Parser PTerm
 delayTerm = withSpan $ \sp ->
-    inParens' $ UPLC.Delay sp <$> (symbol "delay" *> term)
+    inParens $ UPLC.Delay sp <$> (symbol "delay" *> term)
 
 forceTerm :: Parser PTerm
 forceTerm = withSpan $ \sp ->
-    inParens' $ UPLC.Force sp <$> (symbol "force" *> term)
+    inParens $ UPLC.Force sp <$> (symbol "force" *> term)
 
 errorTerm :: Parser PTerm
 errorTerm = withSpan $ \sp ->
-    inParens' $ UPLC.Error sp <$ symbol "error"
+    inParens $ UPLC.Error sp <$ symbol "error"
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = do
-    whitespace
-    choice $ map try [
-        conTerm
-        , builtinTerm
-        , varTerm
-        , lamTerm
-        , appTerm
-        , delayTerm
-        , forceTerm
-        , errorTerm
-        ]
+term = leadingWhitespace go
+  where
+    go =
+        choice $ map try [
+            conTerm
+            , builtinTerm
+            , varTerm
+            , lamTerm
+            , appTerm
+            , delayTerm
+            , forceTerm
+            , errorTerm
+            ]
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
-program = do
-    whitespace
-    prog <- withSpan $ \sp ->
-        inParens' $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
-    notFollowedBy anySingle
-    pure prog
+program = leadingWhitespace go
+  where
+    go = do
+        prog <- withSpan $ \sp ->
+            inParens $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
+        notFollowedBy anySingle
+        pure prog
 
 -- | Parse a UPLC term. The resulting program will have fresh names. The underlying monad must be capable
 -- of handling any parse errors.
 parseTerm :: (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) => Text -> m PTerm
 parseTerm = parseGen term
-
--- TODO: Temporary - remove once TPLC and PIR parsers are migrated to SrcSpan
-parseTerm' ::
-    (AsParserErrorBundle e, MonadError e m, PLC.MonadQuote m) =>
-    Text ->
-    m (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SourcePos)
-parseTerm' = fmap (fmap spanToPos) . parseTerm
-
--- TODO: Temporary - remove once TPLC and PIR parsers are migrated to SrcSpan
-spanToPos :: SrcSpan -> SourcePos
-spanToPos sp = SourcePos
-    { sourceName = srcSpanFile sp
-    , sourceLine = mkPos $ srcSpanSLine sp
-    , sourceColumn = mkPos $ srcSpanSCol sp
-    }
 
 -- | Parse a UPLC program. The resulting program will have fresh names. The
 -- underlying monad must be capable of handling any parse errors.  This passes
