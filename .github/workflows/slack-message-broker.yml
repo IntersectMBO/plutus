@@ -1,20 +1,17 @@
 # This workflow can be used to notify Slack channels when workflow_run events occur.
-# We currently notify the plutus-core-dev and plutus-tools-dev channels whenever
-# the script-evaluation-test or benchmark workflows run.
 # TODO this must be turned into a standalone GitHub action so that it can be used 
 # for arbitrary channels and workflows. 
 name: Slack Message Broker
 on:
   workflow_run:
-    workflows: [Script Evaluation Test, Benchmark]
+    workflows: [Script Evaluation Test, Benchmark, Build and Deploy to Github Pages]
     types: [completed, requested, in_progress]
 
 jobs:
   slack-broker:
     runs-on: [ubuntu-latest]
-
+    if: contains(fromJson('["cancelled", "failure"]'), github.event.workflow_job.status)
     steps:
-
       - name: Prepare Slack Message
         uses: actions/github-script@v6
         id: prepare-slack-message
@@ -23,7 +20,7 @@ jobs:
             const name = "${{ github.event.workflow_job.name }}";
             const url = "${{ github.event.workflow_job.html_url }}";
             const status = "${{ github.event.workflow_job.status }}";
-            const emojy = { success: "✅", failure: "❌", cancelled: "✋" }[status];
+            const emojy = { failure: "❌", cancelled: "✋" }[status];
             const conclusion = "${{ github.event.workflow_job.conclusion }}";
             const action = "${{ github.event.action }}";
             const message = `${emojy} \`${name}\` *${action}* | *${status}* | *${conclusion}* 👉🏻 <${url}|view logs>`;
