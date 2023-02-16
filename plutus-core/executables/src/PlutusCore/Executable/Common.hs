@@ -72,9 +72,17 @@ import Text.Printf (printf)
 type PirProg =
     PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
+-- | PIR term type.
+type PirTerm =
+    PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+
 -- | PLC program type.
 type PlcProg =
     PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
+
+-- | PLC term type.
+type PlcTerm =
+    PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
 
 -- | UPLC program type.
 type UplcProg =
@@ -679,7 +687,6 @@ runDumpModel = do
 ---------------- Print the type signatures of the default builtins ----------------
 
 -- Some types to represent signatures of built-in functions
-type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
 type PlcType = PLC.Type PLC.TyName PLC.DefaultUni ()
 data QVarOrType = QVar String | Type PlcType -- Quantified type variable or actual type
 
@@ -710,10 +717,10 @@ instance Show Signature where
                 []       -> "<empty type application>" -- Should never happen
                 op : tys -> showTy op ++ "(" ++ intercalate ", " (map showTy tys) ++ ")"
 
-typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
+typeSchemeToSignature :: PLC.TypeScheme (PlcTerm ()) args res -> Signature
 typeSchemeToSignature = toSig []
   where
-    toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
+    toSig :: [QVarOrType] -> PLC.TypeScheme (PlcTerm ()) args res -> Signature
     toSig acc =
         \case
             pR@PLC.TypeSchemeResult -> Signature acc (PLC.toTypeAst pR)
@@ -731,7 +738,7 @@ runPrintBuiltinSignatures = do
       (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
-    getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) =
+    getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
         typeSchemeToSignature sch
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
