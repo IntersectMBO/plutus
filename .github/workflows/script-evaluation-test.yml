@@ -20,16 +20,21 @@ jobs:
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
-        with: 
+        if: ${{ github.event_name == 'workflow_job' }}
+        with:
           payload: |
             {
-              "foo": "GitHub build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
-              "bar": "BAR"
+              "job_name": "${{ github.event.workflow_job.name }}",
+              "job_url": "${{ github.event.workflow_job.html_url }}",
+              "job_status": "${{ github.event.workflow_job.status }}",
+              "job_conclusion": "${{ github.event.workflow_job.conclusion }}",
+              "action": "${{ github.event.action }}"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}    
 
       - name: Download and Unzip Dump Files
+        if: always() 
         # NOTE: the S3 location s3://plutus/mainnet-script-dump/ must match that in
         # plutus-apps/.github/script-evaluation-dump.yml
         run: |
@@ -50,4 +55,4 @@ jobs:
         run: |
           export EVENT_DUMP_DIR="$HOME/mainnet-script-dump-downloaded"
           nix run --no-warn-dirty --accept-flake-config \
-            .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
+            .#x86_64-linux.plutus.library.plutus-project-925.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1

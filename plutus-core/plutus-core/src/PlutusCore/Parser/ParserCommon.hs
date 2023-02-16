@@ -28,9 +28,6 @@ sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'ta
 'manyTill', 'Lex.decimal' etc) in a call to 'lexeme'.
 -}
 
-topSourcePos :: SourcePos
-topSourcePos = initialPos "top"
-
 newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 
@@ -75,6 +72,12 @@ parseGen stuff = parse stuff "test"
 whitespace :: Parser ()
 whitespace = Lex.space space1 (Lex.skipLineComment "--") (Lex.skipBlockCommentNested "{-" "-}")
 
+leadingWhitespace :: Parser a -> Parser a
+leadingWhitespace = (whitespace *>)
+
+trailingWhitespace :: Parser a -> Parser a
+trailingWhitespace = (<* whitespace)
+
 -- | Returns a parser for @a@ by calling the supplied function on the starting
 -- and ending positions of @a@.
 --
@@ -102,37 +105,16 @@ symbol :: T.Text -> Parser T.Text
 symbol = Lex.symbol whitespace
 
 inParens :: Parser a -> Parser a
-inParens = between (symbol "(") (symbol ")")
-
--- | Like `inParens` but does not consume trailing whitespaces.
--- The other ticked functions below are similar.
---
--- TODO: these ticked functions should replace the original ones once PIR and TPLC parsers
--- are migrated to `SrcSpan`.
-inParens' :: Parser a -> Parser a
-inParens' = between (symbol "(") (char ')')
+inParens = between (symbol "(") (char ')')
 
 inBrackets :: Parser a -> Parser a
-inBrackets = between (symbol "[") (symbol "]")
-
-inBrackets' :: Parser a -> Parser a
-inBrackets' = between (symbol "[") (char ']')
+inBrackets = between (symbol "[") (char ']')
 
 inBraces :: Parser a -> Parser a
-inBraces = between (symbol "{") (symbol "}")
-
-inBraces' :: Parser a -> Parser a
-inBraces' = between (symbol "{") (char '}')
+inBraces = between (symbol "{") (char '}')
 
 isIdentifierChar :: Char -> Bool
 isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
-
--- | Create a parser that matches the input word and returns its source position.
--- This is for attaching source positions to parsed terms/programs.
-wordPos ::
-    -- | The word to match
-    T.Text -> Parser SourcePos
-wordPos w = lexeme $ try $ getSourcePos <* symbol w
 
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
@@ -144,25 +126,17 @@ toSrcSpan start end =
         , srcSpanECol = unPos (sourceColumn end)
         }
 
-version :: Parser (Version SourcePos)
-version = lexeme $ do
-    p <- getSourcePos
+version :: Parser Version
+version = trailingWhitespace $ do
     x <- Lex.decimal
     void $ char '.'
     y <- Lex.decimal
     void $ char '.'
-    Version p x y <$> Lex.decimal
+    Version x y <$> Lex.decimal
 
-version' :: Parser (Version SrcSpan)
-version' = withSpan $ \sp -> do
-    x <- Lex.decimal
-    void $ char '.'
-    y <- Lex.decimal
-    void $ char '.'
-    Version sp x y <$> Lex.decimal
-
+-- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
-name = lexeme $ try $ do
+name = try $ do
     void $ lookAhead letterChar
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str

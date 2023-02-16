@@ -11,7 +11,6 @@ import PlutusCore.Quote
 
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Test
 import PlutusPrelude
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
@@ -30,8 +29,6 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
-
-import Text.Megaparsec.Pos
 
 transform :: TestNested
 transform =
@@ -155,11 +152,11 @@ recSplit =
             , "big"
             ]
 
-instance Semigroup SourcePos where
-    p1 <> _ = p1
+instance Semigroup PLC.SrcSpan where
+    sp1 <> _ = sp1
 
-instance Monoid SourcePos where
-    mempty = initialPos ""
+instance Monoid PLC.SrcSpan where
+    mempty = initialSrcSpan ""
 
 inline :: TestNested
 inline =

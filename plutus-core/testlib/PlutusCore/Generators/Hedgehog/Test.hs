@@ -54,7 +54,7 @@ getSampleProgramAndValue
     => TermGen a -> IO (Program TyName Name uni fun (), EvaluationResult (Term TyName Name uni fun ()))
 getSampleProgramAndValue genTerm =
     getSampleTermValue genTerm <&> \(TermOf term result) ->
-        (Program () (defaultVersion ()) term, result)
+        (Program () (defaultVersion) term, result)
 
 -- | Generate a program using a given generator, check that it's well-typed and evaluates correctly
 -- and pretty-print it to stdout using the default pretty-printing mode.

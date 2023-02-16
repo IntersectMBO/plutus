@@ -28,13 +28,13 @@ import Test.Tasty.QuickCheck
 serialiseDataExScript :: SerialisedScript
 serialiseDataExScript = serialiseUPLC serialiseDataEx
     where
-      serialiseDataEx = UPLC.Program () (PLC.defaultVersion ()) $
+      serialiseDataEx = UPLC.Program () (PLC.defaultVersion) $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
 
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC errorEx
     where
-      errorEx = UPLC.Program () (PLC.defaultVersion ()) $ UPLC.Error ()
+      errorEx = UPLC.Program () (PLC.defaultVersion) $ UPLC.Error ()
 
 tests :: TestTree
 tests = testGroup "versions"
