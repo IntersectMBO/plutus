@@ -73,18 +73,18 @@ library
 
   build-depends:
     , array
-    , base              >=4.9      && <5
+    , base                                  >=4.9      && <5
     , bytestring
     , containers
     , either
     , extra
-    , flat              <0.5
+    , flat                                  <0.5
     , lens
     , mtl
-    , plutus-core       ^>=1.1
-    , plutus-tx         ^>=1.1
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.1
+    , plutus-tx                             ^>=1.1
     , prettyprinter
-    , PyF               >=0.11.1.0
+    , PyF                                   >=0.11.1.0
     , template-haskell
     , text
 

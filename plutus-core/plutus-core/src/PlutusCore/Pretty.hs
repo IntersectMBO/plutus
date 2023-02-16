@@ -47,16 +47,22 @@ module PlutusCore.Pretty
     -- * Readable view
     , ShowKinds (..)
     , PrettyConfigReadable (..)
+    , pcrConfigName
+    , pcrRenderContext
+    , pcrShowKinds
     , PrettyReadableBy
     , PrettyReadable
     , topPrettyConfigReadable
     , botPrettyConfigReadable
+    , binderFixity
+    , arrowFixity
     -- * Utils
     , prettyBytes
     , ConstConfig (..)
     , PrettyConst
     , prettyConst
     , displayConst
+    , module Export
     ) where
 
 import PlutusCore.Pretty.Classic
@@ -70,3 +76,5 @@ import PlutusCore.Pretty.Utils
 
 import Text.Pretty
 import Text.PrettyBy
+
+import Text.PrettyBy.Fixity as Export
