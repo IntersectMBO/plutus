@@ -18,36 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.3.0
 
-      - name: Prepare Slack Message
-        id: prepare-slack-message-1
-        uses: actions/github-script@v6
-        with:
-          script: | 
-            const jobUrl = "https://github.com/${{ github.repository }}/actions/runs/${{ github.runId }}";
-            const jobName = "${{ github.job }}"
-            const message = `\`${jobName}\` *started* 👉🏻 <${jobUrl}|view logs>`;
-            core.setOutput("message", message); 
-
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          channel-id: my-private-channel
-          payload: |
-            {
-              "text": "${{ steps.prepare-slack-message-1.outputs.message }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ steps.prepare-slack-message-1.outputs.message }}" 
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
-
       - name: Download and Unzip Dump Files
         if: always() 
         # NOTE: the S3 location s3://plutus/mainnet-script-dump/ must match that in
@@ -71,37 +41,3 @@ jobs:
           export EVENT_DUMP_DIR="$HOME/mainnet-script-dump-downloaded"
           nix run --no-warn-dirty --accept-flake-config \
             .#x86_64-linux.plutus.library.plutus-project-925.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
-
-      - name: Prepare Slack Message
-        uses: actions/github-script@v6
-        id: prepare-slack-message-2
-        if: always() 
-        with:
-          script: | 
-            const jobUrl = "https://github.com/${{ github.repository }}/actions/runs/${{ github.runId }}";
-            const jobName = "${{ github.job }}"
-            const jobStatus = "${{ job.status }}"
-            const jobStatusEmoji = { success: "✅", failure: "❌", cancelled: "✋" }[jobStatus];
-            const message = `${jobStatusEmoji} \`${jobName}\` *${jobStatus}* 👉🏻 <${jobUrl}|view logs>`;
-            core.setOutput("message", message); 
-
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v1.23.0
-        if: always() 
-        with:
-          channel-id: my-private-channel
-          payload: |
-            {
-              "text": "${{ steps.prepare-slack-message-2.outputs.message }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "${{ steps.prepare-slack-message-2.outputs.message }}" 
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
