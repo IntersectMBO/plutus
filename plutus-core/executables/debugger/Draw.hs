@@ -43,7 +43,7 @@ drawDebugger st =
         BB.borderWithLabel (B.txt "Source program") $
             B.withFocusRing
                 focusRing
-                (BE.renderEditor (B.txt . Text.unlines))
+                 (BE.renderEditor (drawDocumentWithHighlight (st ^. dsSourceHighlight)))
                 (st ^. dsSourceEditor)
     returnValueEditor =
         BB.borderWithLabel (B.txt "UPLC value being returned") $

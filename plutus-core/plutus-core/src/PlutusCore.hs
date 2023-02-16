@@ -10,6 +10,7 @@ module PlutusCore
     , parseType
     , SourcePos
     , SrcSpan (..)
+    , SrcSpans
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
