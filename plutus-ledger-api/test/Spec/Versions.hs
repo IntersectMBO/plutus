@@ -28,27 +28,27 @@ import Test.Tasty.QuickCheck
 serialiseDataExScript :: SerialisedScript
 serialiseDataExScript = serialiseUPLC serialiseDataEx
     where
-      serialiseDataEx = UPLC.Program () (PLC.latestVersion) $
+      serialiseDataEx = UPLC.Program () PLC.latestVersion $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
 
 errorScript :: SerialisedScript
 errorScript = serialiseUPLC errorEx
     where
-      errorEx = UPLC.Program () (PLC.latestVersion) $ UPLC.Error ()
+      errorEx = UPLC.Program () PLC.latestVersion $ UPLC.Error ()
 
 tests :: TestTree
 tests = testGroup "versions"
-    [ testLangVersions
+    [ testLedgerLanguages
     , testBuiltinVersions
     ]
 
-testLangVersions :: TestTree
-testLangVersions = testGroup "langs"
+testLedgerLanguages :: TestTree
+testLedgerLanguages = testGroup "ledger languages"
     [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.assertScriptWellFormed alonzoPV
     , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.assertScriptWellFormed vasilPV
-    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed changPV
-    , testProperty "protocol-versions can add but not remove language versions" $
-        \pvA pvB -> pvA < pvB ==> languagesAvailableIn pvA `Set.isSubsetOf` languagesAvailableIn pvB
+    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed futurePV
+    , testProperty "protocol-versions can add but not remove ledger languages" $
+        \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
   where
     prop_notBeforeButAfter :: (ProtocolVersion -> SerialisedScript -> Except ScriptDecodeError b)
@@ -82,12 +82,12 @@ testBuiltinVersions = testGroup "builtins"
          assertBool "in l2,Alonzo" $ isLeft $ V2.assertScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "in l3,Alonzo" $ isLeft $ V3.assertScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "not in l2,Vasil" $ isRight $ V2.assertScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "not in l3,Chang" $ isRight $ V3.assertScriptWellFormed changPV serialiseDataExScript
-         assertBool "remdr1" $ isRight $ V1.assertScriptWellFormed changPV $ errorScript <> "remdr1"
-         assertBool "remdr2" $ isRight $ V2.assertScriptWellFormed changPV $ errorScript <> "remdr2"
-         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed changPV $ errorScript <> "remdr3"
-    , testProperty "remdr1gen"$ \remdr -> isRight $ V1.assertScriptWellFormed changPV $ errorScript <> BSS.pack remdr
-    , testProperty "remdr2gen"$ \remdr -> isRight $ V2.assertScriptWellFormed changPV $ errorScript <> BSS.pack remdr
+         assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed futurePV serialiseDataExScript
+         assertBool "remdr1" $ isRight $ V1.assertScriptWellFormed valentinePV $ errorScript <> "remdr1"
+         assertBool "remdr2" $ isRight $ V2.assertScriptWellFormed valentinePV $ errorScript <> "remdr2"
+         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed futurePV $ errorScript <> "remdr3"
+    , testProperty "remdr1gen"$ \remdr -> isRight $ V1.assertScriptWellFormed valentinePV $ errorScript <> BSS.pack remdr
+    , testProperty "remdr2gen"$ \remdr -> isRight $ V2.assertScriptWellFormed valentinePV $ errorScript <> BSS.pack remdr
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]

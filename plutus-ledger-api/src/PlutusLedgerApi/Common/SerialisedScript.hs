@@ -39,7 +39,7 @@ data ScriptDecodeError =
       CBORDeserialiseError !CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
     | RemainderError !BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
     | LanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
-        { sdeAffectedLang :: !LedgerPlutusVersion -- ^ the script's plutus version
+        { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's plutus version
         , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
         , sdeThisPv       :: !ProtocolVersion -- ^ the protocol version in which the error occurred
         }
@@ -105,7 +105,7 @@ newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn
 This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialised form of a `Script`.
 Rather than traversing the term and inserting fake names after deserialising, this lets us do at the same time as deserialising.
 -}
-scriptCBORDecoder :: LedgerPlutusVersion -> ProtocolVersion -> CBOR.Decoder s ScriptForExecution
+scriptCBORDecoder :: PlutusLedgerLanguage -> ProtocolVersion -> CBOR.Decoder s ScriptForExecution
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
@@ -121,7 +121,7 @@ scriptCBORDecoder lv pv =
 -- | The deserialization from a serialised script to a Script (for execution).
 -- Called inside phase-1 validation (assertScriptWellFormed) and inside phase-2's `mkTermToEvaluate`
 fromSerialisedScript :: forall e m. (AsScriptDecodeError e, MonadError e m)
-                     => LedgerPlutusVersion -- ^ the ledger Plutus version of the script.
+                     => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script.
                      -> ProtocolVersion -- ^ which protocol version the script was submitted in.
                      -> SerialisedScript -- ^ the script to deserialise.
                      -> m ScriptForExecution
@@ -133,7 +133,7 @@ fromSerialisedScript lv currentPv sScript = do
         throwing _ScriptDecodeError $ RemainderError remderBS
     pure script
   where
-    introPv = languageIntroducedIn lv
+    introPv = ledgerLanguageIntroducedIn lv
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptForExecution)
     deserialiseSScript = fromShort
                        >>> fromStrict
@@ -147,7 +147,7 @@ implies that it is (almost certainly) an encoded script and the script does not 
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => LedgerPlutusVersion -- ^ the ledger Plutus version of the script.
+                       => PlutusLedgerLanguage -- ^ the ledger Plutus version of the script.
                        -> ProtocolVersion -- ^ the current protocol version of the network
                        -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()

@@ -122,10 +122,10 @@ import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toDa
 import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
 
--- | An alias to the language version this module exposes at runtime.
+-- | An alias to the Plutus ledger language this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-thisPlutusVersion :: LedgerPlutusVersion
-thisPlutusVersion = PlutusV1
+thisLedgerLanguage :: PlutusLedgerLanguage
+thisLedgerLanguage = PlutusV1
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You
@@ -149,7 +149,7 @@ assertScriptWellFormed :: MonadError ScriptDecodeError m
                        => ProtocolVersion -- ^ which protocol version to run the operation in
                        -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
+assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
@@ -162,7 +162,7 @@ evaluateScriptCounting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -178,4 +178,4 @@ evaluateScriptRestricting
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage
