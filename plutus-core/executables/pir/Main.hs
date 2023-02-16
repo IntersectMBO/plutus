@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -18,6 +19,7 @@ import Data.Text qualified as T
 import GHC.Generics
 import Options.Applicative
 import PlutusCore qualified as PLC
+import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
 import PlutusCore.Executable.Common hiding (runPrint)
 import PlutusCore.Executable.Parsers
@@ -29,18 +31,117 @@ import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Plated
 import PlutusPrelude
 import Text.Megaparsec (errorBundlePretty)
+import UntypedPlutusCore qualified as UPLC
 
-type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
-type PIRTerm0 = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-type PIRTerm1 = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun PLC.SourcePos
-type PIRTerm  = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
-type PIRTerm' = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance PLC.SourcePos)
+type PLCTerm  = PlcTerm (PIR.Provenance ())
 type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
-type PIRError' = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance PLC.SourcePos)
 type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
+
+
+-- | A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR.
+data PirFormat = TextualPir | FlatNamed
+instance Show PirFormat
+    where show = \case { TextualPir  -> "textual"; FlatNamed -> "flat-named" }
+
+pirFormatHelp :: String
+pirFormatHelp =
+  "textual or flat-named (names)"
+
+pirFormatReader :: String -> Maybe PirFormat
+pirFormatReader =
+    \case
+         "textual"    -> Just TextualPir
+         "flat-named" -> Just FlatNamed
+         "flat"       -> Just FlatNamed
+         _            -> Nothing
+
+data Language = PLC | UPLC
+instance Show Language
+    where show = \case { PLC  -> "plc"; UPLC -> "uplc" }
+
+languageReader :: String -> Maybe Language
+languageReader =
+    \case
+         "plc"  -> Just PLC
+         "uplc" -> Just UPLC
+         _      -> Nothing
+
+data OnOrOff = On | Off
+instance Show OnOrOff
+    where show = \case { On  -> "on"; Off -> "off" }
+
+isOn :: OnOrOff -> Bool
+isOn = \case { On  -> True; Off -> False }
+
+onOrOffReader :: String -> Maybe OnOrOff
+onOrOffReader =
+    \case
+         "on"  -> Just On
+         "off" -> Just Off
+         _     -> Nothing
+
+
+-- | Compilation options: target language, whether to optimise or not, input and output streams and types
+data CompileOptions =
+    CompileOptions Language
+                   OnOrOff   -- Optimise or not
+                   Bool      -- Just test or not
+                   Input
+                   PirFormat
+                   Output
+                   Format
+                   PrintMode
+
+
+pLanguage :: Parser Language
+pLanguage = option (maybeReader languageReader)
+  (  long "language"
+  <> short 'l'
+  <> metavar "LANGUAGE"
+  <> value UPLC
+  <> showDefault
+  <> help ("Target language: plc or uplc")
+  )
+
+pOptimise :: Parser OnOrOff
+pOptimise = option (maybeReader onOrOffReader)
+           (  long "optimsation"
+  <> short 'p'
+  <> metavar "on|off"
+  <> value On
+  <> showDefault
+  <> help ("Whether or not to perform optimisations")
+  )
+
+pirinputformat :: Parser PirFormat
+pirinputformat = option (maybeReader pirFormatReader)
+  (  long "if"
+  <> long "input-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Input format: " ++ pirFormatHelp))
+
+justtest :: Parser Bool
+justtest = switch ( long "test"
+                   <> help "Just report success or failure, don't produce an output file"
+                   )
+
+pCompileOpts :: Parser CompileOptions
+pCompileOpts = CompileOptions
+               <$> pLanguage
+               <*> pOptimise
+               <*> justtest
+               <*> input
+               <*> pirinputformat
+               <*> output
+               <*> outputformat
+               <*> printmode
+
 data Command = Analyse  IOSpec
              | Compile  COpts
-             | Convert ConvertOptions
+             | Compile2  CompileOptions
+             | Convert  ConvertOptions
              | Optimise OptimiseOptions
              | Print    PrintOptions
 
@@ -71,12 +172,19 @@ pPirOpts = hsubparser $
                    progDesc $
                    "Given a PIR program in flat format, deserialise it, " <>
                    "and test if it can be successfully compiled to PLC.")
+           <> command "compile2"
+                  (info (Compile2 <$> pCompileOpts) $
+                   progDesc $
+                   "Given a PIR program in flat format, deserialise it, " <>
+                   "and test if it can be successfully compiled to PLC.")
            <> command "convert"
                   (info (Convert <$> convertOpts)
-                   (progDesc "Convert a program between various formats"))
+                   (progDesc $
+                    "Convert a program between various formats" <>
+                    "(only 'textual' (default) and 'flat-named' are available for PIR)."))
            <> command "optimise"
                   (info (Optimise <$> optimiseOpts)
-                   (progDesc "Run the PIR optimisation pipeline on the input"))
+                   (progDesc "Run the PIR optimisation pipeline on the input."))
            <> command "print"
                   (info (Print <$> printOpts) $
                  progDesc $
@@ -87,8 +195,23 @@ pPirOpts = hsubparser $
 loadPir :: Input -> IO (PirProg ())
 loadPir = loadASTfromFlat Named
 
-compile :: COpts -> PirProg () -> Either PIRError PLCTerm
-compile opts (PIR.Program _ pirT) = do
+
+getPirProgram ::
+    PirFormat ->
+    Input ->
+    IO (PirProg PLC.SourcePos)
+getPirProgram fmt inp =
+    case fmt of
+        TextualPir -> parseInput inp
+        FlatNamed -> do
+            prog <- loadTplcASTfromFlat Named inp  :: IO (PirProg ())
+            -- No source locations in Flat, so we have to make them up.
+            return $ PLC.topSourcePos <$ prog
+
+---------------- Compilation ----------------
+
+compileToPlc :: COpts -> PirProg () -> Either PIRError PLCTerm
+compileToPlc opts (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
@@ -105,35 +228,65 @@ compile opts (PIR.Program _ pirT) = do
       PIR.toDefaultCompilationCtx plcTcConfig
       & set' PIR.coOptimize cOptimize
 
----------------- Optimisations ----------------
-
-doOptimisations :: PirProg PLC.SourcePos -> Either PIRError (PirProg ())
-doOptimisations (Program ann body) = do
-  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
-  let ctx = PIR.toDefaultCompilationCtx plcTcConfig
-  let body' = (PIR.Original ()) <$ body
-  opt <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm body'
-  Right (Program () (() <$ opt))
-{- case opt of
-    Left e    -> Left e
-    Right opt -> Right $ Program () (() <$ opt)
--}
-
--- | Run the PIR optimisations
-runOptimisations:: OptimiseOptions -> IO ()
-runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-  prog <- getProgram ifmt inp :: IO (PirProg PLC.SourcePos)
-  case doOptimisations prog of
-    Left _    -> error "FAILED"
-    Right opt -> writeProgram outp ofmt mode opt
-
 loadPirAndCompile :: COpts -> IO ()
 loadPirAndCompile copts = do
     pirProg <- loadPir $ cIn copts
     putStrLn "!!! Compiling"
-    case compile copts pirProg of
+    case compileToPlc copts pirProg of
         Left pirError -> error $ show pirError
         Right _       -> putStrLn "!!! Compilation successful"
+
+compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> Either e (UplcProg ())
+compileToUplc opts plcProg =
+    runExcept $ flip runReaderT opts $ runQuoteT $ PLC.compileProgram plcProg
+
+
+loadPirAndCompile2 :: CompileOptions -> IO ()
+loadPirAndCompile2 (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
+    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+    putStrLn "!!! Compiling"
+    let pirCompilerOpts = COpts inp (isOn optimise)
+    -- Now compile to plc, maybe optimising
+    case compileToPlc pirCompilerOpts (() <$ pirProg) of
+      Left pirError -> error $ show pirError
+      Right plcTerm ->
+          let plcProg = PLC.Program () (PLC.defaultVersion ()) (() <$ plcTerm)
+          in case language of
+            PLC  -> if test
+                    then putStrLn "!!! Compilation successful"
+                    else writeProgram outp ofmt mode plcProg
+            UPLC -> do  -- compile the PLC to UPLC
+              let plcCompilerOpts =
+                      if isOn optimise
+                      then PLC.defaultCompilationOpts
+                      else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+              case compileToUplc plcCompilerOpts plcProg of
+                Right uplcProg ->
+                    if test
+                    then putStrLn "!!! Compilation successful"
+                    else writeProgram outp ofmt mode uplcProg
+                Left _e -> pure ()
+
+---------------- Optimisation ----------------
+
+doOptimisations :: PirTerm PLC.SourcePos -> Either PIRError (PirTerm ())
+doOptimisations term = do
+  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+  let ctx = PIR.toDefaultCompilationCtx plcTcConfig
+  let term' = (PIR.Original ()) <$ term
+  opt <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm term'
+  pure $ (() <$ opt)
+
+-- | Run the PIR optimisations
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+  Program _ term <- getProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+  case doOptimisations term of
+    Left e  -> error $ show e
+    Right t -> writeProgram outp ofmt mode (Program () t)
+
+
+---------------- Analysis ----------------
 
 loadPirAndAnalyse :: IOSpec -> IO ()
 loadPirAndAnalyse ioSpecs = do
@@ -169,6 +322,7 @@ loadPirAndAnalyse ioSpecs = do
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.
 -- Only the print option for PLC or UPLC files check for them.
+
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions iospec _mode) = do
     let inputPath = inputSpec iospec
@@ -194,6 +348,7 @@ main = do
     case comm of
         Analyse  opts -> loadPirAndAnalyse opts
         Compile  opts -> loadPirAndCompile opts
+        Compile2 opts -> loadPirAndCompile2 opts
         Convert  opts -> runConvert @PirProg opts
         Optimise opts -> runOptimisations opts
         Print    opts -> runPrint opts
