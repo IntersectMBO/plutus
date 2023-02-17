@@ -19,6 +19,7 @@ shift
 
 default_packages=(
   "plutus-core"
+  "plutus-ir"
   "plutus-ledger-api"
   "plutus-tx"
   "plutus-tx-plugin"

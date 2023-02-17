@@ -22,7 +22,9 @@ major_version="${components[0]}.${components[1]}"
 
 echo "Updating version of $PACKAGE to $VERSION"
 # update package version in cabal file for package
-sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
+if [ -f "./$PACKAGE/$PACKAGE.cabal" ]; then
+  sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
+fi
 
 # update version bounds in all cabal files
 # It looks for patterns like the following:
@@ -33,5 +35,5 @@ sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
 # - ", plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0"
 #
 # and updates the version bounds to "^>={major version}"
-echo "Updating version bounds on $PACKAGE to '>=$major_version'"
+echo "Updating version bounds on $PACKAGE to '^>=$major_version'"
 find . -name "*.cabal" -exec sed -i "s/\(, $PACKAGE[^^]*\).*/\1 ^>=$major_version/" {} \;

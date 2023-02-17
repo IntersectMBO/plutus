@@ -13,7 +13,9 @@ fi
 PACKAGE=$1
 VERSION=$2
 
-echo "Assembling changelog for $PACKAGE-$VERSION"
-pushd $PACKAGE > /dev/null
-scriv collect --version "$VERSION"
-popd > /dev/null
+if [ -d "$PACKAGE" ]; then
+  echo "Assembling changelog for $PACKAGE-$VERSION"
+  pushd $PACKAGE > /dev/null
+  scriv collect --version "$VERSION"
+  popd > /dev/null
+fi
