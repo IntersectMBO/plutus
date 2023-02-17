@@ -118,6 +118,8 @@ printStatistics n script = do
     let serialised = Flat.flat (toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
+    -- BS.writeFile "output" serialised
+    -- printf "%s\n" $ show $ PP.prettyClassicDebug script
     printf "  %3s %7d %8s %15d %8s %15d %8s \n"
            (if n > 0 then show n else "-")
            size (percentTxt size max_tx_size)
@@ -271,10 +273,10 @@ testPairing = do
 ---------------- Groth16 verification ----------------
 
 -- Wrappers for serialised group elements for slightly better type safety
-newtype SerialisedG1Element = SerialisedG1Element { g1BS :: BuiltinByteString }
+newtype SerialisedG1Element = SerialisedG1Element { g1 :: BuiltinByteString }
     deriving newtype (Tx.Lift DefaultUni)
 
-newtype SerialisedG2Element = SerialisedG2Element { g2BS :: BuiltinByteString }
+newtype SerialisedG2Element = SerialisedG2Element { g2 :: BuiltinByteString }
     deriving newtype (Tx.Lift DefaultUni)
 
 scalar :: Integer
@@ -391,22 +393,22 @@ groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
 mkGroth16VerifyScript :: UProg
 mkGroth16VerifyScript =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| groth16Verify ||])
-           `Tx.applyCode` (Tx.liftCode $ g1BS alpha)
-           `Tx.applyCode` (Tx.liftCode $ g2BS beta)
-           `Tx.applyCode` (Tx.liftCode $ g2BS gamma)
-           `Tx.applyCode` (Tx.liftCode $ g2BS delta)
-           `Tx.applyCode` (Tx.liftCode $ g1BS gamma_abc_1)
-           `Tx.applyCode` (Tx.liftCode $ g1BS gamma_abc_2)
-           `Tx.applyCode` (Tx.liftCode $ g1BS a)
-           `Tx.applyCode` (Tx.liftCode $ g2BS b)
-           `Tx.applyCode` (Tx.liftCode $ g1BS c)
+           `Tx.applyCode` (Tx.liftCode $ g1 alpha)
+           `Tx.applyCode` (Tx.liftCode $ g2 beta)
+           `Tx.applyCode` (Tx.liftCode $ g2 gamma)
+           `Tx.applyCode` (Tx.liftCode $ g2 delta)
+           `Tx.applyCode` (Tx.liftCode $ g1 gamma_abc_1)
+           `Tx.applyCode` (Tx.liftCode $ g1 gamma_abc_2)
+           `Tx.applyCode` (Tx.liftCode $ g1 a)
+           `Tx.applyCode` (Tx.liftCode $ g2 b)
+           `Tx.applyCode` (Tx.liftCode $ g1 c)
            `Tx.applyCode` Tx.liftCode scalar
 
--- | Check that the Haskell version is returning the correct result.
+-- | Check that the Haskell version returns the correct result.
 checkGroth16Verify :: IO ()
 checkGroth16Verify =
-    if groth16Verify (g1BS alpha) (g2BS beta) (g2BS gamma) (g2BS delta)
-           (g1BS gamma_abc_1) (g1BS gamma_abc_2) (g1BS a) (g2BS b) (g1BS c) scalar
+    if groth16Verify (g1 alpha) (g2 beta) (g2 gamma) (g2 delta)
+           (g1 gamma_abc_1) (g1 gamma_abc_2) (g1 a) (g2 b) (g1 c) scalar
     then printf "Groth16Verify succeeded\n"
     else printf "Groth16Verify failed\n"
 
