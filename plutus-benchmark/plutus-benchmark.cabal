@@ -360,7 +360,7 @@ executable ed25519-throughput
 
 ---------------- BLS pairing experiments ----------------
 
-executable bls-benchmarks
+executable bls-costs
   import:           lang
 
   if impl(ghc <9.0)
