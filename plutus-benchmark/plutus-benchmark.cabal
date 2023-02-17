@@ -358,8 +358,31 @@ executable ed25519-throughput
     , plutus-tx             ^>=1.1
     , plutus-tx-plugin      ^>=1.1
 
----------------- BLS pairing experiments ----------------
+---------------- BLS12-381 experiments ----------------
 
+library bls-internal
+  import:          lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
+  hs-source-dirs:  bls-benchmarks/src
+  exposed-modules: PlutusBenchmark.BLS12_381.Common
+  build-depends:
+    , base                     >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , deepseq
+    , hedgehog
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.1
+    , plutus-tx                ^>=1.1
+    , plutus-tx-plugin         ^>=1.1
+
+-- Print out predicted costs of various scripts involving BLS12_381 operations
 executable bls-costs
   import:           lang
 
@@ -368,9 +391,10 @@ executable bls-costs
 
   default-language: Haskell2010
   main-is:          Main.hs
-  hs-source-dirs:   bls-benchmarks
+  hs-source-dirs:   bls-benchmarks/exe
   build-depends:
     , base                  >=4.9 && <5
+    , bls-internal
     , bytestring
     , cardano-crypto-class
     , flat
@@ -378,6 +402,24 @@ executable bls-costs
     , plutus-core           ^>=1.1
     , plutus-tx             ^>=1.1
     , plutus-tx-plugin      ^>=1.1
+
+-- Run benchmarks for various scripts involving BLS12_381 operations
+benchmark bls-benchmarks
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: bls-benchmarks/bench
+  build-depends:
+    , base                     >=4.9     && <5
+    , bls-internal
+    , criterion                >=1.5.9.0
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.1
+    , plutus-tx
 
 ---------------- script contexts ----------------
 
