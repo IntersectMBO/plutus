@@ -144,8 +144,8 @@ mkHashAndAddG1Script l =
     let points = map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.applyCode` Tx.liftCode points
 
-testHashAndAddG1 :: Integer -> IO ()
-testHashAndAddG1 n =
+printCosts_HashAndAddG1 :: Integer -> IO ()
+printCosts_HashAndAddG1 n =
     let script = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
     in printStatistics n script
 
@@ -165,8 +165,8 @@ mkHashAndAddG2Script l =
     let points = map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.applyCode` Tx.liftCode points
 
-testHashAndAddG2 :: Integer -> IO ()
-testHashAndAddG2 n =
+printCosts_HashAndAddG2 :: Integer -> IO ()
+printCosts_HashAndAddG2 n =
     let script = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
     in printStatistics n script
 
@@ -186,13 +186,14 @@ mkUncompressAndAddG1Script l =
     let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.applyCode` Tx.liftCode points
 
-testUncompressAndAddG1 :: Integer -> IO ()
-testUncompressAndAddG1 n =
+printCosts_UncompressAndAddG1 :: Integer -> IO ()
+printCosts_UncompressAndAddG1 n =
     let script = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
     in printStatistics n script
 
-testUncompressAndAddG1_Haskell :: Integer -> IO ()
-testUncompressAndAddG1_Haskell n =
+-- Check that point addition is commutative
+checkUncompressAndAddG1_Haskell :: Integer -> IO ()
+checkUncompressAndAddG1_Haskell n =
     let l = listOfSizedByteStrings 100 n
         points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
         result1 = uncompressAndAddG1 points
@@ -217,13 +218,14 @@ mkUncompressAndAddG2Script l =
     let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.applyCode` Tx.liftCode points
 
-testUncompressAndAddG2 :: Integer -> IO ()
-testUncompressAndAddG2 n =
+printCosts_UncompressAndAddG2 :: Integer -> IO ()
+printCosts_UncompressAndAddG2 n =
     let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
     in printStatistics n script
 
-testUncompressAndAddG2_Haskell :: Integer -> IO ()
-testUncompressAndAddG2_Haskell n =
+-- Check that point addition is commutative
+checkUncompressAndAddG2_Haskell :: Integer -> IO ()
+checkUncompressAndAddG2_Haskell n =
     let l = listOfSizedByteStrings 100 n
         points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
         result1 = uncompressAndAddG2 points
@@ -260,8 +262,8 @@ makePairingScript p1 p2 q1 q2 =
           `Tx.applyCode` Tx.liftCode q1
           `Tx.applyCode` Tx.liftCode q2
 
-testPairing :: IO ()
-testPairing = do
+printCosts_Pairing :: IO ()
+printCosts_Pairing = do
     let p1 = Tx.bls12_381_G1_hashToCurve $ toBuiltin $ BS.pack [0x23, 0x43, 0x56, 0xf2]
         p2 = Tx.bls12_381_G2_hashToCurve $ toBuiltin $ BS.pack [0x10, 0x00, 0xff, 0x88]
         q1 = Tx.bls12_381_G1_hashToCurve $ toBuiltin $ BS.pack [0x11, 0x22, 0x33, 0x44]
@@ -404,9 +406,14 @@ mkGroth16VerifyScript =
            `Tx.applyCode` (Tx.liftCode $ g1 c)
            `Tx.applyCode` Tx.liftCode scalar
 
+printCosts_Groth16Verify :: IO ()
+printCosts_Groth16Verify = do
+  let script = mkGroth16VerifyScript
+  printStatistics (-1) script
+
 -- | Check that the Haskell version returns the correct result.
-checkGroth16Verify :: IO ()
-checkGroth16Verify =
+checkGroth16Verify_Haskell :: IO ()
+checkGroth16Verify_Haskell =
     if groth16Verify (g1 alpha) (g2 beta) (g2 gamma) (g2 delta)
            (g1 gamma_abc_1) (g1 gamma_abc_2) (g1 a) (g2 b) (g1 c) scalar
     then printf "Groth16Verify succeeded\n"
@@ -423,33 +430,33 @@ main = do
 
   printf "Hash n bytestrings onto G1 and add points\n\n"
   printHeader
-  mapM_ testHashAndAddG1 [0, 10..150]
+  mapM_ printCosts_HashAndAddG1 [0, 10..150]
   printf "\n\n"
 
   printf "Hash n bytestrings onto G2 and add points\n\n"
   printHeader
-  mapM_ testHashAndAddG2 [0, 10..150]
+  mapM_ printCosts_HashAndAddG2 [0, 10..150]
   printf "\n\n"
 
   printf "Uncompress n G1 points and add the results\n\n"
   printHeader
-  mapM_ testUncompressAndAddG1 [0, 10..150]
+  mapM_ printCosts_UncompressAndAddG1 [0, 10..150]
   printf "\n\n"
 
   printf "Uncompress n G2 points and add the results\n\n"
   printHeader
-  mapM_ testUncompressAndAddG2 [0, 10..150]
+  mapM_ printCosts_UncompressAndAddG2 [0, 10..150]
   printf "\n\n"
 
   printf "Apply millerLoop to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
   printHeader
-  testPairing
+  printCosts_Pairing
   printf "\n\n"
 
   printf "Groth16 verification example\n\n"
   printHeader
-  printStatistics (-1) mkGroth16VerifyScript
+  printCosts_Groth16Verify
   printf "\n"
 
-  checkGroth16Verify
+  checkGroth16Verify_Haskell
 
