@@ -51,7 +51,7 @@ main :: IO ()
 main = do
   defaultMain [
           bgroup "hashAndAddG1" $ fmap benchHashAndAddG1 [0, 10..150]
-        , bgroup "hashAndAddG1" $ fmap benchHashAndAddG2 [0, 10..150]
+        , bgroup "hashAndAddG2" $ fmap benchHashAndAddG2 [0, 10..150]
         , bgroup "uncompressAndAddG1" $ fmap benchUncompressAndAddG1 [0, 10..150]
         , bgroup "uncompressAndAddG2" $ fmap benchUncompressAndAddG2 [0, 10..150]
         , benchPairing

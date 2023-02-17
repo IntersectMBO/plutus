@@ -47,7 +47,7 @@ getConfig limit = do
                 timeLimit = limit
               }
 
-type Term    = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 {- | Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
