@@ -666,11 +666,15 @@ bappTermLem mkNilData _ (start _) (base refl) | refl ,, refl = _ ,, _ ,, refl
 bappTermLem mkNilPairData {az = az} {as} M p q
   with <>>-cancel-both az ([] :< Term) as p
 bappTermLem mkNilPairData _ (start _) (base refl) | refl ,, refl = _ ,, _ ,, refl
-bappTermLem mkCons _ (start _) (base refl) = _ ,, _ ,, refl
-bappTermLem mkCons {as = as} _ (bubble {as = az} p) q
-  with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
-bappTermLem mkCons _ (bubble (start _)) (step _ (base refl) _)
-  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkCons _ (bubble (start _)) (step⋆ _ (base refl) refl) =
+  _ ,, _ ,, refl
+bappTermLem mkCons _ (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] :< Type) :< Term) :< Term) _ p refl
+bappTermLem mkCons
+            _
+            (bubble (bubble (start _)))
+            (step _ (step⋆ _ (base refl) refl) x)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
 bappTermLem appendByteString _ _ (base refl) = _ ,, _ ,, refl
 bappTermLem appendByteString {as = as} (M · M') .(bubble p) (step {az = az} p q x)
   with <>>-cancel-both az (([] :< Term) :< Term) as p
@@ -844,9 +848,10 @@ bappTypeLem appendString {as = as} .(_ · _) .(bubble p) (step {az = az} p q x)
 bappTypeLem appendString {as = as} M .(bubble p) (step⋆ {az = az} p q q₁)
   with <>>-cancel-both' az (([] :< Type) :< Type) (([] :< Term) :< Term) as p refl
 ... | refl ,, refl ,, ()
-bappTypeLem mkCons _ (bubble {as = az} p) q
-  with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
-... | refl ,, refl ,, ()
+bappTypeLem mkCons _ (start _) (base refl) = _ ,, _ ,, refl
+bappTypeLem mkCons _ (bubble (bubble {as = az} p)) _
+  with <>>-cancel-both' az _ ([] <>< arity mkCons) _ p refl
+... | _ ,, _ ,, ()
 bappTypeLem nullList _ (start _) (base refl) = _ ,, _ ,, refl
 bappTypeLem nullList _ (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Type) :< Term) _ p refl

@@ -8,10 +8,16 @@ This module contains an enumeration of builtins.
 ```
 module Builtin where
 
+open import Data.Nat using (ℕ;suc)
+open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_])
+
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
+open import Signature using (Sig;_⊢♯;con;`) renaming (sig to _[_]⟶_) 
+import Builtin.Constant.Type ℕ (_⊢♯) as T
 
 data Builtin : Set where
   -- Integers
@@ -79,6 +85,103 @@ data Builtin : Set where
   mkPairData                      : Builtin
   mkNilData                       : Builtin
   mkNilPairData                   : Builtin
+```
+
+Syntactic sugar for writing the signature of built-ins.
+This is defined in its own module so that these definitions are not exported.
+
+```
+
+private module SignatureSyntacticSugar where
+
+    ∙ = 0
+    ∀a = 1
+    ∀b,a = 2
+
+    integer bool bytestring string unit Data : ∀{n} → n ⊢♯
+    integer = con T.integer
+    bool = con T.bool
+    bytestring = con T.bytestring
+    string = con T.string
+    unit = con T.unit
+    Data = con T.Data
+
+    pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
+    pair x y = con (T.pair x y)
+
+    list : ∀{n} → n ⊢♯ → n ⊢♯
+    list x = con (T.list x)
+
+    a : ∀{n} → suc n ⊢♯
+    a = ` Z
+
+    b : ∀{n} → suc (suc n) ⊢♯
+    b = ` (S Z)
+
+    _∷:_ : ∀{ℓ}{a : Set ℓ} → a → a → List⁺ a
+    x ∷: y = x ∷⁺ [ y ]
+    ```
+
+    The signature of each builtin
+
+    ```
+    signature : Builtin → Sig
+    signature addInteger                      = ∙ [ integer ∷: integer ]⟶ integer
+    signature subtractInteger                 = ∙ [ integer ∷: integer ]⟶ integer
+    signature multiplyInteger                 = ∙ [ integer ∷: integer ]⟶ integer
+    signature divideInteger                   = ∙ [ integer ∷: integer ]⟶ integer
+    signature quotientInteger                 = ∙ [ integer ∷: integer  ]⟶ integer
+    signature remainderInteger                = ∙ [ integer ∷: integer  ]⟶ integer
+    signature modInteger                      = ∙ [ integer ∷: integer  ]⟶ integer
+    signature equalsInteger                   = ∙ [ integer ∷: integer  ]⟶ bool
+    signature lessThanInteger                 = ∙ [ integer ∷: integer  ]⟶ bool
+    signature lessThanEqualsInteger           = ∙ [ integer ∷: integer  ]⟶ bool
+    signature appendByteString                = ∙ [ bytestring ∷: bytestring ]⟶ bytestring
+    signature consByteString                  = ∙ [ integer ∷: bytestring ]⟶ bytestring
+    signature sliceByteString                 = ∙ [ integer ∷⁺ integer ∷: bytestring ]⟶ bytestring                            
+    signature lengthOfByteString              = ∙ [ [ bytestring ] ]⟶ integer
+    signature indexByteString                 = ∙ [ bytestring ∷: integer ]⟶ integer
+    signature equalsByteString                = ∙ [ bytestring ∷: bytestring ]⟶ bool
+    signature lessThanByteString              = ∙ [ bytestring ∷: bytestring ]⟶ bool
+    signature lessThanEqualsByteString        = ∙ [ bytestring ∷: bytestring ]⟶ bool
+    signature sha2-256                        = ∙ [ [ bytestring ] ]⟶ bytestring
+    signature sha3-256                        = ∙ [ [ bytestring ] ]⟶ bytestring
+    signature blake2b-256                     = ∙ [ [ bytestring ] ]⟶ bytestring
+    signature verifyEd25519Signature          = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
+    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
+    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
+    signature appendString                    = ∙ [ string ∷: string ]⟶ string
+    signature equalsString                    = ∙ [ string ∷: string ]⟶ bool
+    signature encodeUtf8                      = ∙ [ [ string ] ]⟶ bytestring
+    signature decodeUtf8                      = ∙ [ [ bytestring ] ]⟶ string 
+    signature ifThenElse                      = ∀a [ bool ∷⁺ a ∷: a ]⟶ a
+    signature chooseUnit                      = ∀a [ a ∷: unit ]⟶ a
+    signature trace                           = ∀a [ string ∷: a ]⟶ a
+    signature fstPair                         = ∀b,a [ [ pair b a ] ]⟶ b
+    signature sndPair                         = ∀b,a [ [ pair b a ] ]⟶ a
+    signature chooseList                      = ∀b,a [ list b ∷⁺ a ∷: a ]⟶ a
+    signature mkCons                          = ∀a [ a ∷: list a ]⟶ list a
+    signature headList                        = ∀a [ [ list a ] ]⟶ a
+    signature tailList                        = ∀a [ [ list a ] ]⟶ list a
+    signature nullList                        = ∀a [ [ list a ] ]⟶ bool
+    signature chooseData                      = ∀a [ Data ∷⁺ a ∷⁺ a ∷⁺ a ∷⁺ a ∷: a ]⟶ a
+    signature constrData                      = ∙ [ integer ∷: list Data ]⟶ Data
+    signature mapData                         = ∙ [ [ list (pair Data Data) ] ]⟶ Data
+    signature listData                        = ∙ [ [ list Data ] ]⟶ Data
+    signature iData                           = ∙ [ [ integer ] ]⟶ Data
+    signature bData                           = ∙ [ [ bytestring ] ]⟶ Data
+    signature unConstrData                    = ∙ [ [ Data ] ]⟶ pair integer (list Data)
+    signature unMapData                       = ∙ [ [ Data ] ]⟶ list (pair Data Data)
+    signature unListData                      = ∙ [ [ Data ] ]⟶ list Data
+    signature unIData                         = ∙ [ [ Data ] ]⟶ integer
+    signature unBData                         = ∙ [ [ Data ] ]⟶ bytestring
+    signature equalsData                      = ∙ [ Data ∷: Data ]⟶ bool
+    signature serialiseData                   = ∙ [ [ Data ] ]⟶ bytestring
+    signature mkPairData                      = ∙ [ Data ∷: Data ]⟶ pair Data Data
+    signature mkNilData                       = ∙ [ [ unit ] ]⟶ list Data
+    signature mkNilPairData                   = ∙ [ [ unit ] ]⟶ list (pair Data Data)
+
+open SignatureSyntacticSugar using (signature) public
 
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun ( AddInteger
@@ -229,3 +332,4 @@ postulate
 -- no binding needed for traceStr
 
 ```
+ 
