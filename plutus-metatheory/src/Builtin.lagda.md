@@ -16,7 +16,7 @@ open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
-open import Signature using (Sig;_⊢♯;con;`) renaming (sig to _[_]⟶_) 
+open import Signature using (Sig;sig;_⊢♯;con;`) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
 
 data Builtin : Set where
@@ -91,7 +91,6 @@ Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
 ```
-
 private module SignatureSyntacticSugar where
 
     ∙ = 0
@@ -118,71 +117,82 @@ private module SignatureSyntacticSugar where
     b : ∀{n} → suc (suc n) ⊢♯
     b = ` (S Z)
 
-    _∷:_ : ∀{ℓ}{a : Set ℓ} → a → a → List⁺ a
-    x ∷: y = x ∷⁺ [ y ]
+    _[_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → Sig
+    n [ t ]⟶ r = sig n [ t ] r
+
+    _[_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
+    n [ t , u ]⟶ r = sig n (t ∷⁺ [ u ]) r 
+
+    _[_,_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
+    n [ t , u , v ]⟶ r = sig n (t ∷⁺ u  ∷⁺ [ v ]) r 
+
+    _[_,_,_,_,_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
+    n [ t , u , v , w , x , y ]⟶ r = sig n (t ∷⁺ u  ∷⁺ v ∷⁺ w  ∷⁺ x  ∷⁺ [ y ]) r
     ```
 
     The signature of each builtin
 
     ```
     signature : Builtin → Sig
-    signature addInteger                      = ∙ [ integer ∷: integer ]⟶ integer
-    signature subtractInteger                 = ∙ [ integer ∷: integer ]⟶ integer
-    signature multiplyInteger                 = ∙ [ integer ∷: integer ]⟶ integer
-    signature divideInteger                   = ∙ [ integer ∷: integer ]⟶ integer
-    signature quotientInteger                 = ∙ [ integer ∷: integer  ]⟶ integer
-    signature remainderInteger                = ∙ [ integer ∷: integer  ]⟶ integer
-    signature modInteger                      = ∙ [ integer ∷: integer  ]⟶ integer
-    signature equalsInteger                   = ∙ [ integer ∷: integer  ]⟶ bool
-    signature lessThanInteger                 = ∙ [ integer ∷: integer  ]⟶ bool
-    signature lessThanEqualsInteger           = ∙ [ integer ∷: integer  ]⟶ bool
-    signature appendByteString                = ∙ [ bytestring ∷: bytestring ]⟶ bytestring
-    signature consByteString                  = ∙ [ integer ∷: bytestring ]⟶ bytestring
-    signature sliceByteString                 = ∙ [ integer ∷⁺ integer ∷: bytestring ]⟶ bytestring                            
-    signature lengthOfByteString              = ∙ [ [ bytestring ] ]⟶ integer
-    signature indexByteString                 = ∙ [ bytestring ∷: integer ]⟶ integer
-    signature equalsByteString                = ∙ [ bytestring ∷: bytestring ]⟶ bool
-    signature lessThanByteString              = ∙ [ bytestring ∷: bytestring ]⟶ bool
-    signature lessThanEqualsByteString        = ∙ [ bytestring ∷: bytestring ]⟶ bool
-    signature sha2-256                        = ∙ [ [ bytestring ] ]⟶ bytestring
-    signature sha3-256                        = ∙ [ [ bytestring ] ]⟶ bytestring
-    signature blake2b-256                     = ∙ [ [ bytestring ] ]⟶ bytestring
-    signature verifyEd25519Signature          = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
-    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
-    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ∷⁺ bytestring ∷: bytestring ]⟶ bool
-    signature appendString                    = ∙ [ string ∷: string ]⟶ string
-    signature equalsString                    = ∙ [ string ∷: string ]⟶ bool
-    signature encodeUtf8                      = ∙ [ [ string ] ]⟶ bytestring
-    signature decodeUtf8                      = ∙ [ [ bytestring ] ]⟶ string 
-    signature ifThenElse                      = ∀a [ bool ∷⁺ a ∷: a ]⟶ a
-    signature chooseUnit                      = ∀a [ a ∷: unit ]⟶ a
-    signature trace                           = ∀a [ string ∷: a ]⟶ a
-    signature fstPair                         = ∀b,a [ [ pair b a ] ]⟶ b
-    signature sndPair                         = ∀b,a [ [ pair b a ] ]⟶ a
-    signature chooseList                      = ∀b,a [ list b ∷⁺ a ∷: a ]⟶ a
-    signature mkCons                          = ∀a [ a ∷: list a ]⟶ list a
-    signature headList                        = ∀a [ [ list a ] ]⟶ a
-    signature tailList                        = ∀a [ [ list a ] ]⟶ list a
-    signature nullList                        = ∀a [ [ list a ] ]⟶ bool
-    signature chooseData                      = ∀a [ Data ∷⁺ a ∷⁺ a ∷⁺ a ∷⁺ a ∷: a ]⟶ a
-    signature constrData                      = ∙ [ integer ∷: list Data ]⟶ Data
-    signature mapData                         = ∙ [ [ list (pair Data Data) ] ]⟶ Data
-    signature listData                        = ∙ [ [ list Data ] ]⟶ Data
-    signature iData                           = ∙ [ [ integer ] ]⟶ Data
-    signature bData                           = ∙ [ [ bytestring ] ]⟶ Data
-    signature unConstrData                    = ∙ [ [ Data ] ]⟶ pair integer (list Data)
-    signature unMapData                       = ∙ [ [ Data ] ]⟶ list (pair Data Data)
-    signature unListData                      = ∙ [ [ Data ] ]⟶ list Data
-    signature unIData                         = ∙ [ [ Data ] ]⟶ integer
-    signature unBData                         = ∙ [ [ Data ] ]⟶ bytestring
-    signature equalsData                      = ∙ [ Data ∷: Data ]⟶ bool
-    signature serialiseData                   = ∙ [ [ Data ] ]⟶ bytestring
-    signature mkPairData                      = ∙ [ Data ∷: Data ]⟶ pair Data Data
-    signature mkNilData                       = ∙ [ [ unit ] ]⟶ list Data
-    signature mkNilPairData                   = ∙ [ [ unit ] ]⟶ list (pair Data Data)
+    signature addInteger                      = ∙ [ integer , integer ]⟶ integer
+    signature subtractInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature multiplyInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature divideInteger                   = ∙ [ integer , integer ]⟶ integer
+    signature quotientInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature remainderInteger                = ∙ [ integer , integer ]⟶ integer
+    signature modInteger                      = ∙ [ integer , integer ]⟶ integer
+    signature equalsInteger                   = ∙ [ integer , integer ]⟶ bool
+    signature lessThanInteger                 = ∙ [ integer , integer ]⟶ bool
+    signature lessThanEqualsInteger           = ∙ [ integer , integer ]⟶ bool
+    signature appendByteString                = ∙ [ bytestring , bytestring ]⟶ bytestring
+    signature consByteString                  = ∙ [ integer , bytestring ]⟶ bytestring
+    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring                            
+    signature lengthOfByteString              = ∙ [ bytestring ]⟶ integer
+    signature indexByteString                 = ∙ [ bytestring , integer ]⟶ integer
+    signature equalsByteString                = ∙ [ bytestring , bytestring ]⟶ bool
+    signature lessThanByteString              = ∙ [ bytestring , bytestring ]⟶ bool
+    signature lessThanEqualsByteString        = ∙ [ bytestring , bytestring ]⟶ bool
+    signature sha2-256                        = ∙ [ bytestring ]⟶ bytestring
+    signature sha3-256                        = ∙ [ bytestring ]⟶ bytestring
+    signature blake2b-256                     = ∙ [ bytestring ]⟶ bytestring
+    signature verifyEd25519Signature          = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature appendString                    = ∙ [ string , string ]⟶ string
+    signature equalsString                    = ∙ [ string , string ]⟶ bool
+    signature encodeUtf8                      = ∙ [ string ]⟶ bytestring
+    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string 
+    signature ifThenElse                      = ∀a [ bool , a , a ]⟶ a
+    signature chooseUnit                      = ∀a [ a , unit ]⟶ a
+    signature trace                           = ∀a [ string , a ]⟶ a
+    signature fstPair                         = ∀b,a [ pair b a ]⟶ b
+    signature sndPair                         = ∀b,a [ pair b a ]⟶ a
+    signature chooseList                      = ∀b,a [ list b , a , a ]⟶ a
+    signature mkCons                          = ∀a [ a , list a ]⟶ list a
+    signature headList                        = ∀a [ list a ]⟶ a
+    signature tailList                        = ∀a [ list a ]⟶ list a
+    signature nullList                        = ∀a [ list a ]⟶ bool
+    signature chooseData                      = ∀a [ Data , a , a , a , a , a ]⟶ a
+    signature constrData                      = ∙ [ integer , list Data ]⟶ Data
+    signature mapData                         = ∙ [ list (pair Data Data) ]⟶ Data
+    signature listData                        = ∙ [ list Data ]⟶ Data
+    signature iData                           = ∙ [ integer ]⟶ Data
+    signature bData                           = ∙ [ bytestring ]⟶ Data
+    signature unConstrData                    = ∙ [ Data ]⟶ pair integer (list Data)
+    signature unMapData                       = ∙ [ Data ]⟶ list (pair Data Data)
+    signature unListData                      = ∙ [ Data ]⟶ list Data
+    signature unIData                         = ∙ [ Data ]⟶ integer
+    signature unBData                         = ∙ [ Data ]⟶ bytestring
+    signature equalsData                      = ∙ [ Data , Data ]⟶ bool
+    signature serialiseData                   = ∙ [ Data ]⟶ bytestring
+    signature mkPairData                      = ∙ [ Data , Data ]⟶ pair Data Data
+    signature mkNilData                       = ∙ [ unit ]⟶ list Data
+    signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair Data Data)
 
 open SignatureSyntacticSugar using (signature) public
+```
 
+```
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun ( AddInteger
                                           | SubtractInteger
