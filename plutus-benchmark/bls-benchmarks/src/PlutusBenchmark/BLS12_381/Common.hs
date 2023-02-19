@@ -291,7 +291,7 @@ groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
 
 -- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
 -- newtype inputs increases the size and CPU cost slightly, so we unwrap them
--- first.
+-- first.  This should return `True`.
 mkGroth16VerifyScript :: UProg
 mkGroth16VerifyScript =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| groth16Verify ||])
