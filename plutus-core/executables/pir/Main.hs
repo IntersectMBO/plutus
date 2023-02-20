@@ -66,32 +66,26 @@ languageReader =
          "uplc" -> Just UPLC
          _      -> Nothing
 
-data OnOrOff = On | Off
-instance Show OnOrOff
-    where show = \case { On  -> "on"; Off -> "off" }
-
-isOn :: OnOrOff -> Bool
-isOn = \case { On  -> True; Off -> False }
-
-onOrOffReader :: String -> Maybe OnOrOff
-onOrOffReader =
-    \case
-         "on"  -> Just On
-         "off" -> Just Off
-         _     -> Nothing
-
 
 -- | Compilation options: target language, whether to optimise or not, input and output streams and types
 data CompileOptions =
     CompileOptions Language
-                   OnOrOff   -- Optimise or not
-                   Bool      -- Just test or not
+                   Bool   -- Optimise or not
+                   Bool   -- True -> just report if compilation was successful; False -> write output
                    Input
                    PirFormat
                    Output
                    Format
                    PrintMode
 
+
+---------------- Option parsers ----------------
+
+-- | Invert a switch: return False if the switch is supplied on the command
+-- line, True otherwise.  This is used for command-line options to turn things
+-- off.
+switch' :: Mod FlagFields Bool -> Parser Bool
+switch' = fmap not . switch
 
 pLanguage :: Parser Language
 pLanguage = option (maybeReader languageReader)
@@ -103,18 +97,15 @@ pLanguage = option (maybeReader languageReader)
   <> help ("Target language: plc or uplc")
   )
 
-pOptimise :: Parser OnOrOff
-pOptimise = option (maybeReader onOrOffReader)
-           (  long "optimsation"
-  <> short 'p'
-  <> metavar "on|off"
-  <> value On
-  <> showDefault
-  <> help ("Whether or not to perform optimisations")
-  )
+pOptimise :: Parser Bool
+pOptimise = switch'
+            (  long "dont-optimise"
+            <> long "dont-optimize"
+            <> help ("Turn off optimisations")
+            )
 
-pirinputformat :: Parser PirFormat
-pirinputformat = option (maybeReader pirFormatReader)
+pInputFormat :: Parser PirFormat
+pInputFormat = option (maybeReader pirFormatReader)
   (  long "if"
   <> long "input-format"
   <> metavar "PIR-FORMAT"
@@ -122,8 +113,8 @@ pirinputformat = option (maybeReader pirFormatReader)
   <> showDefault
   <> help ("Input format: " ++ pirFormatHelp))
 
-justtest :: Parser Bool
-justtest = switch ( long "test"
+pJustTest :: Parser Bool
+pJustTest = switch ( long "test"
                    <> help "Just report success or failure, don't produce an output file"
                    )
 
@@ -131,9 +122,9 @@ pCompileOpts :: Parser CompileOptions
 pCompileOpts = CompileOptions
                <$> pLanguage
                <*> pOptimise
-               <*> justtest
+               <*> pJustTest
                <*> input
-               <*> pirinputformat
+               <*> pInputFormat
                <*> output
                <*> outputformat
                <*> printmode
@@ -156,9 +147,6 @@ pCOpts = COpts
             <*> switch' ( long "dont-optimize"
                         <> help "Don't optimize"
                         )
-  where
-    switch' :: Mod FlagFields Bool -> Parser Bool
-    switch' = fmap not . switch
 
 pPirOpts :: Parser Command
 pPirOpts = hsubparser $
@@ -208,6 +196,7 @@ getPirProgram fmt inp =
             -- No source locations in Flat, so we have to make them up.
             return $ PLC.topSourcePos <$ prog
 
+
 ---------------- Compilation ----------------
 
 compileToPlc :: COpts -> PirProg () -> Either PIRError PLCTerm
@@ -244,8 +233,8 @@ compileToUplc opts plcProg =
 loadPirAndCompile2 :: CompileOptions -> IO ()
 loadPirAndCompile2 (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
     pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
-    putStrLn "!!! Compiling"
-    let pirCompilerOpts = COpts inp (isOn optimise)
+    if test then putStrLn "!!! Compiling" else pure ()
+    let pirCompilerOpts = COpts inp optimise
     -- Now compile to plc, maybe optimising
     case compileToPlc pirCompilerOpts (() <$ pirProg) of
       Left pirError -> error $ show pirError
@@ -257,7 +246,7 @@ loadPirAndCompile2 (CompileOptions language optimise test inp ifmt outp ofmt mod
                     else writeProgram outp ofmt mode plcProg
             UPLC -> do  -- compile the PLC to UPLC
               let plcCompilerOpts =
-                      if isOn optimise
+                      if optimise
                       then PLC.defaultCompilationOpts
                       else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
               case compileToUplc plcCompilerOpts plcProg of
@@ -266,6 +255,7 @@ loadPirAndCompile2 (CompileOptions language optimise test inp ifmt outp ofmt mod
                     then putStrLn "!!! Compilation successful"
                     else writeProgram outp ofmt mode uplcProg
                 Left _e -> pure ()
+
 
 ---------------- Optimisation ----------------
 
@@ -287,6 +277,13 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 
 
 ---------------- Analysis ----------------
+
+-- | a csv-outputtable record row of {name,unique,size}
+data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}
+    deriving stock (Generic, Show)
+    deriving anyclass Csv.ToNamedRecord
+    deriving anyclass Csv.DefaultOrdered
+deriving newtype instance Csv.ToField PIR.Size
 
 loadPirAndAnalyse :: IOSpec -> IO ()
 loadPirAndAnalyse ioSpecs = do
@@ -342,6 +339,9 @@ runPrint (PrintOptions iospec _mode) = do
             FileOutput path -> writeFile path printed
             StdOutput       -> putStrLn printed
 
+
+---------------- Main ----------------
+
 main :: IO ()
 main = do
     comm <- customExecParser (prefs showHelpOnEmpty) infoOpts
@@ -360,9 +360,3 @@ main = do
            <> progDesc ("This program provides a number of utilities for dealing with "
            <> "PIR programs, including print, analysis, and compilation to PLC."))
 
--- | a csv-outputtable record row of {name,unique,size}
-data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}
-    deriving stock (Generic, Show)
-    deriving anyclass Csv.ToNamedRecord
-    deriving anyclass Csv.DefaultOrdered
-deriving newtype instance Csv.ToField PIR.Size
