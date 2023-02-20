@@ -37,7 +37,6 @@ import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
-import Data.Maybe
 import System.Console.Haskeline qualified as Repl
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
@@ -210,7 +209,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   scripts <-
-    mapM ((getProgram ifmt ::  Input -> IO (UplcProg SourcePos)) . FileInput) inputfiles
+    mapM ((getProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -287,11 +286,10 @@ runDbg (DbgOptions inp ifmt cekModel) = do
             D.iterTM handleDbg $ D.runDriver nterm
 
 -- only using one breakpoint at a time allowed at the moment
-type Breakpoints = SourcePos
-type DAnn = SourcePos
+type Breakpoints = SrcSpan
+type DAnn = SrcSpan
 instance D.Breakpointable DAnn Breakpoints where
-    -- ignoring columns
-    hasBreakpoints (SourcePos fp1 l1 _c1) (SourcePos fp2 l2 _c2) = fp1 == fp2 && l1 == l2
+    hasBreakpoints = error "Not implemented: Breakpointable DAnn Breakpoints"
 
 -- Peel off one layer
 handleDbg :: (Cek.PrettyUni uni fun, D.GivenCekReqs uni fun DAnn RealWorld)
@@ -305,7 +303,7 @@ handleDbg = \case
     D.LogF text k        -> handleLog text >> k
     D.UpdateClientF ds k -> handleUpdate ds >> k
   where
-    handleInput = read . fromJust <$> Repl.getInputLine "> "
+    handleInput = error "Not implemented: handleInput"
     handleUpdate _s = Repl.outputStrLn "UPDATETUI" -- TODO: implement
     handleLog = Repl.outputStrLn
 

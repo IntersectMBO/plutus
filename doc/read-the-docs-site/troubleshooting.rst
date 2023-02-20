@@ -58,11 +58,11 @@ Your editor is not picking up the right version of the Haskell Language Server (
 Plutus needs a custom version of HLS which is provided by Nix.
 So get this working in your editor, make sure to do these two things:
 
-- Start your editor from ``nix-shell`` (or use ``direnv``)
+- Start your editor from ``nix develop`` (or use ``direnv``)
 - Most editors are configured to use ``haskell-language-server-wrapper``, which is a wrapper which picks the right HLS version.
   Change this to just ``haskell-language-server``.
 
-If this doesn't work, run ``which haskell-language-server`` in `nix-shell`, and use this absolute path in the configuration of your editor.
+If this doesn't work, run ``which haskell-language-server`` in `nix develop`, and use this absolute path in the configuration of your editor.
 
 Error codes
 -----------

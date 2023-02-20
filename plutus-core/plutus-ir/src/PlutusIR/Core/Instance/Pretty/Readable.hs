@@ -15,12 +15,11 @@ module PlutusIR.Core.Instance.Pretty.Readable
   , PrettyPir
   ) where
 
-import PlutusCore.Default.Universe
-import PlutusCore.Pretty.ConfigName
-import PlutusCore.Pretty.PrettyConst
-import PlutusCore.Pretty.Readable
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty
 import PlutusIR.Core.Type
 import PlutusPrelude
+
 import Prettyprinter
 import Prettyprinter.Custom
 
@@ -65,8 +64,8 @@ viewLet _       = Nothing
 type PrettyConstraints configName tyname name uni =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
-  , Pretty (SomeTypeIn uni)
-  , Closed uni, uni `Everywhere` PrettyConst
+  , Pretty (PLC.SomeTypeIn uni)
+  , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst
   )
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)

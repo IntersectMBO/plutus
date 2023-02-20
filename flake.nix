@@ -56,10 +56,6 @@
       url = "github:input-output-hk/iohk-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    tullia = {
-      url = "github:input-output-hk/tullia/gh-comment";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # The flake outputs are managed by std.
@@ -77,12 +73,9 @@
         # Cell names are arbitrary; a cell name is its folder name.
         # Cells are for highest-level organization and grouping of nix code.
         #
-        # In this repository we have three cells:
+        # In this repository we have two cells:
         #   automation
         #     Hydra jobsets and GHA tasks
-        #   cloud
-        #     Cicero tasks
-        #     (top comment in pipelines.nix explains automation and cloud separation)
         #   plutus
         #     Devshell, tooling and packages for plutus and its documentation
         cellsFrom = ./nix/cells;
@@ -107,11 +100,7 @@
         #     Includes functions, attrsets and simple literal values shared across cells
         #     These are not exposed to the flake
         #   ciJobs :: installables
-        #     Jobsets for our Hydra and Cicero CI
-        #   actions :: functions
-        #     Actions added to Cicero with defined triggers, such as any git push
-        #   pipelines :: tullia tasks
-        #     Tasks called by Cicero actions written with tullia
+        #     Jobsets for our Hydra CI
         #
         # std provides a TUI to interact with the cell blocks.
         # Available interactions are determined by the cell block's type.
@@ -121,8 +110,6 @@
           (inputs.std.installables "packages")
           (inputs.std.functions "library")
           (inputs.std.installables "ciJobs")
-          (inputs.std.functions "actions")
-          (inputs.tullia.tasks "pipelines")
         ];
       }
 
@@ -147,13 +134,8 @@
         packages = inputs.std.harvest inputs.self [ "plutus" "packages" ];
       }
       {
-        ciJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
         hydraJobs = inputs.std.harvest inputs.self [ "automation" "ciJobs" ];
-      }
-      (inputs.tullia.fromStd {
-        actions = inputs.std.harvest inputs.self [ "cloud" "actions" ];
-        tasks = inputs.std.harvest inputs.self [ "automation" "pipelines" ];
-      });
+      };
 
   nixConfig = {
     extra-substituters = [

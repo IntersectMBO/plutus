@@ -19,6 +19,7 @@ import Evaluation.Spec (test_evaluation)
 import Names.Spec
 import Normalization.Check
 import Normalization.Type
+import Parser.Spec qualified as Parser
 import Pretty.Readable
 import TypeSynthesis.Spec (test_typecheck)
 
@@ -31,6 +32,7 @@ import PlutusCore.Generators.Hedgehog.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
+import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
@@ -134,7 +136,7 @@ natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
   and programs.  We have unit tests for the unit and boolean types, and property
   tests for the full set of types in the default universe. -}
 
-type DefaultError = Error DefaultUni DefaultFun SourcePos
+type DefaultError = Error DefaultUni DefaultFun SrcSpan
 
 {-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here
@@ -142,9 +144,9 @@ type DefaultError = Error DefaultUni DefaultFun SourcePos
 testLexConstant :: Assertion
 testLexConstant =
     for_ smallConsts $ \t -> do
-            let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+            let res :: Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
                 res = runQuoteT $ parseTerm $ displayPlcDef t
-            -- using `void` here to get rid of `SourcePos`
+            -- using `void` here to get rid of `SrcSpan`
             fmap void res @?= Right t
         where
           smallConsts :: [Term TyName Name DefaultUni DefaultFun ()]
@@ -187,20 +189,25 @@ propLexConstant = withTests (1000 :: Hedgehog.TestLimit) . property $ do
     term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
     Hedgehog.tripping term displayPlcDef (fmap void . parseTm)
     where
-        parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SourcePos)
+        parseTm :: T.Text -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
         parseTm tm = runQuoteT $ parseTerm tm
-
 
 -- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
 -- text, hopefully returning the same thing.
 propParser :: Property
 propParser = property $ do
     prog <- TextualProgram <$> forAllPretty (runAstGen genProgram)
-    Hedgehog.tripping prog (displayPlcDef . unTextualProgram)
-                (\p -> fmap (TextualProgram . void) (parseProg p))
-    where
-        parseProg :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SourcePos)
-        parseProg = runQuoteT . parseProgram
+    Hedgehog.tripping
+        prog
+        (displayPlcDef . unTextualProgram)
+        (\p -> fmap (TextualProgram . void) (parseProg p))
+  where
+    parseProg ::
+        T.Text ->
+        Either
+            ParserErrorBundle
+            (Program TyName Name DefaultUni DefaultFun SrcSpan)
+    parseProg = runQuoteT . parseProgram
 
 type TestFunction = T.Text -> Either DefaultError T.Text
 
@@ -219,21 +226,31 @@ asGolden f file = goldenVsString file (file ++ ".golden") (asIO f file)
 -- | Parse and rewrite so that names are globally unique, not just unique within
 -- their scope.
 -- don't require there to be no free variables at this point, we might be parsing an open term
-parseScoped :: (AsParserErrorBundle e, AsUniqueError e SourcePos,
-        MonadError e m, MonadQuote m) =>
-    T.Text
-    -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+parseScoped ::
+    ( AsParserErrorBundle e
+    , AsUniqueError e SrcSpan
+    , MonadError e m
+    , MonadQuote m
+    ) =>
+    T.Text ->
+    m (Program TyName Name DefaultUni DefaultFun SrcSpan)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped = through (Uniques.checkProgram (const True)) <=< rename <=< parseProgram
 
-printType ::(AsParserErrorBundle e, AsUniqueError e SourcePos, AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SourcePos,
-        MonadError e m)
-    => T.Text
-    -> m T.Text
-printType txt = runQuoteT $ T.pack . show . pretty <$> do
-    scoped <- parseScoped txt
-    config <- getDefTypeCheckConfig topSourcePos
-    inferTypeOfProgram config scoped
+printType ::
+    ( AsParserErrorBundle e
+    , AsUniqueError e SrcSpan
+    , AsTypeError e (Term TyName Name DefaultUni DefaultFun ()) DefaultUni DefaultFun SrcSpan
+    , MonadError e m
+    ) =>
+    T.Text ->
+    m T.Text
+printType txt =
+    runQuoteT $
+        T.pack . show . pretty <$> do
+            scoped <- parseScoped txt
+            config <- getDefTypeCheckConfig topSrcSpan
+            inferTypeOfProgram config scoped
 
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
@@ -286,4 +303,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , CBOR.DataStability.tests
     , Check.tests
     , NEAT.tests
+    , Parser.tests
     ]

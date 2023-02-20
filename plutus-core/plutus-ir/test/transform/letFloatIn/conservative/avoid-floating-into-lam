@@ -12,4 +12,5 @@
   )
   [ [ (builtin addInteger) [ f (con integer 1) ] ] [ f (con integer 2) ] ]
 )
--- `x` should not be floated into the lambda in the RHS of `f`, since `f` is used twice.
+-- In conservative float-in, `x` should not be floated into the lambda in the RHS of `f`,
+-- since `f` is used twice.

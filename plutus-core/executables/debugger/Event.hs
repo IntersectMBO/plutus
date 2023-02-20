@@ -1,8 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TupleSections         #-}
 
 -- | Handler of debugger events.
 module Event where
@@ -10,7 +8,6 @@ module Event where
 import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
 import Types
-import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
@@ -20,6 +17,8 @@ import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent.MVar
 import Control.Monad.State
+import Data.Coerce
+import Data.Set as S
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Prettyprinter
@@ -33,7 +32,7 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             Just EditorUplc ->
                 B.zoom dsUplcEditor $ BE.handleEditorEvent bev
             Just EditorSource ->
-                B.zoom dsSourceEditor $ BE.handleEditorEvent bev
+                B.zoom (dsSourceEditor.traversed) $ BE.handleEditorEvent bev
             Just EditorReturnValue ->
                 B.zoom dsReturnValueEditor $ BE.handleEditorEvent bev
             Just EditorCekState ->
@@ -74,11 +73,8 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             pure ()
         _ -> handleEditorEvent
 handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = do
-    let uplcHighlight = do
-            uplcSpan <- uplcAnn <$> case cekState of
-                Computing _ _ _ t -> Just (UPLC.termAnn t)
-                Returning _ ctx _ -> contextAnn ctx
-                _                 -> Nothing
+    let uplcHighlight :: Maybe HighlightSpan = do
+            uplcSpan <- uplcAnn <$> cekStateAnn cekState
             pure HighlightSpan
                 { _hcSLoc = B.Location (srcSpanSLine uplcSpan, srcSpanSCol uplcSpan),
                   -- The ending column of a `SrcSpan` is usually one more than the column of
@@ -86,29 +82,42 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                   -- is the line break, hence the `- 1`.
                   _hcELoc = Just $ B.Location (srcSpanELine uplcSpan, srcSpanECol uplcSpan - 1)
                 }
-    modify' $ \st -> case cekState of
-        Computing{} ->
-            st & dsUplcHighlight .~ uplcHighlight
+    let sourceHighlight :: Maybe HighlightSpan = do
+            txSpans <- txAnn <$> cekStateAnn cekState
+            -- FIXME: use some/all spans for highlighting, not just the first one
+            firstTxSpan <- S.lookupMin $ coerce txSpans
+            -- TODO: the HS_FILE supplied from the command line gets highlighted
+            -- The highlighting will not make sense or even break if the user provides
+            -- wrong HS_FILE or if the UPLC originated from multiple HS modules.
+            pure HighlightSpan
+                { _hcSLoc = B.Location (srcSpanSLine firstTxSpan, srcSpanSCol firstTxSpan),
+                  -- GHC's SrcSpan's ending column is one larger than the last character's column.
+                  -- See: ghc/compiler/GHC/Types/SrcLoc.hs#L728
+                  _hcELoc = Just $ B.Location (srcSpanELine firstTxSpan, srcSpanECol firstTxSpan -1)
+                }
+    modify' $
+      -- update line highlighting
+      set dsUplcHighlight uplcHighlight .
+      set dsSourceHighlight sourceHighlight .
+        case cekState of
+            Computing{} ->
                -- Clear the return value editor.
-               & dsReturnValueEditor .~
+               dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
                     Nothing
                     mempty
-        Returning _ _ v ->
-            st & dsUplcHighlight .~ uplcHighlight
-               & dsReturnValueEditor .~
+            Returning _ _ v ->
+               dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
                     Nothing
                     (PLC.displayPlcDef (dischargeCekValue v))
-
-        Terminating t ->
-            st & dsUplcHighlight .~ Nothing
-               & dsReturnValueEditor .~
+            Terminating t ->
+               dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
                     Nothing
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
-        Starting{} -> st
+            Starting{} -> id
 handleDebuggerEvent _ _ = pure ()

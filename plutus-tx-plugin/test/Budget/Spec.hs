@@ -52,6 +52,11 @@ tests = testNested "Budget" [
   , goldenPir "patternMatch" patternMatch
   , goldenBudget "show" compiledShow
   , goldenPir "show" compiledShow
+  -- These test cases are for testing the float-in pass.
+  , goldenBudget "ifThenElse1" compiledIfThenElse1
+  , goldenPir "ifThenElse1" compiledIfThenElse1
+  , goldenBudget "ifThenElse2" compiledIfThenElse2
+  , goldenPir "ifThenElse2" compiledIfThenElse2
   ]
 
 compiledSum :: CompiledCode Integer
@@ -155,3 +160,25 @@ compiledShow :: CompiledCode Integer
 compiledShow = $$(compile [||
       let x = -1234567890
        in showExample x ||])
+
+-- | In this example, the float-in pass cannot reduce the cost unless it allows
+-- unconditionally floating into type abstractions. Both branches are
+-- turned into type abstractions (because the `a + a` branch is not a value).
+compiledIfThenElse1 :: CompiledCode Integer
+compiledIfThenElse1 = $$(compile [||
+    let a = 1 PlutusTx.+ 2
+     in if 3 PlutusTx.< (4 :: Integer)
+          then 5
+          else a PlutusTx.+ a ||])
+
+-- | In this example, the float-in pass cannot reduce the cost unless it allows
+-- unconditionally floating into lambda abstractions. Both branches are
+-- lambda abstractions.
+compiledIfThenElse2 :: CompiledCode Integer
+compiledIfThenElse2 = $$(compile [||
+    let a = 1 PlutusTx.+ 2
+     in ( if 3 PlutusTx.< (4 :: Integer)
+            then \x -> x PlutusTx.+ 5
+            else \x -> x PlutusTx.+ a PlutusTx.+ a
+        )
+            (6 PlutusTx.+ 7) ||])

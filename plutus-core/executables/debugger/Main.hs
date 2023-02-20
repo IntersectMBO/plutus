@@ -4,7 +4,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE StrictData        #-}
-{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 
 {- | A Plutus Core debugger TUI application.
@@ -20,6 +19,8 @@ import PlutusCore qualified as PLC
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Executable.Common
+import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
@@ -38,15 +39,14 @@ import Brick.Util qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
 import Control.Monad.Except
-import Control.Monad.Extra
 import Control.Monad.ST (RealWorld)
-import Data.ByteString.Lazy qualified as Lazy
+import Data.Maybe
+import Data.Text (Text)
 import Data.Text.IO qualified as Text
-import Flat
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Options.Applicative qualified as OA
-import System.Directory.Extra
+import UntypedPlutusCore.Core.Zip
 
 debuggerAttrMap :: B.AttrMap
 debuggerAttrMap =
@@ -62,48 +62,34 @@ darkGreen :: Vty.Color
 darkGreen = Vty.rgbColor @Int 0 100 0
 
 data Options = Options
-    {optUplcPath :: FilePath, optHsPath :: FilePath}
+    { optUplcInput       :: Input
+    , optUplcInputFormat :: Format
+    , optHsPath          :: Maybe FilePath
+    }
 
 parseOptions :: OA.Parser Options
 parseOptions = do
-    optUplcPath <-
-        OA.argument OA.str $
-            mconcat
-                [ OA.metavar "UPLC_FILE"
-                , OA.help "UPLC File"
-                ]
-    optHsPath <-
-        OA.argument OA.str $
-            mconcat
-                [ OA.metavar "HS_FILE"
-                , OA.help "HS File"
-                ]
+    optUplcInput <- input
+    optUplcInputFormat <- inputformat
+    optHsPath <- OA.optional $ OA.strOption $
+                   mconcat
+                      [ OA.metavar "HS_FILE"
+                      , OA.long "hs-file"
+                      , OA.help "HS File"
+                      ]
     pure Options{..}
 
 main :: IO ()
 main = do
-    opts <-
+    Options{..} <-
         OA.execParser $
             OA.info
                 (parseOptions OA.<**> OA.helper)
                 (OA.fullDesc <> OA.header "Plutus Core Debugger")
 
-    unlessM (doesFileExist (optUplcPath opts)) . fail $
-        "Does not exist or not a file: " <> optUplcPath opts
-    uplcFlat <- Lazy.readFile (optUplcPath opts)
-    uplcDebruijn <-
-        either
-            (\e -> fail $ "UPLC deserialisation failure:" <> show e)
-            pure
-            (unflat uplcFlat)
-    uplcNoAnn <- unDeBruijnProgram uplcDebruijn
-    let uplcText = PLC.displayPlcDef uplcNoAnn
-    uplcParsed <-
-        either (error . PLC.display @_ @ParserErrorBundle) pure
-            . PLC.runQuoteT
-            $ UPLC.parseProgram uplcText
-    let uplc = fmap (\sp -> DAnn sp mempty) uplcParsed
-    hsText <- Text.readFile (optHsPath opts)
+    (uplcText, uplcDAnn) <- getProgramWithText optUplcInputFormat optUplcInput
+
+    hsText <- traverse Text.readFile optHsPath
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -123,19 +109,20 @@ main = do
             DebuggerState
                 { _dsKeyBindingsMode = KeyBindingsHidden
                 , _dsFocusRing =
-                    B.focusRing
-                        [ EditorUplc
-                        , EditorSource
-                        , EditorReturnValue
-                        , EditorCekState
+                    B.focusRing $ catMaybes
+                        [ Just EditorUplc
+                        , EditorSource <$ optHsPath
+                        , Just EditorReturnValue
+                        , Just EditorCekState
                         ]
                 , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
                 , _dsUplcHighlight = Nothing
                 , _dsSourceEditor =
                     BE.editorText
                         EditorSource
-                        Nothing
+                        Nothing <$>
                         hsText
+                , _dsSourceHighlight = Nothing
                 , _dsReturnValueEditor =
                     BE.editorText
                         EditorReturnValue
@@ -155,7 +142,7 @@ main = do
 
     -- TODO: find out if the driver-thread exits when brick exits
     -- or should we wait for driver-thread?
-    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplc
+    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplcDAnn
 
     void $ B.customMain initialVty builder (Just brickMailbox) app initialState
 
@@ -190,17 +177,42 @@ driverThread driverMailbox brickMailbox prog = do
         D.StepF prevState k  -> cekMToIO (D.handleStep prevState) >>= k
         D.InputF k           -> handleInput >>= k
         D.LogF text k        -> handleLog text >> k
-        D.UpdateClientF ds k -> handleUpdate ds >> k -- TODO: implement
+        D.UpdateClientF ds k -> handleUpdate ds >> k
       where
         handleInput = takeMVar driverMailbox
         handleUpdate = B.writeBChan brickMailbox . UpdateClientEvent
         handleLog = B.writeBChan brickMailbox . LogEvent
 
-unDeBruijnProgram ::
-    UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
-    IO (UPLC.Program UPLC.Name DefaultUni DefaultFun ())
-unDeBruijnProgram p = do
-    either (fail . show) pure
-        . PLC.runQuote
-        . runExceptT @UPLC.FreeVariableError
-        $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p
+-- | Read uplc code in a given format
+--
+--  Adapted from `Common.getProgram`
+getProgramWithText :: Format -> Input -> IO (Text, UplcProg DAnn)
+getProgramWithText fmt inp =
+    case fmt of
+        Textual -> do
+            -- here we use the original raw uplc text, we do not attempt any prettyfying
+            (progTextRaw, progWithUplcSpan) <- parseInput inp
+            let -- IMPORTANT: we cannot have any Tx.SourceSpans available in Textual mode
+                -- We still show the SourceEditor but TX highlighting (or breakpointing) won't work.
+                -- TODO: disable setting TX.breakpoints from inside the brick gui interface
+                addEmptyTxSpans = fmap (`DAnn` mempty)
+                progWithDAnn = addEmptyTxSpans progWithUplcSpan
+            pure (progTextRaw, progWithDAnn)
+
+        Flat flatMode -> do
+            -- here comes the dance of flat-parsing->PRETTYfying->text-parsing
+            -- so we can have artificial SourceSpans in annotations
+            progWithTxSpans <- loadASTfromFlat @UplcProg @PLC.SrcSpans flatMode inp
+            -- annotations are not pprinted by default, no need to `void`
+            let progTextPretty = PLC.displayPlcDef progWithTxSpans
+
+            -- the parsed prog with uplc.srcspan
+            progWithUplcSpan <- either (fail . show @ParserErrorBundle) pure $ runExcept $
+                                   PLC.runQuoteT $ UPLC.parseProgram progTextPretty
+
+            -- zip back the two programs into one program with their annotations' combined
+            -- the zip may fail if the AST cannot parse-pretty roundtrip (should not happen).
+            progWithDAnn <- either fail pure $ runExcept $
+                               pzipWith DAnn progWithUplcSpan progWithTxSpans
+
+            pure (progTextPretty, progWithDAnn)

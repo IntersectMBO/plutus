@@ -75,7 +75,7 @@ While these blocks are not exposed directly to the flake (they are not "harveste
 `nix (develop|build|run) .#<system>.<cell>.<cell-block>.<valid.attr.path>` 
 
 For example:
-`nix build .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-core.components.exes.uplc`
+`nix build .#x86_64-linux.plutus.library.plutus-project-925.hsPkgs.plutus-core.components.exes.uplc`
 
 ## Reference example
 
@@ -102,7 +102,7 @@ As another example, consider the file `./nix/cells/plutus/library/default.nix`
 - `/plutus/*` are accessible via `inputs.cells.plutus.*` (everywhere)
 - `/library` is the cell block name
 - `/library/*` are accessible via `cell.library.*` (while inside `cells/plutus`)
-- `/library/*` are accessible via `inputs.cells.library.devshellCommands.*` (everywhere)
+- `/library/*` are accessible via `inputs.cells.library.*` (everywhere)
 - `/default.nix` imports every file in its directory
 - `/default.nix` contains a derivation for each file in its directory
 - Each attrs field in `/default.nix` is named after the file it imports (minus the `.nix`)

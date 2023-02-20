@@ -94,22 +94,22 @@ library
 
   build-depends:
     , aeson
-    , base              >=4.9      && <5
+    , base                                  >=4.9      && <5
     , bytestring
     , containers
     , deepseq
     , deriving-compat
     , extra
-    , flat              <0.5
+    , flat                                  <0.5
     , ghc-prim
     , hashable
     , lens
     , memory
     , mtl
-    , plutus-core       ^>=1.1
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.1
     , prettyprinter
     , serialise
-    , template-haskell  >=2.13.0.0
+    , template-haskell                      >=2.13.0.0
     , text
     , th-abstraction
     , th-compat

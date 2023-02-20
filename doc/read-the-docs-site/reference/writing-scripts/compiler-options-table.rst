@@ -13,6 +13,12 @@
      - Description
 
 
+   * - ``conservative-optimisation``
+     - Bool
+     - False
+     - When conservative optimisation is used, only the optimisations that never make the program worse (in terms of cost or size) are employed. Implies ``no-relaxed-float-in``.
+
+
    * - ``context-level``
      - Int
      - 1
@@ -89,6 +95,12 @@
      - ProfileOpts
      - None
      - Set profiling options to All, which adds tracing when entering and exiting a term.
+
+
+   * - ``relaxed-float-in``
+     - Bool
+     - True
+     - Use a more aggressive float-in pass, which often leads to reduced costs but may occasionally lead to slightly increased costs.
 
 
    * - ``remove-trace``

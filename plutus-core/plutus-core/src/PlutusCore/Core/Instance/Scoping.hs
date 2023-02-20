@@ -71,7 +71,7 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =
-        Program NotAName (NotAName <$ ver) <$> establishScoping term
+        Program NotAName ver <$> establishScoping term
 
 instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
     collectScopeInfo (TyLam ann name kind ty) =

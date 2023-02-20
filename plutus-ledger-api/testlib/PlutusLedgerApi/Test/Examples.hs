@@ -19,7 +19,7 @@ It seems better therefore to avoid depending on Plutus Tx in any "core" projects
 
 -- | Creates a script which has N arguments, and always succeeds.
 alwaysSucceedingNAryFunction :: Natural -> SerialisedScript
-alwaysSucceedingNAryFunction n = serialiseUPLC $ UPLC.Program () (PLC.defaultVersion ()) (body n)
+alwaysSucceedingNAryFunction n = serialiseUPLC $ UPLC.Program () PLC.defaultVersion (body n)
     where
         -- No more arguments! The body can be anything that doesn't fail, so we return `\x . x`
         body i | i == 0 = UPLC.LamAbs() (UPLC.DeBruijn 0) $ UPLC.Var () (UPLC.DeBruijn 1)
@@ -28,7 +28,7 @@ alwaysSucceedingNAryFunction n = serialiseUPLC $ UPLC.Program () (PLC.defaultVer
 
 -- | Creates a script which has N arguments, and always fails.
 alwaysFailingNAryFunction :: Natural -> SerialisedScript
-alwaysFailingNAryFunction n = serialiseUPLC $ UPLC.Program () (PLC.defaultVersion ()) (body n)
+alwaysFailingNAryFunction n = serialiseUPLC $ UPLC.Program () PLC.defaultVersion (body n)
     where
         -- No more arguments! The body should be error.
         body i | i == 0 = UPLC.Error ()
@@ -36,7 +36,7 @@ alwaysFailingNAryFunction n = serialiseUPLC $ UPLC.Program () (PLC.defaultVersio
         body i = UPLC.LamAbs () (UPLC.DeBruijn 0) $ body (i-1)
 
 summingFunction :: SerialisedScript
-summingFunction = serialiseUPLC $ UPLC.Program () (PLC.defaultVersion ()) body
+summingFunction = serialiseUPLC $ UPLC.Program () PLC.defaultVersion body
     where
         body = UPLC.Apply () (UPLC.Apply () (UPLC.Builtin () PLC.AddInteger) (PLC.mkConstant @Integer () 1)) (PLC.mkConstant @Integer () 2)
 

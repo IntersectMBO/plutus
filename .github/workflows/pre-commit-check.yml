@@ -1,6 +1,9 @@
 name: Pre Commit Check
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
 jobs:
   pre-commit-check:
     runs-on: [ubuntu-latest]

@@ -142,6 +142,29 @@ let
             platforms = lib.platforms.linux;
           };
 
+          # External package settings
+          inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
+
+          # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
+          # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
+          ieee.components.library.libs = lib.mkForce [ ];
+
+          # See https://github.com/input-output-hk/iohk-nix/pull/488
+          cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [
+            [ pkgs.libsodium-vrf ]
+          ];
+          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [
+            [ pkgs.libsodium-vrf pkgs.secp256k1 ]
+          ];
+        };
+      })
+
+      # -Werror for CI
+      # Only enable on the newer compilers. We don't care about warnings on the old ones,
+      # and sometimes it's hard to be warning free on all compilers, e.g. the unused
+      # packages warning is bad in 8.10.7 (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6130)
+      (lib.mkIf (compiler-nix-name != "ghc8107") {
+        packages = {
           # Werror everything.
           # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
           plutus-core.ghcOptions = [ "-Werror" ];
@@ -161,23 +184,9 @@ let
           # disabling -Werror on it.
           # prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           word-array.ghcOptions = [ "-Werror" ];
-
-          # External package settings
-          inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
-
-          # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
-          # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
-          ieee.components.library.libs = lib.mkForce [ ];
-
-          # See https://github.com/input-output-hk/iohk-nix/pull/488
-          cardano-crypto-praos.components.library.pkgconfig = lib.mkForce [
-            [ pkgs.libsodium-vrf ]
-          ];
-          cardano-crypto-class.components.library.pkgconfig = lib.mkForce [
-            [ pkgs.libsodium-vrf pkgs.secp256k1 ]
-          ];
         };
       })
+
     ];
   });
 in

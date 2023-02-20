@@ -26,6 +26,7 @@ module PlutusIR.Compiler (
     coDoSimplifierInline,
     coInlineHints,
     coProfile,
+    coRelaxedFloatin,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -153,7 +154,8 @@ floatIn
     -> m (Term TyName Name uni fun b)
 floatIn t = do
     ver <- view ccBuiltinVer
-    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm ver) t
+    relaxed <- view (ccOpts . coRelaxedFloatin)
+    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm ver relaxed) t
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names

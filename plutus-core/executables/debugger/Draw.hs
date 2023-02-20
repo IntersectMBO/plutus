@@ -39,12 +39,12 @@ drawDebugger st =
                     (st ^. dsUplcEditor)
                 , B.padTop (B.Pad 1) . BC.hCenter $ B.str cursorPos
                 ]
-    sourceEditor =
-        BB.borderWithLabel (B.txt "Source program") $
+    sourceEditor = maybe B.emptyWidget
+        (BB.borderWithLabel (B.txt "Source program") .
             B.withFocusRing
                 focusRing
-                (BE.renderEditor (B.txt . Text.unlines))
-                (st ^. dsSourceEditor)
+                 (BE.renderEditor (drawDocumentWithHighlight (st ^. dsSourceHighlight)))
+        ) (st ^. dsSourceEditor)
     returnValueEditor =
         BB.borderWithLabel (B.txt "UPLC value being returned") $
             B.withFocusRing
