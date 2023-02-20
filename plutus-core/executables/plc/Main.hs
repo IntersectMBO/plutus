@@ -136,7 +136,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 
 runOptimisations:: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-  prog <- getProgram ifmt inp  :: IO (PlcProg PLC.SourcePos)
+  prog <- getProgram ifmt inp  :: IO (PlcProg PLC.SrcSpan)
   let optimised = prog  -- No PLC optimisations at present!
   writeProgram outp ofmt mode optimised
 

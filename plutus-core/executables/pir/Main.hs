@@ -178,14 +178,14 @@ pPirOptions = hsubparser $
 getPirProgram ::
     PirFormat ->
     Input ->
-    IO (PirProg PLC.SourcePos)
+    IO (PirProg PLC.SrcSpan)
 getPirProgram fmt inp =
     case fmt of
-        TextualPir -> parseInput inp
+        TextualPir -> snd <$> parseInput inp
         FlatNamed -> do
             prog <- loadTplcASTfromFlat Named inp  :: IO (PirProg ())
             -- No source locations in Flat, so we have to make them up.
-            return $ PLC.topSourcePos <$ prog
+            return $ topSrcSpan <$ prog
 
 
 ---------------- Compilation ----------------
@@ -212,14 +212,14 @@ compileToUplc optimise plcProg =
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
-    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
     if test then putStrLn "!!! Compiling" else pure ()
     -- Now compile to plc, maybe optimising
     case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
       Right plcTerm ->
           let plcProg = PLC.Program () version (() <$ plcTerm)
-                  where version = PLC.defaultVersion ()
+                  where version = PLC.defaultVersion
           in case language of
             PLC  -> if test
                     then putStrLn "!!! Compilation successful"
@@ -233,7 +233,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
 
 ---------------- Optimisation ----------------
 
-doOptimisations :: PirTerm PLC.SourcePos -> Either PIRErrorWithProvenance (PirTerm ())
+doOptimisations :: PirTerm PLC.SrcSpan -> Either PIRErrorWithProvenance (PirTerm ())
 doOptimisations term = do
   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
   let ctx = PIR.toDefaultCompilationCtx plcTcConfig
@@ -244,7 +244,7 @@ doOptimisations term = do
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
-  Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+  Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
   case doOptimisations term of
     Left e  -> error $ show e
     Right t -> writeProgram outp ofmt mode (Program () t)

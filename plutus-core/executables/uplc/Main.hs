@@ -197,7 +197,7 @@ plutusOpts = hsubparser $
 -- | Run the UPLC optimisations
 runOptimisations:: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-    prog <- getProgram ifmt inp :: IO (UplcProg SourcePos)
+    prog <- getProgram ifmt inp :: IO (UplcProg SrcSpan)
     simplified <- PLC.runQuoteT $ do
                     renamed <- PLC.rename prog
                     UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed

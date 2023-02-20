@@ -745,8 +745,8 @@ runPrintBuiltinSignatures = do
 runPrint ::
     forall (p :: Type -> Type).
     ( ProgramLike p
-    , PLC.Rename (p PLC.SourcePos)
-    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SourcePos)
+    , PLC.Rename (p PLC.SrcSpan)
+    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
     ) =>
     PrintOptions ->
     IO ()

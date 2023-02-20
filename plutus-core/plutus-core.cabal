@@ -120,6 +120,7 @@ library
     PlutusCore.Normalize.Internal
     PlutusCore.Parser
     PlutusCore.Pretty
+    PlutusCore.Pretty.Plc
     PlutusCore.Quote
     PlutusCore.Rename
     PlutusCore.Rename.Internal
@@ -203,7 +204,6 @@ library
     PlutusCore.Pretty.ConfigName
     PlutusCore.Pretty.Default
     PlutusCore.Pretty.Extra
-    PlutusCore.Pretty.Plc
     PlutusCore.Pretty.PrettyConst
     PlutusCore.Pretty.Readable
     PlutusCore.Pretty.Utils
