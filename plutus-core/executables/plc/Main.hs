@@ -66,7 +66,7 @@ plutus langHelpText =
       (fullDesc <> header "Typed Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
-plutusOpts = hsubparser (
+plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
@@ -104,7 +104,7 @@ plutusOpts = hsubparser (
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
             (progDesc "Print the signatures of the built-in functions"))
-  )
+
 
 ---------------- Script application ----------------
 
