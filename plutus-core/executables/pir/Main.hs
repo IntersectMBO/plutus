@@ -246,7 +246,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
                     if test
                     then putStrLn "!!! Compilation successful"
                     else writeProgram outp ofmt mode uplcProg
-                Left _e -> pure ()
+                Left e -> error $ show e
 
 
 ---------------- Optimisation ----------------
