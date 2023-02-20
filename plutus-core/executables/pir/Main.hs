@@ -130,8 +130,7 @@ pCompileOpts = CompileOptions
                <*> printmode
 
 data Command = Analyse  IOSpec
-             | Compile  COpts
-             | Compile2  CompileOptions
+             | Compile  CompileOptions
              | Convert  ConvertOptions
              | Optimise OptimiseOptions
              | Print    PrintOptions
@@ -156,12 +155,7 @@ pPirOpts = hsubparser $
                    "Given a PIR program in flat format, deserialise and analyse the program, " <>
                    "looking for variables with the largest retained size.")
            <> command "compile"
-                  (info (Compile <$> pCOpts) $
-                   progDesc $
-                   "Given a PIR program in flat format, deserialise it, " <>
-                   "and test if it can be successfully compiled to PLC.")
-           <> command "compile2"
-                  (info (Compile2 <$> pCompileOpts) $
+                  (info (Compile <$> pCompileOpts) $
                    progDesc $
                    "Given a PIR program in flat format, deserialise it, " <>
                    "and test if it can be successfully compiled to PLC.")
@@ -199,44 +193,50 @@ getPirProgram fmt inp =
 
 ---------------- Compilation ----------------
 
+{- compileToPlc :: Bool -> PirProg () -> Either PIRError PLCTerm
+compileToPlc optimise (PIR.Program _ pirT) = do
+    plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+    let pirCtx = defaultCompilationCtx plcTcConfig
+    runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
+  where
+    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+      -> PIRCompilationCtx a
+    defaultCompilationCtx plcTcConfig =
+      PIR.toDefaultbCompilationCtx (plcTcConfig
+      & set PIR.coOptimize optimise)
+-}
+
 compileToPlc :: COpts -> PirProg () -> Either PIRError PLCTerm
 compileToPlc opts (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-    set' :: Lens' (PIR.CompilationOpts a) b
-      -> (COpts -> b)
-      -> PIRCompilationCtx a
-      -> PIRCompilationCtx a
-    set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
     defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
-      PIR.toDefaultCompilationCtx plcTcConfig
-      & set' PIR.coOptimize cOptimize
+      PIR.toDefaultCompilationCtx plcTcConfig &
+       set' PIR.coOptimize cOptimize
 
-loadPirAndCompile :: COpts -> IO ()
-loadPirAndCompile copts = do
-    pirProg <- loadPir $ cIn copts
-    putStrLn "!!! Compiling"
-    case compileToPlc copts pirProg of
-        Left pirError -> error $ show pirError
-        Right _       -> putStrLn "!!! Compilation successful"
+    set' :: Lens' (PIR.CompilationOpts a) b
+      -> (COpts -> b)
+      -> PIRCompilationCtx a
+      -> PIRCompilationCtx a
+    set' pirOpt opt  = set (PIR.ccOpts . pirOpt) (opt opts)
+
+-- defaultCompilationCtx takes a typeCheckConfig; this contains a ccOpts field
 
 compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> Either e (UplcProg ())
 compileToUplc opts plcProg =
     runExcept $ flip runReaderT opts $ runQuoteT $ PLC.compileProgram plcProg
 
-
-loadPirAndCompile2 :: CompileOptions -> IO ()
-loadPirAndCompile2 (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
+loadPirAndCompile :: CompileOptions -> IO ()
+loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
     pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
     if test then putStrLn "!!! Compiling" else pure ()
-    let pirCompilerOpts = COpts inp optimise
     -- Now compile to plc, maybe optimising
-    case compileToPlc pirCompilerOpts (() <$ pirProg) of
+    case compileToPlc (COpts undefined optimise) (() <$ pirProg) of
       Left pirError -> error $ show pirError
       Right plcTerm ->
           let plcProg = PLC.Program () (PLC.defaultVersion ()) (() <$ plcTerm)
@@ -348,7 +348,6 @@ main = do
     case comm of
         Analyse  opts -> loadPirAndAnalyse opts
         Compile  opts -> loadPirAndCompile opts
-        Compile2 opts -> loadPirAndCompile2 opts
         Convert  opts -> runConvert @PirProg opts
         Optimise opts -> runOptimisations opts
         Print    opts -> runPrint opts
