@@ -193,19 +193,6 @@ getPirProgram fmt inp =
 
 ---------------- Compilation ----------------
 
-{- compileToPlc :: Bool -> PirProg () -> Either PIRError PLCTerm
-compileToPlc optimise (PIR.Program _ pirT) = do
-    plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
-    let pirCtx = defaultCompilationCtx plcTcConfig
-    runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
-  where
-    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
-      -> PIRCompilationCtx a
-    defaultCompilationCtx plcTcConfig =
-      PIR.toDefaultbCompilationCtx (plcTcConfig
-      & set PIR.coOptimize optimise)
--}
-
 compileToPlc :: Bool -> PirProg () -> Either PIRError PLCTerm
 compileToPlc optimise (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
@@ -218,10 +205,9 @@ compileToPlc optimise (PIR.Program _ pirT) = do
       PIR.toDefaultCompilationCtx plcTcConfig &
        set (PIR.ccOpts . PIR.coOptimize) optimise
 
-
-compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> Either e (UplcProg ())
+compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> UplcProg ()
 compileToUplc opts plcProg =
-    runExcept $ flip runReaderT opts $ runQuoteT $ PLC.compileProgram plcProg
+    flip runReader opts $ runQuoteT $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
@@ -241,12 +227,10 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
                       if optimise
                       then PLC.defaultCompilationOpts
                       else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-              case compileToUplc plcCompilerOpts plcProg of
-                Right uplcProg ->
-                    if test
-                    then putStrLn "!!! Compilation successful"
-                    else writeProgram outp ofmt mode uplcProg
-                Left e -> error $ show e
+                  uplcProg = compileToUplc plcCompilerOpts plcProg
+              if test
+              then putStrLn "!!! Compilation successful"
+              else writeProgram outp ofmt mode uplcProg
 
 
 ---------------- Optimisation ----------------
