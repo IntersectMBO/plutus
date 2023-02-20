@@ -219,8 +219,8 @@ compileToPlc opts (PIR.Program _ pirT) = do
       PIR.toDefaultCompilationCtx plcTcConfig &
        set' PIR.coOptimize cOptimize
 
-    set' :: Lens' (PIR.CompilationOpts a) b
-      -> (COpts -> b)
+    set' :: Lens' (PIR.CompilationOpts a) Bool
+      -> (COpts -> Bool)
       -> PIRCompilationCtx a
       -> PIRCompilationCtx a
     set' pirOpt opt  = set (PIR.ccOpts . pirOpt) (opt opts)
