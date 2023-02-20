@@ -79,6 +79,12 @@ data CompileOptions =
                    PrintMode
 
 
+data Command = Analyse  IOSpec
+             | Compile  CompileOptions
+             | Convert  ConvertOptions
+             | Optimise OptimiseOptions
+             | Print    PrintOptions
+
 ---------------- Option parsers ----------------
 
 -- | Invert a switch: return False if the switch is supplied on the command
@@ -128,24 +134,6 @@ pCompileOpts = CompileOptions
                <*> output
                <*> outputformat
                <*> printmode
-
-data Command = Analyse  IOSpec
-             | Compile  CompileOptions
-             | Convert  ConvertOptions
-             | Optimise OptimiseOptions
-             | Print    PrintOptions
-
-data COpts = COpts
-  { cIn       :: Input
-  , cOptimize :: Bool
-  }
-
-pCOpts :: Parser COpts
-pCOpts = COpts
-            <$> input
-            <*> switch' ( long "dont-optimize"
-                        <> help "Don't optimize"
-                        )
 
 pPirOpts :: Parser Command
 pPirOpts = hsubparser $
