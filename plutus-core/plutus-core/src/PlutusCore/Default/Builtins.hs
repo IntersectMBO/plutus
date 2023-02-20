@@ -39,6 +39,7 @@ import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
 import Prettyprinter (viaShow)
+import GHC.Num.Integer
 
 -- See Note [Pattern matching on built-in types].
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
@@ -1031,19 +1032,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramMultiplyInteger)
     toBuiltinMeaning _ver DivideInteger =
         makeBuiltinMeaning
-            (nonZeroArg div)
+            (nonZeroArg integerDiv)
             (runCostingFunTwoArguments . paramDivideInteger)
     toBuiltinMeaning _ver QuotientInteger =
         makeBuiltinMeaning
-            (nonZeroArg quot)
+            (nonZeroArg integerQuot)
             (runCostingFunTwoArguments . paramQuotientInteger)
     toBuiltinMeaning _ver RemainderInteger =
         makeBuiltinMeaning
-            (nonZeroArg rem)
+            (nonZeroArg integerRem)
             (runCostingFunTwoArguments . paramRemainderInteger)
     toBuiltinMeaning _ver ModInteger =
         makeBuiltinMeaning
-            (nonZeroArg mod)
+            (nonZeroArg integerMod)
             (runCostingFunTwoArguments . paramModInteger)
     toBuiltinMeaning _ver EqualsInteger =
         makeBuiltinMeaning
