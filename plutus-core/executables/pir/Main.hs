@@ -1,23 +1,13 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+
 module Main where
 
-import Control.Lens hiding (argument, set', (<.>))
-import Control.Monad.Trans.Except
-import Control.Monad.Trans.Reader
-import Data.ByteString.Lazy.Char8 qualified as BSL
-import Data.Coerce
-import Data.Csv qualified as Csv
--- editorconfig-checker-disable-file
-import Data.IntMap qualified as IM
-import Data.List (sortOn)
-import Data.Text qualified as T
-import GHC.Generics
-import Options.Applicative
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Error (ParserErrorBundle (..))
@@ -30,8 +20,18 @@ import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Plated
 import PlutusPrelude
-import Text.Megaparsec (errorBundlePretty)
 import UntypedPlutusCore qualified as UPLC
+
+import Control.Lens (coerced, (^..))
+import Control.Monad.Trans.Except (runExcept)
+import Control.Monad.Trans.Reader (runReader, runReaderT)
+import Data.ByteString.Lazy.Char8 qualified as BSL
+import Data.Csv qualified as Csv
+import Data.IntMap qualified as IM
+import Data.List (sortOn)
+import Data.Text qualified as T
+import Options.Applicative
+import Text.Megaparsec (errorBundlePretty)
 
 type PLCTerm  = PlcTerm (PIR.Provenance ())
 type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
@@ -203,11 +203,15 @@ compileToPlc optimise (PIR.Program _ pirT) = do
       -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig &
-       set (PIR.ccOpts . PIR.coOptimize) optimise
+         PIR.ccOpts . PIR.coOptimize .~ optimise
 
-compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> UplcProg ()
-compileToUplc opts plcProg =
-    flip runReader opts $ runQuoteT $ PLC.compileProgram plcProg
+compileToUplc :: Bool -> PlcProg () -> UplcProg ()
+compileToUplc optimise plcProg =
+    let plcCompilerOpts =
+            if optimise
+            then PLC.defaultCompilationOpts
+            else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+    in flip runReader plcCompilerOpts $ runQuoteT $ PLC.compileProgram plcProg
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
@@ -223,11 +227,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
                     then putStrLn "!!! Compilation successful"
                     else writeProgram outp ofmt mode plcProg
             UPLC -> do  -- compile the PLC to UPLC
-              let plcCompilerOpts =
-                      if optimise
-                      then PLC.defaultCompilationOpts
-                      else PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-                  uplcProg = compileToUplc plcCompilerOpts plcProg
+              let uplcProg = compileToUplc optimise plcProg
               if test
               then putStrLn "!!! Compilation successful"
               else writeProgram outp ofmt mode uplcProg
