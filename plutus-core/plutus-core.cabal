@@ -413,6 +413,7 @@ executable uplc
     , optparse-applicative
     , plutus-core           ^>=1.1
     , plutus-core-execlib
+    , prettyprinter
     , split
     , text
 
@@ -683,6 +684,7 @@ executable debugger
     , plutus-core-execlib
     , prettyprinter
     , text
+    , text-zipper
     , vty
 
 ----------------------------------------------

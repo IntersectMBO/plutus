@@ -32,6 +32,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import Control.DeepSeq (rnf)
 import Control.Monad.Except
 import Options.Applicative
+import Prettyprinter
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
@@ -259,35 +260,56 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
         MachineParameters costs runtime = cekparams
+        replSettings = Repl.Settings { Repl.complete = Repl.noCompletion
+                                     , Repl.historyFile = Nothing
+                                     , Repl.autoAddHistory = False
+                                     }
     let ?cekRuntime = runtime
         ?cekEmitter = const $ pure ()
         ?cekBudgetSpender = Cek.CekBudgetSpender $ \_ _ -> pure ()
         ?cekCosts = costs
         ?cekSlippage = D.defaultSlippage
-      in Repl.runInputT (Repl.Settings Repl.noCompletion Nothing False) $
+      in Repl.runInputT replSettings $
             -- MAYBE: use cutoff or partialIterT to prevent runaway
             D.iterTM handleDbg $ D.runDriver nterm
 
--- only using one breakpoint at a time allowed at the moment
-type Breakpoints = SrcSpan
+-- TODO: this is just an example of an optional single breakpoint, decide
+-- if we actually want breakpoints for the cli
+newtype MaybeBreakpoint = MaybeBreakpoint { _fromMaybeBreakpoint :: Maybe SrcSpan }
 type DAnn = SrcSpan
-instance D.Breakpointable DAnn Breakpoints where
+instance D.Breakpointable DAnn MaybeBreakpoint where
     hasBreakpoints = error "Not implemented: Breakpointable DAnn Breakpoints"
 
 -- Peel off one layer
 handleDbg :: (Cek.PrettyUni uni fun, D.GivenCekReqs uni fun DAnn RealWorld)
-          => D.DebugF uni fun DAnn Breakpoints (Repl.InputT IO a)
-          -> Repl.InputT IO a
+          => D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
+          -> Repl.InputT IO ()
 handleDbg = \case
-    -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
-    -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
-    D.StepF prevState k  -> liftIO (D.cekMToIO $ D.handleStep prevState) >>= k
+    D.StepF prevState k  -> do
+        -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
+        -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
+        eNewState <- liftIO $ D.cekMToIO $ D.tryHandleStep prevState
+        case eNewState of
+            Right newState -> k newState
+            Left e         -> Repl.outputStrLn $ show e
+                             -- no kontinuation, so it acts like exitSuccess
+                             -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
     D.LogF text k        -> handleLog text >> k
     D.UpdateClientF ds k -> handleUpdate ds >> k
   where
-    handleInput = error "Not implemented: handleInput"
-    handleUpdate _s = Repl.outputStrLn "UPDATETUI" -- TODO: implement
+    handleInput = do
+        c <- Repl.getInputChar "(s)tep (c)ontinue (n)ext (f)inish (Ctrl+d exit):"
+        -- TODO: implement print "program counter", breakpoints
+        -- MAYBE: switch to repline
+        case c of
+            Just 's' -> pure D.Step
+            Just 'c' -> pure $ D.Continue $ MaybeBreakpoint empty
+            Just 'n' -> pure $ D.Next $ MaybeBreakpoint empty
+            Just 'f' -> pure $ D.Finish $ MaybeBreakpoint empty
+            -- otherwise retry
+            _        -> handleInput
+    handleUpdate s = Repl.outputStrLn $ show $ "Updated state:" <+> pretty s
     handleLog = Repl.outputStrLn
 
 ----------------- Print examples -----------------------

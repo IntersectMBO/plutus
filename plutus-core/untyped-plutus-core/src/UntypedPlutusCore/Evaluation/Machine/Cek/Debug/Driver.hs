@@ -10,6 +10,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     , DebugF (..)
     -- | Reexport some functions for convenience
     , handleStep
+    , tryHandleStep
     , F.MonadFree
     , F.iterM
     , F.iterTM
