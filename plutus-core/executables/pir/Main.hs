@@ -206,26 +206,18 @@ compileToPlc optimise (PIR.Program _ pirT) = do
       & set PIR.coOptimize optimise)
 -}
 
-compileToPlc :: COpts -> PirProg () -> Either PIRError PLCTerm
-compileToPlc opts (PIR.Program _ pirT) = do
+compileToPlc :: Bool -> PirProg () -> Either PIRError PLCTerm
+compileToPlc optimise (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-
     defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig &
-       set' PIR.coOptimize cOptimize
+       set (PIR.ccOpts . PIR.coOptimize) optimise
 
-    set' :: Lens' (PIR.CompilationOpts a) Bool
-      -> (COpts -> Bool)
-      -> PIRCompilationCtx a
-      -> PIRCompilationCtx a
-    set' pirOpt opt  = set (PIR.ccOpts . pirOpt) (opt opts)
-
--- defaultCompilationCtx takes a typeCheckConfig; this contains a ccOpts field
 
 compileToUplc :: PLC.CompilationOpts Name () -> PlcProg () -> Either e (UplcProg ())
 compileToUplc opts plcProg =
@@ -236,7 +228,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
     pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
     if test then putStrLn "!!! Compiling" else pure ()
     -- Now compile to plc, maybe optimising
-    case compileToPlc (COpts undefined optimise) (() <$ pirProg) of
+    case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
       Right plcTerm ->
           let plcProg = PLC.Program () (PLC.defaultVersion ()) (() <$ plcTerm)
