@@ -217,15 +217,16 @@ inline =
 countLamTest :: TestNested
 countLamTest = testNested "countLamTest" $
         map
-            (goldenPir (runQuote . (countLam mempty def <=< PLC.rename)) pTerm)
-            [ "var"
-            , "builtin"
-            , "constant"
-            , "transitive"
+            (goldenPir (countLam . runQuote . PLC.rename) pTerm)
+            [ "var" -- from inline tests, testing let terms
             , "tyvar"
             , "single"
             , "immediateVar"
-            , "immediateApp"
+            , "lamapp" -- from beta tests, testing app terms
+            , "lamapp2"
+            , "absapp"
+            , "multiapp"
+            , "multilet"
             ]
 
 beta :: TestNested

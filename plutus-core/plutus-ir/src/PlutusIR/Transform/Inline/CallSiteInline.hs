@@ -1,7 +1,6 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 {-|
@@ -14,6 +13,7 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore.Name qualified as PLC
 import PlutusIR.Core
+import Prettyprinter
 
 {- Note [Inlining of fully applied functions]
 
@@ -149,6 +149,9 @@ type TermOrTypeOrder = [TermOrType]
 data TermOrType =
     MkTerm | MkType
     deriving stock (Eq, Show)
+
+instance Pretty TermOrType where
+  pretty = viaShow
 
 -- | A mapping of all let-bindings that are functions to their info required for inlining.
 -- Each of these functions is identified by its term unique.
