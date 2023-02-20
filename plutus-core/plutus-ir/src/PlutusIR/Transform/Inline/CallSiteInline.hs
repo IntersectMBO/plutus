@@ -11,7 +11,6 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
-import PlutusCore.Name qualified as PLC
 import PlutusIR.Core
 import Prettyprinter
 
@@ -152,23 +151,6 @@ data TermOrType =
 
 instance Pretty TermOrType where
   pretty = viaShow
-
--- | A mapping of all let-bindings that are functions to their info required for inlining.
--- Each of these functions is identified by its term unique.
-newtype CalledVarEnv tyname name uni fun a =
-    CalledVarEnv {
-      _unCalledVarEnv :: PLC.UniqueMap PLC.TermUnique (CalledVarInfo tyname name uni fun a)
-      }
-    deriving newtype (Semigroup, Monoid)
-
--- | Info attached to a let-binding that is a function.
-data CalledVarInfo tyname name uni fun a =
-  MkCalledVarInfo {
-    calledVarDef :: Term tyname name uni fun a -- ^ its definition
-    , lamOrder   :: TermOrTypeOrder -- ^ its sequence of term and type lambdas
-    , body       :: Term tyname name uni fun a
-    -- ^ the body of the function, for determining whether its cost and size are acceptable.
-  }
 
 -- | Counts the type and term lambdas in the RHS of a binding and returns an ordered list
 countLam ::
