@@ -531,6 +531,7 @@ test-suite plutus-ir-test
     , serialise
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , tasty-quickcheck
     , text
     , unordered-containers

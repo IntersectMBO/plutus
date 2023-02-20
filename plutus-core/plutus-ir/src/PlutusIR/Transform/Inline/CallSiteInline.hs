@@ -148,7 +148,7 @@ type TermOrTypeOrder = [TermOrType]
 -- | Datatype capturing both terms and types.
 data TermOrType =
     MkTerm | MkType
-    deriving stock (Eq)
+    deriving stock (Eq, Show)
 
 -- | A mapping of all let-bindings that are functions to their info required for inlining.
 -- Each of these functions is identified by its term unique.

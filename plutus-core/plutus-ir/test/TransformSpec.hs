@@ -6,6 +6,7 @@
 module TransformSpec (transform) where
 
 import Test.Tasty.Extras
+import Test.Tasty.HUnit (testCase, (@?=))
 
 import PlutusCore.Quote
 
@@ -14,11 +15,13 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Core.Type (Term (..))
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.Inline.CallSiteInline (countLam)
 import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
@@ -29,6 +32,7 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
+import Test.Tasty (testGroup)
 
 transform :: TestNested
 transform =
@@ -41,6 +45,7 @@ transform =
         , letFloatInRelaxed
         , recSplit
         , inline
+        , countLamTest
         , beta
         , unwrapCancel
         , deadCode
@@ -208,6 +213,12 @@ inline =
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
             ]
+
+countLamTest :: TestNested
+countLamTest = return $ testGroup "tests for counting of lambdas" [
+    testCase "not lambda abstractions" (countLam (Var () "testVar") @?= [])
+    -- testCase "one term lambda" (countLam (LamAbs ) @?= ),
+    ]
 
 beta :: TestNested
 beta =
