@@ -185,7 +185,7 @@ inline :: TestNested
 inline =
     testNested "inline" $
         map
-            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) $ pTerm)
+            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) pTerm)
             [ "var"
             , "builtin"
             , "constant"
@@ -215,10 +215,18 @@ inline =
             ]
 
 countLamTest :: TestNested
-countLamTest = return $ testGroup "tests for counting of lambdas" [
-    testCase "not lambda abstractions" (countLam (Var () "testVar") @?= [])
-    -- testCase "one term lambda" (countLam (LamAbs ) @?= ),
-    ]
+countLamTest = testNested "countLamTest" $
+        map
+            (goldenPir (runQuote . (countLam mempty def <=< PLC.rename)) pTerm)
+            [ "var"
+            , "builtin"
+            , "constant"
+            , "transitive"
+            , "tyvar"
+            , "single"
+            , "immediateVar"
+            , "immediateApp"
+            ]
 
 beta :: TestNested
 beta =
