@@ -227,6 +227,8 @@ countLamTest = testNested "countLamTest" $
             , "absapp"
             , "multiapp"
             , "multilet"
+            , "lamAbs3" -- 3 lambdas
+            , "lamAbsApp" -- the function body is an application
             ]
 
 beta :: TestNested
