@@ -30,7 +30,7 @@ open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open TyCon
 
 open Signature.FromSig1 Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x)))
-open FromSig2 con _⇒_ Π
+open FromSig2 con _⇒_ Π using (sig2type)
 \end{code}
 
 ## Fixity declarations
@@ -206,3 +206,5 @@ arity b with signature b
 
 \end{code}
   
+Arity should be rewritten to be two numbers (`n` and `length ar` above). 
+It's in this way just so that the current  

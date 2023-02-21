@@ -3,11 +3,15 @@ title: Builtins
 layout: page
 ---
 
-This module contains an enumeration of builtins.
+This module contains the formalisation of builtins.
 
 ```
 module Builtin where
+```
 
+## Imports
+
+```
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_])
@@ -18,7 +22,13 @@ open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
 open import Signature using (Sig;sig;_⊢♯;con;`) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
+```
 
+## Built-in functions
+
+The type `Builtin` contains an enumeration of the built-in functions.
+
+```
 data Builtin : Set where
   -- Integers
   addInteger                      : Builtin
@@ -87,16 +97,23 @@ data Builtin : Set where
   mkNilPairData                   : Builtin
 ```
 
+## Signatures
+
+The following module defines a `signature` function assigning to each builtin a signature.
+
+```
+private module SugaredSignature where
+```
 Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
 ```
-private module SignatureSyntacticSugar where
-
+    -- number of different type variables
     ∙ = 0
     ∀a = 1
     ∀b,a = 2
 
+    -- shortened names for type constants and type constructors
     integer bool bytestring string unit Data : ∀{n} → n ⊢♯
     integer = con T.integer
     bool = con T.bool
@@ -111,12 +128,14 @@ private module SignatureSyntacticSugar where
     list : ∀{n} → n ⊢♯ → n ⊢♯
     list x = con (T.list x)
 
+    -- names for type variables
     a : ∀{n} → suc n ⊢♯
     a = ` Z
 
     b : ∀{n} → suc (suc n) ⊢♯
     b = ` (S Z)
 
+   -- syntax for writing functions of 1,2,3, and 6 arguments
     _[_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → Sig
     n [ t ]⟶ r = sig n [ t ] r
 
@@ -189,8 +208,12 @@ private module SignatureSyntacticSugar where
     signature mkNilData                       = ∙ [ unit ]⟶ list Data
     signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair Data Data)
 
-open SignatureSyntacticSugar using (signature) public
+open SugaredSignature using (signature) public
 ```
+
+## GHC Mappings
+
+Each Agda built-in name must be mapped to a Haskell name.
 
 ```
 {-# FOREIGN GHC import PlutusCore.Default #-}
@@ -251,7 +274,10 @@ open SignatureSyntacticSugar using (signature) public
                                           ) #-}
 ```
 
-## Abstract semantics of builtins
+### Abstract semantics of builtins
+
+We need to postulate the Agda type of built-in functions 
+whose semantics are provided by a Haskell funciton.
 
 ```
 postulate
@@ -281,7 +307,7 @@ postulate
   serialiseDATA : DATA → ByteString
 ```
 
-# What builtin operations should be compiled to if we compile to Haskell
+### What builtin operations should be compiled to if we compile to Haskell
 
 ```
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
@@ -340,6 +366,5 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
-
 ```
  
