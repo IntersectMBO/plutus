@@ -6,7 +6,6 @@
 module TransformSpec (transform) where
 
 import Test.Tasty.Extras
-import Test.Tasty.HUnit (testCase, (@?=))
 
 import PlutusCore.Quote
 
@@ -15,7 +14,6 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
-import PlutusIR.Core.Type (Term (..))
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
@@ -32,7 +30,6 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
-import Test.Tasty (testGroup)
 
 transform :: TestNested
 transform =
@@ -222,13 +219,17 @@ countLamTest = testNested "countLamTest" $
             , "tyvar"
             , "single"
             , "immediateVar"
-            , "lamapp" -- from beta tests, testing app terms
-            , "lamapp2"
-            , "absapp"
+            -- from beta tests, testing app terms
+            , "absapp" -- type application
             , "multiapp"
             , "multilet"
-            , "lamAbs3" -- 3 lambdas
-            , "lamAbsApp" -- the function body is an application
+            , "lamAbs3" -- 3 term lambdas
+            , "lamAbsApp" -- 3 term lambdas and the function body is an application
+            , "ifError" -- more complicated body
+            , "tyAbs" -- type lambda abstraction
+            , "tyAbs2" -- 2 type lambda abstractions
+            , "tyAbs2Arrow" -- type lambda abstraction with an arrow kind
+            , "tyAbsInterleaved" -- interleaving type and term lambda abstractions
             ]
 
 beta :: TestNested

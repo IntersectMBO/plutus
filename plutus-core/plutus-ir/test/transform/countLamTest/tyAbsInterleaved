@@ -1,0 +1,3 @@
+-- Type and term lambdas interleaved
+
+(abs a (type) (lam z a (abs b (type) (lam x a (lam y b y)))))
