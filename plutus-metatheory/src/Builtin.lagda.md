@@ -99,7 +99,7 @@ data Builtin : Set where
 
 ## Signatures
 
-The following module defines a `signature` function assigning to each builtin a signature.
+The following module defines a `signature` function assigning to each builtin an abstract type.
 
 ```
 private module SugaredSignature where

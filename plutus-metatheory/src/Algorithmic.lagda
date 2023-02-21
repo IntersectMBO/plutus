@@ -207,4 +207,4 @@ arity b with signature b
 \end{code}
   
 Arity should be rewritten to be two numbers (`n` and `length ar` above). 
-It's in this way just so that the current  
+It's in this way in order to make the current implementation works, but it will be changed.
