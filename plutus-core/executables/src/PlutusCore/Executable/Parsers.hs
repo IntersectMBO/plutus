@@ -42,9 +42,6 @@ stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
 
-ioSpec :: Parser IOSpec
-ioSpec = MkIOSpec <$> input <*> output
-
 formatHelp :: String
 formatHelp =
   "textual, flat-named (names), flat (de Bruijn indices), "
@@ -126,7 +123,7 @@ printmode = option auto
      <> "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> ioSpec <*> printmode
+printOpts = PrintOptions <$> input <*> output <*> printmode
 
 convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode

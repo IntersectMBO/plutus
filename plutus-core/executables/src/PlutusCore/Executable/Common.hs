@@ -289,10 +289,6 @@ instance Show Input where
     show StdInput         = "<stdin>"
 
 data Output = FileOutput FilePath | StdOutput
-data IOSpec = MkIOSpec
-    { inputSpec  :: Input
-    , outputSpec :: Output
-    }
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
 data PrintMode = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)
@@ -324,7 +320,7 @@ instance Show Format where
 
 data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
 data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode
-data PrintOptions = PrintOptions IOSpec PrintMode
+data PrintOptions = PrintOptions Input Output PrintMode
 newtype ExampleOptions = ExampleOptions ExampleMode
 data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
 
@@ -742,33 +738,32 @@ runPrintBuiltinSignatures = do
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
 
-runPrint ::
-    forall (p :: Type -> Type).
-    ( ProgramLike p
-    , PLC.Rename (p PLC.SourcePos)
-    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SourcePos)
-    ) =>
-    PrintOptions ->
-    IO ()
-runPrint (PrintOptions iospec mode) = do
-    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
+runPrint
+    :: forall p .
+       ( ProgramLike p
+       , PLC.Rename (p PLC.SrcSpan)
+       , PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
+       )
+    => PrintOptions
+    -> IO ()
+runPrint (PrintOptions inp outp mode) = do
+    parsed <- (snd <$> parseInput inp :: IO (p PLC.SrcSpan))
     let printed = show $ getPrintMethod mode parsed
-    case outputSpec iospec of
+    case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
-runConvert ::
-    forall (p :: Type -> Type).
-    ( ProgramLike p
-    , Functor p
-    , PLC.Rename (p PLC.SrcSpan)
-    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
-    ) =>
-    ConvertOptions ->
-    IO ()
+runConvert
+    :: forall (p :: Type -> Type).
+       ( ProgramLike p
+       , Functor p
+       , PLC.Rename (p PLC.SrcSpan)
+       , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan))
+    => ConvertOptions
+    -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
     program :: p PLC.SrcSpan <- getProgram ifmt inp
     writeProgram outp ofmt mode program

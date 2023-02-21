@@ -43,7 +43,7 @@ data PirFormat = TextualPir | FlatNamed
 instance Show PirFormat
     where show = \case { TextualPir  -> "textual"; FlatNamed -> "flat-named" }
 
-data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output Format PrintMode
+data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat PrintMode
 
 data AnalyseOptions = AnalyseOptions Input PirFormat Output -- Input is a program, output is text
 
@@ -89,8 +89,8 @@ pirFormatReader =
          "flat"       -> Just FlatNamed
          _            -> Nothing
 
-pInputFormat :: Parser PirFormat
-pInputFormat = option (maybeReader pirFormatReader)
+pPirInputFormat :: Parser PirFormat
+pPirInputFormat = option (maybeReader pirFormatReader)
   (  long "if"
   <> long "input-format"
   <> metavar "PIR-FORMAT"
@@ -98,11 +98,20 @@ pInputFormat = option (maybeReader pirFormatReader)
   <> showDefault
   <> help ("Input format: " ++ pirFormatHelp))
 
+pPirOutputFormat :: Parser PirFormat
+pPirOutputFormat = option (maybeReader pirFormatReader)
+  (  long "of"
+  <> long "output-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Output format: " ++ pirFormatHelp))
+
 pPirOptimiseOptions :: Parser PirOptimiseOptions
-pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pInputFormat <*> output <*> outputformat <*> printmode
+pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
 
 pAnalyseOptions :: Parser AnalyseOptions
-pAnalyseOptions = AnalyseOptions <$> input <*> pInputFormat <*> output
+pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
 
 languageReader :: String -> Maybe Language
 languageReader =
@@ -139,7 +148,7 @@ pCompileOptions = CompileOptions
                <*> pOptimise
                <*> pJustTest
                <*> input
-               <*> pInputFormat
+               <*> pPirInputFormat
                <*> output
                <*> outputformat
                <*> printmode
@@ -170,22 +179,34 @@ pPirOptions = hsubparser $
            <> command "print"
                   (info (Print <$> printOpts) $
                  progDesc $
-                   "Given a PIR program in flat format, " <>
-                   "deserialise it and print it out textually.")
+                   "Given a PIR program in textual format, " <>
+                   "read it in and print it in the selected format.")
 
 
 -- | Load a PIR program (in either textual of flat-named format)
 getPirProgram ::
     PirFormat ->
     Input ->
-    IO (PirProg PLC.SourcePos)
+    IO (PirProg PLC.SrcSpan)
 getPirProgram fmt inp =
     case fmt of
-        TextualPir -> parseInput inp
+        TextualPir -> snd <$> parseInput inp
         FlatNamed -> do
             prog <- loadTplcASTfromFlat Named inp  :: IO (PirProg ())
             -- No source locations in Flat, so we have to make them up.
-            return $ PLC.topSourcePos <$ prog
+            return $ topSrcSpan <$ prog
+
+-- | Write a PIR program, but only with the restricted types supported by PIR
+writePirProgram ::
+    Output ->
+    PirFormat ->
+    PrintMode ->
+    PirProg () ->
+    IO ()
+writePirProgram outp pirFmt mode prog =
+    case pirFmt of
+      TextualPir -> writeProgram outp Textual mode prog
+      FlatNamed  -> writeProgram outp (Flat Named) mode prog
 
 
 ---------------- Compilation ----------------
@@ -212,14 +233,13 @@ compileToUplc optimise plcProg =
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
-    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
     if test then putStrLn "!!! Compiling" else pure ()
     -- Now compile to plc, maybe optimising
     case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
       Right plcTerm ->
-          let plcProg = PLC.Program () version (() <$ plcTerm)
-                  where version = PLC.defaultVersion ()
+          let plcProg = PLC.Program () PLC.defaultVersion (() <$ plcTerm)
           in case language of
             PLC  -> if test
                     then putStrLn "!!! Compilation successful"
@@ -233,7 +253,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
 
 ---------------- Optimisation ----------------
 
-doOptimisations :: PirTerm PLC.SourcePos -> Either PIRErrorWithProvenance (PirTerm ())
+doOptimisations :: PirTerm PLC.SrcSpan -> Either PIRErrorWithProvenance (PirTerm ())
 doOptimisations term = do
   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
   let ctx = PIR.toDefaultCompilationCtx plcTcConfig
@@ -244,10 +264,10 @@ doOptimisations term = do
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
-  Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SourcePos)
+  Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
   case doOptimisations term of
     Left e  -> error $ show e
-    Right t -> writeProgram outp ofmt mode (Program () t)
+    Right t -> writePirProgram outp ofmt mode (Program () t)
 
 
 ---------------- Analysis ----------------
@@ -292,24 +312,22 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
 
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.
--- Only the print option for PLC or UPLC files check for them.
+-- Only the print options for PLC or UPLC files check for them.
 
 runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions iospec _mode) = do
-    let inputPath = inputSpec iospec
-    contents <- getInput inputPath
+runPrint (PrintOptions inp outp mode) = do
+    contents <- getInput inp
     -- parse the program
-    case parseNamedProgram (show inputPath) contents of
+    case parseNamedProgram (show inp) contents of
       -- when fail, pretty print the parse errors.
       Left (ParseErrorB err) ->
           errorWithoutStackTrace $ errorBundlePretty err
       -- otherwise,
       Right (p::PirProg PLC.SrcSpan) -> do
-        -- pretty print the program. Print mode may be added later on.
         let
             printed :: String
-            printed = show $ pretty p
-        case outputSpec iospec of
+            printed = show $ getPrintMethod mode p
+        case outp of
             FileOutput path -> writeFile path printed
             StdOutput       -> putStrLn printed
 
