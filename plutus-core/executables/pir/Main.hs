@@ -34,7 +34,8 @@ import Options.Applicative
 import Text.Megaparsec (errorBundlePretty)
 
 
-type PIRErrorWithProvenance = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
+type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
+type UnitProvenance = PIR.Provenance ()
 
 ---------------- Types for command line options ----------------
 
@@ -211,7 +212,7 @@ writePirProgram outp pirFmt mode prog =
 
 ---------------- Compilation ----------------
 
-compileToPlc :: Bool -> PirProg () -> Either PIRErrorWithProvenance (PlcTerm (PIR.Provenance ()))
+compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcTerm UnitProvenance)
 compileToPlc optimise (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
@@ -253,13 +254,12 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
 
 ---------------- Optimisation ----------------
 
-doOptimisations :: PirTerm PLC.SrcSpan -> Either PIRErrorWithProvenance (PirTerm ())
+doOptimisations :: PirTerm PLC.SrcSpan -> Either (PirError UnitProvenance) (PirTerm UnitProvenance)
 doOptimisations term = do
   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
   let ctx = PIR.toDefaultCompilationCtx plcTcConfig
-  let term' = (PIR.Original ()) <$ term
-  opt <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm term'
-  pure $ (() <$ opt)
+      term' = (PIR.Original ()) <$ term
+  runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm term'
 
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()
@@ -267,7 +267,7 @@ runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
   Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
   case doOptimisations term of
     Left e  -> error $ show e
-    Right t -> writePirProgram outp ofmt mode (Program () t)
+    Right t -> writePirProgram outp ofmt mode (Program () (() <$ t))
 
 
 ---------------- Analysis ----------------
