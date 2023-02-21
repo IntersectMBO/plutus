@@ -1,0 +1,12 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
+
+      Bool_match
+      (vardecl True Bool) (vardecl False Bool)
+    )
+  )
+  [ [ (lam x (con integer) (lam y Bool x)) (con integer 3) ] False ]
+)

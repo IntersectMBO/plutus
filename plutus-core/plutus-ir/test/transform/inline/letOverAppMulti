@@ -1,0 +1,62 @@
+{- 
+funApp gets inlined because it only occurs once.
+k should not get inlined by the unconditional inline optimization because it occurs more
+than once.
+Both instances of k should get inlined by the optimization that inlines fully applied functions 
+because it is fully applied.
+The first instance of k being inlined verifies that an over-applied function still gets inline.
+
+let 
+    idFun :: Integer -> Integer
+    idFun y = y
+    funApp :: (Integer -> Integer) -> (Integer -> Integer)
+    funApp x = idFun
+    k :: (Integer -> Integer) -> (Integer -> Integer)
+    k = funApp
+in k (k idFun) 3
+
+k idFun :: (Integer -> Integer)
+k (k idFun) :: (Integer -> Integer)
+k (k idFun) 3 :: Integer
+-}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl idFun (fun (con integer) (con integer)))
+      (lam y (con integer) y)
+    )
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl
+          funApp
+          (fun
+            (fun (con integer) (con integer)) (fun (con integer) (con integer))
+          )
+        )
+        (lam
+          x
+          (fun (con integer) (con integer))
+          idFun
+        )
+      )
+      (let
+      (nonrec)
+        (termbind
+          (strict)
+          (vardecl
+            k
+            (fun
+              (fun (con integer) (con integer)) (fun (con integer) (con integer))
+            )
+          )
+          funApp
+        )
+        
+        [ [ k [ k idFun ] ] (con integer 6) ]
+      )
+    )
+)
