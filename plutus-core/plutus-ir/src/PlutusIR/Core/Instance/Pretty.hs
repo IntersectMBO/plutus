@@ -17,8 +17,6 @@ import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 import PlutusCore.Pretty qualified as PLC
 
-import PlutusCore.Pretty.Plc
-
 import PlutusIR.Core.Instance.Pretty.Readable ()
 import PlutusIR.Core.Type
 
@@ -186,9 +184,9 @@ instance ( PLC.PrettyClassic tyname
 
 
 deriving via PrettyAny (Term tyname name uni fun ann)
-    instance DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
-        PrettyBy PrettyConfigPlc (Term tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Term tyname name uni fun ann)
 
 deriving via PrettyAny (Program tyname name uni fun ann)
-    instance DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
-        PrettyBy PrettyConfigPlc (Program tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Program tyname name uni fun ann)

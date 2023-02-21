@@ -16,6 +16,7 @@ module PlutusCore.Pretty
     , displayPlcDebug
     -- * Global configuration
     , CondensedErrors (..)
+    , DefaultPrettyPlcStrategy
     , PrettyConfigPlcOptions (..)
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
