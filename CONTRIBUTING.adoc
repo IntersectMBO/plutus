@@ -469,6 +469,7 @@ Sometimes there is "change-related" information that doesn't belong in a commit 
 
 ==== Misc PR tips
 
+* Various `pre-commit` checks are in place to warn you about what the CI will probably warn you, were you to push the PR. If you want to skip these checks, turn them off with the `--no-verify` option in git. E.g., run `git commit --no-verify`.
 * Review the diff of your own PR at the last minute before hitting "create".
 It's amazing how many obvious things you spot here, and it stops the reviewer having to point them all out.
 * It's fine to make WIP PRs if you just want to show your code to someone else or have the CI check it.
