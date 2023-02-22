@@ -20,7 +20,7 @@ open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
-open import Signature using (Sig;sig;_⊢♯;con;`) 
+open import Signature using (Sig;sig;_⊢♯;con;`;Args) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
 ```
 
@@ -108,6 +108,8 @@ Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
 ```
+    open import Data.Product using (_×_) renaming (_,_ to _,,_)
+
     -- number of different type variables
     ∙ = 0
     ∀a = 1
@@ -135,18 +137,19 @@ This is defined in its own module so that these definitions are not exported.
     b : ∀{n} → suc (suc n) ⊢♯
     b = ` (S Z)
 
-   -- syntax for writing functions of 1,2,3, and 6 arguments
-    _[_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → Sig
-    n [ t ]⟶ r = sig n [ t ] r
+    -- operators for constructing signatures
 
-    _[_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
-    n [ t , u ]⟶ r = sig n (t ∷⁺ [ u ]) r 
+    _]⟶_ : ∀{n} → n ⊢♯ → n ⊢♯ → Args n  ×  n ⊢♯
+    _]⟶_ x y = [ x ] ,, y
 
-    _[_,_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
-    n [ t , u , v ]⟶ r = sig n (t ∷⁺ u  ∷⁺ [ v ]) r 
+    infix 10 _[_
+    _[_ : (n : ℕ) →  Args n  ×  n ⊢♯ → Sig
+    _[_ n (as ,, r) = sig n as r
 
-    _[_,_,_,_,_,_]⟶_ : (n : ℕ) → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → n ⊢♯ → Sig
-    n [ t , u , v , w , x , y ]⟶ r = sig n (t ∷⁺ u  ∷⁺ v ∷⁺ w  ∷⁺ x  ∷⁺ [ y ]) r
+    infixr 11 _,_
+
+    _,_ : ∀{n} → n ⊢♯ → Args n  ×  n ⊢♯ → Args n  ×  n ⊢♯
+    _,_ x (as ,, r) = x  ∷⁺ as ,, r
     ```
 
     The signature of each builtin
