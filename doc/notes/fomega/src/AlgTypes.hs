@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -13,8 +12,8 @@ import Language.LBNF
 -------------------------------------
 
 -- has a ton of shift-reduce conflicts, so you need to use a ton of parentheses sometimes to get it
--- to parse the type you want. Neat the top of the TODO list for this is getting rid of the shift-reduce
--- conflicts.
+-- to parse the type you want. Neat the top of the TODO list for this is getting rid of the
+-- shift-reduce conflicts.
 
 bnfc [lbnf|
 
@@ -52,7 +51,8 @@ data AlgType where
   Abs  :: VarName  -> AlgType -> AlgType
   App  :: AlgType -> AlgType -> AlgType
   Fun  :: AlgType -> AlgType -> AlgType
-  Mu   :: VarName -> AlgType -> AlgType -- not in grammar, but accessible through x = t(x) in declarations.
+  Mu   :: VarName -> AlgType -> AlgType
+  -- not in grammar, but accessible through x = t(x) in declarations.
   -- Should Mu require kind annotation? If so, what are the kinds?
 
 instance Show AlgType where

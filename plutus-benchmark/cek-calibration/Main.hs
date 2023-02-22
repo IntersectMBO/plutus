@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -83,13 +82,17 @@ mkListBMs ns = bgroup "List" [mkListBM n | n <- ns]
 
 writePlc :: UPLC.Program NamedDeBruijn DefaultUni DefaultFun () -> Haskell.IO ()
 writePlc p =
-    case runExcept @UPLC.FreeVariableError $ runQuoteT $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p of
+    case runExcept @UPLC.FreeVariableError $
+      runQuoteT $
+        traverseOf UPLC.progTerm UPLC.unDeBruijnTerm p
+    of
       Left e   -> throw e
       Right p' -> Haskell.print . PP.prettyPlcClassicDebug $ p'
 
 
 main1 :: Haskell.IO ()
-main1 = defaultMainWith (defaultConfig { C.csvFile = Just "cek-lists.csv" }) $ [mkListBMs [0,10..1000]]
+main1 =
+  defaultMainWith (defaultConfig { C.csvFile = Just "cek-lists.csv" }) $ [mkListBMs [0,10..1000]]
 
 main2:: Haskell.IO ()
 main2 = writePlc (mkListProg 999)

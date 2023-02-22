@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Sort.Spec (tests) where
 
 import Test.Tasty
@@ -29,7 +28,8 @@ tests =
     [ testProperty "GHC sort (Haskell)"       $ prop_HaskellOK Sort.ghcSort
     , testProperty "GHC sort (Plutus)"        $ prop_PlutusOK  Sort.ghcSort Sort.mkGhcSortTerm
     , testProperty "insertion sort (Haskell)" $ prop_HaskellOK Sort.insertionSort
-    , testProperty "insertion sort (Plutus)"  $ prop_PlutusOK  Sort.insertionSort Sort.mkInsertionSortTerm
+    , testProperty "insertion sort (Plutus)"  $
+        prop_PlutusOK  Sort.insertionSort Sort.mkInsertionSortTerm
     , testProperty "merge sort (Haskell)"     $ prop_HaskellOK Sort.mergeSort
     , testProperty "merge sort (Plutus)"      $ prop_PlutusOK  Sort.mergeSort Sort.mkMergeSortTerm
     , testProperty "quicksort (Haskell)"      $ prop_HaskellOK Sort.quickSort

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -11,7 +10,13 @@ list = [declExp| list = all a.(1 + (a * (list a))) |]
 -- type generated (I suppose) by BNFC for the Alfa grammar at
 -- https://github.com/BNFC/bnfc/blob/master/examples/Alfa/Alfa.cf
 
-alfaSig = algSignature (map algDecl [list,alfa1,alfa2,alfa3,alfa4,alfa5,alfa6,alfa7,alfa8,alfa9,alfa10,alfa11,alfa12,alfa13,alfa14,alfa15,alfa16,alfa17])
+alfaSig =
+  algSignature
+    (map algDecl
+      [
+        list,alfa1,alfa2,alfa3,alfa4,alfa5,alfa6,alfa7,alfa8,alfa9,alfa10,alfa11,alfa12,alfa13,
+        alfa14,alfa15,alfa16,alfa17]
+    )
 
 alfa1 = [declExp| module = list decl |]
 
@@ -95,7 +100,11 @@ alfa17 = [declExp| import = 1|]
 -- type generated (I suppose) by bnfc for the bnfc grammar
 -- at https://github.com/BNFC/bnfc/blob/master/examples/LBNF/LBNF.cf
 
-bnfcSig = algSignature (map algDecl [list,bnfc1,bnfc2,bnfc3,bnfc4,bnfc5,bnfc6,bnfc7,bnfc8,bnfc9,bnfc10,bnfc11])
+bnfcSig =
+  algSignature
+    (map
+      algDecl [list,bnfc1,bnfc2,bnfc3,bnfc4,bnfc5,bnfc6,bnfc7,bnfc8,bnfc9,bnfc10,bnfc11]
+    )
 
 bnfc1 = [declExp| def = label * cat * (list item) |]
 
@@ -134,7 +143,13 @@ bnfc11 = [declExp| reg3 = 1 + 1 + 1 + 1 + 1 + 1 + 1
 
 -- as above, for the java grammar at http://people.cs.uchicago.edu/~mrainey/java.cf
 
-javaSig = algSignature (map algDecl [java1,java2,java3,java4,java5,java6,java7,java8,java9,java10,java11,java12,java13,java14,java15,java16,java17,java18,java19,java20,java21,java22,java23,java24,java25,java26,java27,java28,java29,java30,java31,java32,java33,java34,java35])
+javaSig =
+  algSignature
+    (map algDecl [
+      java1,java2,java3,java4,java5,java6,java7,java8,java9,java10,java11,java12,java13,java14,
+      java15,java16,java17,java18,java19,java20,java21,java22,java23,java24,java25,java26,java27,
+      java28,java29,java30,java31,java32,java33,java34,java35]
+    )
 
 java1 = [declExp| programFile = ((list 1) * (list 1)
                               * (list import) * (list typeDecl))

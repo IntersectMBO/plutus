@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -50,7 +49,8 @@ import Language.Haskell.TH.Syntax (Lift)
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name
     { _nameText   :: T.Text -- ^ The identifier name, for use in error messages.
-    , _nameUnique :: Unique -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
+    , _nameUnique :: Unique
+    -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
     }
     deriving stock (Show, Generic, Lift)
     deriving anyclass (NFData, Hashable)

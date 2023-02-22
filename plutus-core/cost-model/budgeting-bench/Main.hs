@@ -1,6 +1,3 @@
--- editorconfig-checker-disable-file
-{-# LANGUAGE TypeOperators #-}
-
 -- See CostModelGeneration.md
 module Main (main) where
 
@@ -42,7 +39,8 @@ import System.Random (getStdGen)
 
 main :: IO ()
 main = do
-  gen <- System.Random.getStdGen  -- We use the initial state of gen repeatedly below, but that doesn't matter.
+  -- We use the initial state of gen repeatedly below, but that doesn't matter.
+  gen <- System.Random.getStdGen
 
   criterionMainWith
        Start

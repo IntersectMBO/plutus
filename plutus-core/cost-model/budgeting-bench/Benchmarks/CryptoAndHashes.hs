@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -9,8 +8,7 @@ import Common
 import Generators
 import PlutusCore
 
-import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
-                                   rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN, signDSIGN)
+import Cardano.Crypto.DSIGN.Class
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
@@ -79,8 +77,10 @@ mkBmInputs toMsg msgSize =
                 Arbitrary -> bigByteStrings seedA
                 Fixed n   -> listOfSizedByteStrings numSamples n
           mkOneInput (seed, msg) =
-              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed                 -- Signing key (private)
-                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey   -- Verification key (public)
+                  -- Signing key (private)
+              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed
+                  -- Verification key (public)
+                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
                   sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (toMsg msg) signKey
               in (vkBytes, msg, sigBytes)
 
@@ -120,8 +120,11 @@ benchByteStringOneArgOp name =
 ---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =  [benchVerifyEd25519Signature, benchVerifyEcdsaSecp256k1Signature, benchVerifySchnorrSecp256k1Signature]
-                       <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
+makeBenchmarks _gen =
+    [benchVerifyEd25519Signature
+    , benchVerifyEcdsaSecp256k1Signature
+    , benchVerifySchnorrSecp256k1Signature]
+        <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
 
 -- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
 -- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the

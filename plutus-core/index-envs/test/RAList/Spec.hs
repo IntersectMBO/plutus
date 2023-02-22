@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE Rank2Types           #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -48,7 +47,9 @@ instance Arbitrary a => Arbitrary (BS.RAList a) where
                     else List.foldl' (\env val -> RAL.cons val env) acc elemsToAdd
                 go (sz - toAdd) extended
 
-type RALTestable e a = (a ~ Element e, RandomAccessList e, Eq a, Eq e, Show a, Show e, Arbitrary a, Arbitrary e, IsList e, Item e ~ a)
+type RALTestable e a =
+    (a ~ Element e, RandomAccessList e, Eq a, Eq e, Show a, Show e, Arbitrary a, Arbitrary e,
+        IsList e, Item e ~ a)
 
 sameModuloExceptions :: Eq a => IO a -> IO a -> IO Bool
 sameModuloExceptions a1 a2 = do
@@ -72,68 +73,78 @@ prop_cons :: forall e a . (RALTestable e a) => Proxy e -> Property
 prop_cons _ = forAll arbitrary $ \(l :: e, e :: a) -> cons e (toList l) === toList (cons e l)
 
 prop_uncons :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_uncons _ = forAll arbitrary $ \(l :: e) -> uncons (toList l) === (fmap $ fmap toList) (uncons l)
+prop_uncons _ =
+    forAll arbitrary $ \(l :: e) -> uncons (toList l) === (fmap $ fmap toList) (uncons l)
 
 prop_length :: forall e a . (RALTestable e a) => Proxy e -> Property
 prop_length _ = forAll arbitrary $ \(l :: e) -> RAL.length (toList l) === RAL.length l
 
 -- Includes some out-of-range indices above the length
 prop_indexZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+prop_indexZero _ =
+    forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
     let r1 = indexZero (toList l) i
         r2 = indexZero l i
     in cover 10 (isNothing r1) "failed lookups" $ r1 == r2
 
 -- Includes some out-of-range indices above the length
 prop_unsafeIndexZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_unsafeIndexZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+prop_unsafeIndexZero _ =
+    forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
     ioProperty $ sameModuloExceptions (evaluate $ indexZero (toList l) i) (evaluate $ indexZero l i)
 
 -- Includes some out-of-range indices above the length, and 0 which is out-of-range below
 prop_indexOne :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexOne _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+prop_indexOne _ =
+    forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
     let r1 = indexOne (toList l) i
         r2 = indexOne l i
     in cover 10 (isNothing r1) "failed lookups" $ r1 == r2
 
 -- Includes some out-of-range indices above the length, and 0 which is out-of-range below
 prop_unsafeIndexOne :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_unsafeIndexOne _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
-    ioProperty $ sameModuloExceptions (evaluate $ indexOne (toList l) i) (evaluate $ indexOne l i)
+prop_unsafeIndexOne _ =
+    forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+        ioProperty $
+            sameModuloExceptions (evaluate $ indexOne (toList l) i) (evaluate $ indexOne l i)
 
 prop_consSlab :: forall e a . (RALTestable e a) => Proxy e -> Property
 prop_consSlab _ = forAll arbitrary $ \(l :: e, es :: NonEmpty a) ->
     let nev = NEV.fromNonEmpty es
-    in cover 90 (NEV.length nev > 1) "non-trivial" $ consSlab nev (toList l) === toList (consSlab nev l)
+    in
+        cover 90 (NEV.length nev > 1) "non-trivial" $
+            consSlab nev (toList l) === toList (consSlab nev l)
 
 prop_indexOneZero :: forall e a . (RALTestable e a) => Proxy e -> Property
-prop_indexOneZero _ = forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
-    let r1 = indexZero (toList l) i
-        r2 = indexOne l (i+1)
-    in cover 10 (isNothing r1) "failed lookups" $ r1 === r2
+prop_indexOneZero _ =
+    forAll arbitrary $ \(l :: e) -> forAll (chooseWord64 (0, 2*(RAL.length l-1))) $ \i ->
+        let r1 = indexZero (toList l) i
+            r2 = indexOne l (i+1)
+        in cover 10 (isNothing r1) "failed lookups" $ r1 === r2
 
 -- | These properties test the correctness of each RAL function by checking that it behaves the same
--- as the canonical version of that function on lists. In combination with a test that to/fromList form
--- an isomorphism, this assures us that each function is correct.
+-- as the canonical version of that function on lists. In combination with a test that to/fromList
+-- form an isomorphism, this assures us that each function is correct.
 ralProps :: forall e a . (RALTestable e a) => Proxy e -> TestTree
-ralProps p = localOption (QuickCheckTests 10000) $ testGroup "RandomAccessList correctness properties"
-  [ testGroup "to/fromList is an isomorphism"
-    [ testProperty "fromList . toList == id"$ prop_fromToList p
-    , testProperty "toList . fromList == id"$ prop_toFromList p
-    ]
-  , testGroup "operations"
-    [ testProperty "empty" $ prop_empty p
-    , testProperty "cons" $ prop_cons p
-    , testProperty "uncons" $ prop_uncons p
-    , testProperty "length" $ prop_length p
-    , testProperty "indexZero" $ prop_indexZero p
-    , testProperty "unsafeIndexZero" $ prop_unsafeIndexZero p
-    , testProperty "indexOne" $ prop_indexOne p
-    , testProperty "unsafeIndexOne" $ prop_unsafeIndexOne p
-    , testProperty "consSlab" $ prop_consSlab p
-    ]
+ralProps p = localOption (QuickCheckTests 10000) $
+    testGroup "RandomAccessList correctness properties"
+    [ testGroup "to/fromList is an isomorphism"
+        [ testProperty "fromList . toList == id"$ prop_fromToList p
+        , testProperty "toList . fromList == id"$ prop_toFromList p
+        ]
+    , testGroup "operations"
+        [ testProperty "empty" $ prop_empty p
+        , testProperty "cons" $ prop_cons p
+        , testProperty "uncons" $ prop_uncons p
+        , testProperty "length" $ prop_length p
+        , testProperty "indexZero" $ prop_indexZero p
+        , testProperty "unsafeIndexZero" $ prop_unsafeIndexZero p
+        , testProperty "indexOne" $ prop_indexOne p
+        , testProperty "unsafeIndexOne" $ prop_unsafeIndexOne p
+        , testProperty "consSlab" $ prop_consSlab p
+        ]
     , testProperty "indexOne indexZero coherence" $ prop_indexOneZero p
-  ]
+    ]
 
 tests :: TestTree
 tests = testGroup "RandomAccessLists"
