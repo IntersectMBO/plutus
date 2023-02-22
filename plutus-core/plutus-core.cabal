@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.1.1.0
+version:            1.1.1.1
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -245,7 +245,7 @@ library
     , bimap
     , bytestring
     , cardano-crypto
-    , cardano-crypto-class        ^>=2.0.0.1
+    , cardano-crypto-class        >=2.0.0.1 && <2.2
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
