@@ -205,5 +205,9 @@ arity b with signature b
 
 \end{code}
   
-Arity should be rewritten to be two numbers (`n` and `length ar` above). 
-It's in this way in order to make the current implementation works, but it will be changed.
+When signatures supported universal quantifiers to be interleaved with other 
+parameters it made sense for `Arity` to be defined as above. Now that we don't,
+`Arity` should be rewritten to be two numbers (`n` and `length ar` above), representing
+the number of quantifiers and the number of (term) parameters.
+We keep `Arity` this way in order to make the current implementation works, 
+but it will be changed.
