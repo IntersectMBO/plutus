@@ -29,8 +29,7 @@ open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open TyCon
 
-open Signature.FromSig1 Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x)))
-open FromSig2 con _⇒_ Π using (sig2type)
+open Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π using (sig2type)
 \end{code}
 
 ## Fixity declarations

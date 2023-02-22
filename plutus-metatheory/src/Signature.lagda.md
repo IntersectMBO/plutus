@@ -89,41 +89,30 @@ Signatures represent abstract types which need to be made concrete in
 order to use them. The following modules may be instantiated to obtain 
 a function `sig2type` which converts from an abstract into a concrete type.
 
-The instantation is defined in two stages. In the first stage, the following parameters are instantiated:
+The following parameters should be instantiated:
 
-   1. the set `Con` over which types are indexed,
-   2. the types `Ty` (indexed over `Con`),
-   3. a function interpreting naturals as elements of `Con`, and 
-   4. a function interpreting variable indexes into types in `Ty.
+   1. the set `Ctx` over which types are indexed,
+   2. the types `Ty` (indexed over `Ctx`),
+   3. a function interpreting naturals as elements of `Ctx`,  
+   4. a function interpreting variable indexes into types in `Ty,
+   5. a way to insert a type constant as a type,
+   6. the constructor for function types, and
+   7. the constructor for Π types.
+```
+import Builtin.Constant.Type as T2
+open T2.TyCon
 
-```
-module FromSig1 (Con : Set)(Ty : Con → Set) 
-               (nat2Con : ℕ → Con) 
-               (fin2Ty : ∀{n} → Fin n → Ty (nat2Con n))
-               where
-
-```
-
-With these parameters instantiated we can bring into scope type constants.
-  
-```
-  import Builtin.Constant.Type Con Ty as T2
-  open T2.TyCon
-```
-
-The second stage is instantiating the following parameters:
-  1. a way to insert a type constant as a type,
-  2. the constructor for function types, and
-  3. the constructor for Π types.
-```
-  module FromSig2 
-           (mkTyCon : ∀{n} → T2.TyCon (nat2Con n) → Ty (nat2Con n)) 
-           (_⇒_ : ∀{n} → Ty (nat2Con n) → Ty (nat2Con n) → Ty (nat2Con n))
-           (Π : ∀{n} → Ty (nat2Con (suc n)) → Ty (nat2Con n))
+module FromSig (Ctx : Set)
+               (Ty : Ctx → Set) 
+               (nat2Ctx : ℕ → Ctx) 
+               (fin2Ty : ∀{n} → Fin n → Ty (nat2Ctx n))
+               (mkTyCon : ∀{n} → T2.TyCon Ctx Ty (nat2Ctx n) → Ty (nat2Ctx n)) 
+               (_⇒_ : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx n) → Ty (nat2Ctx n))
+               (Π : ∀{n} → Ty (nat2Ctx (suc n)) → Ty (nat2Ctx n))
           where
 
     -- convert a built-in-compatible type into a Ty type
-    ♯2* : ∀{n} → n ⊢♯ → Ty (nat2Con n)
+    ♯2* : ∀{n} → n ⊢♯ → Ty (nat2Ctx n)
     ♯2* (` x) = fin2Ty x
     ♯2* (con integer) = mkTyCon T2.integer
     ♯2* (con bytestring) = mkTyCon  T2.bytestring
@@ -137,26 +126,26 @@ The second stage is instantiating the following parameters:
     {- `sig2type-aux` takes a list of arguments and a result type, and produces
         a function that takes all arguments and returns the result type.
 
-       sig2type-aux [ b₁ , b₂ , ... ,bₙ ]  tᵣ = t₁ ⇒ t₂ ⇒ ... ⇒ tₙ ⇒ tᵣ
+       sig2type-aux [ b₁ , b₂ , ... ,bₙ ] tᵣ = t₁ ⇒ t₂ ⇒ ... ⇒ tₙ ⇒ tᵣ
           where tᵢ = ♯2* bᵢ
     -}
     sig2type-aux : ∀{n} 
               → Args n 
-              → Ty (nat2Con n) → Ty (nat2Con n)
+              → Ty (nat2Ctx n) → Ty (nat2Ctx n)
     sig2type-aux xs = foldr (λ A xs res → (♯2* A) ⇒ (xs res)) (λ A res → ♯2* A ⇒ res) xs
 
     -- take a type and close its type variables using Π
-    sig2type-aux2 : ∀{n} → Ty (nat2Con n) → Ty (nat2Con 0)
+    sig2type-aux2 : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx 0)
     sig2type-aux2 {zero} t = t
     sig2type-aux2 {suc n} t = sig2type-aux2 {n} (Π t)
 
     -- The main conversion function
-    sig2type : Sig → Ty (nat2Con 0)
+    sig2type : Sig → Ty (nat2Ctx 0)
     sig2type (sig _ as res) = sig2type-aux2 (sig2type-aux as (♯2* res)) 
 ```
 
-The parameter `Con` above is usually `Ctx⋆`.  In this case, the parameters
- `nat2Con` and  `fin2Ty` con be instantiated with the help of the following 
+The parameter `Ctx` above is usually `Ctx⋆`.  In this case, the parameters
+ `nat2Ctx` and  `fin2Ty` con be instantiated with the help of the following 
  auxiliary functions.
 
 ```
