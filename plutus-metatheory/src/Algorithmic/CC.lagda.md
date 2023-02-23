@@ -20,7 +20,6 @@ open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-
 open import Algorithmic.ReductionEC
 
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans) 

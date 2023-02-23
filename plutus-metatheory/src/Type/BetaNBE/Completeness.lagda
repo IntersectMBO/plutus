@@ -295,7 +295,7 @@ idextTyCon p Syn.unit       = refl
 idextTyCon p Syn.bool       = refl
 idextTyCon p (Syn.list A)   = cong Nf.list (idext p A)
 idextTyCon p (Syn.pair A B) = cong₂ Nf.pair (idext p A) (idext p B)
-idextTyCon p Syn.Data       = refl
+idextTyCon p Syn.pdata       = refl
 
 renVal-eval : ∀{Φ Ψ Θ K}
   → (t : Ψ ⊢⋆ K)
@@ -320,7 +320,7 @@ renValTyCon-eval Syn.bool       p ρ = refl
 renValTyCon-eval (Syn.list A)   p ρ = cong Nf.list (renVal-eval A p ρ)
 renValTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (renVal-eval A p ρ) (renVal-eval B p ρ) 
-renValTyCon-eval Syn.Data       p ρ = refl
+renValTyCon-eval Syn.pdata       p ρ = refl
 
 idext p (` x) = p x
 idext p (Π B) =
@@ -409,7 +409,7 @@ renTyCon-eval Syn.bool       p ρ = refl
 renTyCon-eval (Syn.list A)   p ρ = cong Nf.list (ren-eval A p ρ)
 renTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (ren-eval A p ρ) (ren-eval B p ρ) 
-renTyCon-eval Syn.Data       p ρ = refl
+renTyCon-eval Syn.pdata       p ρ = refl
 
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π B) p ρ =
@@ -470,7 +470,7 @@ subTyCon-eval Syn.bool       p ρ = refl
 subTyCon-eval (Syn.list A)   p ρ = cong Nf.list (sub-eval A p ρ)
 subTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (sub-eval A p ρ) (sub-eval B p ρ) 
-subTyCon-eval Syn.Data       p ρ = refl
+subTyCon-eval Syn.pdata       p ρ = refl
 
 sub-eval (` x)      p σ = idext p (σ x)
 sub-eval (Π B)    p σ = cong Π (trans

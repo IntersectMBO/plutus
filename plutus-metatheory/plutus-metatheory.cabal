@@ -245,6 +245,7 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
+    MAlonzo.Code.Signature
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -429,6 +430,7 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
+    MAlonzo.Code.Signature
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness

@@ -200,9 +200,9 @@ BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s')))
 BUILTIN trace (app _ (app _ (app⋆ _ base refl) (V-con (string s))) v) =
   inj₂ (TRACE s v)
 BUILTIN iData (app _ base (V-con (integer i))) =
-  inj₂ (V-con (Data (iDATA i)))
+  inj₂ (V-con (pdata (iDATA i)))
 BUILTIN bData (app _ base (V-con (bytestring b))) =
-  inj₂ (V-con (Data (bDATA b)))
+  inj₂ (V-con (pdata (bDATA b)))
 BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
 BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
 BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
@@ -213,10 +213,10 @@ BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integ
 ... | no _  = inj₁ (con integer)
 ... | yes _ = inj₂ (V-con (integer (index b i)))
 BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
-BUILTIN unIData (app _ base (V-con (Data (iDATA i)))) = inj₂ (V-con (integer i))
-BUILTIN unBData (app _ base (V-con (Data (bDATA b)))) =
+BUILTIN unIData (app _ base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))
+BUILTIN unBData (app _ base (V-con (pdata (bDATA b)))) =
   inj₂ (V-con (bytestring b))
-BUILTIN serialiseData (app _ base (V-con (Data d))) =
+BUILTIN serialiseData (app _ base (V-con (pdata d))) =
   inj₂ (V-con (bytestring (serialiseDATA d)))
 BUILTIN _ {A} _ = inj₁ A
   
@@ -546,11 +546,14 @@ bappTermLem mkNilData (start _) base | refl ,, refl = _ ,, _ ,, refl
 bappTermLem mkNilPairData {az = az} {as} p q
   with <>>-cancel-both az ([] :< Term) as p
 bappTermLem mkNilPairData (start _) base | refl ,, refl = _ ,, _ ,, refl
-bappTermLem mkCons (start _) base = _ ,, _ ,, refl
-bappTermLem mkCons {as = as} (bubble {as = az} p) q
-  with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
-bappTermLem mkCons (bubble (start _)) (app _ base _)
-  | refl ,, refl ,, refl = _ ,, _ ,, refl
+bappTermLem mkCons (bubble (start _)) (app⋆ _ base refl) =
+  _ ,, _ ,, refl
+bappTermLem mkCons (bubble (bubble {as = az} p)) q
+  with <>>-cancel-both' az _ ((([] :< Type) :< Term) :< Term) _ p refl
+bappTermLem mkCons
+            (bubble (bubble (start _)))
+            (app _ (app⋆ _ base refl) x)
+            | refl ,, refl ,, refl = _ ,, _ ,, refl
 bappTermLem consByteString (start _) base = _ ,, _ ,, refl
 bappTermLem consByteString {as = as} (bubble {as = az} p) q
   with <>>-cancel-both' az _ (([] :< Term) :< Term) as p refl
@@ -794,9 +797,10 @@ bappTypeLem mkNilData {az = az} p q
 bappTypeLem mkNilPairData {az = az} p q
   with <>>-cancel-both' az _ ([] :< Term) _ p refl
 ... | refl ,, refl ,, ()
-bappTypeLem mkCons (bubble {as = az} p) q
-  with <>>-cancel-both' az _ (([] :< Term) :< Term) _ p refl
-... | refl ,, refl ,, ()
+bappTypeLem mkCons (start _) base = _ ,, _ ,, refl
+bappTypeLem mkCons (bubble (bubble {as = az} p)) _
+  with <>>-cancel-both' az _ ([] <>< arity chooseUnit) _ p refl
+... | _ ,, _ ,, ()
 bappTypeLem nullList (start _) base = _ ,, _ ,, refl
 bappTypeLem nullList (bubble {as = az} p) _
   with <>>-cancel-both' az _ (([] :< Type) :< Term) _ p refl
@@ -927,7 +931,7 @@ ival chooseUnit = V-IΠ chooseUnit (start _) base
 ival mkPairData = V-I⇒ mkPairData (start _) base
 ival mkNilData = V-I⇒ mkNilData (start _) base
 ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
-ival mkCons = V-I⇒ mkCons (start _) base
+ival mkCons = V-IΠ mkCons (start _) base
 ival consByteString = V-I⇒ consByteString (start _) base
 ival sliceByteString = V-I⇒ sliceByteString (start _) base
 ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) base

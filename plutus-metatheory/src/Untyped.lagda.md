@@ -65,7 +65,7 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
-uglyTermCon (Data d) = "(DATA)"
+uglyTermCon (pdata d) = "(DATA)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 

@@ -193,7 +193,7 @@ evalSRTyCon Syn.unit p = refl≡β _
 evalSRTyCon Syn.bool p = refl≡β _
 evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
 evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
-evalSRTyCon Syn.Data p = refl≡β _
+evalSRTyCon Syn.pdata p = refl≡β _
 
 
 evalSR (` α)                   p = p α

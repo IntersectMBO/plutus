@@ -37,5 +37,5 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
       (b : Bool)
     → TermCon (con bool)
   unit       : TermCon (con unit)
-  Data       : DATA → TermCon (con Data)  
+  pdata       : DATA → TermCon (con pdata)  
 ```
