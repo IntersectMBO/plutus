@@ -116,13 +116,13 @@ This is defined in its own module so that these definitions are not exported.
     ∀b,a = 2
 
     -- shortened names for type constants and type constructors
-    integer bool bytestring string unit Data : ∀{n} → n ⊢♯
+    integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
     integer = con T.integer
     bool = con T.bool
     bytestring = con T.bytestring
     string = con T.string
     unit = con T.unit
-    Data = con T.Data
+    pdata = con T.pdata
 
     pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
     pair x y = con (T.pair x y)
@@ -194,22 +194,22 @@ This is defined in its own module so that these definitions are not exported.
     signature headList                        = ∀a [ list a ]⟶ a
     signature tailList                        = ∀a [ list a ]⟶ list a
     signature nullList                        = ∀a [ list a ]⟶ bool
-    signature chooseData                      = ∀a [ Data , a , a , a , a , a ]⟶ a
-    signature constrData                      = ∙ [ integer , list Data ]⟶ Data
-    signature mapData                         = ∙ [ list (pair Data Data) ]⟶ Data
-    signature listData                        = ∙ [ list Data ]⟶ Data
-    signature iData                           = ∙ [ integer ]⟶ Data
-    signature bData                           = ∙ [ bytestring ]⟶ Data
-    signature unConstrData                    = ∙ [ Data ]⟶ pair integer (list Data)
-    signature unMapData                       = ∙ [ Data ]⟶ list (pair Data Data)
-    signature unListData                      = ∙ [ Data ]⟶ list Data
-    signature unIData                         = ∙ [ Data ]⟶ integer
-    signature unBData                         = ∙ [ Data ]⟶ bytestring
-    signature equalsData                      = ∙ [ Data , Data ]⟶ bool
-    signature serialiseData                   = ∙ [ Data ]⟶ bytestring
-    signature mkPairData                      = ∙ [ Data , Data ]⟶ pair Data Data
-    signature mkNilData                       = ∙ [ unit ]⟶ list Data
-    signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair Data Data)
+    signature chooseData                      = ∀a [ pdata , a , a , a , a , a ]⟶ a
+    signature constrData                      = ∙ [ integer , list pdata ]⟶ pdata
+    signature mapData                         = ∙ [ list (pair pdata pdata) ]⟶ pdata
+    signature listData                        = ∙ [ list pdata ]⟶ pdata
+    signature iData                           = ∙ [ integer ]⟶ pdata
+    signature bData                           = ∙ [ bytestring ]⟶ pdata
+    signature unConstrData                    = ∙ [ pdata ]⟶ pair integer (list pdata)
+    signature unMapData                       = ∙ [ pdata ]⟶ list (pair pdata pdata)
+    signature unListData                      = ∙ [ pdata ]⟶ list pdata
+    signature unIData                         = ∙ [ pdata ]⟶ integer
+    signature unBData                         = ∙ [ pdata ]⟶ bytestring
+    signature equalsData                      = ∙ [ pdata , pdata ]⟶ bool
+    signature serialiseData                   = ∙ [ pdata ]⟶ bytestring
+    signature mkPairData                      = ∙ [ pdata , pdata ]⟶ pair pdata pdata
+    signature mkNilData                       = ∙ [ unit ]⟶ list pdata
+    signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair pdata pdata)
 
 open SugaredSignature using (signature) public
 ```

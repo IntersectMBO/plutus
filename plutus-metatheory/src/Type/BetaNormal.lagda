@@ -109,7 +109,7 @@ renNfTyCon ρ Nf.unit       = Nf.unit
 renNfTyCon ρ Nf.bool       = Nf.bool
 renNfTyCon ρ (Nf.list A)   = Nf.list (renNf ρ A)
 renNfTyCon ρ (Nf.pair A B) = Nf.pair (renNf ρ A) (renNf ρ B)
-renNfTyCon ρ Nf.Data       = Nf.Data
+renNfTyCon ρ Nf.pdata       = Nf.pdata
 
 renNf ρ (Π A)     = Π (renNf (ext ρ) A)
 renNf ρ (A ⇒ B)   = renNf ρ A ⇒ renNf ρ B
@@ -143,7 +143,7 @@ embNfTyCon Nf.unit = Syn.unit
 embNfTyCon Nf.bool = Syn.bool
 embNfTyCon (Nf.list A) = Syn.list (embNf A)
 embNfTyCon (Nf.pair A B) = Syn.pair (embNf A) (embNf B)
-embNfTyCon Nf.Data = Syn.Data
+embNfTyCon Nf.pdata = Syn.pdata
 
 embNf (Π B)   = Π (embNf B)
 embNf (A ⇒ B) = embNf A ⇒ embNf B
@@ -175,7 +175,7 @@ renTyCon-embNf ρ Nf.unit = refl
 renTyCon-embNf ρ Nf.bool = refl
 renTyCon-embNf ρ (Nf.list A) = cong Syn.list (ren-embNf ρ A)
 renTyCon-embNf ρ (Nf.pair A B) = cong₂ Syn.pair (ren-embNf ρ A) (ren-embNf ρ B)
-renTyCon-embNf ρ Nf.Data = refl
+renTyCon-embNf ρ Nf.pdata = refl
 
 ren-embNe : (ρ : Ren Φ Ψ)
           → ∀ {J}

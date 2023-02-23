@@ -78,7 +78,7 @@ nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
 nfTypeTC STermCon.unit           = NTermCon.unit
-nfTypeTC (STermCon.Data d)       = NTermCon.Data d
+nfTypeTC (STermCon.pdata d)       = NTermCon.pdata d
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)

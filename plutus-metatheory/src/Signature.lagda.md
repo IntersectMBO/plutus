@@ -121,7 +121,7 @@ module FromSig (Ctx : Set)
     ♯2* (con bool) = mkTyCon  T2.bool
     ♯2* (con (list x)) = mkTyCon  (T2.list (♯2* x))
     ♯2* (con (pair x y)) = mkTyCon  (T2.pair (♯2* x) (♯2* y))
-    ♯2* (con Data) = mkTyCon  T2.Data
+    ♯2* (con pdata) = mkTyCon  T2.pdata
 
     {- `sig2type-aux` takes a list of arguments and a result type, and produces
         a function that takes all arguments and returns the result type.

@@ -47,7 +47,7 @@ data RawTyCon where
   bool       : RawTyCon
   list       : RawTy → RawTyCon
   pair       : RawTy → RawTy → RawTyCon
-  Data       : RawTyCon
+  pdata       : RawTyCon
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
 

@@ -167,8 +167,8 @@ BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ (base refl) refl) (V-con (
 BUILTIN appendString (step _ (step _ (base refl) (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
 BUILTIN trace (step _ (step _ (step⋆ _ (base refl) refl) (V-con (string s))) v) = TRACE s (deval v)
-BUILTIN iData (step _ (base refl) (V-con (integer i))) = con (Data (iDATA i))
-BUILTIN bData (step _ (base refl) (V-con (bytestring b))) = con (Data (bDATA b))
+BUILTIN iData (step _ (base refl) (V-con (integer i))) = con (pdata (iDATA i))
+BUILTIN bData (step _ (base refl) (V-con (bytestring b))) = con (pdata (bDATA b))
 BUILTIN consByteString (step _ (step _ (base refl) (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
 BUILTIN sliceByteString (step _ (step _ (step _ (base refl) (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
 BUILTIN lengthOfByteString (step _ (base refl) (V-con (bytestring b))) = con (integer (Builtin.length b))
@@ -187,9 +187,9 @@ BUILTIN decodeUtf8 (step _ (base refl) (V-con (bytestring b)))
   with DECODEUTF8 b
 ... | nothing = error _
 ... | just s  = con (string s)
-BUILTIN unIData (step _ (base refl) (V-con (Data (iDATA i)))) = con (integer i)
-BUILTIN unBData (step _ (base refl) (V-con (Data (bDATA b)))) = con (bytestring b)
-BUILTIN serialiseData (step _ (base refl) (V-con (Data d))) = con (bytestring (serialiseDATA d))
+BUILTIN unIData (step _ (base refl) (V-con (pdata (iDATA i)))) = con (integer i)
+BUILTIN unBData (step _ (base refl) (V-con (pdata (bDATA b)))) = con (bytestring b)
+BUILTIN serialiseData (step _ (base refl) (V-con (pdata d))) = con (bytestring (serialiseDATA d))
 BUILTIN _ _ = error _
 
 

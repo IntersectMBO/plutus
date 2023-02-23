@@ -236,11 +236,11 @@ BUILTIN trace = λ
   ; _ -> inj₁ userError
   }
 BUILTIN iData = λ
-  { (app _ base (V-con (integer i))) -> inj₂ (V-con (Data (iDATA i)))
+  { (app _ base (V-con (integer i))) -> inj₂ (V-con (pdata (iDATA i)))
   ; _ -> inj₁ userError
   }
 BUILTIN bData = λ
-  { (app _ base (V-con (bytestring b))) -> inj₂ (V-con (Data (bDATA b)))
+  { (app _ base (V-con (bytestring b))) -> inj₂ (V-con (pdata (bDATA b)))
   ; _ -> inj₁ userError
   }
 BUILTIN consByteString = λ
@@ -271,15 +271,15 @@ BUILTIN equalsString = λ
   ; _ -> inj₁ userError
   }
 BUILTIN unIData = λ
-  { (app _ base (V-con (Data (iDATA i)))) -> inj₂ (V-con (integer i))
+  { (app _ base (V-con (pdata (iDATA i)))) -> inj₂ (V-con (integer i))
   ; _ -> inj₁ userError
   }
 BUILTIN unBData = λ
-  { (app _ base (V-con (Data (bDATA b)))) -> inj₂ (V-con (bytestring b))
+  { (app _ base (V-con (pdata (bDATA b)))) -> inj₂ (V-con (bytestring b))
   ; _ -> inj₁ userError
   }
 BUILTIN serialiseData = λ
-  { (app _ base (V-con (Data d))) -> inj₂ (V-con (bytestring (serialiseDATA d)))
+  { (app _ base (V-con (pdata d))) -> inj₂ (V-con (bytestring (serialiseDATA d)))
   ; _ -> inj₁ userError
   }
 BUILTIN chooseUnit = λ
