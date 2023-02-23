@@ -33,24 +33,16 @@ import Data.Text qualified as T
 import Options.Applicative
 import Text.Megaparsec (errorBundlePretty)
 
-
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
 
 ---------------- Types for command line options ----------------
 
--- | A specialised format type for PIR. We don't support deBruijn or named deBruijn for PIR.
-data PirFormat = TextualPir | FlatNamed
-instance Show PirFormat
-    where show = \case { TextualPir  -> "textual"; FlatNamed -> "flat-named" }
+data PirOptimiseOptions = PirOptimiseOptions Input Format Output Format PrintMode
 
-data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat PrintMode
-
-data AnalyseOptions = AnalyseOptions Input PirFormat Output -- Input is a program, output is text
+data AnalyseOptions = AnalyseOptions Input Format Output -- Input is a program, output is text
 
 data Language = PLC | UPLC
-instance Show Language
-    where show = \case { PLC  -> "plc"; UPLC -> "uplc" }
 
 -- | Compilation options: target language, whether to optimise or not, input and output streams and types
 data CompileOptions =
@@ -58,7 +50,7 @@ data CompileOptions =
                    Bool   -- Optimise or not?
                    Bool   -- True -> just report if compilation was successful; False -> write output
                    Input
-                   PirFormat
+                   Format
                    Output
                    Format
                    PrintMode
@@ -75,44 +67,14 @@ data Command = Analyse  AnalyseOptions
 -- | Invert a switch: return False if the switch is supplied on the command
 -- line, True otherwise.  This is used for command-line options to turn things
 -- off.
-switch' :: Mod FlagFields Bool -> Parser Bool
-switch' = fmap not . switch
-
-pirFormatHelp :: String
-pirFormatHelp =
-  "textual or flat-named (names)"
-
-pirFormatReader :: String -> Maybe PirFormat
-pirFormatReader =
-    \case
-         "textual"    -> Just TextualPir
-         "flat-named" -> Just FlatNamed
-         "flat"       -> Just FlatNamed
-         _            -> Nothing
-
-pPirInputFormat :: Parser PirFormat
-pPirInputFormat = option (maybeReader pirFormatReader)
-  (  long "if"
-  <> long "input-format"
-  <> metavar "PIR-FORMAT"
-  <> value TextualPir
-  <> showDefault
-  <> help ("Input format: " ++ pirFormatHelp))
-
-pPirOutputFormat :: Parser PirFormat
-pPirOutputFormat = option (maybeReader pirFormatReader)
-  (  long "of"
-  <> long "output-format"
-  <> metavar "PIR-FORMAT"
-  <> value TextualPir
-  <> showDefault
-  <> help ("Output format: " ++ pirFormatHelp))
+invertedSwitch :: Mod FlagFields Bool -> Parser Bool
+invertedSwitch = fmap not . switch
 
 pPirOptimiseOptions :: Parser PirOptimiseOptions
-pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+pPirOptimiseOptions = PirOptimiseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 pAnalyseOptions :: Parser AnalyseOptions
-pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
+pAnalyseOptions = AnalyseOptions <$> input <*> inputformat <*> output
 
 languageReader :: String -> Maybe Language
 languageReader =
@@ -127,12 +89,12 @@ pLanguage = option (maybeReader languageReader)
   <> short 'l'
   <> metavar "LANGUAGE"
   <> value UPLC
-  <> showDefault
+  <> showDefaultWith ( \case PLC -> "plc" ; UPLC -> "uplc" )
   <> help ("Target language: plc or uplc")
   )
 
 pOptimise :: Parser Bool
-pOptimise = switch'
+pOptimise = invertedSwitch
             (  long "dont-optimise"
             <> long "dont-optimize"
             <> help ("Turn off optimisations")
@@ -149,18 +111,17 @@ pCompileOptions = CompileOptions
                <*> pOptimise
                <*> pJustTest
                <*> input
-               <*> pPirInputFormat
+               <*> inputformat
                <*> output
                <*> outputformat
                <*> printmode
 
 pPirOptions :: Parser Command
 pPirOptions = hsubparser $
-             command "analyse"
-                  (info (Analyse <$> pAnalyseOptions) $
-                   progDesc $
-                   "Given a PIR program in flat format, deserialise and analyse the program, " <>
-                   "looking for variables with the largest retained size.")
+              command "analyse" (
+                      analyse ("Given a PIR program in flat format, deserialise and analyse the program, " <>
+                               "looking for variables with the largest retained size."))
+           <> command "analyze" (analyse "Same as 'analyse'.")
            <> command "compile"
                   (info (Compile <$> pCompileOptions) $
                    progDesc $
@@ -168,47 +129,17 @@ pPirOptions = hsubparser $
                    "and test if it can be successfully compiled to PLC.")
            <> command "convert"
                   (info (Convert <$> convertOpts)
-                   (progDesc $
-                    "Convert a program between various formats" <>
-                    "(only 'textual' (default) and 'flat-named' are available for PIR)."))
-           <> command "optimise"
-                  (info (Optimise <$> pPirOptimiseOptions)
-                   (progDesc "Run the PIR optimisation pipeline on the input."))
-           <> command "optimize"
-                  (info (Optimise <$> pPirOptimiseOptions)
-                   (progDesc "Run the PIR optimisation pipeline on the input."))
+                   (progDesc $ "Convert a program between various formats."))
+           <> command "optimise" (optimise "Run the PIR optimisation pipeline on the input.")
+           <> command "optimize" (optimise "Same as 'optimise'.")
            <> command "print"
                   (info (Print <$> printOpts) $
                  progDesc $
                    "Given a PIR program in textual format, " <>
                    "read it in and print it in the selected format.")
-
-
--- | Load a PIR program (in either textual of flat-named format)
-getPirProgram ::
-    PirFormat ->
-    Input ->
-    IO (PirProg PLC.SrcSpan)
-getPirProgram fmt inp =
-    case fmt of
-        TextualPir -> snd <$> parseInput inp
-        FlatNamed -> do
-            prog <- loadTplcASTfromFlat Named inp  :: IO (PirProg ())
-            -- No source locations in Flat, so we have to make them up.
-            return $ topSrcSpan <$ prog
-
--- | Write a PIR program, but only with the restricted types supported by PIR
-writePirProgram ::
-    Output ->
-    PirFormat ->
-    PrintMode ->
-    PirProg () ->
-    IO ()
-writePirProgram outp pirFmt mode prog =
-    case pirFmt of
-      TextualPir -> writeProgram outp Textual mode prog
-      FlatNamed  -> writeProgram outp (Flat Named) mode prog
-
+           where
+             analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
+             optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
 
 ---------------- Compilation ----------------
 
@@ -234,7 +165,7 @@ compileToUplc optimise plcProg =
 
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
-    pirProg <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
+    pirProg <- getProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
     if test then putStrLn "!!! Compiling" else pure ()
     -- Now compile to plc, maybe optimising
     case compileToPlc optimise (() <$ pirProg) of
@@ -264,10 +195,10 @@ doOptimisations term = do
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
-  Program _ term <- getPirProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
+  Program _ term <- getProgram ifmt inp :: IO (PirProg PLC.SrcSpan)
   case doOptimisations term of
     Left e  -> error $ show e
-    Right t -> writePirProgram outp ofmt mode (Program () (() <$ t))
+    Right t -> writeProgram outp ofmt mode (Program () (() <$ t))
 
 
 ---------------- Analysis ----------------
@@ -282,7 +213,8 @@ deriving newtype instance Csv.ToField PIR.Size
 loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    PIR.Program _ pirT <- PLC.runQuote . PLC.rename <$> getPirProgram ifmt inp
+    p :: PirProg PLC.SrcSpan <- getProgram ifmt inp
+    let PIR.Program _ pirT = PLC.runQuote . PLC.rename $ () <$ p
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
@@ -308,7 +240,6 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
         case outp of
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
-
 
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.

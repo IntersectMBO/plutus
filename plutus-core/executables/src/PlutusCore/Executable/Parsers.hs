@@ -4,7 +4,7 @@
 
 module PlutusCore.Executable.Parsers where
 
-import PlutusCore.Executable.Common
+import PlutusCore.Executable.Types
 
 import Options.Applicative
 

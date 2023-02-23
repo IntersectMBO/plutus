@@ -8,9 +8,36 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 
-module PlutusCore.Executable.Common where
+module PlutusCore.Executable.Common
+    ( module PlutusCore.Executable.Types
+    , PrintBudgetState
+    , getInput
+    , getInteresting
+    , getPlcExamples
+    , getPrintMethod
+    , getProgram
+    , getUplcExamples
+    , handleEResult
+    , handleTimingResults
+    , helpText
+    , parseNamedProgram
+    , printBudgetState
+    , runConvert
+    , runDumpModel
+    , runPrint
+    , runPrintBuiltinSignatures
+    , runPrintExample
+    , timeEval
+    , writeFlat
+    , writePrettyToFileOrStd
+    , writeProgram
+    , writeToFileOrStd
+    ) where
 
 import PlutusPrelude
+
+import PlutusCore.Executable.AST
+import PlutusCore.Executable.Types
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -38,11 +65,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
 import PlutusIR.Core.Instance.Pretty ()
-import PlutusIR.Core.Type qualified as PIR
 import PlutusIR.Parser qualified as PIR (parse, program)
 
 import Control.DeepSeq (rnf)
-import Control.Lens hiding (ix, op)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
@@ -55,7 +80,7 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Flat (Flat, flat, unflat)
+import Flat (Flat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter ((<+>))
 
@@ -66,30 +91,6 @@ import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- ProgramLike type class -----------
-
--- | PIR program type.
-type PirProg =
-    PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | PIR term type.
-type PirTerm =
-    PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | PLC program type.
-type PlcProg =
-    PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | PLC term type.
-type PlcTerm =
-    PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | UPLC program type.
-type UplcProg =
-    UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | UPLC term type.
-type UplcTerm =
-    UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun
 
 class ProgramLike p where
     -- | Parse a program.  The first argument (normally the file path) describes
@@ -113,63 +114,27 @@ class ProgramLike p where
     -- | Read and deserialise a Flat-encoded AST
     loadASTfromFlat :: Flat ann => AstNameType -> Input -> IO (p ann)
 
--- For PIR and PLC
-serialiseTProgramFlat :: Flat a => AstNameType -> a -> IO BSL.ByteString
-serialiseTProgramFlat nameType p =
-    case nameType of
-        Named         -> pure $ BSL.fromStrict $ flat p
-        DeBruijn      -> typedDeBruijnNotSupportedError
-        NamedDeBruijn -> typedDeBruijnNotSupportedError
-
 -- | Instance for PIR program.
 instance ProgramLike PirProg where
     parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
     checkUniques _ = pure () -- decided that it's not worth implementing since it's checked in PLC.
-    serialiseProgramFlat = serialiseTProgramFlat
-    loadASTfromFlat = loadTplcASTfromFlat
+    serialiseProgramFlat = serialisePirProgramFlat
+    loadASTfromFlat = loadPirASTfromFlat
 
 -- | Instance for PLC program.
 instance ProgramLike PlcProg where
     parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
     checkUniques = PLC.checkProgram (const True)
-    serialiseProgramFlat = serialiseTProgramFlat
-    loadASTfromFlat = loadTplcASTfromFlat
+    serialiseProgramFlat = serialisePlcProgramFlat
+    loadASTfromFlat = loadPlcASTfromFlat
 
 -- | Instance for UPLC program.
 instance ProgramLike UplcProg where
     parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
     checkUniques = UPLC.checkProgram (const True)
-    serialiseProgramFlat nameType p =
-        case nameType of
-            Named         -> pure $ BSL.fromStrict $ flat p
-            DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijn p
-            NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijn p
+    serialiseProgramFlat = serialiseUplcProgramFlat
     loadASTfromFlat = loadUplcASTfromFlat
 
--- We don't support de Bruijn names for typed programs because we really only
--- want serialisation for on-chain programs (and some of the functionality we'd
--- need isn't available anyway).
-typedDeBruijnNotSupportedError :: IO a
-typedDeBruijnNotSupportedError =
-    error "De-Bruijn-named ASTs are not supported for typed Plutus Core"
-
--- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
-toDeBruijn :: UplcProg ann -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijn prog =
-    case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
-
-{- | Convert an untyped program to one where the 'name' type is
- textual names with de Bruijn indices.
--}
-toNamedDeBruijn ::
-    UplcProg ann ->
-    IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toNamedDeBruijn prog =
-    case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
 
 ---------------- Printing budgets and costs ----------------
 
@@ -281,49 +246,6 @@ instance PrintBudgetState Cek.RestrictingSt where
     printBudgetState _term model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
         printBudgetStateBudget model budget
 
----------------- Types for commands and arguments ----------------
-
-data Input = FileInput FilePath | StdInput
-instance Show Input where
-    show (FileInput path) = show path
-    show StdInput         = "<stdin>"
-
-data Output = FileOutput FilePath | StdOutput
-data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
-data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
-data PrintMode = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)
-data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
-type ExampleName = T.Text
-data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-
-{- | @Name@ can be @Name@s or de Bruijn indices when we (de)serialise the ASTs.
- PLC doesn't support de Bruijn indices when (de)serialising ASTs.
- UPLC supports @Name@ or de Bruijn indices.
--}
-data AstNameType
-    = Named
-    | DeBruijn
-    | NamedDeBruijn
-
-type Files = [FilePath]
-
--- | Input/output format for programs
-data Format
-    = Textual
-    | Flat AstNameType
-
-instance Show Format where
-    show Textual              = "textual"
-    show (Flat Named)         = "flat-named"
-    show (Flat DeBruijn)      = "flat-deBruijn"
-    show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
-
-data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
-data OptimiseOptions = OptimiseOptions Input Format Output Format PrintMode
-data PrintOptions = PrintOptions Input Output PrintMode
-newtype ExampleOptions = ExampleOptions ExampleMode
-data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
-
 helpText ::
     -- | Either "Untyped Plutus Core" or "Typed Plutus Core"
     String ->
@@ -338,6 +260,7 @@ helpText lang =
         ++ "unit annotations, and any Flat-encoded AST supplied as input must also be "
         ++ "equipped with unit annotations.  Attempting to read a serialised AST with any "
         ++ "non-unit annotation type will cause an error."
+
 
 ---------------- Reading programs from files ----------------
 
@@ -372,66 +295,8 @@ parseInput inp = do
                     error $ PP.render $ pretty err
                 Right _ -> pure (contents, p)
 
--- Read a binary-encoded file (eg, Flat-encoded PLC)
-getBinaryInput :: Input -> IO BSL.ByteString
-getBinaryInput StdInput         = BSL.getContents
-getBinaryInput (FileInput file) = BSL.readFile file
 
----------------- Name conversions ----------------
-
-{- | Untyped AST with names consisting solely of De Bruijn indices. This is
- currently only used for intermediate values during Flat
- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
- support for this is lacking elsewhere at the moment.
--}
-type UntypedProgramDeBruijn ann = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-
-{- | Convert an untyped de-Bruijn-indexed program to one with standard names.
- We have nothing to base the names on, so every variable is named "v" (but
- with a Unique for disambiguation).  Again, we don't support typed programs.
--}
-fromDeBruijn :: UntypedProgramDeBruijn ann -> IO (UplcProg ann)
-fromDeBruijn prog = do
-    case PLC.runQuote $
-        runExceptT @UPLC.FreeVariableError $
-            traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
-
--- | Read and deserialise a Flat-encoded PIR/PLC AST
-loadTplcASTfromFlat :: Flat a => AstNameType -> Input -> IO a
-loadTplcASTfromFlat flatMode inp =
-    case flatMode of
-        Named         -> getBinaryInput inp >>= handleResult . unflat
-        DeBruijn      -> typedDeBruijnNotSupportedError
-        NamedDeBruijn -> typedDeBruijnNotSupportedError
-  where
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
--- | Read and deserialise a Flat-encoded UPLC AST
-loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
-loadUplcASTfromFlat flatMode inp = do
-    input <- getBinaryInput inp
-    case flatMode of
-        Named -> handleResult $ unflat input
-        DeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            let namedProgram = UPLC.programMapNames UPLC.fakeNameDeBruijn deserialised
-            fromDeBruijn namedProgram
-        NamedDeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            fromDeBruijn deserialised
-  where
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
--- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
+-- Read a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
 getProgram :: forall p.
     ( ProgramLike p
     , Functor p
@@ -446,10 +311,9 @@ getProgram fmt inp =
         Flat flatMode -> do
             prog <- loadASTfromFlat @p @() flatMode inp
             return $ topSrcSpan <$ prog
-
--- | A made-up `SrcSpan` since there's no source locations in Flat.
-topSrcSpan :: PLC.SrcSpan
-topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
+        where
+          topSrcSpan :: PLC.SrcSpan
+          topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
