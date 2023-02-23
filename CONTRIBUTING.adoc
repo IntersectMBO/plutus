@@ -80,6 +80,16 @@ nix = {
 
 You will need to restart the nix-daemon on non-NixOS for the changes to take effect, or just restart your machine.
 
+=== Note on pre-commit hooks 
+
+If you are committing code outside `nix develop`, you will get this error:
+```
+pre-commit not found. Did you forget to activate your virtualenv?
+```
+In that case, you may either pass the flag `--no-verify` to `git commit`, or `pip install pre-commit`.
+
+The `pre-commit` checks will be run by CI anyway, so any formatting errors will be caught when submitting your PR.
+
 === What to do once inside the `nix develop` shell
 
 Your prompt will change to `[plutus-shell]` and you will be presented with a menu of available commands.
