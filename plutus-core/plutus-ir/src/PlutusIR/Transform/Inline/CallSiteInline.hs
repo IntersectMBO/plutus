@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 {-|
@@ -156,20 +157,8 @@ instance Pretty TermOrType where
 countLam ::
     Term tyname name uni fun a -- ^ the RHS of the let binding
     -> TermOrTypeOrder
-countLam = countLamInner []
-    where
-      countLamInner ::
-        TermOrTypeOrder
-        -> Term tyname name uni fun a -- ^ The rhs term that is being counted.
-        -> TermOrTypeOrder
-      countLamInner lamStack (LamAbs _a _n _ty body) =
-        -- If the term is a term lambda abstraction, add it to the list, and
-        -- keep on examining the body.
-        countLamInner (lamStack <> [MkTerm]) body
-      countLamInner lamStack (TyAbs _a _n _kind body) =
-        -- If the term is a type lambda abstraction, add it to the list, and
-        -- keep on examining the body.
-        countLamInner (lamStack <> [MkType]) body
-      countLamInner lamStack _ =
-        -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
-        lamStack
+countLam = \case
+    LamAbs _ _ _ body -> MkTerm : countLam body
+    TyAbs _ _ _ body  -> MkType : countLam body
+    -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
+    _                 -> []
