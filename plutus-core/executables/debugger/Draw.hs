@@ -51,18 +51,18 @@ drawDebugger st =
                 focusRing
                 (BE.renderEditor (B.txt . Text.unlines))
                 (st ^. dsReturnValueEditor)
-    cekStateEditor =
-        BB.borderWithLabel (B.txt "Placeholder") $
+    logsEditor =
+        BB.borderWithLabel (B.txt "Logs") $
             B.withFocusRing
                 focusRing
                 (BE.renderEditor (B.txt . Text.unlines))
-                (st ^. dsCekStateEditor)
+                (st ^. dsLogsEditor)
     ui =
         B.vBox
             [ BC.center uplcEditor B.<+> B.hLimit (st ^. dsHLimitRightEditors) sourceEditor
             , B.vLimit (st ^. dsVLimitBottomEditors) $
                 BC.center returnValueEditor B.<+>
-                    B.hLimit (st ^. dsHLimitRightEditors) cekStateEditor
+                    B.hLimit (st ^. dsHLimitRightEditors) logsEditor
             , footer
             ]
 

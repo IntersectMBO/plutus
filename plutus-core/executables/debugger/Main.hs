@@ -113,7 +113,7 @@ main = do
                         [ Just EditorUplc
                         , EditorSource <$ optHsPath
                         , Just EditorReturnValue
-                        , Just EditorCekState
+                        , Just EditorLogs
                         ]
                 , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
                 , _dsUplcHighlight = Nothing
@@ -128,11 +128,11 @@ main = do
                         EditorReturnValue
                         Nothing
                         ""
-                , _dsCekStateEditor =
+                , _dsLogsEditor =
                     BE.editorText
-                        EditorCekState
+                        EditorLogs
                         Nothing
-                        "What to show here is TBD"
+                        ""
                 , _dsVLimitBottomEditors = 20
                 , _dsHLimitRightEditors = 100
                 }
@@ -171,10 +171,13 @@ driverThread driverMailbox brickMailbox prog = do
     -- \| Peels off one Free monad layer
     handle ::
         GivenCekReqs DefaultUni DefaultFun DAnn RealWorld =>
-        D.DebugF DefaultUni DefaultFun DAnn Breakpoints (IO a) ->
-        IO a
+        D.DebugF DefaultUni DefaultFun DAnn Breakpoints (IO ()) ->
+        IO ()
     handle = \case
-        D.StepF prevState k  -> cekMToIO (D.handleStep prevState) >>= k
+        D.StepF prevState k  -> do
+            eNewState <- cekMToIO $ D.tryHandleStep prevState
+            -- if error then handle it , otherwise "kontinue"
+            either handleError k eNewState
         D.InputF k           -> handleInput >>= k
         D.LogF text k        -> handleLog text >> k
         D.UpdateClientF ds k -> handleUpdate ds >> k
@@ -182,6 +185,11 @@ driverThread driverMailbox brickMailbox prog = do
         handleInput = takeMVar driverMailbox
         handleUpdate = B.writeBChan brickMailbox . UpdateClientEvent
         handleLog = B.writeBChan brickMailbox . LogEvent
+        handleError =
+            B.writeBChan brickMailbox . ErrorEvent
+            -- no kontinuation in case of error, the driver thread exits
+            -- FIXME: decide what should happen after the error occurs
+            -- e.g. a user dialog to (r)estart the thread with a button
 
 -- | Read uplc code in a given format
 --

@@ -18,8 +18,8 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
+import Control.Monad.Except
 import Control.Monad.RWS
-import Control.Monad.ST (RealWorld)
 import Data.ByteString.Lazy.Char8 qualified as BS
 import Data.Void
 import Prettyprinter
@@ -41,9 +41,8 @@ examples :: [(String, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn)]
 examples = [
              ("ex1", repeat Step, Delay mempty $ Error mempty)
            , ("ex2", replicate 4 Step, Force mempty $ Delay mempty $ Error mempty)
-           -- TODO: these break because they throw IO exception
-           -- , ("ex4", replicate 5 Step, Force mempty $ Delay mempty $ Error mempty)
-           -- , ("ex1", repeat Step, Error mempty)
+           , ("ex3", replicate 5 Step, Force mempty $ Delay mempty $ Error mempty)
+           , ("ex4", repeat Step, Error mempty)
            ]
 
 goldenVsDebug :: (TestName, [Cmd Breakpoints], NTerm DefaultUni DefaultFun EmptyAnn) -> TestTree
@@ -61,7 +60,7 @@ mock cmds = cekMToIO . runMocking . runDriver
     where
       MachineParameters cekCosts cekRuntime = defaultCekParameters
 
-      runMocking :: (m ~ CekM DefaultUni DefaultFun RealWorld)
+      runMocking :: (m ~ CekM DefaultUni DefaultFun s)
                  => FreeT (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) m ()
                  -> m [String]
       runMocking driver =
@@ -77,7 +76,7 @@ mock cmds = cekMToIO . runMocking . runDriver
 -- Interpretation of the mocker
 -------------------------------
 
-type Mocking uni fun t m = ( PrettyUni uni fun, GivenCekReqs uni fun EmptyAnn RealWorld
+type Mocking uni fun s t m = ( PrettyUni uni fun, GivenCekReqs uni fun EmptyAnn s
                            , MonadTrans t
                            -- | the mock client feeds commands
                            , MonadReader [Cmd Breakpoints] (t m)
@@ -85,22 +84,28 @@ type Mocking uni fun t m = ( PrettyUni uni fun, GivenCekReqs uni fun EmptyAnn Re
                            , MonadWriter [String] (t m)
                            )
 
-handle :: ( Mocking uni fun t m
-         , m ~ CekM uni fun RealWorld
+handle :: ( Mocking uni fun s t m
+         , m ~ CekM uni fun s
          )
        => DebugF uni fun EmptyAnn Breakpoints (t m ()) -> t m ()
 handle = \case
     StepF prevState k -> do
-        newState <- lift (handleStep prevState)
-        tell [show $ "OldState:" <+> pretty prevState <+> "NewState:" <+> pretty newState]
-        k newState
+        eNewState <- lift $ tryHandleStep prevState
+        case eNewState of
+            Right newState -> do
+                tell [show $ "OldState:" <+> pretty prevState
+                           <+> "NewState:" <+> pretty newState]
+                k newState
+            Left e -> tell [show $ "OldState:" <+> pretty prevState
+                                <+> "NewState is Error:" <+> viaShow e]
+                     -- no kontinuation, exit
     InputF k          -> handleInput k
     LogF text k       -> handleLog text >> k
     UpdateClientF _ k -> k -- ignore
   where
 
     -- more general as :: (MonadReader [Cmd] m, MonadWriter [String] m) => (Cmd -> m ()) -> m ()
-    handleInput :: Mocking uni fun t m => (Cmd Breakpoints -> t m ()) -> t m ()
+    handleInput :: Mocking uni fun s t m => (Cmd Breakpoints -> t m ()) -> t m ()
     handleInput k = do
         cmds <- ask
         case cmds of
@@ -112,5 +117,5 @@ handle = \case
                     k cmd
 
     -- more general as handleLog :: (MonadWriter [String] m) => String -> m ()
-    handleLog :: Mocking uni fun t m => String -> t m ()
+    handleLog :: Mocking uni fun s t m => String -> t m ()
     handleLog = tell . pure

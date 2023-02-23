@@ -15,10 +15,12 @@ import Brick.Focus qualified as B
 import Brick.Main qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
+import Control.Arrow ((>>>))
 import Control.Concurrent.MVar
 import Control.Monad.State
 import Data.Coerce
 import Data.Set as S
+import Data.Text.Zipper
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Prettyprinter
@@ -35,8 +37,8 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
                 B.zoom (dsSourceEditor.traversed) $ BE.handleEditorEvent bev
             Just EditorReturnValue ->
                 B.zoom dsReturnValueEditor $ BE.handleEditorEvent bev
-            Just EditorCekState ->
-                B.zoom dsCekStateEditor $ BE.handleEditorEvent bev
+            Just EditorLogs ->
+                B.zoom dsLogsEditor $ BE.handleEditorEvent bev
             _ -> pure ()
     keyBindingsMode <- gets (^. dsKeyBindingsMode)
     case ev of
@@ -120,4 +122,10 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                     Nothing
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
             Starting{} -> id
+handleDebuggerEvent _driverMailbox (B.AppEvent (ErrorEvent e)) =
+    modify' $ dsLogsEditor %~ BE.applyEdit
+    (gotoEOF >>>
+     insertMany (PLC.render $ "Error happened:" <+> PLC.prettyPlcDef e) >>>
+     breakLine
+    )
 handleDebuggerEvent _ _ = pure ()
