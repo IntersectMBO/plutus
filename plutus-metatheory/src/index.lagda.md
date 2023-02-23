@@ -85,6 +85,14 @@ import Builtin.Constant.Type
 import Builtin.Constant.Term
 ```
 
+The types of the built-in operations are defined by a signature.
+These types are abstract, and they can be made concrete to obtain the different
+notions of type used in the formalisation.
+
+```
+import Signature
+``` 
+
 ## Declarative syntax
 
 A version of the syntax of terms, indexed by types, that includes the
