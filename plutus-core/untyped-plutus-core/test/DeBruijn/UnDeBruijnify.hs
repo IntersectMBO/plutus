@@ -155,9 +155,4 @@ test_undebruijnify = testNested "Golden"
         . runQuoteT
         . flip evalStateT mempty
         . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel) . mkProg
-    mkProg = UPLC.mkDefaultProg . termMapNames fakeNameDeBruijn
-
-
-
-
-
+    mkProg = UPLC.Program () PLC.latestVersion . termMapNames fakeNameDeBruijn

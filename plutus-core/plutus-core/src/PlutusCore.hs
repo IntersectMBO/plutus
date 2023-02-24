@@ -139,8 +139,8 @@ import PlutusCore.Rename
 import PlutusCore.Size
 import PlutusCore.TypeCheck as TypeCheck
 
-
--- | Take one PLC program and apply it to another.
+-- | Applies one program to another. Takes the maximum of the versions,
+-- and tries to merge annotations.
 applyProgram
     :: Semigroup a
     => Program tyname name uni fun a

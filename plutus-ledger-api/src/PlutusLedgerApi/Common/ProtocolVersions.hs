@@ -10,10 +10,12 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , alonzoPV
     , vasilPV
     , valentinePV
+    , knownPVs
     , futurePV
     ) where
 
 import Codec.Serialise (Serialise)
+import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
@@ -57,6 +59,11 @@ vasilPV = ProtocolVersion 7 0
 -- | Protocol version 8.0 was the Valentine intra-era HF
 valentinePV :: ProtocolVersion
 valentinePV = ProtocolVersion 8 0
+
+-- | The set of protocol versions that are "known", i.e. that have been released
+-- and have actual differences associated with them.
+knownPVs :: Set.Set ProtocolVersion
+knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV ]
 
 -- | This is a placeholder for when we don't yet know what protocol
 -- version will be used for something. It's a very high protocol

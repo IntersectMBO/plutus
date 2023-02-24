@@ -4,14 +4,14 @@
 
 * Protocol versions
 * Plutus ledger languages
-* Plutus Core langauge versions
+* Plutus Core language versions
 -}
 module PlutusLedgerApi.Common.Versions
     ( -- * Cardano Protocol versions
       module PlutusLedgerApi.Common.ProtocolVersions
       -- * Plutus ledger languages
     , PlutusLedgerLanguage (..)
-      -- * Plutus language versions
+      -- * Plutus Core language versions
     , Version (..)
       -- * Version-testing functions
     , ledgerLanguageIntroducedIn
@@ -63,7 +63,7 @@ which on our side are interpreted in very similar ways.
 It is a simple enumerated datatype (there is no major and minor components as in protocol version)
 and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
 
-IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Core.Type.Version`
+IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version`
 -}
 data PlutusLedgerLanguage =
       PlutusV1 -- ^ introduced in shelley era
@@ -137,7 +137,7 @@ ledgerLanguagesAvailableIn searchPv =
         | ledgerLanguageIntroducedIn lv <= searchPv = Set.singleton lv
         | otherwise = mempty
 
-{-| Which Plutus language versions are available in the given 'PlutusLedgerLanguage'
+{-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
 and 'ProtocolVersion'?
 
 See Note [New builtins/language versions and protocol versions]
