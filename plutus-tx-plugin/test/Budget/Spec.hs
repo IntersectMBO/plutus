@@ -27,11 +27,32 @@ tests = testNested "Budget" [
     goldenBudget "sum" compiledSum
   , goldenPir "sum" compiledSum
 
-  , goldenBudget "any" compiledAny
-  , goldenPir "any" compiledAny
+  , goldenBudget "anyCheap" compiledAnyCheap
+  , goldenPir "anyCheap" compiledAnyCheap
 
-  , goldenBudget "find" compiledFind
-  , goldenPir "find" compiledFind
+  , goldenBudget "anyExpensive" compiledAnyExpensive
+  , goldenPir "anyExpensive" compiledAnyExpensive
+
+  , goldenBudget "anyEmptyList" compiledAnyEmptyList
+  , goldenPir "anyEmptyList" compiledAnyEmptyList
+
+  , goldenBudget "allCheap" compiledAllCheap
+  , goldenPir "allCheap" compiledAllCheap
+
+  , goldenBudget "allExpensive" compiledAllExpensive
+  , goldenPir "allExpensive" compiledAllExpensive
+
+  , goldenBudget "allEmptyList" compiledAllEmptyList
+  , goldenPir "allEmptyList" compiledAllEmptyList
+
+  , goldenBudget "findCheap" compiledFindCheap
+  , goldenPir "findCheap" compiledFindCheap
+
+  , goldenBudget "findExpensive" compiledFindExpensive
+  , goldenPir "findExpensive" compiledFindExpensive
+
+  , goldenBudget "findEmptyList" compiledFindEmptyList
+  , goldenPir "findEmptyList" compiledFindEmptyList
 
   , goldenBudget "filter" compiledFilter
   , goldenPir "filter" compiledFilter
@@ -64,15 +85,56 @@ compiledSum = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.sum ls ||])
 
-compiledAny :: CompiledCode Bool
-compiledAny = $$(compile [||
+-- | The first element in the list satisfies the predicate.
+compiledAnyCheap :: CompiledCode Bool
+compiledAnyCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.any ((PlutusTx.>) 10) ls ||])
+       in PlutusTx.any (10 PlutusTx.>) ls ||])
 
-compiledFind :: CompiledCode (Maybe Integer)
-compiledFind = $$(compile [||
+-- | No element in the list satisfies the predicate.
+compiledAnyExpensive :: CompiledCode Bool
+compiledAnyExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.find ((PlutusTx.>) 10) ls ||])
+       in PlutusTx.any (1 PlutusTx.>) ls ||])
+
+compiledAnyEmptyList :: CompiledCode Bool
+compiledAnyEmptyList = $$(compile [||
+      let ls = [] :: [Integer]
+       in PlutusTx.any (1 PlutusTx.>) ls ||])
+
+-- | The first element in the list does not satisfy the predicate.
+compiledAllCheap :: CompiledCode Bool
+compiledAllCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.all (1 PlutusTx.>) ls ||])
+
+-- | All elements in the list satisfy the predicate.
+compiledAllExpensive :: CompiledCode Bool
+compiledAllExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.all (11 PlutusTx.>) ls ||])
+
+compiledAllEmptyList :: CompiledCode Bool
+compiledAllEmptyList = $$(compile [||
+      let ls = [] :: [Integer]
+       in PlutusTx.all (1 PlutusTx.>) ls ||])
+
+-- | The first element in the list satisfies the predicate.
+compiledFindCheap :: CompiledCode (Maybe Integer)
+compiledFindCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.find (10 PlutusTx.>) ls ||])
+
+-- | No element in the list satisfies the predicate.
+compiledFindExpensive :: CompiledCode (Maybe Integer)
+compiledFindExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.find (1 PlutusTx.>) ls ||])
+
+compiledFindEmptyList :: CompiledCode (Maybe Integer)
+compiledFindEmptyList = $$(compile [||
+      let ls = [] :: [Integer]
+       in PlutusTx.find (1 PlutusTx.>) ls ||])
 
 compiledFilter :: CompiledCode [Integer]
 compiledFilter = $$(compile [||
