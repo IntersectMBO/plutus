@@ -119,24 +119,24 @@
           (nonrec)
           (datatypebind
             (datatype
-              (tyvardecl AdditiveMonoid (fun (type) (type)))
-              (tyvardecl a (type))
-              AdditiveMonoid_match
-              (vardecl
-                CConsAdditiveMonoid
-                (fun
-                  [ (lam a (type) (fun a (fun a a))) a ]
-                  (fun a [ AdditiveMonoid a ])
-                )
-              )
-            )
-          )
-          (datatypebind
-            (datatype
               (tyvardecl Bool (type))
 
               Bool_match
               (vardecl True Bool) (vardecl False Bool)
+            )
+          )
+          (datatypebind
+            (datatype
+              (tyvardecl MultiplicativeMonoid (fun (type) (type)))
+              (tyvardecl a (type))
+              MultiplicativeMonoid_match
+              (vardecl
+                CConsMultiplicativeMonoid
+                (fun
+                  [ (lam a (type) (fun a (fun a a))) a ]
+                  (fun a [ MultiplicativeMonoid a ])
+                )
+              )
             )
           )
           [
@@ -150,10 +150,10 @@
                   (nonrec)
                   (termbind
                     (strict)
-                    (vardecl v [ AdditiveMonoid Bool ])
+                    (vardecl v [ MultiplicativeMonoid Bool ])
                     [
                       [
-                        { CConsAdditiveMonoid Bool }
+                        { CConsMultiplicativeMonoid Bool }
                         (lam
                           l
                           Bool
@@ -164,16 +164,16 @@
                               [
                                 [
                                   { [ Bool_match l ] (all dead (type) Bool) }
-                                  (abs dead (type) True)
+                                  (abs dead (type) r)
                                 ]
-                                (abs dead (type) r)
+                                (abs dead (type) False)
                               ]
                               (all dead (type) dead)
                             }
                           )
                         )
                       ]
-                      False
+                      True
                     ]
                   )
                   [
@@ -189,7 +189,7 @@
                             [
                               [
                                 {
-                                  [ { AdditiveMonoid_match Bool } v ]
+                                  [ { MultiplicativeMonoid_match Bool } v ]
                                   [ (lam a (type) (fun a (fun a a))) Bool ]
                                 }
                                 (lam
@@ -206,7 +206,7 @@
                       )
                     ]
                     [
-                      { [ { AdditiveMonoid_match Bool } v ] Bool }
+                      { [ { MultiplicativeMonoid_match Bool } v ] Bool }
                       (lam
                         v
                         [ (lam a (type) (fun a (fun a a))) Bool ]
@@ -217,13 +217,13 @@
                 )
               ]
               (lam
-                y
+                v
                 (con integer)
                 [
                   [
                     [
                       { (builtin ifThenElse) Bool }
-                      [ [ (builtin lessThanEqualsInteger) (con integer 10) ] y ]
+                      [ [ (builtin lessThanEqualsInteger) (con integer 1) ] v ]
                     ]
                     False
                   ]
