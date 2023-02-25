@@ -1,171 +1,282 @@
 (program
   (let
-    (rec)
+    (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl List (fun (type) (type)))
+        (tyvardecl Maybe (fun (type) (type)))
         (tyvardecl a (type))
-        Nil_match
-        (vardecl Nil [ List a ])
-        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
+        Maybe_match
+        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
       )
     )
     (let
-      (nonrec)
+      (rec)
       (datatypebind
         (datatype
-          (tyvardecl Monoid (fun (type) (type)))
+          (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
-          Monoid_match
-          (vardecl
-            CConsMonoid
-            (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
-          )
+          Nil_match
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
       )
       (let
         (rec)
         (termbind
           (strict)
-          (vardecl
-            fFoldableNil_cfoldMap
-            (all
-              m
-              (type)
-              (all
-                a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
-              )
-            )
-          )
-          (abs
-            m
-            (type)
-            (abs
-              a
-              (type)
-              (lam
-                dMonoid
-                [ Monoid m ]
+          (vardecl go (fun [ List (con integer) ] [ Maybe (con integer) ]))
+          (lam
+            ds
+            [ List (con integer) ]
+            {
+              [
+                [
+                  {
+                    [ { Nil_match (con integer) } ds ]
+                    (all dead (type) [ Maybe (con integer) ])
+                  }
+                  (abs dead (type) { Nothing (con integer) })
+                ]
                 (lam
-                  eta
-                  (fun a m)
+                  x
+                  (con integer)
                   (lam
-                    eta
-                    [ List a ]
-                    {
-                      [
+                    xs
+                    [ List (con integer) ]
+                    (abs
+                      dead
+                      (type)
+                      {
                         [
-                          { [ { Nil_match a } eta ] (all dead (type) m) }
-                          (abs
-                            dead
-                            (type)
-                            [
-                              { [ { Monoid_match m } dMonoid ] m }
-                              (lam
-                                v
-                                [ (lam a (type) (fun a (fun a a))) m ]
-                                (lam v m v)
-                              )
-                            ]
-                          )
-                        ]
-                        (lam
-                          x
-                          a
-                          (lam
-                            xs
-                            [ List a ]
-                            (abs
-                              dead
-                              (type)
+                          [
+                            {
                               [
-                                [
-                                  [
-                                    {
-                                      [ { Monoid_match m } dMonoid ]
-                                      [ (lam a (type) (fun a (fun a a))) m ]
-                                    }
-                                    (lam
-                                      v
-                                      [ (lam a (type) (fun a (fun a a))) m ]
-                                      (lam v m v)
-                                    )
-                                  ]
-                                  [ eta x ]
-                                ]
+                                Bool_match
                                 [
                                   [
                                     [
-                                      { { fFoldableNil_cfoldMap m } a } dMonoid
+                                      { (builtin ifThenElse) Bool }
+                                      [
+                                        [
+                                          (builtin lessThanEqualsInteger)
+                                          (con integer 10)
+                                        ]
+                                        x
+                                      ]
                                     ]
-                                    eta
+                                    False
                                   ]
-                                  xs
+                                  True
                                 ]
                               ]
-                            )
-                          )
-                        )
-                      ]
-                      (all dead (type) dead)
-                    }
+                              (all dead (type) [ Maybe (con integer) ])
+                            }
+                            (abs dead (type) [ { Just (con integer) } x ])
+                          ]
+                          (abs dead (type) [ go xs ])
+                        ]
+                        (all dead (type) dead)
+                      }
+                    )
                   )
                 )
-              )
-            )
+              ]
+              (all dead (type) dead)
+            }
           )
         )
         (let
           (nonrec)
           (datatypebind
             (datatype
-              (tyvardecl Maybe (fun (type) (type)))
+              (tyvardecl Monoid (fun (type) (type)))
               (tyvardecl a (type))
-              Maybe_match
-              (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+              Monoid_match
+              (vardecl
+                CConsMonoid
+                (fun
+                  [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ])
+                )
+              )
             )
           )
-          (datatypebind
-            (datatype
-              (tyvardecl Bool (type))
-
-              Bool_match
-              (vardecl True Bool) (vardecl False Bool)
-            )
-          )
-          (termbind
-            (strict)
-            (vardecl x [ List (con integer) ])
-            [
-              [
-                (let
-                  (nonrec)
-                  (typebind (tyvardecl a (type)) [ List (con integer) ])
+          (let
+            (rec)
+            (termbind
+              (strict)
+              (vardecl
+                fFoldableNil_cfoldMap
+                (all
+                  m
+                  (type)
+                  (all
+                    a
+                    (type)
+                    (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
+                  )
+                )
+              )
+              (abs
+                m
+                (type)
+                (abs
+                  a
+                  (type)
                   (lam
-                    c
-                    (fun (con integer) (fun a a))
+                    dMonoid
+                    [ Monoid m ]
                     (lam
-                      n
-                      a
-                      [
-                        [ c (con integer 1) ]
-                        [
-                          [ c (con integer 2) ]
+                      eta
+                      (fun a m)
+                      (lam
+                        eta
+                        [ List a ]
+                        {
                           [
-                            [ c (con integer 3) ]
                             [
-                              [ c (con integer 4) ]
-                              [
-                                [ c (con integer 5) ]
+                              { [ { Nil_match a } eta ] (all dead (type) m) }
+                              (abs
+                                dead
+                                (type)
                                 [
-                                  [ c (con integer 6) ]
+                                  { [ { Monoid_match m } dMonoid ] m }
+                                  (lam
+                                    v
+                                    [ (lam a (type) (fun a (fun a a))) m ]
+                                    (lam v m v)
+                                  )
+                                ]
+                              )
+                            ]
+                            (lam
+                              x
+                              a
+                              (lam
+                                xs
+                                [ List a ]
+                                (abs
+                                  dead
+                                  (type)
                                   [
-                                    [ c (con integer 7) ]
                                     [
-                                      [ c (con integer 8) ]
                                       [
-                                        [ c (con integer 9) ]
-                                        [ [ c (con integer 10) ] n ]
+                                        {
+                                          [ { Monoid_match m } dMonoid ]
+                                          [ (lam a (type) (fun a (fun a a))) m ]
+                                        }
+                                        (lam
+                                          v
+                                          [ (lam a (type) (fun a (fun a a))) m ]
+                                          (lam v m v)
+                                        )
+                                      ]
+                                      [ eta x ]
+                                    ]
+                                    [
+                                      [
+                                        [
+                                          { { fFoldableNil_cfoldMap m } a }
+                                          dMonoid
+                                        ]
+                                        eta
+                                      ]
+                                      xs
+                                    ]
+                                  ]
+                                )
+                              )
+                            )
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            (let
+              (nonrec)
+              (datatypebind
+                (datatype
+                  (tyvardecl ToList (fun (fun (type) (type)) (type)))
+                  (tyvardecl t (fun (type) (type)))
+                  ToList_match
+                  (vardecl
+                    CConsToList
+                    (fun
+                      [
+                        (lam
+                          t
+                          (fun (type) (type))
+                          (all
+                            m
+                            (type)
+                            (all
+                              a
+                              (type)
+                              (fun [ Monoid m ] (fun (fun a m) (fun [ t a ] m)))
+                            )
+                          )
+                        )
+                        t
+                      ]
+                      (fun (all a (type) (fun [ t a ] [ List a ])) [ ToList t ])
+                    )
+                  )
+                )
+              )
+              (termbind
+                (strict)
+                (vardecl dToList [ ToList List ])
+                [
+                  [ { CConsToList List } fFoldableNil_cfoldMap ]
+                  (abs a (type) (lam x [ List a ] x))
+                ]
+              )
+              (termbind
+                (strict)
+                (vardecl eta [ List (con integer) ])
+                [
+                  [
+                    (let
+                      (nonrec)
+                      (typebind (tyvardecl a (type)) [ List (con integer) ])
+                      (lam
+                        c
+                        (fun (con integer) (fun a a))
+                        (lam
+                          n
+                          a
+                          [
+                            [ c (con integer 1) ]
+                            [
+                              [ c (con integer 2) ]
+                              [
+                                [ c (con integer 3) ]
+                                [
+                                  [ c (con integer 4) ]
+                                  [
+                                    [ c (con integer 5) ]
+                                    [
+                                      [ c (con integer 6) ]
+                                      [
+                                        [ c (con integer 7) ]
+                                        [
+                                          [ c (con integer 8) ]
+                                          [
+                                            [ c (con integer 9) ]
+                                            [ [ c (con integer 10) ] n ]
+                                          ]
+                                        ]
                                       ]
                                     ]
                                   ]
@@ -173,104 +284,61 @@
                               ]
                             ]
                           ]
-                        ]
-                      ]
+                        )
+                      )
                     )
-                  )
-                )
-                (lam
-                  ds
-                  (con integer)
-                  (lam
-                    ds
-                    [ List (con integer) ]
-                    [ [ { Cons (con integer) } ds ] ds ]
-                  )
-                )
-              ]
-              { Nil (con integer) }
-            ]
-          )
-          [
-            [
-              [
-                {
-                  {
-                    fFoldableNil_cfoldMap
-                    [ (lam a (type) [ Maybe a ]) (con integer) ]
-                  }
-                  (con integer)
-                }
-                [
-                  [
-                    { CConsMonoid [ (lam a (type) [ Maybe a ]) (con integer) ] }
                     (lam
                       ds
-                      [ (lam a (type) [ Maybe a ]) (con integer) ]
+                      (con integer)
                       (lam
-                        b
-                        [ (lam a (type) [ Maybe a ]) (con integer) ]
-                        {
-                          [
-                            [
-                              {
-                                [ { Maybe_match (con integer) } ds ]
-                                (all
-                                  dead
-                                  (type)
-                                  [ (lam a (type) [ Maybe a ]) (con integer) ]
-                                )
-                              }
-                              (lam ipv (con integer) (abs dead (type) ds))
-                            ]
-                            (abs dead (type) b)
-                          ]
-                          (all dead (type) dead)
-                        }
+                        ds
+                        [ List (con integer) ]
+                        [ [ { Cons (con integer) } ds ] ds ]
                       )
                     )
                   ]
-                  { Nothing (con integer) }
+                  { Nil (con integer) }
                 ]
-              ]
-              (lam
-                x
-                (con integer)
-                {
-                  [
+              )
+              [
+                go
+                [
+                  {
                     [
                       {
-                        [
-                          Bool_match
-                          [
-                            [
-                              [
-                                { (builtin ifThenElse) Bool }
-                                [
-                                  [
-                                    (builtin lessThanEqualsInteger)
-                                    (con integer 10)
-                                  ]
-                                  x
-                                ]
-                              ]
-                              False
-                            ]
-                            True
-                          ]
-                        ]
-                        (all dead (type) [ Maybe (con integer) ])
+                        [ { ToList_match List } dToList ]
+                        (all a (type) (fun [ List a ] [ List a ]))
                       }
-                      (abs dead (type) [ { Just (con integer) } x ])
+                      (lam
+                        v
+                        [
+                          (lam
+                            t
+                            (fun (type) (type))
+                            (all
+                              m
+                              (type)
+                              (all
+                                a
+                                (type)
+                                (fun
+                                  [ Monoid m ] (fun (fun a m) (fun [ t a ] m))
+                                )
+                              )
+                            )
+                          )
+                          List
+                        ]
+                        (lam v (all a (type) (fun [ List a ] [ List a ])) v)
+                      )
                     ]
-                    (abs dead (type) { Nothing (con integer) })
-                  ]
-                  (all dead (type) dead)
-                }
-              )
-            ]
-            x
-          ]
+                    (con integer)
+                  }
+                  eta
+                ]
+              ]
+            )
+          )
         )
       )
     )

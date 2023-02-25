@@ -104,6 +104,10 @@ instance Foldable (Map k) where
     {-# INLINABLE foldMap #-}
     foldMap f (Map mp) = foldMap (foldMap f) mp
 
+instance ToList (Map k)
+  where
+    toList (Map l) = P.fmap P.snd l
+
 instance Traversable (Map k) where
     {-# INLINABLE traverse #-}
     traverse f (Map mp) = Map <$> traverse (traverse f) mp
