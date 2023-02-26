@@ -12,6 +12,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable
   ( prettyPirReadable
+  , prettyPirReadableNoUnique
   , PrettyPir
   ) where
 
@@ -25,11 +26,18 @@ import Prettyprinter.Custom
 
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
--- | Pretty-print something with the Pir prettyprinter settings.
+-- | Pretty-print something with the @PrettyConfigReadable@ config.
 prettyPirReadable :: PrettyPir a => a -> Doc ann
 prettyPirReadable = prettyBy prettyConfigReadable
   -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
-  where prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
+  where
+    prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
+
+-- | Like `prettyPirReadable`, but does not print uniques.
+prettyPirReadableNoUnique :: PrettyPir a => a -> Doc ann
+prettyPirReadableNoUnique = prettyBy prettyConfigReadable
+  where
+    prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
 
 -- | Split an application into its (possible) head and arguments (either types or term)
 viewApp :: Term tyname name uni fun ann

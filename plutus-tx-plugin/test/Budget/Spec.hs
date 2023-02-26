@@ -19,65 +19,65 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.Test (goldenBudget, goldenPir)
+import PlutusTx.Test (goldenBudget, goldenPirReadable)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [
     goldenBudget "sum" compiledSum
-  , goldenPir "sum" compiledSum
+  , goldenPirReadable "sum" compiledSum
 
   , goldenBudget "anyCheap" compiledAnyCheap
-  , goldenPir "anyCheap" compiledAnyCheap
+  , goldenPirReadable "anyCheap" compiledAnyCheap
 
   , goldenBudget "anyExpensive" compiledAnyExpensive
-  , goldenPir "anyExpensive" compiledAnyExpensive
+  , goldenPirReadable "anyExpensive" compiledAnyExpensive
 
   , goldenBudget "anyEmptyList" compiledAnyEmptyList
-  , goldenPir "anyEmptyList" compiledAnyEmptyList
+  , goldenPirReadable "anyEmptyList" compiledAnyEmptyList
 
   , goldenBudget "allCheap" compiledAllCheap
-  , goldenPir "allCheap" compiledAllCheap
+  , goldenPirReadable "allCheap" compiledAllCheap
 
   , goldenBudget "allExpensive" compiledAllExpensive
-  , goldenPir "allExpensive" compiledAllExpensive
+  , goldenPirReadable "allExpensive" compiledAllExpensive
 
   , goldenBudget "allEmptyList" compiledAllEmptyList
-  , goldenPir "allEmptyList" compiledAllEmptyList
+  , goldenPirReadable "allEmptyList" compiledAllEmptyList
 
   , goldenBudget "findCheap" compiledFindCheap
-  , goldenPir "findCheap" compiledFindCheap
+  , goldenPirReadable "findCheap" compiledFindCheap
 
   , goldenBudget "findExpensive" compiledFindExpensive
-  , goldenPir "findExpensive" compiledFindExpensive
+  , goldenPirReadable "findExpensive" compiledFindExpensive
 
   , goldenBudget "findEmptyList" compiledFindEmptyList
-  , goldenPir "findEmptyList" compiledFindEmptyList
+  , goldenPirReadable "findEmptyList" compiledFindEmptyList
 
   , goldenBudget "filter" compiledFilter
-  , goldenPir "filter" compiledFilter
+  , goldenPirReadable "filter" compiledFilter
 
   , goldenBudget "elem" compiledElem
-  , goldenPir "elem" compiledElem
+  , goldenPirReadable "elem" compiledElem
 
   , goldenBudget "toFromData" compiledToFromData
-  , goldenPir "toFromData" compiledToFromData
+  , goldenPirReadable "toFromData" compiledToFromData
 
   , goldenBudget "monadicDo" monadicDo
-  , goldenPir "monadicDo" monadicDo
+  , goldenPirReadable "monadicDo" monadicDo
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
   , goldenBudget "applicative" applicative
-  , goldenPir "applicative" applicative
+  , goldenPirReadable "applicative" applicative
   , goldenBudget "patternMatch" patternMatch
-  , goldenPir "patternMatch" patternMatch
+  , goldenPirReadable "patternMatch" patternMatch
   , goldenBudget "show" compiledShow
-  , goldenPir "show" compiledShow
+  , goldenPirReadable "show" compiledShow
   -- These test cases are for testing the float-in pass.
   , goldenBudget "ifThenElse1" compiledIfThenElse1
-  , goldenPir "ifThenElse1" compiledIfThenElse1
+  , goldenPirReadable "ifThenElse1" compiledIfThenElse1
   , goldenBudget "ifThenElse2" compiledIfThenElse2
-  , goldenPir "ifThenElse2" compiledIfThenElse2
+  , goldenPirReadable "ifThenElse2" compiledIfThenElse2
   ]
 
 compiledSum :: CompiledCode Integer
