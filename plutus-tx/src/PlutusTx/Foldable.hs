@@ -139,12 +139,14 @@ product = getProduct #. foldMap Product
 
 -- | Plutus Tx version of 'Data.Foldable.foldrM'.
 foldrM :: (Foldable t, Haskell.Monad m) => (a -> b -> m b) -> b -> t a -> m b
+-- See Note [Haskell.Monad]
 foldrM f z0 xs = foldl c Haskell.return xs z0
   where c k x z = f x z Haskell.>>= k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.foldlM'.
 foldlM :: (Foldable t, Haskell.Monad m) => (b -> a -> m b) -> b -> t a -> m b
+-- See Note [Haskell.Monad]
 foldlM f z0 xs = foldr c Haskell.return xs z0
   where c x k z = f z x Haskell.>>= k
         {-# INLINE c #-}
@@ -157,6 +159,7 @@ traverse_ f = foldr c (pure ())
 
 -- | Plutus Tx version of 'Data.Foldable.sequence_'.
 sequence_ :: (Foldable t, Haskell.Monad m) => t (m a) -> m ()
+-- See Note [Haskell.Monad]
 sequence_ = foldr c (Haskell.return ())
   where c m k = m Haskell.>> k
         {-# INLINE c #-}
@@ -225,6 +228,20 @@ find p = coerce . foldMap (\ x -> First (if p x then Just x else Nothing))
 -- | Plutus Tx version of 'Data.Foldable.mapM_'.
 {-# INLINABLE mapM_ #-}
 mapM_ :: (Foldable t, Haskell.Monad m) => (a -> m b) -> t a -> m ()
+-- See Note [Haskell.Monad]
 mapM_ f = foldr c (Haskell.return ())
   where c x k = f x Haskell.>> k
         {-# INLINE c #-}
+
+{- Note [Haskell.Monad]
+There is no `PlutusTx.Monad`. Since do-notations use `Haskell.Monad` (without
+`RebindableSyntax` anyway), it won't be very useful to have `PlutusTx.Monad`.
+
+`Haskell.Monad` instances for `Maybe`, `Either` and `[]` (and likely many other types)
+all work fine since the unfoldings of their `>>=` methods don't contain anything the
+plugin can't handle. This is of course not true in general, e.g., the plugin won't be
+able to handle a (hypothetical) `Haskell.Monad` instance whose `>>=` definition contains
+`GHC.Num.(+)` (until we make the plugin support functions like `GHC.Num.(+)`) or is
+not inlinable.
+
+-}

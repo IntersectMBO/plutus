@@ -70,10 +70,8 @@ strictLetRec = plc (Proxy @"strictLetRec") (\(x::Integer) (y::Integer) -> let !z
 ifOpt :: CompiledCode Integer
 ifOpt = plc (Proxy @"ifOpt") (if ((1 `Builtins.divideInteger` 0) `Builtins.equalsInteger` 0) then 1 else 1)
 
--- TODO: It's pretty questionable that this works at all! It's actually using 'Monad' from 'base',
--- since that's what 'do' notation is hard-coded to use, and it just happens that it's all inlinable
--- enough to work...
 -- Test what basic do-notation looks like (should just be a bunch of calls to '>>=')
+-- See Note [Haskell.Monad]
 monadicDo :: CompiledCode (Maybe Integer -> Maybe Integer -> Maybe Integer)
 monadicDo = plc (Proxy @"monadicDo") (\(x :: Maybe Integer) (y:: Maybe Integer) -> do
     x' <- x
