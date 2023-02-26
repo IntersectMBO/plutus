@@ -130,7 +130,8 @@ inputs.std.lib.dev.mkShell {
     # R environment
     cell.library.r-with-packages
 
-    # Misc  useful stuff, could make these commands but there's a lot already
+    # Misc useful stuff, could make these commands but there's a lot already
+    pkgs.plantuml
     pkgs.editorconfig-core-c
     pkgs.jq
     pkgs.pre-commit
