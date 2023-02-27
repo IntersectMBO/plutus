@@ -2,41 +2,33 @@ letrec data (List :: * -> *) a | Nil_match where
          Nil : List a
          Cons : a -> List a -> List a
 in
-let data (Monoid :: * -> *) a | Monoid_match where
-      CConsMonoid : (\a -> a -> a -> a) a -> a -> Monoid a
-in
-letrec !fFoldableNil_cfoldMap
-         : all m. all a. Monoid m -> (a -> m) -> List a -> m
-         = /\m a ->
-             \(dMonoid : Monoid m) (eta : a -> m) (eta : List a) ->
-               Nil_match
-                 {a} eta {all dead. m} (/\dead ->
-                                          Monoid_match
-                                            {m} dMonoid {m}
-                                            (\(v : (\a -> a -> a -> a) m) (v
-                                              : m) ->
-                                               v))
-                 (\(x : a) (xs : List a) ->
-                    /\dead ->
-                      Monoid_match
-                        {m} dMonoid {(\a -> a -> a -> a) m}
-                        (\(v : (\a -> a -> a -> a) m) (v : m) -> v) (eta x)
-                        (fFoldableNil_cfoldMap {m} {a} dMonoid eta xs))
-                 {all dead. dead}
-in
 let data (Maybe :: * -> *) a | Maybe_match where
       Just : a -> Maybe a
       Nothing : Maybe a
     data Bool | Bool_match where
       True : Bool
       False : Bool
-    !x : List integer
-      = (let a = List integer in \(c : integer -> a -> a) (n : a) ->
-                                   c
-                                     1 (c
-                                          2 (c
-                                               3
-                                               (c
+in (let b = Maybe integer in \(f : integer -> b -> b) (z : b) ->
+                               letrec !go : List integer -> b
+                                        = \(ds : List integer) ->
+                                            Nil_match
+                                              {integer} ds {all dead. b}
+                                              (/\dead -> z) (\(x : integer) (xs
+                                                              : List integer) ->
+                                                               /\dead ->
+                                                                 f x (go xs))
+                                              {all dead. dead}
+                               in \(eta : List integer) -> go eta)
+     (\(a : integer) (acc : Maybe integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger 10 a) False True)
+          {all dead. Maybe integer} (/\dead -> Just {integer} a) (/\dead -> acc)
+          {all dead. dead}) (Nothing {integer})
+     ((let a = List integer in \(c : integer -> a -> a) (n : a) ->
+                                 c
+                                   1 (c
+                                        2 (c
+                                             3 (c
                                                   4
                                                   (c
                                                      5
@@ -51,24 +43,5 @@ let data (Maybe :: * -> *) a | Maybe_match where
                                                                  (c
                                                                     10
                                                                     n))))))))))
-          (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
-          (Nil {integer})
-in fFoldableNil_cfoldMap
-     {(\a -> Maybe a) integer} {integer}
-     (CConsMonoid
-        {(\a -> Maybe a) integer} (\(ds : (\a -> Maybe a) integer) (b
-                                    : (\a -> Maybe a) integer) ->
-                                     Maybe_match
-                                       {integer} ds
-                                       {all dead. (\a -> Maybe a) integer}
-                                       (\(ipv : integer) -> /\dead -> ds)
-                                       (/\dead -> b) {all dead. dead})
-        (Nothing {integer})) (\(x : integer) ->
-                                Bool_match
-                                  (ifThenElse
-                                     {Bool} (lessThanEqualsInteger 10 x) False
-                                     True) {all dead. Maybe integer}
-                                  (/\dead -> Just {integer} x) (/\dead ->
-                                                                  Nothing
-                                                                    {integer})
-                                  {all dead. dead}) x
+        (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+        (Nil {integer}))
