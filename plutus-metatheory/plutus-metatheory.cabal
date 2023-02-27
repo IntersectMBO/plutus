@@ -112,10 +112,13 @@ library
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Properties
     MAlonzo.Code.Algorithmic.ReductionEC
+    MAlonzo.Code.Algorithmic.ReductionEC.Determinism
+    MAlonzo.Code.Algorithmic.ReductionEC.Progress
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
+    MAlonzo.Code.Builtin.Signature
     MAlonzo.Code.Category.Applicative.Indexed
     MAlonzo.Code.Category.Comonad
     MAlonzo.Code.Category.Functor
@@ -245,7 +248,6 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Signature
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -298,10 +300,13 @@ library
     MAlonzo.Code.Algorithmic.Evaluation
     MAlonzo.Code.Algorithmic.Properties
     MAlonzo.Code.Algorithmic.ReductionEC
+    MAlonzo.Code.Algorithmic.ReductionEC.Determinism
+    MAlonzo.Code.Algorithmic.ReductionEC.Progress
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
+    MAlonzo.Code.Builtin.Signature
     MAlonzo.Code.Category.Applicative.Indexed
     MAlonzo.Code.Category.Comonad
     MAlonzo.Code.Category.Functor
@@ -430,7 +435,6 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
-    MAlonzo.Code.Signature
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
