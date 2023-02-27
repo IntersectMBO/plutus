@@ -21,7 +21,7 @@ open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC
-
+open import Algorithmic.ReductionEC.Determinism
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans) 
                                                   renaming ([_] to I[_])
 open import Data.Sum using (_⊎_;inj₁;inj₂)
