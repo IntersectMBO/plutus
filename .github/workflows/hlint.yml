@@ -30,7 +30,7 @@ jobs:
         run: nix build .#hlint 
 
       - name: Run 
-        uses: haskell/actions/hlint-run@v1
+        uses: haskell/actions/hlint-run@v2
         with:
           hlint-bin: "./result/bin/hlint --hint=./.github/.hlint.yaml"
           fail-on: status
