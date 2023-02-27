@@ -48,9 +48,7 @@ import Witherable (wither)
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).
 3. Handling of multiple beta-reductions in one go, this is handled in PIR by a dedicated pass.
-4. Don't inline lambdas with small bodies. We do this in PIR but we *probably* shouldn't really.
-But doing it here is actively harmful, so we don't include it.
-5. Simplistic purity analysis, in particular we don't try to be clever about builtins
+4. Simplistic purity analysis, in particular we don't try to be clever about builtins
 (should mostly be handled in PIR).
 -}
 
