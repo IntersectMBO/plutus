@@ -15,6 +15,7 @@ module PlutusTx.Test (
     fitsUnder,
     -- * Compilation testing
     goldenPir,
+    goldenPirReadable,
     goldenPirBy,
     goldenTPlc,
     goldenUPlc,
@@ -33,6 +34,7 @@ import Control.Monad.Except
 import Control.Monad.Reader qualified as Reader
 import Data.Either.Extras
 import Data.Kind (Type)
+import Data.Maybe
 import Data.Tagged (Tagged (Tagged))
 import Data.Text (Text)
 import Flat (Flat)
@@ -48,10 +50,11 @@ import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Test
+import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Core.Type (progTerm)
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
 
 -- Size testing for Tasty
 
@@ -129,16 +132,54 @@ measureBudget compiledCode =
 
 -- Compilation testing
 
-goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
+goldenPir ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , uni `PLC.Everywhere` Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPirNoAnn value
 
-goldenPirBy
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => PrettyConfigClassic PrettyConfigName -> String -> CompiledCodeIn uni fun a -> TestNested
-goldenPirBy config name value = nestedGoldenVsDoc name $ pretty $
-  AttachPrettyConfig config $ getPir value
+-- | Use `prettyPirReadableNoUnique` for the golden files.
+goldenPirReadable ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , PLC.Everywhere uni Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
+goldenPirReadable name value =
+    nestedGoldenVsDoc name
+        . fromMaybe "PIR not found in CompiledCode"
+        . fmap (prettyPirReadableNoUnique . view progTerm)
+        $ getPirNoAnn value
+
+goldenPirBy ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , uni `PLC.Everywhere` Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    PrettyConfigClassic PrettyConfigName ->
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
+goldenPirBy config name value =
+    nestedGoldenVsDoc name $
+        pretty $
+            AttachPrettyConfig config $
+                getPir value
 
 -- Evaluation testing
 
