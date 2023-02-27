@@ -73,6 +73,8 @@ This updates versions and version bounds, and assembles the changelogs.
 A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
 4. Run the release QA process.
 5. If no release blocking issue is found, tag `x.y.z.0` and upload the packages to https://github.com/input-output-hk/cardano-haskell-packages[CHaP].
+- Adding the `x.y.z.0` tag triggers a GitHub action that publishes Haddock to `+https://input-output-hk.github.io/plutus/x.y.z.0/+`.
+The GitHub action is only triggered by pushing tags of the form `[0-9]+.[0-9]+.[0-9]+.[0-9]+`.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
