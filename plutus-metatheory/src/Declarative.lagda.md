@@ -22,7 +22,7 @@ open import Type.Equality using (_≡β_)
 open import Builtin using (Builtin;signature)
 open Builtin.Builtin
 
-open import Signature using (nat2Ctx⋆;fin2∈⋆)
+open import Builtin.Signature using (nat2Ctx⋆;fin2∈⋆)
 
 open import Utils using (Kind;*;_⇒_;K)
 open import Builtin.Constant.Type using (TyCon)
@@ -30,7 +30,7 @@ open TyCon
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
 
-open Signature.FromSig Ctx⋆ (_⊢⋆ *) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) con _⇒_ Π using (sig2type)
+open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆ *) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) con _⇒_ Π using (sig2type)
 ```
 
 ## Fixity declarations

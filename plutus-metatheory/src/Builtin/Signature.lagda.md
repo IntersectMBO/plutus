@@ -14,7 +14,7 @@ except for the minimal rule of guaranteeing well-formedness.
 ## Imports 
 
 ```
-module Signature where
+module Builtin.Signature where
 
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin renaming (zero to Z; suc to S)

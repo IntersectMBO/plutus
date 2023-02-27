@@ -90,7 +90,7 @@ These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.
 
 ```
-import Signature
+import Builtin.Signature
 ``` 
 
 ## Declarative syntax
