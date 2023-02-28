@@ -159,7 +159,7 @@ runOneArgumentModel
     -> ExMemory
     -> CostingInteger
 runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
-runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
+runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = lazy $ \(ExMemory s) ->
     s * slope + intercept
 {-# NOINLINE runOneArgumentModel #-}
 
@@ -265,35 +265,35 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> c
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
+    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) = lazy $ \(ExMemory size1) (ExMemory size2) ->
         (size1 + size2) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
 runTwoArgumentModel
-    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) = \(ExMemory size1) (ExMemory size2) ->
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) = lazy $ \(ExMemory size1) (ExMemory size2) ->
         (max minSize (size1 - size2)) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
+    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) = lazy $ \(ExMemory size1) (ExMemory size2) ->
         (size1 * size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
+    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) = lazy $ \(ExMemory size1) (ExMemory size2) ->
         (min size1 size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
+    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) = lazy $ \(ExMemory size1) (ExMemory size2) ->
         (max size1 size2) * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) (ExMemory _) ->
+    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) = lazy $ \(ExMemory size1) (ExMemory _) ->
         size1 * slope + intercept
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) = \(ExMemory _) (ExMemory size2) ->
+    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) = lazy $ \(ExMemory _) (ExMemory size2) ->
         size2 * slope + intercept
 runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) = \(ExMemory xSize) (ExMemory ySize) ->
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) = lazy $ \(ExMemory xSize) (ExMemory ySize) ->
         if xSize == ySize
         then xSize * slope + intercept
         else c
 runTwoArgumentModel -- Below the diagonal, return the constant. Above the diagonal, run the other model.
     (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
         case runTwoArgumentModel m of
-            !run -> \xMem yMem ->
+            !run -> lazy $ \xMem yMem ->
                 if xMem > yMem
                 then c
                 else run xMem yMem
@@ -301,7 +301,7 @@ runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagon
     (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) =
         case runTwoArgumentModel m of
             !run -> \xMem yMem ->
-                if xMem < yMem
+                if lazy $ xMem < yMem
                 then c
                 else run xMem yMem
 {-# NOINLINE runTwoArgumentModel #-}
@@ -328,13 +328,13 @@ runThreeArgumentModel
     -> ExMemory
     -> CostingInteger
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> c
-runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) (ExMemory size3) ->
+runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) = lazy $ \(ExMemory size1) (ExMemory size2) (ExMemory size3) ->
     (size1 + size2 + size3) * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) _ _ ->
+runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) = lazy $ \(ExMemory size1) _ _ ->
     size1 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) = \_ (ExMemory size2) _ ->
+runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) = lazy $ \_ (ExMemory size2) _ ->
     size2 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = \_ _ (ExMemory size3) ->
+runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = lazy $ \_ _ (ExMemory size3) ->
     size3 * slope + intercept
 {-# NOINLINE runThreeArgumentModel #-}
 
