@@ -1,5 +1,7 @@
-let data (D1_0 :: * -> *) a_1 | match_D1_2 where
-      C1_3 : D1_0 a_1
-    data (D2_4 :: * -> *) a_1 | match_D2_5 where
-      C2_6 : all a_1. D2_4 a_1
-in /\a_1 -> \(x_7 : a_1) -> x_7
+let
+  data (D1_0 :: * -> *) a_1 | match_D1_2 where
+    C1_3 : D1_0 a_1
+  data (D2_4 :: * -> *) a_1 | match_D2_5 where
+    C2_6 : all a_1. D2_4 a_1
+in
+/\a_1 -> \(x_7 : a_1) -> x_7
