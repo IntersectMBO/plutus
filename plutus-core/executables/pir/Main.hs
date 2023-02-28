@@ -23,6 +23,7 @@ import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (coerced, (^..))
+import Control.Monad (when)
 import Control.Monad.Trans.Except (runExcept)
 import Control.Monad.Trans.Reader (runReader, runReaderT)
 import Data.ByteString.Lazy.Char8 qualified as BSL
@@ -40,6 +41,12 @@ type UnitProvenance = PIR.Provenance ()
 
 data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat PrintMode
 
+data PirConvertOptions = PirConvertOptions Input PirFormat Output PirFormat PrintMode
+
+toConvertOptions :: PirConvertOptions -> ConvertOptions
+toConvertOptions (PirConvertOptions inp ifmt outp ofmt mode) =
+    ConvertOptions inp (pirFormatToFormat ifmt) outp (pirFormatToFormat ofmt) mode
+
 data AnalyseOptions = AnalyseOptions Input PirFormat Output -- Input is a program, output is text
 
 -- | Compilation options: target language, whether to optimise or not, input and output streams and types
@@ -55,7 +62,7 @@ data CompileOptions =
 
 data Command = Analyse  AnalyseOptions
              | Compile  CompileOptions
-             | Convert  ConvertOptions
+             | Convert  PirConvertOptions
              | Optimise PirOptimiseOptions
              | Print    PrintOptions
 
@@ -64,6 +71,9 @@ data Command = Analyse  AnalyseOptions
 
 pPirOptimiseOptions :: Parser PirOptimiseOptions
 pPirOptimiseOptions = PirOptimiseOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
+
+pPirConvertOptions :: Parser PirConvertOptions
+pPirConvertOptions = PirConvertOptions <$> input <*> pPirInputFormat <*> output <*> pPirOutputFormat <*> printmode
 
 pAnalyseOptions :: Parser AnalyseOptions
 pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
@@ -103,8 +113,8 @@ pPirOptions = hsubparser $
                    "Given a PIR program in flat format, deserialise it, " <>
                    "and test if it can be successfully compiled to PLC.")
            <> command "convert"
-                  (info (Convert <$> convertOpts)
-                   (progDesc $ "Convert a program between various formats."))
+                  (info (Convert <$> pPirConvertOptions)
+                   (progDesc $ "Convert a program between textual and flat-named format."))
            <> command "optimise" (optimise "Run the PIR optimisation pipeline on the input.")
            <> command "optimize" (optimise "Same as 'optimise'.")
            <> command "print"
@@ -141,7 +151,7 @@ compileToUplc optimise plcProg =
 loadPirAndCompile :: CompileOptions -> IO ()
 loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode)  = do
     pirProg <- readProgram (pirFormatToFormat ifmt) inp
-    if test then putStrLn "!!! Compiling" else pure ()
+    when test $ putStrLn "!!! Compiling"
     -- Now compile to plc, maybe optimising
     case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
@@ -153,8 +163,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
                     else writeProgram outp ofmt mode plcProg
             UPLC -> do  -- compile the PLC to UPLC
               let uplcProg = compileToUplc optimise plcProg
-              if test
-              then putStrLn "!!! Compilation successful"
+              if test then putStrLn "!!! Compilation successful"
               else writeProgram outp ofmt mode uplcProg
 
 
@@ -246,7 +255,7 @@ main = do
     case comm of
         Analyse  opts -> loadPirAndAnalyse opts
         Compile  opts -> loadPirAndCompile opts
-        Convert  opts -> runConvert @PirProg opts
+        Convert  opts -> runConvert @PirProg (toConvertOptions opts)
         Optimise opts -> runOptimisations opts
         Print    opts -> runPrint opts
   where
