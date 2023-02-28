@@ -104,7 +104,7 @@ type CostingInteger = SatInt
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Read, Bounded)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
@@ -118,7 +118,7 @@ instance PrettyBy config ExMemory where
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Read, Bounded)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger

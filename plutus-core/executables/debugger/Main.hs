@@ -1,10 +1,12 @@
-{-# LANGUAGE ApplicativeDo     #-}
-{-# LANGUAGE ImplicitParams    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE ApplicativeDo       #-}
+{-# LANGUAGE ImplicitParams      #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData          #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 {- | A Plutus Core debugger TUI application.
 
@@ -17,12 +19,15 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Error
+import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
 import UntypedPlutusCore as UPLC
+import UntypedPlutusCore.Core.Zip
+import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 import UntypedPlutusCore.Parser qualified as UPLC
@@ -40,13 +45,30 @@ import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
 import Control.Monad.Except
 import Control.Monad.ST (RealWorld)
+import Data.Coerce
 import Data.Maybe
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
+import Data.Traversable
+import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Options.Applicative qualified as OA
-import UntypedPlutusCore.Core.Zip
+import Text.Megaparsec as MP
+import Text.Megaparsec.Char as MP
+import Text.Megaparsec.Char.Lexer as MP
+
+{- NOTE [Budgeting implementation for the debugger]
+To retrieve the budget(s) (spent and remaining), we cannot simply
+rely on `CekState`: the debuggable version of CEK tries to closely match the original CEK and
+so it also inherits its pluggable spenders/emitters approach. Thus, for the debugger as well
+we need to construct a budget mode (incl. a spender function) so we can have proper
+budget accounting.
+
+We could go with implementing a custom budget mode specifically for the
+debugger (e.g. one that can talk directly to brick via events), but we opted instead to reuse
+the `counting` and `restricting` modes, already built for the original cek.
+-}
 
 debuggerAttrMap :: B.AttrMap
 debuggerAttrMap =
@@ -65,6 +87,7 @@ data Options = Options
     { optUplcInput       :: Input
     , optUplcInputFormat :: Format
     , optHsPath          :: Maybe FilePath
+    , optBudgetLim       :: Maybe ExBudget
     }
 
 parseOptions :: OA.Parser Options
@@ -77,11 +100,22 @@ parseOptions = do
                       , OA.long "hs-file"
                       , OA.help "HS File"
                       ]
-    pure Options{..}
+    -- Having cpu mem as separate options complicates budget modes (counting vs restricting);
+    -- instead opt for having both present (cpu,mem) or both missing.
+    optBudgetLim <- OA.optional $ OA.option budgetReader $
+                    mconcat
+                      [ OA.metavar "INT,INT"
+                      , OA.long "budget"
+                      , OA.help "Limit the execution budget, given in terms of CPU,MEMORY"
+                      ]
+    pure Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim}
+  where
+      budgetReader = OA.maybeReader $ MP.parseMaybe @() budgetParser
+      budgetParser = ExBudget <$> MP.decimal <* MP.char ',' <*> MP.decimal
 
 main :: IO ()
 main = do
-    Options{..} <-
+    Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim} <-
         OA.execParser $
             OA.info
                 (parseOptions OA.<**> OA.helper)
@@ -135,6 +169,11 @@ main = do
                         ""
                 , _dsVLimitBottomEditors = 20
                 , _dsHLimitRightEditors = 100
+                , _dsBudgetData = BudgetData
+                    { _budgetSpent = mempty
+                      -- the initial remaining budget is based on the passed cli arguments
+                    , _budgetRemaining = optBudgetLim
+                    }
                 }
 
     let builder = Vty.mkVty Vty.defaultConfig
@@ -142,7 +181,7 @@ main = do
 
     -- TODO: find out if the driver-thread exits when brick exits
     -- or should we wait for driver-thread?
-    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplcDAnn
+    _dTid <- forkIO $ driverThread driverMailbox brickMailbox uplcDAnn optBudgetLim
 
     void $ B.customMain initialVty builder (Just brickMailbox) app initialState
 
@@ -150,46 +189,82 @@ main = do
 
  The driver operates in IO (not in BrickM): the only way to "influence" Brick is via the mailboxes
 -}
-driverThread ::
-    MVar (D.Cmd Breakpoints) ->
-    B.BChan CustomBrickEvent ->
-    Program Name DefaultUni DefaultFun DAnn ->
-    IO ()
-driverThread driverMailbox brickMailbox prog = do
+driverThread :: forall uni fun ann
+             .  (uni ~ DefaultUni, fun ~ DefaultFun, ann ~ DAnn)
+             => MVar (D.Cmd Breakpoints)
+             -> B.BChan CustomBrickEvent
+             -> Program Name uni fun ann
+             -> Maybe ExBudget
+             -> IO ()
+driverThread driverMailbox brickMailbox prog mbudget = do
     let term = prog ^. UPLC.progTerm
-        MachineParameters cekcosts cekruntime = PLC.defaultCekParameters
+        MachineParameters defaultCosts defaultRuntime = PLC.defaultCekParameters
     ndterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
-        Right t -> pure t
-        Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
-    let ?cekRuntime = cekruntime
-        ?cekEmitter = const $ pure ()
-        ?cekBudgetSpender = CekBudgetSpender $ \_ _ -> pure ()
-        ?cekCosts = cekcosts
-        ?cekSlippage = defaultSlippage
-     in D.iterM handle $ D.runDriver ndterm
-  where
-    -- \| Peels off one Free monad layer
-    handle ::
-        GivenCekReqs DefaultUni DefaultFun DAnn RealWorld =>
-        D.DebugF DefaultUni DefaultFun DAnn Breakpoints (IO ()) ->
-        IO ()
-    handle = \case
-        D.StepF prevState k  -> do
-            eNewState <- cekMToIO $ D.tryHandleStep prevState
-            -- if error then handle it , otherwise "kontinue"
-            either handleError k eNewState
-        D.InputF k           -> handleInput >>= k
-        D.LogF text k        -> handleLog text >> k
-        D.UpdateClientF ds k -> handleUpdate ds >> k
-      where
+            Right t -> pure t
+            Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
+
+    -- if user provided `--budget` the mode is restricting; otherwise just counting
+    -- See NOTE [Budgeting implementation for the debugger]
+    let ExBudgetMode initExBudgetInfo = case mbudget of
+            Just budgetLimit -> coerceMode $ restricting $ ExRestrictingBudget budgetLimit
+            _                -> coerceMode counting
+
+    exBudgetInfo@(ExBudgetInfo spender _ _) <- stToIO initExBudgetInfo
+
+    let ?cekRuntime = defaultRuntime
+        ?cekEmitter = const $ pure () -- TODO: implement emitter
+        ?cekBudgetSpender = spender
+        ?cekCosts = defaultCosts
+        -- The slippage optimization must be *off* to effectively
+        -- get *live* accounting/budgeting that is correct/up-to-date.
+        -- One way to achieve this is by setting slippage to 0 (1 would also work).
+        ?cekSlippage = 0
+     in D.iterM (handle exBudgetInfo) $ D.runDriver ndterm
+
+    where
+        -- this gets rid of the CountingSt/RestrictingSt newtype wrappers
+        -- See NOTE [Budgeting implementation for the debugger]
+        coerceMode :: Coercible cost ExBudget
+                   => ExBudgetMode cost uni fun
+                   -> ExBudgetMode ExBudget uni fun
+        coerceMode = coerce
+
+        -- Peels off one Free monad layer
+        -- Note to self: for some reason related to implicit params I cannot turn the following
+        -- into a let block and avoid passing exbudgetinfo as parameter
+        handle :: (s ~ RealWorld, GivenCekReqs uni fun ann s)
+               => ExBudgetInfo ExBudget uni fun s
+               -> D.DebugF uni fun ann Breakpoints (IO ())
+               -> IO ()
+        handle exBudgetInfo = \case
+          D.StepF prevState k  -> do
+              stepRes <- cekMToIO $ D.tryHandleStep prevState
+              -- if error then handle it, otherwise "kontinue"
+              case stepRes of
+                  Left e         -> handleError exBudgetInfo e
+                  Right newState -> k newState
+          D.InputF k           -> handleInput >>= k
+          D.LogF text k        -> handleLog text >> k
+          D.UpdateClientF ds k -> handleUpdate exBudgetInfo ds >> k
+
         handleInput = takeMVar driverMailbox
-        handleUpdate = B.writeBChan brickMailbox . UpdateClientEvent
-        handleLog = B.writeBChan brickMailbox . LogEvent
-        handleError =
-            B.writeBChan brickMailbox . ErrorEvent
+
+        handleUpdate exBudgetInfo cekState = do
+            bd <- readBudgetData exBudgetInfo
+            B.writeBChan brickMailbox $ UpdateClientEvent bd cekState
+
+        handleError exBudgetInfo e = do
+            bd <- readBudgetData exBudgetInfo
+            B.writeBChan brickMailbox $ ErrorEvent bd e
             -- no kontinuation in case of error, the driver thread exits
             -- FIXME: decide what should happen after the error occurs
             -- e.g. a user dialog to (r)estart the thread with a button
+
+        handleLog = B.writeBChan brickMailbox . LogEvent
+
+        readBudgetData :: ExBudgetInfo ExBudget uni fun RealWorld -> IO BudgetData
+        readBudgetData (ExBudgetInfo _ final cumulative) =
+            stToIO (BudgetData <$> cumulative <*> (for mbudget $ const final))
 
 -- | Read uplc code in a given format
 --
