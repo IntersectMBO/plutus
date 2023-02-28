@@ -20,6 +20,8 @@ module PlutusCore.Executable.Common
     , handleEResult
     , handleTimingResults
     , helpText
+    , loadTplcASTfromFlat
+    , parseInput
     , parseNamedProgram
     , printBudgetState
     , runConvert
@@ -28,6 +30,7 @@ module PlutusCore.Executable.Common
     , runPrintBuiltinSignatures
     , runPrintExample
     , timeEval
+    , topSrcSpan
     , writeFlat
     , writePrettyToFileOrStd
     , writeProgram
@@ -80,7 +83,7 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Flat (Flat)
+import Flat (Flat, unflat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter ((<+>))
 
@@ -296,6 +299,19 @@ parseInput inp = do
                 Right _ -> pure (contents, p)
 
 
+-- | Read and deserialise a Flat-encoded PIR/PLC AST
+loadTplcASTfromFlat :: Flat a => AstNameType -> Input -> IO a
+loadTplcASTfromFlat flatMode inp =
+    case flatMode of
+        Named         -> getBinaryInput inp >>= handleResult . unflat
+        DeBruijn      -> unsupported
+        NamedDeBruijn -> unsupported
+  where
+    handleResult =
+        \case
+            Left e  -> error $ "Flat deserialisation failure: " ++ show e
+            Right r -> return r
+
 -- Read a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
 getProgram :: forall p.
     ( ProgramLike p
@@ -312,8 +328,10 @@ getProgram fmt inp =
             prog <- loadASTfromFlat @p @() flatMode inp
             return $ topSrcSpan <$ prog
         where
-          topSrcSpan :: PLC.SrcSpan
-          topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
+
+-- | A made-up `SrcSpan` since there's no source locations in Flat.
+topSrcSpan :: PLC.SrcSpan
+topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 

@@ -12,7 +12,6 @@ import PlutusCore.DeBruijn (fakeNameDeBruijn, unNameDeBruijn, unNameTyDeBruijn)
 import PlutusIR qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Type qualified as PIR
-import PlutusIR.DeBruijn qualified as PIR
 
 import UntypedPlutusCore qualified as UPLC
 
@@ -21,6 +20,8 @@ import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
 import Flat (Flat, flat, unflat)
 
+
+unsupported = error "UNSUPPORTED"
 
 -- Flat serialisation in various formats.
 
@@ -83,21 +84,14 @@ toNamedDeBruijnPLC prog =
 
 -- | Convert a typed program to one where the 'name' type is de Bruijn indices.
 toDeBruijnPIR :: PirProg ann -> IO (PIR.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijnPIR prog =
-    case runExcept @PLC.FreeVariableError $ traverseOf PIR.progTerm PIR.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return $ PIR.programMapNames unNameTyDeBruijn unNameDeBruijn  p
-
+toDeBruijnPIR prog = unsupported
 {- | Convert a typed program to one where the 'name' type is textual names with de
  Bruijn indices.
 -}
 toNamedDeBruijnPIR ::
     PirProg ann ->
     IO (PIR.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toNamedDeBruijnPIR prog =
-    case runExcept @PLC.FreeVariableError $ traverseOf PIR.progTerm PIR.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
+toNamedDeBruijnPIR prog = unsupported
 
 
 -- Deserialising ASTs from Flat
@@ -118,26 +112,14 @@ loadPirASTfromFlat :: Flat a => AstNameType -> Input -> IO (PirProg a)
 loadPirASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named     -> handleResult $ unflat input
-        DeBruijn  -> do
-                    deserialised <- handleResult $ unflat input
-                    let namedProgram = PIR.programMapNames fakeTyNameDeBruijn fakeNameDeBruijn deserialised
-                    fromDeBruijn namedProgram
-        NamedDeBruijn -> do
-                    deserialised <- handleResult $ unflat input
-                    fromDeBruijn deserialised
+        Named         -> handleResult $ unflat input
+        DeBruijn      -> unsupported
+        NamedDeBruijn -> unsupported
     where
       handleResult =
           \case
            Left e  -> error $ "Flat deserialisation failure: " ++ show e
            Right r -> return r
-
-      fromDeBruijn :: PirProgramNdB ann -> IO (PirProg ann)
-      fromDeBruijn prog = do
-        case PLC.runQuote $
-             runExceptT @PLC.FreeVariableError $ traverseOf PIR.progTerm PIR.unDeBruijnTerm prog of
-          Left e  -> error $ show e
-          Right p -> return p
 
 
 -- | Read and deserialise a Flat-encoded PIR/PLC AST

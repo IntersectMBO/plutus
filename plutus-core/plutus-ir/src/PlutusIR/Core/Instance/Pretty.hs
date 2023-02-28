@@ -1,7 +1,4 @@
 {-# LANGUAGE LambdaCase            #-}
--- MonoLocalBinds is here just to turn off a warning for the
--- PrettyBy PrettyConfigPlc instances at the end of the file.
--- There's probably a better way to do this.
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}

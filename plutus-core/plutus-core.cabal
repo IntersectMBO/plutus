@@ -561,8 +561,10 @@ library plutus-core-execlib
   visibility:      public
   hs-source-dirs:  executables/src
   exposed-modules:
+    PlutusCore.Executable.AST
     PlutusCore.Executable.Common
     PlutusCore.Executable.Parsers
+    PlutusCore.Executable.Types
 
   build-depends:
     , aeson
