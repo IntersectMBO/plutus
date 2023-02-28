@@ -43,6 +43,7 @@ data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat Pr
 
 data PirConvertOptions = PirConvertOptions Input PirFormat Output PirFormat PrintMode
 
+-- | So that we can just use the generic `runConvert` function.
 toConvertOptions :: PirConvertOptions -> ConvertOptions
 toConvertOptions (PirConvertOptions inp ifmt outp ofmt mode) =
     ConvertOptions inp (pirFormatToFormat ifmt) outp (pirFormatToFormat ofmt) mode
