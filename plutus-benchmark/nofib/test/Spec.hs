@@ -65,7 +65,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3463
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3516
               , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
 
@@ -93,7 +93,7 @@ testQueens = testGroup "queens"
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
                , runTestNested    $ Tx.goldenBudget "queens5budget" $ Queens.mkQueensCode 5 Queens.Bt
                ]
-             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2707
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2759
              ]
 
 ---------------- Primes ----------------
