@@ -1,12 +1,10 @@
-let ~fAdditiveSemigroupInteger : (\a -> a -> a -> a) integer
-      = \(x : integer) (y : integer) -> addInteger x y
-    !bad_name : all a. (\a -> a -> a -> a) a -> a -> a -> a
-      = /\a -> \(v : (\a -> a -> a -> a) a) -> v
-    ~a : integer = bad_name {integer} fAdditiveSemigroupInteger 1 2
+let ~a : integer = addInteger 1 2
     data Bool | Bool_match where
       True : Bool
       False : Bool
 in Bool_match
      (ifThenElse {Bool} (lessThanInteger 3 4) True False) {all dead. integer}
-     (/\dead -> 5) (/\dead -> bad_name {integer} fAdditiveSemigroupInteger a a)
-     {all dead. dead}
+     (/\dead -> 5) (/\dead ->
+                      let !x : integer = a
+                          !y : integer = a
+                      in addInteger x y) {all dead. dead}

@@ -194,10 +194,6 @@ let !toHex : integer -> List string -> List string
                            {all dead. dead}) {all dead. dead}) {all dead. dead})
             {all dead. dead}
     !x : integer = -1234567890
-    !build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
-      = /\a ->
-          \(g : all b. (a -> b -> b) -> b -> b) ->
-            g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
     data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
       Tuple2 : a -> b -> Tuple2 a b
 in
@@ -218,21 +214,27 @@ letrec !go : all a. integer -> List a -> Tuple2 (List a) (List a)
                         {all dead. Tuple2 (List a) (List a)}
                         (/\dead ->
                            Tuple2
-                             {List a} {List a} (build
-                                                  {a} (/\a ->
-                                                         \(c : a -> a -> a) (n
-                                                          : a) ->
-                                                           c y n)) ys)
-                        (/\dead ->
-                           Tuple2_match
-                             {List a} {List a} (go
-                                                  {a} (subtractInteger ds 1) ys)
-                             {Tuple2 (List a) (List a)} (\(zs : List a) (ws
-                                                          : List a) ->
-                                                           Tuple2
-                                                             {List a} {List a}
-                                                             (Cons {a} y zs)
-                                                             ws))
+                             {List a} {List a} ((let a = List a
+                                                 in \(c : a -> a -> a) (n
+                                                     : a) ->
+                                                      c y n)
+                                                  (\(ds : a) (ds : List a) ->
+                                                     Cons {a} ds ds) (Nil {a}))
+                             ys) (/\dead ->
+                                    Tuple2_match
+                                      {List a} {List a} (go
+                                                           {a} (subtractInteger
+                                                                  ds 1) ys)
+                                      {Tuple2 (List a) (List a)} (\(zs : List a)
+                                                                   (ws
+                                                                   : List a) ->
+                                                                    Tuple2
+                                                                      {List a}
+                                                                      {List a}
+                                                                      (Cons
+                                                                         {a} y
+                                                                         zs)
+                                                                      ws))
                         {all dead. dead}) {all dead. dead}
 in
 letrec !fEnumBool_cenumFromTo : integer -> integer -> List integer
@@ -355,10 +357,11 @@ let !fShowInteger_cshow : integer -> string
       = trace
           {integer} (let !dShow : Show integer = fShowInteger
                          !x : List integer
-                           = build
-                               {integer} (/\a ->
-                                            \(c : integer -> a -> a) (n : a) ->
-                                              c a (c b (c c (c d n))))
+                           = (let a = List integer in \(c : integer -> a -> a)
+                                                       (n : a) ->
+                                                        c a (c b (c c (c d n))))
+                               (\(ds : integer) (ds : List integer) ->
+                                  Cons {integer} ds ds) (Nil {integer})
                      in concatBuiltinStrings
                           (let !w : integer -> List string -> List string
                                  = showsPrec {integer} dShow 0
