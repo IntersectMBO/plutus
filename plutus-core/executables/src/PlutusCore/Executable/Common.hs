@@ -15,15 +15,14 @@ module PlutusCore.Executable.Common
     , getInteresting
     , getPlcExamples
     , getPrintMethod
-    , getProgram
     , getUplcExamples
     , handleEResult
     , handleTimingResults
     , helpText
-    , loadTplcASTfromFlat
     , parseInput
     , parseNamedProgram
     , printBudgetState
+    , readProgram
     , runConvert
     , runDumpModel
     , runPrint
@@ -39,7 +38,7 @@ module PlutusCore.Executable.Common
 
 import PlutusPrelude
 
-import PlutusCore.Executable.AST
+import PlutusCore.Executable.AstIO
 import PlutusCore.Executable.Types
 
 import PlutusCore qualified as PLC
@@ -83,7 +82,7 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Flat (Flat, unflat)
+import Flat (Flat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter ((<+>))
 
@@ -298,22 +297,8 @@ parseInput inp = do
                     error $ PP.render $ pretty err
                 Right _ -> pure (contents, p)
 
-
--- | Read and deserialise a Flat-encoded PIR/PLC AST
-loadTplcASTfromFlat :: Flat a => AstNameType -> Input -> IO a
-loadTplcASTfromFlat flatMode inp =
-    case flatMode of
-        Named         -> getBinaryInput inp >>= handleResult . unflat
-        DeBruijn      -> unsupported
-        NamedDeBruijn -> unsupported
-  where
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
 -- Read a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
-getProgram :: forall p.
+readProgram :: forall p.
     ( ProgramLike p
     , Functor p
     , PLC.Rename (p PLC.SrcSpan)
@@ -321,7 +306,7 @@ getProgram :: forall p.
     Format ->
     Input ->
     IO (p PLC.SrcSpan)
-getProgram fmt inp =
+readProgram fmt inp =
     case fmt of
         Textual -> snd <$> parseInput inp
         Flat flatMode -> do
@@ -610,7 +595,7 @@ typeSchemeToSignature = toSig []
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
-    let builtins = enumerate @UPLC.DefaultFun
+    let builtins = enumerate @PLC.DefaultFun
     mapM_
       (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
@@ -647,5 +632,5 @@ runConvert
     => ConvertOptions
     -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program :: p PLC.SrcSpan <- getProgram ifmt inp
+    program :: p PLC.SrcSpan <- readProgram ifmt inp
     writeProgram outp ofmt mode program

@@ -197,7 +197,7 @@ plutusOpts = hsubparser $
 -- | Run the UPLC optimisations
 runOptimisations:: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-    prog <- getProgram ifmt inp :: IO (UplcProg SrcSpan)
+    prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
     simplified <- PLC.runQuoteT $ do
                     renamed <- PLC.rename prog
                     UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
@@ -209,7 +209,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   scripts <-
-    mapM ((getProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+    mapM ((readProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -220,7 +220,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
@@ -264,7 +264,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
 
 runDbg :: DbgOptions -> IO ()
 runDbg (DbgOptions inp ifmt cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
         !_ = rnf term
         nterm = fromRight (error "Term to debug must be closed.") $

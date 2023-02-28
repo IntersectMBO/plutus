@@ -8,6 +8,12 @@ import PlutusCore.Executable.Types
 
 import Options.Applicative
 
+-- | Invert a switch: return False if the switch is supplied on the command
+-- line, True otherwise.  This is used for command-line options to turn things
+-- off.
+invertedSwitch :: Mod FlagFields Bool -> Parser Bool
+invertedSwitch = fmap not . switch
+
 -- | Parser for an input stream. If none is specified,
 -- default to stdin for ease of use in pipeline.
 input :: Parser Input
@@ -152,3 +158,55 @@ exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
+
+
+-- Specialised parsers for PIR, which only supports ASTs over the Textual and
+-- Named types.
+
+pirFormatHelp :: String
+pirFormatHelp =
+  "textual or flat-named (names)"
+
+pirFormatReader :: String -> Maybe PirFormat
+pirFormatReader =
+    \case
+         "textual"    -> Just TextualPir
+         "flat-named" -> Just FlatNamed
+         "flat"       -> Just FlatNamed
+         _            -> Nothing
+
+pPirInputFormat :: Parser PirFormat
+pPirInputFormat = option (maybeReader pirFormatReader)
+  (  long "if"
+  <> long "input-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Input format: " ++ pirFormatHelp))
+
+pPirOutputFormat :: Parser PirFormat
+pPirOutputFormat = option (maybeReader pirFormatReader)
+  (  long "of"
+  <> long "output-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Output format: " ++ pirFormatHelp))
+
+languageReader :: String -> Maybe Language
+languageReader =
+    \case
+         "plc"  -> Just PLC
+         "uplc" -> Just UPLC
+         _      -> Nothing
+
+pLanguage :: Parser Language
+pLanguage = option (maybeReader languageReader)
+  (  long "language"
+  <> short 'l'
+  <> metavar "LANGUAGE"
+  <> value UPLC
+  <> showDefaultWith ( \case PLC -> "plc" ; UPLC -> "uplc" )
+  <> help ("Target language: plc or uplc")
+  )
+

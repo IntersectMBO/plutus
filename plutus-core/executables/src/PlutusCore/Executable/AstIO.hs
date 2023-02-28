@@ -2,47 +2,37 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusCore.Executable.AST where
+-- | Reading and writing ASTs with various name types in flat format.
+
+module PlutusCore.Executable.AstIO
+    ( serialisePirProgramFlat
+    , serialisePlcProgramFlat
+    , serialiseUplcProgramFlat
+    , loadPirASTfromFlat
+    , loadPlcASTfromFlat
+    , loadUplcASTfromFlat)
+where
 
 import PlutusCore.Executable.Types
 
 import PlutusCore qualified as PLC
 import PlutusCore.DeBruijn (fakeNameDeBruijn, unNameDeBruijn, unNameTyDeBruijn)
 
-import PlutusIR qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
-import PlutusIR.Core.Type qualified as PIR
 
 import UntypedPlutusCore qualified as UPLC
 
-import Control.Lens hiding (ix, op)
-import Control.Monad.Except
+import Control.Lens (traverseOf)
+import Control.Monad.Except (runExcept, runExceptT)
 import Data.ByteString.Lazy qualified as BSL
 import Flat (Flat, flat, unflat)
 
-
-unsupported = error "UNSUPPORTED"
-
--- Flat serialisation in various formats.
-
-serialisePirProgramFlat nameType p =
-    case nameType of
-      Named         -> pure $ BSL.fromStrict $ flat p
-      DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnPIR p
-      NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnPIR p
-
-serialisePlcProgramFlat nameType p =
-        case nameType of
-          Named         -> pure $ BSL.fromStrict $ flat p
-          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnPLC p
-          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnPLC p
-
-serialiseUplcProgramFlat nameType p =
-        case nameType of
-          Named         -> pure $ BSL.fromStrict $ flat p
-          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnUPLC p
-          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnUPLC p
-
+-- | PIR does not support names involving de Bruijn indices. We do allow these
+-- formats here to facilitate code sharing, but issue the error below if they're
+-- encountered.  This should never happen in practice because the options
+-- parsers for the `pir` command only accept the Named and Textual formats.
+unsupported :: AstNameType -> a
+unsupported nameType = error $ "ASTs with " ++ show nameType ++ " names are not supported for PIR"
 
 ---------------- Name conversions ----------------
 
@@ -82,16 +72,40 @@ toNamedDeBruijnPLC prog =
         Left e  -> error $ show e
         Right p -> return p
 
--- | Convert a typed program to one where the 'name' type is de Bruijn indices.
-toDeBruijnPIR :: PirProg ann -> IO (PIR.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijnPIR prog = unsupported
-{- | Convert a typed program to one where the 'name' type is textual names with de
- Bruijn indices.
--}
-toNamedDeBruijnPIR ::
-    PirProg ann ->
-    IO (PIR.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toNamedDeBruijnPIR prog = unsupported
+
+-- Flat serialisation in various formats.
+
+serialisePirProgramFlat
+    :: Flat ann
+    => AstNameType
+    -> PirProg ann
+    -> IO BSL.ByteString
+serialisePirProgramFlat nameType p =
+    case nameType of
+      Named -> pure $ BSL.fromStrict $ flat p
+      _     -> unsupported nameType
+
+serialisePlcProgramFlat
+    :: Flat ann
+    => AstNameType
+    -> PlcProg ann
+    -> IO BSL.ByteString
+serialisePlcProgramFlat nameType p =
+        case nameType of
+          Named         -> pure $ BSL.fromStrict $ flat p
+          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnPLC p
+          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnPLC p
+
+serialiseUplcProgramFlat
+    :: Flat ann
+    => AstNameType
+    -> UplcProg ann
+    -> IO BSL.ByteString
+serialiseUplcProgramFlat nameType p =
+        case nameType of
+          Named         -> pure $ BSL.fromStrict $ flat p
+          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnUPLC p
+          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnUPLC p
 
 
 -- Deserialising ASTs from Flat
@@ -100,7 +114,6 @@ fakeTyNameDeBruijn :: PLC.DeBruijn -> PLC.NamedTyDeBruijn
 fakeTyNameDeBruijn = PLC.NamedTyDeBruijn . fakeNameDeBruijn
 
 type UplcProgramNdB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PirProgramNdB ann = PIR.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 type PlcProgramNdB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
@@ -112,9 +125,8 @@ loadPirASTfromFlat :: Flat a => AstNameType -> Input -> IO (PirProg a)
 loadPirASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named         -> handleResult $ unflat input
-        DeBruijn      -> unsupported
-        NamedDeBruijn -> unsupported
+        Named -> handleResult $ unflat input
+        _     -> unsupported flatMode
     where
       handleResult =
           \case

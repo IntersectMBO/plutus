@@ -111,7 +111,7 @@ plutusOpts = hsubparser $
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
+  scripts <- mapM ((readProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -122,7 +122,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-  prog <- getProgram fmt inp
+  prog <- readProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
     PLC.inferTypeOfProgram tcConfig (void prog)
@@ -136,7 +136,7 @@ runTypecheck (TypecheckOptions inp fmt) = do
 
 runOptimisations:: OptimiseOptions -> IO ()
 runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
-  prog <- getProgram ifmt inp  :: IO (PlcProg PLC.SrcSpan)
+  prog <- readProgram ifmt inp  :: IO (PlcProg PLC.SrcSpan)
   let optimised = prog  -- No PLC optimisations at present!
   writeProgram outp ofmt mode optimised
 
@@ -145,7 +145,7 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode timingMode) = do
-  prog <- getProgram ifmt inp
+  prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
       term = void $ prog ^. PLC.progTerm
       !_ = rnf term
@@ -166,7 +166,7 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
+  typedProg <- (readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
   let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
