@@ -246,32 +246,13 @@ letrec !fEnumBool_cenumFromTo : integer -> integer -> List integer
 in
 let !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
       = \(w : integer) (w : integer) -> wcshowsPrec w
-    data (Monoid :: * -> *) a | Monoid_match where
-      CConsMonoid : (\a -> a -> a -> a) a -> a -> Monoid a
-    !p1Monoid : all a. Monoid a -> (\a -> a -> a -> a) a
-      = /\a ->
-          \(v : Monoid a) ->
-            Monoid_match
-              {a} v {(\a -> a -> a -> a) a} (\(v : (\a -> a -> a -> a) a) (v
-                                              : a) ->
-                                               v)
-    !mempty : all a. Monoid a -> a
-      = /\a ->
-          \(v : Monoid a) ->
-            Monoid_match {a} v {a} (\(v : (\a -> a -> a -> a) a) (v : a) -> v)
 in
-letrec !fFoldableNil_cfoldMap
-         : all m. all a. Monoid m -> (a -> m) -> List a -> m
-         = /\m a ->
-             \(dMonoid : Monoid m) (eta : a -> m) (eta : List a) ->
-               Nil_match
-                 {a} eta {all dead. m} (/\dead -> mempty {m} dMonoid)
-                 (\(x : a) (xs : List a) ->
-                    /\dead ->
-                      p1Monoid
-                        {m} dMonoid (eta x) (fFoldableNil_cfoldMap
-                                               {m} {a} dMonoid eta xs))
-                 {all dead. dead}
+letrec !go : List string -> integer -> integer
+         = \(ds : List string) (eta : integer) ->
+             Nil_match
+               {string} ds {all dead. integer} (/\dead -> eta)
+               (\(x : string) (xs : List string) ->
+                  /\dead -> go xs (addInteger eta 1)) {all dead. dead}
 in
 let data (UTuple2 :: * -> * -> *) a b | UTuple2_match where
       UTuple2 : a -> b -> UTuple2 a b
@@ -279,27 +260,7 @@ in
 letrec !concatBuiltinStrings : List string -> string
          = \(ds : List string) ->
              let ~ds : Tuple2 (List string) (List string)
-                   = let !w : integer
-                           = divideInteger
-                               (fFoldableNil_cfoldMap
-                                  {(\a -> a) ((\a -> a -> a) integer)} {string}
-                                  ((let a = (\a -> a -> a) integer
-                                    in \(v : Monoid a) ->
-                                         CConsMonoid
-                                           {(\a -> a) a} (\(eta : (\a -> a) a)
-                                                           (eta
-                                                           : (\a -> a) a) ->
-                                                            p1Monoid
-                                                              {a} v eta eta)
-                                           (mempty {a} v))
-                                     (CConsMonoid
-                                        {(\a -> a -> a) integer}
-                                        (\(ds : (\a -> a -> a) integer) (ds
-                                          : (\a -> a -> a) integer) (x
-                                          : integer) ->
-                                           ds (ds x)) (id {integer})))
-                                  (\(x : string) (y : integer) ->
-                                     addInteger y 1) ds 0) 2
+                   = let !w : integer = divideInteger (go ds 0) 2
                      in UTuple2_match
                           {List string} {List string}
                           (Bool_match
