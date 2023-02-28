@@ -31,8 +31,8 @@ import Flat (Flat, flat, unflat)
 -- formats here to facilitate code sharing, but issue the error below if they're
 -- encountered.  This should never happen in practice because the options
 -- parsers for the `pir` command only accept the Named and Textual formats.
-unsupported :: AstNameType -> a
-unsupported nameType = error $ "ASTs with " ++ show nameType ++ " names are not supported for PIR"
+unsupportedNameTypeError :: AstNameType -> a
+unsupportedNameTypeError nameType = error $ "ASTs with " ++ show nameType ++ " names are not supported for PIR"
 
 ---------------- Name conversions ----------------
 
@@ -83,7 +83,7 @@ serialisePirProgramFlat
 serialisePirProgramFlat nameType p =
     case nameType of
       Named -> pure $ BSL.fromStrict $ flat p
-      _     -> unsupported nameType
+      _     -> unsupportedNameTypeError nameType
 
 serialisePlcProgramFlat
     :: Flat ann
@@ -126,7 +126,7 @@ loadPirASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
         Named -> handleResult $ unflat input
-        _     -> unsupported flatMode
+        _     -> unsupportedNameTypeError flatMode
     where
       handleResult =
           \case
