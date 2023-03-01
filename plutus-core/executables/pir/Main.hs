@@ -37,6 +37,20 @@ import Text.Megaparsec (errorBundlePretty)
 type PirError a = PIR.Error PLC.DefaultUni PLC.DefaultFun a
 type UnitProvenance = PIR.Provenance ()
 
+
+{- Note [De Bruijn indices and PIR]
+   The `plc` and `uplc` commands both support ASTs whose "names" are de Bruijn
+   inidces.  These aren't supported for PIR because PIR has `Let` blocks of
+   possibly mutually recursive definitions and it's not clear whether de Bruijn
+   indices (or levels) really make sense in the presence of mutual recursion
+   since scopes aren't properly nested in that case: if we process the AST in
+   the normal way then a declaration may have to refer to another variable which
+   hasn't yet been declared.  It may be possbile to overcome this by allowing
+   scopes which introduce multiple variables at once, but this would require
+   some lookahead or CPS-type technique which would lead to quite complex code
+   for a feature that we don't really need.
+-}
+
 ---------------- Types for command line options ----------------
 
 data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat PrintMode
@@ -127,6 +141,7 @@ pPirOptions = hsubparser $
            where
              analyse desc = info (Analyse <$> pAnalyseOptions) $ progDesc desc
              optimise desc = info (Optimise <$> pPirOptimiseOptions) $ progDesc desc
+
 
 ---------------- Compilation ----------------
 
@@ -236,6 +251,7 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
         case outp of
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
+
 
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.

@@ -119,7 +119,9 @@ class ProgramLike p where
 -- | Instance for PIR program.
 instance ProgramLike PirProg where
     parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-    checkUniques _ = pure () -- decided that it's not worth implementing since it's checked in PLC.
+    checkUniques _ = pure ()
+    -- ^ decided that it's not worth implementing since it's checked in PLC (and
+    -- PIR has no Unique check at the moment anyway)
     serialiseProgramFlat = serialisePirProgramFlat
     loadASTfromFlat = loadPirASTfromFlat
 
