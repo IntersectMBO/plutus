@@ -15,6 +15,7 @@ module PlutusCore.Executable.Common
     , getInteresting
     , getPlcExamples
     , getPrintMethod
+    , getProgram
     , getUplcExamples
     , handleEResult
     , handleTimingResults
