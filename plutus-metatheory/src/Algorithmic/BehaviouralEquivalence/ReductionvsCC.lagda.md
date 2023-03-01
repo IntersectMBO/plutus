@@ -5,7 +5,7 @@ layout: page
 
 
 ```
-module Algorithmic.Correspondence.ReductionvsCC where
+module Algorithmic.BehaviouralEquivalence.ReductionvsCC where
 ```
 
 ## Imports

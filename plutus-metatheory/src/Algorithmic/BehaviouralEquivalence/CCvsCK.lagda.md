@@ -1,7 +1,7 @@
 # CK machine
 
 ```
-module Algorithmic.Correspondence.CCvsCK where
+module Algorithmic.BehaviouralEquivalence.CCvsCK where
 ```
 
 ## Imports
@@ -50,12 +50,12 @@ open Value
 open EC
 
 import Algorithmic.CC as CC
-import Algorithmic.Correspondence.ReductionvsCC as CC
+import Algorithmic.BehaviouralEquivalence.ReductionvsCC as CC
 
 open import Algorithmic.CK
 ```
 
-# Correspondence
+# BehaviouralEquivalence
 
 ```
 {-# TERMINATING #-}

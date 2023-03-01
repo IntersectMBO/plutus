@@ -133,7 +133,7 @@ import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.CC
 import Algorithmic.CK
-import Algorithmic.CEKV
+import Algorithmic.CEK
 
 import Algorithmic.Examples
 ```
@@ -152,9 +152,9 @@ There are proofs of correspondence of the semantics of:
  * (typed) CEK machine
 
 ```
-import Algorithmic.Correspondence.ReductionvsCC
-import Algorithmic.Correspondence.CCvsCK
-import Algorithmic.Correspondence.CKvsCEKV
+import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+import Algorithmic.BehaviouralEquivalence.CCvsCK
+import Algorithmic.BehaviouralEquivalence.CKvsCEK
 ```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 

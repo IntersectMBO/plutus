@@ -1,7 +1,7 @@
 # CEK behavioural equivalence with CK machine
 
 ```
-module Algorithmic.Correspondence.CKvsCEKV where
+module Algorithmic.BehaviouralEquivalence.CKvsCEK where
 
 open import Data.Empty using (⊥-elim)
 open import Data.Product using (∃)
@@ -28,10 +28,10 @@ open TyCon
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open TermCon
 
-open import Algorithmic.CEKV
+open import Algorithmic.CEK
 import Algorithmic.ReductionEC as Red
 import Algorithmic.CK as CK
-import Algorithmic.Correspondence.CCvsCK as CK
+import Algorithmic.BehaviouralEquivalence.CCvsCK as CK
 import Algorithmic.CC as CC
 
 -- convert CK things to CEK things

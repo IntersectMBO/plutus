@@ -1,7 +1,7 @@
 # CEK machine that discharges builtin args
 
 ```
-module Algorithmic.CEKV where
+module Algorithmic.CEK where
 
 --open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ;zero;suc)
