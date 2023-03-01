@@ -45,7 +45,7 @@ import Data.DList (DList)
 import Data.Either.Extras
 import Data.String
 import Data.Text (Text)
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (inline, lazy, oneShot)
 import GHC.TypeLits
 import Universe
 
@@ -371,7 +371,7 @@ class uni ~ UniOf val => MakeKnownIn uni val a where
     --
     -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
     -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromValue $! x
+    makeKnown x = lazy $ pure . fromValue $! x
     {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
