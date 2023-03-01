@@ -19,6 +19,7 @@ module PlutusCore.Executable.Common
     , handleEResult
     , handleTimingResults
     , helpText
+    , loadASTfromFlat
     , parseInput
     , parseNamedProgram
     , printBudgetState
