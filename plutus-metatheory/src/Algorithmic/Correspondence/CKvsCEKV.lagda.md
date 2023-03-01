@@ -1,4 +1,4 @@
-# CEK behavioural equivalen with CK machine
+# CEK behavioural equivalence with CK machine
 
 ```
 module Algorithmic.Correspondence.CKvsCEKV where
