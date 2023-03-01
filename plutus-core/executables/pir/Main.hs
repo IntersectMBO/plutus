@@ -43,7 +43,8 @@ data PirOptimiseOptions = PirOptimiseOptions Input PirFormat Output PirFormat Pr
 
 data PirConvertOptions = PirConvertOptions Input PirFormat Output PirFormat PrintMode
 
--- | So that we can just use the generic `runConvert` function.
+-- | So that we can just use the generic `runConvert` function but still
+-- disallow unsupported name types.
 toConvertOptions :: PirConvertOptions -> ConvertOptions
 toConvertOptions (PirConvertOptions inp ifmt outp ofmt mode) =
     ConvertOptions inp (pirFormatToFormat ifmt) outp (pirFormatToFormat ofmt) mode
@@ -130,16 +131,19 @@ pPirOptions = hsubparser $
 ---------------- Compilation ----------------
 
 compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcTerm UnitProvenance)
-compileToPlc optimise (PIR.Program _ pirT) = do
+compileToPlc optimise (PIR.Program _ term) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
-    let pirCtx = defaultCompilationCtx plcTcConfig
-    runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
+    let ctx = getCtx plcTcConfig
+    runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileTerm term
   where
-    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+    getCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
-    defaultCompilationCtx plcTcConfig =
-      PIR.toDefaultCompilationCtx plcTcConfig &
-         PIR.ccOpts . PIR.coOptimize .~ optimise
+    getCtx plcTcConfig =
+      PIR.toDefaultCompilationCtx plcTcConfig
+         & PIR.ccOpts . PIR.coOptimize .~ optimise
+    -- See PlutusIR.Compiler.Types.CompilerOpts for other compilation flags,
+    -- including coPedantic, which causes the result of every stage in the
+    -- pipeline to be typechecked.
 
 compileToUplc :: Bool -> PlcProg () -> UplcProg ()
 compileToUplc optimise plcProg =
@@ -173,9 +177,16 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
 doOptimisations :: PirTerm PLC.SrcSpan -> Either (PirError UnitProvenance) (PirTerm UnitProvenance)
 doOptimisations term = do
   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
-  let ctx = PIR.toDefaultCompilationCtx plcTcConfig
-      term' = (PIR.Original ()) <$ term
-  runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm term'
+  let ctx = getCtx plcTcConfig
+  runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm =<< PLC.rename (PIR.Original () <$ term)
+  where
+    getCtx
+        :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+        -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
+    getCtx plcTcConfig =
+      PIR.toDefaultCompilationCtx plcTcConfig
+         & PIR.ccOpts . PIR.coOptimize .~ True
+         -- This is on by default anyway, but let's make certain.
 
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()

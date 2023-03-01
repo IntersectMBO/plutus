@@ -70,7 +70,7 @@ plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -86,12 +86,8 @@ plutusOpts = hsubparser $
     <> command "typecheck"
            (info (Typecheck <$> typecheckOpts)
             (progDesc "Typecheck a typed Plutus Core program."))
-    <> command "optimise"
-           (info (Optimise <$> optimiseOpts)
-            (progDesc "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations."))
-    <> command "optimize"
-           (info (Optimise <$> optimiseOpts)
-            (progDesc "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations."))
+    <> command "optimise" (optimise "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations.")
+    <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "erase"
            (info (Erase <$> eraseOpts)
             (progDesc "Convert a typed Plutus Core program to an untyped one."))
@@ -100,10 +96,11 @@ plutusOpts = hsubparser $
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
     <> command "dump-model"
            (info (pure DumpModel)
-            (progDesc "Dump the cost model parameters"))
+            (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
-            (progDesc "Print the signatures of the built-in functions"))
+            (progDesc "Print the signatures of the built-in functions."))
+    where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
 
 ---------------- Script application ----------------

@@ -172,7 +172,6 @@ pirFormatReader =
     \case
          "textual"    -> Just TextualPir
          "flat-named" -> Just FlatNamed
-         "flat"       -> Just FlatNamed
          _            -> Nothing
 
 pPirInputFormat :: Parser PirFormat

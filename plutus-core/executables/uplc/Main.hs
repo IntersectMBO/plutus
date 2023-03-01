@@ -159,19 +159,15 @@ plutusOpts = hsubparser $
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, " <>
             "output a script consisting of (... ((f g1) g2) ... gn); " <>
             "for example, 'uplc apply --if " <>
-            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
     <> command "convert"
            (info (Convert <$> convertOpts)
-            (progDesc "Convert a program between various formats"))
-    <> command "optimise"
-           (info (Optimise <$> optimiseOpts)
-            (progDesc "Run the UPLC optimisation pipeline on the input"))
-    <> command "optimize"
-           (info (Optimise <$> optimiseOpts)
-            (progDesc "Run the UPLC optimisation pipeline on the input"))
+            (progDesc "Convert a program between various formats."))
+    <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
+    <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "example"
            (info (Example <$> exampleOpts)
             (progDesc $ "Show a program example. "
@@ -186,10 +182,11 @@ plutusOpts = hsubparser $
             (progDesc "Debug an untyped Plutus Core program using the CEK machine."))
     <> command "dump-model"
            (info (pure DumpModel)
-            (progDesc "Dump the cost model parameters"))
+            (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
-            (progDesc "Print the signatures of the built-in functions"))
+            (progDesc "Print the signatures of the built-in functions."))
+    where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
 
 ---------------- Optimisation ----------------
