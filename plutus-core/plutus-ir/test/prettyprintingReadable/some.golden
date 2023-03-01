@@ -1,3 +1,5 @@
-let data (Some_0 :: (* -> *) -> *) (f_1 :: * -> *) | match_Some_2 where
-      MkSome_3 : all a_4. f_1 a_4 -> Some_0 f_1
-in /\a_4 -> \(x_5 : a_4) -> x_5
+let
+  data (Some_0 :: (* -> *) -> *) (f_1 :: * -> *) | match_Some_2 where
+    MkSome_3 : all a_4. f_1 a_4 -> Some_0 f_1
+in
+/\a_4 -> \(x_5 : a_4) -> x_5
