@@ -43,7 +43,7 @@ data AstNameType
     = Named
     | DeBruijn
     | NamedDeBruijn
-    deriving Show
+    deriving stock Show
 
 data Input = FileInput FilePath | StdInput
 instance Show Input where
