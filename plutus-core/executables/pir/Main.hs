@@ -210,18 +210,18 @@ loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
     -- load pir and make sure that it is globally unique (required for retained size)
     p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
-    let PIR.Program _ pirT = PLC.runQuote . PLC.rename $ () <$ p
+    let PIR.Program _ term = PLC.runQuote . PLC.rename $ () <$ p
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
-        names = pirT ^.. termSubtermsDeep.termBindings.bindingNames ++
-                pirT ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
+        names = term ^.. termSubtermsDeep.termBindings.bindingNames ++
+                term ^.. termSubtermsDeep.termBindings.bindingTyNames.coerced
         -- a helper lookup table of uniques to their textual representation
         nameTable :: IM.IntMap T.Text
         nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
-        retentionMap = PIR.termRetentionMap def pirT
+        retentionMap = PIR.termRetentionMap def term
         -- sort the map by decreasing retained size
         sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
 
