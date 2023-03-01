@@ -138,7 +138,7 @@ test-suite plutus-ledger-api-test
 
   build-depends:
     , barbies
-    , base                       >=4.9 && <5
+    , base                                                              >=4.9 && <5
     , bytestring
     , containers
     , extra
@@ -146,9 +146,9 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core                ^>=1.2
-    , plutus-ledger-api          ^>=1.2
-    , plutus-ledger-api-testlib  ^>=1.2
+    , plutus-core                                                       ^>=1.2
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.2
+    , plutus-tx:plutus-tx-testlib                                       ^>=1.2
     , tasty
     , tasty-hedgehog
     , tasty-hunit

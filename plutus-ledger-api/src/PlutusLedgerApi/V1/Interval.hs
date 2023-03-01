@@ -44,6 +44,7 @@ import PlutusTx qualified
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude
 
+-- See Note [Enumerable Intervals]
 {- | An interval of @a@s.
 
 The interval may be either closed or open at either end, meaning
@@ -55,7 +56,7 @@ The 'Haskell.Eq'uality of two intervals is specified as the canonical, structura
 the equality of the elements of their two underlying sets; the same holds for 'Haskell.Ord'.
 -}
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
-    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
 
 instance Functor Interval where
@@ -66,7 +67,7 @@ instance Pretty a => Pretty (Interval a) where
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
-    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
 
 instance Functor Extended where
@@ -79,13 +80,29 @@ instance Pretty a => Pretty (Extended a) where
     pretty PosInf     = pretty "+∞"
     pretty (Finite a) = pretty a
 
+-- See Note [Enumerable Intervals]
 -- | Whether a bound is inclusive or not.
 type Closure = Bool
 
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
+
+-- | For an enumerable type, turn an upper bound into a single inclusive
+-- bounding value.
+--
+-- Since the type is enumerable, non-inclusive bounds are equivalent
+-- to inclusive bounds on the predecessor.
+--
+-- See Note [Enumerable Intervals]
+strictUpperValue :: Enum a => UpperBound a -> Extended a
+-- already inclusive
+strictUpperValue (UpperBound v True)           = v
+-- take pred
+strictUpperValue (UpperBound (Finite x) False) = Finite $ pred x
+-- an infinity: inclusive/non-inclusive makes no difference
+strictUpperValue (UpperBound v False)          = v
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
@@ -98,8 +115,23 @@ instance Pretty a => Pretty (UpperBound a) where
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
-    deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
+
+-- | For an enumerable type, turn an lower bound into a single inclusive
+-- bounding value.
+--
+-- Since the type is enumerable, non-inclusive bounds are equivalent
+-- to inclusive bounds on the successor.
+--
+-- See Note [Enumerable Intervals]
+strictLowerValue :: Enum a => LowerBound a -> Extended a
+-- already inclusive
+strictLowerValue (LowerBound v True)           = v
+-- take succ
+strictLowerValue (LowerBound (Finite x) False) = Finite $ succ x
+-- an infinity: inclusive/non-inclusive makes no difference
+strictLowerValue (LowerBound v False)          = v
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c
@@ -127,6 +159,9 @@ instance Eq a => Eq (Extended a) where
     Finite l == Finite r = l == r
     _        == _        = False
 
+instance Eq a => Haskell.Eq (Extended a) where
+    (==) = (==)
+
 instance Ord a => Ord (Extended a) where
     {-# INLINABLE compare #-}
     NegInf   `compare` NegInf   = EQ
@@ -137,31 +172,40 @@ instance Ord a => Ord (Extended a) where
     PosInf   `compare` _        = GT
     Finite l `compare` Finite r = l `compare` r
 
-instance Eq a => Eq (UpperBound a) where
+instance Ord a => Haskell.Ord (Extended a) where
+    compare = compare
+
+-- See Note [Enumerable Intervals]
+instance (Enum a, Eq a) => Eq (UpperBound a) where
     {-# INLINABLE (==) #-}
-    UpperBound v1 in1 == UpperBound v2 in2 = v1 == v2 && in1 == in2
+    b1 == b2 = strictUpperValue b1 == strictUpperValue b2
 
-instance Ord a => Ord (UpperBound a) where
+instance (Enum a, Eq a) => Haskell.Eq (UpperBound a) where
+    (==) = (==)
+
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => Ord (UpperBound a) where
     {-# INLINABLE compare #-}
-    UpperBound v1 in1 `compare` UpperBound v2 in2 = case v1 `compare` v2 of
-        LT -> LT
-        GT -> GT
-        -- A closed upper bound is bigger than an open upper bound. This corresponds
-        -- to the normal order on Bool.
-        EQ -> in1 `compare` in2
+    b1 `compare` b2 = strictUpperValue b1 `compare` strictUpperValue b2
 
-instance Eq a => Eq (LowerBound a) where
+instance (Enum a, Ord a) => Haskell.Ord (UpperBound a) where
+    compare = compare
+
+-- See Note [Enumerable Intervals]
+instance (Enum a, Eq a) => Eq (LowerBound a) where
     {-# INLINABLE (==) #-}
-    LowerBound v1 in1 == LowerBound v2 in2 = v1 == v2 && in1 == in2
+    b1 == b2 = strictLowerValue b1 == strictLowerValue b2
 
-instance Ord a => Ord (LowerBound a) where
+instance (Enum a, Eq a) => Haskell.Eq (LowerBound a) where
+    (==) = (==)
+
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => Ord (LowerBound a) where
     {-# INLINABLE compare #-}
-    LowerBound v1 in1 `compare` LowerBound v2 in2 = case v1 `compare` v2 of
-        LT -> LT
-        GT -> GT
-        -- An open lower bound is bigger than a closed lower bound. This corresponds
-        -- to the *reverse* of the normal order on Bool.
-        EQ -> in2 `compare` in1
+    b1 `compare` b2 = strictLowerValue b1 `compare` strictLowerValue b2
+
+instance (Enum a, Ord a) => Haskell.Ord (LowerBound a) where
+    compare = compare
 
 {-# INLINABLE strictUpperBound #-}
 {- | Construct a strict upper bound from a value.
@@ -195,25 +239,38 @@ The resulting bound includes all values that are equal or smaller than the input
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
 
-instance Ord a => JoinSemiLattice (Interval a) where
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => JoinSemiLattice (Interval a) where
     {-# INLINABLE (\/) #-}
     (\/) = hull
 
-instance Ord a => BoundedJoinSemiLattice (Interval a) where
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => BoundedJoinSemiLattice (Interval a) where
     {-# INLINABLE bottom #-}
     bottom = never
 
-instance Ord a => MeetSemiLattice (Interval a) where
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => MeetSemiLattice (Interval a) where
     {-# INLINABLE (/\) #-}
     (/\) = intersection
 
-instance Ord a => BoundedMeetSemiLattice (Interval a) where
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => BoundedMeetSemiLattice (Interval a) where
     {-# INLINABLE top #-}
     top = always
 
-instance Eq a => Eq (Interval a) where
+-- See Note [Enumerable Intervals]
+instance (Enum a, Ord a) => Eq (Interval a) where
     {-# INLINABLE (==) #-}
-    l == r = ivFrom l == ivFrom r && ivTo l == ivTo r
+    -- Degenerate case: both the intervals are empty.
+    -- There can be many empty intervals, so we check for this case
+    -- explicitly
+    iv1 == iv2 | isEmpty iv1 && isEmpty iv2 = True
+    (Interval lb1 ub1) == (Interval lb2 ub2) = lb1 == lb2 && ub1 == ub2
+
+instance (Enum a, Ord a) => Haskell.Eq (Interval a) where
+    {-# INLINABLE (==) #-}
+    (==) = (==)
 
 {-# INLINABLE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal to @a@
@@ -255,7 +312,7 @@ never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
 
 {-# INLINABLE member #-}
 -- | Check whether a value is in an interval.
-member :: Ord a => a -> Interval a -> Bool
+member :: (Enum a, Ord a) => a -> Interval a -> Bool
 member a i = i `contains` singleton a
 
 {-# INLINABLE overlaps #-}
@@ -267,12 +324,12 @@ overlaps l r = not $ isEmpty (l `intersection` r)
 {-# INLINABLE intersection #-}
 -- | 'intersection a b' is the largest interval that is contained in 'a' and in
 --   'b', if it exists.
-intersection :: Ord a => Interval a -> Interval a -> Interval a
+intersection :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 intersection (Interval l1 h1) (Interval l2 h2) = Interval (max l1 l2) (min h1 h2)
 
 {-# INLINABLE hull #-}
 -- | 'hull a b' is the smallest interval containing 'a' and 'b'.
-hull :: Ord a => Interval a -> Interval a -> Interval a
+hull :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
 
 {-# INLINABLE contains #-}
@@ -280,33 +337,53 @@ hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
 @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
 @member s a@.
 -}
-contains :: Ord a => Interval a -> Interval a -> Bool
+contains :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
+-- Everything contains the empty interval
+contains _ i2 | isEmpty i2 = True
+-- Nothing is contained in the empty interval (except the empty interval,
+-- which is already handled)
+contains i1 _ | isEmpty i1 = False
+-- Otherwise we check the endpoints. This doesn't work for empty intervals,
+-- hence the cases above.
 contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 
 {-# INLINABLE isEmpty #-}
-{- | Check if an 'Interval' is empty.
-
-There can be many empty intervals, given a set of values.
-Two 'Interval's being empty does not imply that they are `Haskell.Eq`ual to each other.
--}
+{- | Check if an 'Interval' is empty. -}
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
-isEmpty (Interval (LowerBound v1 in1) (UpperBound v2 in2)) = case v1 `compare` v2 of
-    LT -> if openInterval then checkEnds v1 v2 else False
+isEmpty (Interval lb ub) = case strictLowerValue lb `compare` strictUpperValue ub of
+    -- We have at least two possible values, the lower bound and the upper bound
+    LT -> False
+    -- We have one possible value, the lower bound/upper bound
+    EQ -> False
+    -- We have no possible values
     GT -> True
-    EQ -> not (in1 && in2)
-    where
-        openInterval = in1 == False && in2 == False
-        -- | We check two finite ends to figure out if there are elements between them.
-        -- If there are no elements then the interval is empty (#3467).
-        checkEnds (Finite v1') (Finite v2') = succ v1' == v2'
-        checkEnds _ _                       = False
 
 {-# INLINABLE before #-}
 -- | Check if a value is earlier than the beginning of an 'Interval'.
-before :: Ord a => a -> Interval a -> Bool
+before :: (Enum a, Ord a) => a -> Interval a -> Bool
 before h (Interval f _) = lowerBound h < f
 
 {-# INLINABLE after #-}
 -- | Check if a value is later than the end of an 'Interval'.
-after :: Ord a => a -> Interval a -> Bool
+after :: (Enum a , Ord a) => a -> Interval a -> Bool
 after h (Interval _ t) = upperBound h > t
+
+{- Note [Enumerable Intervals]
+The 'Interval' type is set up to handle open intervals, where we have non-inclusive
+bounds. These are only meaningful for _dense_ orders (forall a b . exists c . a < b < c),
+otherwise an interval with a non-inclusive bound can be turned into one with an
+inclusive bound on the preceding element.
+
+(MPJ: not sure if "dense" is really necessary here, it's certainly sufficient.)
+
+Checking equality, containment etc. of such intervals is tricky. For example, to
+know if (x, y) is empty, we need to know if there is a value between x and y, which
+requires us to know things about the order that we can't easily know in Haskell.
+
+In practice, most of the intervals we care about are enumerable (have 'Enum'
+instances) and so we can turn non-inclusive bounds into inclusive bounds, which
+makes things much easier. In the example above, we can note that (x, y) is the
+same as [x+1, y-1], and that is easy to check for emptiness.
+
+The upshot of this is that many functions in this module require 'Enum'.
+-}
