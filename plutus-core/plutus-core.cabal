@@ -310,8 +310,8 @@ library
     , word-array                  ^>=1.1
 
   -- *** Comment out the next line to start "nix develop" ***
-  extra-libraries: blst
-  c-sources:       cbits/blst_util.c
+  extra-libraries:    blst
+  c-sources:          cbits/blst_util.c
 
   if impl(ghc <9.0)
     build-depends: integer-gmp

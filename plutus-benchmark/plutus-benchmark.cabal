@@ -378,9 +378,9 @@ library bls-internal
     , deepseq
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core              ^>=1.1
-    , plutus-tx                ^>=1.1
-    , plutus-tx-plugin         ^>=1.1
+    , plutus-core              ^>=1.2
+    , plutus-tx                ^>=1.2
+    , plutus-tx-plugin         ^>=1.2
 
 -- Print out predicted costs of various scripts involving BLS12_381 operations
 executable bls-costs
@@ -399,9 +399,9 @@ executable bls-costs
     , cardano-crypto-class
     , flat
     , hedgehog
-    , plutus-core           ^>=1.1
-    , plutus-tx             ^>=1.1
-    , plutus-tx-plugin      ^>=1.1
+    , plutus-core           ^>=1.2
+    , plutus-tx             ^>=1.2
+    , plutus-tx-plugin      ^>=1.2
 
 -- Run benchmarks for various scripts involving BLS12_381 operations
 benchmark bls-benchmarks
@@ -418,8 +418,8 @@ benchmark bls-benchmarks
     , bls-internal
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
-    , plutus-core              ^>=1.1
-    , plutus-tx
+    , plutus-core              ^>=1.2
+    , plutus-tx                ^>=1.2
 
 ---------------- script contexts ----------------
 
