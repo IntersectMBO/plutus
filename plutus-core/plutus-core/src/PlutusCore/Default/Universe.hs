@@ -157,6 +157,15 @@ instance GEq DefaultUni where
         geqStep DefaultUniData a2 = do
             DefaultUniData <- Just a2
             Just Refl
+        geqStep DefaultUniBLS12_381G1Element a2 = do
+            DefaultUniBLS12_381G1Element <- Just a2
+            Just Refl
+        geqStep DefaultUniBLS12_381G2Element a2 = do
+            DefaultUniBLS12_381G2Element <- Just a2
+            Just Refl
+        geqStep DefaultUniBLS12_381GTElement a2 = do
+            DefaultUniBLS12_381GTElement <- Just a2
+            Just Refl
         {-# INLINE geqStep #-}
 
         geqRec :: DefaultUni a1 -> DefaultUni a2 -> Maybe (a1 :~: a2)

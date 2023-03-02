@@ -1,3 +1,4 @@
+-- FIXME: REMOVE THIS IF WE FIND A BETTER WAY TO CHECK THESE SIZES.
 -- editorconfig-checker-disable-file
 module Main where
 
