@@ -163,7 +163,7 @@ inferKindCon Φ (S.pair A B) = do
   A ← isStar (inferKind Φ A)
   B ← isStar (inferKind Φ B)  
   return (T.pair A B)
-inferKindCon Φ S.Data = inj₂ T.Data
+inferKindCon Φ S.pdata = inj₂ T.pdata
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
@@ -247,19 +247,19 @@ meqTyCon T.bool       T.bytestring   = inj₁ λ()
 meqTyCon T.bool       T.string       = inj₁ λ()
 meqTyCon T.bool       T.unit         = inj₁ λ()
 meqTyCon (T.pair A B) T.integer      = inj₁ λ()
-meqTyCon T.Data       T.integer      = inj₁ λ()
+meqTyCon T.pdata       T.integer     = inj₁ λ()
 meqTyCon (T.list A)   T.bytestring   = inj₁ λ()
 meqTyCon (T.pair A B) T.bytestring   = inj₁ λ()
-meqTyCon T.Data       T.bytestring   = inj₁ λ()
+meqTyCon T.pdata       T.bytestring  = inj₁ λ()
 meqTyCon (T.list A)   T.string       = inj₁ λ()
 meqTyCon (T.pair A B) T.string       = inj₁ λ()
-meqTyCon T.Data       T.string       = inj₁ λ()
+meqTyCon T.pdata       T.string      = inj₁ λ()
 meqTyCon (T.list A)   T.unit         = inj₁ λ()
 meqTyCon (T.pair A B) T.unit         = inj₁ λ()
-meqTyCon T.Data       T.unit         = inj₁ λ()
+meqTyCon T.pdata       T.unit        = inj₁ λ()
 meqTyCon (T.list A)   T.bool         = inj₁ λ()
 meqTyCon (T.pair A B) T.bool         = inj₁ λ()
-meqTyCon T.Data       T.bool         = inj₁ λ()
+meqTyCon T.pdata       T.bool        = inj₁ λ()
 meqTyCon (T.list A)   T.integer      = inj₁ λ()
 meqTyCon T.integer    (T.list A)     = inj₁ λ()
 meqTyCon T.bytestring (T.list A)     = inj₁ λ()
@@ -270,7 +270,7 @@ meqTyCon (T.list A)   (T.list A')    = do
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
   return refl
 meqTyCon (T.pair A B) (T.list A')    = inj₁ λ()
-meqTyCon T.Data       (T.list A)     = inj₁ λ()
+meqTyCon T.pdata       (T.list A)    = inj₁ λ()
 meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
 meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
 meqTyCon T.string     (T.pair A' B') = inj₁ λ()
@@ -281,15 +281,15 @@ meqTyCon (T.pair A B) (T.pair A' B') = do
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
   return refl
-meqTyCon T.Data       (T.pair A' B') = inj₁ λ()
-meqTyCon T.integer    T.Data = inj₁ λ()
-meqTyCon T.bytestring T.Data = inj₁ λ()
-meqTyCon T.string     T.Data = inj₁ λ()
-meqTyCon T.unit       T.Data = inj₁ λ()
-meqTyCon T.bool       T.Data = inj₁ λ()
-meqTyCon (T.list A)   T.Data = inj₁ λ()
-meqTyCon (T.pair A B) T.Data = inj₁ λ()
-meqTyCon T.Data       T.Data = inj₂ refl
+meqTyCon T.pdata       (T.pair A' B') = inj₁ λ()
+meqTyCon T.integer    T.pdata = inj₁ λ()
+meqTyCon T.bytestring T.pdata = inj₁ λ()
+meqTyCon T.string     T.pdata = inj₁ λ()
+meqTyCon T.unit       T.pdata = inj₁ λ()
+meqTyCon T.bool       T.pdata = inj₁ λ()
+meqTyCon (T.list A)   T.pdata = inj₁ λ()
+meqTyCon (T.pair A B) T.pdata = inj₁ λ()
+meqTyCon T.pdata       T.pdata = inj₂ refl
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
@@ -360,7 +360,7 @@ inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
 inferTypeCon (string s)     = T.string ,, A.string s
 inferTypeCon (bool b)       = T.bool ,, A.bool b
 inferTypeCon unit           = T.unit ,, A.unit
-inferTypeCon (Data d)       = T.Data ,, A.Data d
+inferTypeCon (pdata d)      = T.pdata ,, A.pdata d
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)

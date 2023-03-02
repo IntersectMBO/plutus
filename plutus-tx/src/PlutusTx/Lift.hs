@@ -91,7 +91,7 @@ safeLiftProgram
        , PrettyPrintable uni fun
        )
     => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
-safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
+safeLiftProgram x = UPLC.Program () (PLC.defaultVersion) <$> safeLift x
 
 safeLiftCode
     :: (Lift.Lift uni a
@@ -128,7 +128,7 @@ lift a = unsafely $ safeLift a
 liftProgram
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun)
     => a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
-liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
+liftProgram x = UPLC.Program () (PLC.defaultVersion) $ lift x
 
 -- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef

@@ -132,7 +132,7 @@ evalTyCon Syn.unit       η = Nf.unit
 evalTyCon Syn.bool       η = Nf.bool
 evalTyCon (Syn.list A)   η = Nf.list (eval A η)
 evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
-evalTyCon Syn.Data       η = Nf.Data
+evalTyCon Syn.pdata       η = Nf.pdata
 
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))

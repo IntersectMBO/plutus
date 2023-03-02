@@ -1,0 +1,23 @@
+[
+  [
+    (builtin addInteger)
+    (let
+      (nonrec)
+      (termbind
+        (nonstrict)
+        (vardecl y (con integer))
+        (let
+          (nonrec)
+          (termbind
+            (nonstrict)
+            (vardecl x (con integer))
+            [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+          )
+          [ [ (builtin addInteger) x ] x ]
+        )
+      )
+      y
+    )
+  ]
+  (con integer 3)
+]

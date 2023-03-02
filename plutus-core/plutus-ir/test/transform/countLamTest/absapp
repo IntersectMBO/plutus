@@ -1,0 +1,1 @@
+{ (abs a (type) (lam x a x)) (con integer) }

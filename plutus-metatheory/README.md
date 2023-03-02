@@ -68,15 +68,20 @@ the same as for other plutus components, see the top-level [README](https://gith
 You can execute the plc-agda command like this:
 
 ```
-$ nix-shell
-$ cabal v2-run plc-agda
+$ cabal run plc-agda
 ```
 
 To run the tests you can execute:
 
 ```
-$ nix-shell
-$ cabal v2-test plutus-metatheory
+$ cabal test plutus-metatheory
+```
+
+To build the documentation as a static site:
+
+```
+$ agda --html --html-highlight=auto --html-dir html src/index.lagda.md
+$ jekyll -s html -d site
 ```
 
 ## Features:

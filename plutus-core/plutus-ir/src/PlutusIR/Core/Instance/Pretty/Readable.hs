@@ -12,25 +12,32 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable
   ( prettyPirReadable
+  , prettyPirReadableNoUnique
   , PrettyPir
   ) where
 
-import PlutusCore.Default.Universe
-import PlutusCore.Pretty.ConfigName
-import PlutusCore.Pretty.PrettyConst
-import PlutusCore.Pretty.Readable
+import PlutusCore qualified as PLC
+import PlutusCore.Pretty
 import PlutusIR.Core.Type
 import PlutusPrelude
+
 import Prettyprinter
 import Prettyprinter.Custom
 
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
--- | Pretty-print something with the Pir prettyprinter settings.
+-- | Pretty-print something with the @PrettyConfigReadable@ config.
 prettyPirReadable :: PrettyPir a => a -> Doc ann
 prettyPirReadable = prettyBy prettyConfigReadable
   -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
-  where prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
+  where
+    prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
+
+-- | Like `prettyPirReadable`, but does not print uniques.
+prettyPirReadableNoUnique :: PrettyPir a => a -> Doc ann
+prettyPirReadableNoUnique = prettyBy prettyConfigReadable
+  where
+    prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
 
 -- | Split an application into its (possible) head and arguments (either types or term)
 viewApp :: Term tyname name uni fun ann
@@ -65,8 +72,8 @@ viewLet _       = Nothing
 type PrettyConstraints configName tyname name uni =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
-  , Pretty (SomeTypeIn uni)
-  , Closed uni, uni `Everywhere` PrettyConst
+  , Pretty (PLC.SomeTypeIn uni)
+  , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst
   )
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
@@ -78,19 +85,18 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
           compoundDocM juxtFixity $ \ prettyIn ->
             let ppArg (Left a)  = braces $ prettyIn ToTheRight botFixity a
                 ppArg (Right t) = prettyIn ToTheRight juxtFixity t
-            -- Using `align` here and gathering the arguments together helps to lay out
-            -- function applications compactly like:
+            -- Lay out function applications like:
             --
-            -- foo a b c
-            --     d e f
+            -- foo
+            --   a
+            --   b
+            --   c
             --
             -- or
             --
-            -- foo
-            --  veryLongArg
-            --  a b c
+            -- foo a b c
             --
-            in prettyIn ToTheLeft juxtFixity fun <?> align (fillSep (map ppArg args))
+            in prettyIn ToTheLeft juxtFixity fun <?> vsep (map ppArg args)
         Apply{}    -> error "The impossible happened. This should be covered by the `viewApp` case above."
         TyInst{}   -> error "The impossible happened. This should be covered by the `viewApp` case above."
         Var _ name -> prettyM name
@@ -99,19 +105,18 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
                 let pBody = prettyBot body
                 pBinds <- mapM prettyM args
                 -- See comment below about laying out lambdas
-                encloseM binderFixity $ ("/\\" <> align (fillSep pBinds) <+> "->") <?> pBody
+                encloseM binderFixity $ ("/\\" <> align (vsep pBinds) <+> "->") <?> pBody
         TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
         (viewLam -> Just (args, body)) ->
             -- Lay out abstraction like
-            --  \ (x : t) (y : t')
-            --    (z : t'') -> body
-            -- or
-            --  \ (x : t) (y : t')
-            --    (z : t'') ->
-            --    bigStartOfBody
+            --  \(x : t)
+            --   (y : t')
+            --   (z : t'') ->
+            --    body
+            --
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
-                    prettyBinds = align . fillSep . map (prettyIn ToTheLeft binderFixity) $ args
+                    prettyBinds = align . vsep . map (prettyIn ToTheLeft binderFixity) $ args
                 in ("\\" <> prettyBinds <+> "->") <?> prettyBot body
         LamAbs{}   -> error "The impossible happened. This should be covered by the `viewLam` case above."
         Unwrap _ term          ->
@@ -128,14 +133,17 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
                 let prettyBot x = prettyIn ToTheRight botFixity x
                     prec NonRec = ""
                     prec _      = "rec"
+                    -- nest 2 including the "let": this means that we will always break after the let,
+                    -- so that the bindings can be simply indented by 2 spaces, keeping the indent low
+                    prettyLet r binds = vsep [ nest 2 ("let" <> prec r <> line <> vcatHard (prettyBot <$> binds)), "in"]
                 -- Lay out let-bindings in a layout-sensitive way
                 --
-                -- let !x : t = a
+                -- let
+                --   !x : t = a
+                --   !y : t = b
                 -- in
-                -- let !y : t = b
-                -- in foo x y
-                in align (sep [ sep ["let" <> prec r <+> align (vcatHard (prettyBot <$> binds)), "in"]
-                              | (r, binds) <- lets ]) <+> prettyBot body
+                -- foo x y
+                in vsep $ [ prettyLet r binds | (r, binds) <- lets ] ++ [ prettyBot body ]
         Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
@@ -181,10 +189,10 @@ instance PrettyReadableBy configName tyname
       showKinds <- view $ prettyConfig . pcrShowKinds
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         case showKinds of
-          ShowKindsYes -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
+          ShowKindsYes -> encloseM binderFixity (prettyBot x <?> ("::" <+> prettyBot k))
           ShowKindsNonType -> case k of
             Type{} -> return $ prettyBot x
-            _      -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
+            _      -> encloseM binderFixity (prettyBot x <?> ("::" <+> prettyBot k))
           ShowKindsNo -> return $ prettyBot x
 
 instance PrettyConstraints configName tyname name uni
@@ -192,4 +200,4 @@ instance PrettyConstraints configName tyname name uni
   prettyBy = inContextM $ \case
     VarDecl _ x t -> do
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
-        encloseM binderFixity (sep [prettyBot x, ":" <+> prettyBot t])
+        encloseM binderFixity (prettyBot x <?> (":" <+> prettyBot t))

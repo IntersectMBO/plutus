@@ -31,6 +31,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     , computeCek
     , returnCek
     , handleStep
+    , tryHandleStep
     , module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
@@ -254,15 +255,26 @@ enterComputeCek ctx env term = iterToFinalState $ Computing (toWordArray 0) ctx 
                           x             -> iterToFinalState x
 
 -- | The state transition function of the machine.
-handleStep :: forall uni fun ann s.
-             (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-           => CekState uni fun ann
-           -> CekM uni fun s (CekState uni fun ann)
+handleStep :: forall uni fun ann s c.
+             (PrettyUni uni fun, GivenCekReqs uni fun ann s, c ~ CekState uni fun ann)
+           => c
+           -> CekM uni fun s c
 handleStep = \case
     Starting term                           -> pure $ Computing (toWordArray 0) NoFrame Env.empty term
     Computing !unbudgetedSteps ctx env term -> computeCek unbudgetedSteps ctx env term
     Returning !unbudgetedSteps ctx val      -> returnCek unbudgetedSteps ctx val
-    self@(Terminating _)                    -> pure self -- FINAL STATE, idempotent
+    self@Terminating{}                      -> pure self -- FINAL STATE, idempotent
+
+{- | As 'handleStep' but captures any exception during a single-state transition
+
+Note that we use the "pure" MonadError.tryError and not the MonadCatch.tryError.
+See Note [Throwing exceptions in ST]
+-}
+tryHandleStep :: forall uni fun ann s c.
+                (PrettyUni uni fun, GivenCekReqs uni fun ann s, c ~ CekState uni fun ann)
+              => c
+              -> CekM uni fun s (Either (CekEvaluationException NamedDeBruijn uni fun) c)
+tryHandleStep = tryError . handleStep
 
 -- * Helpers
 ------------
@@ -309,6 +321,8 @@ lenContext = go 0
 -- preliminary testing shows that sharing slows down original cek
 
 -- | A 'MonadError' version of 'try'.
+--
+-- TODO: remove when we switch to mtl>=2.3
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 

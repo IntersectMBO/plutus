@@ -1,18 +1,20 @@
-letrec data Nat_0 | match_Nat_1 where
-         Zero_2 : Nat_0
-         Suc_3 : Nat_0 -> Nat_0
+letrec
+  data Nat_0 | match_Nat_1 where
+    Zero_2 : Nat_0
+    Suc_3 : Nat_0 -> Nat_0
 in
-let data Bool_4 | match_Bool_5 where
-      True_6 : Bool_4
-      False_7 : Bool_4
-    !three_8 : Nat_0 = Suc_3 (Suc_3 (Suc_3 Zero_2))
+let
+  data Bool_4 | match_Bool_5 where
+    True_6 : Bool_4
+    False_7 : Bool_4
+  !three_8 : Nat_0 = Suc_3 (Suc_3 (Suc_3 Zero_2))
 in
-letrec !even_9 : Nat_0 -> Bool_4
-         = \(n_10 : Nat_0) ->
-             match_Nat_1
-               n_10 {Bool_4} True_6 (\(pred_11 : Nat_0) -> odd_12 pred_11)
-       !odd_12 : Nat_0 -> Bool_4
-         = \(n_10 : Nat_0) ->
-             match_Nat_1
-               n_10 {Bool_4} False_7 (\(pred_11 : Nat_0) -> even_9 pred_11)
-in even_9 three_8
+letrec
+  !even_9 : Nat_0 -> Bool_4
+    = \(n_10 : Nat_0) ->
+        match_Nat_1 n_10 {Bool_4} True_6 (\(pred_11 : Nat_0) -> odd_12 pred_11)
+  !odd_12 : Nat_0 -> Bool_4
+    = \(n_10 : Nat_0) ->
+        match_Nat_1 n_10 {Bool_4} False_7 (\(pred_11 : Nat_0) -> even_9 pred_11)
+in
+even_9 three_8

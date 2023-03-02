@@ -9,7 +9,7 @@ module Types where
 import PlutusCore.Annotation
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal (CekState)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
 import Brick.Focus qualified as B
 import Brick.Types qualified as B
@@ -46,8 +46,8 @@ data CustomBrickEvent =
     -- this should mean that the brick client should update its tui
   | LogEvent String
     -- ^ the driver logged some text, the brick client can decide to show it in the tui
-
-
+  | ErrorEvent (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+    -- ^ the underlying cek machine errored (either by call to Error, builtin or type failure)
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
     deriving stock (Eq, Ord, Show)
@@ -64,7 +64,7 @@ data ResourceName
     | EditorUplc
     | EditorSource
     | EditorReturnValue
-    | EditorCekState
+    | EditorLogs
     deriving stock (Eq, Ord, Show)
 
 data DebuggerState = DebuggerState
@@ -73,9 +73,10 @@ data DebuggerState = DebuggerState
     -- ^ Controls which window is in focus.
     , _dsUplcEditor          :: BE.Editor Text ResourceName
     , _dsUplcHighlight       :: Maybe HighlightSpan
-    , _dsSourceEditor        :: BE.Editor Text ResourceName
+    , _dsSourceEditor        :: Maybe (BE.Editor Text ResourceName)
+    , _dsSourceHighlight     :: Maybe HighlightSpan
     , _dsReturnValueEditor   :: BE.Editor Text ResourceName
-    , _dsCekStateEditor      :: BE.Editor Text ResourceName
+    , _dsLogsEditor          :: BE.Editor Text ResourceName
     , _dsVLimitBottomEditors :: Int
     -- ^ Controls the height limit of the bottom windows.
     , _dsHLimitRightEditors  :: Int

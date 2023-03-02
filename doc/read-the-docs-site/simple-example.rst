@@ -240,7 +240,7 @@ The redeemer in Bob's transaction is a ``NewBid Bid`` where the ``Bid`` contains
    :width: 700
    :alt: First bid diagram
 
-Once Bob's transaction is submitted, the node validating this trasaction will run the Plutus script, which checks a number of conditions like whether the bid happens before the deadline, and whether the bid is high enough.
+Once Bob's transaction is submitted, the node validating this transaction will run the Plutus script, which checks a number of conditions like whether the bid happens before the deadline, and whether the bid is high enough.
 If the checks pass and everything else about the transaction is valid, the transaction will go through and be included in a block.
 At this point, the initial UTXO created by Alice no longer exists on the ledger, since it has been spent by Bob's transaction.
 

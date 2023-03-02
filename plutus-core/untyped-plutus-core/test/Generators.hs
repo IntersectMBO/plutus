@@ -6,9 +6,10 @@
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
-import PlutusPrelude (display, fold, on, void)
+import PlutusPrelude (display, fold, on, void, (&&&))
 
 import PlutusCore (Name, _nameText)
+import PlutusCore.Annotation
 import PlutusCore.Compiler.Erase (eraseProgram)
 import PlutusCore.Default (Closed, DefaultFun, DefaultUni, Everywhere, GEq)
 import PlutusCore.Error (ParserErrorBundle)
@@ -19,13 +20,17 @@ import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
 import UntypedPlutusCore.Core.Type (Program (Program),
-                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var))
-import UntypedPlutusCore.Parser (SourcePos, parseProgram, parseTerm)
+                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var), progTerm,
+                                    termAnn)
+import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
+import Control.Lens (view)
 import Data.Text (Text)
 import Data.Text qualified as T
 
-import Hedgehog (property, tripping)
+import Hedgehog (annotate, failure, property, tripping, (===))
+import Hedgehog.Gen qualified as Gen
+import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (testCase, (@?=))
@@ -76,8 +81,27 @@ propParser = testPropertyNamed "Parser" "parser" $ property $ do
                 (\p -> fmap (TextualProgram . void) (parseProg p))
     where
         parseProg
-            :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SourcePos)
+            :: T.Text -> Either ParserErrorBundle (Program Name DefaultUni DefaultFun SrcSpan)
         parseProg = runQuoteT . parseProgram
+
+-- | The `SrcSpan` of a parsed `Term` should not including trailing whitespaces.
+propTermSrcSpan :: TestTree
+propTermSrcSpan = testPropertyNamed
+    "parser captures ending positions correctly"
+    "propTermSrcSpan"
+    . property
+    $ do
+        code <-
+            display
+                <$> forAllPretty
+                    (view progTerm <$> runAstGen (Generators.genProgram @DefaultFun))
+        let (endingLine, endingCol) = length &&& T.length . last $ T.lines code
+        trailingSpaces <- forAllPretty $ Gen.text (Range.linear 0 10) (Gen.element [' ', '\n'])
+        case runQuoteT . parseTerm @ParserErrorBundle $ code <> trailingSpaces of
+            Right parsed ->
+                let sp = termAnn parsed
+                 in (srcSpanELine sp, srcSpanECol sp) === (endingLine, endingCol + 1)
+            Left err -> annotate (display err) >> failure
 
 propUnit :: TestTree
 propUnit = testCase "Unit" $ fold
@@ -122,6 +146,7 @@ test_parsing :: TestTree
 test_parsing = testGroup "Parsing"
                [ propFlat
                , propParser
+               , propTermSrcSpan
                , propUnit
                , propDefaultUni
                ]

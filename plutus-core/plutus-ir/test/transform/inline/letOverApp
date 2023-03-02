@@ -1,0 +1,26 @@
+{- 
+Single occurrence let bindings that are functions.
+idFun and funApp both get inlined because they only occur once.
+
+let idFun = \y.y
+    funApp = \x.idFun
+in funApp 5 6
+ -}
+
+(let
+  (nonrec)
+  
+  (termbind
+    (strict)
+    (vardecl idFun (fun (con integer) (con integer)))
+    (lam y (con integer) y)
+  )
+  
+  (termbind
+    (strict)
+    (vardecl funApp (fun (con integer) (fun (con integer) (con integer))))
+    (lam x (con integer) idFun)
+  )
+  
+  [ [ funApp (con integer 5) ] (con integer 6) ]
+)

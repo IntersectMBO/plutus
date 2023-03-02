@@ -30,11 +30,10 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import Control.Lens (ifoldMap)
+import Control.Lens (imap)
 import Control.Monad.Except
 import Data.Hashable (Hashable)
 import Data.HashMap.Monoidal as HashMap
-import Data.List (intersperse)
 import Data.Map.Strict qualified as Map
 import Data.Primitive.PrimArray
 import Data.SatInt
@@ -81,8 +80,8 @@ newtype CekExTally fun = CekExTally (MonoidalHashMap (ExBudgetCategory fun) ExBu
 instance (Show fun, Ord fun) => Pretty (CekExTally fun) where
     pretty (CekExTally m) =
         let om = Map.fromList $ HashMap.toList m
-        in parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
-          ifoldMap (\k v -> [(pretty k <+> "causes" <+> pretty v)]) om) <> ["}"])
+        in parens $ encloseSep "{" "}" "| " $ fmap group $
+          Map.elems $ imap (\k v -> (pretty k <+> "causes" <+> group (pretty v))) om
 
 data TallyingSt fun = TallyingSt (CekExTally fun) ExBudget
     deriving stock (Eq, Show, Generic)

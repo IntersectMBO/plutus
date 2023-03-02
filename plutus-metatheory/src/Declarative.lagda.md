@@ -11,7 +11,6 @@ module Declarative where
 
 ```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
-open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
 
 open import Type using (Ctx⋆;_⊢⋆_;_∋⋆_;Φ;Ψ;A;B)
 open Ctx⋆
@@ -20,14 +19,18 @@ open _∋⋆_
 
 open import Type.RenamingSubstitution using (weaken;sub;Ren;ren;Sub;_[_])
 open import Type.Equality using (_≡β_)
-open import Builtin using (Builtin)
+open import Builtin using (Builtin;signature)
 open Builtin.Builtin
+
+open import Builtin.Signature using (nat2Ctx⋆;fin2∈⋆)
 
 open import Utils using (Kind;*;_⇒_;K)
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
+
+open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆ *) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) con _⇒_ Π using (sig2type)
 ```
 
 ## Fixity declarations
@@ -86,49 +89,11 @@ Let `x`, `y` range over variables.
 
 ## Builtin Machinery
 
-Computing a signature for a builtin. Ideally this should be done generically:
-```
-sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-sig ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
-sig addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-sig lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig lessThanEqualsByteString =
-  ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-sig sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-sig verifyEd25519Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifyEcdsaSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifySchnorrSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
-sig appendString = ∅ ,, ∅ , con string , con string ,, con string
-sig trace = ∅ ,, ∅ , con string ,, con unit
-sig _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
-```
-
-Converting a signature to a totally unsaturated type:
-
-```
-isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
-isig2type .∅ ∅ C = C
-isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
-isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
-```
-
 Compute the type for a builtin:
 
 ```
 btype : Builtin → Φ ⊢⋆ *
-btype b = let Φ ,, Γ ,, C = sig b in sub (λ()) (isig2type Φ Γ C)
+btype b = sub (λ()) (sig2type (signature b))
 ```
 
 Two lemmas concerning renaming and substituting types of builtins:
@@ -190,7 +155,7 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
         ---------------
       → Γ ⊢ con c
 
-  builtin : (b :  Builtin)
+  builtin : (b : Builtin)
             --------------
           → Γ ⊢ btype b
 

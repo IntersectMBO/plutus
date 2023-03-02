@@ -4,6 +4,7 @@
 
 let
 
+
   inherit (inputs.cells.plutus) library;
   inherit (library) pkgs;
   inherit (pkgs.stdenv) system;
@@ -24,18 +25,18 @@ let
     };
 
   native-plutus-8107-jobs = make-haskell-jobs library.plutus-project-8107;
-  native-plutus-924-jobs = make-haskell-jobs library.plutus-project-924;
+  native-plutus-925-jobs = make-haskell-jobs library.plutus-project-925;
 
-  windows-plutus-924-jobs = make-haskell-jobs library.plutus-project-924.projectCross.mingwW64;
+  windows-plutus-925-jobs = make-haskell-jobs library.plutus-project-925.projectCross.mingwW64;
 
   other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
 
   jobs =
     # Drop these once we switch to 9.2.4 by default
     { ghc8107 = native-plutus-8107-jobs; } //
-    { ghc924 = native-plutus-924-jobs; } //
+    { ghc925 = native-plutus-925-jobs; } //
     # Only cross-compile to windows from linux
-    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-924-jobs; } //
+    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-925-jobs; } //
     other-jobs;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
@@ -48,7 +49,7 @@ let
   };
 
   final-jobset =
-    if system == "x86_64-linux" || system == "x86_64-darwin" then
+    if system == "x86_64-linux" || system == "x86_64-darwin" || system == "aarch64-darwin" then
       filtered-jobs // { required = required-job; }
     else { };
 

@@ -71,14 +71,21 @@ on-chain behaviour. Hence, it is not relevant for the specification
 or the formalisation.
 
 Builtin functions must take at least one argument (either a type or
-    term). That is, nullary functions are not allowed. However there are
-    some limitations for functions that only take a type argument. In
-    particular the return type of a function that takes only one
-    argument must be a monotype. Notably, the following built-in
-    function constructing a polymorphic empty list is not allowed:
+    term). That is, nullary functions are not allowed. 
+    
+A limitation of the implementation is that type variables in 
+polymorphic return types must have a type tag. Therefore the tag type
+should be inferrable from somewhere. Notably, the following 
+built-in function constructing a polymorphic empty list is not allowed
+because there would be no way to know the type of the empty list.
+
 ```
 nil : forall a. list a
 ```
+
+The workaround currently used in the implementation is to provide monomorphic
+built-in functions for the empty list (see `mkNilData` and `mkNilPairData`).
+
 
 #### On built-in support of the implementation
 
@@ -153,7 +160,7 @@ forall f. f integer -> bool
 ```
 
 The specification allows for universal quantifiers to be
-interspersed with any types, but the scope is always the rest of the
+interleaved with any types, but the scope is always the rest of the
 type, including the return type. If we compare with the case where
 quantification of type variables is the outermost operation, the
 generality of adding quantifiers in the middle does not seem to gain
@@ -205,25 +212,21 @@ The meaning of built-in functions is given three times in the
 formalisation, the main part being functions named `BUILTIN` in:
 
 1.  `Algorithmic/ReductionEC.lagda.md`,
-2.  `Algorithmic/CEKV.lagda.md`, and
+2.  `Algorithmic/CEK.lagda.md`, and
 3.  `Untyped/CEK.lagda.md`.
 
 Only one version of built-in functions is supported. For example,
 for `verifyEd25519Signature`, version 1
 (`verifyEd25519Signature_V1`) is used.
 
-A signature is given by a typing context ϕ, a term context
-(dependent on ϕ) that describes the types and order of the arguments
-of the built-in, and a result type (of kind ⋆). Hence the allowable
-types coincide with the specification, except that it doesn't
-distinguish between variables of built-in types $v$# and general type
-variables $v⋆$. In that sense, it behaves like the implementation.
+The type of built-in functions is described by a signature.
+A signature consists of the number of distinct type variables, a non-empty
+list of parameters and a result, both of *built-in-compatible* types.
+The built-in-compatible types coincide with the specification, except that 
+they don't distinguish between variables of built-in types $v$# and general 
+type variables $v⋆$. In that sense, it behaves like the implementation.
 
-Signatures are defined twice, one for the algorithmic syntax and the
-other for declarative syntax. For the declarative syntax the
-signature is defined only for 22 built-in functions. For the
-algorithmic syntax the signature is defined for all 54 built-in
-functions.
+The signature is defined for all 54 built-in functions.
 
 ## Desirable properties
 
@@ -273,13 +276,12 @@ Built-in functions should have the following properties:
   built-in function shouldn't be in use as there is no support for 
   overloading built-in function names.
 
-The formalisation defines signatures twice, and the meaning of
-built-in functions thrice. Also there are three notions of value,
-and three notions of partial built-in function application. Code 
-duplication is a well-known anti-pattern that leads to possibly 
-inconsistent semantics, increased maintenance costs, decreased code 
-readability, and increased type-checking and compilation times. So, it 
-would be desirable to unify these definitions into a single, parameterised
+The formalisation defines the meaning of built-in functions thrice. 
+Also there are three notions of value, and three notions of partial 
+built-in function application. Code  duplication is a well-known anti-pattern
+that leads to possibly inconsistent semantics, increased maintenance costs, 
+decreased code readability, and increased type-checking and compilation times. 
+So, it would be desirable to unify these definitions into a single, parameterised
 one.
 
 ## Reference: List of Built-ins and Their Types

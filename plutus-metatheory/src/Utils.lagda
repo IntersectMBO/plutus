@@ -409,7 +409,7 @@ data TermCon : Set where
   string     : String → TermCon
   bool       : Bool → TermCon
   unit       : TermCon
-  Data       : DATA → TermCon
+  pdata       : DATA → TermCon
 
 {-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
 {-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}

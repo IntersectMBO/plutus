@@ -19,12 +19,13 @@ jobs:
         uses: actions/checkout@v3.3.0
 
       - name: Download and Unzip Dump Files
-        # TODO: change the S3 path to s3://plutus/mainnet-script-dump/ once the script dump job
-        # is restored, since it will put the new event files there.
+        if: always() 
+        # NOTE: the S3 location s3://plutus/mainnet-script-dump/ must match that in
+        # plutus-apps/.github/script-evaluation-dump.yml
         run: |
           export LOCAL_DIR="$HOME/mainnet-script-dump-downloaded"
           nix develop --no-warn-dirty --accept-flake-config --command \
-            bash ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump-1-35-3/ \*.event.bz2
+            bash ./scripts/s3-sync-unzip.sh s3://plutus/mainnet-script-dump-1-35-4/ \*.event.bz2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -39,4 +40,4 @@ jobs:
         run: |
           export EVENT_DUMP_DIR="$HOME/mainnet-script-dump-downloaded"
           nix run --no-warn-dirty --accept-flake-config \
-            .#x86_64-linux.plutus.library.plutus-project-924.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1
+            .#x86_64-linux.plutus.library.plutus-project-925.hsPkgs.plutus-ledger-api.components.exes.evaluation-test -- --num-threads=1

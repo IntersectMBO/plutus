@@ -1,0 +1,16 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (termbind
+    (strict)
+    (vardecl f (fun (con integer) (con integer)))
+    (lam y (con integer) [ [ (builtin addInteger) y ] x ])
+  )
+  [ [ (builtin addInteger) [ f (con integer 1) ] ] [ f (con integer 2) ] ]
+)
+-- In conservative float-in, `x` should not be floated into the lambda in the RHS of `f`,
+-- since `f` is used twice.

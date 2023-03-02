@@ -405,6 +405,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
+                 & set (PIR.ccOpts . PIR.coRelaxedFloatin) (_posRelaxedFloatin opts)
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
@@ -422,7 +423,7 @@ runCompiler moduleName opts expr = do
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
-    let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
+    let plcP = PLC.Program () (PLC.defaultVersion) $ void plcT
     when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
@@ -431,8 +432,8 @@ runCompiler moduleName opts expr = do
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
-    let uplcPNoAnn = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
-        uplcP = UPLC.Program mempty (PLC.defaultVersion mempty) . fmap getSrcSpans $ dbT
+    let uplcPNoAnn = UPLC.Program () (PLC.defaultVersion) $ void dbT
+        uplcP = UPLC.Program mempty (PLC.defaultVersion) . fmap getSrcSpans $ dbT
     when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcPNoAnn "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 

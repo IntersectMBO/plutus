@@ -16,7 +16,8 @@ open import Type using (∅)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open import Algorithmic using (_⊢_;∅)
 open _⊢_
-open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_;Progress;done;error;progress;step)
+open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_)
+open import Algorithmic.ReductionEC.Progress using  (Progress;done;error;progress;step)
 open _—↠_
 \end{code}
 

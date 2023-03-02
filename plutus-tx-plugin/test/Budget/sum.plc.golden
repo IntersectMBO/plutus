@@ -1,273 +1,48 @@
-(program
-  (let
-    (rec)
-    (datatypebind
-      (datatype
-        (tyvardecl List (fun (type) (type)))
-        (tyvardecl a (type))
-        Nil_match
-        (vardecl Nil [ List a ])
-        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-      )
-    )
-    (let
-      (nonrec)
-      (datatypebind
-        (datatype
-          (tyvardecl Monoid (fun (type) (type)))
-          (tyvardecl a (type))
-          Monoid_match
-          (vardecl
-            CConsMonoid
-            (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a [ Monoid a ]))
-          )
-        )
-      )
-      (let
-        (rec)
-        (termbind
-          (strict)
-          (vardecl
-            fFoldableNil_cfoldMap
-            (all
-              m
-              (type)
-              (all
-                a (type) (fun [ Monoid m ] (fun (fun a m) (fun [ List a ] m)))
-              )
-            )
-          )
-          (abs
-            m
-            (type)
-            (abs
-              a
-              (type)
-              (lam
-                dMonoid
-                [ Monoid m ]
-                (lam
-                  eta
-                  (fun a m)
-                  (lam
-                    eta
-                    [ List a ]
-                    {
-                      [
-                        [
-                          { [ { Nil_match a } eta ] (all dead (type) m) }
-                          (abs
-                            dead
-                            (type)
-                            [
-                              { [ { Monoid_match m } dMonoid ] m }
-                              (lam
-                                v
-                                [ (lam a (type) (fun a (fun a a))) m ]
-                                (lam v m v)
-                              )
-                            ]
-                          )
-                        ]
-                        (lam
-                          x
-                          a
-                          (lam
-                            xs
-                            [ List a ]
-                            (abs
-                              dead
-                              (type)
-                              [
-                                [
-                                  [
-                                    {
-                                      [ { Monoid_match m } dMonoid ]
-                                      [ (lam a (type) (fun a (fun a a))) m ]
-                                    }
-                                    (lam
-                                      v
-                                      [ (lam a (type) (fun a (fun a a))) m ]
-                                      (lam v m v)
-                                    )
-                                  ]
-                                  [ eta x ]
-                                ]
-                                [
-                                  [
-                                    [
-                                      { { fFoldableNil_cfoldMap m } a } dMonoid
-                                    ]
-                                    eta
-                                  ]
-                                  xs
-                                ]
-                              ]
-                            )
-                          )
-                        )
-                      ]
-                      (all dead (type) dead)
-                    }
-                  )
-                )
-              )
-            )
-          )
-        )
-        (let
-          (nonrec)
-          (datatypebind
-            (datatype
-              (tyvardecl AdditiveMonoid (fun (type) (type)))
-              (tyvardecl a (type))
-              AdditiveMonoid_match
-              (vardecl
-                CConsAdditiveMonoid
-                (fun
-                  [ (lam a (type) (fun a (fun a a))) a ]
-                  (fun a [ AdditiveMonoid a ])
-                )
-              )
-            )
-          )
-          [
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl dAdditiveMonoid [ AdditiveMonoid (con integer) ])
-                [
-                  [
-                    { CConsAdditiveMonoid (con integer) }
-                    (lam
-                      x
-                      (con integer)
-                      (lam y (con integer) [ [ (builtin addInteger) x ] y ])
-                    )
-                  ]
-                  (con integer 0)
-                ]
-              )
-              [
-                [
-                  {
-                    { fFoldableNil_cfoldMap [ (lam a (type) a) (con integer) ] }
-                    (con integer)
-                  }
-                  [
-                    [
-                      { CConsMonoid [ (lam a (type) a) (con integer) ] }
-                      (lam
-                        eta
-                        [ (lam a (type) a) (con integer) ]
-                        (lam
-                          eta
-                          [ (lam a (type) a) (con integer) ]
-                          [
-                            [
-                              [
-                                {
-                                  [
-                                    { AdditiveMonoid_match (con integer) }
-                                    dAdditiveMonoid
-                                  ]
-                                  [
-                                    (lam a (type) (fun a (fun a a)))
-                                    (con integer)
-                                  ]
-                                }
-                                (lam
-                                  v
-                                  [
-                                    (lam a (type) (fun a (fun a a)))
-                                    (con integer)
-                                  ]
-                                  (lam v (con integer) v)
-                                )
-                              ]
-                              eta
-                            ]
-                            eta
-                          ]
-                        )
-                      )
-                    ]
-                    [
-                      {
-                        [
-                          { AdditiveMonoid_match (con integer) } dAdditiveMonoid
-                        ]
-                        (con integer)
-                      }
-                      (lam
-                        v
-                        [ (lam a (type) (fun a (fun a a))) (con integer) ]
-                        (lam v (con integer) v)
-                      )
-                    ]
-                  ]
-                ]
-                (lam ds (con integer) ds)
-              ]
-            )
-            [
-              [
-                (let
-                  (nonrec)
-                  (typebind (tyvardecl a (type)) [ List (con integer) ])
-                  (lam
-                    c
-                    (fun (con integer) (fun a a))
-                    (lam
-                      n
-                      a
-                      [
-                        [ c (con integer 1) ]
-                        [
-                          [ c (con integer 2) ]
-                          [
-                            [ c (con integer 3) ]
-                            [
-                              [ c (con integer 4) ]
-                              [
-                                [ c (con integer 5) ]
-                                [
-                                  [ c (con integer 6) ]
-                                  [
-                                    [ c (con integer 7) ]
-                                    [
-                                      [ c (con integer 8) ]
-                                      [
-                                        [ c (con integer 9) ]
-                                        [ [ c (con integer 10) ] n ]
-                                      ]
-                                    ]
-                                  ]
-                                ]
-                              ]
-                            ]
-                          ]
-                        ]
-                      ]
-                    )
-                  )
-                )
-                (lam
-                  ds
-                  (con integer)
-                  (lam
-                    ds
-                    [ List (con integer) ]
-                    [ [ { Cons (con integer) } ds ] ds ]
-                  )
-                )
-              ]
-              { Nil (con integer) }
-            ]
-          ]
-        )
-      )
-    )
-  )
-)
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  data (AdditiveMonoid :: * -> *) a | AdditiveMonoid_match where
+    CConsAdditiveMonoid : (\a -> a -> a -> a) a -> a -> AdditiveMonoid a
+in
+(let
+    !dAdditiveMonoid : AdditiveMonoid integer
+      = CConsAdditiveMonoid
+          {integer}
+          (\(x : integer) (y : integer) -> addInteger x y)
+          0
+    !f : integer -> integer -> integer
+      = AdditiveMonoid_match
+          {integer}
+          dAdditiveMonoid
+          {(\a -> a -> a -> a) integer}
+          (\(v : (\a -> a -> a -> a) integer) (v : integer) -> v)
+    !z : integer
+      = AdditiveMonoid_match
+          {integer}
+          dAdditiveMonoid
+          {integer}
+          (\(v : (\a -> a -> a -> a) integer) (v : integer) -> v)
+  in
+  letrec
+    !go : List integer -> integer
+      = \(ds : List integer) ->
+          Nil_match
+            {integer}
+            ds
+            {all dead. integer}
+            (/\dead -> z)
+            (\(x : integer) (xs : List integer) -> /\dead -> f x (go xs))
+            {all dead. dead}
+  in
+  \(eta : List integer) -> go eta)
+  ((let
+       a = List integer
+     in
+     \(c : integer -> a -> a)
+      (n : a) ->
+       c 1 (c 2 (c 3 (c 4 (c 5 (c 6 (c 7 (c 8 (c 9 (c 10 n))))))))))
+     (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+     (Nil {integer}))

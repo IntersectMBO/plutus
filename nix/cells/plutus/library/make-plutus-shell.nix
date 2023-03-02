@@ -104,17 +104,16 @@ inputs.std.lib.dev.mkShell {
       category = "docs";
       help = "nix build and serve the doc site on localhost:8002";
     }
+    {
+      package = pkgs.jekyll;
+      category = "docs";
+      help = "Static site builder, used for the metatheory documentation";
+    }
 
     {
       package = cell.packages.nixpkgs-fmt;
       category = "nix";
       help = "Nix code formatter";
-    }
-    {
-      # tullia input isn't de-systemized for some reason
-      package = inputs.tullia.packages.${pkgs.system}.tullia;
-      category = "nix";
-      help = "Tools for working with CI tasks";
     }
     {
       package = cell.packages.check-the-flake;
@@ -131,7 +130,8 @@ inputs.std.lib.dev.mkShell {
     # R environment
     cell.library.r-with-packages
 
-    # Misc  useful stuff, could make these commands but there's a lot already
+    # Misc useful stuff, could make these commands but there's a lot already
+    pkgs.plantuml
     pkgs.editorconfig-core-c
     pkgs.jq
     pkgs.pre-commit

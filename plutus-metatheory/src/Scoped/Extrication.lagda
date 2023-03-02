@@ -57,7 +57,7 @@ extricateTyConNf⋆ T.unit = S.unit
 extricateTyConNf⋆ T.bool = S.bool
 extricateTyConNf⋆ (T.list A) = S.list (extricateNf⋆ A)
 extricateTyConNf⋆ (T.pair A B) = S.pair (extricateNf⋆ A) (extricateNf⋆ B) 
-extricateTyConNf⋆ T.Data = S.Data
+extricateTyConNf⋆ T.pdata = S.pdata
 
 extricateNf⋆ (Π {K = K} A) = Π K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
@@ -90,7 +90,7 @@ extricateC (bytestring b) = bytestring b
 extricateC (string s)     = string s
 extricateC (bool b)       = bool b
 extricateC unit           = unit
-extricateC (Data d)       = Data d
+extricateC (pdata d)      = pdata d
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

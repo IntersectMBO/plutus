@@ -1,83 +1,33 @@
-(program
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Maybe (fun (type) (type)))
-        (tyvardecl a (type))
-        Maybe_match
-        (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        fMonadMaybe_c
-        (all
-          a
-          (type)
-          (all b (type) (fun [ Maybe a ] (fun (fun a [ Maybe b ]) [ Maybe b ])))
-        )
-      )
-      (abs
-        a
-        (type)
-        (abs
-          b
-          (type)
-          (lam
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !fMonadMaybe_c : all a. all b. Maybe a -> (a -> Maybe b) -> Maybe b
+    = /\a
+        b ->
+        \(ds : Maybe a)
+         (k : a -> Maybe b) ->
+          Maybe_match
+            {a}
             ds
-            [ Maybe a ]
-            (lam
-              k
-              (fun a [ Maybe b ])
-              {
-                [
-                  [
-                    { [ { Maybe_match a } ds ] (all dead (type) [ Maybe b ]) }
-                    (lam x a (abs dead (type) [ k x ]))
-                  ]
-                  (abs dead (type) { Nothing b })
-                ]
-                (all dead (type) dead)
-              }
-            )
-          )
-        )
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl x [ Maybe (con integer) ])
-      [ { Just (con integer) } (con integer 1) ]
-    )
-    (termbind
-      (strict)
-      (vardecl y [ Maybe (con integer) ])
-      [ { Just (con integer) } (con integer 2) ]
-    )
-    [
-      [ { { fMonadMaybe_c (con integer) } (con integer) } x ]
-      (lam
-        x
-        (con integer)
-        [
-          [ { { fMonadMaybe_c (con integer) } (con integer) } y ]
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl ds (con integer))
-                [ [ (builtin addInteger) x ] y ]
-              )
-              [ { Just (con integer) } ds ]
-            )
-          )
-        ]
-      )
-    ]
-  )
-)
+            {all dead. Maybe b}
+            (\(x : a) -> /\dead -> k x)
+            (/\dead -> Nothing {b})
+            {all dead. dead}
+  !x : Maybe integer = Just {integer} 1
+  !y : Maybe integer = Just {integer} 2
+in
+fMonadMaybe_c
+  {integer}
+  {integer}
+  x
+  (\(x : integer) ->
+     fMonadMaybe_c
+       {integer}
+       {integer}
+       y
+       (\(y : integer) ->
+          let
+            !ds : integer = addInteger x y
+          in
+          Just {integer} ds))

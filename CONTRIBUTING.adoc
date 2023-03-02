@@ -80,6 +80,16 @@ nix = {
 
 You will need to restart the nix-daemon on non-NixOS for the changes to take effect, or just restart your machine.
 
+=== Note on pre-commit hooks 
+
+If you are committing code outside `nix develop`, you will get this error:
+```
+pre-commit not found. Did you forget to activate your virtualenv?
+```
+In that case, you may either pass the flag `--no-verify` to `git commit`, or `pip install pre-commit`.
+
+The `pre-commit` checks will be run by CI anyway, so any formatting errors will be caught when submitting your PR.
+
 === What to do once inside the `nix develop` shell
 
 Your prompt will change to `[plutus-shell]` and you will be presented with a menu of available commands.
@@ -371,6 +381,7 @@ To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog manageme
 
 We have no clear policy here, it is up to the judgement of the contributor.
 Not all PRs need changelog entries.
+However our CI will check for changelog entries unless the 'No Changelog Required' label is applied.
 
 The broad heuristic is to put yourself in the position of the consumer of the piece of software in question and ask if you would want to know about this change.
 If the answer is yes, then write a quick changelog entry.
@@ -498,7 +509,7 @@ Rebasing and force pushing can be used to your advantage, for example:
 * If you have already had a PR review, don't rebase away the old commits until the PR is ready to merge, so that the reviewer only has to look at the "new" commits.
 * Rewrite the commits to make the story clearer where possible.
 
-It is advisable to always prefer `git push --force-with-lease` to just `git push --force` to ensure that no work gets accidentally deleted.
+It is advisable to always prefer `git push --force-with-lease` instead of `git push --force` to ensure that no work gets accidentally deleted.
 
 === Code review
 
@@ -613,10 +624,10 @@ If your PR contains a dozen drive-by refactorings, it's unlikely to be merged as
 
 We have a few sources of CI checks at the moment:
 
+- Hydra
 - ReadTheDocs
 - Github Actions
 - Buildkite
-- Cicero
 
 The CI will report statuses on your PRs with links to the logs in case of failure.
 Pull requests cannot be merged without at least the Hydra CI check being green.
@@ -624,35 +635,34 @@ Pull requests cannot be merged without at least the Hydra CI check being green.
 NOTE: This isn't strictly true: repository admins (notably Michael) can force-merge PRs without the checks being green
 If you really need this, ask.
 
+==== Hydra
+
+Hydra is the "standard" CI builder for Nix-based projects.
+It builds everything in the project, including all the tests, documentation, etc.
+
+Hydra builds jobs based on the `hydraJobs` flake output.
+
+Hydra can be a bit flaky, unfortunately:
+- If evaluation fails saying "out of memory" or "unexpected EOF reading line", then this is likely a transient failure.
+These will be automatically retried, but if you're in a hurry Michael has permissions to force a new evaluation.
+- If a build fails spuriously, this is a _problem_: please report it to whoever is responsible for that build and we should try and iron it out.
+Nondeterministic failures are very annoying.
+Michael also has permissions to restart failed builds.
+
 ==== ReadTheDocs
 
 The documentation site is built on ReadTheDocs.
 It will build a preview for each PR which is linked from the PR status.
 It's useful to take a look if you're changing any of the documentation.
 
-Enter the development shell using `nix develop`
+Enter the development shell using `nix develop`.
+If you get a segfault, run `GC_DONT_GC=1 nix develop` instead.
 
 Then you can run `serve-docs` to host a local instance at http://0.0.0.0:8002 (Haddock is at http://0.0.0.0:8002/haddock).
 
 ==== Github Actions
 
 These perform some of the same checks as Hydra, but Github Actions is often more available, so they return faster and act as a "smoke check".
-
-==== Buildkite
-
-Buildkite is used to run the benchmarking job.
-
-==== Cicero
-
-link:https://github.com/input-output-hk/cicero[Cicero] actions are setup to build everything in the project.
-It's planned to be a general alternative to Hydra.
-
-Each build is created as a task and all the tasks are run by the plutus/ci action which can be found in https://cicero.ci.iog.io (not publicly accessible for now).
-Tasks will each report a GitHub status success or failure.
-The "details" link for the task goes to a page for the entire action and you will have to scroll to the point where that task is run.
-
-If no GitHub statuses are shown, this might indicate that the invocation itself has failed.
-Check the link:https://cicero.ci.iog.io/action/53f25880-8fde-4e24-8ce7-6b7568777e00[plutus action page] for details, including logs and the full GitHub event payload.
 
 == Project roles and responsibilities
 

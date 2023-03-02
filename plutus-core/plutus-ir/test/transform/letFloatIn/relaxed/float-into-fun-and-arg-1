@@ -1,0 +1,15 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl f (fun (con integer) (con integer)))
+    (lam y (con integer) [ [ (builtin addInteger) y ] (con integer 3) ])
+  )
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  [ [ (builtin addInteger) (con integer 1) ] [ f x ] ]
+)
+-- Both `f` and `x` can be floated in.

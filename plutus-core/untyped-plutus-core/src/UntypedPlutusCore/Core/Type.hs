@@ -86,7 +86,7 @@ data Term name uni fun ann
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program
     { _progAnn  :: ann
-    , _progVer  :: TPLC.Version ann
+    , _progVer  :: TPLC.Version
     , _progTerm :: Term name uni fun ann
     }
     deriving stock (Show, Functor, Generic)

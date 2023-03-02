@@ -1,0 +1,22 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl idFun (fun (con integer) (con integer)))
+    (lam y (con integer) y)
+  )
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl
+        k
+        (fun
+          (fun (con integer) (con integer)) (fun (con integer) (con integer))
+        )
+      )
+      (lam x (fun (con integer) (con integer)) idFun)
+    )
+    [ [ k [ k idFun ] ] (con integer 6) ]
+  )
+)

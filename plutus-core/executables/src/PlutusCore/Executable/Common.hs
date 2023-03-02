@@ -86,7 +86,7 @@ class ProgramLike p where
     -- | Parse a program.  The first argument (normally the file path) describes
     -- the input stream, the second is the program text.
     parseNamedProgram ::
-        String -> T.Text -> Either ParserErrorBundle (p PLC.SourcePos)
+        String -> T.Text -> Either ParserErrorBundle (p PLC.SrcSpan)
 
     -- | Check a program for unique names.
     -- Throws a @UniqueError@ when not all names are unique.
@@ -102,7 +102,7 @@ class ProgramLike p where
     serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
 
     -- | Read and deserialise a Flat-encoded AST
-    loadASTfromFlat :: AstNameType -> Input -> IO (p ())
+    loadASTfromFlat :: Flat ann => AstNameType -> Input -> IO (p ann)
 
 -- For PIR and PLC
 serialiseTProgramFlat :: Flat a => AstNameType -> a -> IO BSL.ByteString
@@ -342,11 +342,11 @@ getInput StdInput         = T.getContents
 
 -- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
 parseInput ::
-    (ProgramLike p, PLC.Rename (p PLC.SourcePos)) =>
+    (ProgramLike p, PLC.Rename (p PLC.SrcSpan)) =>
     -- | The source program
     Input ->
     -- | The output is either a UPLC or PLC program with annotation
-    IO (p PLC.SourcePos)
+    IO (T.Text, p PLC.SrcSpan)
 parseInput inp = do
     contents <- getInput inp
     -- parse the program
@@ -362,9 +362,9 @@ parseInput inp = do
             let checked = through PlutusCore.Executable.Common.checkUniques renamed
             case checked of
                 -- pretty print the error
-                Left (err :: PLC.UniqueError PLC.SourcePos) ->
+                Left (err :: PLC.UniqueError PLC.SrcSpan) ->
                     error $ PP.render $ pretty err
-                Right _ -> pure p
+                Right _ -> pure (contents, p)
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
 getBinaryInput :: Input -> IO BSL.ByteString
@@ -407,7 +407,7 @@ loadTplcASTfromFlat flatMode inp =
             Right r -> return r
 
 -- | Read and deserialise a Flat-encoded UPLC AST
-loadUplcASTfromFlat :: AstNameType -> Input -> IO (UplcProg ())
+loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
@@ -426,21 +426,24 @@ loadUplcASTfromFlat flatMode inp = do
             Right r -> return r
 
 -- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
-getProgram ::
+getProgram :: forall p.
     ( ProgramLike p
     , Functor p
-    , PLC.Rename (p PLC.SourcePos)
+    , PLC.Rename (p PLC.SrcSpan)
     ) =>
     Format ->
     Input ->
-    IO (p PLC.SourcePos)
+    IO (p PLC.SrcSpan)
 getProgram fmt inp =
     case fmt of
-        Textual -> parseInput inp
+        Textual -> snd <$> parseInput inp
         Flat flatMode -> do
-            prog <- loadASTfromFlat flatMode inp
-            -- No source locations in Flat, so we have to make them up.
-            return $ PLC.topSourcePos <$ prog
+            prog <- loadASTfromFlat @p @() flatMode inp
+            return $ topSrcSpan <$ prog
+
+-- | A made-up `SrcSpan` since there's no source locations in Flat.
+topSrcSpan :: PLC.SrcSpan
+topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
 
 ---------------- Serialise a program using Flat and write it to a given output ----------------
 
@@ -520,15 +523,15 @@ prettyExample =
     \case
         SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlcDef ty
         SomeTypedExample (SomeTypedTermExample (TypedTermExample _ term)) ->
-            PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion ()) term
+            PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion) term
         SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
-            PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion ()) term
+            PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion) term
 
 toTypedTermExample ::
     PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
 toTypedTermExample term = TypedTermExample ty term
   where
-    program = PLC.Program () (PLC.defaultVersion ()) term
+    program = PLC.Program () (PLC.defaultVersion) term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
         PLC.inferTypeOfProgram tcConfig program
@@ -732,7 +735,7 @@ runPrintBuiltinSignatures = do
 
 runPrint :: PrintOptions -> IO ()
 runPrint (PrintOptions iospec mode) = do
-    parsed <- (parseInput (inputSpec iospec) :: IO (PlcProg PLC.SourcePos))
+    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
     let printed = show $ getPrintMethod mode parsed
     case outputSpec iospec of
         FileOutput path -> writeFile path printed
@@ -745,11 +748,11 @@ runConvert ::
     forall (p :: Type -> Type).
     ( ProgramLike p
     , Functor p
-    , PLC.Rename (p PLC.SourcePos)
-    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SourcePos)
+    , PLC.Rename (p PLC.SrcSpan)
+    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
     ) =>
     ConvertOptions ->
     IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program :: p PLC.SourcePos <- getProgram ifmt inp
+    program :: p PLC.SrcSpan <- getProgram ifmt inp
     writeProgram outp ofmt mode program

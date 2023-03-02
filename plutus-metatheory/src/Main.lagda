@@ -37,8 +37,8 @@ open import Algorithmic using (_⊢_;∅;error)
 open import Algorithmic.CK using (stepper;State;Stack;ε)
 open Algorithmic.CK.State
 
-open import Algorithmic.CEKV using (stepper;State;Stack;ε;Env;[])
-open Algorithmic.CEKV.State
+open import Algorithmic.CEK using (stepper;State;Stack;ε;Env;[])
+open Algorithmic.CEK.State
 
 open import Algorithmic.Erasure using (erase)
 import Algorithmic.Evaluation as L using(stepper)
@@ -99,7 +99,7 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Executable.Parsers #-}
 {-# FOREIGN GHC import Opts #-}
 
-postulate 
+postulate
    Format : Set
    Input : Set
 
@@ -138,7 +138,7 @@ postulate
   convPU : ProgramU → U.Untyped
   convTmU : TermU → U.Untyped
   unconvTmU : U.Untyped → TermU
-  
+
 
 {-# FOREIGN GHC import PlutusCore.Name #-}
 {-# FOREIGN GHC import PlutusCore.Parser #-}
@@ -169,17 +169,17 @@ postulate
 {-# COMPILE GHC deBruijnifyTm = second void . runExcept . deBruijnTerm #-}
 {-# COMPILE GHC deBruijnifyTy = second void . runExcept . deBruijnTy #-}
 {-# FOREIGN GHC import PlutusCore #-}
-{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
+{-# COMPILE GHC ProgramN = type PlutusCore.Program TyName Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
 {-# COMPILE GHC Program = type PlutusCore.Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
+{-# COMPILE GHC TermN = type PlutusCore.Term TyName Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
 {-# COMPILE GHC Term = type PlutusCore.Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SourcePos #-}
+{-# COMPILE GHC TypeN = type PlutusCore.Type TyName DefaultUni PlutusCore.SrcSpan #-}
 {-# COMPILE GHC Type = type PlutusCore.Type NamedTyDeBruijn DefaultUni () #-}
 {-# COMPILE GHC showTerm = T.pack . show #-}
 
-{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
+{-# COMPILE GHC ProgramNU = type U.Program Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
 {-# COMPILE GHC ProgramU = type U.Program NamedDeBruijn DefaultUni DefaultFun () #-}
-{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SourcePos #-}
+{-# COMPILE GHC TermNU = type U.Term Name DefaultUni DefaultFun PlutusCore.SrcSpan #-}
 {-# COMPILE GHC TermU = type U.Term NamedDeBruijn DefaultUni DefaultFun () #-}
 {-# COMPILE GHC deBruijnifyU = \ (U.Program ann ver tm) -> second (void . U.Program ann ver) . runExcept $ U.deBruijnTerm tm #-}
 {-# COMPILE GHC deBruijnifyTmU = second void . runExcept . U.deBruijnTerm #-}
@@ -262,8 +262,8 @@ reportError (runtimeError userError)        = "userError"
 reportError (runtimeError runtimeTypeError) = "runtimeTypeError"
 
 
-{- check if the term is an error term, and in that case 
-  return an ERROR. 
+{- check if the term is an error term, and in that case
+  return an ERROR.
   This is used when evaluation of the reduction semantics has ended
 -}
 checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
@@ -293,10 +293,10 @@ executePLC TCK t = do
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
 executePLC TCEK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
+  □ V ← withE runtimeError $ Algorithmic.CEK.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
-  return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
 executeUPLC : ⊥ U.⊢ → Either ERROR String
 executeUPLC t = do
@@ -531,16 +531,16 @@ runTCK t = do
 
 {-# COMPILE GHC runTCK as runTCKAgda #-}
 
--- Haskell interface to (typechecked) CEKV
+-- Haskell interface to (typechecked) CEK
 runTCEK : Term → Either ERROR Term
 runTCEK t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   ty ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
-  □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ tC)
+  □ V ← withE runtimeError $ Algorithmic.CEK.stepper maxsteps (ε ; [] ▻ tC)
     where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (extricate (error ty)))))
-  return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
+  return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
 {-# COMPILE GHC runTCEK as runTCEKAgda #-}
 
@@ -551,12 +551,12 @@ postulate showU : TermU -> String
 -- Note that according to the specification ◆ should reduce to an error term,
 -- but here the untyped PLC term evaluator
 -- matches the behaviour of the Haskell implementation:
--- an error is thrown with ◆. 
+-- an error is thrown with ◆.
 runU : TermU → Either ERROR TermU
 runU t = do
   tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ tDB)
-    where      
+    where
     ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
     _ → inj₁ (runtimeError gasError)
   return (unconvTmU (U.extricateU0 (U.discharge V)))

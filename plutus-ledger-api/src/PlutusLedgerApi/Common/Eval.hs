@@ -15,6 +15,7 @@ module PlutusLedgerApi.Common.Eval
     , evaluateScriptCounting
     , mkDynEvaluationContext
     , toMachineParameters
+    , mkTermToEvaluate
     , assertWellFormedCostModelParams
     ) where
 
@@ -48,7 +49,7 @@ data EvaluationError =
     CekError !(UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError !FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
-    | IncompatibleVersionError !(ScriptPlutus.Version ()) -- ^ An error indicating a version tag that we don't support
+    | IncompatibleVersionError !ScriptPlutus.Version -- ^ An error indicating a version tag that we don't support
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
     deriving stock (Show, Eq)
@@ -95,7 +96,7 @@ mkTermToEvaluate
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v == ScriptPlutus.defaultVersion ()) $ throwError $ IncompatibleVersionError v
+    unless (v == ScriptPlutus.defaultVersion) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
 

@@ -1,0 +1,19 @@
+{-
+Single occurrence const function with integer:
+The const function is expected to be inlined by the unconditional inlining optimization.
+ 
+let 
+  constFun :: Integer -> Integer -> Integer
+  constFun x y = x
+in constFun 3 4 
+  -}
+
+(let
+  (nonrec)
+  (termbind 
+    (strict) 
+    (vardecl constFun (fun (con integer) (fun (con integer) (con integer)))) 
+    (lam x (con integer) (lam y (con integer) x)) 
+  ) 
+  [ [ constFun (con integer 3) ] (con integer 4) ] 
+)

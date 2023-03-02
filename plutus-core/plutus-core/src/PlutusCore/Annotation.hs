@@ -16,6 +16,7 @@ module PlutusCore.Annotation
     , lineInSrcSpan
     ) where
 
+import Control.DeepSeq
 import Data.List qualified as List
 import Data.MonoTraversable
 import Data.Semigroup (Any (..))
@@ -76,9 +77,12 @@ data SrcSpan = SrcSpan
     , srcSpanSCol  :: Int
     , srcSpanELine :: Int
     , srcSpanECol  :: Int
+    -- ^ Same as GHC's @SrcSpan@, @srcSpanECol@ is usually one more than the column of
+    -- the last character of the thing this @SrcSpan@ is for (unless the last character
+    -- is the line break).
     }
     deriving stock (Eq, Ord, Generic)
-    deriving anyclass (Flat)
+    deriving anyclass (Flat, NFData)
 
 instance Show SrcSpan where
     showsPrec _ s =
@@ -90,13 +94,13 @@ instance Show SrcSpan where
             . showChar '-'
             . showsPrec 0 (srcSpanELine s)
             . showChar ':'
-            . showsPrec 0 (srcSpanECol s)
+            . showsPrec 0 (if srcSpanECol s == 0 then 0 else srcSpanECol s - 1)
 
 instance Pretty SrcSpan where
     pretty = viaShow
 
 newtype SrcSpans = SrcSpans {unSrcSpans :: Set SrcSpan}
-    deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable)
+    deriving newtype (Eq, Ord, Semigroup, Monoid, MonoFoldable, NFData)
     deriving stock (Generic)
     deriving anyclass (Flat)
 

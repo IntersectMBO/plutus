@@ -37,6 +37,7 @@ import UntypedPlutusCore qualified as UPLC
 data PluginOptions = PluginOptions
     { _posDoTypecheck                    :: Bool
     , _posDeferErrors                    :: Bool
+    , _posConservativeOpts               :: Bool
     , _posContextLevel                   :: Int
     , _posDumpPir                        :: Bool
     , _posDumpPlc                        :: Bool
@@ -54,6 +55,7 @@ data PluginOptions = PluginOptions
     , _posCoverageAll                    :: Bool
     , _posCoverageLocation               :: Bool
     , _posCoverageBoolean                :: Bool
+    , _posRelaxedFloatin                 :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
@@ -64,19 +66,25 @@ makeLenses ''PluginOptions
 type OptionKey = Text
 type OptionValue = Text
 
+-- | A data type representing option @a@ implying option @b@.
+data Implication a = forall b. Implication (a -> Bool) (Lens' PluginOptions b) b
+
 -- | A plugin option definition for a `PluginOptions` field of type @a@.
 data PluginOption = forall a.
       Pretty a =>
     PluginOption
-    { poTypeRep     :: TypeRep a
+    { poTypeRep      :: TypeRep a
     -- ^ `TypeRep` used for pretty printing the option.
-    , poFun         :: Maybe OptionValue -> Validation ParseError (a -> a)
+    , poFun          :: Maybe OptionValue -> Validation ParseError (a -> a)
     -- ^ Consumes an optional value, and either updates the field or reports an error.
-    , poLens        :: Lens' PluginOptions a
+    , poLens         :: Lens' PluginOptions a
     -- ^ Lens focusing on the field. This is for modifying the field, as well as
     -- getting the field value from `defaultPluginOptions` for pretty printing.
-    , poDescription :: Text
+    , poDescription  :: Text
     -- ^ A description of the option.
+    , poImplications :: [Implication a]
+    -- ^ Implications of this option being set to a particular value.
+    -- An option should not imply itself.
     }
 
 data ParseError
@@ -90,7 +98,8 @@ newtype ParseErrors = ParseErrors (NonEmpty ParseError)
     deriving newtype (Semigroup)
 
 instance Show ParseErrors where
-    show (ParseErrors errs) = [fmt|
+    show (ParseErrors errs) =
+        [fmt|
         PlutusTx.Plugin: failed to parse options:
         {Text.intercalate "\n" (fmap renderParseError (toList errs))}
     |]
@@ -119,71 +128,99 @@ pluginOptions =
     Map.fromList
         [ let k = "typecheck"
               desc = "Perform type checking during compilation."
-           in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc)
+           in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc [])
         , let k = "defer-errors"
               desc =
                 "If a compilation error happens and this option is turned on, \
-                 \the compilation error is suppressed and the original Haskell \
-                 \expression is replaced with a runtime-error expression."
-           in (k, PluginOption typeRep (setTrue k) posDeferErrors desc)
+                \the compilation error is suppressed and the original Haskell \
+                \expression is replaced with a runtime-error expression."
+           in (k, PluginOption typeRep (setTrue k) posDeferErrors desc [])
+        , let k = "conservative-optimisation"
+              desc =
+                "When conservative optimisation is used, only the optimisations that \
+                \never make the program worse (in terms of cost or size) are employed. \
+                \Implies ``no-relaxed-float-in``."
+           in ( k
+              , PluginOption
+                    typeRep
+                    (setTrue k)
+                    posConservativeOpts
+                    desc
+                    -- conservative-optimisation implies no-relaxed-floatin, and vice versa
+                    [ Implication (== True) posRelaxedFloatin False
+                    , Implication (== False) posRelaxedFloatin True
+                    ]
+              )
         , let k = "context-level"
               desc = "Set context level for error messages."
-           in (k, PluginOption typeRep (intOption k) posContextLevel desc)
+           in (k, PluginOption typeRep (intOption k) posContextLevel desc [])
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
-           in (k, PluginOption typeRep (setTrue k) posDumpPir desc)
+           in (k, PluginOption typeRep (setTrue k) posDumpPir desc [])
         , let k = "dump-plc"
               desc = "Dump Typed Plutus Core"
-           in (k, PluginOption typeRep (setTrue k) posDumpPlc desc)
+           in (k, PluginOption typeRep (setTrue k) posDumpPlc desc [])
         , let k = "dump-uplc"
               desc = "Dump Untyped Plutus Core"
-           in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc)
+           in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
         , let k = "optimize"
               desc = "Run optimization passes such as simplification and floating let-bindings."
-           in (k, PluginOption typeRep (setTrue k) posOptimize desc)
+           in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
         , let k = "pedantic"
               desc = "Run type checker after each compilation pass"
-           in (k, PluginOption typeRep (setTrue k) posPedantic desc)
+           in (k, PluginOption typeRep (setTrue k) posPedantic desc [])
         , let k = "verbosity"
               desc = "Set logging verbosity level (0=Quiet, 1=Verbose, 2=Debug)"
               toVerbosity v
-                  | v <= 0 = Quiet
-                  | v == 1 = Verbose
-                  | otherwise = Debug
-           in (k, PluginOption typeRep (fromIntOption k (Success. toVerbosity)) posVerbosity desc)
+                | v <= 0 = Quiet
+                | v == 1 = Verbose
+                | otherwise = Debug
+           in ( k
+              , PluginOption
+                    typeRep
+                    (fromIntOption k (Success . toVerbosity))
+                    posVerbosity
+                    desc
+                    []
+              )
         , let k = "max-simplifier-iterations-pir"
               desc = "Set the max iterations for the PIR simplifier"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsPir desc)
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsPir desc [])
         , let k = "max-simplifier-iterations-uplc"
               desc = "Set the max iterations for the UPLC simplifier"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsUPlc desc)
+           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsUPlc desc [])
         , let k = "simplifier-unwrap-cancel"
               desc = "Run a simplification pass that cancels unwrap/wrap pairs"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc)
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc [])
         , let k = "simplifier-beta"
               desc = "Run a simplification pass that performs beta transformations"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta desc)
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierBeta desc [])
         , let k = "simplifier-inline"
               desc = "Run a simplification pass that performs inlining"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc)
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc [])
         , let k = "simplifier-remove-dead-bindings"
               desc = "Run a simplification pass that removes dead bindings"
-           in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc)
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc [])
         , let k = "profile-all"
               desc = "Set profiling options to All, which adds tracing when entering and exiting a term."
-           in (k, PluginOption typeRep (flag (const All) k) posProfile desc)
+           in (k, PluginOption typeRep (flag (const All) k) posProfile desc [])
         , let k = "coverage-all"
               desc = "Add all available coverage annotations in the trace output"
-           in (k, PluginOption typeRep (setTrue k) posCoverageAll desc)
+           in (k, PluginOption typeRep (setTrue k) posCoverageAll desc [])
         , let k = "coverage-location"
               desc = "Add location coverage annotations in the trace output"
-           in (k, PluginOption typeRep (setTrue k) posCoverageLocation desc)
+           in (k, PluginOption typeRep (setTrue k) posCoverageLocation desc [])
         , let k = "coverage-boolean"
               desc = "Add boolean coverage annotations in the trace output"
-           in (k, PluginOption typeRep (setTrue k) posCoverageBoolean desc)
+           in (k, PluginOption typeRep (setTrue k) posCoverageBoolean desc [])
+        , let k = "relaxed-float-in"
+              desc =
+                "Use a more aggressive float-in pass, which often leads to reduced costs \
+                \but may occasionally lead to slightly increased costs."
+           in (k, PluginOption typeRep (setTrue k) posRelaxedFloatin desc [])
         , let k = "remove-trace"
               desc = "Eliminate calls to ``trace`` from Plutus Core"
-           in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc)
+           in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
         ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -216,6 +253,7 @@ defaultPluginOptions =
     PluginOptions
         { _posDoTypecheck = True
         , _posDeferErrors = False
+        , _posConservativeOpts = False
         , _posContextLevel = 1
         , _posDumpPir = False
         , _posDumpPlc = False
@@ -233,6 +271,7 @@ defaultPluginOptions =
         , _posCoverageAll = False
         , _posCoverageLocation = False
         , _posCoverageBoolean = False
+        , _posRelaxedFloatin = True
         , _posRemoveTrace = False
         }
 
@@ -241,17 +280,27 @@ processOne ::
     Maybe OptionValue ->
     Validation ParseError (PluginOptions -> PluginOptions)
 processOne key val
-    | Just (PluginOption _ f field _) <- Map.lookup key pluginOptions = over field <$> f val
+    | Just (PluginOption _ f field _ impls) <- Map.lookup key pluginOptions =
+        fmap (applyImplications field impls) . over field <$> f val
     -- For each boolean option there is a "no-" version for disabling it.
     | Just key' <- Text.stripPrefix "no-" key
-    , Just (PluginOption tr f field _) <- Map.lookup key' pluginOptions
+    , Just (PluginOption tr f field _ impls) <- Map.lookup key' pluginOptions
     , Just Refl <- testEquality tr (typeRep @Bool) =
-        over field . (not .) <$> f val
+        fmap (applyImplications field impls) . over field . (not .) <$> f val
     | otherwise =
         let suggs =
                 Text.pack
                     <$> GHC.fuzzyMatch (Text.unpack key) (Text.unpack <$> Map.keys pluginOptions)
          in Failure (UnrecognisedOption key suggs)
+
+applyImplications :: Lens' PluginOptions a -> [Implication a] -> PluginOptions -> PluginOptions
+applyImplications field =
+    foldr
+        -- The value of `field` implies the value of `field'`.
+        ( \(Implication f field' val) acc ->
+            acc . (\opts -> if f (opts ^. field) then opts & field' .~ val else opts)
+        )
+        id
 
 processAll ::
     [(OptionKey, Maybe OptionValue)] ->

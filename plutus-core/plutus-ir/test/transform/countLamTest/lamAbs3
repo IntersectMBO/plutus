@@ -1,0 +1,3 @@
+-- \x y z -> x
+
+(lam x (con integer) (lam y (con integer) (lam z (con integer) x)))

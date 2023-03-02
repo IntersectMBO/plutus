@@ -40,7 +40,7 @@ jobs:
             if (match !== null && match.length == 2)
               core.setOutput('benchmark', match[1]);
             else
-              core.setFailed(`Unable to extract benchmark name from {comment}`);
+              core.setFailed(`Unable to extract benchmark name from ${comment}`);
 
       - name: Extract Comment Branch 
         id: extract-branch

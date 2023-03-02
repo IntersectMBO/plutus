@@ -10,6 +10,7 @@ import Control.Monad.Trans.Except
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import MAlonzo.Code.Main (runUAgda)
+import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (Error (..), ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
@@ -23,7 +24,6 @@ import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
-import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
@@ -45,7 +45,7 @@ shownEvaluationFailure = "evaluation failure"
 -- | The default parser to parse UPLC program inputs.
 parseTxt ::
     T.Text
-    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
+    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SrcSpan)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | The input/output UPLC program type.
@@ -241,4 +241,3 @@ agdaEvalUplcProgDebug (UPLC.Program () version tmU) =
                                 "The input to runUAgda was " <> show tmUDBSuccess <>
                                 ", returned by deBruijnTerm."
                         Right namedTerm -> Right $ UPLC.Program () version namedTerm
-

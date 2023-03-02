@@ -60,6 +60,7 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierInline       :: Bool
     , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
     , _coProfile                  :: Bool
+    , _coRelaxedFloatin           :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -76,6 +77,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierInline = True
   , _coInlineHints = mempty
   , _coProfile = False
+  , _coRelaxedFloatin = True
   }
 
 data CompilationCtx uni fun a = CompilationCtx {

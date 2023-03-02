@@ -543,6 +543,8 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
+--
+-- TODO: remove when we switch to mtl>=2.3
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 
