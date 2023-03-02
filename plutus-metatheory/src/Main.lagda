@@ -37,8 +37,8 @@ open import Algorithmic using (_⊢_;∅;error)
 open import Algorithmic.CK using (stepper;State;Stack;ε)
 open Algorithmic.CK.State
 
-open import Algorithmic.CEKV using (stepper;State;Stack;ε;Env;[])
-open Algorithmic.CEKV.State
+open import Algorithmic.CEK using (stepper;State;Stack;ε;Env;[])
+open Algorithmic.CEK.State
 
 open import Algorithmic.Erasure using (erase)
 import Algorithmic.Evaluation as L using(stepper)
@@ -293,10 +293,10 @@ executePLC TCK t = do
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
 executePLC TCEK t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
-  □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ t)
+  □ V ← withE runtimeError $ Algorithmic.CEK.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
-  return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
+  return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
 executeUPLC : ⊥ U.⊢ → Either ERROR String
 executeUPLC t = do
@@ -531,16 +531,16 @@ runTCK t = do
 
 {-# COMPILE GHC runTCK as runTCKAgda #-}
 
--- Haskell interface to (typechecked) CEKV
+-- Haskell interface to (typechecked) CEK
 runTCEK : Term → Either ERROR Term
 runTCEK t = do
   tDB ← withE scopeError (scopeCheckTm {0}{Z} (shifter Z (convTm t)))
   ty ,, tC ← withE (λ e → typeError (uglyTypeError e)) (inferType ∅ tDB)
-  □ V ← withE runtimeError $ Algorithmic.CEKV.stepper maxsteps (ε ; [] ▻ tC)
+  □ V ← withE runtimeError $ Algorithmic.CEK.stepper maxsteps (ε ; [] ▻ tC)
     where (_ ; _ ▻ _) → inj₁ (runtimeError gasError)
           (_ ◅ _) → inj₁ (runtimeError gasError)
           ◆ A → return (unconvTm (unshifter Z (extricateScope {0}{Z} (extricate (error ty)))))
-  return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEKV.discharge V)))))
+  return (unconvTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
 {-# COMPILE GHC runTCEK as runTCEKAgda #-}
 

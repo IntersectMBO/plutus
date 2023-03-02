@@ -23,13 +23,13 @@ open import Type.BetaNBE.RenamingSubstitution using (subNf;SubNf) renaming (_[_]
 
 open import Builtin using (Builtin;signature)
 open Builtin.Builtin
-open import Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
+open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open TyCon
 
-open Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π using (sig2type)
+open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π using (sig2type)
 \end{code}
 
 ## Fixity declarations

@@ -20,7 +20,7 @@ open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
-open import Signature using (Sig;sig;_⊢♯;con;`;Args) 
+open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
 ```
 

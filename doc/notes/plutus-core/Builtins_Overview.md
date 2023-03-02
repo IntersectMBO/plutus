@@ -212,7 +212,7 @@ The meaning of built-in functions is given three times in the
 formalisation, the main part being functions named `BUILTIN` in:
 
 1.  `Algorithmic/ReductionEC.lagda.md`,
-2.  `Algorithmic/CEKV.lagda.md`, and
+2.  `Algorithmic/CEK.lagda.md`, and
 3.  `Untyped/CEK.lagda.md`.
 
 Only one version of built-in functions is supported. For example,

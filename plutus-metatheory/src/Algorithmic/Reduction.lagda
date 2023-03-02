@@ -30,12 +30,14 @@ open import Algorithmic using (Ctx;_⊢_;Term;Type;arity)
 open _⊢_
 open Ctx
 open import Algorithmic.ReductionEC using (Value;BApp;BUILTIN';_—→⋆_;EC;_[_]ᴱ;Error)
-                                    using (step;done;error) -- Progress constructors
                                     using (ruleEC;ruleErr)  -- _—→_ constructors
 open EC
 open _—→⋆_
- --hiding (_—→_;_—↠_;progress;Progress;determinism)
+open import Algorithmic.ReductionEC.Progress using (step;done;error)
+
 import Algorithmic.ReductionEC as E
+import Algorithmic.ReductionEC.Progress as EP
+import Algorithmic.ReductionEC.Determinism as ED
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -270,10 +272,10 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → Progress M
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
-progress M with E.progress M
+progress M with EP.progress M
 ... | step p = step (lemCS—→ p)
 ... | done v = done v
 ... | error e = error e
 
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
-determinism p q = E.determinism (lemSC—→ p) (lemSC—→ q)
+determinism p q = ED.determinism (lemSC—→ p) (lemSC—→ q)

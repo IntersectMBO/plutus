@@ -90,7 +90,7 @@ These types are abstract, and they can be made concrete to obtain the different
 notions of type used in the formalisation.
 
 ```
-import Signature
+import Builtin.Signature
 ``` 
 
 ## Declarative syntax
@@ -133,11 +133,29 @@ import Algorithmic.Erasure
 import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.CC
 import Algorithmic.CK
-import Algorithmic.CEKV
+import Algorithmic.CEK
 
 import Algorithmic.Examples
 ```
 
+Proof for Progress and Determinism of the Reduction Semantics:
+
+```
+import Algorithmic.ReductionEC.Progress
+import Algorithmic.ReductionEC.Determinism
+```
+
+There are proofs of correspondence of the semantics of:
+ * Reduction semantics
+ * CC machine
+ * CK machine
+ * (typed) CEK machine
+
+```
+import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+import Algorithmic.BehaviouralEquivalence.CCvsCK
+import Algorithmic.BehaviouralEquivalence.CKvsCEK
+```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 
 Extrinsically typed terms, reduction and evaluation
