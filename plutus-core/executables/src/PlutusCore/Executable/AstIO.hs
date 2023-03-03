@@ -156,17 +156,17 @@ loadPirASTfromFlat flatMode inp =
 loadPlcASTfromFlat :: Flat a => AstNameType -> Input -> IO (PlcProg a)
 loadPlcASTfromFlat flatMode inp =
     getBinaryInput inp <&>
-                   case flatMode of
-                     Named         -> unflatOrFail
-                     DeBruijn      -> unflatOrFail <&> fromDeBruijnPLC
-                     NamedDeBruijn -> unflatOrFail <&> fromNamedDeBruijnPLC
+    case flatMode of
+      Named         -> unflatOrFail
+      DeBruijn      -> unflatOrFail <&> fromDeBruijnPLC
+      NamedDeBruijn -> unflatOrFail <&> fromNamedDeBruijnPLC
 
 -- | Read and deserialise a Flat-encoded UPLC AST
 loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp =
     getBinaryInput inp <&>
-                   case flatMode of
-                     Named         -> unflatOrFail
-                     DeBruijn      -> unflatOrFail <&> fromDeBruijnUPLC
-                     NamedDeBruijn -> unflatOrFail <&> fromNamedDeBruijnUPLC
+    case flatMode of
+      Named         -> unflatOrFail
+      DeBruijn      -> unflatOrFail <&> fromDeBruijnUPLC
+      NamedDeBruijn -> unflatOrFail <&> fromNamedDeBruijnUPLC
 
