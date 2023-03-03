@@ -36,9 +36,11 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
+import Evaluation.Builtins.BLS12_381
 import Evaluation.Builtins.Common
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
                                                   schnorrSecp256k1Prop)
+
 
 import Control.Exception
 import Data.ByteString (ByteString)
@@ -624,7 +626,6 @@ fails b args =
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
 -- Test that the SECP256k1 builtins are behaving correctly
--- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
@@ -640,6 +641,7 @@ test_SignatureVerification =
                                 testPropertyNamed "Schnorr verification behaves correctly on all inputs" "schnorr_correct" . property $ schnorrSecp256k1Prop
                                ]
                 ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -666,6 +668,7 @@ test_definition =
         , test_Data
         , test_Crypto
         , test_SignatureVerification
+        , test_BLS12_381
         , test_Other
         , test_Version
         , test_ConsByteString
