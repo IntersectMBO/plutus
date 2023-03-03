@@ -33,12 +33,12 @@ tests =
       , testProperty "Compiled left fold (data lists)"         $ prop_sum Compiled.mkSumLeftDataTerm
       ]
     , runTestNestedIn ["lists", "test"] $ testNested "Sum"
-      [ Tx.goldenBudget "Compiled right fold (Scott lists)"    $ Compiled.mkSumRightScottCode input
-      , Tx.goldenBudget "Compiled right fold (built-in lists)" $ Compiled.mkSumRightBuiltinCode input
-      , Tx.goldenBudget "Compiled right fold (data lists)"     $ Compiled.mkSumRightDataCode input
-      , Tx.goldenBudget "Compiled left fold (Scott lists)"     $ Compiled.mkSumLeftScottCode input
-      , Tx.goldenBudget "Compiled left fold (built-in lists)"  $ Compiled.mkSumLeftBuiltinCode input
-      , Tx.goldenBudget "Compiled left fold (data lists)"      $ Compiled.mkSumLeftDataCode input
+      [ Tx.goldenBudget "right-fold-scott"    $ Compiled.mkSumRightScottCode input
+      , Tx.goldenBudget "right-fold-built-in" $ Compiled.mkSumRightBuiltinCode input
+      , Tx.goldenBudget "right-fold-data"     $ Compiled.mkSumRightDataCode input
+      , Tx.goldenBudget "left-fold-scott"     $ Compiled.mkSumLeftScottCode input
+      , Tx.goldenBudget "left-fold-built-in"  $ Compiled.mkSumLeftBuiltinCode input
+      , Tx.goldenBudget "left-fold-data"      $ Compiled.mkSumLeftDataCode input
       ]
     ]
   where input = [1..100]
