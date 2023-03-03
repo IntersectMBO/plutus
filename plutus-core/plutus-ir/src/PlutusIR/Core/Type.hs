@@ -173,14 +173,16 @@ makeLenses ''Program
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
 
--- | Applies one program to another. Takes the maximum of the versions,
+-- | Applies one program to another. Fails if the versions do not match
 -- and tries to merge annotations.
 applyProgram
     :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
-    -> Program tyname name uni fun a
-applyProgram (Program a1 v1 t1) (Program a2 v2 t2) = Program (a1 <> a2) (max v1 v2) (Apply (termAnn t1 <> termAnn t2) t1 t2)
+    -> Maybe (Program tyname name uni fun a)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
+  = Just $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+applyProgram _ _ = Nothing
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case

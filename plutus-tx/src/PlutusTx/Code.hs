@@ -55,11 +55,21 @@ data CompiledCodeIn uni fun a =
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
--- | Apply a compiled function to a compiled argument.
+-- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
 applyCode
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> Maybe (CompiledCodeIn uni fun b)
+applyCode fun arg = do
+  uplc <- UPLC.applyProgram (getPlc fun) (getPlc arg)
+  pir <- PIR.applyProgram <$> getPir fun <*> getPir arg
+  pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
+
+unsafeApplyCode
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
-applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg)) (PIR.applyProgram <$> getPir fun <*> getPir arg) (getCovIdx fun <> getCovIdx arg)
+unsafeApplyCode fun arg = case applyCode fun arg of
+  Just c  -> c
+  Nothing -> error "Could not apply CompiledCodeIn, likely a version mismatch"
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer

@@ -5,6 +5,7 @@ module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 import Control.Monad.Except
 import Control.Monad.State
 import DeBruijn.Common
+import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.MkPlc
