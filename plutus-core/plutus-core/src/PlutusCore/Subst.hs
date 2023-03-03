@@ -212,7 +212,7 @@ programMapNames
     -> (name -> name')
     -> Program tyname name uni fun ann
     -> Program tyname' name' uni fun ann
-programMapNames g f (Program a v term) = Program a v (termMapNames g f term)
+programMapNames f g (Program a v term) = Program a v (termMapNames f g term)
 
 -- Free variables
 

@@ -257,8 +257,8 @@ unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 fakeNameDeBruijn :: DeBruijn -> NamedDeBruijn
 fakeNameDeBruijn = coerce . toFake
 
-fakeTyNameDeBruijn :: DeBruijn -> NamedTyDeBruijn
-fakeTyNameDeBruijn = coerce . toFake
+fakeTyNameDeBruijn :: TyDeBruijn -> NamedTyDeBruijn
+fakeTyNameDeBruijn (TyDeBruijn n) = NamedTyDeBruijn $ fakeNameDeBruijn n
 
 nameToDeBruijn
     :: MonadReader Levels m
