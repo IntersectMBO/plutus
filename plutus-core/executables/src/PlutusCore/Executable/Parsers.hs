@@ -8,12 +8,6 @@ import PlutusCore.Executable.Types
 
 import Options.Applicative
 
--- | Invert a switch: return False if the switch is supplied on the command
--- line, True otherwise.  This is used for command-line options to turn things
--- off.
-invertedSwitch :: Mod FlagFields Bool -> Parser Bool
-invertedSwitch = fmap not . switch
-
 -- | Parser for an input stream. If none is specified,
 -- default to stdin for ease of use in pipeline.
 input :: Parser Input

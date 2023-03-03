@@ -164,47 +164,47 @@ termSubstClosedTerm varFor new = go where
          t                    -> t & over termSubterms go
     goUnder var term = if var == varFor then term else go term
 
--- Mapping names
+-- Mapping name-modification functions over types and terms.
 
 typeMapNames
     :: forall tyname tyname' uni ann
     .  (tyname -> tyname')
     -> Type tyname uni ann
     -> Type tyname' uni ann
-typeMapNames g = go
+typeMapNames f = go
     where
       go :: Type tyname uni ann -> Type tyname' uni ann
       go = \case
-           TyVar ann tn         -> TyVar ann (g tn)
+           TyVar ann tn         -> TyVar ann (f tn)
            TyFun ann ty1 ty2    -> TyFun ann (go ty1) (go ty2)
            TyIFix ann ty1 ty2   -> TyIFix ann (go ty1) (go ty2)
-           TyForall ann tn k ty -> TyForall ann (g tn) k (go ty)
+           TyForall ann tn k ty -> TyForall ann (f tn) k (go ty)
            TyBuiltin ann s      -> TyBuiltin ann s
-           TyLam ann tn k ty    -> TyLam ann (g tn) k (go ty)
+           TyLam ann tn k ty    -> TyLam ann (f tn) k (go ty)
            TyApp ann ty1 ty2    -> TyApp ann (go ty1) (go ty2)
 
--- termMapNames requires two function arguments: one (called g) to map type names
--- and another (called f) to map variable names.
+-- termMapNames requires two function arguments: one (called f) to modify type names
+-- and another (called g) to modify variable names.
 termMapNames
     :: forall tyname tyname' name name' uni fun ann
     .  (tyname -> tyname')
     -> (name -> name')
     -> Term tyname name uni fun ann
     -> Term tyname' name' uni fun ann
-termMapNames g f = go
+termMapNames f g = go
     where
         go :: Term tyname name uni fun ann -> Term tyname' name' uni fun ann
         go = \case
-            LamAbs ann name ty body -> LamAbs ann (f name) (typeMapNames g ty) (go body)
-            TyAbs ann tyname k body -> TyAbs ann (g tyname) k (go body)
-            Var ann name            -> Var ann (f name)
+            LamAbs ann name ty body -> LamAbs ann (g name) (typeMapNames f ty) (go body)
+            TyAbs ann tyname k body -> TyAbs ann (f tyname) k (go body)
+            Var ann name            -> Var ann (g name)
             Apply ann t1 t2         -> Apply ann (go t1) (go t2)
             Constant ann c          -> Constant ann c
             Builtin ann b           -> Builtin ann b
-            TyInst ann body ty      -> TyInst ann (go body) (typeMapNames g ty)
+            TyInst ann body ty      -> TyInst ann (go body) (typeMapNames f ty)
             Unwrap ann body         -> Unwrap ann (go body)
-            IWrap ann ty1 ty2 body  -> IWrap ann (typeMapNames g ty1) (typeMapNames g ty2) (go body)
-            Error ann ty            -> Error ann (typeMapNames g ty)
+            IWrap ann ty1 ty2 body  -> IWrap ann (typeMapNames f ty1) (typeMapNames f ty2) (go body)
+            Error ann ty            -> Error ann (typeMapNames f ty)
 
 programMapNames
     :: forall tyname tyname' name name' uni fun ann

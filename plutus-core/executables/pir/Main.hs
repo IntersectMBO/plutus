@@ -40,12 +40,12 @@ type UnitProvenance = PIR.Provenance ()
 
 {- Note [De Bruijn indices and PIR]
    The `plc` and `uplc` commands both support ASTs whose "names" are de Bruijn
-   inidces.  These aren't supported for PIR because PIR has `Let` blocks of
+   indices.  These aren't supported for PIR because PIR has `Let` blocks of
    possibly mutually recursive definitions and it's not clear whether de Bruijn
    indices (or levels) really make sense in the presence of mutual recursion
    since scopes aren't properly nested in that case: if we process the AST in
    the normal way then a declaration may have to refer to another variable which
-   hasn't yet been declared.  It may be possbile to overcome this by allowing
+   hasn't yet been declared.  It may be possible to overcome this by allowing
    scopes which introduce multiple variables at once, but this would require
    some lookahead or CPS-type technique which would lead to quite complex code
    for a feature that we don't really need.
@@ -94,8 +94,10 @@ pPirConvertOptions = PirConvertOptions <$> input <*> pPirInputFormat <*> output 
 pAnalyseOptions :: Parser AnalyseOptions
 pAnalyseOptions = AnalyseOptions <$> input <*> pPirInputFormat <*> output
 
+-- | Whether to perform optimisations or not.  The default here is True,
+-- ie *do* optimise; specifying --dont-optimise returns False.
 pOptimise :: Parser Bool
-pOptimise = invertedSwitch
+pOptimise = flag True False
             (  long "dont-optimise"
             <> long "dont-optimize"
             <> help ("Turn off optimisations")

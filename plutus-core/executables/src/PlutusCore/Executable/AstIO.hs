@@ -16,7 +16,7 @@ where
 import PlutusCore.Executable.Types
 
 import PlutusCore qualified as PLC
-import PlutusCore.DeBruijn (fakeNameDeBruijn, unNameDeBruijn, unNameTyDeBruijn)
+import PlutusCore.DeBruijn (fakeNameDeBruijn, fakeTyNameDeBruijn, unNameDeBruijn, unNameTyDeBruijn)
 
 import PlutusIR.Core.Instance.Pretty ()
 
@@ -27,6 +27,12 @@ import Control.Monad.Except (runExcept, runExceptT)
 import Data.ByteString.Lazy qualified as BSL
 import Flat (Flat, flat, unflat)
 
+type UplcProgramNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcProgramNDB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+
+type UplcProgramDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcProgramDB ann = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
+
 -- | PIR does not support names involving de Bruijn indices. We do allow these
 -- formats here to facilitate code sharing, but issue the error below if they're
 -- encountered.  This should never happen in practice because the options
@@ -36,42 +42,51 @@ unsupportedNameTypeError nameType = error $ "ASTs with " ++ show nameType ++ " n
 
 ---------------- Name conversions ----------------
 
--- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
-toDeBruijnUPLC :: UplcProg ann -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijnUPLC prog =
-    case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return $ UPLC.programMapNames unNameDeBruijn p
+-- Untyped programs
 
-{- | Convert an untyped program to one where the 'name' type is
- textual names with de Bruijn indices.
--}
-toNamedDeBruijnUPLC ::
-    UplcProg ann ->
-    IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
+-- | Convert an untyped program to one where the 'name' type is textual names
+-- with de Bruijn indices.
+toNamedDeBruijnUPLC :: UplcProg ann -> UplcProgramNDB ann
 toNamedDeBruijnUPLC prog =
     case runExcept @PLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
         Left e  -> error $ show e
-        Right p -> return p
+        Right p -> p
 
--- | Convert a typed program to one where the 'name' type is de Bruijn indices.
-toDeBruijnPLC :: PlcProg ann -> IO (PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijnPLC prog =
-    case runExcept @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return $ PLC.programMapNames unNameTyDeBruijn unNameDeBruijn  p
+-- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
+toDeBruijnUPLC :: UplcProg ann -> UplcProgramDB ann
+toDeBruijnUPLC = UPLC.programMapNames unNameDeBruijn . toNamedDeBruijnUPLC
 
-{- | Convert a typed program to one where the 'name' type is textual names with de
- Bruijn indices.
--}
-toNamedDeBruijnPLC ::
-    PlcProg ann ->
-    IO (PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
+
+-- | Convert an untyped program with named de Bruijn indices to one with textual names.
+fromNamedDeBruijnUPLC :: UplcProgramNDB ann -> UplcProg ann
+fromNamedDeBruijnUPLC prog =
+    case PLC.runQuote $
+         runExceptT @PLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
+      Left e  -> error $ show e
+      Right p -> p
+
+-- Typed programs
+
+-- | Convert a typed program to one where the 'name' type is textual names with
+-- de Bruijn indices.
+toNamedDeBruijnPLC :: PlcProg ann -> PlcProgramNDB ann
 toNamedDeBruijnPLC prog =
     case runExcept @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.deBruijnTerm prog of
         Left e  -> error $ show e
-        Right p -> return p
+        Right p -> p
 
+-- | Convert a typed program to one where the 'name' type is de Bruijn indices.
+toDeBruijnPLC :: PlcProg ann -> PlcProgramDB ann
+toDeBruijnPLC = PLC.programMapNames unNameTyDeBruijn unNameDeBruijn . toNamedDeBruijnPLC
+
+
+-- | Convert a typed program with named de Bruijn indices to one with textual names.
+fromNamedDeBruijnPLC :: PlcProgramNDB ann -> PlcProg ann
+fromNamedDeBruijnPLC prog = do
+  case PLC.runQuote $
+       runExceptT @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.unDeBruijnTerm prog of
+    Left e  -> error $ show e
+    Right p -> p
 
 -- Flat serialisation in various formats.
 
@@ -79,114 +94,77 @@ serialisePirProgramFlat
     :: Flat ann
     => AstNameType
     -> PirProg ann
-    -> IO BSL.ByteString
-serialisePirProgramFlat nameType p =
-    case nameType of
-      Named -> pure $ BSL.fromStrict $ flat p
-      _     -> unsupportedNameTypeError nameType
+    -> BSL.ByteString
+serialisePirProgramFlat =
+    \case
+      Named         -> BSL.fromStrict . flat
+      DeBruijn      -> unsupportedNameTypeError DeBruijn
+      NamedDeBruijn -> unsupportedNameTypeError NamedDeBruijn
 
 serialisePlcProgramFlat
     :: Flat ann
     => AstNameType
     -> PlcProg ann
-    -> IO BSL.ByteString
-serialisePlcProgramFlat nameType p =
-        case nameType of
-          Named         -> pure $ BSL.fromStrict $ flat p
-          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnPLC p
-          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnPLC p
+    -> BSL.ByteString
+serialisePlcProgramFlat =
+    \case
+     Named         -> BSL.fromStrict . flat
+     DeBruijn      -> BSL.fromStrict . flat . toDeBruijnPLC
+     NamedDeBruijn -> BSL.fromStrict . flat . toNamedDeBruijnPLC
 
 serialiseUplcProgramFlat
     :: Flat ann
     => AstNameType
     -> UplcProg ann
-    -> IO BSL.ByteString
-serialiseUplcProgramFlat nameType p =
-        case nameType of
-          Named         -> pure $ BSL.fromStrict $ flat p
-          DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijnUPLC p
-          NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijnUPLC p
-
+    -> BSL.ByteString
+serialiseUplcProgramFlat =
+    \case
+     Named         -> BSL.fromStrict . flat
+     DeBruijn      -> BSL.fromStrict . flat . toDeBruijnUPLC
+     NamedDeBruijn -> BSL.fromStrict . flat . toNamedDeBruijnUPLC
 
 -- Deserialising ASTs from Flat
-
-fakeTyNameDeBruijn :: PLC.DeBruijn -> PLC.NamedTyDeBruijn
-fakeTyNameDeBruijn = PLC.NamedTyDeBruijn . fakeNameDeBruijn
-
-type UplcProgramNdB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcProgramNdB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
 getBinaryInput :: Input -> IO BSL.ByteString
 getBinaryInput StdInput         = BSL.getContents
 getBinaryInput (FileInput file) = BSL.readFile file
 
+unflatOrFail :: (Flat a) => BSL.ByteString -> a
+unflatOrFail input =
+    case unflat input of
+     Left e  -> error $ "Flat deserialisation failure: " ++ show e
+     Right r -> r
+
 loadPirASTfromFlat :: Flat a => AstNameType -> Input -> IO (PirProg a)
 loadPirASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named -> handleResult $ unflat input
+        Named -> pure $ unflatOrFail input
         _     -> unsupportedNameTypeError flatMode
-    where
-      handleResult =
-          \case
-           Left e  -> error $ "Flat deserialisation failure: " ++ show e
-           Right r -> return r
-
 
 -- | Read and deserialise a Flat-encoded PIR/PLC AST
 loadPlcASTfromFlat :: Flat a => AstNameType -> Input -> IO (PlcProg a)
 loadPlcASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named     -> handleResult $ unflat input
+        Named     -> pure $ unflatOrFail input
         DeBruijn  ->
             do
-              deserialised <- handleResult $ unflat input
-              let namedProgram = PLC.programMapNames fakeTyNameDeBruijn fakeNameDeBruijn deserialised
-              fromDeBruijn namedProgram
-        NamedDeBruijn ->
-            do
-              deserialised <- handleResult $ unflat input
-              fromDeBruijn deserialised
-    where
-      handleResult =
-          \case
-           Left e  -> error $ "Flat deserialisation failure: " ++ show e
-           Right r -> return r
-
-      fromDeBruijn :: PlcProgramNdB ann -> IO (PlcProg ann)
-      fromDeBruijn prog = do
-        case PLC.runQuote $
-             runExceptT @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.unDeBruijnTerm prog of
-          Left e  -> error $ show e
-          Right p -> return p
+              let namedProgram = PLC.programMapNames fakeTyNameDeBruijn fakeNameDeBruijn $ unflatOrFail input
+              pure $ fromNamedDeBruijnPLC  namedProgram
+        NamedDeBruijn -> pure $ fromNamedDeBruijnPLC $ unflatOrFail input
 
 -- | Read and deserialise a Flat-encoded UPLC AST
 loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named -> handleResult $ unflat input
+        Named -> pure $ unflatOrFail input
         DeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            let namedProgram = UPLC.programMapNames fakeNameDeBruijn deserialised
+            let namedProgram = UPLC.programMapNames fakeNameDeBruijn $ unflatOrFail input
             -- ^ namedProgram has names that look like `FakeNamedDeBruijn "i" ix`, where
             -- ix is the de Bruijn index.
-            fromDeBruijn namedProgram
+            pure $ fromNamedDeBruijnUPLC namedProgram
             -- ^ This converts the indices to Uniques so that we end up with proper names.
-        NamedDeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            fromDeBruijn deserialised
-  where
-    fromDeBruijn :: UplcProgramNdB ann -> IO (UplcProg ann)
-    fromDeBruijn prog = do
-      case PLC.runQuote $
-           runExceptT @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
+        NamedDeBruijn -> pure $ fromNamedDeBruijnUPLC $ unflatOrFail input

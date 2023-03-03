@@ -30,6 +30,7 @@ module PlutusCore.DeBruijn.Internal
     , unNameDeBruijn
     , unNameTyDeBruijn
     , fakeNameDeBruijn
+    , fakeTyNameDeBruijn
     , nameToDeBruijn
     , tyNameToDeBruijn
     , deBruijnToName
@@ -255,6 +256,9 @@ unNameTyDeBruijn (NamedTyDeBruijn db) = TyDeBruijn $ unNameDeBruijn db
 
 fakeNameDeBruijn :: DeBruijn -> NamedDeBruijn
 fakeNameDeBruijn = coerce . toFake
+
+fakeTyNameDeBruijn :: DeBruijn -> NamedTyDeBruijn
+fakeTyNameDeBruijn = coerce . toFake
 
 nameToDeBruijn
     :: MonadReader Levels m

@@ -112,7 +112,7 @@ class ProgramLike p where
         m ()
 
     -- | Convert names to de Bruijn indices and then serialise
-    serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
+    serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> BSL.ByteString
 
     -- | Read and deserialise a Flat-encoded AST
     loadASTfromFlat :: Flat ann => AstNameType -> Input -> IO (p ann)
@@ -327,7 +327,7 @@ writeFlat ::
     (ProgramLike p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
     -- Change annotations to (): see Note [Annotation types].
-    flatProg <- serialiseProgramFlat flatMode (() <$ prog)
+    let flatProg = serialiseProgramFlat flatMode (() <$ prog)
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
         StdOutput       -> BSL.putStr flatProg
