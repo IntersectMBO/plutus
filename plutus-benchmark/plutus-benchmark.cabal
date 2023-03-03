@@ -244,9 +244,11 @@ test-suite plutus-benchmark-lists-tests
     Sum.Spec
 
   build-depends:
-    , base                     >=4.9 && <5
+    , base                             >=4.9 && <5
     , lists-internal
     , plutus-benchmark-common
+    , plutus-core:plutus-core-testlib  ^>=1.1
+    , plutus-tx:plutus-tx-testlib      ^>=1.1
     , tasty
     , tasty-quickcheck
 
