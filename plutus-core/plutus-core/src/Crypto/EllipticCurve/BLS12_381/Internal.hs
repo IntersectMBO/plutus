@@ -315,16 +315,16 @@ withNewPT' :: (PTPtr -> IO a) -> IO PT
 withNewPT' = fmap snd . withNewPT
 
 instance BLS_P Curve1 where
-  _sizeP _ = fromIntegral c_size_blst_p1
+  _sizeP _ = c_size_blst_p1
   _compressedSizeP _ = 48
   _serializedSizeP _ = 96
-  _sizeAffine _ = fromIntegral c_size_blst_affine1
+  _sizeAffine _ = c_size_blst_affine1
 
 instance BLS_P Curve2 where
-  _sizeP _ = fromIntegral c_size_blst_p2
+  _sizeP _ = c_size_blst_p2
   _compressedSizeP _ = 96
   _serializedSizeP _ = 192
-  _sizeAffine _ = fromIntegral c_size_blst_affine2
+  _sizeAffine _ = c_size_blst_affine2
 
 sizePT :: Num i => i
 sizePT = fromIntegral c_size_blst_fp12
@@ -623,7 +623,7 @@ data BLSTError
   | BLST_PK_IS_INFINITY
   | BLST_BAD_SCALAR
   | BLST_UNKNOWN_ERROR
-  deriving (Show, Eq, Ord, Enum, Bounded)
+  deriving stock (Show, Eq, Ord, Enum, Bounded)
 
 mkBLSTError :: CInt -> BLSTError
 mkBLSTError e
