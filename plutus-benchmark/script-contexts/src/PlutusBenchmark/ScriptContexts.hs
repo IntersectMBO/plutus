@@ -85,7 +85,7 @@ mkCheckScriptContext2Code sc =
 
 {- Note [Redundant arguments to equality benchmarks]
 The arguments for the benchmarks are passed as terms created with `liftCode`.
-But the benchmark still neds to _evaluate_ these terms, which adds overhead that
+But the benchmark still needs to _evaluate_ these terms, which adds overhead that
 distracts from the main point.
 
 We can't easily remove the overhead, but we can at least include it in both cases to
@@ -95,15 +95,15 @@ for comparison.
 -}
 
 -- This example checks the script context for equality (with itself) when encoded as `Data`.
--- That means it just takes a single builtin call, which is fast (so long as the builtin) is
--- costed cheaply.
+-- That means it just takes a single builtin call, which is fast (so long as the builtin is
+-- costed cheaply).
 {-# INLINABLE scriptContextEqualityData #-}
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
   then ()
-  else PlutusTx.traceError "It's not itself"
+  else PlutusTx.traceError "The argument is not equal to itself"
 
 mkScriptContextEqualityDataCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityDataCode sc =
@@ -121,7 +121,7 @@ scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityTerm sc _ =
   if sc PlutusTx.== sc
   then ()
-  else PlutusTx.traceError "It's not itself"
+  else PlutusTx.traceError "The argument is not equal to itself"
 
 mkScriptContextEqualityTermCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityTermCode sc =
