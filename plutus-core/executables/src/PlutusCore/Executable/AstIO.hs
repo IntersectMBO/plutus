@@ -28,11 +28,11 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Functor ((<&>))
 import Flat (Flat, flat, unflat)
 
-type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-type PlcProgNDB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-
 type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
+
 type PlcProgDB ann = PLC.Program PLC.TyDeBruijn PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
+type PlcProgNDB ann = PLC.Program PLC.NamedTyDeBruijn PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
 
 -- | PIR does not support names involving de Bruijn indices. We do allow these
 -- formats here to facilitate code sharing, but issue the error below if they're
@@ -139,13 +139,17 @@ getBinaryInput :: Input -> IO BSL.ByteString
 getBinaryInput StdInput         = BSL.getContents
 getBinaryInput (FileInput file) = BSL.readFile file
 
-unflatOrFail :: (Flat a) => BSL.ByteString -> a
+unflatOrFail :: Flat a => BSL.ByteString -> a
 unflatOrFail input =
     case unflat input of
      Left e  -> error $ "Flat deserialisation failure: " ++ show e
      Right r -> r
 
-loadPirASTfromFlat :: Flat a => AstNameType -> Input -> IO (PirProg a)
+loadPirASTfromFlat
+    :: Flat a
+    => AstNameType
+    -> Input
+    -> IO (PirProg a)
 loadPirASTfromFlat flatMode inp =
     getBinaryInput inp <&>
     case flatMode of
@@ -153,7 +157,11 @@ loadPirASTfromFlat flatMode inp =
       _     -> unsupportedNameTypeError flatMode
 
 -- | Read and deserialise a Flat-encoded PIR/PLC AST
-loadPlcASTfromFlat :: Flat a => AstNameType -> Input -> IO (PlcProg a)
+loadPlcASTfromFlat
+    :: Flat a
+    => AstNameType
+    -> Input
+    -> IO (PlcProg a)
 loadPlcASTfromFlat flatMode inp =
     getBinaryInput inp <&>
     case flatMode of
@@ -162,7 +170,11 @@ loadPlcASTfromFlat flatMode inp =
       NamedDeBruijn -> unflatOrFail <&> fromNamedDeBruijnPLC
 
 -- | Read and deserialise a Flat-encoded UPLC AST
-loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
+loadUplcASTfromFlat
+    :: Flat ann
+    => AstNameType
+    -> Input
+    -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp =
     getBinaryInput inp <&>
     case flatMode of
