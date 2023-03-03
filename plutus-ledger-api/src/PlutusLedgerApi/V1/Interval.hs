@@ -41,7 +41,9 @@ import Prelude qualified as Haskell
 import Prettyprinter (Pretty (pretty), comma, (<+>))
 
 import PlutusTx qualified
+import PlutusTx.Eq as PlutusTx
 import PlutusTx.Lift (makeLift)
+import PlutusTx.Ord as PlutusTx
 import PlutusTx.Prelude
 
 -- See Note [Enumerable Intervals]
@@ -52,8 +54,13 @@ that the endpoints may or may not be included in the interval.
 
 The interval can also be unbounded on either side.
 
-The 'Haskell.Eq'uality of two intervals is specified as the canonical, structural equality and not
-the equality of the elements of their two underlying sets; the same holds for 'Haskell.Ord'.
+The 'Eq' instance gives equality of the intervals, not structural equality.
+There is no 'Ord' instance, but 'contains' gives a partial order.
+
+Note that some of the functions on `Interval` rely on `Enum` in order to
+handle non-inclusive endpoints. For this reason, it may not be safe to
+use `Interval`s with non-inclusive endpoints on types whose `Enum`
+instances have partial methods.
 -}
 data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
     deriving stock (Haskell.Show, Generic)
@@ -96,13 +103,13 @@ data UpperBound a = UpperBound (Extended a) Closure
 -- to inclusive bounds on the predecessor.
 --
 -- See Note [Enumerable Intervals]
-strictUpperValue :: Enum a => UpperBound a -> Extended a
+inclusiveUpperBound :: Enum a => UpperBound a -> Extended a
 -- already inclusive
-strictUpperValue (UpperBound v True)           = v
+inclusiveUpperBound (UpperBound v True)           = v
 -- take pred
-strictUpperValue (UpperBound (Finite x) False) = Finite $ pred x
+inclusiveUpperBound (UpperBound (Finite x) False) = Finite $ pred x
 -- an infinity: inclusive/non-inclusive makes no difference
-strictUpperValue (UpperBound v False)          = v
+inclusiveUpperBound (UpperBound v False)          = v
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
@@ -125,13 +132,13 @@ data LowerBound a = LowerBound (Extended a) Closure
 -- to inclusive bounds on the successor.
 --
 -- See Note [Enumerable Intervals]
-strictLowerValue :: Enum a => LowerBound a -> Extended a
+inclusiveLowerBound :: Enum a => LowerBound a -> Extended a
 -- already inclusive
-strictLowerValue (LowerBound v True)           = v
+inclusiveLowerBound (LowerBound v True)           = v
 -- take succ
-strictLowerValue (LowerBound (Finite x) False) = Finite $ succ x
+inclusiveLowerBound (LowerBound (Finite x) False) = Finite $ succ x
 -- an infinity: inclusive/non-inclusive makes no difference
-strictLowerValue (LowerBound v False)          = v
+inclusiveLowerBound (LowerBound v False)          = v
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c
@@ -160,7 +167,7 @@ instance Eq a => Eq (Extended a) where
     _        == _        = False
 
 instance Eq a => Haskell.Eq (Extended a) where
-    (==) = (==)
+    (==) = (PlutusTx.==)
 
 instance Ord a => Ord (Extended a) where
     {-# INLINABLE compare #-}
@@ -173,39 +180,39 @@ instance Ord a => Ord (Extended a) where
     Finite l `compare` Finite r = l `compare` r
 
 instance Ord a => Haskell.Ord (Extended a) where
-    compare = compare
+    compare = PlutusTx.compare
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Eq a) => Eq (UpperBound a) where
     {-# INLINABLE (==) #-}
-    b1 == b2 = strictUpperValue b1 == strictUpperValue b2
+    b1 == b2 = inclusiveUpperBound b1 == inclusiveUpperBound b2
 
 instance (Enum a, Eq a) => Haskell.Eq (UpperBound a) where
-    (==) = (==)
+    (==) = (PlutusTx.==)
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => Ord (UpperBound a) where
     {-# INLINABLE compare #-}
-    b1 `compare` b2 = strictUpperValue b1 `compare` strictUpperValue b2
+    b1 `compare` b2 = inclusiveUpperBound b1 `compare` inclusiveUpperBound b2
 
 instance (Enum a, Ord a) => Haskell.Ord (UpperBound a) where
-    compare = compare
+    compare = PlutusTx.compare
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Eq a) => Eq (LowerBound a) where
     {-# INLINABLE (==) #-}
-    b1 == b2 = strictLowerValue b1 == strictLowerValue b2
+    b1 == b2 = inclusiveLowerBound b1 == inclusiveLowerBound b2
 
 instance (Enum a, Eq a) => Haskell.Eq (LowerBound a) where
-    (==) = (==)
+    (==) = (PlutusTx.==)
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => Ord (LowerBound a) where
     {-# INLINABLE compare #-}
-    b1 `compare` b2 = strictLowerValue b1 `compare` strictLowerValue b2
+    b1 `compare` b2 = inclusiveLowerBound b1 `compare` inclusiveLowerBound b2
 
 instance (Enum a, Ord a) => Haskell.Ord (LowerBound a) where
-    compare = compare
+    compare = PlutusTx.compare
 
 {-# INLINABLE strictUpperBound #-}
 {- | Construct a strict upper bound from a value.
@@ -270,7 +277,7 @@ instance (Enum a, Ord a) => Eq (Interval a) where
 
 instance (Enum a, Ord a) => Haskell.Eq (Interval a) where
     {-# INLINABLE (==) #-}
-    (==) = (==)
+    (==) = (PlutusTx.==)
 
 {-# INLINABLE interval #-}
 -- | @interval a b@ includes all values that are greater than or equal to @a@
@@ -350,7 +357,7 @@ contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
 {-# INLINABLE isEmpty #-}
 {- | Check if an 'Interval' is empty. -}
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
-isEmpty (Interval lb ub) = case strictLowerValue lb `compare` strictUpperValue ub of
+isEmpty (Interval lb ub) = case inclusiveLowerBound lb `compare` inclusiveUpperBound ub of
     -- We have at least two possible values, the lower bound and the upper bound
     LT -> False
     -- We have one possible value, the lower bound/upper bound
@@ -370,20 +377,23 @@ after h (Interval _ t) = upperBound h > t
 
 {- Note [Enumerable Intervals]
 The 'Interval' type is set up to handle open intervals, where we have non-inclusive
-bounds. These are only meaningful for _dense_ orders (forall a b . exists c . a < b < c),
-otherwise an interval with a non-inclusive bound can be turned into one with an
-inclusive bound on the preceding element.
+bounds. These are only meaningful for orders where there do not exist (computable)
+joins and meets over all elements greater or less than an element.
 
-(MPJ: not sure if "dense" is really necessary here, it's certainly sufficient.)
+If those do exist, we can eliminate non-inclusive bounds in favour of inclusive bounds.
+For example, in the integers, (x, y) is equivalent to [x+1, y-1], because
+x+1 = sup { z | z > x} and y-1 = inf { z | z < y }.
 
-Checking equality, containment etc. of such intervals is tricky. For example, to
-know if (x, y) is empty, we need to know if there is a value between x and y, which
-requires us to know things about the order that we can't easily know in Haskell.
+Checking equality, containment etc. of intervals with non-inclusive bounds is
+tricky. For example, to know if (x, y) is empty, we need to know if there is a
+value between x and y. We don't have a typeclass for that!
 
 In practice, most of the intervals we care about are enumerable (have 'Enum'
-instances) and so we can turn non-inclusive bounds into inclusive bounds, which
-makes things much easier. In the example above, we can note that (x, y) is the
-same as [x+1, y-1], and that is easy to check for emptiness.
+instances). We assume that `pred` and `succ` calculate the infima/suprema described
+above, and so we can turn non-inclusive bounds into inclusive bounds, which
+makes things much easier. The downside is that some of the `Enum` instances have
+partial implementations, which means that, e.g. `isEmpty (False, True]` will
+throw.
 
 The upshot of this is that many functions in this module require 'Enum'.
 -}
