@@ -74,7 +74,7 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             -- This disables editing the text, making the editors read-only.
             pure ()
         _ -> handleEditorEvent
-handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = do
+handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
     let uplcHighlight :: Maybe HighlightSpan = do
             uplcSpan <- uplcAnn <$> cekStateAnn cekState
             pure HighlightSpan
@@ -97,11 +97,11 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                   -- See: ghc/compiler/GHC/Types/SrcLoc.hs#L728
                   _hcELoc = Just $ B.Location (srcSpanELine firstTxSpan, srcSpanECol firstTxSpan -1)
                 }
-    modify' $
-      -- update line highlighting
-      set dsUplcHighlight uplcHighlight .
-      set dsSourceHighlight sourceHighlight .
-        case cekState of
+    modify' $ \st ->
+      st & set dsUplcHighlight uplcHighlight
+         & set dsSourceHighlight sourceHighlight
+         & set dsBudgetData budgetData
+         & case cekState of
             Computing{} ->
                -- Clear the return value editor.
                dsReturnValueEditor .~
@@ -122,10 +122,16 @@ handleDebuggerEvent _driverMailbox (B.AppEvent (UpdateClientEvent cekState)) = d
                     Nothing
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
             Starting{} -> id
-handleDebuggerEvent _driverMailbox (B.AppEvent (ErrorEvent e)) =
-    modify' $ dsLogsEditor %~ BE.applyEdit
-    (gotoEOF >>>
-     insertMany (PLC.render $ "Error happened:" <+> PLC.prettyPlcDef e) >>>
-     breakLine
-    )
+handleDebuggerEvent _ (B.AppEvent (ErrorEvent budgetData e)) =
+    modify' $ \st ->
+      -- Note that in case of an out-of-budget error (i.e. `CekOutOfExError`),
+      -- the updated budgets (spent&remaining) here do not match the actual budgets
+      -- on the chain: the difference is that on the chain, a budget may become zero (exhausted)
+      -- but is not allowed to become negative.
+      st & set dsBudgetData budgetData
+         & dsLogsEditor %~ BE.applyEdit
+           (gotoEOF >>>
+            insertMany (PLC.render $ "Error happened:" <+> PLC.prettyPlcDef e) >>>
+            breakLine
+           )
 handleDebuggerEvent _ _ = pure ()
