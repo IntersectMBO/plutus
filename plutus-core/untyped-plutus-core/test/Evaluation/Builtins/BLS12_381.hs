@@ -12,6 +12,7 @@ import PlutusCore.BLS12_381.GT qualified as GT
 
 import Control.Monad (when)
 import Data.ByteString (ByteString, pack)
+import Data.List (foldl')
 import UntypedPlutusCore as UPLC
 
 import Hedgehog
@@ -49,7 +50,7 @@ withNTests :: Property -> Property
 withNTests = withTests 500
 
 genByteString :: Gen ByteString
-genByteString = Gen.bytes $ Range.linear 0 100
+genByteString = Gen.bytes $ Range.linear 0 1000
 
 genG1element :: Gen G1.Element
 genG1element = G1.hashToCurve <$> Gen.bytes (Range.linear 0 64)
@@ -57,24 +58,24 @@ genG1element = G1.hashToCurve <$> Gen.bytes (Range.linear 0 64)
 genG2element :: Gen G2.Element
 genG2element = G2.hashToCurve <$> Gen.bytes (Range.linear 0 64)
 
+genSmallScalar :: Gen Integer
+genSmallScalar = Gen.integral $ Range.linear (-100) 100
+
 genScalar :: Gen Integer
-genScalar = Gen.integral $ Range.linear (-100) 100
+genScalar = Gen.integral $ Range.linear (-10000) 10000
 
 repeatedAddG1 :: Integer -> G1.Element -> G1.Element
 repeatedAddG1 n p =
-    if n < 0 then go (-n) (G1.neg p) G1.zero
-    else go n p G1.zero
-        where go k a s =
-                  if k == 0 then s
-                  else go (k-1) a (G1.add a s)
+    if n >= 0
+    then foldl' (\x _ -> G1.add p x) G1.zero [1..n]
+    else foldl' (\x _ -> (G1.add (G1.neg p) x)) G1.zero [1..(-n)]
 
 repeatedAddG2 :: Integer -> G2.Element -> G2.Element
 repeatedAddG2 n p =
-    if n < 0 then go (-n) (G2.neg p) G2.zero
-    else go n p G2.zero
-        where go k a s =
-                  if k == 0 then s
-                  else go (k-1) a (G2.add a s)
+    if n >= 0
+    then foldl' (\x _ -> G2.add p x) G2.zero [1..n]
+    else foldl' (\x _ -> (G2.add (G2.neg p) x)) G2.zero [1..(-n)]
+
 
 type PlcTerm = PLC.Term TyName Name DefaultUni DefaultFun ()
 type UplcTerm = UPLC.Term Name DefaultUni DefaultFun ()
@@ -108,6 +109,12 @@ mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 addG1 :: PlcTerm -> PlcTerm -> PlcTerm
 addG1 = mkApp2 Bls12_381_G1_add
 
+repeatedAddG1_plutus :: Integer -> PlcTerm -> PlcTerm
+repeatedAddG1_plutus n t =
+    if n>=0
+    then foldl' (\x _ -> addG1 t x) zeroG1 [1..n]
+    else foldl' (\x _ -> (addG1 (negG1 t) x)) zeroG1 [1..(-n)]
+
 eqG1 :: PlcTerm -> PlcTerm -> PlcTerm
 eqG1 = mkApp2 Bls12_381_G1_equal
 
@@ -136,6 +143,12 @@ zeroG1 =
 
 addG2 :: PlcTerm -> PlcTerm -> PlcTerm
 addG2 = mkApp2 Bls12_381_G2_add
+
+repeatedAddG2_plutus :: Integer -> PlcTerm -> PlcTerm
+repeatedAddG2_plutus n t =
+    if n>=0
+    then foldl' (\x _ -> addG2 t x) zeroG2 [1..n]
+    else foldl' (\x _ -> (addG2 (negG2 t) x)) zeroG2 [1..(-n)]
 
 eqG2 :: PlcTerm -> PlcTerm -> PlcTerm
 eqG2 = mkApp2 Bls12_381_G2_equal
@@ -237,21 +250,21 @@ prop_G1_mul =
     "Scalar multiplication is repeated addition in G1"
     "G1_scalar_multiplication" .
     withNTests $ property $ do
-      n <- forAll genScalar
+      n <- forAll genSmallScalar
       p <- forAll genG1element
       G1.mul n p === repeatedAddG1 n p
 
-{-
-prop_G1_mul_plutus :: TestTree_plutus
+prop_G1_mul_plutus :: TestTree
 prop_G1_mul_plutus =
     testPropertyNamed
     "Scalar multiplication is repeated addition in G1"
-    "G1_scalar_multiplication" .
+    "G1_scalar_multiplication_plutus" .
     withNTests $ property $ do
-      n <- forAll genScalar
-      p <- forAll genG1element
-      G1.mul n p === repeatedAddG1 n p
--}
+      n <- forAll genSmallScalar
+      p <- g1elt <$> forAll genG1element
+      let e1 = repeatedAddG1_plutus n p
+          e2 = eqG1 (mulG1 (integer n) p) e1
+      evalTerm e2 === uplcTrue
 
 prop_G1_zero :: TestTree
 prop_G1_zero =
@@ -471,7 +484,7 @@ test_G1_plutus =
         , prop_G1_scalar_assoc_plutus
         , prop_G1_scalar_distributive_plutus
         , prop_G1_scalar_identity_plutus
-        -- , prop_G1_mul_plutus
+        , prop_G1_mul_plutus
         , prop_G1_compression_plutus
         , prop_G1_hash_plutus
         ]
@@ -529,21 +542,21 @@ prop_G2_mul =
     "Scalar multiplication is repeated addition in G2"
     "G2_scalar_multiplication" .
     withNTests $ property $ do
-      n <- forAll genScalar
+      n <- forAll genSmallScalar
       p <- forAll genG2element
       G2.mul n p === repeatedAddG2 n p
 
-{-
-prop_G2_mul_plutus :: TestTree_plutus
+prop_G2_mul_plutus :: TestTree
 prop_G2_mul_plutus =
     testPropertyNamed
     "Scalar multiplication is repeated addition in G2"
-    "G2_scalar_multiplication" .
+    "G2_scalar_multiplication_plutus" .
     withNTests $ property $ do
-      n <- forAll genScalar
-      p <- forAll genG2element
-      G2.mul n p === repeatedAddG2 n p
--}
+      n <- forAll genSmallScalar
+      p <- g2elt <$> forAll genG2element
+      let e1 = repeatedAddG2_plutus n p
+          e2 = eqG2 (mulG2 (integer n) p) e1
+      evalTerm e2 === uplcTrue
 
 prop_G2_zero :: TestTree
 prop_G2_zero =
@@ -763,7 +776,7 @@ test_G2_plutus =
         , prop_G2_scalar_assoc_plutus
         , prop_G2_scalar_distributive_plutus
         , prop_G2_scalar_identity_plutus
-        --, prop_G2_mul_plutus
+        , prop_G2_mul_plutus
         , prop_G2_compression_plutus
         , prop_G2_hash_plutus
         ]
