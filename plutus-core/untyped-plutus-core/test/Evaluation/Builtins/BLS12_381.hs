@@ -46,7 +46,7 @@ import Text.Show.Pretty (ppShow)
 -}
 
 withNTests :: Property -> Property
-withNTests = withTests 300
+withNTests = withTests 500
 
 genByteString :: Gen ByteString
 genByteString = Gen.bytes $ Range.linear 0 100
@@ -67,7 +67,6 @@ repeatedAddG1 n p =
         where go k a s =
                   if k == 0 then s
                   else go (k-1) a (G1.add a s)
-
 
 repeatedAddG2 :: Integer -> G2.Element -> G2.Element
 repeatedAddG2 n p =
@@ -98,35 +97,35 @@ g1elt = mkConstant ()
 g2elt :: G2.Element ->  PlcTerm
 g2elt = mkConstant ()
 
-mkApp1 :: PlcTerm -> PlcTerm -> PlcTerm
-mkApp1 b x = mkIterApp () b [x]
+mkApp1 :: DefaultFun -> PlcTerm -> PlcTerm
+mkApp1 b x = mkIterApp () (builtin () b) [x]
 
-mkApp2 :: PlcTerm -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterApp () b [x,y]
+mkApp2 :: DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
+mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 
 -- Contstructing G1 builtin application terms
 
 addG1 :: PlcTerm -> PlcTerm -> PlcTerm
-addG1 = mkApp2 $ builtin () Bls12_381_G1_add
+addG1 = mkApp2 Bls12_381_G1_add
 
 eqG1 :: PlcTerm -> PlcTerm -> PlcTerm
-eqG1 = mkApp2 $ builtin () Bls12_381_G1_equal
+eqG1 = mkApp2 Bls12_381_G1_equal
 
 mulG1 :: PlcTerm -> PlcTerm -> PlcTerm
-mulG1 = mkApp2 $ builtin () Bls12_381_G1_mul
+mulG1 = mkApp2 Bls12_381_G1_mul
 
 
 negG1 :: PlcTerm -> PlcTerm
-negG1 = mkApp1 $ builtin () Bls12_381_G1_neg
+negG1 = mkApp1 Bls12_381_G1_neg
 
 uncompressG1 :: PlcTerm -> PlcTerm
-uncompressG1 = mkApp1 $ builtin () Bls12_381_G1_uncompress
+uncompressG1 = mkApp1 Bls12_381_G1_uncompress
 
 compressG1 :: PlcTerm -> PlcTerm
-compressG1 = mkApp1 $ builtin () Bls12_381_G1_compress
+compressG1 = mkApp1 Bls12_381_G1_compress
 
 hashToCurveG1 :: PlcTerm -> PlcTerm
-hashToCurveG1 = mkApp1 $ builtin () Bls12_381_G1_hashToCurve
+hashToCurveG1 = mkApp1 Bls12_381_G1_hashToCurve
 
 zeroG1 :: PlcTerm
 zeroG1 =
@@ -136,26 +135,26 @@ zeroG1 =
 -- Contstructing G2 builtin application terms
 
 addG2 :: PlcTerm -> PlcTerm -> PlcTerm
-addG2 = mkApp2 $ builtin () Bls12_381_G2_add
+addG2 = mkApp2 Bls12_381_G2_add
 
 eqG2 :: PlcTerm -> PlcTerm -> PlcTerm
-eqG2 = mkApp2 $ builtin () Bls12_381_G2_equal
+eqG2 = mkApp2 Bls12_381_G2_equal
 
 mulG2 :: PlcTerm -> PlcTerm -> PlcTerm
-mulG2 = mkApp2 $ builtin () Bls12_381_G2_mul
+mulG2 = mkApp2 Bls12_381_G2_mul
 
 
 negG2 :: PlcTerm -> PlcTerm
-negG2 = mkApp1 $ builtin () Bls12_381_G2_neg
+negG2 = mkApp1 Bls12_381_G2_neg
 
 uncompressG2 :: PlcTerm -> PlcTerm
-uncompressG2 = mkApp1 $ builtin () Bls12_381_G2_uncompress
+uncompressG2 = mkApp1 Bls12_381_G2_uncompress
 
 compressG2 :: PlcTerm -> PlcTerm
-compressG2 = mkApp1 $ builtin () Bls12_381_G2_compress
+compressG2 = mkApp1 Bls12_381_G2_compress
 
 hashToCurveG2 :: PlcTerm -> PlcTerm
-hashToCurveG2 = mkApp1 $ builtin () Bls12_381_G2_hashToCurve
+hashToCurveG2 = mkApp1 Bls12_381_G2_hashToCurve
 
 zeroG2 :: PlcTerm
 zeroG2 =
@@ -165,13 +164,13 @@ zeroG2 =
 -- Constructing pairing terms
 
 pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
-pairingPlc = mkApp2 $ builtin () Bls12_381_GT_millerLoop
+pairingPlc = mkApp2 Bls12_381_GT_millerLoop
 
 finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
-finalVerifyPlc = mkApp2 $ builtin () Bls12_381_GT_finalVerify
+finalVerifyPlc = mkApp2 Bls12_381_GT_finalVerify
 
 mulGT :: PlcTerm -> PlcTerm -> PlcTerm
-mulGT = mkApp2 $ builtin () Bls12_381_GT_mul
+mulGT = mkApp2 Bls12_381_GT_mul
 
 -- Evaluating PLC terms
 
@@ -205,13 +204,11 @@ prop_G1_assoc_plutus =
     "Addition in G1 is associative"
     "G1_assoc_plutus" .
     withNTests $ property $ do
-      p1 <- forAll genG1element
-      p2 <- forAll genG1element
-      p3 <- forAll genG1element
-      let e1 = addG1 (g1elt p1) (addG1 (g1elt p2) (g1elt p3))
-          e2 = addG1 (addG1 (g1elt p1) (g1elt p2)) (g1elt p3)
-          e3 = eqG1 e1 e2
-      evalTerm e3 === uplcTrue
+      p1 <- g1elt <$> forAll genG1element
+      p2 <- g1elt <$> forAll genG1element
+      p3 <- g1elt <$> forAll genG1element
+      let e = eqG1 (addG1 p1 (addG1 p2 p3)) (addG1 (addG1 p1 p2) p3)
+      evalTerm e === uplcTrue
 
 prop_G1_abelian :: TestTree
 prop_G1_abelian =
@@ -229,12 +226,10 @@ prop_G1_abelian_plutus =
     "Addition in G1 is commutative"
     "G1_abelian_plutus" .
     withNTests $ property $ do
-      p1 <- forAll genG1element
-      p2 <- forAll genG1element
-      let e1 = addG1 (g1elt p1) (g1elt p2)
-          e2 = addG1 (g1elt p2) (g1elt p1)
-          e3 = eqG1 e1 e2
-      evalTerm e3 === uplcTrue
+      p1 <- g1elt <$> forAll genG1element
+      p2 <- g1elt <$> forAll genG1element
+      let e = eqG1 (addG1 p1 p2) (addG1 p2 p1)
+      evalTerm e === uplcTrue
 
 prop_G1_mul :: TestTree
 prop_G1_mul =
@@ -273,10 +268,9 @@ prop_G1_zero_plutus =
     "The point at infinity is an additive identity in G1"
     "G1_zero_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e1 = addG1 (g1elt p) zeroG1
-          e2 = eqG1 (g1elt p) e1
-      evalTerm e2 === uplcTrue
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (addG1 p zeroG1) p
+      evalTerm e === uplcTrue
 
 prop_G1_neg :: TestTree
 prop_G1_neg =
@@ -293,10 +287,9 @@ prop_G1_neg_plutus =
     "Every point in G1 has an additive inverse"
     "G1_inverse_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e1 = addG1 (g1elt p) (negG1 (g1elt p))
-          e2 = eqG1 e1 zeroG1
-      evalTerm e2 === uplcTrue
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (addG1 p (negG1 p)) zeroG1
+      evalTerm e === uplcTrue
 
 prop_G1_scalar_inverse :: TestTree
 prop_G1_scalar_inverse =
@@ -313,11 +306,9 @@ prop_G1_scalar_inverse_plutus =
     "-p = (-1)*p for all p in G1"
     "G1_scalar_inverse_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e1 = negG1 (g1elt p)
-          e2 = mulG1 (integer (-1)) (g1elt p)
-          e3 = eqG1 e1 e2
-      evalTerm e3 === uplcTrue
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (mulG1 (integer (-1)) p) (negG1 p)
+      evalTerm e === uplcTrue
 
 prop_G1_scalar_identity :: TestTree
 prop_G1_scalar_identity =
@@ -334,8 +325,8 @@ prop_G1_scalar_identity_plutus =
     "Scalar multiplication by 1 is the identity function on G1"
     "G1_scalar_identity_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e = eqG1 (mulG1 (integer 1) (g1elt p)) (g1elt p)
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (mulG1 (integer 1) p) p
       evalTerm e === uplcTrue
 
 prop_G1_scalar_zero :: TestTree
@@ -353,10 +344,9 @@ prop_G1_scalar_zero_plutus =
     "Scalar multiplication by 0 always yields the zero element of G1"
     "G1_scalar_zero_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e1 = mulG1 (integer 0) (g1elt p)
-          e2 = eqG1 e1 zeroG1
-      evalTerm e2 === uplcTrue
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (mulG1 (integer 0) p) zeroG1
+      evalTerm e === uplcTrue
 
 prop_G1_scalar_assoc :: TestTree
 prop_G1_scalar_assoc =
@@ -375,11 +365,11 @@ prop_G1_scalar_assoc_plutus =
     "Scalar multiplication is associative in G1"
     "G1_scalar_assoc_plutus" .
     withNTests $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll genG1element
-      let e1 = mulG1 (mkApp2 (builtin () MultiplyInteger) (integer a) (integer b)) (g1elt p)
-          e2 = mulG1 (integer a) (mulG1 (integer b) (g1elt p))
+      a <- integer <$> forAll genScalar
+      b <- integer <$> forAll genScalar
+      p <- g1elt   <$> forAll genG1element
+      let e1 = mulG1 (mkApp2 MultiplyInteger a b) p
+          e2 = mulG1 a (mulG1 b p)
           e3 = eqG1 e1 e2
       evalTerm e3 === uplcTrue
 
@@ -400,11 +390,11 @@ prop_G1_scalar_distributive_plutus =
     "Scalar multiplication distributes over addition in G1"
     "G1_scalar_distributive_plutus" .
     withNTests $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll genG1element
-      let e1 = mulG1 (mkApp2 (builtin () AddInteger) (integer a) (integer b)) (g1elt p)
-          e2 = addG1 (mulG1 (integer a) (g1elt p))  (mulG1 (integer b) (g1elt p))
+      a <- integer <$> forAll genScalar
+      b <- integer <$> forAll genScalar
+      p <- g1elt   <$> forAll genG1element
+      let e1 = mulG1 (mkApp2 AddInteger a b) p
+          e2 = addG1 (mulG1 a p) (mulG1 b p)
           e3 = eqG1 e1 e2
       evalTerm e3 === uplcTrue
 
@@ -425,10 +415,9 @@ prop_G1_compression_plutus =
     "Compression followed by uncompression is the identity function on G1"
     "G1_compression_distributive_plutus" .
     withNTests $ property $ do
-      p <- forAll genG1element
-      let e1 = uncompressG1 (compressG1 (g1elt p))
-          e2 = eqG1 e1 (g1elt p)
-      evalTerm e2 === uplcTrue
+      p <- g1elt <$> forAll genG1element
+      let e = eqG1 (uncompressG1 (compressG1 p)) p
+      evalTerm e === uplcTrue
 
 prop_G1_hash :: TestTree
 prop_G1_hash =
@@ -447,10 +436,10 @@ prop_G1_hash_plutus =
     "Different inputs hash to different points in G1"
     "G1_no_hash_collisions_plutus" .
     withNTests $ property $ do
-      b1 <- forAll genByteString
-      b2 <- forAll genByteString
+      b1 <- bytestring <$> forAll genByteString
+      b2 <- bytestring <$> forAll genByteString
       when (b1 /= b2) $ do
-           let e = eqG1 (hashToCurveG1 (bytestring b1)) (hashToCurveG1 (bytestring b2))
+           let e = eqG1 (hashToCurveG1 b1) (hashToCurveG1 b2)
            evalTerm e === uplcFalse
 
 test_G1 :: TestTree
@@ -507,13 +496,11 @@ prop_G2_assoc_plutus =
     "Addition in G2 is associative"
     "G2_assoc_plutus" .
     withNTests $ property $ do
-      p1 <- forAll genG2element
-      p2 <- forAll genG2element
-      p3 <- forAll genG2element
-      let e1 = addG2 (g2elt p1) (addG2 (g2elt p2) (g2elt p3))
-          e2 = addG2 (addG2 (g2elt p1) (g2elt p2)) (g2elt p3)
-          e3 = eqG2 e1 e2
-      evalTerm e3 === uplcTrue
+      p1 <- g2elt <$> forAll genG2element
+      p2 <- g2elt <$> forAll genG2element
+      p3 <- g2elt <$> forAll genG2element
+      let e = eqG2 (addG2 p1 (addG2 p2 p3)) (addG2 (addG2 p1 p2) p3)
+      evalTerm e === uplcTrue
 
 prop_G2_abelian :: TestTree
 prop_G2_abelian =
@@ -531,12 +518,10 @@ prop_G2_abelian_plutus =
     "Addition in G2 is commutative"
     "G2_abelian_plutus" .
     withNTests $ property $ do
-      p1 <- forAll genG2element
-      p2 <- forAll genG2element
-      let e1 = addG2 (g2elt p1) (g2elt p2)
-          e2 = addG2 (g2elt p2) (g2elt p1)
-          e3 = eqG2 e1 e2
-      evalTerm e3 === uplcTrue
+      p1 <- g2elt <$> forAll genG2element
+      p2 <- g2elt <$> forAll genG2element
+      let e = eqG2 (addG2 p1 p2) (addG2 p2 p1)
+      evalTerm e === uplcTrue
 
 prop_G2_mul :: TestTree
 prop_G2_mul =
@@ -575,10 +560,9 @@ prop_G2_zero_plutus =
     "The point at infinity is an additive identity in G2"
     "G2_zero_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e1 = addG2 (g2elt p) zeroG2
-          e2 = eqG2 (g2elt p) e1
-      evalTerm e2 === uplcTrue
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (addG2 p zeroG2) p
+      evalTerm e === uplcTrue
 
 prop_G2_neg :: TestTree
 prop_G2_neg =
@@ -595,10 +579,9 @@ prop_G2_neg_plutus =
     "Every point in G2 has an additive inverse"
     "G2_inverse_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e1 = addG2 (g2elt p) (negG2 (g2elt p))
-          e2 = eqG2 e1 zeroG2
-      evalTerm e2 === uplcTrue
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (addG2 p (negG2 p)) zeroG2
+      evalTerm e === uplcTrue
 
 prop_G2_scalar_inverse :: TestTree
 prop_G2_scalar_inverse =
@@ -615,11 +598,9 @@ prop_G2_scalar_inverse_plutus =
     "-p = (-1)*p for all p in G2"
     "G2_scalar_inverse_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e1 = negG2 (g2elt p)
-          e2 = mulG2 (integer (-1)) (g2elt p)
-          e3 = eqG2 e1 e2
-      evalTerm e3 === uplcTrue
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (mulG2 (integer (-1)) p) (negG2 p)
+      evalTerm e === uplcTrue
 
 prop_G2_scalar_identity :: TestTree
 prop_G2_scalar_identity =
@@ -636,8 +617,8 @@ prop_G2_scalar_identity_plutus =
     "Scalar multiplication by 1 is the identity function on G2"
     "G2_scalar_identity_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e = eqG2 (mulG2 (integer 1) (g2elt p)) (g2elt p)
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (mulG2 (integer 1) p) p
       evalTerm e === uplcTrue
 
 prop_G2_scalar_zero :: TestTree
@@ -655,10 +636,9 @@ prop_G2_scalar_zero_plutus =
     "Scalar multiplication by 0 always yields the zero element of G2"
     "G2_scalar_zero_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e1 = mulG2 (integer 0) (g2elt p)
-          e2 = eqG2 e1 zeroG2
-      evalTerm e2 === uplcTrue
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (mulG2 (integer 0) p) zeroG2
+      evalTerm e === uplcTrue
 
 prop_G2_scalar_assoc :: TestTree
 prop_G2_scalar_assoc =
@@ -677,11 +657,11 @@ prop_G2_scalar_assoc_plutus =
     "Scalar multiplication is associative in G2"
     "G2_scalar_assoc_plutus" .
     withNTests $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll genG2element
-      let e1 = mulG2 (mkApp2 (builtin () MultiplyInteger) (integer a) (integer b)) (g2elt p)
-          e2 = mulG2 (integer a) (mulG2 (integer b) (g2elt p))
+      a <- integer <$> forAll genScalar
+      b <- integer <$> forAll genScalar
+      p <- g2elt <$> forAll genG2element
+      let e1 = mulG2 (mkApp2 MultiplyInteger a b) p
+          e2 = mulG2 a (mulG2 b p)
           e3 = eqG2 e1 e2
       evalTerm e3 === uplcTrue
 
@@ -702,11 +682,11 @@ prop_G2_scalar_distributive_plutus =
     "Scalar multiplication distributes over addition in G2"
     "G2_scalar_distributive_plutus" .
     withNTests $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll genG2element
-      let e1 = mulG2 (mkApp2 (builtin () AddInteger) (integer a) (integer b)) (g2elt p)
-          e2 = addG2 (mulG2 (integer a) (g2elt p))  (mulG2 (integer b) (g2elt p))
+      a <- integer <$> forAll genScalar
+      b <- integer <$> forAll genScalar
+      p <- g2elt <$> forAll genG2element
+      let e1 = mulG2 (mkApp2 AddInteger a b) p
+          e2 = addG2 (mulG2 a p) (mulG2 b p)
           e3 = eqG2 e1 e2
       evalTerm e3 === uplcTrue
 
@@ -727,10 +707,9 @@ prop_G2_compression_plutus =
     "Compression followed by uncompression is the identity function on G2"
     "G2_compression_distributive_plutus" .
     withNTests $ property $ do
-      p <- forAll genG2element
-      let e1 = uncompressG2 (compressG2 (g2elt p))
-          e2 = eqG2 e1 (g2elt p)
-      evalTerm e2 === uplcTrue
+      p <- g2elt <$> forAll genG2element
+      let e = eqG2 (uncompressG2 (compressG2 p)) p
+      evalTerm e === uplcTrue
 
 prop_G2_hash :: TestTree
 prop_G2_hash =
@@ -749,10 +728,10 @@ prop_G2_hash_plutus =
     "Different inputs hash to different points in G2"
     "G2_no_hash_collisions_plutus" .
     withNTests $ property $ do
-      b1 <- forAll genByteString
-      b2 <- forAll genByteString
+      b1 <- bytestring <$> forAll genByteString
+      b2 <- bytestring <$> forAll genByteString
       when (b1 /= b2) $ do
-           let e = eqG2 (hashToCurveG2 (bytestring b1)) (hashToCurveG2 (bytestring b2))
+           let e = eqG2 (hashToCurveG2 b1) (hashToCurveG2 b2)
            evalTerm e === uplcFalse
 
 test_G2 :: TestTree
@@ -791,12 +770,11 @@ test_G2_plutus =
 
 ---------------- Pairing tests ----------------
 
-pairing :: G1.Element -> G2.Element -> GT.Element
-pairing p q =
+pairingHS :: G1.Element -> G2.Element -> GT.Element
+pairingHS p q =
     case GT.millerLoop p q of
       Left e  -> error $ show e
       Right r -> r
-
 
 -- <p1+p2,q> = <p1,q>.<p2,q>
 prop_pairing_left_additive :: TestTree
@@ -808,7 +786,9 @@ prop_pairing_left_additive =
       p1 <- forAll genG1element
       p2 <- forAll genG1element
       q <- forAll genG2element
-      GT.finalVerify (pairing (G1.add p1 p2) q) (GT.mul (pairing p1 q) (pairing p2 q)) === True
+      let e1 = pairingHS (G1.add p1 p2) q
+          e2 = GT.mul (pairingHS p1 q) (pairingHS p2 q)
+      GT.finalVerify e1 e2 === True
 
 -- <p1+p2,q> = <p1,q>.<p2,q>
 prop_pairing_left_additive_plutus :: TestTree
@@ -817,13 +797,10 @@ prop_pairing_left_additive_plutus =
     "Pairing is left additive"
     "pairing_left_additive_plutus" .
     withNTests $ property $ do
-      p1_ <- forAll genG1element
-      p2_ <- forAll genG1element
-      q_ <- forAll genG2element
-      let p1 = g1elt p1_
-          p2 = g1elt p2_
-          q  = g2elt q_
-          e1 = pairingPlc (addG1 p1 p2) q
+      p1 <- g1elt <$> forAll genG1element
+      p2 <- g1elt <$> forAll genG1element
+      q  <- g2elt <$> forAll genG2element
+      let e1 = pairingPlc (addG1 p1 p2) q
           e2 = mulGT (pairingPlc p1 q) (pairingPlc p2 q)
           e3 = finalVerifyPlc e1 e2
       evalTerm e3 === uplcTrue
@@ -838,7 +815,9 @@ prop_pairing_right_additive =
       p <- forAll genG1element
       q1 <- forAll genG2element
       q2 <- forAll genG2element
-      GT.finalVerify (pairing p (G2.add q1 q2)) (GT.mul (pairing p q1) (pairing p q2)) === True
+      let e1 = pairingHS p (G2.add q1 q2)
+          e2 = GT.mul (pairingHS p q1) (pairingHS p q2)
+      GT.finalVerify e1 e2 === True
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
 prop_pairing_right_additive_plutus :: TestTree
@@ -847,43 +826,40 @@ prop_pairing_right_additive_plutus =
     "Pairing is right additive"
     "pairing_right_additive_plutus" .
     withNTests $ property $ do
-      p_ <- forAll genG1element
-      q1_ <- forAll genG2element
-      q2_ <- forAll genG2element
-      let p  = g1elt p_
-          q1 = g2elt q1_
-          q2 = g2elt q2_
-          e1 = pairingPlc p (addG2 q1 q2)
+      p  <- g1elt <$> forAll genG1element
+      q1 <- g2elt <$> forAll genG2element
+      q2 <- g2elt <$> forAll genG2element
+      let e1 = pairingPlc p (addG2 q1 q2)
           e2 = mulGT (pairingPlc p q1) (pairingPlc p q2)
           e3 = finalVerifyPlc e1 e2
       evalTerm e3 === uplcTrue
 
+-- <[n]p,q> = <p,[n]q> for all n in Z, p in G1, q in G2.
+-- We could also test that both of these are equal to <p,q>^n, but we don't have
+-- an exponentiation function in GT.  We could implement exponentiation using GT
+-- multiplication, but that would require some work.
 prop_pairing_balanced :: TestTree
 prop_pairing_balanced =
      testPropertyNamed
      "Pairing is balanced"
      "pairing_balanced" .
      withTests 100 $ property $ do
-       a <- forAll genScalar
+       n <- forAll genScalar
        p <- forAll genG1element
        q <- forAll genG2element
-       GT.finalVerify (pairing (G1.mul a p) q) (pairing p (G2.mul a q)) === True
+       GT.finalVerify (pairingHS (G1.mul n p) q) (pairingHS p (G2.mul n q)) === True
 
--- <ap, q> == <p,aq> for all a in Z, p in G1, q in G2
 prop_pairing_balanced_plutus :: TestTree
 prop_pairing_balanced_plutus =
     testPropertyNamed
     "Pairing is balanced"
     "pairing_balanced" .
     withNTests $ property $ do
-      a_ <- forAll genScalar
-      p_ <- forAll genG1element
-      q_ <- forAll genG2element
-      let a = integer a_
-          p = g1elt p_
-          q = g2elt q_
-          e1 = pairingPlc (mulG1 a p) q
-          e2 = pairingPlc p (mulG2 a q)
+      n <- integer <$> forAll genScalar
+      p <- g1elt   <$> forAll genG1element
+      q <- g2elt   <$> forAll genG2element
+      let e1 = pairingPlc (mulG1 n p) q
+          e2 = pairingPlc p (mulG2 n q)
           e3 = finalVerifyPlc e1 e2
       evalTerm e3 === uplcTrue
 
@@ -915,16 +891,12 @@ prop_random_pairing_plutus =
     "Pairings of random points are unequal"
     "pairing_random_plutus" .
     withNTests $ property $ do
-       p1_ <- forAll genG1element
-       q1_ <- forAll genG2element
-       p2_ <- forAll genG1element
-       q2_ <- forAll genG2element
-       when (p1_ /= p2_ || q1_  /= q2_) $
-            let p1 = g1elt p1_
-                q1 = g2elt q1_
-                p2 = g1elt p2_
-                q2 = g2elt q2_
-                e = finalVerifyPlc (pairingPlc p1 q1) (pairingPlc p2 q2)
+       p1 <- g1elt <$> forAll genG1element
+       p2 <- g1elt <$> forAll genG1element
+       q1 <- g2elt <$> forAll genG2element
+       q2 <- g2elt <$> forAll genG2element
+       when (p1 /= p2 || q1  /= q2) $
+            let e = finalVerifyPlc (pairingPlc p1 q1) (pairingPlc p2 q2)
             in evalTerm e === uplcFalse
 
 test_pairing :: TestTree
@@ -945,14 +917,8 @@ test_pairing_plutus =
         , prop_random_pairing_plutus
         ]
 
-test_plutus :: TestTree
-test_plutus =
-    testGroup "BLS12-381 (Plutus)"
-    [ test_G1_plutus
-    , test_G2_plutus
-    , test_pairing_plutus
-    ]
 
+---------------- Test groups ----------------
 
 test_haskell :: TestTree
 test_haskell =
@@ -962,6 +928,13 @@ test_haskell =
     , test_pairing
     ]
 
+test_plutus :: TestTree
+test_plutus =
+    testGroup "BLS12-381 (Plutus)"
+    [ test_G1_plutus
+    , test_G2_plutus
+    , test_pairing_plutus
+    ]
 
 test_BLS12_381 :: TestTree
 test_BLS12_381 =
