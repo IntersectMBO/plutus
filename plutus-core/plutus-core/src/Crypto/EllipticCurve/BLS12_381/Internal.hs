@@ -229,6 +229,9 @@ newtype Affine curve = Affine (ForeignPtr Void)
 type Affine1 = Affine Curve1
 type Affine2 = Affine Curve2
 
+-- | Target element without the final exponantiation. By defining target elements
+-- | as such, we save up the final exponantiation when computing a pairing, and only
+-- | compute it when necessary (e.g. comparison with another point or serialisation)
 newtype PT = PT (ForeignPtr Void)
 
 -- | Sizes of various representations of elliptic curve points.
@@ -315,16 +318,16 @@ withNewPT' :: (PTPtr -> IO a) -> IO PT
 withNewPT' = fmap snd . withNewPT
 
 instance BLS_P Curve1 where
-  _sizeP _ = c_size_blst_p1
+  _sizeP _ = fromIntegral c_size_blst_p1
   _compressedSizeP _ = 48
   _serializedSizeP _ = 96
-  _sizeAffine _ = c_size_blst_affine1
+  _sizeAffine _ = fromIntegral c_size_blst_affine1
 
 instance BLS_P Curve2 where
-  _sizeP _ = c_size_blst_p2
+  _sizeP _ = fromIntegral c_size_blst_p2
   _compressedSizeP _ = 96
   _serializedSizeP _ = 192
-  _sizeAffine _ = c_size_blst_affine2
+  _sizeAffine _ = fromIntegral c_size_blst_affine2
 
 sizePT :: Num i => i
 sizePT = fromIntegral c_size_blst_fp12
@@ -623,7 +626,7 @@ data BLSTError
   | BLST_PK_IS_INFINITY
   | BLST_BAD_SCALAR
   | BLST_UNKNOWN_ERROR
-  deriving stock (Show, Eq, Ord, Enum, Bounded)
+  deriving (Show, Eq, Ord, Enum, Bounded)
 
 mkBLSTError :: CInt -> BLSTError
 mkBLSTError e
@@ -707,27 +710,27 @@ neg p = cneg p True
 
 uncompress :: forall curve. (BLS_P curve, BLS_Curve curve) => ByteString -> Either BLSTError (P curve)
 uncompress bs = unsafePerformIO $ do
-  BS.useAsCStringLen bs $ \(bytes, numBytes) -> do
-    if numBytes < compressedSizeP (Proxy @curve) then
-      return $ Left BLST_BAD_ENCODING
-    else do
+  BS.useAsCStringLen bs $ \(bytes, numBytes) ->
+    if numBytes == compressedSizeP (Proxy @curve) then do
       (err, affine) <- withNewAffine $ \ap -> c_blst_uncompress ap bytes
       if err /= 0 then
         return $ Left $ mkBLSTError err
       else
         return $ Right (fromAffine affine)
+    else do
+      return $ Left BLST_BAD_ENCODING
 
 deserialize :: forall curve. (BLS_P curve, BLS_Curve curve) => ByteString -> Either BLSTError (P curve)
 deserialize bs = unsafePerformIO $ do
-  BS.useAsCStringLen bs $ \(bytes, numBytes) -> do
-    if numBytes < serializedSizeP (Proxy @curve) then
-      return $ Left BLST_BAD_ENCODING
-    else do
+  BS.useAsCStringLen bs $ \(bytes, numBytes) ->
+    if numBytes == serializedSizeP (Proxy @curve) then do
       (err, affine) <- withNewAffine $ \ap -> c_blst_deserialize ap bytes
       if err /= 0 then
         return $ Left $ mkBLSTError err
       else
         return $ Right (fromAffine affine)
+    else do
+      return $ Left BLST_BAD_ENCODING
 
 compress :: forall curve. (BLS_P curve, BLS_Curve curve) => P curve -> ByteString
 compress p = unsafePerformIO $ do
@@ -802,11 +805,14 @@ frFromCanonicalScalar scalar
 
 scalarFromBS :: ByteString -> Either BLSTError Scalar
 scalarFromBS bs = unsafePerformIO $ do
-  BS.useAsCStringLen bs $ \(cstr, l) -> do
-    (success, scalar) <- withNewScalar $ \scalarPtr -> do
-      c_blst_scalar_from_be_bytes scalarPtr cstr (fromIntegral l)
-    if (success && l == sizeScalar) then
-      return $ Right scalar
+  BS.useAsCStringLen bs $ \(cstr, l) ->
+    if l == sizeScalar then do
+      (success, scalar) <- withNewScalar $ \scalarPtr ->
+        c_blst_scalar_from_be_bytes scalarPtr cstr (fromIntegral l)
+      if success then
+        return $ Right scalar
+      else
+        return $ Left BLST_BAD_SCALAR
     else
       return $ Left BLST_BAD_SCALAR
 
@@ -868,3 +874,4 @@ withMaybeCStringLen (Just bs) go = BS.useAsCStringLen bs go
 -- | The period of scalar modulo operations.
 scalarPeriod :: Integer
 scalarPeriod = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+
