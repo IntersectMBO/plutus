@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 module Evaluation.Builtins.BLS12_381.Haskell.G2 (tests)
 where
