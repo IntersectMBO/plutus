@@ -25,7 +25,7 @@ open import Type.BetaNBE using (nf)
 open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
 
-open import Builtin using (Builtin)
+open import Builtin using (Builtin;signature)
 open import Algorithmic using (Ctx;_⊢_;Term;Type;arity)
 open _⊢_
 open Ctx
@@ -97,7 +97,7 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
     → ∀{az}
-    → (p : az <>> (Term ∷ []) ∈ arity b)
+    → (p : az <>> (Term ∷ []) ∈ arity (signature b))
     → (bt : BApp b p t) -- one left
     → (u : ∅ ⊢ A)
     → (vu : Value u)
@@ -108,7 +108,7 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
       (b : Builtin)
     → (t : ∅ ⊢ Π B)
     → ∀{az}
-    → (p : az <>> (Type ∷ []) ∈ arity b)
+    → (p : az <>> (Type ∷ []) ∈ arity (signature b))
     → (bt : BApp b p t) -- one left
     → ∀ A
     → (q : C ≡ _)

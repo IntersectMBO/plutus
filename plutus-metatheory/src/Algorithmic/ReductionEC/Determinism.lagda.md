@@ -18,7 +18,7 @@ open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;arity;Term;Type;conv⊢)
+open import Algorithmic using (Ctx;_⊢_;Arity;Term;Type;conv⊢) renaming (arity to sigarity)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -28,6 +28,10 @@ open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
 open import Algorithmic.ReductionEC
+open import Builtin using (Builtin;signature)
+
+arity : (b : Builtin) -> Arity
+arity b = sigarity (signature b)
 ```
 
 ```

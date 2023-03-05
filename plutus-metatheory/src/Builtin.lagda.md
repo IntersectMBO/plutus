@@ -14,7 +14,7 @@ module Builtin where
 ```
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_])
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
@@ -144,7 +144,7 @@ This is defined in its own module so that these definitions are not exported.
 
     infix 10 _[_
     _[_ : (n : ℕ) →  Args n  ×  n ⊢♯ → Sig
-    _[_ n (as ,, r) = sig n as r
+    _[_ n (as ,, r) = sig n (reverse as) r
 
     infixr 11 _,_
 

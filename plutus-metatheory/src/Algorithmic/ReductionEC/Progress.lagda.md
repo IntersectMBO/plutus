@@ -4,19 +4,20 @@ module Algorithmic.ReductionEC.Progress where
 ## Imports
 
 ```
+open import Data.Nat using (zero;suc)
 open import Data.List as List using (List; _∷_; [])
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)  
 
 open import Utils using (*;bubble)
 open import Type using (Ctx⋆;∅)
-open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic using (Ctx;_⊢_;btype-∅)
 open Ctx
 open _⊢_
 
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error)
+open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;irrValue)
 open Value
 open BApp
 open _—→⋆_
@@ -57,20 +58,19 @@ progress (M · M')     with progress M
 ... | error E-error = step (ruleErr (VM ·r []) refl)
 progress (.(ƛ M) · M') | done (V-ƛ M) | done VM' =
   step (ruleEC [] (β-ƛ VM') refl refl)
-progress (M · M') | done (V-I⇒ b {as' = []} p q) | done VM' =
-  step (ruleEC [] (β-sbuiltin b M p q M' VM') refl refl)
-progress (M · M') | done (V-I⇒ b {as' = a ∷ as'} p q) | done VM' =
-  done (V-I b (bubble p) (step p q VM'))
+progress (M · M') | done (V-I⇒ b {am = 0} q) | done VM' =
+  step (ruleEC [] (β-sbuiltin b M q M' VM') refl refl)
+progress (M · M') | done (V-I⇒ b {am = suc _} q) | done VM' =
+  done (V-I b (step q VM'))
 progress (Λ M)        = done (V-Λ M)
 progress (M ·⋆ A / refl) with progress M
 ... | error E-error = step (ruleErr ([] ·⋆ A / refl) refl)
 ... | step (ruleEC E p refl refl) = step (ruleEC (E ·⋆ A / refl) p refl refl)
 ... | step (ruleErr E refl) = step (ruleErr (E ·⋆ A / refl) refl)
 ... | done (V-Λ M') = step (ruleEC [] (β-Λ refl) refl refl)
-progress (M ·⋆ A / r) | done (V-IΠ b {as' = []}         p q) =
-  step (ruleEC [] (β-sbuiltin⋆ b M p q A refl) refl refl)
-progress (M ·⋆ A / refl) | done (V-IΠ b {as' = a ∷ as'} p q) =
-  done (V-I b (bubble p) (step⋆ p q refl))
+progress (M ·⋆ A / refl) | done (V-IΠ b {tm = 0} q) = done (V-I b (step⋆ q refl refl))
+progress (M ·⋆ A / refl) | done (V-IΠ b {tm = suc _} q) =
+  done (V-I b (step⋆ q refl refl))
 progress (wrap A B M) with progress M
 ... | done V            = done (V-wrap V)
 ... | step (ruleEC E p refl refl) = step (ruleEC (wrap E) p refl refl)
@@ -82,7 +82,7 @@ progress (unwrap M refl) with progress M
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V refl) refl refl)
 ... | error E-error = step (ruleErr (unwrap [] / refl) refl)
 progress (con c)      = done (V-con c)
-progress (builtin b / refl) = done (ival b)
+progress {A} (builtin b / refl ) = done (irrValue (ival b btype-∅) )
 progress (error A)    = error E-error
 
 {- These definitions seems unused
@@ -140,3 +140,4 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E refl)
 
 -}
+ 

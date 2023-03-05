@@ -8,10 +8,10 @@ module Algorithmic.CK where
 
 ```
 open import Data.List as L using (List;[];_∷_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym)
 open import Data.Nat using (ℕ;zero;suc)
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;_<>>_∈_;bubble;RuntimeError;Monad)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;RuntimeError;Monad)
 open RuntimeError
 open Monad {{...}}
 
@@ -21,12 +21,12 @@ open _⊢⋆_
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic using (Ctx;_⊢_;btype-∅)
 open Ctx
 open _⊢_
 
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I) 
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;irrValue) 
                                     renaming (step to app;step⋆ to app⋆)
 open Frame
 open Value
@@ -84,15 +84,15 @@ step ((s , (V-ƛ t ·-)) ◅ V)       = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
-step (s ▻ (builtin b / refl))     = s ◅ ival b
-step ((s , (V-I⇒ b {as' = []} p bt ·-)) ◅ vu) =
-  s ▻ BUILTIN' b (bubble p) (app p bt vu)
-step ((s , (V-I⇒ b {as' = _ ∷ as'} p bt ·-)) ◅ vu) =
-  s ◅ V-I b (bubble p) (app p bt vu)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p bt) =
-  s ▻ BUILTIN' b (bubble p) (app⋆ p bt refl)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = _ ∷ as'} p bt) =
-  s ◅ V-I b (bubble p) (app⋆ p bt refl)
+step (s ▻ (builtin b / refl)) = s ◅ (irrValue (ival b btype-∅))
+step ((s , (V-I⇒ b {am = 0} bt ·-)) ◅ vu) =
+  s ▻ BUILTIN' b (app bt vu)
+step ((s , (V-I⇒ b {am = suc _} bt ·-)) ◅ vu) =
+  s ◅ V-I b (app bt vu)
+step ((s , -·⋆ A) ◅ V-IΠ b {tm = 0} bt) =
+  s ◅ V-I b (app⋆ bt refl refl) 
+step ((s , -·⋆ A) ◅ V-IΠ b {tm = suc _} bt) =
+  s ◅ V-I b (app⋆ bt refl refl)
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
