@@ -19,6 +19,8 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 
 
+-- Hedgehog stuff
+
 withNTests :: Property -> Property
 withNTests = withTests 500
 
@@ -39,6 +41,8 @@ genSmallScalar = Gen.integral $ Range.linear (-100) 100
 
 genScalar :: Gen Integer
 genScalar = Gen.integral $ Range.linear (-10000) 10000
+
+-- PLC utilities
 
 type PlcTerm = PLC.Term TyName Name DefaultUni DefaultFun ()
 type UplcTerm = UPLC.Term Name DefaultUni DefaultFun ()

@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
 
 module Evaluation.Builtins.BLS12_381.Plutus.G2 (tests)
 where

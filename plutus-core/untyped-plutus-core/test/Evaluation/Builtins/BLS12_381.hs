@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-
 module Evaluation.Builtins.BLS12_381
     (test_BLS12_381)
 where
@@ -31,27 +28,17 @@ import Text.Show.Pretty (ppShow)
     * Unit tests for known values.
 -}
 
----------------- Test groups ----------------
-
-test_haskell :: TestTree
-test_haskell =
-    testGroup "BLS12-381 (Haskell)"
-    [ Haskell.G1.tests
-    , Haskell.G2.tests
-    , Haskell.Pairing.tests
-    ]
-
-test_plutus :: TestTree
-test_plutus =
-    testGroup "BLS12-381 (Plutus)"
-    [ Plutus.G1.tests
-    , Plutus.G2.tests
-    , Plutus.Pairing.tests
-    ]
-
 test_BLS12_381 :: TestTree
 test_BLS12_381 =
     testGroup "BLS12-381"
-    [ test_haskell
-    , test_plutus
+    [ testGroup "BLS12-381 (Haskell)"
+      [ Haskell.G1.tests
+      , Haskell.G2.tests
+      , Haskell.Pairing.tests
+      ]
+    , testGroup "BLS12-381 (Plutus)"
+      [ Plutus.G1.tests
+      , Plutus.G2.tests
+      , Plutus.Pairing.tests
+      ]
     ]
