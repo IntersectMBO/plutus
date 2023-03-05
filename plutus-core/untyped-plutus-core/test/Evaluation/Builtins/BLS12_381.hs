@@ -12,7 +12,7 @@ import PlutusCore.BLS12_381.GT qualified as GT
 
 import Control.Monad (when)
 import Data.ByteString (ByteString, pack)
-import Data.List (foldl')
+import Data.List (foldl', genericReplicate)
 import UntypedPlutusCore as UPLC
 
 import Hedgehog
@@ -67,14 +67,14 @@ genScalar = Gen.integral $ Range.linear (-10000) 10000
 repeatedAddG1 :: Integer -> G1.Element -> G1.Element
 repeatedAddG1 n p =
     if n >= 0
-    then foldl' (\x _ -> G1.add p x) G1.zero [1..n]
-    else foldl' (\x _ -> (G1.add (G1.neg p) x)) G1.zero [1..(-n)]
+       then foldl' G1.add G1.zero $ genericReplicate n p
+       else repeatedAddG1 (-n) (G1.neg p)
 
 repeatedAddG2 :: Integer -> G2.Element -> G2.Element
 repeatedAddG2 n p =
     if n >= 0
-    then foldl' (\x _ -> G2.add p x) G2.zero [1..n]
-    else foldl' (\x _ -> (G2.add (G2.neg p) x)) G2.zero [1..(-n)]
+       then foldl' G2.add G2.zero $ genericReplicate n p
+       else repeatedAddG2 (-n) (G2.neg p)
 
 
 type PlcTerm = PLC.Term TyName Name DefaultUni DefaultFun ()
@@ -112,8 +112,8 @@ addG1 = mkApp2 Bls12_381_G1_add
 repeatedAddG1_plutus :: Integer -> PlcTerm -> PlcTerm
 repeatedAddG1_plutus n t =
     if n>=0
-    then foldl' (\x _ -> addG1 t x) zeroG1 [1..n]
-    else foldl' (\x _ -> (addG1 (negG1 t) x)) zeroG1 [1..(-n)]
+    then foldl' addG1 zeroG1 $ genericReplicate n t
+    else repeatedAddG1_plutus (-n) (negG1 t)
 
 eqG1 :: PlcTerm -> PlcTerm -> PlcTerm
 eqG1 = mkApp2 Bls12_381_G1_equal
@@ -147,8 +147,8 @@ addG2 = mkApp2 Bls12_381_G2_add
 repeatedAddG2_plutus :: Integer -> PlcTerm -> PlcTerm
 repeatedAddG2_plutus n t =
     if n>=0
-    then foldl' (\x _ -> addG2 t x) zeroG2 [1..n]
-    else foldl' (\x _ -> (addG2 (negG2 t) x)) zeroG2 [1..(-n)]
+       then foldl' addG2 zeroG2 $ genericReplicate n t
+       else repeatedAddG2_plutus (-n) (negG2 t)
 
 eqG2 :: PlcTerm -> PlcTerm -> PlcTerm
 eqG2 = mkApp2 Bls12_381_G2_equal
