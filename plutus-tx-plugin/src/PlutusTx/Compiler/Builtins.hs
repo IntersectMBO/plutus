@@ -262,7 +262,7 @@ builtinNames = [
 
     , ''Builtins.BuiltinBLS12_381_GT_Element
     , 'Builtins.bls12_381_GT_mul
-    , 'Builtins.bls12_381_millerLoop
+    , 'Builtins.bls12_381_pairing
     , 'Builtins.bls12_381_finalVerify
     ]
 
@@ -410,7 +410,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToCurve $ mkBuiltin PLC.Bls12_381_G2_hashToCurve
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_GT_mul         $ mkBuiltin PLC.Bls12_381_GT_mul
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_millerLoop     $ mkBuiltin PLC.Bls12_381_GT_millerLoop
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_pairing        $ mkBuiltin PLC.Bls12_381_GT_pairing
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_GT_finalVerify
 
 defineBuiltinTypes

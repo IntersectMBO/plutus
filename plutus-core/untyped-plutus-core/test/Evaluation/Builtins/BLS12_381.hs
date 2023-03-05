@@ -177,7 +177,7 @@ zeroG2 =
 -- Constructing pairing terms
 
 pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
-pairingPlc = mkApp2 Bls12_381_GT_millerLoop
+pairingPlc = mkApp2 Bls12_381_GT_pairing
 
 finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
 finalVerifyPlc = mkApp2 Bls12_381_GT_finalVerify
@@ -785,7 +785,7 @@ test_G2_plutus =
 
 pairingHS :: G1.Element -> G2.Element -> GT.Element
 pairingHS p q =
-    case GT.millerLoop p q of
+    case GT.pairing p q of
       Left e  -> error $ show e
       Right r -> r
 
@@ -886,16 +886,16 @@ prop_random_pairing =
        b <- forAll genG2element
        a' <- forAll genG1element
        b' <- forAll genG2element
-       let x = case GT.millerLoop a b of
+       let x = case GT.pairing a b of
                  Left e   -> error $ show e
                  Right xx -> xx
-       let y = case GT.millerLoop a' b' of
+       let y = case GT.pairing a' b' of
                  Left e   -> error $ show e
                  Right yy -> yy
        when (a /= a' || b /= b') $ (GT.finalVerify x y === False)
 
 
--- ???? Why can millerLoop fail ????? --
+-- ???? Why can pairing fail ????? --
 -- Because it's checking that its arguments are in the correct groups.
 
 prop_random_pairing_plutus :: TestTree

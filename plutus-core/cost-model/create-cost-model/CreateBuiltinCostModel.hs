@@ -114,7 +114,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_G2_hashToCurve        = "bls12_381_G2_hashToCurveModel"
   , paramBls12_381_GT_mul                = "bls12_381_GT_mulModel"
   , paramBls12_381_GT_finalVerify        = "bls12_381_GT_finalVerifyModel"
-  , paramBls12_381_GT_millerLoop         = "bls12_381_GT_millerLoopModel"
+  , paramBls12_381_GT_pairing            = "bls12_381_GT_pairingModel"
   }
 
 
@@ -221,7 +221,7 @@ createBuiltinCostModel bmfile rfile = do
     paramBls12_381_G2_hashToCurve        <- getParams bls12_381_G2_hashToCurve paramBls12_381_G2_hashToCurve
     paramBls12_381_GT_mul                <- getParams bls12_381_GT_mul         paramBls12_381_GT_mul
     paramBls12_381_GT_finalVerify        <- getParams bls12_381_GT_finalVerify paramBls12_381_GT_finalVerify
-    paramBls12_381_GT_millerLoop         <- getParams bls12_381_GT_millerLoop  paramBls12_381_GT_millerLoop
+    paramBls12_381_GT_pairing            <- getParams bls12_381_GT_pairing     paramBls12_381_GT_pairing
 
     pure $ BuiltinCostModelBase {..}
 
@@ -887,8 +887,8 @@ bls12_381_GT_finalVerify cpuModelR= do
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-bls12_381_GT_millerLoop :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-bls12_381_GT_millerLoop cpuModelR = do
+bls12_381_GT_pairing :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_GT_pairing cpuModelR = do
     cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
     let memModel = ModelTwoArgumentsConstantCost gtMemSize
     pure $ CostingFun cpuModel memModel

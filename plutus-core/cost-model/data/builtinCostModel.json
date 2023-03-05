@@ -232,9 +232,9 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_GT_millerLoop": {
+    "bls12_381_GT_mul": {
         "cpu": {
-            "arguments": 402099373,
+            "arguments": 2544991,
             "type": "constant_cost"
         },
         "memory": {
@@ -242,9 +242,9 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_GT_mul": {
+    "bls12_381_GT_pairing": {
         "cpu": {
-            "arguments": 2544991,
+            "arguments": 402099373,
             "type": "constant_cost"
         },
         "memory": {

@@ -149,7 +149,7 @@ main = do
   mapM_ printCosts_UncompressAndAddG2 [0, 10..150]
   printf "\n\n"
 
-  printf "Apply millerLoop to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
+  printf "Apply pairing to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
   printHeader
   printCosts_Pairing
   printf "\n\n"

@@ -88,7 +88,7 @@ module PlutusTx.Builtins (
                          , bls12_381_G2_hashToCurve
                          , BuiltinBLS12_381_GT_Element
                          , bls12_381_GT_mul
-                         , bls12_381_millerLoop
+                         , bls12_381_pairing
                          , bls12_381_finalVerify
                          -- * Conversions
                          , fromBuiltin
@@ -530,9 +530,9 @@ bls12_381_G2_hashToCurve = BI.bls12_381_G2_hashToCurve
 bls12_381_GT_mul ::  BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element
 bls12_381_GT_mul = BI.bls12_381_GT_mul
 
-{-# INLINABLE bls12_381_millerLoop #-}
-bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
-bls12_381_millerLoop = BI.bls12_381_millerLoop
+{-# INLINABLE bls12_381_pairing #-}
+bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
+bls12_381_pairing = BI.bls12_381_pairing
 
 {-# INLINABLE bls12_381_finalVerify #-}
 bls12_381_finalVerify :: BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> Bool

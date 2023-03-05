@@ -623,10 +623,10 @@ instance Pretty BuiltinBLS12_381_GT_Element where
 bls12_381_GT_mul :: BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element
 bls12_381_GT_mul (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = BuiltinBLS12_381_GT_Element (BLS12_381.GT.mul a b)
 
-bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
-bls12_381_millerLoop (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
-    case BLS12_381.GT.millerLoop a b of
-      Left err -> mustBeReplaced $ "BSL12_381 Miller loop error: " ++ show err
+bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
+bls12_381_pairing (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
+    case BLS12_381.GT.pairing a b of
+      Left err -> mustBeReplaced $ "BSL12_381 pairing error: " ++ show err
       Right c  -> BuiltinBLS12_381_GT_Element c
 
 bls12_381_finalVerify ::  BuiltinBLS12_381_GT_Element ->  BuiltinBLS12_381_GT_Element -> BuiltinBool

@@ -394,6 +394,6 @@ main =
                     , $(genTest 1 "bls12_381_G2_hashToCurve")
                     , $(genTest 2 "bls12_381_GT_mul")         Everywhere
                     , $(genTest 2 "bls12_381_GT_finalVerify") Everywhere
-                    , $(genTest 2 "bls12_381_GT_millerLoop")  Everywhere
+                    , $(genTest 2 "bls12_381_GT_pairing")     Everywhere
                     ]
 

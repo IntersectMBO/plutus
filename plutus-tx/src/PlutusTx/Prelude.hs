@@ -97,7 +97,7 @@ module PlutusTx.Prelude (
     bls12_381_G2_hashToCurve,
     BuiltinBLS12_381_GT_Element,
     bls12_381_GT_mul,
-    bls12_381_millerLoop,
+    bls12_381_pairing,
     bls12_381_finalVerify,
     -- * Conversions
     fromBuiltin,
@@ -115,7 +115,7 @@ import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Eleme
                           bls12_381_G1_mul, bls12_381_G1_neg, bls12_381_G1_uncompress, bls12_381_G2_add,
                           bls12_381_G2_compress, bls12_381_G2_equals, bls12_381_G2_hashToCurve, bls12_381_G2_mul,
                           bls12_381_G2_neg, bls12_381_G2_uncompress, bls12_381_GT_mul, bls12_381_finalVerify,
-                          bls12_381_millerLoop, consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
+                          bls12_381_pairing, consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
                           equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString, indexByteString,
                           lengthOfByteString, lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
                           verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)

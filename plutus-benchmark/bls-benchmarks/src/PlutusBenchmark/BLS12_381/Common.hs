@@ -155,8 +155,8 @@ runPairingFunctions
     -> Tx.BuiltinBLS12_381_G2_Element
     -> Bool
 runPairingFunctions p1 p2 q1 q2 =
-    let r1 = Tx.bls12_381_millerLoop p1 p2
-        r2 = Tx.bls12_381_millerLoop q1 q2
+    let r1 = Tx.bls12_381_pairing p1 p2
+        r2 = Tx.bls12_381_pairing q1 q2
     in Tx.bls12_381_finalVerify r1 r2
 
 mkPairingScript
@@ -281,12 +281,12 @@ groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
         a     = Tx.bls12_381_G1_uncompress a'
         b     = Tx.bls12_381_G2_uncompress b'
         c     = Tx.bls12_381_G1_uncompress c'
-        l1    = Tx.bls12_381_millerLoop    a b
-        l2    = Tx.bls12_381_millerLoop    alpha beta
-        l3    = Tx.bls12_381_millerLoop    c delta
-        p     = Tx.bls12_381_G1_add        abc1 (Tx.bls12_381_G1_mul s abc2)
-        l4    = Tx.bls12_381_millerLoop    p gamma
-        y     = Tx.bls12_381_GT_mul        l2 (Tx.bls12_381_GT_mul l3 l4)
+        l1    = Tx.bls12_381_pairing a b
+        l2    = Tx.bls12_381_pairing alpha beta
+        l3    = Tx.bls12_381_pairing c delta
+        p     = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_mul s abc2)
+        l4    = Tx.bls12_381_pairing p gamma
+        y     = Tx.bls12_381_GT_mul  l2 (Tx.bls12_381_GT_mul l3 l4)
     in Tx.bls12_381_finalVerify l1 y
 
 -- | Make a UPLC script applying groth16Verify to the inputs.  Passing the

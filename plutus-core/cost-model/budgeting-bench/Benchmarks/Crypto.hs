@@ -145,12 +145,12 @@ g2inputsA = fmap G2.hashToCurve byteStringsA
 g2inputsB :: [G2.Element]
 g2inputsB = fmap G2.hashToCurve byteStringsB
 
--- We can only get points on G2 via millerLoop.  It should always succeed on the
+-- We can only get points on G2 via pairing.  It should always succeed on the
 -- inputs we give it here.
 miller :: G1.Element -> G2.Element -> GT.Element
 miller e1 e2 =
-    case GT.millerLoop e1 e2 of
-      Left _  -> error "millerLoop failed while generating GT points"
+    case GT.pairing e1 e2 of
+      Left _  -> error "pairing failed while generating GT points"
       Right p -> p
 
 gtinputsA :: [GT.Element]
@@ -161,7 +161,7 @@ gtinputsB = zipWith miller g1inputsB g2inputsB
 
 -- Need to generate random elements of G1 and G2, probably by hashing random
 -- bytestrings to the curve.  GT is slightly problematic: we can only get points
--- on the curve by using millerLoop on elements of G1 and G2.
+-- on the curve by using pairing on elements of G1 and G2.
 
 benchBls12_381_G1_add :: Benchmark
 benchBls12_381_G1_add =
@@ -267,9 +267,9 @@ benchBls12_381_GT_finalVerify =
     in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
 -- const?
 
-benchBls12_381_GT_millerLoop :: Benchmark
-benchBls12_381_GT_millerLoop =
-    let name = Bls12_381_GT_millerLoop
+benchBls12_381_GT_pairing :: Benchmark
+benchBls12_381_GT_pairing =
+    let name = Bls12_381_GT_pairing
     in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
 -- const?
 
@@ -292,7 +292,7 @@ blsBenchmarks gen =
        , benchBls12_381_G2_uncompress
        , benchBls12_381_GT_mul
        , benchBls12_381_GT_finalVerify
-       , benchBls12_381_GT_millerLoop
+       , benchBls12_381_GT_pairing
   ]
 
 ---------------- Main benchmarks ----------------

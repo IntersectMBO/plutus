@@ -4,7 +4,7 @@
 module PlutusCore.BLS12_381.GT
     ( Element (..)
     , mul
-    , millerLoop
+    , pairing
     , finalVerify
     ) where
 
@@ -37,8 +37,8 @@ mul :: Element -> Element -> Element
 mul (Element a) (Element b) = Element $ BLS12_381.ptMult a b
 
 -- Fix this to return something more sensible and maybe log the error in the Left case
-millerLoop :: G1.Element -> G2.Element -> Either BLS12_381.BLSTError Element
-millerLoop (G1.Element e1) (G2.Element e2) = second Element $ BLS12_381.pairing e1 e2
+pairing :: G1.Element -> G2.Element -> Either BLS12_381.BLSTError Element
+pairing (G1.Element e1) (G2.Element e2) = second Element $ BLS12_381.pairing e1 e2
 
 finalVerify :: Element -> Element -> Bool
 finalVerify (Element a) (Element b) = BLS12_381.ptFinalVerify a b

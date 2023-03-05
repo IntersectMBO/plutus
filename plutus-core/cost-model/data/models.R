@@ -123,7 +123,7 @@ arity <- function(name) {
         "Bls12_381_G2_uncompress" = 1,
         "Bls12_381_GT_mul" = 2,
         "Bls12_381_GT_finalVerify" = 2,
-        "Bls12_381_GT_millerLoop" = 2
+        "Bls12_381_GT_pairing" = 2
         )
 }
 
@@ -640,7 +640,7 @@ modelFun <- function(path) {
     bls12_381_G2_uncompressModel  <- constantModel ("Bls12_381_G2_uncompress")
     bls12_381_GT_mulModel         <- constantModel ("Bls12_381_GT_mul")
     bls12_381_GT_finalVerifyModel <- constantModel ("Bls12_381_GT_finalVerify")
-    bls12_381_GT_millerLoopModel  <- constantModel ("Bls12_381_GT_millerLoop")
+    bls12_381_GT_pairingModel     <- constantModel ("Bls12_381_GT_pairing")
 
     list(
         addIntegerModel                      = addIntegerModel,
@@ -713,6 +713,6 @@ modelFun <- function(path) {
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
         bls12_381_GT_mulModel                = bls12_381_GT_mulModel,
         bls12_381_GT_finalVerifyModel        = bls12_381_GT_finalVerifyModel,
-        bls12_381_GT_millerLoopModel         = bls12_381_GT_millerLoopModel
+        bls12_381_GT_pairingModel            = bls12_381_GT_pairingModel
     )
 }
