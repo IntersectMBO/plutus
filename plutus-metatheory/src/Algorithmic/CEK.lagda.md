@@ -7,7 +7,6 @@ open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Function using (_∘_)
---open import Data.Product using (proj₁;proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
                                                   renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
@@ -328,4 +327,3 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 -- -}
- 

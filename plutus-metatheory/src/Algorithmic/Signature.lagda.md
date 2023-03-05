@@ -31,7 +31,7 @@ open import Builtin using (Builtin;signature)
 open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
 open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
 open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
-     using (sig2type;SigTy;sigTy2type)
+     using (sig2type;SigTy;sigTy2type;convSigTy) public
 open SigTy
 
 
@@ -131,4 +131,14 @@ _[_]SigTy : ∀{n}
           → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) 
           → SigTy pt pa (B [ A ])
 _[_]SigTy bt A  = subSigTy (subNf-cons (ne ∘ `) A) bt
-``` 
+
+uniqueSigTy :          
+      ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
+    → ∀{an am at} → {pa : an ∔ am ≣ at}
+    → ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}
+    → (s s' : SigTy pt pa A)
+    → s ≡ s'
+uniqueSigTy (bresult _) (bresult _) = refl
+uniqueSigTy (A B⇒ s) (.A B⇒ s') = cong (A B⇒_) (uniqueSigTy s s')
+uniqueSigTy (sucΠ s) (sucΠ s') = cong sucΠ (uniqueSigTy s s') 
+```

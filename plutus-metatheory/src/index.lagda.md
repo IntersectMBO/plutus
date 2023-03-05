@@ -123,8 +123,7 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
--- TODO re-import when Determinism proof is updated
---import Algorithmic.Reduction
+import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
@@ -143,8 +142,7 @@ Proof for Progress and Determinism of the Reduction Semantics:
 
 ```
 import Algorithmic.ReductionEC.Progress
--- TODO Update proof of Determinism
---import Algorithmic.ReductionEC.Determinism
+import Algorithmic.ReductionEC.Determinism
 ```
 
 There are proofs of correspondence of the semantics of:
@@ -154,7 +152,7 @@ There are proofs of correspondence of the semantics of:
  * (typed) CEK machine
 
 ```
--- TODO Update proofs ofBehavioural Equivalence.
+-- TODO Update proofs of Behavioural Equivalence.
 --import Algorithmic.BehaviouralEquivalence.ReductionvsCC
 --import Algorithmic.BehaviouralEquivalence.CCvsCK
 --import Algorithmic.BehaviouralEquivalence.CKvsCEK
