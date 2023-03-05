@@ -373,6 +373,13 @@ test-suite untyped-plutus-core-test
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
     Evaluation.Builtins.BLS12_381
+    Evaluation.Builtins.BLS12_381.Common
+    Evaluation.Builtins.BLS12_381.Haskell.G1
+    Evaluation.Builtins.BLS12_381.Haskell.G2
+    Evaluation.Builtins.BLS12_381.Haskell.Pairing
+    Evaluation.Builtins.BLS12_381.Plutus.G1
+    Evaluation.Builtins.BLS12_381.Plutus.G2
+    Evaluation.Builtins.BLS12_381.Plutus.Pairing
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
