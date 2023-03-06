@@ -9,6 +9,7 @@ module Evaluation.Builtins.Costing where
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExMemory
 
+import Data.Bifunctor
 import Data.Coerce
 import Data.Int
 import Data.List
@@ -64,10 +65,16 @@ toRange :: SatInt -> (SatInt, SatInt)
 toRange cost = fromMaybe (error $ "an unexpected cost: " ++ show cost) $
     find ((>= cost) . snd) magnitudes
 
+chooseSatInt :: (SatInt, SatInt) -> Gen SatInt
+chooseSatInt
+    = fmap (toSatInt . fromIntegral)
+    . chooseInt64
+    . bimap (fromIntegral . unSatInt) (fromIntegral . unSatInt)
+
 instance Arbitrary SatInt where
-    arbitrary = frequency . zip freqs . reverse $ map chooseBoundedIntegral magnitudes where
+    arbitrary = frequency . zip freqs . reverse $ map chooseSatInt magnitudes where
         freqs = map floor $ iterate (* 1.3) (2 :: Double)
-    shrink = map fromIntegral . shrink @Int64 . fromIntegral
+    shrink = map fromIntegral . shrink @Int64 . fromIntegral . unSatInt
 
 instance Arbitrary CostStream where
     arbitrary = frequency
@@ -81,10 +88,10 @@ instance Arbitrary CostStream where
         pure $ CostCons cost' costs'
 
 instance CoArbitrary SatInt where
-    coarbitrary = coarbitrary . fromIntegral @SatInt @Int64
+    coarbitrary = coarbitrary . fromIntegral @Int @Int64 . unSatInt
 
 instance Function SatInt where
-    function = functionMap fromIntegral $ fromIntegral @Int64
+    function = functionMap (fromIntegral . unSatInt) $ fromIntegral @Int64
 
 checkEqualsVia :: Show a => (a -> a -> Bool) -> a -> a -> Property
 checkEqualsVia eq x y =
@@ -202,9 +209,8 @@ test_addCostStreamHandlesBottom :: TestTree
 test_addCostStreamHandlesBottom =
     testProperty "addCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \(Positive n) ->
         let interleave xs ys = concat $ transpose [xs, ys]
-            c = fromIntegral n
-            zeroToN = [0 .. c] ++ bottom
-            nPlus1To2NPlus1 = [c + 1 .. c * 2 + 1] ++ bottom
+            zeroToN = map toSatInt [0 .. n] ++ bottom
+            nPlus1To2NPlus1 = map toSatInt [n + 1 .. n * 2 + 1] ++ bottom
             taken = take n . getNonEmpty . toCostList $ addCostStream
                 (fromCostList $ NonEmpty zeroToN)
                 (fromCostList $ NonEmpty nPlus1To2NPlus1)

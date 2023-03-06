@@ -23,6 +23,7 @@ import TH
 import Control.Applicative (Const, getConst)
 import Control.Monad.Morph (MFunctor, hoist, lift)
 import Data.Coerce (coerce)
+import Data.SatInt
 import Data.String (fromString)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -77,8 +78,8 @@ numberOfTests = 100
 memUsageGen :: Gen CostingInteger
 memUsageGen =
     Gen.choice [small, large]
-        where small = Gen.integral (Range.constant 0 2)
-              large = Gen.integral (Range.linear 0 5000)
+        where small = toSatInt <$> Gen.integral (Range.constant 0 2)
+              large = toSatInt <$> Gen.integral (Range.linear 0 5000)
 
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for
@@ -96,12 +97,12 @@ data TestDomain
   | BelowDiagonal
 
 -- Approximate equality
-(~=) :: Integral a => a -> a -> Bool
+(~=) :: CostingInteger -> CostingInteger -> Bool
 x ~= y
   | x==0 && y==0 = True
   | otherwise = err < 1/100
-    where x' = fromIntegral x :: Double
-          y' = fromIntegral y :: Double
+    where x' = fromIntegral (unSatInt x) :: Double
+          y' = fromIntegral (unSatInt y) :: Double
           err = abs ((x'-y')/y')
 
 -- Runs property tests in the `R` Monad.
@@ -158,7 +159,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
     predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
         let
-            xD = fromIntegral x :: Double
+            xD = fromIntegral (unSatInt x) :: Double
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
@@ -184,8 +185,8 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
     predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y =
       let
-        xD = fromIntegral x :: Double
-        yD = fromIntegral y :: Double
+        xD = fromIntegral (unSatInt x) :: Double
+        yD = fromIntegral (unSatInt y) :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
@@ -212,9 +213,9 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y z =
       let
-        xD = fromIntegral x :: Double
-        yD = fromIntegral y :: Double
-        zD = fromIntegral z :: Double
+        xD = fromIntegral (unSatInt x) :: Double
+        yD = fromIntegral (unSatInt y) :: Double
+        zD = fromIntegral (unSatInt z) :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
@@ -240,12 +241,12 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
              -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y z u v  w =
       let
-        xD = fromIntegral x :: Double
-        yD = fromIntegral y :: Double
-        zD = fromIntegral z :: Double
-        uD = fromIntegral u :: Double
-        vD = fromIntegral v :: Double
-        wD = fromIntegral w :: Double
+        xD = fromIntegral (unSatInt x) :: Double
+        yD = fromIntegral (unSatInt y) :: Double
+        zD = fromIntegral (unSatInt z) :: Double
+        uD = fromIntegral (unSatInt u) :: Double
+        vD = fromIntegral (unSatInt v) :: Double
+        wD = fromIntegral (unSatInt w) :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,

@@ -118,7 +118,7 @@ newtype ExMemory = ExMemory CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
 instance Pretty ExMemory where
-    pretty (ExMemory i) = pretty (toInteger i)
+    pretty (ExMemory i) = pretty (unSatInt i)
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
@@ -139,7 +139,7 @@ newtype ExCPU = ExCPU CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
 instance Pretty ExCPU where
-    pretty (ExCPU i) = pretty (toInteger i)
+    pretty (ExCPU i) = pretty (unSatInt i)
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
@@ -254,8 +254,9 @@ instance ExMemoryUsage Word8 where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = CostRose (((n-1) `quot` 8) + 1) []  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
-      where n = fromIntegral $ BS.length bs :: SatInt
+  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+  memoryUsage bs = CostRose (toSatInt $ ((n - 1) `quot` 8) + 1) [] where
+      n = BS.length bs
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where

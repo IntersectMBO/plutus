@@ -21,6 +21,7 @@ import Data.Coerce (coerce)
 import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
 import Data.Either.Extra (maybeToEither)
 import Data.Functor.Compose (Compose (Compose))
+import Data.SatInt
 import Data.Text (Text)
 import Data.Text.Encoding qualified as T (encodeUtf8)
 import Data.Vector (Vector, find)
@@ -33,7 +34,7 @@ import Language.R.QQ (r)
 -- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 microToPico :: Double -> CostingInteger
-microToPico = ceiling . (1e6 *)
+microToPico = toSatInt . ceiling . (1e6 *)
 
 {- See CostModelGeneration.md for a description of what this does. -}
 
