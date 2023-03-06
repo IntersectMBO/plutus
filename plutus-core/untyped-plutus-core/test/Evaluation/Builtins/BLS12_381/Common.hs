@@ -1,6 +1,11 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+
 module Evaluation.Builtins.BLS12_381.Common
 where
 
+import Evaluation.Builtins.Common
 import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
 
@@ -11,7 +16,7 @@ import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
-import Evaluation.Builtins.Common
+import Crypto.EllipticCurve.BLS12_381 (BLSTError)
 import PlutusCore as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -19,7 +24,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 
 
--- Hedgehog stuff
+-- Hedgehog generators
 
 withNTests :: Property -> Property
 withNTests = withTests 500
@@ -59,12 +64,6 @@ integer = mkConstant ()
 bytestring :: ByteString -> PlcTerm
 bytestring = mkConstant ()
 
-g1elt :: G1.Element ->  PlcTerm
-g1elt = mkConstant ()
-
-g2elt :: G2.Element ->  PlcTerm
-g2elt = mkConstant ()
-
 mkApp1 :: DefaultFun -> PlcTerm -> PlcTerm
 mkApp1 b x = mkIterApp () (builtin () b) [x]
 
@@ -72,62 +71,6 @@ mkApp2 :: DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
 mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 
 -- Constructing G1 builtin application terms
-
-addG1 :: PlcTerm -> PlcTerm -> PlcTerm
-addG1 = mkApp2 Bls12_381_G1_add
-
-eqG1 :: PlcTerm -> PlcTerm -> PlcTerm
-eqG1 = mkApp2 Bls12_381_G1_equal
-
-mulG1 :: PlcTerm -> PlcTerm -> PlcTerm
-mulG1 = mkApp2 Bls12_381_G1_mul
-
-
-negG1 :: PlcTerm -> PlcTerm
-negG1 = mkApp1 Bls12_381_G1_neg
-
-uncompressG1 :: PlcTerm -> PlcTerm
-uncompressG1 = mkApp1 Bls12_381_G1_uncompress
-
-compressG1 :: PlcTerm -> PlcTerm
-compressG1 = mkApp1 Bls12_381_G1_compress
-
-hashToCurveG1 :: PlcTerm -> PlcTerm
-hashToCurveG1 = mkApp1 Bls12_381_G1_hashToCurve
-
-zeroG1 :: PlcTerm
-zeroG1 =
-    let b = bytestring $ pack (0xc0 : replicate 47 0x00)
-    in uncompressG1 b
-
--- Constructing G2 builtin application terms
-
-addG2 :: PlcTerm -> PlcTerm -> PlcTerm
-addG2 = mkApp2 Bls12_381_G2_add
-
-eqG2 :: PlcTerm -> PlcTerm -> PlcTerm
-eqG2 = mkApp2 Bls12_381_G2_equal
-
-mulG2 :: PlcTerm -> PlcTerm -> PlcTerm
-mulG2 = mkApp2 Bls12_381_G2_mul
-
-
-negG2 :: PlcTerm -> PlcTerm
-negG2 = mkApp1 Bls12_381_G2_neg
-
-uncompressG2 :: PlcTerm -> PlcTerm
-uncompressG2 = mkApp1 Bls12_381_G2_uncompress
-
-compressG2 :: PlcTerm -> PlcTerm
-compressG2 = mkApp1 Bls12_381_G2_compress
-
-hashToCurveG2 :: PlcTerm -> PlcTerm
-hashToCurveG2 = mkApp1 Bls12_381_G2_hashToCurve
-
-zeroG2 :: PlcTerm
-zeroG2 =
-    let b = bytestring $ pack (0xc0 : replicate 95 0x00)
-    in uncompressG2 b
 
 -- Constructing pairing terms
 
@@ -152,4 +95,88 @@ evalTerm term =
            case x of
              EvaluationFailure   -> Nothing
              EvaluationSuccess s -> Just s
+
+
+---------------- Typeclasses for groups ----------------
+
+-- | The code for the property tests for G1 and G2 is essentially identical, so
+-- it's worth abstracting over the common features.  The blst Haskell FFI uses a
+-- phantom type to do this but unfortunately we have to hide that to stop the
+-- builtin machinery spotting it and then we have to re-abstract here.
+-- | We could re-use the AbelianGroup class here, but that uses <> and `mempty`
+-- and that's kind of confusing.
+class (Eq a, Show a) => TestableAbelianGroup a
+    where
+      gname      :: String
+      zero       :: a
+      add        :: a -> a -> a
+      neg        :: a -> a
+      mul        :: Integer -> a -> a
+      genElement :: Gen a
+      zeroP      :: PlcTerm
+      negP       :: PlcTerm -> PlcTerm
+      addP       :: PlcTerm -> PlcTerm -> PlcTerm
+      eqP        :: PlcTerm -> PlcTerm -> PlcTerm
+      mulP       :: PlcTerm -> PlcTerm -> PlcTerm
+      toPlc      :: a -> PlcTerm
+
+class (Show e, TestableAbelianGroup a) => HashAndCompress e a
+    where
+      hashTo         :: ByteString -> a
+      compress       :: a -> ByteString
+      uncompress     :: ByteString -> Either e a
+      compressedSize :: Integer
+      compressP      :: PlcTerm -> PlcTerm
+      uncompressP    :: PlcTerm -> PlcTerm
+      hashToCurveP   :: PlcTerm -> PlcTerm
+
+instance TestableAbelianGroup G1.Element
+    where
+      gname      = "G1"
+      zero       = G1.zero
+      add        = G1.add
+      neg        = G1.neg
+      mul        = G1.mul
+      genElement = genG1element
+      zeroP      = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
+      negP       = mkApp1 Bls12_381_G1_neg
+      addP       = mkApp2 Bls12_381_G1_add
+      eqP        = mkApp2 Bls12_381_G1_equal
+      mulP       = mkApp2 Bls12_381_G1_mul
+      toPlc      = mkConstant ()
+
+instance HashAndCompress BLSTError G1.Element
+    where
+      hashTo         = G1.hashToCurve
+      compress       = G1.compress
+      uncompress     = G1.uncompress
+      compressedSize = 48
+      compressP      = mkApp1 Bls12_381_G1_compress
+      uncompressP    = mkApp1 Bls12_381_G1_uncompress
+      hashToCurveP   = mkApp1 Bls12_381_G1_hashToCurve
+
+instance TestableAbelianGroup G2.Element
+    where
+      gname      = "G2"
+      zero       = G2.zero
+      add        = G2.add
+      neg        = G2.neg
+      mul        = G2.mul
+      genElement = genG2element
+      zeroP      = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
+      negP       = mkApp1 Bls12_381_G2_neg
+      addP       = mkApp2 Bls12_381_G2_add
+      eqP        = mkApp2 Bls12_381_G2_equal
+      mulP       = mkApp2 Bls12_381_G2_mul
+      toPlc      = mkConstant ()
+
+instance HashAndCompress BLSTError G2.Element
+    where
+      hashTo         = G2.hashToCurve
+      compress       = G2.compress
+      uncompress     = G2.uncompress
+      compressedSize = 48
+      compressP      = mkApp1 Bls12_381_G2_compress
+      uncompressP    = mkApp1 Bls12_381_G2_uncompress
+      hashToCurveP   = mkApp1 Bls12_381_G2_hashToCurve
 
