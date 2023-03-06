@@ -24,7 +24,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 
 
--- Hedgehog generators
+-- Hedgehog generators etc.
 
 withNTests :: Property -> Property
 withNTests = withTests 500
@@ -69,8 +69,6 @@ mkApp1 b x = mkIterApp () (builtin () b) [x]
 
 mkApp2 :: DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
 mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
-
--- Constructing G1 builtin application terms
 
 -- Constructing pairing terms
 
