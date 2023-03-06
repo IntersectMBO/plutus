@@ -29,20 +29,29 @@ genExtended finite g =
   then Interval.Finite <$> g
   else Gen.choice [ Interval.Finite <$> g, pure Interval.NegInf, pure Interval.PosInf ]
 
-genLowerBound :: Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.LowerBound a)
-genLowerBound finite g = Interval.LowerBound <$> genExtended finite g <*> Gen.bool
+genLowerBound :: Bool -> Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.LowerBound a)
+genLowerBound finite closedOnly g = do
+  bound <- genExtended finite g
+  closure <- if closedOnly then pure True else Gen.bool
+  pure $ Interval.LowerBound bound closure
 
-genUpperBound :: Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.UpperBound a)
-genUpperBound finite g = Interval.UpperBound <$> genExtended finite g <*> Gen.bool
+genUpperBound :: Bool -> Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.UpperBound a)
+genUpperBound finite closedOnly g = do
+  bound <- genExtended finite g
+  closure <- if closedOnly then pure True else Gen.bool
+  pure $ Interval.UpperBound bound closure
 
-genInterval :: Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.Interval a)
-genInterval finite g = Interval.Interval <$> genLowerBound finite g <*> genUpperBound finite g
+genInterval :: Bool -> Bool -> Hedgehog.Gen a -> Hedgehog.Gen (Interval.Interval a)
+genInterval finite closedOnly g = Interval.Interval <$> genLowerBound finite closedOnly g <*> genUpperBound finite closedOnly g
 
-genFiniteDiscreteInterval :: Hedgehog.Gen (Interval.Interval Integer)
-genFiniteDiscreteInterval = genInterval True (Gen.integral (toInteger <$> Range.linear @Int 0 100))
+genFiniteIntegerInterval :: Hedgehog.Gen (Interval.Interval Integer)
+genFiniteIntegerInterval = genInterval True False (Gen.integral (toInteger <$> Range.linear @Int 0 100))
 
-genDiscreteInterval :: Hedgehog.Gen (Interval.Interval Integer)
-genDiscreteInterval = genInterval False (Gen.integral (toInteger <$> Range.linear @Int 0 100))
+genIntegerInterval :: Hedgehog.Gen (Interval.Interval Integer)
+genIntegerInterval = genInterval False False (Gen.integral (toInteger <$> Range.linear @Int 0 100))
+
+genBooleanInterval :: Hedgehog.Gen (Interval.Interval Bool)
+genBooleanInterval = genInterval False True Gen.bool
 
 -- Unit tests
 
@@ -130,13 +139,13 @@ setToInterval st = Interval.Interval (Interval.LowerBound (Interval.Finite (Set.
 
 prop_intervalSetTripping :: Property
 prop_intervalSetTripping = property $ do
-  ivl <- forAll genFiniteDiscreteInterval
+  ivl <- forAll genFiniteIntegerInterval
   Hedgehog.tripping ivl (fromJust . intervalToSet) (Just . setToInterval)
 
 prop_intervalSetEquals :: Property
 prop_intervalSetEquals = property $ do
-  ivl1 <- forAll genFiniteDiscreteInterval
-  ivl2 <- forAll genFiniteDiscreteInterval
+  ivl1 <- forAll genFiniteIntegerInterval
+  ivl2 <- forAll genFiniteIntegerInterval
   s1 <- reoption $ intervalToSet ivl1
   s2 <- reoption $ intervalToSet ivl2
   Hedgehog.annotateShow s1
@@ -150,8 +159,8 @@ prop_intervalSetEquals = property $ do
 
 prop_intervalSetContains :: Property
 prop_intervalSetContains = property $ do
-  ivl1 <- forAll genFiniteDiscreteInterval
-  ivl2 <- forAll genFiniteDiscreteInterval
+  ivl1 <- forAll genFiniteIntegerInterval
+  ivl2 <- forAll genFiniteIntegerInterval
   s1 <- reoption $ intervalToSet ivl1
   s2 <- reoption $ intervalToSet ivl2
   Hedgehog.annotateShow s1
@@ -165,8 +174,8 @@ prop_intervalSetContains = property $ do
 
 prop_intervalSetIntersection :: Property
 prop_intervalSetIntersection = property $ do
-  ivl1 <- forAll genFiniteDiscreteInterval
-  ivl2 <- forAll genFiniteDiscreteInterval
+  ivl1 <- forAll genFiniteIntegerInterval
+  ivl2 <- forAll genFiniteIntegerInterval
   let iv3 = ivl1 `Interval.intersection` ivl2
   s0 <- reoption $ intervalToSet iv3
 
@@ -192,9 +201,16 @@ tests =
     , alwaysIsNotEmpty
     , openIsEmpty
     , openOverlaps
-    , eqLaws genDiscreteInterval
-    , partialOrderLaws genDiscreteInterval Interval.contains
-    , boundedLatticeLaws genDiscreteInterval
+    , testGroup "laws for integer intervals"
+      [ eqLaws genIntegerInterval
+      , partialOrderLaws genIntegerInterval Interval.contains
+      , boundedLatticeLaws genIntegerInterval
+      ]
+    , testGroup "laws for boolean intervals"
+      [ eqLaws genBooleanInterval
+      , partialOrderLaws genBooleanInterval Interval.contains
+      , boundedLatticeLaws genBooleanInterval
+      ]
     , testGroup "properties"
       [ testProperty "intersection" intvlIntersection
       , testProperty "isEmpty" intvlIsEmpty
