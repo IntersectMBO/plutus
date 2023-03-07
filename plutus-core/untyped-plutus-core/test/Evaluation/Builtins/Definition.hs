@@ -56,8 +56,8 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.Unit (unitval)
 import PlutusPrelude (Word8, def, isRight)
 import Test.Tasty (TestTree, adjustOption, testGroup)
-import Test.Tasty.HUnit (Assertion, assertBool, testCase, (@=?), (@?=))
 import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, assertBool, testCase, (@=?), (@?=))
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
