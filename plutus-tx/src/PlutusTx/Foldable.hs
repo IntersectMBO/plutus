@@ -3,18 +3,11 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Foldable (
   Foldable(..),
-  -- * Special biased folds
-  foldrM,
-  foldlM,
-  -- * Folding actions
-  -- ** Applicative actions
+  -- * Applicative actions
   traverse_,
   for_,
   sequenceA_,
-  sequence_,
   asum,
-  -- ** Monadic actions
-  mapM_,
   -- * Specialized folds
   concat,
   concatMap,
@@ -137,28 +130,10 @@ sum = foldr (+) zero
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = foldr (*) one
 
--- | Plutus Tx version of 'Data.Foldable.foldrM'.
-foldrM :: (Foldable t, Haskell.Monad m) => (a -> b -> m b) -> b -> t a -> m b
-foldrM f z0 xs = foldl c Haskell.return xs z0
-  where c k x z = f x z Haskell.>>= k
-        {-# INLINE c #-}
-
--- | Plutus Tx version of 'Data.Foldable.foldlM'.
-foldlM :: (Foldable t, Haskell.Monad m) => (b -> a -> m b) -> b -> t a -> m b
-foldlM f z0 xs = foldr c Haskell.return xs z0
-  where c x k z = f z x Haskell.>>= k
-        {-# INLINE c #-}
-
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
   where c x k = f x *> k
-        {-# INLINE c #-}
-
--- | Plutus Tx version of 'Data.Foldable.sequence_'.
-sequence_ :: (Foldable t, Haskell.Monad m) => t (m a) -> m ()
-sequence_ = foldr c (Haskell.return ())
-  where c m k = m Haskell.>> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
@@ -222,10 +197,3 @@ find :: Foldable t => (a -> Bool) -> t a -> Maybe a
 find p = foldr f Nothing
   where
     f a acc = if p a then Just a else acc
-
--- | Plutus Tx version of 'Data.Foldable.mapM_'.
-{-# INLINABLE mapM_ #-}
-mapM_ :: (Foldable t, Haskell.Monad m) => (a -> m b) -> t a -> m ()
-mapM_ f = foldr c (Haskell.return ())
-  where c x k = f x Haskell.>> k
-        {-# INLINE c #-}
