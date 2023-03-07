@@ -5,28 +5,30 @@ module Algorithmic.Erasure.RenamingSubstitution where
 \end{code}
 
 \begin{code}
-open import Data.Nat
-open import Data.Fin
-import Data.Product as P
-open import Relation.Binary.PropositionalEquality
-open import Function hiding (_∋_)
-open import Data.List using (List;[];_∷_)
-open import Data.Vec using (Vec;[];_∷_;_++_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
+open import Function using (id;_∘_)
 
-open import Utils
-open import Type
+open import Utils using (Kind;*;Maybe;nothing;just)
+open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
 import Type.RenamingSubstitution as ⋆
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic as A
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNormal.Equality using (renNf-id;renNf-comp)
+open import Type.BetaNBE.RenamingSubstitution 
+                using (ren[]Nf;ren-nf-μ;SubNf;subNf-id;subNf;weakenNf[];weakenNf-subNf)
+                using (sub-nf-Π;sub[]Nf';sub-nf-μ;subNf-cons;extsNf)
+open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open Ctx
+open _∋_
+open _⊢_
 import Algorithmic.RenamingSubstitution as A
-open import Algorithmic.Erasure
-open import Untyped
+open import Algorithmic.Erasure using (len;erase;eraseTC;eraseVar;lem-erase)
+open import Untyped using (_⊢)
+open _⊢
 import Untyped.RenamingSubstitution as U
-open import Builtin
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
 \end{code}
 
 \begin{code}
@@ -116,7 +118,7 @@ renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
 renTermCon-erase ρ⋆ ρ AB.unit           = refl
-renTermCon-erase ρ⋆ ρ (AB.Data d)       = refl
+renTermCon-erase ρ⋆ ρ (AB.pdata d)       = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -209,7 +211,7 @@ subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
 subTermCon-erase σ⋆ σ (AB.string s)     = refl
 subTermCon-erase σ⋆ σ (AB.bool b)       = refl
 subTermCon-erase σ⋆ σ AB.unit           = refl
-subTermCon-erase σ⋆ σ (AB.Data d)       = refl
+subTermCon-erase σ⋆ σ (AB.pdata d)       = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
@@ -254,8 +256,6 @@ lem[]⋆ {Γ = Γ} N A = trans
       (erase N)))
   (sym (sub-erase (subNf-cons (ne ∘ `) A) A.lem N)) 
 
-open import Type.BetaNBE
-open import Type.BetaNBE.Stability
 
 lem[] : ∀{Φ}{Γ : Ctx Φ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
   → erase N U.[ erase W ] ≡ erase (N A.[ W ])
@@ -278,3 +278,4 @@ lem[] {Γ = Γ}{A = A}{B} N W = trans
            (conv⊢ refl (sym (subNf-id A)) W))
          N)))
 \end{code}
+ 

@@ -1,22 +1,23 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
-import Common
-import Parsers
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Executable.Common
+import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PP
 
 import Data.Functor (void)
 import Data.Text.IO qualified as T
 
 import Control.DeepSeq (rnf)
-import Control.Lens
+import Control.Lens ((&), (^.))
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -103,7 +104,7 @@ plutusOpts = hsubparser (
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SourcePos)) . FileInput) inputfiles
+  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -149,25 +150,11 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
+  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
   let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
     Flat flatMode -> writeFlat outp flatMode untypedProg
-
----------------- Parse and print a PLC source file ----------------
-
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions inp mode) =
-    (parseInput inp :: IO (PlcProg PLC.SourcePos) ) >>= print . getPrintMethod mode
-
----------------- Conversions ----------------
-
--- | Convert between textual and FLAT representations.
-runConvert :: ConvertOptions -> IO ()
-runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program <- (getProgram ifmt inp :: IO (PlcProg PLC.SourcePos))
-    writeProgram outp ofmt mode program
 
 ---------------- Driver ----------------
 
@@ -181,6 +168,6 @@ main = do
         Example   opts         -> runPlcPrintExample opts
         Erase     opts         -> runErase        opts
         Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert      opts
+        Convert   opts         -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

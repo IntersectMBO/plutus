@@ -9,9 +9,10 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:debug-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module TH.Spec (tests) where
@@ -30,6 +31,13 @@ import PlutusTx.Show (show)
 import Prelude qualified as Haskell
 
 import TH.TestTH
+
+data SomeType = One Integer | Two | Three ()
+
+makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]
+
+someData :: (BuiltinData, BuiltinData, BuiltinData)
+someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 tests :: TestNested
 tests = testNested "TH" [
@@ -75,10 +83,3 @@ traceRepeatedly = $$(compile
               i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
           in i3
     ||])
-
-data SomeType = One Integer | Two | Three ()
-
-someData :: (BuiltinData, BuiltinData, BuiltinData)
-someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
-
-makeIsDataIndexed ''SomeType [('Two, 0), ('One, 1), ('Three, 2)]

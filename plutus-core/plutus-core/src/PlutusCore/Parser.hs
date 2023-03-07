@@ -1,10 +1,10 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Parsers for PLC terms in DefaultUni.
 
 module PlutusCore.Parser
     ( module Export
+    , program
     , parseProgram
     , parseTerm
     , parseType
@@ -12,8 +12,7 @@ module PlutusCore.Parser
     , ParserError(..)
     ) where
 
-import Control.Monad.Except (MonadError)
-import Data.Text (Text)
+import PlutusCore.Annotation
 import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (AsParserErrorBundle, ParserError (..))
@@ -23,82 +22,100 @@ import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export
 import PlutusCore.Quote (MonadQuote)
-import Text.Megaparsec (MonadParsec (notFollowedBy), SourcePos, anySingle, choice, getSourcePos, many, some, try)
+
+import Control.Monad.Except (MonadError)
+import Data.Text (Text)
+import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
 
 -- | A parsable PLC term.
-type PTerm = Term TyName Name DefaultUni DefaultFun SourcePos
+type PTerm = Term TyName Name DefaultUni DefaultFun SrcSpan
 
 varTerm :: Parser PTerm
-varTerm = Var <$> getSourcePos <*> name
+varTerm = withSpan $ \sp ->
+    Var sp <$> name
 
 tyAbsTerm :: Parser PTerm
-tyAbsTerm = inParens $ TyAbs <$> wordPos "abs" <*> tyName  <*> kind <*> term
+tyAbsTerm = withSpan $ \sp ->
+    inParens $ TyAbs sp <$> (symbol "abs" *> trailingWhitespace tyName)  <*> kind <*> term
 
 lamTerm :: Parser PTerm
-lamTerm = inParens $ LamAbs <$> wordPos "lam" <*> name <*> pType <*> term
+lamTerm = withSpan $ \sp ->
+    inParens $ LamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> pType <*> term
 
 appTerm :: Parser PTerm
-appTerm = inBrackets $ mkIterApp <$> getSourcePos <*> term <*> some term
+appTerm = withSpan $ \sp ->
+    inBrackets $ mkIterApp sp <$> term <*> some term
 
 conTerm :: Parser PTerm
-conTerm = inParens $ Constant <$> wordPos "con" <*> constant
+conTerm = withSpan $ \sp ->
+    inParens $ Constant sp <$> (symbol "con" *> constant)
 
 builtinTerm :: Parser PTerm
-builtinTerm = inParens $ Builtin <$> wordPos "builtin" <*> builtinFunction
+builtinTerm = withSpan $ \sp ->
+    inParens $ Builtin sp <$> (symbol "builtin" *> builtinFunction)
 
 tyInstTerm :: Parser PTerm
-tyInstTerm = inBraces $ do
-    pos <- getSourcePos
-    tm <- term
-    tys <- many pType
-    pure $ mkIterInst pos tm tys
+tyInstTerm = withSpan $ \sp ->
+    inBraces $ mkIterInst sp <$> term <*> many pType
 
 unwrapTerm :: Parser PTerm
-unwrapTerm = inParens $ Unwrap <$> wordPos "unwrap" <*> term
+unwrapTerm = withSpan $ \sp ->
+    inParens $ Unwrap sp <$> (symbol "unwrap" *> term)
 
 iwrapTerm :: Parser PTerm
-iwrapTerm = inParens $ IWrap <$> wordPos "iwrap" <*> pType <*> pType <*> term
+iwrapTerm = withSpan $ \sp ->
+    inParens $ IWrap sp <$> (symbol "iwrap" *> pType) <*> pType <*> term
 
-errorTerm
-    :: Parser PTerm
-errorTerm = inParens $ Error <$> wordPos "error" <*> pType
+errorTerm :: Parser PTerm
+errorTerm = withSpan $ \sp ->
+    inParens $ Error sp <$> (symbol "error" *> pType)
 
 -- | Parser for all PLC terms.
 term :: Parser PTerm
-term = choice $ map try
-    [ tyAbsTerm
-    , lamTerm
-    , appTerm
-    , conTerm
-    , builtinTerm
-    , tyInstTerm
-    , unwrapTerm
-    , iwrapTerm
-    , errorTerm
-    , varTerm
-    ]
+term = leadingWhitespace go
+  where
+    go =
+        choice $ map try
+            [ tyAbsTerm
+            , lamTerm
+            , appTerm
+            , conTerm
+            , builtinTerm
+            , tyInstTerm
+            , unwrapTerm
+            , iwrapTerm
+            , errorTerm
+            , varTerm
+            ]
 
--- | Parse a PLC program. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
-parseProgram :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Program TyName Name DefaultUni DefaultFun SourcePos)
+-- | Parse a PLC program. The resulting program will have fresh names. The
+-- underlying monad must be capable of handling any parse errors.  This passes
+-- "test" to the parser as the name of the input stream; to supply a name
+-- explicity, use `parse program <name> <input>`.
+parseProgram ::
+    (AsParserErrorBundle e, MonadError e m, MonadQuote m)
+    => Text
+    -> m (Program TyName Name DefaultUni DefaultFun SrcSpan)
 parseProgram = parseGen program
 
 -- | Parser for PLC programs.
-program :: Parser (Program TyName Name DefaultUni DefaultFun SourcePos)
-program = whitespace >> do
-    prog <- inParens $ Program <$> wordPos "program" <*> version <*> term
-    notFollowedBy anySingle
-    return prog
+program :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
+program = leadingWhitespace go
+  where
+    go = do
+        prog <- withSpan $ \sp ->
+            inParens $ Program sp <$> (symbol "program" *> version) <*> term
+        notFollowedBy anySingle
+        pure prog
 
--- | Parse a PLC term. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
+-- | Parse a PLC term. The resulting program will have fresh names. The underlying monad
+-- must be capable of handling any parse errors.
 parseTerm :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Term TyName Name DefaultUni DefaultFun SourcePos)
+    Text -> m (Term TyName Name DefaultUni DefaultFun SrcSpan)
 parseTerm = parseGen term
 
--- | Parse a PLC type. The resulting program will have fresh names. The underlying monad must be capable
--- of handling any parse errors.
+-- | Parse a PLC type. The resulting program will have fresh names. The underlying monad
+-- must be capable of handling any parse errors.
 parseType :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Text -> m (Type TyName DefaultUni SourcePos)
+    Text -> m (Type TyName DefaultUni SrcSpan)
 parseType = parseGen pType

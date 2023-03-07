@@ -1,0 +1,12 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (termbind (nonstrict) (vardecl y (con integer)) [ [ (builtin addInteger) x ] x ])
+  [ [ (builtin addInteger) y ] y ]
+)
+-- `x` should not be floated into the RHS of `y`, since `y` is a non-strict
+-- binding that is used twice.

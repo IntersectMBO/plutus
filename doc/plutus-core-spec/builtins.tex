@@ -1,0 +1,632 @@
+\section{Interpretation of Built-in Types and Functions}
+\label{sec:specify-builtins}
+As mentioned above, Plutus Core is generic over a universe $\Uni$ of types and
+a set $\Fun$ of built-in functions.  As the terminology suggests, built-in
+functions are interpreted as functions over terms and elements of the built-in
+types: in this section we make this interpretation precise by giving a
+specification of built-in types and functions in a set-theoretic denotational
+style.  We require a considerable amount of extra notation in order to do this,
+and we emphasise that nothing in this section is part of the syntax of Plutus
+Core: it is meta-notation introduced purely for specification purposes.
+
+
+\subsection{Built-in types}
+\label{sec:built-in-types}
+We require some extra syntactic notation for built-in types: see Figure~\ref{fig:type-names-operators}.
+
+\begin{minipage}{\linewidth}
+    \centering
+    \[\begin{array}{rclr}
+    \at    & ::= & n & \textrm{Atomic type}\\
+     \op             & ::= & n & \textrm{Type operator}\\
+     \tn             & ::= & \at \ | \ \op(\tn,\tn,...,\tn) & \textrm{Built-in type}\\
+    \end{array}\]
+    \captionof{figure}{Type names and operators}
+    \label{fig:type-names-operators}
+\end{minipage}
+
+\medskip
+\noindent
+We assume that we have a set $\Uni_0$ of \textit{atomic type names} and a set $\TyOp$
+of \textit{type operator names}.  Each type operator name $\op \in \TyOp$ has an
+\textit{argument count} $\valency{\op} \in \Nplus$, and a type name $\op(\tn_1,
+\ldots, \tn_n)$ is well-formed if and only if $n = \valency{\op}$.  We define
+the \textit{universe} $\Uni$ to be the closure of $\Uni_0$ under repeated
+applications of operators in $\TyOp$:
+$$
+\Uni_{i+1} = \Uni_i \cup \{\op(\tn_1, \ldots, \tn_{\valency{\op}}): \op \in \TyOp, \tn_1, \ldots, \tn_{\valency{op}} \in \Uni_i\}
+$$
+$$
+\Uni = \bigcup\{\Uni_i: i \in \Nplus\}
+$$%
+\nomenclature[Da]{$\TyOp$}{The set of built-in type operator names}%
+\nomenclature[Db]{$\op$}{A built-in type operator (an element of $\TyOp$)}%
+\nomenclature[Da]{$\Uni_0$}{The set of atomic type names}%
+\nomenclature[Da]{$\Uni$}{The universe of built-in types}%
+\nomenclature[Dr2]{$T$}{A built-in type (an element of $\Uni$)}
+
+\kwxm{Maybe we could have a judgment like $\Uni \vdash t\ \textsf{type}$
+  and use inference rules instead of sets.  That would amount to the same thing but
+would be considerably less compact.}
+
+\kwxm{I'm inconsistently using ``type'' and ``type name'' for the things in
+  $\Uni$, and that's further complicated by the introduction of polymorphic types later.}
+
+The universe $\Uni$ consists entirely of \textit{names}, and the semantics of
+these names are given by \textit{denotations}. Each built-in type $\tn \in \Uni$
+is associated with some mathematical set $\denote{\tn}$, the \textit{denotation}
+of $\tn$. For example, we might have $\denote{\texttt{boolean}}=
+\{\mathsf{true}, \mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$
+and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.  See
+Appendix~\ref{appendix:default-builtins-alonzo} for a description of the
+built-in types and type operators available in the Alonzo release of Plutus
+Core.%
+\nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
+
+For non-atomic type names $\tn = \op(\tn_1, \ldots, \tn_r)$ we would generally
+expect the denotation of $\tn$ to be obtained in some uniform way (ie,
+parametrically) from the denotations of $\tn_1, \ldots, \tn_r$; we do not insist
+on this though.
+
+\newcommand{\tv}{\ensuremath{\textit{tv}}}
+
+\subsubsection{Type variables}
+\label{sec:type-variables}
+Built-in functions can be polymorphic, and to deal with this we need
+\textit{type variables}.  An argument of a polymorphic function can be either
+restricted to built-in types or can be an arbitrary term, and we define two
+different kinds of type variables to cover these two situations.  See
+Figure~\ref{fig:type-variables}.
+
+\begin{minipage}{\linewidth}
+  \centering
+      \[\begin{array}{lrclr}
+        \textrm{TypeVariable}    & \tv & ::= & n_{*} & \textrm{fully polymorphic type variable}\\
+                                 &           &      & n_{\#} & \textrm{built-in-polymorphic type variable}\\
+    \end{array}\]
+    \captionof{figure}{Type variables}
+    \label{fig:type-variables}
+\end{minipage}
+
+\medskip
+\noindent
+We denote the set of all possible type variables by $\Var$, the set of all
+fully-polymorphic type variables by $\Var_*$, and the set of all
+built-in-polymorphic type variables $v_\#$ by $\Var_\#$.  Note that $\Var \cap
+\Uni = \varnothing$ since the symbols ${}_*$ and ${}_\#$ do not occur in names in $\Uni$.%
+\nomenclature[Da]{$\Var$}{The set of all type variables, $\Var_\# \cup \Var_*$}%
+\nomenclature[Da]{$\Var_\#$}{The set of builtin-polymorphic type variables}%
+\nomenclature[Da]{$\Var_*$}{The set of fully-polymorphic type variables}%
+\nomenclature[Db]{$v_\#$}{A builtin-polymorphic type variable}%
+\nomenclature[Db]{$v_*$}{A fully-polymorphic type variable}
+The two kinds of type variable are required because we have two different types
+of polymorphism. Later on we will see that built-in functions can take arguments
+which can be of a type which is unknown but must be in $\Uni$, whereas other
+arguments can range over a larger set of values such as the set of all Plutus
+Core terms. Type variables in $\Var_\#$ are used in the former situation and
+$\Var_*$ in the latter.
+
+Given a variable $v \in \Var$ we sometimes write
+$$
+   \kindhash{v} \text{\quad if $v \in \Var_\#$}
+$$
+and
+$$
+   \kindstar{v} \text{\quad if $v \in \Var_*$}.
+$$
+   
+\kwxm{I'm using syntax to represent kinds here.  I haven't introduced actual
+  kinds because (a) we don't have a proper type system in Plutus Core (yet), and
+  (b) the \texttt{TypeScheme} type in the implementation only has one kind of
+  type variable.  I'm only using this in the specification of the signatures of
+  built-in functions to characterise some aspects how the builtins machinery
+  works in practice: things in $\Var_*\backslash\Var_\#$ can fail with an
+  unlifting error at runtime but that's not statically enforced anywhere.}
+
+\subsubsection{Polymorphic types}
+\label{sec:polymorphic-types}
+We also need to talk about polymorphic types, and to do this we define an
+extended universe of polymorphic types $\Unihash$ by adjoining $\Var_\#$ to
+$\Uni_0$ and closing under type operators as before:
+
+$$
+\Unihashn{0} = \Uni_0 \cup \Var_\#
+$$
+$$
+\Unihashn{i+1} = \Unihashn{i} \cup \{\op(\tn_1, \ldots, \tn_{\valency{\op}}): \op \in \TyOp, \tn_1, \ldots, \tn_{\valency{op}} \in \Unihashn{i}\}
+$$
+$$
+\Unihash = \bigcup\{\Unihashn{i}: i \in \Nplus\}.$$%
+\nomenclature[Da]{$\Unihash$}{The set of builtin-polymorphic types}%
+\noindent We will denote a typical element of $\Unihash$ by the symbol $P$
+(possibly subscripted).%
+\nomenclature[Dr1]{$P$}{A builtin-polymorphic type}
+
+
+\noindent We define the set of \textit{free \#-variables} of an element of $\Unihash$ by
+$$
+\fv{P} = \varnothing \ \text{if $P \in \Uni_0$}
+$$
+$$
+\fv{v_\#} = \{v_\#\}
+$$
+$$
+\fv{\op(P_1, \ldots, P_k)} = \fv{P_1} \cup \fv{P_2} \cup \cdots \cup \fv{P_r}.
+$$%
+\nomenclature[Ds]{$\fv{P}$}{Free \#-variables of a polymorphic type $P \in \Unihash$}
+
+\noindent Thus $\fv{P} \subseteq \Var_\#$ for all $P \in \Uni$.  We say that a
+type name $P \in \Unihash$ is \textit{monomorphic} if $\fv{P} = \varnothing$ (in
+which case we actually have $P \in \Uni$); otherwise $P$ is
+\textit{polymorphic}.  The fact that type variables in $\Unihash$ are only
+allowed to come from $\Var_\#$ will ensure that values of polymorphic types such
+as lists and pairs can only contain values of built-in types: in particular, we
+will not be able to construct types representing things such as lists of Plutus
+Core terms.
+
+
+\subsubsection{Type assignments}
+\label{sec:type-assignments}
+A \textit{type assignment} is a function $S: D \rightarrow \Uni$ where $D$ is
+some subset of $\Var_\#$.  As usual we say that $D$ is the \textit{domain} of
+$S$ and denote it by $\dom S$.%
+\nomenclature[Dr4]{$S$}{A type assignment}
+
+\medskip
+\noindent We can extend a type assignment $S$ to a map
+$\Sext : \Unihash \disj \Var_* \rightarrow \Unihash \disj \Var_*$ by defining
+
+\begin{align*}
+    \Sext(v_\#) &= S(v_\#) \quad \text{if $v_\# \in \dom S$}\\
+    \Sext(v_\#) &= v_\# \quad \text{if $v_\# \in \Var_\# \backslash \dom S$}\\
+    \Sext(T) &= T \quad\text{if $T \in \Uni_0$}     \\
+    \Sext(\op(P_1,\ldots,P_n)) &= \op(\Sext(P_1),\ldots,\Sext(P_n))\\
+    \Sext(v_*) &= v_* \quad \text{if $v_* \in \Var_*$}.
+\end{align*}%
+\nomenclature[Dr4]{$\Sext$}{The extension of a type assignment $S$ to $\Unihash \cup \Var_*$}
+
+\noindent If $P \in \Unihash$ and $S$ is a type assignment with $\fv{P}
+\subseteq \dom S$ then in fact $\Sext(P) \in \Uni$; in this case we say that
+$\Sext(P)$ is an \textit{instance} or a \textit{monomorphisation} of $P$
+(\textit{via $S$}).  If $T$ is an instance of $P$ then there is a unique
+smallest $S$ (with $\fv{P}=\dom S$) such that $T = \Sext(P)$: we write
+$T\preceq_S P$ to indicate that $T$ is an instance of $P$ via $S$ and $S$ is
+minimal.%
+\nomenclature[Dr3]{$T\preceq_S P$}{$T$ is an instance of $P$ via $S$ and $\dom S = \fv{P}$}
+
+\paragraph{Constructing type assignments.}
+We say that a collection $\{S_i: 1 \leq i \leq n\}$ of type assignments is
+\textit{consistent} if $S_i|_{D_{ij}} = S_j|_{D_{ij}}$ for all $i$ and $j$,
+where $|$ denotes function restriction and $D_{ij} = \dom S_i \ \cap \ \dom
+S_j$.  If this is the case then (viewing functions as sets of pairs in the usual
+way) $S_1 \cup \cdots \cup S_n$ is also a well-formed type assignment (each
+variable in its domain is associated with exactly one type).
+
+\medskip
+\noindent Given $T \in \Uni$ and $P \in \Unihash$ it can be shown that $T \preceq_S P$ if
+and only if one of the following holds:
+\begin{itemize}
+  \item $T = P$ and $S =\varnothing$.
+  \item $P \in \Var_\#$ and $S = \{(v_\#, T)\}$.
+  \item 
+    \begin{itemize}
+    \item $T = \op(T_1, \ldots, T_n)$ with each $T_i \in \Uni$.
+    \item $P = \op(P_1, \ldots, P_n)$ with each $P_i \in \Unihash$.
+    \item $T_i \preceq_{S_i} P_i$ for $1 \leq i \leq n$.
+    \item $\{S_1, \ldots, S_n\}$ is consistent.
+    \item $S = S_1 \cup \cdots \cup S_n$.
+    \end{itemize}
+\end{itemize}
+
+\noindent This allows us to decide whether $T \in \Uni$ is an instance of $P \in
+\Unihash$ and, if so, to construct an $S$ with $T \preceq_S P$.
+
+\kwxm{\sf I tried using inference rules for this but the final case
+  got kind of out of hand.}
+  
+\subsection{Built-in functions}
+\label{sec:builtin-functions}
+
+\subsubsection{Inputs to built-in functions}
+\label{sec:builtin-inputs}
+To treat the typed and untyped versions of Plutus Core uniformly it is necessary
+to make the machinery of built-in functions generic over a set $\Inputs$ of
+\textit{inputs} which are taken as arguments by built-in functions.  In practice
+$\Inputs$ will be the set of Plutus Core values or something very closely
+related.%
+\nomenclature[Ea]{$\Inputs$}{The set of inputs to built-in functions}
+
+\medskip
+\noindent We require $\Inputs$ to have the following two properties:
+\begin{itemize}
+\item $\Inputs$ is disjoint from $\denote{\tn}$ for all $\tn \in \Uni$
+\item There should be disjoint subsets $\Con{\tn} \subseteq \Inputs$ (where $\tn
+  \in \Uni$) of \textit{constants of type $\tn$} and maps $\denote{\cdot}_{\tn}:
+  \Con{\tn} \rightarrow \denote{\tn}$ (\textit{denotation}) and
+  $\reify{\cdot}_{\tn}: \denote{\tn} \rightarrow \Con{\tn}$
+  (\textit{reification}) such that $\reify{\denote{c}_{\tn}}_{\tn} = c \text{
+    for all } c \in \Con{\tn}$.  We do not require these maps to be bijective
+  (for example, there may be multiple inputs with the same denotation), but the
+  condition implies that $\denote{\cdot}_{\tn}$ is surjective and
+  $\reify{\cdot}_{\tn}$ is injective.
+\end{itemize}%
+\nomenclature[Da]{$\Con{\tn}$}{Constants of built-in type $T$}%
+\nomenclature[Dz2]{$\denote{\cdot}_T$}{Denotation of constants of type $T$}%
+\nomenclature[Dz3]{$\reify{\cdot}_T$}{Reification of constants of type $T$}
+\kwxm{I've forgotten why I want $\Inputs$ to be disjoint from the
+  $\denote{\tn}$s \dots.}
+
+\noindent It is also convenient to let $\denote{\Inputs} = \Inputs$ and define both
+  $\denote{\cdot}_{\Inputs}$ and $\reify{\cdot}_{\Inputs}$ to be the identity
+  function.
+
+
+\kwxm{I'm still not sure what to call the things what we feed to builtins.
+  Previously there were called ``terms'', but in our setting they're
+  \textit{not} actually arbitrary terms.  I tried ``values'' instead, but that
+  was confusing.  ``Inputs'' is a bit better, but (a) they're also what builtins
+  \textit{output}, and (b) there's a small risk of confusion with UTXO inputs.}
+
+\noindent For example, we could take $\Inputs$ to be the set of all Plutus Core
+values (see Section~\ref{sec:uplc-values}), $\Con{\tn}$ to be the set of all
+terms of the form $\con{\tn}{c}$, and $\denote{\cdot}_{\tn}$ to be the function
+which maps $\con{\tn}{c}$ to $c$.  For simplicity we are assuming that
+mathematical entities occurring as members of type denotations $\denote{\tn}$
+are embedded directly as values $c$ in Plutus Core constant terms. In reality,
+tools which work with Plutus Core will need some concrete syntactic
+representation of constants; we do not specify this here, but see
+Section~\ref{sec:alonzo-built-in-types} for suggested syntax for the built-in
+types included in the Alonzo release.
+
+
+
+\subsubsection{Signatures and denotations of built-in functions}
+\label{sec:signatures}
+We will consistently use the symbol $\tau$ and subscripted versions of it to
+denote members of $\UnihashStar$ in the rest of the document; these indicate the
+types of values consumed and returned by built-in functions.%
+\nomenclature[Eg]{$\tau$}{A member of $\UnihashStar$, ie a type or type variable}
+
+\medskip
+\noindent We also define a class of \textit{quantifications} which are used to
+introduce type variables: a quantification is a symbol of the form
+$\forallty{v}$ with $v \in \Var$; the set of of all possible quantifications is
+denoted by $\QVar$.%
+\nomenclature[Ez3]{$\forallty{v}$}{Type quantification}%
+\nomenclature[Ea]{$\QVar$}{The set of all type quantifications}
+
+\medskip
+\paragraph{Signatures.}
+Every built-in function $b \in \Fun$ has a \textit{signature} $\sigma(b)$ which describes
+the types of its arguments and its return value: a signature is of the form
+$$[\iota_1, \ldots, \iota_n] \rightarrow \tau$$ with
+\begin{itemize}
+  \item $\iota_j \in \UnihashStar \disj \QVar \enspace\text{for all $j$}$
+  \item $\tau \in \UnihashStar$
+  \item $\lvert\{j : \iota_j \notin \QVar\}\rvert \geq 1$ (so $n \geq 1$)
+  \item If $\iota_j$ involves $v \in \Var$ then $\iota_k = \forallty{v}$ for
+    some $k < j$, and similarly for $\tau$; in other words, any type variable
+    $v$ must be introduced by a quantification before it is used. (Here $\iota$
+    \textit{involves} $v$ if either $\iota = \tn \in \Unihash$ and $v \in \fv{\tn}$
+    or $\iota = v$ and $v \in \Var_*$.)
+  \item If $\tau$ involves $v \in \Var$ then some $\iota_j$ must involve $v$; this
+    implies that $\fv{\tau} \subseteq \bigcup \{\fv{\iota_j}: \iota_j \in \Unihash\}$.
+  \item If $j \neq k$ and $\iota_j, \iota_k \in \QVar$ then $\iota_j \neq
+    \iota_k$; ie, no quantification appears more than once.
+  \item If $\iota_i = \forall v \in \QVar$ then some $i_j \notin \QVar$ with $j
+    > i$ must involve $v$ (signatures are not allowed to contain phantom type variables).
+\end{itemize}%
+\nomenclature[Eg]{$\iota$}{Signature item}%
+\nomenclature[Eg]{$\sigma$}{Signature of built-in function}
+
+\kwxm{\textsf{@effectfully} says that a builtin could actually return something
+  in $\QVar$ too, so the target of the arrow could be an $\iota$. We don't need
+  that at the moment though.}
+
+\noindent For example, in our default set of built-in functions we have the
+functions \texttt{mkCons} with signature $[\forall a_\#, a_\#,$  %% Allow line break
+  $\listOf{a_\#}] \rightarrow \listOf{a_\#}$ and \texttt{ifThenElse} with signature
+$[\forall a_*, \mathtt{boolean}, a_*, a_*] \rightarrow a_*$.  When we use
+\texttt{mkCons} its arguments must be of built-in types, but the two final
+arguments of \texttt{ifThenElse} can be any Plutus Core values.
+
+\smallskip
+\noindent If $b$ has signature $[\iota_1, \ldots, \iota_n] \rightarrow \tau$ then we define
+the \textit{arity}  of $b$ to be
+$$
+\alpha(b) = [\iota_1, \ldots, \iota_n].
+$$%
+\nomenclature[Eg]{$\alpha$}{Arity of built-in function}
+
+\noindent We also define
+$$
+  \chi(b) = n.
+$$%
+\nomenclature[Eg]{$\chi$}{Number of arguments of built-in function}
+
+\noindent We may abuse notation slightly by using the symbol $\sigma$ to denote
+a specific signature as well as the function which maps built-in function names
+to signatures, and similarly with the symbol $\alpha$.
+
+\medskip
+\noindent Given a signature
+$\sigma = [\iota_1, \ldots, \iota_n] \rightarrow \tau$,
+we define the \textit{reduced signature} $\sigmabar$ to be
+$$
+\sigmabar = [\iota_j : \iota_j \notin \QVar] \rightarrow \tau
+$$%
+\nomenclature[Eg]{$\sigmabar$}{Reduced signature}
+
+\noindent Here we have extended the usual set comprehension notation to lists in the
+obvious way, so $\sigmabar$ just denotes the signature $\sigma$ with all
+quantifications omitted. We will often write a reduced signature in the form
+$[\tau_1, \ldots, \tau_m] \rightarrow \tau$ to emphasise that the entries are
+\textit{types}, and $\mathbf{\forall}$ does not appear.
+
+\medskip
+\noindent Also, given an arity $= [\iota_1, \ldots, \iota_n]$, the \textit{reduced
+  arity} is 
+$$
+\alphabar = [\iota_j : \iota_j \notin \QVar].
+$$%
+\nomenclature[Eg]{$\alphabar$}{Reduced arity}
+
+\paragraph{Commentary.} What is the intended meaning of the notation introduced
+above?  In Typed Plutus Core we have to instantiate polymorphic functions (both
+built-in functions and polymorphic lambda terms) at concrete types before they
+can be applied, and in Untyped Plutus Core instantiation is replaced by an
+application of \texttt{force}.  When we are applying a built-in function we
+supply its arguments one by one, and we can also apply \texttt{force} (or
+perform type instantiation in the typed case) to a partially-applied builtin
+``between'' arguments (and also after the final argument); no computation occurs
+until all arguments have been supplied and all \texttt{force}s have been
+applied. The arity (read from left to right) specifies what types of arguments
+are expected and how they should be interleaved with applications of
+\texttt{force}, and $\chi(b)$ tells you the total number of arguments and
+applications of \texttt{force} that a built-in function $b$ requires. A
+fully-polymorphic type variable $a_*$ indicates that an arbitrary value from
+$\Inputs$ can be provided, whereas a type from $\Unihash$ indicates that a value
+of the specified built-in type is expected. Occurrences of quantifications
+indicate that \texttt{force} is to be applied to a partially-applied builtin; we
+allow this purely so that partially-applied builtins can be treated in the same
+way as delayed lambda-abstractions: \texttt{force} has no effect unless it is
+the very last item in the signature.  In Plutus Core, partially-applied
+builtins are values which can be treated like any others (for example, by being
+passed as an argument to a \texttt{lam}-expression): see
+Section~\ref{sec:uplc-values}.
+
+
+\subsubsection{Denotations of built-in functions}
+\label{sec:builtin-denotations}
+The basic idea is that a built-in function $b$ should represent some
+mathematical function on the denotations of the types of its inputs.  However,
+this is complicated by the presence of polymorphism and we have to require that
+there is such a function for every possible monomorphisation of $b$.
+
+More precisely, suppose that we have a builtin $b$ with reduced signature
+$[\tau_1, \ldots \tau_n] \rightarrow \tau$.  For every type assignment $S$ with
+$\dom S = \fv{\tau_1} \cup \cdots \cup \fv{\tau_n}$ (which contains $\fv{\tau}$ by
+the conditions on signatures in Section~\ref{sec:signatures}) we require a
+\textit{denotation of $b$ at $S$}, a function
+$$
+\denote{b}_S: \denote{\Sext(\tau_1)} \times \cdots \times \denote{\Sext(\tau_n)} \rightarrow \withError{\denote{\Sext(\tau)}}.
+$$%
+\nomenclature[Ez4]{$\denote{b}_S$}{The denotation of the built-in function $b$ at the type assignment $S$}
+\noindent where
+$$
+\denote{v_*} = \Inputs \text{\ for $v_* \in \Var_*$}.
+$$
+\noindent This makes sense because $\Sext(\tau_i) \in \Uni \disj
+\Inputs$ for all $i$, so $\denote{\Sext(\tau_i)}$ is always defined,
+and similarly for $\tau$.
+
+\medskip
+\noindent If $\fv{\sigmabar(b)} = \varnothing$ (in which case we say that $b$ is
+\textit{monomorphic}) then the only relevant type assignment will be the empty
+one; in this case we have a single denotation
+$$
+\denote{b}_\varnothing: \denote{\tau_1} \times \cdots \times \denote{\tau_n} \rightarrow \withError{\denote{\tau}}.
+$$
+
+\smallskip
+\noindent Denotations of builtins are mathematical functions which terminate on
+every possible input; the symbol $\errorX$ can be returned by a function to
+indicate that something has gone wrong, for example if an argument is out of
+range.
+
+\smallskip
+\noindent In practice we expect most builtins to be \textit{parametrically
+  polymorphic}~\cite{Wadler-theorems-for-free, Reynolds-parametric}, so that the
+denotation $\denote{b}_S$ will be the ``same'' for all type assignments $S$; we do
+not insist on this though.
+
+\subsubsection{Results of built-in functions.}
+\label{sec:builtin-results}
+If $r$ is the result of the evaluation of some built-in function there are thus
+three possibilities:
+\begin{enumerate}
+\item $r \in \denote{\tn} \enspace \text{for some $\tn \in \Uni$}$.
+\item $r \in \Inputs$.
+\item $r = \errorX$.
+\end{enumerate}
+In other words,
+$$
+r \in \R := \bigdisj\{\denote{\tn}: \tn \in \Uni \} \disj \Inputs \disj \{\errorX\}.
+$$
+
+\noindent Our assumptions on the set $\Inputs$
+(Section~\ref{sec:builtin-inputs}) allow us define a function
+$$
+\reify{\cdot}: \R \rightarrow \withError{\Inputs}
+$$
+which converts results of built-in functions back into inputs (or the $\errorX$ symbol):
+\begin{enumerate}
+\item If $r \in \denote{\tn}$, then $\reify{r} = \reify{r}_{\tn} \in \Con{\tn} \subseteq \Inputs$.
+\item If $r \in \Inputs$ then  $\reify{r} = r$.
+\item $\reify{\errorX} = \errorX$.
+\end{enumerate}%
+\nomenclature[Dz4]{$\reify{\cdot}$}{Reification of the result of a built-in
+  function application}
+
+\kwxm{We have to use $\Inputs \disj \{\errorX\}$ to deal with the fact that
+  $\errorU$ isn't a value, so we have to defer handling errors until later.}
+\kwxm{The notation here is maybe a bit confusing.  The $\Con{\tn}$ live in the
+  syntactic world (where they're subsets of $\Inputs$) and the $\denote{\tn}$
+  live in the world of sets; however $\Inputs$ lives in \textit{both} worlds,
+  and it's disjoint from all of the $\denote{\tn}$ in the world of sets but not
+  in the world of syntax.  I think we do need something like this because
+  sometimes a builtin argument must be a constant but at other times it can be
+  an arbitrary value, which includes all of the constants.}
+
+\subsubsection{Parametricity for *-polymorphic arguments}
+\label{sec:builtin-behaviour}
+A built-in function $b$ can only inspect arguments which are values of built-in
+types; other arguments (occurring as $a_*$ in $\sigmabar(b)$) are treated opaquely,
+and can be discarded or returned as (part of) a result, but cannot be altered or
+examined (in particular, they cannot be compared for equality): $b$ is
+\textit{parametrically polymorphic} in such arguments.  This implies that if a
+builtin returns a value $v \in \Inputs$, then $v$ must have been an argument of
+the function.
+
+\roman{This is not quite true, unfortunately. \texttt{toBuiltinMeaning}
+  constrains \texttt{term} with \texttt{HasConstantIn uni term}. This means that we can
+  check whether an argument whose type is a type variable is a constant or
+  not. And if it's a constant, we can obtain the type tag and do all kinds of
+  fancy things with it. For example a builtin checking if two values of
+  different types are equal constants is representable. This breaks parametricity.
+}
+
+\kwxm{I think we should just require that people don't do that. $\uparrow$}
+
+%% When (the meaning of) a built-in function $b$ is applied (perhaps partially) to
+%% arguments, the types of constant arguments must correspond to the types in
+%% $\sigmabar(b)$, and the function will return $\errorX$ if this is not the
+%% case; builtins may also return $\errorX$ in other circumstances, for example if
+%% an argument is out of range.
+
+\kwxm{A lot of the complexity we have here is due to the fact that we've got
+  explicit \texttt{delay} and \texttt{force} instead of the usual $\lambda().M$
+  and $M()$.  We use the explicit version because experiments showed that it was
+  noticeably faster (and we have a lot of these due to erasure of type-level
+  abstraction/instantiation).  Also, who's to say that the universe contains a
+  unit type?
+}
+
+%% \begin{minipage}{\linewidth}
+%%     \centering \[\begin{array}{llll}
+
+%%     t & ::= & b   &\text{for } b \in \Uni  \\
+%%     & & \typearg                 \\
+%%     & & \star               \\
+%%     & & t \rightarrow t          \\
+%%     \end{array}\]
+%% \end{minipage}
+
+  
+\subsection{Evaluation of built-in functions}
+\label{sec:builtin-evaluation}
+
+\subsubsection{Compatibility of inputs and signature entries}
+\label{sec:compatibility}
+The previous section describes how a built-in function is interpreted as a
+mathematical function.  When a Plutus Core built-in function $b$ is applied to a
+sequence of arguments, the arguments must have types which are compatible with
+the signature of $b$; for example, if $b$ has signature $[\forall a_\#, \forall
+  b_\#, a_\#, b_\#, a_\#, c_*, c_*] \rightarrow c_*$ and $b$ is applied to a
+sequence of inputs $V_1, V_2, V_3, V_4, V_5$ then $V_1, V_2$, and $V_3$ must all
+be constants of some monomorphic built-in types and the types of $V_1$ and $V_3$
+must be the same; $V_4$ and $V_5$ can be arbitrary inputs.  This section
+describes the conditions for type compatibility.
+
+\kwxm{The stuff about consistent instantiation of built-in-polymorphic type
+  variables may in fact be slightly inaccurate.  I think that it's not enforced
+  by the builtin application machinery, but must be checked dynamically in the
+  implementation of the builtin when it's fully applied (\texttt{mkCons} is an
+  example of this). It would be perfectly possible (I think) to implement a
+  builtin with signature $[\forall a_\#, a_\#, a_\#] \rightarrow a_\#$ which
+  could be successfully applied to arguments of two different built-in types,
+  returning a constant of a third type.  However, I think it'll be very hard to
+  describe what's actually going on so I'm just assuming that builtins always
+  check this stuff.}
+  
+
+\medskip
+\noindent In detail, given a reduced arity $\alphabar = [\tau_1, \ldots,
+  \tau_n]$, a sequence $\bar{V} = [V_1, \ldots, V_m]$, and a type assignment $S$
+we say that $\bar{V}$ is \textit{compatible with} $\alphabar$ (\textit{via} $S$)
+if and only if $n=m$ and, letting $I = \{i: 1 \leq i \leq n, \tau_i \in
+\Unihash\}$ (so $\tau_j \in \Var_*$ if $j \notin I$), there exist type
+assignments $S_i$ ($1 \leq i \leq n$) such that all of the following are
+satisfied
+\begin{itemize}
+\item For all $i \in I$ there exists $T_i \in \Uni$ such that $V_i \in \Con{T_i}$ and $T_i \preceq_{S_i} \tau_i$.
+\item $\{S_i: i \in I\}$ is consistent (see Section~\ref{sec:type-assignments}).
+\item $S = \bigcup\{S_i: i \in I\}$.
+\end{itemize}
+
+\noindent If these conditions are all satisfied then we can find suitable $S_i$
+using the procedure described in Section~\ref{sec:type-assignments} and this
+allows us to construct $S$ explicitly since the $S_i$ are consistent.  Note that
+in this case $\dom S = \dom S_1 \cup \ldots \cup \dom S_n = \fv{\tau_1} \cup
+\cdots \cup \fv{\tau_n} = \fv{\alpha}$, so $S$ is minimal in the sense that no
+$S'$ with $\dom S'$ strictly smaller than $\dom S$ is sufficient
+to monomorphise all of the $\tau_i$ simultaneously.  We write
+$$
+[V_1, \ldots, V_m] \approx_S [\tau_1, \ldots, \tau_n]
+$$
+in this case.  If $\bar{V}$ is not compatible with $\alphabar$ then we write
+$\bar{V} \napprox \alphabar$.%
+\nomenclature[Es2]{$\approx_S$}{Compatibility of built-in function arguments with function arity via $S$}
+
+\subsubsection{Evaluation}
+\label{sec:eval}
+For later use we define a function $\Eval$ which attempts to evaluate an
+application of a built-in function $b$ to a sequence of inputs $[V_1, \ldots,
+  V_m]$.  This fails if the number of inputs is incorrect or if the inputs are
+not compatible with $\alphabar(b)$:
+$$
+\Eval(b,[V_1, \ldots, V_n]) = \errorX \quad \text{if $[V_1, \ldots, V_n] \napprox \alphabar(b)$}.
+$$
+
+\noindent Otherwise, the conditions for the existence of a denotation of $b$ are
+met and we can apply that denotation to the denotations of the inputs and then
+reify the result. If $[V_1, \ldots, V_n] \approx_S \alphabar(b) = [\tau_1,
+  \ldots, \tau_n]$, let $T_i = \Sext(\tau_i)$ for $1 \leq i \leq n$; then we
+define
+
+$$
+\Eval(b,[V_1, \ldots, V_n]) = \reify{\denote{b}_S (\denote{V_1}_{T_1}, \ldots, \denote{V_n}_{T_n})}.
+$$%
+\nomenclature[Ez5]{$\Eval$}{Evaluation of built-in functions}%
+%
+\noindent It can be checked that the compatibility condition guarantees that
+this makes sense according to the definition of $\denote{b}_S$ in
+Section~\ref{sec:builtin-denotations}.
+
+\paragraph{Notes.}
+\begin{itemize}
+  \item All of the machinery which we have defined for built-in functions is
+    parametric over the set $\Inputs$ of inputs and the sets $\Con{T} \subseteq
+    \Inputs$ of constants. This also applies to the $\Eval$ function, so its
+    meaning is not fully defined until we have given concrete definitions of the
+    sets of inputs and constants.
+  \item The error value $\errorX$ can occur in two different ways: either
+    because the arguments are not compatible with the signature, or because the
+    builtin itself returns $\errorX$ to signal some error condition.
+\item The symbol $\errorX$ is not part of Plutus Core; when we define reduction
+  rules and evaluators for Plutus Core later some extra translation will be
+  required to convert the result of $\Eval$ into something appropriate to the
+  context.
+\end{itemize}
+
+\kwxm{For type operators, ``polymorphic'' really means ``polymorphic over
+  built-in types''.}
+
+\kwxm{$\Uni$ is the set of built-in types and $\Unihash$ is
+  that set extended to include polymorphic types as well.  Later on we quite
+  often have to look at $\Unihash\backslash \Uni$ to talk about types that really
+  are polymorphic. Maybe it would be better to have a separate universe of
+  polymorphic types called $\mathscr{P}$ or something, but then we'd also have to
+  talk about $\Uni \disj \mathscr{P}$ sometimes.  Maybe we could define $\Unihash =
+  \Uni \disj \mathscr{P}$?
+  }

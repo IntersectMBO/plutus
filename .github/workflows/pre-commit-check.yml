@@ -1,0 +1,22 @@
+name: Pre Commit Check
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+jobs:
+  pre-commit-check:
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v3
+        
+      - name: Quick Install Nix
+        uses: nixbuild/nix-quick-install-action@v21 
+        with: 
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true 
+
+      - name: Run
+        run: nix build .#pre-commit-check 

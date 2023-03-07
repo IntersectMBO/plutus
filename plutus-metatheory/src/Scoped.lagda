@@ -3,30 +3,32 @@ module Scoped where
 \end{code}
 
 \begin{code}
-open import Data.Nat hiding (_*_)
-open import Data.Fin hiding (_-_;_+_;_<_)
-open import Data.List hiding (map; _++_)
-open import Data.Integer hiding (_*_; suc;_-_;_+_;_<_)
-open import Data.Integer.Show
-open import Data.String hiding (_<_)
-open import Data.Unit
+open import Data.Nat using (ℕ;zero;suc;∣_-_∣)
+open import Data.Fin using (Fin;zero;suc;toℕ) 
+open import Data.Integer.Show using () renaming (show to ishow)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.Bool using (Bool)
 open import Data.Product using (_×_;_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Data.Sum using (_⊎_;inj₁)
-open import Relation.Nullary
-open import Category.Monad
-import Level
+open import Data.String using (String;_++_)
 
-open import Builtin
-open import Raw
-open import Utils
+open import Builtin using (Builtin)
+open Builtin.Builtin
+
+open import Raw using (RawTy;RawTm;RawTyCon)
+open RawTy
+open RawTm
+open RawTyCon
+
+open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;TermCon;Either;inj₁;inj₂)
+open Monad{{...}}
+open TermCon
+
+
 \end{code}
 
 \begin{code}
-open import Type
-
 data ScopedTy (n : ℕ) : Set
 
 import Builtin.Constant.Type ℕ ScopedTy as S
@@ -161,8 +163,6 @@ unshifterTy w (A · B) = unshifterTy w A · unshifterTy w B
 unshifterTy w (con c) = con c
 unshifterTy w (μ A B) = μ (unshifterTy w A) (unshifterTy w B)
 
-open import Relation.Binary.PropositionalEquality
-
 unshifter : ∀{n} → Weirdℕ n → RawTm → RawTm
 unshifter w (` x) = ` (lookupWTm' x w)
 unshifter w (Λ K t) = Λ K (unshifter (T w) t)
@@ -240,7 +240,7 @@ scopeCheckTyCon (pair A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (S.pair A B)
-scopeCheckTyCon Data       = inj₂ S.Data
+scopeCheckTyCon pdata       = inj₂ S.pdata
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -305,7 +305,7 @@ extricateTyCon S.unit       = unit
 extricateTyCon S.bool       = bool
 extricateTyCon (S.list A)   = list (extricateScopeTy A)
 extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
-extricateTyCon S.Data       = Data
+extricateTyCon S.pdata      = pdata
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
@@ -333,15 +333,13 @@ extricateScope (unwrap t) = unwrap (extricateScope t)
 -- UGLY PRINTING
 
 \begin{code}
-open import Data.String
-
 uglyWeirdFin : ∀{n}{w : Weirdℕ n} → WeirdFin w → String
 uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
 uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ Data.Integer.Show.show x ++ ")"
+uglyTermCon (integer x) = "(integer " ++ ishow x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon size = "size"
 
@@ -365,9 +363,9 @@ ugly (builtin b) = "builtin " ++ uglyBuiltin b
 {-  "(builtin " ++
   uglyBuiltin b ++
   " " ++
-  Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length As)) ++
+  ishow (Data.Integer.ℤ.pos (Data.List.length As)) ++
   " " ++
-  Data.Integer.show (Data.Integer.ℤ.pos (Data.List.length ts))
+  ishow (Data.Integer.ℤ.pos (Data.List.length ts))
   ++ ")" -}
 ugly (error _) = "error _"
 ugly (wrap _ _ t) = "(wrap " ++ ugly t ++ ")"

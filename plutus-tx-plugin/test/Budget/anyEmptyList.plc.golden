@@ -1,0 +1,36 @@
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : List integer -> Bool
+    = \(ds : List integer) ->
+        Nil_match
+          {integer}
+          ds
+          {all dead. Bool}
+          (/\dead -> False)
+          (\(x : integer)
+            (xs : List integer) ->
+             /\dead ->
+               let
+                 !acc : Bool = go xs
+               in
+               Bool_match
+                 (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)
+                 {all dead. Bool}
+                 (/\dead -> True)
+                 (/\dead -> acc)
+                 {all dead. dead})
+          {all dead. dead}
+in
+let
+  !eta : List integer = Nil {integer}
+in
+go eta

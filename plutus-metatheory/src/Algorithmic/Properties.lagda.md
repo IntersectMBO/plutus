@@ -5,16 +5,16 @@ module Algorithmic.Properties where
 ## Imports
 
 ```
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Algorithmic
-open import Type.BetaNBE.RenamingSubstitution
-
 open import Relation.Binary.HeterogeneousEquality using (_≅_;refl)
-open import Relation.Binary.PropositionalEquality
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Empty
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Data.Product using (_×_;∃) renaming (_,_ to _,,_)
+
+open import Utils using (*)
+open import Type using (∅;_,⋆_)
+open import Type.BetaNormal using (_⊢Nf⋆_)
+open _⊢Nf⋆_
+open import Algorithmic using (_⊢_;∅)
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 ```
 
 ## Pragmas

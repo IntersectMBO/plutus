@@ -1,0 +1,85 @@
+#!/bin/bash
+# shellcheck disable=all
+
+plutus_root=$HOME/plutus/plutus
+# Change this to point to the root of the plutus repository if necessary
+
+evaluator_srcdir=$plutus_root/plutus-core/src/Language/PlutusCore/Interpreter
+cek=$evaluator_srcdir/CekMachine.hs
+Make=$plutus_root/plutus-core/src/Language/PlutusCore/Constant/Make.hs
+# ^ The version of this in the original CEK commit calculates 2^(8n-1)
+# during bounds checks for ints of size n, and is very slow for large n
+
+original_commit=96fb387
+# This is a commit containing the original version of the CEK machine, but with plutus-exe working as well.
+
+TIME=/usr/bin/time
+plc=$plutus_root/result/bin/plc
+testdir=$PWD
+
+# nix-collect-garbage -d  ## Just to be sure
+
+run_test () {
+    prefix=$1
+    prog=$2
+    size=$3
+    min=$4
+    step=$5
+    max=$6
+    subst=$7
+
+    ofile=$testdir/${prefix}-times-$prog
+    echo "n usr sys mem" > $ofile
+    for n in $(seq $min $step $max);
+    do 
+	echo $prefix $prog $n
+	echo -n "$n " >> $ofile
+	if [ "$subst" = "yes" ]
+	then  # Are we saying 'con' or 'builtin'?
+	    gpp -DSIZE=$size -DARG=$n $testdir/testprogs/$prog.plc | sed 's/builtin/con/' > test.plc
+	else
+	    gpp -DSIZE=$size -DARG=$n $testdir/testprogs/$prog.plc > test.plc
+	fi
+	$TIME -o $ofile -a -f "%U %S %M" $plc evaluate -f test.plc >/dev/null 2>&1
+    done  
+
+    rm test.plc
+}
+
+run_all () {
+    prefix=$1
+    subst=$2
+
+    run_test $prefix Loop 4 0 10000 1000000 $subst
+    run_test $prefix Tri  8 0 50000 2000000 $subst
+    run_test $prefix Fac 190000 0 5000 100000 $subst
+    run_test $prefix Fib 4 1 1 31 $subst
+}
+
+
+rm -f $cek $Make
+
+cd $plutus_root/
+
+git checkout $original_commit
+cp $testdir/src/Make.hs $Make
+git checkout $cek   # Use the original CEK machine
+nix build -f default.nix plutus-exe
+run_all orig yes
+
+cp $testdir/src/CekMachine.cps.hs $cek   # Now the CPS version
+nix build -f default.nix plutus-exe
+run_all cps yes
+
+cp $testdir/src/CekMachine.recursive.hs $cek   # Now the recursive evaluator
+nix build -f default.nix plutus-exe
+run_all recursive yes
+
+rm -f $cek $Make
+
+git checkout master
+git checkout $cek  # Finally, use the current version of the CEK machine 
+nix build -f default.nix localPackages.plutus-exe
+run_all master no
+
+cd $testdir

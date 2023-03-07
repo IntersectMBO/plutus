@@ -28,7 +28,13 @@
           (lam
             g
             (all b (type) (fun (fun a (fun b b)) (fun b b)))
-            [ [ { g [ List a ] } { Cons a } ] { Nil a } ]
+            [
+              [
+                { g [ List a ] }
+                (lam ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ]))
+              ]
+              { Nil a }
+            ]
           )
         )
       )

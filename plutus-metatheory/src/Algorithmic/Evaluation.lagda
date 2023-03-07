@@ -1,5 +1,5 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
+--{-# OPTIONS --rewriting #-}
 
 module Algorithmic.Evaluation where
 \end{code}
@@ -7,18 +7,24 @@ module Algorithmic.Evaluation where
 ## Imports
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Algorithmic
-open import Algorithmic.ReductionEC
+open import Data.Nat using (ℕ;zero;suc)
+
+open import Utils using (*;Either;inj₁;RuntimeError;return)
+open RuntimeError
+
+open import Type using (∅)
+open import Type.BetaNormal using (_⊢Nf⋆_)
+open import Algorithmic using (_⊢_;∅)
+open _⊢_
+open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_)
+open import Algorithmic.ReductionEC.Progress using  (Progress;done;error;progress;step)
+open _—↠_
 \end{code}
 
 ## Evaluation
 
 As previously, gas is specified by a natural number.
 \begin{code}
-open import Data.Nat
 data Gas : Set where
   gas : ℕ → Gas
 \end{code}
@@ -73,8 +79,6 @@ eval (gas (suc n)) M = evalProg (gas n) (progress M)
 evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
 evalProg g (done VM) = steps refl—↠ (done _ VM)
 evalProg g (error e) = steps refl—↠ (error e)
-
-open import Utils 
 
 stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either RuntimeError (∅ ⊢ A)
 stepper {A} t n with eval (gas n) t

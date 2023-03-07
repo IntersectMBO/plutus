@@ -1,0 +1,16 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (termbind
+    (strict)
+    (vardecl f (fun (con integer) (con integer)))
+    (lam y (con integer) [ [ (builtin addInteger) y ] x ])
+  )
+  [ [ (builtin addInteger) [ f (con integer 1) ] ] [ f (con integer 2) ] ]
+)
+-- In relaxed float-in, we always allow floating into lambda abstractions, so `x` should be
+-- floated into the lambda abstraction in the RHS of `f`, even though `f` is used twice.

@@ -7,7 +7,12 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module PlutusIR.Test where
+module PlutusIR.Test (
+    module PlutusIR.Test,
+    initialSrcSpan,
+    topSrcSpan,
+    rethrow,
+) where
 
 import PlutusPrelude
 import Test.Tasty.Extras
@@ -41,13 +46,13 @@ import Prettyprinter.Render.Text
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Typeable uni, Typeable fun, Ord a
+         , Typeable a, Ord a
          ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
-    toTPlc = asIfThrown . fmap (PLC.Program () (PLC.defaultVersion ()) . void) . compileAndMaybeTypecheck True
+    toTPlc = asIfThrown . fmap (PLC.Program () (PLC.defaultVersion) . void) . compileAndMaybeTypecheck True
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Typeable uni, Typeable fun, Ord a
+         , Typeable a, Ord a
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
@@ -101,7 +106,7 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
             let parseTxt :: T.Text -> Either ParserErrorBundle a
                 parseTxt txt = runQuoteT $ parse parser name txt
             in
-            either (return . T.pack . show) (fmap display . op)
+            either (return . display) (fmap display . op)
                          . parseTxt
 
 goldenPirDocM :: forall a ann. (a -> IO (Doc ann)) -> Parser a -> String -> TestNested
@@ -112,7 +117,7 @@ goldenPirDocM op parser name = withGoldenFileM name parseOrError
             let parseTxt :: T.Text -> Either ParserErrorBundle a
                 parseTxt txt = runQuoteT $ parse parser name txt
             in
-            either (return . T.pack . show) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
+            either (return . display) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
                          . parseTxt
 
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text

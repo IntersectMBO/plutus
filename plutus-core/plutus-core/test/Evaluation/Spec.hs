@@ -16,7 +16,7 @@ import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
+import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude
 
@@ -127,15 +127,15 @@ prop_builtinEvaluation ver bn costModel mkGen f = property $ do
         eval [] (BuiltinResult _ getX) =
             getX
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
-            eval args =<< liftReadKnownM (toRuntime arg)
+            eval args (toRuntime arg)
         eval args (BuiltinExpectForce runtime) =
             eval args runtime
         eval _ _ =
             -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
-        BuiltinMeaning _ _ runtimeOpts = toBuiltinMeaning ver bn
-        runtime0 = _broImmediateF runtimeOpts costModel
+        BuiltinMeaning _ _ denot = toBuiltinMeaning ver bn
+        runtime0 = denot costModel
     f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
 
 genArgsWellTyped ::

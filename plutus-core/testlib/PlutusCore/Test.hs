@@ -24,6 +24,8 @@ module PlutusCore.Test
     , goldenTEvalCatch
     , goldenUEvalCatch
     , goldenUEvalProfile
+    , initialSrcSpan
+    , topSrcSpan
     , NoMarkRenameT(..)
     , noMarkRename
     , NoRenameT(..)
@@ -40,17 +42,19 @@ module PlutusCore.Test
     , module TastyExtras
     ) where
 
-import PlutusPrelude
-
 import Test.Tasty.Extras as TastyExtras
 
+import PlutusPrelude
+
+import PlutusCore.Generators.Hedgehog.AST
+import PlutusCore.Generators.Hedgehog.Utils
+
 import PlutusCore qualified as TPLC
+import PlutusCore.Annotation
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
-import PlutusCore.Generators
-import PlutusCore.Generators.AST
 import PlutusCore.Pretty
 import PlutusCore.Rename.Monad qualified as TPLC
 
@@ -68,8 +72,8 @@ import Hedgehog
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 import Hedgehog.Internal.Config
 import Hedgehog.Internal.Property
@@ -249,6 +253,13 @@ goldenUEvalProfile
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
 goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+
+-- | A made-up `SrcSpan` for testing.
+initialSrcSpan :: FilePath -> SrcSpan
+initialSrcSpan fp = SrcSpan fp 1 1 1 2
+
+topSrcSpan :: SrcSpan
+topSrcSpan = initialSrcSpan "top"
 
 -- See Note [Marking].
 -- | A version of 'RenameT' that fails to take free variables into account.

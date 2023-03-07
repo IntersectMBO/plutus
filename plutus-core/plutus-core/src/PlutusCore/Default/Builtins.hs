@@ -33,7 +33,7 @@ import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyE
                verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
-import Data.ByteString.Lazy qualified as BS (toStrict)
+import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
 import Data.Text (Text)
@@ -1090,7 +1090,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                @(Integer -> BS.ByteString -> BS.ByteString)
                (\n xs -> BS.cons (fromIntegral @Integer n) xs)
                costingFun
-            -- For versions other (i.e. larger) than V1, the first input must be in range [0.255].
+            -- For versions other (i.e. larger) than V1, the first input must be in range [0..255].
             -- See Note [How to add a built-in function: simple cases]
             _ -> makeBuiltinMeaning
               @(Word8 -> BS.ByteString -> BS.ByteString)
@@ -1357,7 +1357,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramEqualsData)
     toBuiltinMeaning _ver SerialiseData =
         makeBuiltinMeaning
-            (BS.toStrict . serialise @Data)
+            (BSL.toStrict . serialise @Data)
             (runCostingFunOneArgument . paramSerialiseData)
     -- Misc constructors
     toBuiltinMeaning _ver MkPairData =

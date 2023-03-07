@@ -3,13 +3,20 @@ module Declarative.Examples.StdLib.ChurchNat where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Declarative
-open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Data.Integer using (ℤ)
 
-open import Data.Unit
+open import Utils using (Kind;*)
+open import Type using (Ctx⋆;_⊢⋆_;Z)
+open _⊢⋆_
+open import Declarative using (Ctx;_⊢_;_∋_)
+open Ctx
+open _⊢_
+open _∋_
+open import Builtin using (addInteger)
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
+open TermCon
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
 \end{code}
 
 \begin{code}
@@ -27,11 +34,6 @@ Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` 
 
 Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
 Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
-
-open import Builtin.Constant.Type
-open import Data.Integer
-open import Data.Nat
-open import Agda.Builtin.Sigma renaming (_,_ to _,,_)
 
 con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
 con0 = con (integer (ℤ.pos 0))

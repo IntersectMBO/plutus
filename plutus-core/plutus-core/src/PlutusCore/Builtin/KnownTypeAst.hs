@@ -20,6 +20,7 @@ module PlutusCore.Builtin.KnownTypeAst
     , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
+    , Delete
     , Merge
     ) where
 

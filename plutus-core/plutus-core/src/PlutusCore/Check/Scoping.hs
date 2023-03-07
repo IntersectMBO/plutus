@@ -275,18 +275,18 @@ establishScopingBinder binder name sort value = do
 
 -- | Every kind of error thrown by the scope checking machinery at different stages.
 data ScopeError
-    = UnannotatedName ScopedName
-    | NameChangedItsScope ScopedName ScopedName
-    | NameUnexpectedlyDisappeared ScopedName ScopedName
-    | NameUnexpectedlyStayed ScopedName
-    | DuplicateBindersInTheInput (Set ScopedName)
-    | DuplicateBindersInTheOutput (Set ScopedName)
-    | OldBindingsDiscordWithBoundVariables (Set ScopedName)
-    | OldBindingsDiscordWithOutOfScopeVariables (Set ScopedName)
-    | NewBindingsDiscordWithBoundVariables (Set ScopedName)
-    | OldBindingsClashWithFreeVariables (Set ScopedName)
-    | OldBindingsClashWithNewBindings (Set ScopedName)
-    | NewBindingsClashWithFreeVariabes (Set ScopedName)
+    = UnannotatedName !ScopedName
+    | NameChangedItsScope !ScopedName !ScopedName
+    | NameUnexpectedlyDisappeared !ScopedName !ScopedName
+    | NameUnexpectedlyStayed !ScopedName
+    | DuplicateBindersInTheInput !(Set ScopedName)
+    | DuplicateBindersInTheOutput !(Set ScopedName)
+    | OldBindingsDiscordWithBoundVariables !(Set ScopedName)
+    | OldBindingsDiscordWithOutOfScopeVariables !(Set ScopedName)
+    | NewBindingsDiscordWithBoundVariables !(Set ScopedName)
+    | OldBindingsClashWithFreeVariables !(Set ScopedName)
+    | OldBindingsClashWithNewBindings !(Set ScopedName)
+    | NewBindingsClashWithFreeVariabes !(Set ScopedName)
     deriving stock (Show)
 
 -- | Override the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.

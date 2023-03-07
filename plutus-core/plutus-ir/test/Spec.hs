@@ -9,17 +9,17 @@ module Main (main) where
 
 import PlutusPrelude
 
+import GeneratorSpec
 import NamesSpec
 import ParserSpec
 import TransformSpec
 import TypeSpec
 
+import PlutusCore qualified as PLC
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
-
-import PlutusCore qualified as PLC
 
 import Test.Tasty
 import Test.Tasty.Extras
@@ -43,6 +43,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , transform
     , types
     , typeErrors
+    , generators 1
     ]
 
 prettyprinting :: TestNested
@@ -84,7 +85,7 @@ datatypes = testNested "datatypes"
     , goldenPlcFromPirCatch pTerm "idleAll"
     , goldenPlcFromPirCatch pTerm "some"
     , goldenEvalPir pTerm "listMatchEval"
-    , goldenTypeFromPir PLC.topSourcePos pTerm "dataEscape"
+    , goldenTypeFromPir topSrcSpan pTerm "dataEscape"
     ]
 
 recursion :: TestNested

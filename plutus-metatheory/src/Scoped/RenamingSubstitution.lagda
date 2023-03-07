@@ -3,13 +3,19 @@ module Scoped.RenamingSubstitution where
 \end{code}
 
 \begin{code}
-open import Data.Nat
-open import Data.Fin hiding (lift)
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Fin using (Fin;zero;suc)
 open import Data.Vec using ([];_∷_)
-open import Function
+open import Function using (id)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
 
-open import Scoped
-open import Builtin.Constant.Type ℕ ScopedTy
+open import Scoped using (ScopedTy;Tel;Tel⋆;Weirdℕ;WeirdFin;ScopedTm)
+open ScopedTy
+open ScopedTm
+open Weirdℕ
+open WeirdFin
+open import Builtin.Constant.Type ℕ ScopedTy using (TyCon)
+open TyCon
 \end{code}
 
 \begin{code}
@@ -30,7 +36,7 @@ renTyCon⋆ ρ unit = unit
 renTyCon⋆ ρ bool = bool
 renTyCon⋆ ρ (list A) = list (ren⋆ ρ A)
 renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
-renTyCon⋆ ρ Data = Data
+renTyCon⋆ ρ pdata = pdata
 
 
 ren⋆ ρ (` α) = ` (ρ α)
@@ -93,7 +99,7 @@ subTyCon⋆ σ unit = unit
 subTyCon⋆ σ bool = bool
 subTyCon⋆ σ (list A) = list (sub⋆ σ A)
 subTyCon⋆ σ (pair A B) = pair (sub⋆ σ A) (sub⋆ σ B)
-subTyCon⋆ σ Data = Data
+subTyCon⋆ σ pdata = pdata
 
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
@@ -158,8 +164,6 @@ t [ A ]⋆ = sub (ext⋆ ` A) (⋆ext `) t
 # Proofs
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality
-
 lift⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → lift⋆ ρ x ≡ lift⋆ ρ' x
@@ -180,7 +184,7 @@ renTyCon⋆-cong p unit = refl
 renTyCon⋆-cong p bool = refl
 renTyCon⋆-cong p (list A) = cong list (ren⋆-cong p A)
 renTyCon⋆-cong p (pair A B) = cong₂ pair (ren⋆-cong p A) (ren⋆-cong p B)
-renTyCon⋆-cong p Data = refl
+renTyCon⋆-cong p pdata = refl
 
 ren⋆-cong p (` x)       = cong ` (p x)
 ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
@@ -211,7 +215,7 @@ subTyCon⋆-cong p unit = refl
 subTyCon⋆-cong p bool = refl
 subTyCon⋆-cong p (list A) = cong list (sub⋆-cong p A)
 subTyCon⋆-cong p (pair A B) = cong₂ pair (sub⋆-cong p A) (sub⋆-cong p B)
-subTyCon⋆-cong p Data = refl
+subTyCon⋆-cong p pdata = refl
 
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)

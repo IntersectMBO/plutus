@@ -5,7 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TemplateHaskellQuotes      #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -27,9 +27,13 @@ import PlutusTx.PLCTypes
 import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
-import GhcPlugins qualified as GHC
-import OccurAnal qualified as GHC
-import Panic qualified as GHC
+import GHC.ByteCode.Types qualified as GHC
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Core.Opt.OccurAnal qualified as GHC
+import GHC.Core.Unfold qualified as GHC
+import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
+import GHC.Utils.Logger qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler qualified as PLC
@@ -58,8 +62,6 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
-import ErrorCode (HasErrorCode (errorCode))
-import FamInstEnv qualified as GHC
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -107,7 +109,7 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
       install :: [GHC.CommandLineOption] -> [GHC.CoreToDo] -> GHC.CoreM [GHC.CoreToDo]
       install args rest = do
           -- create simplifier pass to be placed at the front
-          simplPass <- mkSimplPass <$> GHC.getDynFlags
+          simplPass <- mkSimplPass <$> GHC.getDynFlags <*> GHC.getLogger
           -- instantiate our plugin pass
           pluginPass <- mkPluginPass <$> case parsePluginOptions args of
               Success opts -> pure opts
@@ -118,15 +120,51 @@ plugin = GHC.defaultPlugin { GHC.pluginRecompile = GHC.flagRecompile
              : pluginPass
              : rest
 
+{- Note [GHC.sm_pre_inline]
+We run a GHC simplifier pass before the plugin, in which we turn on `sm_pre_inline`, which
+makes GHC inline certain bindings before the plugin runs. Pre-inlining is a phase of the GHC
+inliner that inlines bindings in GHC Core where the binder occurs exactly once in an
+unconditionally safe way (e.g., the occurrence isn't inside a lambda). For details, see paper
+"Secrets of the Glasgow Haskell Compiler inliner".
+
+The reason we need the pre-inlining is that the plugin requires certain functions
+to be fully applied. For example, it has a special rule to handle
+`noinline @(String -> BuiltinString) stringToBuiltinString "a"`, but it cannot compile
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a"`.
+By turning on pre-inlining, the `f` in the latter expression will be inlined, resulting in
+the former expression, which the plugin knows how to compile.
+
+There is a related flag, `sm_inline`, which controls whether GHC's call-site inlining is
+enabled. If enabled, GHC will inline additional bindings that cannot be unconditionally
+inlined, on a call-site-by-call-site basis. Currently we haven't found the need to turn on
+`sm_inline`. Turning it on seems to reduce PIR sizes in many cases, but it is unclear
+whether it may affect the semantics of Plutus Core.
+
+Arguably, relying on `sm_pre_inline` is not the proper solution - what if we get
+`let f = noinline @(String -> BuiltinString) stringToBuiltinString in f "a" <> f "b"`?
+Here `f` won't be pre-inlined because it occurs twice. Instead, we should perhaps
+inline a binding when the RHS is a partially applied function that we need fully applied.
+But so far we haven't had an issue like this.
+
+We should also make the error message better in cases like this. The current error message is
+"Unsupported feature: Type constructor: GHC.Prim.Char#", resulting from attempting to inline
+and compile `stringToBuiltinString`.
+-}
+
 -- | A simplifier pass, implemented by GHC
-mkSimplPass :: GHC.DynFlags -> GHC.CoreToDo
-mkSimplPass flags =
+mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
+mkSimplPass flags logger =
   -- See Note [Making sure unfoldings are present]
   GHC.CoreDoSimplify 1 $ GHC.SimplMode {
               GHC.sm_names = ["Ensure unfoldings are present"]
             , GHC.sm_phase = GHC.InitialPhase
+            , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
+            , GHC.sm_cast_swizzle = True
+            -- See Note [GHC.sm_pre_inline]
+            , GHC.sm_pre_inline = True
+            , GHC.sm_logger = logger
             -- You might think you would need this, but apparently not
             , GHC.sm_inline = False
             , GHC.sm_case_case = False
@@ -182,7 +220,7 @@ runPluginM pctx act = do
     case res of
         Right x -> pure x
         Left err ->
-            let errInGhc = GHC.ProgramError $ "GHC Core to PLC plugin: " ++ show (PP.pretty (errorCode err) <> ":" <> PP.pretty err)
+            let errInGhc = GHC.ProgramError . show $ "GHC Core to PLC plugin:" PP.<+> PP.pretty err
             in liftIO $ GHC.throwGhcExceptionIO errInGhc
 
 -- | Compiles all the marked expressions in the given binder into PLC literals.
@@ -235,7 +273,7 @@ compileMarkedExprs expr = do
       GHC.Let bnd e -> GHC.Let <$> compileBind bnd <*> compileMarkedExprs e
       GHC.Case e b t alts -> do
             e' <- compileMarkedExprs e
-            let expAlt (a, bs, rhs) = (,,) a bs <$> compileMarkedExprs rhs
+            let expAlt (GHC.Alt a bs rhs) = GHC.Alt a bs <$> compileMarkedExprs rhs
             alts' <- mapM expAlt alts
             pure $ GHC.Case e' b t alts'
       GHC.Cast e c -> flip GHC.Cast c <$> compileMarkedExprs e
@@ -278,7 +316,7 @@ compileMarkedExpr locStr codeTy origE = do
     famEnvs <- asks pcFamEnvs
     opts <- asks pcOpts
     moduleName <- asks pcModuleName
-    let moduleNameStr = GHC.showSDocForUser flags GHC.alwaysQualify (GHC.ppr moduleName)
+    let moduleNameStr = GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
     nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
     modBreaks <- asks pcModuleModBreaks
@@ -349,7 +387,7 @@ runCompiler moduleName opts expr = do
             -- which is a slightly large hammer but is actually what we want since it will mean
             -- that we also aggressively reduce the bindings inside the destructor.
             PIR.DatatypeComponent PIR.Destructor _ -> True
-            _                                      -> AnnInline `elem` toList ann
+            _                                      -> AlwaysInline `elem` fmap annInline (toList ann)
     -- Compilation configuration
     let pirTcConfig = if _posDoTypecheck opts
                       -- pir's tc-config is based on plc tcconfig
@@ -358,42 +396,45 @@ runCompiler moduleName opts expr = do
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
                  & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbose opts)
-                 & set (PIR.ccOpts . PIR.coDebug) (_posDebug opts)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbosity opts == Verbose)
+                 & set (PIR.ccOpts . PIR.coDebug) (_posVerbosity opts == Debug)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
+                 & set (PIR.ccOpts . PIR.coRelaxedFloatin) (_posRelaxedFloatin opts)
         plcOpts = PLC.defaultCompilationOpts
-            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterations opts)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT AnnOther $ compileExprWithDefs expr
+    pirT <- PIR.runDefT annMayInline $ compileExprWithDefs expr
     when (_posDumpPir opts) . liftIO $
         dumpFlat (PIR.Program () (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
     spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
-    let spirP = PIR.Program () . void $ spirT
-    when (_posDumpPir opts) . liftIO $ dumpFlat spirP "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    let spirPNoAnn = PIR.Program () . void $ spirT
+        spirP = PIR.Program mempty . fmap getSrcSpans $ spirT
+    when (_posDumpPir opts) . liftIO $ dumpFlat spirPNoAnn "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
     plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
-    let plcP = PLC.Program () (PLC.defaultVersion ()) $ void plcT
+    let plcP = PLC.Program () (PLC.defaultVersion) $ void plcT
     when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (_posDoTypecheck opts) . void $
-        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> AnnOther)
+        liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
     uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
-    let uplcP = UPLC.Program () (PLC.defaultVersion ()) $ void dbT
-    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcP "untyped PLC program" (moduleName ++ ".uplc.flat")
+    let uplcPNoAnn = UPLC.Program () (PLC.defaultVersion) $ void dbT
+        uplcP = UPLC.Program mempty (PLC.defaultVersion) . fmap getSrcSpans $ dbT
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcPNoAnn "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where
@@ -409,6 +450,9 @@ runCompiler moduleName opts expr = do
         (tPath, tHandle) <- openTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
+
+      getSrcSpans :: PIR.Provenance Ann -> SrcSpans
+      getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
 
 -- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
 thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
@@ -440,7 +484,7 @@ makeByteStringLiteral bs = do
     -- This technique gratefully borrowed from the file-embed package
 
     -- The flags here are so GHC can check whether the int is in range for the current platform.
-    let lenLit = GHC.mkIntExpr flags $ fromIntegral $ BS.length bs
+    let lenLit = GHC.mkIntExpr (GHC.targetPlatform flags) $ fromIntegral $ BS.length bs
     -- This will have type Addr#, which is right for unsafePackAddressLen
     let bsLit = GHC.Lit (GHC.LitString bs)
     let upaled = GHC.mkCoreApps (GHC.Var upal) [lenLit, bsLit]

@@ -1,0 +1,30 @@
+name: "Build and Deploy to Github Pages"
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  build-haddock-site:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nixbuild/nix-quick-install-action@v21
+        with:
+          nix_conf: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+      - name: Build haddock site
+        run: |
+          nix build .#combined-plutus-haddock
+          mkdir dist
+          cp -RL ./result/share/doc/* ./dist/
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          target-folder: ${{ github.ref_name }}

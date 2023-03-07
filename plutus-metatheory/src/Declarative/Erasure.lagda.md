@@ -4,36 +4,33 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --rewriting #-}
-
 module Declarative.Erasure where
 ```
 
-```
-open import Declarative
-open import Declarative.RenamingSubstitution as D
-open import Type.RenamingSubstitution as T
-open import Untyped
-open import Untyped.RenamingSubstitution as U
-```
+## Imports
 
 ```
-open import Type
-open import Declarative
-open import Builtin hiding (length)
-open import Utils
+open import Data.Empty using (⊥)
+
+open import Declarative using (Ctx;_∋_;_⊢_)
+open Ctx
+open _∋_
+open _⊢_
+import Declarative.RenamingSubstitution as D
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_)
+open _⊢⋆_
+import Type.RenamingSubstitution as T
+open import Untyped using (_⊢)
+open _⊢
+import Untyped.RenamingSubstitution as U
+open import Utils using (Kind;*;Maybe;nothing;just;TermCon)
+open TermCon
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
-  renaming (TermCon to TyTermCon)
+  using () renaming (TermCon to TyTermCon)
+open TyTermCon
+```
 
-open import Data.Empty
-open import Data.Nat.Properties
-open import Data.Nat
-open import Data.Fin using (Fin;zero;suc)
-open import Data.Vec using ([]; _∷_;_++_)
-open import Data.List using (List;length;[];_∷_)
-open import Relation.Binary.PropositionalEquality
-open import Data.Product using (proj₁;proj₂)
-
+```
 len : ∀{Φ} → Ctx Φ → Set
 len ∅        = ⊥
 len (Γ ,⋆ K) = len Γ
@@ -59,11 +56,9 @@ eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
 eraseTC unit           = unit
-eraseTC (Data d)       = Data d
+eraseTC (pdata d)       = pdata d
 
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Sum
-open import Data.Nat.Properties
+
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 

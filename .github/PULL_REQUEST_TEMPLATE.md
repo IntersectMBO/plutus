@@ -10,6 +10,7 @@ Pre-submit checklist:
     - [ ] Tests are provided (if possible)
     - [ ] Commit sequence broadly makes sense
     - [ ] Key commits have useful messages
+    - [ ] Changelog fragments have been written (if appropriate)
     - [ ] Relevant tickets are mentioned in commit messages
     - [ ] Formatting, PNG optimization, etc. are updated
 - PR

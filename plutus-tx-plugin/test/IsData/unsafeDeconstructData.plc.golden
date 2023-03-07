@@ -122,7 +122,7 @@
                   (let
                     (nonrec)
                     (termbind
-                      (nonstrict)
+                      (strict)
                       (vardecl
                         tup
                         [
@@ -140,40 +140,38 @@
                     )
                     (termbind
                       (nonstrict)
-                      (vardecl x b)
-                      [
-                        dUnsafeFromData
-                        [ { head (con data) } [ { tail (con data) } t ] ]
-                      ]
-                    )
-                    (termbind
-                      (nonstrict)
-                      (vardecl x a)
-                      [ dUnsafeFromData [ { head (con data) } t ] ]
-                    )
-                    (termbind
-                      (nonstrict)
                       (vardecl x [ [ Tuple2 a ] b ])
-                      [ [ { { Tuple2 a } b } x ] x ]
+                      (let
+                        (nonrec)
+                        (termbind
+                          (strict)
+                          (vardecl arg (con data))
+                          [ { head (con data) } t ]
+                        )
+                        (termbind
+                          (strict)
+                          (vardecl arg (con data))
+                          [ { head (con data) } [ { tail (con data) } t ] ]
+                        )
+                        [
+                          [ { { Tuple2 a } b } [ dUnsafeFromData arg ] ]
+                          [ dUnsafeFromData arg ]
+                        ]
+                      )
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl index (con integer))
+                      [
+                        { { fst (con integer) } [ (con list) (con data) ] } tup
+                      ]
                     )
                     [
                       [
                         [
                           [
                             { ifThenElse (fun (con unit) [ [ Tuple2 a ] b ]) }
-                            [
-                              [
-                                equalsInteger
-                                [
-                                  {
-                                    { fst (con integer) }
-                                    [ (con list) (con data) ]
-                                  }
-                                  tup
-                                ]
-                              ]
-                              (con integer 0)
-                            ]
+                            [ [ equalsInteger index ] (con integer 0) ]
                           ]
                           (lam ds (con unit) x)
                         ]
@@ -291,7 +289,7 @@
               (let
                 (nonrec)
                 (termbind
-                  (nonstrict)
+                  (strict)
                   (vardecl
                     tup
                     [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
@@ -300,6 +298,25 @@
                 )
                 (termbind
                   (nonstrict)
+                  (vardecl x [ Maybe a ])
+                  (let
+                    (nonrec)
+                    (termbind
+                      (strict)
+                      (vardecl arg (con data))
+                      [
+                        { head (con data) }
+                        [
+                          { { snd (con integer) } [ (con list) (con data) ] }
+                          tup
+                        ]
+                      ]
+                    )
+                    [ { Just a } [ dUnsafeFromData arg ] ]
+                  )
+                )
+                (termbind
+                  (strict)
                   (vardecl index (con integer))
                   [ { { fst (con integer) } [ (con list) (con data) ] } tup ]
                 )
@@ -320,20 +337,6 @@
                     unitval
                   ]
                 )
-                (termbind
-                  (nonstrict)
-                  (vardecl x a)
-                  [
-                    dUnsafeFromData
-                    [
-                      { head (con data) }
-                      [
-                        { { snd (con integer) } [ (con list) (con data) ] } tup
-                      ]
-                    ]
-                  ]
-                )
-                (termbind (nonstrict) (vardecl x [ Maybe a ]) [ { Just a } x ])
                 [
                   [
                     [

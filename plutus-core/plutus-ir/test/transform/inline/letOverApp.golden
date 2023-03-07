@@ -1,0 +1,4 @@
+[
+  [ (lam x (con integer) (lam y (con integer) y)) (con integer 5) ]
+  (con integer 6)
+]

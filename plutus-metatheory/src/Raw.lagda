@@ -6,23 +6,23 @@ module Raw where
 open import Data.String using (String;_++_)
 open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
-open import Data.Integer.Show
+open import Data.Integer.Show using (show)
 open import Data.Unit using (⊤)
-
-open import Builtin
-open import Utils
-
 open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
-open import Relation.Nullary.Decidable
 open import Relation.Binary.PropositionalEquality using (_≡_;cong;cong₂;refl)
 open import Data.Bool using (Bool;false;true)
+
+open import Builtin using (Builtin;equals)
+open Builtin.Builtin
+
+open import Utils using (Kind;*;_⇒_;TermCon)
+open TermCon
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
 
 \begin{code}
 data RawTy : Set
-open import Builtin.Constant.Type ⊤ (λ _ → RawTy)
 
 data RawTyCon : Set
 
@@ -47,7 +47,7 @@ data RawTyCon where
   bool       : RawTyCon
   list       : RawTy → RawTyCon
   pair       : RawTy → RawTy → RawTyCon
-  Data       : RawTyCon
+  pdata       : RawTyCon
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
 
@@ -246,7 +246,7 @@ decRTm _ _ = false
 -- one counts type and term binders separately the other counts them together
 
 rawTyPrinter : RawTy → String
-rawTyPrinter (` x)   = Data.Integer.Show.show (ℤ.pos x)
+rawTyPrinter (` x)   = show (ℤ.pos x)
 rawTyPrinter (A ⇒ B) = "(" ++ rawTyPrinter A ++ "⇒" ++ rawTyPrinter B ++ ")"
 rawTyPrinter (Π K A) = "(Π" ++ "kind" ++ rawTyPrinter A ++ ")"
 rawTyPrinter (ƛ K A) = "(ƛ" ++ "kind" ++ rawTyPrinter A ++ ")"
@@ -255,7 +255,7 @@ rawTyPrinter (con c) = "(con)"
 rawTyPrinter (μ A B) = "(μ" ++ rawTyPrinter A ++ rawTyPrinter B ++ ")"
 
 rawPrinter : RawTm → String
-rawPrinter (` x) = Data.Integer.Show.show (ℤ.pos x)
+rawPrinter (` x) = show (ℤ.pos x)
 rawPrinter (Λ K t) = "(" ++ "Λ" ++ "kind" ++ rawPrinter t ++ ")"
 rawPrinter (t ·⋆ A) = "(" ++ rawPrinter t ++ "·⋆" ++ rawTyPrinter A ++ ")"
 rawPrinter (ƛ A t) = "(" ++ "ƛ" ++ rawTyPrinter A ++ rawPrinter t ++ ")"

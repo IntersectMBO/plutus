@@ -7,8 +7,9 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Errors.Spec where
@@ -26,7 +27,7 @@ import Data.String
 
 -- Normally GHC will irritatingly case integers for us in some circumstances, but we want to do it
 -- explicitly here, so we need to see the constructors.
-import GHC.Integer.GMP.Internals
+import GHC.Num.Integer
 
 -- this module does lots of weird stuff deliberately
 {- HLINT ignore -}
@@ -53,7 +54,7 @@ negativeInt :: CompiledCode Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { S# _ -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { IS _ -> True; _ -> False; } )
 
 stringLiteral :: CompiledCode String
 stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)

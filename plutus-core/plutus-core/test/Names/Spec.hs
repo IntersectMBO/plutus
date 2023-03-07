@@ -15,16 +15,16 @@ import PlutusCore.Mark
 import PlutusCore.Pretty
 import PlutusCore.Rename.Internal
 
-import PlutusCore.Generators
-import PlutusCore.Generators.AST as AST
-import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Hedgehog
+import PlutusCore.Generators.Hedgehog.AST as AST
+import PlutusCore.Generators.Hedgehog.Interesting
 
 import GHC.Exts (fromString)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property . generalizeT $ do

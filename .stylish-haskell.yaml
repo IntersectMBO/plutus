@@ -25,6 +25,7 @@ language_extensions:
   - GeneralizedNewtypeDeriving
   - MultiParamTypeClasses
   - NamedFieldPuns
+  - ImportQualifiedPost
   - PackageImports
   - QuasiQuotes
   - ScopedTypeVariables

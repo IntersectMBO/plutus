@@ -3,16 +3,17 @@ module Type.BetaNBE.Stability where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Type.BetaNBE
-open import Type.BetaNBE.Completeness
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;cong;cong₂)
 
-open import Relation.Binary.PropositionalEquality
-open import Function
+open import Utils using (*;_⇒_;K)
+open import Type using (Ctx⋆;Φ;Z;S)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;embNe;embNfTyCon)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE using (nf;evalTyCon;idEnv;eval;reflect)
+open import Type.BetaNBE.Completeness using (CR;idext;reifyCR;reflectCR;transCR;idCR;AppCR;renVal-reflect)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open TyCon
 \end{code}
 
 If you take a normal form, embed it back into syntax and then
@@ -31,7 +32,7 @@ stabilityTyCon unit       = refl
 stabilityTyCon bool       = refl
 stabilityTyCon (list A)   = cong list (stability A)
 stabilityTyCon (pair A B) = cong₂ pair (stability A) (stability B)
-stabilityTyCon Data       = refl
+stabilityTyCon pdata       = refl
 
 stabilityNe : (n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 

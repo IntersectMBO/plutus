@@ -4,8 +4,9 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 module StdLib.Spec where
 
@@ -30,7 +31,7 @@ import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio qualified as Ratio
 
 import PlutusTx.Builtins.Internal (BuiltinData (BuiltinData))
-import PlutusTx.Code (CompiledCode, getPlc)
+import PlutusTx.Code (CompiledCode, getPlcNoAnn)
 import PlutusTx.Lift qualified as Lift
 import PlutusTx.Plugin (plc)
 
@@ -46,7 +47,7 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 tests :: TestNested
 tests =
   testNested "StdLib"
-    [ goldenUEval "ratioInterop" [ getPlc roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
+    [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs

@@ -18,7 +18,6 @@ module PlutusCore.Evaluation.Machine.ExMemory
 ) where
 
 import PlutusCore.Data
-import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusPrelude
 
@@ -105,7 +104,7 @@ type CostingInteger = SatInt
 -- | Counts size in machine words.
 newtype ExMemory = ExMemory CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Read, Bounded)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
@@ -119,7 +118,7 @@ instance PrettyBy config ExMemory where
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
-  deriving newtype (Num, NFData)
+  deriving newtype (Num, NFData, Read, Bounded)
   deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
@@ -183,11 +182,6 @@ class ExMemoryUsage a where
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
     {-# INLINE memoryUsage #-}
-instance ExMemoryUsage SatInt where
-    memoryUsage n = memoryUsage (fromIntegral @SatInt @Int n)
-    {-# INLINE memoryUsage #-}
-deriving newtype instance ExMemoryUsage ExMemory
-deriving newtype instance ExMemoryUsage Unique
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
