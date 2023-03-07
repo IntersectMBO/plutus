@@ -44,8 +44,6 @@ import PlutusTx.Monoid (Monoid (..))
 import PlutusTx.Numeric
 import PlutusTx.Semigroup ((<>))
 
-import Prelude qualified as Haskell (Monad, return, (>>), (>>=))
-
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
     -- | Plutus Tx version of 'Data.Foldable.foldr'.
