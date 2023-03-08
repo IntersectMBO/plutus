@@ -62,8 +62,8 @@ library plutus-benchmark-common
     , base         >=4.9 && <5
     , criterion
     , filepath
-    , plutus-core  ^>=1.2
-    , plutus-tx    ^>=1.2
+    , plutus-core  ^>=1.3
+    , plutus-tx    ^>=1.3
 
 ---------------- nofib ----------------
 
@@ -93,9 +93,9 @@ library nofib-internal
     , base                     >=4.9 && <5
     , deepseq
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
-    , plutus-tx                ^>=1.2
-    , plutus-tx-plugin         ^>=1.2
+    , plutus-core              ^>=1.3
+    , plutus-tx                ^>=1.3
+    , plutus-tx-plugin         ^>=1.3
 
 executable nofib-exe
   import:         lang
@@ -114,8 +114,8 @@ executable nofib-exe
     , nofib-internal
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
-    , plutus-tx                ^>=1.2
+    , plutus-core              ^>=1.3
+    , plutus-tx                ^>=1.3
     , transformers
 
 benchmark nofib
@@ -163,8 +163,8 @@ test-suite plutus-benchmark-nofib-tests
     , base                                            >=4.9 && <5
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.2
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.2
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.3
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.3
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -196,9 +196,9 @@ library lists-internal
     , base                     >=4.9 && <5
     , mtl
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
-    , plutus-tx                ^>=1.2
-    , plutus-tx-plugin         ^>=1.2
+    , plutus-core              ^>=1.3
+    , plutus-tx                ^>=1.3
+    , plutus-tx-plugin         ^>=1.3
 
 executable list-sort-exe
   import:         lang
@@ -213,7 +213,7 @@ executable list-sort-exe
     , lists-internal
     , monoidal-containers
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
+    , plutus-core              ^>=1.3
 
 benchmark lists
   import:         lang
@@ -247,8 +247,8 @@ test-suite plutus-benchmark-lists-tests
     , base                             >=4.9 && <5
     , lists-internal
     , plutus-benchmark-common
-    , plutus-core:plutus-core-testlib  ^>=1.2
-    , plutus-tx:plutus-tx-testlib      ^>=1.2
+    , plutus-core:plutus-core-testlib  ^>=1.3
+    , plutus-tx:plutus-tx-testlib      ^>=1.3
     , tasty
     , tasty-quickcheck
 
@@ -270,7 +270,7 @@ benchmark validation
     , flat                     <0.5
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
+    , plutus-core              ^>=1.3
 
 ---------------- validation-decode ----------------
 
@@ -289,8 +289,8 @@ benchmark validation-decode
     , flat                     <0.5
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.2
-    , plutus-ledger-api        ^>=1.2
+    , plutus-core              ^>=1.3
+    , plutus-ledger-api        ^>=1.3
 
 ---------------- validation-full ----------------
 
@@ -309,8 +309,8 @@ benchmark validation-full
     , flat                                                              <0.5
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core                                                       ^>=1.2
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.2
+    , plutus-core                                                       ^>=1.3
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.3
 
 ---------------- Cek cost model calibration ----------------
 
@@ -332,9 +332,9 @@ benchmark cek-calibration
     , criterion         >=1.5.9.0
     , lens
     , mtl
-    , plutus-core       ^>=1.2
-    , plutus-tx         ^>=1.2
-    , plutus-tx-plugin  ^>=1.2
+    , plutus-core       ^>=1.3
+    , plutus-tx         ^>=1.3
+    , plutus-tx-plugin  ^>=1.3
 
 ---------------- Signature verification throughput ----------------
 
@@ -356,9 +356,9 @@ executable ed25519-throughput
     , cardano-crypto-class
     , flat                  <0.5
     , hedgehog
-    , plutus-core           ^>=1.2
-    , plutus-tx             ^>=1.2
-    , plutus-tx-plugin      ^>=1.2
+    , plutus-core           ^>=1.3
+    , plutus-tx             ^>=1.3
+    , plutus-tx-plugin      ^>=1.3
 
 ---------------- script contexts ----------------
 
@@ -375,9 +375,9 @@ library script-contexts-internal
   exposed-modules: PlutusBenchmark.ScriptContexts
   build-depends:
     , base               >=4.9 && <5
-    , plutus-ledger-api  ^>=1.2
-    , plutus-tx          ^>=1.2
-    , plutus-tx-plugin   ^>=1.2
+    , plutus-ledger-api  ^>=1.3
+    , plutus-tx          ^>=1.3
+    , plutus-tx-plugin   ^>=1.3
 
 test-suite plutus-benchmark-script-contexts-tests
   import:         lang
@@ -392,8 +392,8 @@ test-suite plutus-benchmark-script-contexts-tests
   build-depends:
     , base                                            >=4.9 && <5
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.2
-    , plutus-tx:plutus-tx-testlib                     ^>=1.2
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.3
+    , plutus-tx:plutus-tx-testlib                     ^>=1.3
     , script-contexts-internal
     , tasty
     , tasty-hunit
