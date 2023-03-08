@@ -91,7 +91,7 @@ safeLiftProgram
        , PrettyPrintable uni fun
        )
     => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
-safeLiftProgram x = UPLC.Program () (PLC.latestVersion) <$> safeLift x
+safeLiftProgram x = UPLC.Program () PLC.latestVersion <$> safeLift x
 
 safeLiftCode
     :: (Lift.Lift uni a
