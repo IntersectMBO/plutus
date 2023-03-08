@@ -64,6 +64,8 @@ applyCode fun arg = do
   pir <- PIR.applyProgram <$> getPir fun <*> getPir arg
   pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
 
+-- | Apply a compiled function to a compiled argument. Will throw if the versions don't match,
+-- should only be used in non-production code.
 unsafeApplyCode
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
