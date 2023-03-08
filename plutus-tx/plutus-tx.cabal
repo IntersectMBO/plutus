@@ -119,11 +119,18 @@ library plutus-tx-testlib
   import:          lang
   visibility:      public
   hs-source-dirs:  testlib
-  exposed-modules: PlutusTx.Test
+  exposed-modules:
+    Hedgehog.Laws.Common
+    Hedgehog.Laws.Eq
+    Hedgehog.Laws.Lattice
+    Hedgehog.Laws.Ord
+    PlutusTx.Test
+
   build-depends:
     , base                                                       >=4.9 && <5
     , filepath
     , flat                                                       <0.5
+    , hedgehog
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.2
@@ -131,6 +138,7 @@ library plutus-tx-testlib
     , prettyprinter
     , tagged
     , tasty
+    , tasty-hedgehog
     , text
 
 test-suite plutus-tx-test
