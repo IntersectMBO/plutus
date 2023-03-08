@@ -15,7 +15,6 @@ module PlutusIR.Parser
 import PlutusCore.Annotation
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
 import PlutusCore.Parser hiding (parseProgram, program)
-import PlutusCore.Version qualified as PLC
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
