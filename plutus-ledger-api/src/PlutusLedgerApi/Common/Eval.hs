@@ -21,7 +21,7 @@ module PlutusLedgerApi.Common.Eval
 
 import Control.Lens
 import PlutusCore
-import PlutusCore as ScriptPlutus (Version, latestVersion)
+import PlutusCore as ScriptPlutus (Version)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -43,7 +43,6 @@ import Data.Set qualified as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
-import PlutusLedgerApi.Common.Versions (plcVersionsAvailableIn)
 import Prettyprinter
 
 -- | Errors that can be thrown when evaluating a Plutus script.
