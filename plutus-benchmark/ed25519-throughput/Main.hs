@@ -25,7 +25,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import PlutusTx.IsData (toData, unstableMakeIsData)
-import PlutusTx.Prelude as Tx hiding (sort, (*))
+import PlutusTx.Prelude as Tx hiding (sort, traverse_, (*))
 
 import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
                                    rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN, signDSIGN)
@@ -35,6 +35,7 @@ import Cardano.Crypto.Seed (mkSeedFromBytes)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
+import Data.Foldable (traverse_)
 import Flat qualified
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
@@ -217,4 +218,4 @@ main = do
   testHaskell 100
   printf "    n     script size             CPU usage               Memory usage\n"
   printf "  ----------------------------------------------------------------------\n"
-  mapM_ printStatistics [0, 10..150]
+  traverse_ printStatistics [0, 10..150]
