@@ -1,4 +1,16 @@
 
+<a id='changelog-1.3.0.0'></a>
+# 1.3.0.0 — 2023-03-08
+
+## Added
+
+- The debugger TUI updates live the currently spent CPU&MEM resources of the debugged program.
+- The debugger TUI accepts a `--budget` to limit the CPU&MEM resources of the debugged program.
+
+## Changed
+
+- The PIR readable prettyprinter was improved in a number of minor ways.
+
 <a id='changelog-1.2.0.0'></a>
 # 1.2.0.0 — 2023-02-24
 
