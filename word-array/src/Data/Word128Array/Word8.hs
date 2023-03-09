@@ -1,0 +1,258 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE BinaryLiterals      #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE UnboxedTuples       #-}
+
+{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dppr-cols=200 -dumpdir /tmp/dumps #-}
+
+module Data.Word128Array.Word8
+  ( WordArray(..)
+  , Index(..)
+  , toWordArray
+  , readArray
+  , writeArray
+  , overIndex
+  , iforWordArray
+  , ifoldWordArray
+  , toList
+  , toTuple
+  , displayWordArray
+  ) where
+
+import Control.DeepSeq
+import Data.Bits
+import Data.Functor
+import Data.Maybe (fromMaybe)
+import Data.MonoTraversable
+import Data.WideWord
+import Data.Word
+import Numeric (showHex)
+import Text.Show (showListWith)
+
+{- Note [Representation of WordArray]
+WordArray has its constituent Word8s packed in order from *left-to-right*, i.e.
+the first Word8 occupies the most-significant bits. However, we write the
+Word8 itself in its normal order, i.e. with its least significant bits on the right.
+
+Hence the offset to find the "start" of the ith Word8 is (-8*i) + 56.
+-}
+
+-- | A vector of 8 'Word8's packed into a 'Word128'.
+newtype WordArray = WordArray { fromWordArray :: Word128 }
+  deriving stock (Eq, Ord)
+  deriving newtype (NFData)
+
+instance Show WordArray where
+    show = displayWordArray
+
+type instance Element WordArray = Word8
+
+newtype Index = Index { getIndex :: Int }
+  deriving stock (Show, Eq, Ord)
+  deriving newtype (Num)
+
+instance Bounded Index where
+  maxBound = 15
+  minBound = 0
+
+{-# INLINE toWordArray #-}
+toWordArray :: Word128 -> WordArray
+toWordArray = WordArray
+
+displayWordArray :: WordArray -> String
+displayWordArray wa = displayWordArrayS wa ""
+  where
+  displayHex x s = "0x" <> showHex x s
+  displayWordArrayS = showListWith displayHex . toList
+
+{-# INLINE toTuple #-}
+toTuple :: WordArray ->
+  (# Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  #)
+toTuple (WordArray !w) =
+  let
+    !w15 = w
+    !w14 = unsafeShiftR w15 8
+    !w13 = unsafeShiftR w14 8
+    !w12 = unsafeShiftR w13 8
+    !w11 = unsafeShiftR w12 8
+    !w10 = unsafeShiftR w11 8
+    !w9 = unsafeShiftR w10 8
+    !w8 = unsafeShiftR w9 8
+    !w7 = unsafeShiftR w8 8
+    !w6 = unsafeShiftR w7 8
+    !w5 = unsafeShiftR w6 8
+    !w4 = unsafeShiftR w5 8
+    !w3 = unsafeShiftR w4 8
+    !w2 = unsafeShiftR w3 8
+    !w1 = unsafeShiftR w2 8
+    !w0 = unsafeShiftR w1 8
+  in
+  (# fromIntegral w0
+  ,  fromIntegral w1
+  ,  fromIntegral w2
+  ,  fromIntegral w3
+  ,  fromIntegral w4
+  ,  fromIntegral w5
+  ,  fromIntegral w6
+  ,  fromIntegral w7
+  ,  fromIntegral w8
+  ,  fromIntegral w9
+  ,  fromIntegral w10
+  ,  fromIntegral w11
+  ,  fromIntegral w12
+  ,  fromIntegral w13
+  ,  fromIntegral w14
+  ,  fromIntegral w15
+  #)
+
+{-# INLINE fromTuple #-}
+fromTuple ::
+  (# Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  , Element WordArray
+  #)
+  -> WordArray
+fromTuple (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) =
+    WordArray
+      (                (fromIntegral w15)
+      .|. unsafeShiftL (fromIntegral w14) 8
+      .|. unsafeShiftL (fromIntegral w13) 16
+      .|. unsafeShiftL (fromIntegral w12) 24
+      .|. unsafeShiftL (fromIntegral w11) 32
+      .|. unsafeShiftL (fromIntegral w10) 40
+      .|. unsafeShiftL (fromIntegral w9) 48
+      .|. unsafeShiftL (fromIntegral w8) 56
+      .|. unsafeShiftL (fromIntegral w7) 64
+      .|. unsafeShiftL (fromIntegral w6) 72
+      .|. unsafeShiftL (fromIntegral w5) 80
+      .|. unsafeShiftL (fromIntegral w4) 88
+      .|. unsafeShiftL (fromIntegral w3) 96
+      .|. unsafeShiftL (fromIntegral w2) 104
+      .|. unsafeShiftL (fromIntegral w1) 112
+      .|. unsafeShiftL (fromIntegral w0) 120
+      )
+
+{-# INLINE toList #-}
+toList :: WordArray -> [Element WordArray]
+toList !w =
+  let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+  in [w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14, w15]
+
+{-# INLINE readArray #-}
+readArray :: WordArray -> Index -> Element WordArray
+readArray (WordArray !w) (Index !i) =
+  -- See Note [Representation of WordArray]
+  let offset = -8*i + 120
+  in fromIntegral $ unsafeShiftR w offset
+
+{-# INLINE writeArray #-}
+writeArray :: WordArray -> Index -> Element WordArray -> WordArray
+writeArray (WordArray !w) (Index !i) !w8 =
+  -- See Note [Representation of WordArray]
+  let offset = -8*i + 120
+      w128 :: Word128
+      w128 = unsafeShiftL (fromIntegral w8) offset
+  in WordArray ((w .&. mask i) + w128)
+
+{-# INLINE overIndex #-}
+-- | Modify the word at a given index.
+overIndex :: Index -> (Element WordArray -> Element WordArray) -> WordArray -> WordArray
+overIndex !i f !w = writeArray w i $ f $ readArray w i
+
+{-# INLINE mask #-}
+mask :: Int -> Word128
+mask 0  = 0x00ffffffffffffffffffffffffffffff
+mask 1  = 0xff00ffffffffffffffffffffffffffff
+mask 2  = 0xffff00ffffffffffffffffffffffffff
+mask 3  = 0xffffff00ffffffffffffffffffffffff
+mask 4  = 0xffffffff00ffffffffffffffffffffff
+mask 5  = 0xffffffffff00ffffffffffffffffffff
+mask 6  = 0xffffffffffff00ffffffffffffffffff
+mask 7  = 0xffffffffffffff00ffffffffffffffff
+mask 8  = 0xffffffffffffffff00ffffffffffffff
+mask 9  = 0xffffffffffffffffff00ffffffffffff
+mask 10 = 0xffffffffffffffffffff00ffffffffff
+mask 11 = 0xffffffffffffffffffffff00ffffffff
+mask 12 = 0xffffffffffffffffffffffff00ffffff
+mask 13 = 0xffffffffffffffffffffffffff00ffff
+mask 14 = 0xffffffffffffffffffffffffffff00ff
+mask 15 = 0xffffffffffffffffffffffffffffff00
+mask _  = error "mask"
+
+{-# INLINE iforWordArray #-}
+iforWordArray :: Applicative f => WordArray -> (Int -> Element WordArray -> f ()) -> f ()
+iforWordArray !w f =
+  let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+  in   f 0 w0 *> f 1 w1 *> f 2 w2 *> f 3 w3 *> f 4 w4 *> f 5 w5 *> f 6 w6 *> f 7 w7 *> f 8 w8 *> f 9 w9 *> f 10 w10 *> f 11 w11 *> f 12 w12 *> f 13 w13 *> f 14 w14 *> f 15 w15
+
+{-# INLINE ifoldWordArray #-}
+ifoldWordArray :: (Int -> Element WordArray -> b -> b) -> b -> WordArray -> b
+ifoldWordArray f !b !w =
+  let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+  in  f 0 w0 $ f 1 w1 $ f 2 w2 $ f 3 w3 $ f 4 w4 $ f 5 w5 $ f 6 w6 $ f 7 w7 $ f 8 w8 $ f 9 w9 $ f 10 w10 $ f 11 w11 $ f 12 w12 $ f 13 w13 $ f 14 w14 $ f 15 w15 b
+
+instance MonoFunctor WordArray where
+  omap f w =
+    let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+    in fromTuple (# f w0, f w1, f w2, f w3, f w4, f w5, f w6, f w7, f w8, f w9, f w10, f w11, f w12, f w13, f w14, f w15 #)
+
+instance MonoFoldable WordArray where
+  otoList = toList
+  ofoldr f !b !w =
+    let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+    in  f w0 $ f w1 $ f w2 $ f w3 $ f w4 $ f w5 $ f w6 $ f w7 $ f w8 $ f w9 $ f w10 $ f w11 $ f w12 $ f w13 $ f w14 $ f w15 b
+  ofoldl' f z0 xs = ofoldr f' id xs z0
+    where f' x k z = k $! f z x
+  ofoldMap f = ofoldr (mappend . f) mempty
+  onull _ = False
+  oelem e = ofoldr (\a b -> a == e || b) False
+  ofoldr1Ex f xs = fromMaybe
+      (errorWithoutStackTrace "error in word-array ofoldr1Ex: empty array")
+      (ofoldr mf Nothing xs)
+    where
+    mf x m = Just $ case m of
+      Nothing -> x
+      Just y  -> f x y
+  ofoldl1Ex' f xs = fromMaybe
+      (errorWithoutStackTrace "error in word-array ofoldr1Ex: empty array")
+      (ofoldl' mf Nothing xs)
+    where
+    mf m y = Just $ case m of
+      Nothing -> y
+      Just x  -> f x y
+  otraverse_ f !w =
+    let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
+    in void (f w0 *> f w1 *> f w2 *> f w3 *> f w4 *> f w5 *> f w6 *> f w7 *> f w8 *> f w9 *> f w10 *> f w11 *> f w12 *> f w13 *> f w14 *> f w15)

@@ -38,11 +38,15 @@ common lang
 
 library
   import:          lang
-  exposed-modules: Data.Word64Array.Word8
+  exposed-modules:
+    Data.Word128Array.Word8
+    Data.Word64Array.Word8
+
   build-depends:
     , base              >=4.13 && <5.0
     , deepseq
     , mono-traversable
+    , wide-word
 
   hs-source-dirs:  src
   ghc-options:     -O2
@@ -59,6 +63,7 @@ test-suite test
     , tasty
     , tasty-quickcheck
     , vector
+    , wide-word
     , word-array        ^>=1.1
 
 benchmark bench
