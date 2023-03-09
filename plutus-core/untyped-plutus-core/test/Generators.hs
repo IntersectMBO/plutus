@@ -20,9 +20,7 @@ import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Core.Type (Program (Program),
-                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var),
-                                    progTerm, termAnn)
+import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, termAnn)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)
@@ -59,6 +57,8 @@ compareTerm (Force _ t ) (Force _ t')         = compareTerm t t'
 compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
+compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && all (uncurry compareTerm) (zip es es')
+compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && all (uncurry compareTerm) (zip cs cs')
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False
 

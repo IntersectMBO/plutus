@@ -52,9 +52,11 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
+import Control.Lens (ix)
 import Control.Lens hiding (Context, ix)
 import Control.Monad
 import Control.Monad.Except
+import Data.DList qualified as DList
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
@@ -92,7 +94,10 @@ instance Pretty (CekState uni fun ann) where
 data Context uni fun ann
     = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
+    | FrameApplyValues ann ![CekValue uni fun ann] !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
+    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Int ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     | NoFrame
     deriving stock (Show)
 
@@ -133,6 +138,16 @@ computeCek !ctx !_ (Builtin _ bn) = do
     let meaning = lookupBuiltin bn ?cekRuntime
     -- 'Builtin' is fully discharged.
     pure $ Returning ctx (VBuiltin bn (Builtin () bn) meaning)
+-- s ; ρ ▻ constr I T0 .. Tn  ↦  s ; constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+computeCek !ctx !env (Constr ann i es) = do
+    stepAndMaybeSpend BConstr
+    case es of
+        (t : rest) -> computeCek (FrameConstr ann env i rest mempty ctx) env t
+        _          -> returnCek ctx $ VConstr i []
+-- s ; ρ ▻ case S C0 ... Cn  ↦  s ; case _ (C0 ... Cn, ρ) ; ρ ▻ S
+computeCek !ctx !env (Case ann scrut cs) = do
+    stepAndMaybeSpend BCase
+    computeCek (FrameCases ann env cs ctx) env scrut
 -- s ; ρ ▻ error A  ↦  <> A
 computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure
@@ -158,6 +173,22 @@ returnCek (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
 -- FIXME: add rule for VBuiltin once it's in the specification.
 returnCek (FrameApplyFun _ fun ctx) arg =
     applyEvaluate ctx fun arg
+-- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+returnCek (FrameApplyValues ann args ctx) fun = case args of
+    (arg:rest) -> applyEvaluate (FrameApplyValues ann rest ctx) fun arg
+    _          -> returnCek ctx fun
+-- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
+returnCek (FrameConstr ann env i todo done ctx) e = do
+    let done' = done `DList.snoc` e
+    case todo of
+        (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
+        _              -> returnCek ctx $ VConstr i (toList done')
+-- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
+returnCek (FrameCases ann env cs ctx) e = case e of
+    (VConstr i args) -> case cs ^? ix i of
+        Just t  -> computeCek (FrameApplyValues ann args ctx) env t
+        Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
+    _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;
@@ -324,20 +355,26 @@ cekStateAnn = \case
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
-    FrameApplyFun ann _ _   -> pure ann
-    FrameApplyArg ann _ _ _ -> pure ann
-    FrameForce ann _        -> pure ann
-    NoFrame                 -> empty
+    FrameApplyFun ann _ _     -> pure ann
+    FrameApplyArg ann _ _ _   -> pure ann
+    FrameApplyValues ann _ _  -> pure ann
+    FrameForce ann _          -> pure ann
+    FrameConstr ann _ _ _ _ _ -> pure ann
+    FrameCases ann _ _ _      -> pure ann
+    NoFrame                   -> empty
 
 lenContext :: Context uni fun ann -> Word
 lenContext = go 0
     where
       go :: Word -> Context uni fun ann -> Word
       go !n = \case
-              FrameApplyFun _ _ k   -> go (n+1) k
-              FrameApplyArg _ _ _ k -> go (n+1) k
-              FrameForce _ k        -> go (n+1) k
-              NoFrame               -> 0
+              FrameApplyFun _ _ k     -> go (n+1) k
+              FrameApplyArg _ _ _ k   -> go (n+1) k
+              FrameApplyValues _ _ k  -> go (n+1) k
+              FrameForce _ k          -> go (n+1) k
+              FrameConstr _ _ _ _ _ k -> go (n+1) k
+              FrameCases _ _ _ k      -> go (n+1) k
+              NoFrame                 -> 0
 
 
 -- * Duplicated functions from Cek.Internal module
@@ -359,6 +396,8 @@ cekStepCost costs = \case
     BDelay   -> cekDelayCost costs
     BForce   -> cekForceCost costs
     BBuiltin -> cekBuiltinCost costs
+    BConstr  -> cekConstrCost costs
+    BCase    -> cekCaseCost costs
 
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
@@ -424,11 +463,11 @@ stepAndMaybeSpend !kind = do
     -- See Note [Structure of the step counter]
     -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
     -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
-    let !ix = fromEnum kind
+    let !counterIndex = fromEnum kind
         ctr = ?cekStepCounter
         !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
     !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
-    _ <- modifyCounter ix (+1) ctr
+    _ <- modifyCounter counterIndex (+1) ctr
     -- There's no risk of overflow here, since we only ever increment the total
     -- steps by 1 and then check this condition.
     when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget

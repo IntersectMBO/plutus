@@ -232,6 +232,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
@@ -450,6 +451,7 @@ library plutus-ir
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.Inline.CallSiteInline
     PlutusIR.Transform.Inline.UnconditionalInline

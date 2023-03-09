@@ -149,6 +149,9 @@ letFloatInRelaxed =
             , "float-into-RHS"
             , "float-into-tyabs1"
             , "float-into-tyabs2"
+            , "float-into-constr"
+            , "float-into-case-arg"
+            , "float-into-case-branch"
             , "type"
             ]
   where

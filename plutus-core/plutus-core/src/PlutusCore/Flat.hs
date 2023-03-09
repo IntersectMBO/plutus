@@ -19,7 +19,7 @@ module PlutusCore.Flat
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Data
+import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Name
 
@@ -238,6 +238,9 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> encodeType 4 <> encode ann <> encode con
         TyLam     ann n k t   -> encodeType 5 <> encode ann <> encode n   <> encode k <> encode t
         TyApp     ann t t'    -> encodeType 6 <> encode ann <> encode t   <> encode t'
+        -- Note that this relies on the instance for lists. We shouldn't use this in the
+        -- serious on-chain version but it's okay here.
+        TySOP    ann tyls     -> encodeType 7 <> encode ann <> encode tyls
 
     decode = go =<< decodeType
         where go 0 = TyVar     <$> decode <*> decode
@@ -247,6 +250,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 4 = TyBuiltin <$> decode <*> decode
               go 5 = TyLam     <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp     <$> decode <*> decode <*> decode
+              go 7 = TySOP     <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
     size tm sz =
@@ -260,6 +264,7 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> size ann $ size con sz'
         TyLam     ann n k t   -> size ann $ size n $ size k $ size t sz'
         TyApp     ann t t'    -> size ann $ size t $ size t' sz'
+        TySOP     ann tyls    -> size ann $ size tyls sz'
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -288,19 +293,33 @@ instance ( Closed uni
         IWrap    ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
         Error    ann ty        -> encodeTerm 8 <> encode ann <> encode ty
         Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
+        Constr   ann ty i es   ->
+          encodeTerm 10
+          <> encode ann
+          <> encode ty
+          <> encode i
+          <> encode es
+        Case     ann ty arg cs ->
+          encodeTerm 11
+          <> encode ann
+          <> encode ty
+          <> encode arg
+          <> encode cs
 
     decode = go =<< decodeTerm
-        where go 0 = Var      <$> decode <*> decode
-              go 1 = TyAbs    <$> decode <*> decode <*> decode <*> decode
-              go 2 = LamAbs   <$> decode <*> decode <*> decode <*> decode
-              go 3 = Apply    <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 5 = TyInst   <$> decode <*> decode <*> decode
-              go 6 = Unwrap   <$> decode <*> decode
-              go 7 = IWrap    <$> decode <*> decode <*> decode <*> decode
-              go 8 = Error    <$> decode <*> decode
-              go 9 = Builtin  <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+        where go 0  = Var      <$> decode <*> decode
+              go 1  = TyAbs    <$> decode <*> decode <*> decode <*> decode
+              go 2  = LamAbs   <$> decode <*> decode <*> decode <*> decode
+              go 3  = Apply    <$> decode <*> decode <*> decode
+              go 4  = Constant <$> decode <*> decode
+              go 5  = TyInst   <$> decode <*> decode <*> decode
+              go 6  = Unwrap   <$> decode <*> decode
+              go 7  = IWrap    <$> decode <*> decode <*> decode <*> decode
+              go 8  = Error    <$> decode <*> decode
+              go 9  = Builtin  <$> decode <*> decode
+              go 10 = Constr   <$> decode <*> decode <*> decode <*> decode
+              go 11 = Case     <$> decode <*> decode <*> decode <*> decode
+              go _  = fail "Failed to decode Term TyName Name ()"
 
     size tm sz =
       let
@@ -316,6 +335,8 @@ instance ( Closed uni
         IWrap    ann pat arg t -> size ann $ size pat $ size arg $ size t sz'
         Error    ann ty        -> size ann $ size ty sz'
         Builtin  ann bn        -> size ann $ size bn sz'
+        Constr   ann ty i es   -> size ann $ size ty $ size i $ size es sz'
+        Case     ann ty arg cs -> size ann $ size ty $ size arg $ size cs sz'
 
 instance ( Closed uni
          , Flat ann

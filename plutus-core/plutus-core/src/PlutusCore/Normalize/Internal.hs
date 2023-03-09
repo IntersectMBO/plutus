@@ -200,6 +200,9 @@ normalizeTypeM var@(TyVar _ name)            = do
         Just ty -> liftDupable ty
 normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
     pure . Normalized $ ann <$ normalizeUni uni
+normalizeTypeM (TySOP ann tyls) = do
+    tyls' <- (traverse . traverse) (fmap unNormalized . normalizeTypeM) tyls
+    pure $ Normalized $ TySOP ann tyls'
 
 {- Note [Normalizing substitution]
 @substituteNormalizeM@ is only ever used as normalizing substitution that receives two already

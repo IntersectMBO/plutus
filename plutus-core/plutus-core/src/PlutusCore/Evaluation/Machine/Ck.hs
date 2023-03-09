@@ -42,6 +42,7 @@ import Control.Monad.Reader
 import Control.Monad.ST
 import Data.DList (DList)
 import Data.DList qualified as DList
+import Data.List.Extra ((!?))
 import Data.STRef
 import Data.Text (Text)
 import Universe
@@ -58,6 +59,7 @@ data CkValue uni fun =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
+  | VConstr (Type TyName uni ()) Int [CkValue uni fun]
     deriving stock (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -81,6 +83,7 @@ ckValueToTerm = \case
     VLamAbs name ty body -> LamAbs () name ty body
     VIWrap  ty1 ty2 val  -> IWrap  () ty1 ty2 $ ckValueToTerm val
     VBuiltin term _      -> term
+    VConstr ty i es      -> Constr () ty i (fmap ckValueToTerm es)
 
 data CkEnv uni fun s = CkEnv
     { ckEnvRuntime    :: BuiltinsRuntime fun (CkValue uni fun)
@@ -129,12 +132,17 @@ instance HasConstant (CkValue uni fun) where
 
     fromConstant = VCon
 
+-- CK not CEK
+-- substitution not environments
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
+    | FrameApplyValues ![CkValue uni fun]                   -- ^ @[_ V...]@
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
+    | FrameConstr (Type TyName uni ()) Int [Term TyName Name uni fun ()] [CkValue uni fun]
+    | FrameCase [Term TyName Name uni fun ()]
 
 type Context uni fun = [Frame uni fun]
 
@@ -179,11 +187,14 @@ stack |> Builtin _ bn            = do
     runtime <- lookupBuiltin bn . ckEnvRuntime <$> ask
     stack <| VBuiltin (Builtin () bn) runtime
 stack |> Constant _ val          = stack <| VCon val
+stack |> Constr _ ty i es               = case es of
+    []     -> stack <| VConstr ty i []
+    t : ts -> FrameConstr ty i ts [] : stack |> t
+stack |> Case _ _ arg cs         = FrameCase cs : stack |> arg
 _     |> Error{}                 =
     throwingWithCause _EvaluationError (UserEvaluationError CkEvaluationFailure) Nothing
 _     |> var@Var{}               =
     throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var
-
 
 -- FIXME: make sure that the specification is up to date and that this matches.
 -- | The returning part of the CK machine. Rules are as follows:
@@ -202,11 +213,24 @@ _     |> var@Var{}               =
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
 FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
 FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
+FrameApplyValues args : stack <| fun  = case args of
+  []         -> stack <| fun
+  arg : rest -> applyEvaluate (FrameApplyValues rest : stack) fun arg
 FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
     _               ->
         throwingWithCause _MachineError NonWrapUnwrappedMachineError $ Just $ ckValueToTerm wrapped
+FrameConstr ty i todo done : stack <| e =
+    let done' = e:done
+    in case todo of
+        t : ts -> FrameConstr ty i ts done' : stack |> t
+        []     -> stack <| VConstr ty i (reverse done')
+FrameCase cs : stack <| e = case e of
+    VConstr _ i args -> case cs !? i of
+        Just t  -> FrameApplyValues args : stack |> t
+        Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
+    _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 
 -- | Instantiate a term with a type and proceed.
 -- In case of 'TyAbs' just ignore the type. Otherwise check if the term is builtin application

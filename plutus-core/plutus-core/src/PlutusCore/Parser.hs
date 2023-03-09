@@ -25,7 +25,9 @@ import PlutusCore.Quote (MonadQuote)
 
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
+import PlutusCore.Version
 import Text.Megaparsec (MonadParsec (notFollowedBy), anySingle, choice, many, some, try)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PLC term.
 type PTerm = Term TyName Name DefaultUni DefaultFun SrcSpan
@@ -70,6 +72,20 @@ errorTerm :: Parser PTerm
 errorTerm = withSpan $ \sp ->
     inParens $ Error sp <$> (symbol "error" *> pType)
 
+constrTerm :: Parser PTerm
+constrTerm = withSpan $ \sp ->
+    inParens $ do
+      res <- Constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many term
+      whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
+      pure res
+
+caseTerm :: Parser PTerm
+caseTerm = withSpan $ \sp ->
+    inParens $ do
+      res <- Case sp <$> (symbol "case" *> pType) <*> term <*> many term
+      whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
+      pure res
+
 -- | Parser for all PLC terms.
 term :: Parser PTerm
 term = leadingWhitespace go
@@ -86,6 +102,8 @@ term = leadingWhitespace go
             , iwrapTerm
             , errorTerm
             , varTerm
+            , constrTerm
+            , caseTerm
             ]
 
 -- | Parse a PLC program. The resulting program will have fresh names. The
@@ -103,8 +121,9 @@ program :: Parser (Program TyName Name DefaultUni DefaultFun SrcSpan)
 program = leadingWhitespace go
   where
     go = do
-        prog <- withSpan $ \sp ->
-            inParens $ Program sp <$> (symbol "program" *> version) <*> term
+        prog <- withSpan $ \sp -> inParens $ do
+            v <- symbol "program" *> version
+            withVersion v $ Program sp v <$> term
         notFollowedBy anySingle
         pure prog
 

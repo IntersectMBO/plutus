@@ -8,14 +8,16 @@
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
+import PlutusCore.Flat
+import PlutusCore.Version qualified as PLC
 import UntypedPlutusCore.Core.Type
 
-import PlutusCore.Flat
-
+import Control.Monad
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import Prettyprinter
 import Universe
 
 {-
@@ -106,14 +108,16 @@ encodeTerm
     => Term name uni fun ann
     -> Encoding
 encodeTerm = \case
-    Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encodeTerm t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
-    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
-    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
-    Error    ann      -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    Var      ann n      -> encodeTermTag 0 <> encode ann <> encode n
+    Delay    ann t      -> encodeTermTag 1 <> encode ann <> encodeTerm t
+    LamAbs   ann n t    -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
+    Apply    ann t t'   -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
+    Constant ann c      -> encodeTermTag 4 <> encode ann <> encode c
+    Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
+    Error    ann        -> encodeTermTag 6 <> encode ann
+    Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
+    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
+    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm cs
 
 decodeTerm
     :: forall name uni fun ann
@@ -124,9 +128,10 @@ decodeTerm
     , Flat name
     , Flat (Binder name)
     )
-    => (fun -> Maybe String)
+    => Version
+    -> (fun -> Maybe String)
     -> Get (Term name uni fun ann)
-decodeTerm builtinPred = go
+decodeTerm version builtinPred = go
     where
         go = handleTerm =<< decodeTermTag
         handleTerm 0 = Var      <$> decode <*> decode
@@ -144,6 +149,12 @@ decodeTerm builtinPred = go
             case builtinPred fun of
                 Nothing -> pure t
                 Just e  -> fail e
+        handleTerm 8 = do
+            unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+            Constr   <$> decode <*> decode <*> decodeListWith go
+        handleTerm 9 = do
+            unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+            Case     <$> decode <*> go <*> decodeListWith go
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -162,14 +173,16 @@ sizeTerm tm sz =
   let
     sz' = termTagWidth + sz
   in case tm of
-    Var      ann n    -> size ann $ size n sz'
-    Delay    ann t    -> size ann $ sizeTerm t sz'
-    LamAbs   ann n t  -> size ann $ size n $ sizeTerm t sz'
-    Apply    ann t t' -> size ann $ sizeTerm t $ sizeTerm t' sz'
-    Constant ann c    -> size ann $ size c sz'
-    Force    ann t    -> size ann $ sizeTerm t sz'
-    Error    ann      -> size ann sz'
-    Builtin  ann bn   -> size ann $ size bn sz'
+    Var      ann n      -> size ann $ size n sz'
+    Delay    ann t      -> size ann $ sizeTerm t sz'
+    LamAbs   ann n t    -> size ann $ size n $ sizeTerm t sz'
+    Apply    ann t t'   -> size ann $ sizeTerm t $ sizeTerm t' sz'
+    Constant ann c      -> size ann $ size c sz'
+    Force    ann t      -> size ann $ sizeTerm t sz'
+    Error    ann        -> size ann sz'
+    Builtin  ann bn     -> size ann $ size bn sz'
+    Constr   ann i es   -> size ann $ size i $ foldr sizeTerm sz' es
+    Case     ann arg cs -> size ann $ sizeTerm arg $ foldr sizeTerm sz' cs
 
 -- | An encoder for programs.
 --
@@ -199,7 +212,10 @@ decodeProgram
     )
     => (fun -> Maybe String)
     -> Get (Program name uni fun ann)
-decodeProgram builtinPred = Program <$> decode <*> decode <*> decodeTerm builtinPred
+decodeProgram builtinPred = do
+  ann <- decode
+  v <- decode
+  Program ann v <$> decodeTerm v builtinPred
 
 sizeProgram
     :: forall name uni fun ann
@@ -221,6 +237,7 @@ sizeProgram (Program ann v t) sz = size ann $ size v $ sizeTerm t sz
 -- for deserializing in tests.
 newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram { unUnrestrictedProgram :: Program name uni fun ann }
 
+-- This instance does _not_ check for allowable builtins
 instance ( Closed uni
          , uni `Everywhere` Flat
          , Flat fun

@@ -217,6 +217,15 @@ costIsAcceptable = \case
   LamAbs{}   -> True
   TyAbs{}    -> True
 
+  -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
+  -- the work for the elements at each use site.
+  Constr _ _ _ es  -> case es of
+      []  -> True
+      [e] -> costIsAcceptable e
+      _   -> False
+  -- Inlining a case means redoing the match at each use site
+  Case{} -> False
+
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
@@ -234,6 +243,14 @@ sizeIsAcceptable = \case
   Error{}    -> True
   LamAbs {}  -> False
   TyAbs {}   -> False
+
+  -- Inlining constructors of size 1 or 0 seems okay
+  Constr _ _ _ es  -> case es of
+      []  -> True
+      [e] -> sizeIsAcceptable e
+      _   -> False
+  -- Cases are pretty big, due to the case branches
+  Case{} -> False
 
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
