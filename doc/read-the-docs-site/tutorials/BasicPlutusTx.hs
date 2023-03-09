@@ -116,8 +116,8 @@ addOne = $$(compile [|| \(x:: Integer) -> x `addInteger` 1 ||])
 addOneToN :: Integer -> CompiledCode Integer
 addOneToN n =
     addOne
-    -- 'applyCode' applies one 'CompiledCode' to another.
-    `applyCode`
+    -- 'unsafeApplyCode' applies one 'CompiledCode' to another.
+    `unsafeApplyCode`
     -- 'liftCode' lifts the argument 'n' into a
     -- 'CompiledCode Integer'.
     liftCode n
@@ -167,9 +167,9 @@ makeLift ''EndDate
 pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
-    `applyCode`
+    `unsafeApplyCode`
     liftCode end
-    `applyCode`
+    `unsafeApplyCode`
     liftCode current
 
 {- |

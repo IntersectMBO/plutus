@@ -85,4 +85,4 @@ genTerm = simpleRecursive nonRecursive recursive where
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni PLC.DefaultFun ())
-genProgram = Program () <$> genTerm
+genProgram = Program () <$> genVersion <*> genTerm

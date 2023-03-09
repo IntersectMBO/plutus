@@ -55,11 +55,36 @@ data CompiledCodeIn uni fun a =
 -- | 'CompiledCodeIn' instantiated with default built-in types and functions.
 type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
--- | Apply a compiled function to a compiled argument.
+-- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
 applyCode
     :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> Maybe (CompiledCodeIn uni fun b)
+applyCode fun arg = do
+  uplc <- UPLC.applyProgram (getPlc fun) (getPlc arg)
+  -- Probably this could be done with more appropriate combinators, but the
+  -- nested Maybes make it very easy to do the wrong thing here (I did it
+  -- wrong first!), so I wrote it painfully explicitly.
+  pir <- case (getPir fun, getPir arg) of
+    (Just funPir, Just argPir) -> case PIR.applyProgram funPir argPir of
+        Just appliedPir -> pure (Just appliedPir)
+        -- Had PIR for both, but failed to apply them, this should fail
+        Nothing         -> Nothing
+    -- Missing PIR for one or both, this succeeds but has no PIR
+    _ -> pure Nothing
+
+  pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
+
+-- | Apply a compiled function to a compiled argument. Will throw if the versions don't match,
+-- should only be used in non-production code.
+unsafeApplyCode
+    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
-applyCode fun arg = DeserializedCode (UPLC.applyProgram (getPlc fun) (getPlc arg)) (PIR.applyProgram <$> getPir fun <*> getPir arg) (getCovIdx fun <> getCovIdx arg)
+unsafeApplyCode fun arg = case applyCode fun arg of
+  Just c  -> c
+  Nothing ->
+    let (UPLC.Program _ ver1 _) = getPlc fun
+        (UPLC.Program _ ver2 _) = getPlc arg
+    in error $ "Could not apply CompiledCodeIn, likely a version mismatch between " ++ show ver1 ++ " and " ++ show ver2
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer

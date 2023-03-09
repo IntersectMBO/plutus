@@ -5,6 +5,7 @@ module DeBruijn.UnDeBruijnify (test_undebruijnify) where
 import Control.Monad.Except
 import Control.Monad.State
 import DeBruijn.Common
+import PlutusCore qualified as PLC
 import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.MkPlc
@@ -155,9 +156,4 @@ test_undebruijnify = testNested "Golden"
         . runQuoteT
         . flip evalStateT mempty
         . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel) . mkProg
-    mkProg = UPLC.mkDefaultProg . termMapNames fakeNameDeBruijn
-
-
-
-
-
+    mkProg = UPLC.Program () PLC.latestVersion . termMapNames fakeNameDeBruijn

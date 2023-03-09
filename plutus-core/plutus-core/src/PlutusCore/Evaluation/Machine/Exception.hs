@@ -34,7 +34,6 @@ module PlutusCore.Evaluation.Machine.Exception
 
 import PlutusPrelude
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 

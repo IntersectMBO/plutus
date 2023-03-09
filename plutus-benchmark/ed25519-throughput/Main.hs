@@ -170,7 +170,7 @@ verifyInputs hash d =
 -- verification script to that.
 mkSigCheckScript :: Integer -> UProg
 mkSigCheckScript n =
-    Tx.getPlcNoAnn $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.applyCode` Tx.liftCode (mkInputsAsData n haskellHash)
+    Tx.getPlcNoAnn $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.unsafeApplyCode` Tx.liftCode (mkInputsAsData n haskellHash)
 
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double

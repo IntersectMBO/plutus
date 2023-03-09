@@ -187,7 +187,6 @@ library
     PlutusCore.Core.Instance.Eq
     PlutusCore.Core.Instance.Pretty
     PlutusCore.Core.Instance.Pretty.Classic
-    PlutusCore.Core.Instance.Pretty.Common
     PlutusCore.Core.Instance.Pretty.Default
     PlutusCore.Core.Instance.Pretty.Plc
     PlutusCore.Core.Instance.Pretty.Readable
@@ -396,7 +395,6 @@ executable plc
   build-depends:
     , base                  >=4.9 && <5
     , deepseq
-    , lens
     , optparse-applicative
     , plutus-core           ^>=1.3
     , plutus-core-execlib   ^>=1.3

@@ -315,12 +315,12 @@ main = do
           Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        traverse_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.mkDefaultProg . getTerm $ pa
+        traverse_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.Program () PLC.latestVersion . getTerm $ pa
             where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
-        writeFlatNamed . UPLC.mkDefaultProg . getTerm $ pa
+        writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
     DumpFlatDeBruijn pa ->
-        writeFlatDeBruijn . UPLC.mkDefaultProg . toAnonDeBruijnTerm . getTerm $ pa
+        writeFlatDeBruijn . UPLC.Program () PLC.latestVersion . toAnonDeBruijnTerm . getTerm $ pa
     SizesAndBudgets
         -> printSizesAndBudgets
     -- Write the output to stdout and let the user deal with redirecting it.
