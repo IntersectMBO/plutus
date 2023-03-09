@@ -26,7 +26,8 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     popCountSingleByte, rotateHomogenous, rotateIdentity, rotateIndexMotion, rotateSum,
                                     shiftHomogenous, shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend,
                                     testBitEmpty, testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
-import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckEvaluateCekNoEmit, typecheckReadKnownCek)
+import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckEvaluateCekNoEmit, typecheckReadKnownCek,
+                                   unsafeEvaluateCekNoEmit)
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
                                                   schnorrSecp256k1Prop)
 import Hedgehog hiding (Opaque, Size, Var)
@@ -38,13 +39,15 @@ import PlutusCore (Contains,
                    Term (Builtin, LamAbs, Var), TyName (TyName), Type (TyApp, TyForall, TyFun, TyVar), Unique (Unique),
                    freshName, mapFun, runQuote)
 import PlutusCore.Builtin (CostingPart, toTypeAst, typeOfBuiltinFunction)
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusCore.Default (BuiltinVersion (DefaultFunV1, DefaultFunV2))
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel, defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (CostModel), mkMachineParameters)
 import PlutusCore.Examples.Builtins (BuiltinErrorCall (BuiltinErrorCall), BuiltinVersion (ExtensionFunV0, PairV),
-                                     ExtensionFun (Const, ExpensivePlus, ExpensiveSucc, ExtensionVersion, Factorial, FailingPlus, FailingSucc, Id, IdFInteger, IdList, IdRank2, Swap))
+                                     ExtensionFun (Const, ExpensivePlus, ExpensiveSucc, ExtensionVersion, Factorial, FailingPlus, FailingSucc, ForallFortyTwo, Id, IdFInteger, IdList, IdRank2, ScottToMetaUnit, Swap))
 import PlutusCore.Examples.Data.Data (ofoldrData)
-import PlutusCore.Generators.Interesting (factorial)
+import PlutusCore.Generators.Hedgehog.Interesting (factorial)
 import PlutusCore.MkPlc hiding (error)
 import PlutusCore.StdLib.Data.Bool (bool, false, true)
 import PlutusCore.StdLib.Data.Data (caseData, dataTy)
@@ -53,6 +56,7 @@ import PlutusCore.StdLib.Data.Integer (integer)
 import PlutusCore.StdLib.Data.List qualified as Builtin
 import PlutusCore.StdLib.Data.Pair (pair)
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
+import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit (unitval)
 import PlutusPrelude (Word8, def, isRight)
 import Test.Tasty (TestTree, adjustOption, testGroup)
