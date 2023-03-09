@@ -13,6 +13,7 @@ module PlutusLedgerApi.Common.Eval
     , VerboseMode (..)
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    , evaluateTerm
     , mkDynEvaluationContext
     , toMachineParameters
     , mkTermToEvaluate
@@ -132,6 +133,25 @@ mkDynEvaluationContext ver newCMP =
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
+evaluateTerm
+    :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
+    -> ProtocolVersion
+    -> VerboseMode
+    -> EvaluationContext
+    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> ( Either
+            (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+            (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+       , cost
+       , [Text]
+       )
+evaluateTerm budgetMode pv verbose ectx =
+    UPLC.runCekDeBruijn
+        (toMachineParameters pv ectx)
+        budgetMode
+        (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
+{-# INLINE evaluateTerm #-}
+
 {-| Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
@@ -152,14 +172,8 @@ evaluateScriptRestricting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting lv pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
-
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
-            UPLC.runCekDeBruijn
-                (toMachineParameters pv ectx)
-                (UPLC.restricting $ ExRestrictingBudget budget)
-                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
-                appliedTerm
-
+            evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
     tell logs
     liftEither $ first CekError $ void res
     pure (budget `minusExBudget` final)
@@ -181,14 +195,8 @@ evaluateScriptCounting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
-
     let (res, UPLC.CountingSt final, logs) =
-            UPLC.runCekDeBruijn
-                (toMachineParameters pv ectx)
-                UPLC.counting
-                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
-                appliedTerm
-
+            evaluateTerm UPLC.counting pv verbose ectx appliedTerm
     tell logs
     liftEither $ first CekError $ void res
     pure final

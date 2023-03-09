@@ -3,10 +3,13 @@
 module Common (
     benchWith
     , unsafeUnflat
-    , unsafeEvaluateCekNoEmit'
+    , getEvalCtx
+    , evaluateCekLikeInProd
     , peelDataArguments
     , Term
     ) where
+
+import PlutusPrelude
 
 import PlutusBenchmark.Common (getConfig, getDataDir)
 import PlutusBenchmark.NaturalSort
@@ -15,7 +18,10 @@ import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Result
+import PlutusLedgerApi.Common (LedgerPlutusVersion (PlutusV3), evaluateTerm)
+import PlutusLedgerApi.Common.Versions (languageIntroducedIn)
+import PlutusLedgerApi.V3 (EvaluationContext, ParamName, VerboseMode (..), mkEvaluationContext)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -24,6 +30,8 @@ import Criterion.Main.Options (Mode, parseWith)
 import Criterion.Types (Config (..))
 import Options.Applicative
 
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Writer.Strict
 import Data.ByteString qualified as BS
 import Data.List (isPrefixOf)
 import Flat
@@ -128,13 +136,30 @@ benchWith act = do
         env (BS.readFile $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
-unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-unsafeEvaluateCekNoEmit' =
-       (\(e, _, _) -> unsafeExtractEvaluationResult e) .
-            UPLC.runCekDeBruijn
-                PLC.defaultCekParameters
-                UPLC.restrictingEnormous
-                UPLC.noEmitter
+getEvalCtx
+    :: Either
+            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+            EvaluationContext
+getEvalCtx = do
+    costParams <-
+        maybe
+            (Left evaluationFailure)
+            (Right . take (length $ enumerate @ParamName) . toList)
+            PLC.defaultCostModelParams
+    either (const $ Left evaluationFailure) (Right . fst) . runExcept . runWriterT $
+        mkEvaluationContext costParams
+{-# NOINLINE getEvalCtx #-}
+
+evaluateCekLikeInProd
+    :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> Either
+            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+evaluateCekLikeInProd term = do
+    evalCtx <- getEvalCtx
+    let (getRes, _, _) =
+            evaluateTerm UPLC.restrictingEnormous (languageIntroducedIn PlutusV3) Quiet evalCtx term
+    getRes
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 

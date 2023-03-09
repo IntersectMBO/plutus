@@ -271,6 +271,8 @@ benchmark validation
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.3
+    , plutus-ledger-api        ^>=1.3
+    , transformers
 
 ---------------- validation-decode ----------------
 
@@ -291,6 +293,7 @@ benchmark validation-decode
     , plutus-benchmark-common
     , plutus-core              ^>=1.3
     , plutus-ledger-api        ^>=1.3
+    , transformers
 
 ---------------- validation-full ----------------
 
@@ -311,6 +314,7 @@ benchmark validation-full
     , plutus-benchmark-common
     , plutus-core                                                       ^>=1.3
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.3
+    , transformers
 
 ---------------- Cek cost model calibration ----------------
 

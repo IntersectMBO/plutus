@@ -11,6 +11,7 @@ module PlutusLedgerApi.Common
       -- * Script evaluation
     , evaluateScriptCounting
     , evaluateScriptRestricting
+    , evaluateTerm
     , VerboseMode (..)
     , LogOutput
     , EvaluationError (..)
