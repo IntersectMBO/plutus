@@ -85,7 +85,7 @@ import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
-import Data.Word64Array.Word8 hiding (Index)
+import Data.Word128Array.Word8 hiding (Index)
 import Prettyprinter
 import Universe
 
@@ -755,7 +755,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
-    spend !i !w = unless (i == 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+    spend !i !w = unless (i >= 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> WordArray -> CekM uni fun s WordArray
