@@ -27,6 +27,7 @@ module Bitwise (
 import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Internal (toForeignPtr0)
 import Data.ByteString.Short qualified as SBS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.Foldable (foldl', for_)
@@ -38,9 +39,11 @@ import Foreign.C.Types (CChar, CSize)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
+import GHC.ForeignPtr (ForeignPtr (ForeignPtr))
 import GHC.IO.Handle.Text (memcpy)
-import GHC.Num.Integer (Integer (IN), integerFromByteArray, integerToBigNatClamp#, integerToInt#, integerToWord#)
-import GHC.Prim (int2Word#, sizeofByteArray#)
+import GHC.Num.Integer (Integer (IN), integerFromAddr, integerToBigNatClamp#)
+import GHC.Prim (int2Word#)
+import GHC.Types (Int (I#))
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 import System.IO.Unsafe (unsafeDupablePerformIO)
@@ -231,8 +234,9 @@ integerToByteString n      = Just $ fst $ BS.spanEnd (== 0) $ SBS.fromShort $ SB
 
 {-# INLINE byteStringToInteger #-}
 byteStringToInteger :: ByteString -> Integer
-byteStringToInteger bs = case SBS.toShort bs of
-  SBS.SBS arr -> integerFromByteArray (int2Word# (sizeofByteArray# arr)) arr (integerToWord# 0) (integerToInt# 0)
+byteStringToInteger bs =
+  case toForeignPtr0 bs of
+    (ForeignPtr addr _, I# len) -> unsafeDupablePerformIO $ integerFromAddr (int2Word# len) addr (case 0 of I# n -> n)
 
 {-# NOINLINE popCountByteString #-}
 popCountByteString :: ByteString -> Integer
