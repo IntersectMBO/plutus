@@ -133,7 +133,8 @@ mkDynEvaluationContext ver newCMP =
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
--- | Evaluate a fully-applied term using the CEK machine. Useful for mimicing the behaviour of the on-chain evaluator.
+-- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
+-- on-chain evaluator.
 evaluateTerm
     :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
     -> ProtocolVersion
@@ -151,6 +152,7 @@ evaluateTerm budgetMode pv verbose ectx =
         (toMachineParameters pv ectx)
         budgetMode
         (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
+-- Just replicating the old behavior, probably doesn't matter.
 {-# INLINE evaluateTerm #-}
 
 {-| Evaluates a script, with a cost model and a budget that restricts how many

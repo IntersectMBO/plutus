@@ -19,7 +19,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Result
-import PlutusLedgerApi.Common (LedgerPlutusVersion (PlutusV3), evaluateTerm)
+import PlutusLedgerApi.Common (LedgerPlutusVersion (PlutusV1), evaluateTerm)
 import PlutusLedgerApi.Common.Versions (languageIntroducedIn)
 import PlutusLedgerApi.V3 (EvaluationContext, ParamName, VerboseMode (..), mkEvaluationContext)
 import UntypedPlutusCore qualified as UPLC

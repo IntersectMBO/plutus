@@ -17,7 +17,7 @@ import UntypedPlutusCore as UPLC
      `cabal bench -- plutus-benchmark:validation --benchmark-options crowdfunding`.
 -}
 main :: IO ()
-main = evaluate getEvalCtx *> benchWith mkCekBM
+main = evaluate (force getEvalCtx) *> benchWith mkCekBM
  where
    mkCekBM file program =
        -- don't count the undebruijn . unflat cost
