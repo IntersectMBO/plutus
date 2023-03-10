@@ -402,7 +402,7 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 -- | Spend the budget that has been accumulated for a number of machine steps.
 --
 spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => WordArray -> CekM uni fun s ()
-spendAccumulatedBudget !unbudgetedSteps = iforWordArray unbudgetedSteps spend
+spendAccumulatedBudget !unbudgetedSteps = iforWordArray unbudgetedSteps $ \ix v -> spend (fromIntegral ix) v
   where
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.

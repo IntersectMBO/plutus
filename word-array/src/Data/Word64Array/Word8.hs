@@ -52,7 +52,7 @@ type instance Element WordArray = Word8
 
 newtype Index = Index { getIndex :: Int }
   deriving stock (Show, Eq, Ord)
-  deriving newtype (Num)
+  deriving newtype (Num, Real, Enum, Integral)
 
 instance Bounded Index where
   maxBound = 7
@@ -145,13 +145,13 @@ mask 7 = 0xffffffffffffff00
 mask _ = error "mask"
 
 {-# INLINE iforWordArray #-}
-iforWordArray :: Applicative f => WordArray -> (Int -> Element WordArray -> f ()) -> f ()
+iforWordArray :: Applicative f => WordArray -> (Index -> Element WordArray -> f ()) -> f ()
 iforWordArray !w f =
   let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7 #) = toTuple w
   in   f 0 w0 *> f 1 w1 *> f 2 w2 *> f 3 w3 *> f 4 w4 *> f 5 w5 *> f 6 w6 *> f 7 w7
 
 {-# INLINE ifoldWordArray #-}
-ifoldWordArray :: (Int -> Element WordArray -> b -> b) -> b -> WordArray -> b
+ifoldWordArray :: (Index -> Element WordArray -> b -> b) -> b -> WordArray -> b
 ifoldWordArray f !b !w =
   let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7 #) = toTuple w
   in  f 0 w0 $ f 1 w1 $ f 2 w2 $ f 3 w3 $ f 4 w4 $ f 5 w5 $ f 6 w6 $ f 7 w7 b

@@ -164,6 +164,7 @@ library
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+    UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Rename

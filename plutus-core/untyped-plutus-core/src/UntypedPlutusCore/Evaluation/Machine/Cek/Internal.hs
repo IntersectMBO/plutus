@@ -73,6 +73,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens.Review
 import Control.Monad.Catch
@@ -85,7 +86,7 @@ import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
-import Data.Word128Array.Word8 hiding (Index)
+import Data.Word64Array.Word8 qualified as WA64
 import Prettyprinter
 import Universe
 
@@ -300,6 +301,8 @@ type Slippage = Word8
 -- | The default number of slippage (in machine steps) to allow.
 defaultSlippage :: Slippage
 defaultSlippage = 200
+
+type Steps = WA64.WordArray
 
 {- Note [DList-based emitting]
 Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
@@ -608,7 +611,7 @@ enterComputeCek
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
     -> CekM uni fun s (NTerm uni fun ())
-enterComputeCek = computeCek (toWordArray 0) where
+enterComputeCek = computeCek newCounter where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -616,7 +619,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
-        :: WordArray
+        :: Steps
         -> Context uni fun ann
         -> CekValEnv uni fun ann
         -> NTerm uni fun ann
@@ -665,7 +668,7 @@ enterComputeCek = computeCek (toWordArray 0) where
           stored in the frame to an argument.
     -}
     returnCek
-        :: WordArray
+        :: Steps
         -> Context uni fun ann
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
@@ -691,7 +694,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
-        :: WordArray
+        :: Steps
         -> Context uni fun ann
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
@@ -721,7 +724,7 @@ enterComputeCek = computeCek (toWordArray 0) where
     -- representation depending on whether the application is saturated or not.
     -- If v is anything else, fail.
     applyEvaluate
-        :: WordArray
+        :: Steps
         -> Context uni fun ann
         -> CekValue uni fun ann   -- lhs of application
         -> CekValue uni fun ann   -- rhs of application
@@ -747,29 +750,32 @@ enterComputeCek = computeCek (toWordArray 0) where
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
-    spendAccumulatedBudget :: WordArray -> CekM uni fun s ()
-    spendAccumulatedBudget !unbudgetedSteps = iforWordArray unbudgetedSteps spend
+    spendAccumulatedBudget :: Steps -> CekM uni fun s ()
+    spendAccumulatedBudget !unbudgetedSteps = iforCounter unbudgetedSteps $ \ix v -> spend (fromIntegral ix) v
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
+    spend :: Int -> Word8 -> CekM uni fun s ()
     spend !i !w = unless (i >= 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
-    stepAndMaybeSpend :: StepKind -> WordArray -> CekM uni fun s WordArray
+    stepAndMaybeSpend :: StepKind -> Steps -> CekM uni fun s Steps
     stepAndMaybeSpend !kind !unbudgetedSteps = do
         -- See Note [Structure of the step counter]
         -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
         -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromIntegral $ fromEnum kind
             !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
-            !unbudgetedStepsTotal = readArray unbudgetedSteps' 7
+            !unbudgetedStepsTotal = readCounter unbudgetedSteps' 7
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.
         if unbudgetedStepsTotal >= ?cekSlippage
-        then spendAccumulatedBudget unbudgetedSteps' >> pure (toWordArray 0)
+        then do
+          spendAccumulatedBudget unbudgetedSteps'
+          pure $ resetCounter unbudgetedSteps'
         else pure unbudgetedSteps'
 
 -- See Note [Compilation peculiarities].
