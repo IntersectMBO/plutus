@@ -28,6 +28,7 @@ import Data.Data
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
+import Data.Maybe (fromJust)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
@@ -296,7 +297,7 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 
 {-# NOINLINE integerToByteString #-}
 integerToByteString :: BuiltinInteger -> BuiltinByteString
-integerToByteString = BuiltinByteString . Bitwise.integerToByteString
+integerToByteString = BuiltinByteString . fromJust . Bitwise.integerToByteString
 
 {-# NOINLINE byteStringToInteger #-}
 byteStringToInteger :: BuiltinByteString -> BuiltinInteger

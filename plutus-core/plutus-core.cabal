@@ -71,6 +71,7 @@ common lang
 library
   import:             lang
   exposed-modules:
+    Bitwise
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
@@ -169,7 +170,6 @@ library
     UntypedPlutusCore.Rename
 
   other-modules:
-    Bitwise
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic

@@ -9,6 +9,7 @@
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE UnboxedSums        #-}
 
+-- FIXME: Should be its own library
 module Bitwise (
   integerToByteString,
   byteStringToInteger,
