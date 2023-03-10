@@ -150,6 +150,7 @@ getEvalCtx = do
         mkEvaluationContext costParams
 {-# NOINLINE getEvalCtx #-}
 
+-- | Evaluate a term as it would be evaluated using the on-chain evaluator.
 evaluateCekLikeInProd
     :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
     -> Either
@@ -158,7 +159,8 @@ evaluateCekLikeInProd
 evaluateCekLikeInProd term = do
     evalCtx <- getEvalCtx
     let (getRes, _, _) =
-            evaluateTerm UPLC.restrictingEnormous (languageIntroducedIn PlutusV3) Quiet evalCtx term
+            -- The validation benchmarks were all created from PlutusV1 scripts
+            evaluateTerm UPLC.restrictingEnormous (languageIntroducedIn PlutusV1) Quiet evalCtx term
     getRes
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()

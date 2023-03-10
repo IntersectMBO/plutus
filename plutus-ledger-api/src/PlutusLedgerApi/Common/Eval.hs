@@ -133,6 +133,7 @@ mkDynEvaluationContext ver newCMP =
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
+-- | Evaluate a fully-applied term using the CEK machine. Useful for mimicing the behaviour of the on-chain evaluator.
 evaluateTerm
     :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
     -> ProtocolVersion
