@@ -74,7 +74,7 @@ A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need t
 - This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
 4. Run the release QA process. See "Release QA Process" below.
 5. If no release blocking issue is found, open a PR for updating the cabal files and the changelog files.
-Once the PR is merged, tag the commit `x.y.z.0`, and open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version.
+6. Once the PR is merged, tag the commit `x.y.z.0`, and open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version.
 - Adding the `x.y.z.0` tag triggers a GitHub action that publishes Haddock to `+https://input-output-hk.github.io/plutus/x.y.z.0/+`.
 The GitHub action is only triggered by pushing tags of the form `[0-9]+.[0-9]+.[0-9]+.[0-9]+`.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
