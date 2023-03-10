@@ -1,0 +1,55 @@
+name: New Benchmark
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  # Deployments permission to deploy GitHub pages website
+  deployments: write
+  # Contents permission to update benchmark contents in gh-pages branch
+  contents: write
+
+jobs:
+  new-benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Run benchmark
+        run: | 
+          # TODO run the actual benchmarks
+          cat << EOF> ./output.json 
+          [
+            {
+                "name": "My Custom Smaller Is Better Benchmark - CPU Load",
+                "unit": "Percent",
+                "value": 8
+            },
+            {
+                "name": "My Custom Smaller Is Better Benchmark - Memory Used",
+                "unit": "Megabytes",
+                "value": 5,
+                "range": "3",
+                "extra": "Value for Tooltip: 25\nOptional Num #2: 100\nAnything Else!"
+            }
+          ]
+          EOF
+          
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1.16.2
+        with:
+          name: My Project Go Benchmark
+          tool: 'customSmallerIsBetter'
+          output-file-path: output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Workflow will fail when an alert happens
+          fail-on-alert: true
+          # Push and deploy GitHub pages branch automatically
+          auto-push: true
+          # Enable alert commit comment
+          comment-on-alert: true
+          # Mention @rhysd in the commit comment
+          alert-comment-cc-users: '@zeme-iohk'
