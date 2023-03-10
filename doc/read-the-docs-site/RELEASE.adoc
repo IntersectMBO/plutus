@@ -96,7 +96,7 @@ If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
 5. Run the release QA process. See "Release QA Process" below.
 6. If no release blocking issue is found, open a PR for updating the cabal files and the changelog files.
-Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
+7. Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
 - If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 5.
 
 === Release QA Process
