@@ -277,6 +277,7 @@ prop_pairing_right_additive =
           e3 = finalVerifyPlc e1 e2
       evalTerm e3 === uplcTrue
 
+-- <[n]p,q> = <p,[n]q>
 prop_pairing_balanced :: TestTree
 prop_pairing_balanced =
     testPropertyNamed

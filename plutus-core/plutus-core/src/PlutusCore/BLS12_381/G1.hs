@@ -76,4 +76,3 @@ zero =
          Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G1:  " ++ show err
          Right infinity -> Element infinity  -- The zero point on this curve is chosen to be the point at infinity.
 
-

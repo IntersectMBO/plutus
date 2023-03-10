@@ -85,7 +85,7 @@ prop_scalar_assoc =
     testPropertyNamed
     (printf "Scalar multiplication is associative in %s" name)
     (fromString $ printf "%s_scalar_assoc" name) .
-    withNTests $ property $ do
+    withNTests $ withShrinks 0 $ property $ do
       a <- forAll genScalar
       b <- forAll genScalar
       p <- forAll $ genElement @a
@@ -98,7 +98,7 @@ prop_scalar_zero =
     (printf "Scalar multiplication by 0 always yields the zero element of %s" name)
     (fromString $ printf "%s_scalar_zero" name) .
     withNTests $ property $ do
-      p <- forAll genG1element
+      p <- forAll $ genElement @a
       mul 0 p === zero
         where name = gname @a
 
@@ -108,7 +108,7 @@ prop_scalar_identity =
     (printf "Scalar multiplication by 1 is the identity function on %s" name)
     (fromString $ printf "%s_scalar_identity" name) .
     withNTests $ property $ do
-      p <- forAll genG1element
+      p <- forAll $ genElement @a
       mul 1 p === p
         where name = gname @a
 
@@ -117,7 +117,7 @@ prop_scalar_inverse =
     testPropertyNamed
     (printf "-p = (-1)*p for all p in %s" name)
     (fromString $ printf "%s_scalar_inverse" $ gname @a) .
-    withNTests $ property $ do
+    withNTests $ withShrinks 0 $ property $ do
       p <- forAll $ genElement @a
       neg p === mul (-1) p
         where name = gname @a
@@ -127,10 +127,10 @@ prop_scalar_distributive =
     testPropertyNamed
     (printf "Scalar multiplication distributes over addition in %s" name)
     (fromString $ printf "%s_scalar_distributive" name) .
-    withNTests $ property $ do
+    withNTests $ withShrinks 0 $ property $ do
       a <- forAll genScalar
       b <- forAll genScalar
-      p <- forAll genG1element
+      p <- forAll $ genElement @a
       mul (a+b) p === add (mul a p) (mul b p)
         where name = gname @a
 
@@ -139,14 +139,14 @@ prop_scalar_multiplication = let name = gname @a in
     testPropertyNamed
     (printf "Scalar multiplication is repeated addition in %s" name)
     (fromString $ printf "%s_scalar_multiplication" name) .
-    withNTests $ property $ do
+    withNTests $ withShrinks 0 $ property $ do
       n <- forAll genSmallScalar
-      p <- forAll genElement
+      p <- forAll $ genElement @a
       mul n p === repeatedAdd n p
           where repeatedAdd :: Integer -> a -> a
                 repeatedAdd n p =
                     if n >= 0
-                    then foldl' add zero $ genericReplicate n p
+                    then foldl' add (zero @a) $ genericReplicate n p
                     else repeatedAdd (-n) (neg p)
 
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
@@ -235,11 +235,11 @@ prop_pairing_left_additive =
     testPropertyNamed
     "Pairing is left additive"
     "pairing_left_additive" .
-    withNTests $ property $ do
-      p1 <- forAll genG1element
-      p2 <- forAll genG1element
-      q <- forAll genG2element
-      let e1 = pairing (G1.add p1 p2) q
+    withNTests $ withShrinks 0 $ property $ do
+      p1 <- forAll genElement
+      p2 <- forAll genElement
+      q <- forAll genElement
+      let e1 = pairing (add p1 p2) q
           e2 = GT.mul (pairing p1 q) (pairing p2 q)
       GT.finalVerify e1 e2 === True
 
@@ -249,10 +249,10 @@ prop_pairing_right_additive =
     testPropertyNamed
     "Pairing is right additive"
     "pairing_right_additive" .
-    withNTests $ property $ do
-      p <- forAll genG1element
-      q1 <- forAll genG2element
-      q2 <- forAll genG2element
+    withNTests $ withShrinks 0 $ property $ do
+      p <- forAll genElement
+      q1 <- forAll genElement
+      q2 <- forAll genElement
       let e1 = pairing p (G2.add q1 q2)
           e2 = GT.mul (pairing p q1) (pairing p q2)
       GT.finalVerify e1 e2 === True
@@ -266,11 +266,11 @@ prop_pairing_balanced =
      testPropertyNamed
      "Pairing is balanced"
      "pairing_balanced" .
-     withTests 100 $ property $ do
+     withTests 100 $ withShrinks 0 $ property $ do
        n <- forAll genScalar
-       p <- forAll genG1element
-       q <- forAll genG2element
-       GT.finalVerify (pairing (G1.mul n p) q) (pairing p (G2.mul n q)) === True
+       p <- forAll $ genElement @G1.Element
+       q <- forAll $ genElement @G2.Element
+       GT.finalVerify (pairing (mul n p) q) (pairing p (mul n q)) === True
 
 prop_random_pairing :: TestTree
 prop_random_pairing =
