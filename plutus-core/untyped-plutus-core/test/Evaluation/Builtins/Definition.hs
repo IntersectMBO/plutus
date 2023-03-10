@@ -21,11 +21,11 @@ import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, b
                                     bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
                                     bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
                                     bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
-                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, bsToIHomogenous,
-                                    bsToITrailing, ffsAppend, ffsSingleByte, iToBsRoundtrip, popCountAppend,
-                                    popCountSingleByte, rotateHomogenous, rotateIdentity, rotateIndexMotion, rotateSum,
-                                    shiftHomogenous, shiftIdentity, shiftIndexMotion, shiftSum, testBitAppend,
-                                    testBitEmpty, testBitSingleByte, writeBitAgreement, writeBitDouble, writeBitRead)
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, bsToITrailing, ffsAppend,
+                                    ffsSingleByte, iToBsRoundtrip, popCountAppend, popCountSingleByte, rotateHomogenous,
+                                    rotateIdentity, rotateIndexMotion, rotateSum, shiftHomogenous, shiftIdentity,
+                                    shiftIndexMotion, shiftSum, testBitAppend, testBitEmpty, testBitSingleByte,
+                                    writeBitAgreement, writeBitDouble, writeBitRead)
 import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckEvaluateCekNoEmit, typecheckReadKnownCek,
                                    unsafeEvaluateCekNoEmit)
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
@@ -774,8 +774,7 @@ testIntegerToByteString = testGroup "IntegerToByteString" [
 -- Tests for conversion into Integer from ByteString
 testByteStringToInteger :: TestTree
 testByteStringToInteger = testGroup "ByteStringToInteger" [
-  testPropertyNamed "all zeroes give 0, all ones give -1" "bs_to_i_homogenous" . property $ bsToIHomogenous,
-  testPropertyNamed "trailing ones ignored for negative, trailing zeroes for positive" "bs_to_i_trailing" . property $ bsToITrailing
+  testPropertyNamed "trailing zeros ignored" "bs_to_i_trailing" . property $ bsToITrailing
   ]
 
 test_definition :: TestTree

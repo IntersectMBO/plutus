@@ -2,6 +2,7 @@
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE MultiWayIf         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TupleSections      #-}
@@ -23,11 +24,10 @@ module Bitwise (
   rotateByteString,
   ) where
 
-import Control.Monad (foldM, when)
-import Control.Monad.State.Strict (State, evalState, get, modify, put)
 import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Short qualified as SBS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.Foldable (foldl', for_)
 import Data.Functor (void)
@@ -38,8 +38,9 @@ import Foreign.C.Types (CChar, CSize)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
-import GHC.Exts (fromList, fromListN)
 import GHC.IO.Handle.Text (memcpy)
+import GHC.Num.Integer (Integer (IN), integerFromByteArray, integerToBigNatClamp#, integerToInt#, integerToWord#)
+import GHC.Prim (int2Word#, sizeofByteArray#)
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 import System.IO.Unsafe (unsafeDupablePerformIO)
@@ -223,49 +224,15 @@ writeBitByteString bs i b
       poke (castPtr . plusPtr dst $ bigIx) byte'
       unsafePackMallocCStringLen (dst, len)
 
-integerToByteString :: Integer -> ByteString
-integerToByteString i = case signum i of
-  0    -> BS.singleton zeroBits
-  (-1) -> twosCompToNegative . fromList . go . abs $ i
-  _    -> fromList . go $ i
-  where
-    -- We encode into Word8-sized 'limbs', using a stack to ensure that their
-    -- ordering is little-endian. Effectively, we encode as a base-256 number,
-    -- where the least significant digit is at the end.
-    go :: Integer -> [Word8]
-    go = \case
-      0 -> []
-      pos -> case pos `quotRem` 256 of
-        (d, r) -> go d <> [fromIntegral r]
+{-# INLINE integerToByteString #-}
+integerToByteString :: Integer -> Maybe ByteString
+integerToByteString (IN _) = Nothing
+integerToByteString n      = Just $ fst $ BS.spanEnd (== 0) $ SBS.fromShort $ SBS.SBS (integerToBigNatClamp# n)
 
+{-# INLINE byteStringToInteger #-}
 byteStringToInteger :: ByteString -> Integer
-byteStringToInteger bs = case BS.uncons bs of
-  Nothing -> 0
-  -- We have to take some care with representations of exact powers of 256, as
-  -- the two's complement in such a case is the identity function. Therefore, if
-  -- we find an 'unpadded' power, we have to presume that it's positive; if we
-  -- find a leading 0x80, but _something_ else is not a zero byte, we assume
-  -- it's negative instead.
-  Just (w8, bs') ->
-    let len = BS.length bs
-        f x = evalState (foldM (go x) 0 [len - 1, len - 2 .. 0]) 1 in
-      if | isPositivePowerOf256 w8 bs' -> f bs
-         | bit 7 .&. w8 == zeroBits    -> f bs
-         | otherwise                   -> negate . f . twosCompToPositive $ bs
-  where
-    -- This is essentially the opposite to encoding. However, because
-    -- ByteStrings can be indexed from the end in constant time, we don't need
-    -- to use something like a stack: instead, we start from the end, and
-    -- accumulate the radix base as we go, increasing the further along we get.
-    -- This is more efficient, as we'd otherwise first have to compute the
-    -- largest power of 256 we need, then divide down, essentially doing the
-    -- work _twice_.
-    go :: ByteString -> Integer -> Int -> State Integer Integer
-    go bs' acc i = do
-      mult <- get
-      let byte = BS.index bs' i
-      modify (256 *)
-      pure $ acc + (fromIntegral byte * mult)
+byteStringToInteger bs = case SBS.toShort bs of
+  SBS.SBS arr -> integerFromByteArray (int2Word# (sizeofByteArray# arr)) arr (integerToWord# 0) (integerToInt# 0)
 
 {-# NOINLINE popCountByteString #-}
 popCountByteString :: ByteString -> Integer
@@ -375,9 +342,6 @@ complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(
 
 -- Helpers
 
-isPositivePowerOf256 :: Word8 -> ByteString -> Bool
-isPositivePowerOf256 w8 bs = w8 == 0x80 && BS.all (== zeroBits) bs
-
 -- We compute the read similarly to how we determine the change when we write.
 -- The only difference is that the mask is used on the input to read it, rather
 -- than to modify anything.
@@ -408,54 +372,6 @@ overPtrLen :: ByteString -> (Ptr Word8 -> Int -> IO (Ptr Word8)) -> ByteString
 overPtrLen bs f = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $
   \(ptr, len) -> f (castPtr ptr) len >>= \p ->
     unsafePackMallocCStringLen (castPtr p, len)
-
--- Two's complement in a signed, unbounded representation is somewhat
--- problematic: in our particular case, we hit this issue on exact powers of
--- 256. This issue stems from such values (or rather, the ByteString
--- representations of such) having a two's complement identical to themselves,
--- as well as a trailing 1. This means that we can't distinguish between a
--- _negative_ and a _positive_ power from representation alone, and must default
--- one way or the other.
---
--- Thus, when we want to produce a negative representation, we have to ensure
--- that we 'mark' the result in a way that ensures we can detect that it was
--- negative. We do this by padding with trailing ones.
-twosCompToNegative :: ByteString -> ByteString
-twosCompToNegative bs = case twosComp bs of
-  bs' -> if bs == bs'
-         then BS.cons (complement zeroBits) bs'
-         else bs'
-
--- If we're taking a two's complement to produce a positive representation,
--- padding doesn't matter, as any trailing ones become trailing zeroes.
-twosCompToPositive :: ByteString -> ByteString
-twosCompToPositive = twosComp
-
--- This is a fused version of the 'standard' definition of two's complement:
--- 'flip all bits then add one'. We do this in one pass to avoid having to
--- produce two ByteStrings, only to throw one away. This is done by tracking
--- the add carry manually, and walking over the representation from the highest
--- byte index downward: if the carry is still present, we attempt an 'add one'
--- there and then. This can cause the carry to become 'absorbed', in which case
--- we no longer need to track it; otherwise, we continue on, tracking the carry.
---
--- This operation has to be done byte-wise, as bigger blocks would make carry
--- tracking too difficult, which would probably dwarf any performance
--- improvements. Furthermore, it's not even clear if a 'big step, small step'
--- approach would even help here, as we're reading backwards (against prefetch
--- order), and likely from unaligned memory to boot (as GHC only guarantees
--- alignment from the _start_, not the _end_).
-twosComp :: ByteString -> ByteString
-twosComp bs = let len = BS.length bs in
-  evalState (fromListN len <$> foldM go [] [len - 1, len - 2 .. 0]) False
-  where
-    go :: [Word8] -> Int -> State Bool [Word8]
-    go acc i = do
-      let byte = BS.index bs i
-      added <- get
-      let byte' = if added then complement byte else complement byte + 1
-      when (byte /= byte') (put True)
-      pure $ byte' : acc
 
 mismatchedLengthError :: forall (a :: Type) .
   Text ->

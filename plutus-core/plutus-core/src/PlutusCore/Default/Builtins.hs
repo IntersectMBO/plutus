@@ -1380,7 +1380,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramMkNilPairData)
     -- Bitwise
     toBuiltinMeaning _ver IntegerToByteString =
-        makeBuiltinMeaning integerToByteString mempty
+        makeBuiltinMeaning integerToByteStringPlc mempty
+        where
+          integerToByteStringPlc :: SomeConstant uni Integer -> EvaluationResult BS.ByteString
+          integerToByteStringPlc (SomeConstant (Some (ValueOf uni n))) = do
+              DefaultUniInteger <- pure uni
+              case integerToByteString n of
+                Just bs -> pure $ bs
+                Nothing -> fail "negative integer passed to integerByteString"
+          {-# INLINE integerToByteStringPlc #-}
     toBuiltinMeaning _ver ByteStringToInteger =
         makeBuiltinMeaning byteStringToInteger mempty
     toBuiltinMeaning _ver AndByteString =

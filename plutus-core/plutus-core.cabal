@@ -266,6 +266,7 @@ library
     , filepath
     , flat                        <0.5
     , free
+    , ghc-bignum                  ^>=1.2
     , ghc-prim
     , hashable                    >=1.4
     , hedgehog                    >=1.0

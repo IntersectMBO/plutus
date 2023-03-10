@@ -43,7 +43,6 @@ module Evaluation.Builtins.Bitwise (
   shiftSum,
   iToBsRoundtrip,
   bsToITrailing,
-  bsToIHomogenous,
   ) where
 
 
@@ -541,7 +540,7 @@ shiftSum = do
 
 iToBsRoundtrip :: PropertyT IO ()
 iToBsRoundtrip = do
-  i <- forAllWith ppShow . Gen.integral $ indexRange
+  i <- forAllWith ppShow . Gen.integral $ integerRange
   let comp = mkIterApp () (builtin () ByteStringToInteger) [
               mkIterApp () (builtin () IntegerToByteString) [
                 mkConstant @Integer () i
@@ -554,14 +553,11 @@ iToBsRoundtrip = do
 
 bsToITrailing :: PropertyT IO ()
 bsToITrailing = do
-  testCase <- forAllWith ppShow genBsToITrailingCase
-  cover 45 "negative representation" . isNegativeCase $ testCase
-  cover 45 "non-negative representation" . not . isNegativeCase $ testCase
-  let (extension, bs) = getBsToITrailingArgs testCase
+  BsToITrailingCase extension bs <- forAllWith ppShow genBsToITrailingCase
   let comp = mkIterApp () (builtin () ByteStringToInteger) [
               mkIterApp () (builtin () AppendByteString) [
-                mkConstant @ByteString () extension,
-                mkConstant @ByteString () bs
+                mkConstant @ByteString () bs,
+                mkConstant @ByteString () extension
                 ]
               ]
   let comp' = mkIterApp () (builtin () ByteStringToInteger) [
@@ -572,40 +568,10 @@ bsToITrailing = do
     (EvaluationSuccess res, EvaluationSuccess res') -> res === res'
     _                                               -> failure
 
-bsToIHomogenous :: PropertyT IO ()
-bsToIHomogenous = do
-  w8 <- forAllWith ppShow . Gen.element $ [zeroBits, complement zeroBits]
-  len <- forAllWith ppShow . Gen.integral $ integerRange
-  cover 45 "all zeroes" $ w8 == zeroBits
-  cover 45 "all ones" $ w8 == complement zeroBits
-  let bs = BS.replicate len w8
-  let comp = mkIterApp () (builtin () ByteStringToInteger) [
-              mkConstant @ByteString () bs
-              ]
-  outcome <- cekEval comp
-  case outcome of
-    EvaluationSuccess res ->
-      res === (mkConstant @Integer () $ if | len == 0       -> 0
-                                           | w8 == zeroBits -> 0
-                                           | otherwise      -> (-1))
-    _ -> failure
-
 -- Helpers
 
-data BsToITrailingCase =
-  BsToINonNegative ByteString ByteString |
-  BsToINegative ByteString ByteString
+data BsToITrailingCase = BsToITrailingCase ByteString ByteString
   deriving stock (Eq, Show)
-
-isNegativeCase :: BsToITrailingCase -> Bool
-isNegativeCase = \case
-  BsToINegative{} -> True
-  _               -> False
-
-getBsToITrailingArgs :: BsToITrailingCase -> (ByteString, ByteString)
-getBsToITrailingArgs = \case
-  BsToINegative bs bs'    -> (bs, bs')
-  BsToINonNegative bs bs' -> (bs, bs')
 
 data WriteBitAgreementCase =
   WriteBitReadSame Int Integer |
@@ -932,22 +898,13 @@ cekEval' = typecheckEvaluateCek def defaultBuiltinCostModel
 -- Generators
 
 genBsToITrailingCase :: Gen BsToITrailingCase
-genBsToITrailingCase = Gen.choice [negative, nonNegative]
+genBsToITrailingCase = go
   where
-    negative :: Gen BsToITrailingCase
-    negative = do
+    go :: Gen BsToITrailingCase
+    go = do
       len <- Gen.integral byteBoundRange
       extLen <- Gen.integral byteBoundRange
-      w8 <- Gen.element [129 :: Word8 .. 255]
-      bs <- Gen.bytes . Range.singleton $ len
-      pure .
-        BsToINegative (BS.replicate extLen . complement $ zeroBits) .
-        BS.cons w8 $ bs
-    nonNegative :: Gen BsToITrailingCase
-    nonNegative = do
-      len <- Gen.integral byteBoundRange
-      extLen <- Gen.integral byteBoundRange
-      BsToINonNegative (BS.replicate extLen zeroBits) <$>
+      BsToITrailingCase (BS.replicate extLen zeroBits) <$>
         case len of
           0 -> pure BS.empty
           _ -> Gen.choice [pure . powerOf2 $ len, notPowerOf2 len]
@@ -1154,5 +1111,5 @@ indexRangeOf lim = Range.constantFrom 0 (negate lim) (lim - 1)
 indexRangeFor :: Integer -> Range Integer
 indexRangeFor i = Range.constant 0 (i - 1)
 
-integerRange :: Range Int
-integerRange = Range.linear 0 8
+integerRange :: Range Integer
+integerRange = Range.linear 0 200
