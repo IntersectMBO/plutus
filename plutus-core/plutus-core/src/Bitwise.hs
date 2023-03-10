@@ -8,6 +8,7 @@
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE UnboxedSums        #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
 -- FIXME: Should be its own library
 module Bitwise (
@@ -49,7 +50,7 @@ import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 import System.IO.Unsafe (unsafeDupablePerformIO)
 
-{-# NOINLINE rotateByteString #-}
+-- | See 'PlutusTx.Builtins.rotateByteString'.
 rotateByteString :: ByteString -> Integer -> ByteString
 rotateByteString bs i
   -- If a ByteString is completely homogenous, rotating won't change it. This
@@ -57,17 +58,18 @@ rotateByteString bs i
   | isAllZero bs || isAllOne bs = bs
   -- Rotating by more than the number of bits in a ByteString 'wraps around',
   -- so we're only interested in the rotation modulo the number of bits.
-  | otherwise = case i `rem` bitLen of
+  | otherwise = case i `mod` bitLen of
             -- Means we have a multiple of the bit count, so nothing to do.
-            0         -> bs
-            magnitude -> overPtrLen bs $ \ptr len -> go ptr len magnitude
+            0            -> bs
+            displacement -> overPtrLen bs $ \ptr len -> go ptr len displacement
   where
+    -- not recursive!
     go :: Ptr Word8 -> Int -> Integer -> IO (Ptr Word8)
     go src len displacement = do
       dst <- mallocBytes len
       case len of
-        -- If we only have one byte, we an borrow from the Bits instance for
-        -- Word8.
+        -- If we only have one byte, we can borrow from the Bits instance for
+        -- Word8, since it rotates in the same direction that we want.
         1 -> do
           srcByte <- peek src
           let srcByte' = srcByte `rotate` fromIntegral displacement
@@ -75,16 +77,16 @@ rotateByteString bs i
         -- If we rotate by a multiple of 8, we only need to move around whole
         -- bytes, rather than individual bits. Because we only move contiguous
         -- blocks (regardless of rotation direction), we can do this using
-        -- memcpy, which is must faster, especially on larger ByteStrings.
+        -- memcpy, which is much faster, especially on larger ByteStrings.
         _ -> case displacement `quotRem` 8 of
           (bigMove, 0) -> do
-            let mainLen :: CSize = fromIntegral . abs $ bigMove
+            let mainLen :: CSize = fromIntegral $ bigMove
             let restLen :: CSize = fromIntegral len - mainLen
-            void $ case signum bigMove of
-              1 -> memcpy (plusPtr dst . fromIntegral $ restLen) src mainLen >>
-                   memcpy dst (plusPtr src . fromIntegral $ mainLen) restLen
-              _ -> memcpy (plusPtr dst . fromIntegral $ mainLen) src restLen >>
-                   memcpy dst (plusPtr src . fromIntegral $ restLen) mainLen
+            -- Copy the portion [..mainLen] to [restLen..],
+            -- and the portion [mainLen..] to [..restLen].
+            _ <- memcpy (plusPtr dst (fromIntegral restLen)) src mainLen
+            _ <- memcpy dst (plusPtr src (fromIntegral mainLen)) restLen
+            pure ()
           -- If we don't rotate by a multiple of 8, we have to construct new
           -- bytes, rather than just copying over old ones. We do this in two
           -- steps:
@@ -110,7 +112,7 @@ rotateByteString bs i
         then acc .|. (bit . fromIntegral $ offset)
         else acc
 
-{-# NOINLINE shiftByteString #-}
+-- | See 'PlutusTx.Builtins.shiftByteString.
 shiftByteString :: ByteString -> Integer -> ByteString
 shiftByteString bs i
   -- Shifting by the number of bits, or more, would zero everything anyway,
@@ -128,8 +130,8 @@ shiftByteString bs i
     go src len = do
       dst <- mallocBytes len
       case len of
-        -- If we only have one byte, we an borrow from the Bits instance for
-        -- Word8.
+        -- If we only have one byte, we can borrow from the Bits instance for
+        -- Word8, since it shifts in the same direction that we want.
         1 -> do
           srcByte <- peek src
           let srcByte' = srcByte `shift` fromIntegral i
@@ -168,6 +170,7 @@ shiftByteString bs i
            | dangerousRead bs possibleIx -> acc .|. (bit . fromIntegral $ offset)
            | otherwise                   -> acc
 
+-- | See 'PlutusTx.Builtins.findFirstSetByteString'.
 findFirstSetByteString :: ByteString -> Integer
 findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
   where
@@ -180,6 +183,7 @@ findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
     len :: Int
     len = BS.length bs
 
+-- | See 'PlutusTx.Builtins.testBitByteString.
 testBitByteString :: ByteString -> Integer -> Emitter (EvaluationResult Bool)
 testBitByteString bs i
   | i < 0 || i >= bitLen = indexOutOfBoundsError "testBitByteString" bitLen i
@@ -188,7 +192,7 @@ testBitByteString bs i
     bitLen :: Integer
     bitLen = fromIntegral $ BS.length bs * 8
 
-{-# NOINLINE writeBitByteString #-}
+-- | See 'PlutusTx.Builtins.writeBitByteString.
 writeBitByteString :: ByteString -> Integer -> Bool -> Emitter (EvaluationResult ByteString)
 writeBitByteString bs i b
   | i < 0 || i >= bitLen = indexOutOfBoundsError "writeBitByteString" bitLen i
@@ -228,18 +232,20 @@ writeBitByteString bs i b
       poke (castPtr . plusPtr dst $ bigIx) byte'
       unsafePackMallocCStringLen (dst, len)
 
+-- | See 'PlutusTx.Builtins.integerToByteString.
 {-# INLINE integerToByteString #-}
 integerToByteString :: Integer -> Maybe ByteString
 integerToByteString (IN _) = Nothing
 integerToByteString n      = Just $ fst $ BS.spanEnd (== 0) $ SBS.fromShort $ SBS.SBS (integerToBigNatClamp# n)
 
+-- | See 'PlutusTx.Builtins.byteStringToInteger.
 {-# INLINE byteStringToInteger #-}
 byteStringToInteger :: ByteString -> Integer
 byteStringToInteger bs =
   case toForeignPtr0 bs of
     (ForeignPtr addr _, I# len) -> unsafeDupablePerformIO $ integerFromAddr (int2Word# len) addr (case 0 of I# n -> n)
 
-{-# NOINLINE popCountByteString #-}
+-- | See 'PlutusTx.Builtins.popCountByteString.
 popCountByteString :: ByteString -> Integer
 popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
   where
@@ -292,7 +298,7 @@ popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
 -- only option was to 'zip out' into a list, then rebuild. This is not only
 -- inefficient (as you can't do a 'big step, little step' approach to this in
 -- general), it also copies too much.
-{-# NOINLINE andByteString #-}
+-- | See 'PlutusTx.Builtins.andByteString.
 andByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 andByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "andByteString" bs bs'
@@ -300,7 +306,7 @@ andByteString bs bs'
       unsafeUseAsCString bs' $ \ptr' ->
         zipBuild (.&.) ptr ptr' len >>= (unsafePackMallocCStringLen . (,len))
 
-{-# NOINLINE iorByteString #-}
+-- | See 'PlutusTx.Builtins.iorByteString.
 iorByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 iorByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "iorByteString" bs bs'
@@ -308,7 +314,7 @@ iorByteString bs bs'
       unsafeUseAsCString bs' $ \ptr' ->
         zipBuild (.|.) ptr ptr' len >>= (unsafePackMallocCStringLen . (,len))
 
-{-# NOINLINE xorByteString #-}
+-- | See 'PlutusTx.Builtins.xorByteString.
 xorByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 xorByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "xorByteString" bs bs'
@@ -321,7 +327,7 @@ xorByteString bs bs'
 -- two. Similar reasoning applies to why we made this choice as to the
 -- previous operations.
 
-{-# NOINLINE complementByteString #-}
+-- | See 'PlutusTx.Builtins.complementByteString.
 complementByteString :: ByteString -> ByteString
 complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> do
   resPtr <- mallocBytes len
@@ -378,6 +384,7 @@ overPtrLen bs f = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $
   \(ptr, len) -> f (castPtr ptr) len >>= \p ->
     unsafePackMallocCStringLen (castPtr p, len)
 
+-- Error used when lengths of inputs aren't equal.
 mismatchedLengthError :: forall (a :: Type) .
   Text ->
   ByteString ->
@@ -390,6 +397,7 @@ mismatchedLengthError loc bs bs' = do
   emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
   pure EvaluationFailure
 
+-- Error used when an out of bounds index is used to index a bytestring.
 indexOutOfBoundsError :: forall (a :: Type) .
   Text ->
   Integer ->
