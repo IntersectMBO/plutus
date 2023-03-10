@@ -1,3 +1,4 @@
+--- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -38,7 +39,7 @@ module Crypto.EllipticCurve.BLS12_381
   , ptFinalVerify
 
   -- * Pairings
-  , pairing
+  , miller_loop
 
   -- * The period (modulo) of scalars
   , scalarPeriod
@@ -46,4 +47,3 @@ module Crypto.EllipticCurve.BLS12_381
 where
 
 import Crypto.EllipticCurve.BLS12_381.Internal
-
