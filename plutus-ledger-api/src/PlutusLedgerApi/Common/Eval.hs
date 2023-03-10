@@ -21,7 +21,7 @@ module PlutusLedgerApi.Common.Eval
 
 import Control.Lens
 import PlutusCore
-import PlutusCore as ScriptPlutus (Version, defaultVersion)
+import PlutusCore as ScriptPlutus (Version)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -39,6 +39,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.Monad.Except
 import Control.Monad.Writer
+import Data.Set qualified as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
@@ -88,7 +89,7 @@ Given a 'SerialisedScript':
 -}
 mkTermToEvaluate
     :: (MonadError EvaluationError m)
-    => LedgerPlutusVersion -- ^ the ledger Plutus version of the script under execution.
+    => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ which protocol version to run the operation in
     -> SerialisedScript -- ^ the script to evaluate in serialised form
     -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
@@ -96,7 +97,7 @@ mkTermToEvaluate
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v == ScriptPlutus.defaultVersion) $ throwError $ IncompatibleVersionError v
+    unless (v `Set.member` plcVersionsAvailableIn lv pv) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
 
@@ -139,10 +140,12 @@ was actually used.
 Can be used to calculate budgets for scripts, but even in this case you must give
 a limit to guard against scripts that run for a long time or loop.
 
-Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
+Note: Parameterized over the 'LedgerPlutusVersion' since
+1. The builtins allowed (during decoding) differ, and
+2. The Plutus language versions allowed differ.
 -}
 evaluateScriptRestricting
-    :: LedgerPlutusVersion -- ^ The ledger Plutus version of the script under execution.
+    :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
@@ -172,7 +175,7 @@ also returns the used budget.
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 evaluateScriptCounting
-    :: LedgerPlutusVersion -- ^ The ledger Plutus version of the script under execution.
+    :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs

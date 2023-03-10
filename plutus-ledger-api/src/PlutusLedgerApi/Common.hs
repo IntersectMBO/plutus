@@ -22,8 +22,9 @@ module PlutusLedgerApi.Common
       {-| The network's behaviour (and plutus's by extension) can change via /hard forks/,
       which directly correspond to major-number protocol version bumps.
       -}
-    ,  ProtocolVersion (..)
-    , LedgerPlutusVersion (..)
+    , ProtocolVersion (..)
+    , PlutusLedgerLanguage (..)
+    , Version (..)
     , builtinsIntroducedIn
     , builtinsAvailableIn
 

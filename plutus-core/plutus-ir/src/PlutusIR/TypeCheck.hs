@@ -86,7 +86,7 @@ checkType config ann term ty = do
 inferTypeOfProgram
     :: MonadTypeCheckPir err uni fun ann m
     => PirTCConfig uni fun -> Program TyName Name uni fun ann -> m (Normalized (Type TyName uni ()))
-inferTypeOfProgram config (Program _ term) = inferType config term
+inferTypeOfProgram config (Program _ _ term) = inferType config term
 
 -- | Check a program against a type.
 -- Infers the type of the program and checks that it's equal to the given type
@@ -99,4 +99,4 @@ checkTypeOfProgram
     -> Program TyName Name uni fun ann
     -> Normalized (Type TyName uni ())
     -> m ()
-checkTypeOfProgram config ann (Program _ term) = checkType config ann term
+checkTypeOfProgram config ann (Program _ _ term) = checkType config ann term
