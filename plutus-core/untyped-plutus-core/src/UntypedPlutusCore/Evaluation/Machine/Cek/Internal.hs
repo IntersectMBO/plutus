@@ -302,7 +302,10 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
-type Steps = WA64.WordArray
+type Steps s = WA64.WordArray
+
+liftCounter :: M (Steps s) a -> CekM uni fun s a
+liftCounter = runIdentity
 
 {- Note [DList-based emitting]
 Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
@@ -619,7 +622,7 @@ enterComputeCek = computeCek newCounter where
     -- 3. throws 'EvaluationFailure' ('Error')
     -- 4. looks up a variable in the environment and calls 'returnCek' ('Var')
     computeCek
-        :: Steps
+        :: Steps s
         -> Context uni fun ann
         -> CekValEnv uni fun ann
         -> NTerm uni fun ann
@@ -668,7 +671,7 @@ enterComputeCek = computeCek newCounter where
           stored in the frame to an argument.
     -}
     returnCek
-        :: Steps
+        :: Steps s
         -> Context uni fun ann
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
@@ -694,7 +697,7 @@ enterComputeCek = computeCek newCounter where
     -- representation depending on whether the application is saturated or not,
     -- if v is anything else, fail.
     forceEvaluate
-        :: Steps
+        :: Steps s
         -> Context uni fun ann
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
@@ -724,7 +727,7 @@ enterComputeCek = computeCek newCounter where
     -- representation depending on whether the application is saturated or not.
     -- If v is anything else, fail.
     applyEvaluate
-        :: Steps
+        :: Steps s
         -> Context uni fun ann
         -> CekValue uni fun ann   -- lhs of application
         -> CekValue uni fun ann   -- rhs of application
@@ -750,7 +753,7 @@ enterComputeCek = computeCek newCounter where
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
-    spendAccumulatedBudget :: Steps -> CekM uni fun s ()
+    spendAccumulatedBudget :: Steps s -> CekM uni fun s ()
     spendAccumulatedBudget !unbudgetedSteps = iforCounter unbudgetedSteps $ \ix v -> spend (fromIntegral ix) v
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
@@ -762,7 +765,7 @@ enterComputeCek = computeCek newCounter where
     spend !i !w = unless (i >= 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
-    stepAndMaybeSpend :: StepKind -> Steps -> CekM uni fun s Steps
+    stepAndMaybeSpend :: StepKind -> Steps s -> CekM uni fun s (Steps s)
     stepAndMaybeSpend !kind !unbudgetedSteps = do
         -- See Note [Structure of the step counter]
         -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
@@ -775,7 +778,7 @@ enterComputeCek = computeCek newCounter where
         if unbudgetedStepsTotal >= ?cekSlippage
         then do
           spendAccumulatedBudget unbudgetedSteps'
-          pure $ resetCounter unbudgetedSteps'
+          liftCounter $ resetCounter unbudgetedSteps'
         else pure unbudgetedSteps'
 
 -- See Note [Compilation peculiarities].

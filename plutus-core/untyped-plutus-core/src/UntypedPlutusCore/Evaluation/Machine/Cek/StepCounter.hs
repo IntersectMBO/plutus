@@ -3,6 +3,7 @@
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
 import Control.Monad.ST
+import Data.Foldable (for_)
 import Data.Functor.Identity
 import Data.Kind
 import Data.Primitive
@@ -16,7 +17,7 @@ class (Num (Index c), Integral (Index c), Monad (M c)) => StepCounter c where
     resetCounter :: c -> (M c) c
     resetCounter _ = newCounter
 
-    iforCounter :: c -> (Index c -> Word8 -> (M c) ()) -> (M c) ()
+    iforCounter :: Applicative f => c -> (Index c -> Word8 -> f ()) -> f ()
 
     readCounter :: c -> Index c -> (M c) Word8
     writeCounter :: c -> Index c -> Word8 -> (M c) c
@@ -43,4 +44,6 @@ instance StepCounter (MutablePrimArray s Word8) where
     resetCounter c = setPrimArray c 0 8 0 >> pure c
     readCounter = readPrimArray
     writeCounter c i v = writePrimArray c i v >> pure c
-    iforCounter c f = itraversePrimArray_ f =<< unsafeFreezePrimArray c
+    iforCounter c f = for_ [0..sizeofMutablePrimArray c] $ \i -> do
+          v <- readPrimArray c i
+          f i v
