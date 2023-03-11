@@ -164,7 +164,7 @@ instance
         ) => KnownTypeAst uni (MetaForall name a) where
     type IsBuiltin (MetaForall name a) = 'False
     type ToHoles (MetaForall name a) = '[TypeHole a]
-    type ToBinds (MetaForall name a) = Merge '[ 'GADT.Some name ] (ToBinds a)
+    type ToBinds acc (MetaForall name a) = ToBinds (Insert ('GADT.Some name) acc) a
     toTypeAst _ = toTypeAst $ Proxy @a
 instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
     makeKnown (MetaForall x) = makeKnown x
@@ -174,7 +174,7 @@ data PlcListRep (a :: GHC.Type)
 instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
     type IsBuiltin (PlcListRep a) = 'False
     type ToHoles (PlcListRep a) = '[RepHole a]
-    type ToBinds (PlcListRep a) = ToBinds a
+    type ToBinds acc (PlcListRep a) = ToBinds acc a
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
 instance KnownTypeAst DefaultUni Void where
