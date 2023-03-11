@@ -400,11 +400,13 @@ test-suite untyped-plutus-core-test
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.2
     , pretty-show
     , prettyprinter
+    , QuickCheck
     , split
     , tasty
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
     , text
 
 executable plc

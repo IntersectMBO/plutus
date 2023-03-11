@@ -14,211 +14,217 @@ import Crypto.EllipticCurve.BLS12_381 (BLSTError)
 import Data.ByteString as BS (length)
 import Data.Either (isLeft)
 import Data.List (foldl', genericReplicate)
-import Data.String (fromString)
 import Text.Printf (printf)
 
-import Hedgehog hiding (Group (..))
-import Hedgehog.Gen qualified as Gen
-
+import Test.QuickCheck
 import Test.Tasty
-import Test.Tasty.Hedgehog
+import Test.Tasty.QuickCheck
+
 
 ---------------- G is an Abelian group ----------------
 
-prop_assoc :: forall a. TestableAbelianGroup a => TestTree
-prop_assoc =
-    testPropertyNamed
-    (printf "Addition in %s is associative" name)
-    (fromString $ printf "%s_assoc" name) .
-    withNTests $ property $ do
-      p1 <- forAll $ genElement @a
-      p2 <- forAll $ genElement
-      p3 <- forAll $ genElement
-      add p1 (add p2 p3) === add (add p1 p2) p3
-        where name = gname @a
+-- | Group addition is associative.
+prop_add_assoc :: forall a. TestableAbelianGroup a => TestTree
+prop_add_assoc =
+    testProperty
+    (mkTestName @a "add_assoc") .
+    withNTests $ do
+      p1 <- arbitrary @a
+      p2 <- arbitrary
+      p3 <- arbitrary
+      pure $ add p1 (add p2 p3) === add (add p1 p2) p3
 
-prop_zero :: forall a. TestableAbelianGroup a => TestTree
-prop_zero =
-    testPropertyNamed
-    (printf "The zero element is the additive identity in %s" name)
-    (fromString $ printf "%s_zero" name) .
-    withNTests $ property $ do
-      p <- forAll $ genElement @a
-      p === add p zero
-        where name = gname @a
+-- | Zero is an identity for addition.
+prop_add_zero :: forall a. TestableAbelianGroup a => TestTree
+prop_add_zero =
+    testProperty
+    (mkTestName @a "add_zero") .
+    withNTests $ do
+      p <- arbitrary @a
+      pure $ p === add p zero
 
+-- | Every element has an inverse
+-- | a+(-a) = 0 for all group elements.
 prop_neg :: forall a. TestableAbelianGroup a => TestTree
 prop_neg =
-    testPropertyNamed
-    (printf "Every point in %s has an additive inverse" name)
-    (fromString $ printf "%s_inverse" name) .
-    withNTests $ property $ do
-      p <- forAll  $ genElement @a
-      add p (neg p) === zero
-        where name = gname @a
+    testProperty
+    (mkTestName @a "additive_inverse") .
+    withNTests $ do
+      p <- arbitrary @a
+      pure $ add p (neg p) === zero
 
-prop_abelian :: forall a. TestableAbelianGroup a => TestTree
-prop_abelian =
-    testPropertyNamed
-    (printf "Addition in %s is commutative" name)
-    (fromString $ printf "%s_abelian" name) .
-    withNTests $ property $ do
-      p1 <- forAll $ genElement @a
-      p2 <- forAll $ genElement
-      add p1 p2 === add p2 p1
-        where name = gname @a
+-- | Group addition is commutative.
+prop_add_commutative :: forall a. TestableAbelianGroup a => TestTree
+prop_add_commutative =
+    testProperty
+    (mkTestName @a "add_commutative") .
+    withNTests $ do
+      p1 <- arbitrary @a
+      p2 <- arbitrary
+      pure $ add p1 p2 === add p2 p1
 
-test_is_an_Abelian_group :: forall a. TestableAbelianGroup a => TestTree
-test_is_an_Abelian_group =
-    testGroup (printf "%s is an Abelian group" name)
-         [ prop_assoc   @a
-         , prop_zero    @a
-         , prop_neg     @a
-         , prop_abelian @a
+test_is_an_abelian_group :: forall a. TestableAbelianGroup a => TestTree
+test_is_an_abelian_group =
+    testGroup (mkTestName @a "is_an_abelian_group")
+         [ prop_add_assoc       @a
+         , prop_add_zero        @a
+         , prop_neg             @a
+         , prop_add_commutative @a
          ]
-        where name = gname @a
+
 
 ---------------- Z acts on G correctly ----------------
 
+-- | (ab)p = a(bp) for all scalars a and b and all group elements p.
 prop_scalar_assoc :: forall a. TestableAbelianGroup a => TestTree
 prop_scalar_assoc =
-    testPropertyNamed
-    (printf "Scalar multiplication is associative in %s" name)
-    (fromString $ printf "%s_scalar_assoc" name) .
-    withNTests $ withShrinks 0 $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll $ genElement @a
-      mul (a*b) p === mul a (mul b p)
-        where name = gname @a
+    testProperty
+    (mkTestName @a "scalar_mul_assoc") .
+    withNTests $ do
+      a <- arbitrary
+      b <- arbitrary
+      p <- arbitrary @a
+      pure $ mul (a*b) p === mul a (mul b p)
 
+-- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
+prop_scalar_distributive_left :: forall a. TestableAbelianGroup a => TestTree
+prop_scalar_distributive_left =
+    testProperty
+    (mkTestName @a "scalar_distributive_left") .
+    withNTests $  do
+      a <- arbitrary
+      b <- arbitrary
+      p <- arbitrary @a
+      pure $ mul (a+b) p === add (mul a p) (mul b p)
+
+-- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
+prop_scalar_distributive_right :: forall a. TestableAbelianGroup a => TestTree
+prop_scalar_distributive_right =
+    testProperty
+    (mkTestName @a "scalar_distributive") .
+    withNTests $  do
+      a <- arbitrary
+      p <- arbitrary @a
+      q <- arbitrary
+      pure $ mul a (add p q) === add (mul a p) (mul a q)
+
+-- | 0p = 0 for all group elements p.
 prop_scalar_zero :: forall a. TestableAbelianGroup a => TestTree
 prop_scalar_zero =
-    testPropertyNamed
-    (printf "Scalar multiplication by 0 always yields the zero element of %s" name)
-    (fromString $ printf "%s_scalar_zero" name) .
-    withNTests $ property $ do
-      p <- forAll $ genElement @a
-      mul 0 p === zero
-        where name = gname @a
+    testProperty
+    (mkTestName @a "scalar_zero") .
+    withNTests $ do
+      p <- arbitrary @a
+      pure $ mul 0 p === zero
 
+-- | 1p = p for all group elements p.
 prop_scalar_identity :: forall a. TestableAbelianGroup a => TestTree
 prop_scalar_identity =
-    testPropertyNamed
-    (printf "Scalar multiplication by 1 is the identity function on %s" name)
-    (fromString $ printf "%s_scalar_identity" name) .
-    withNTests $ property $ do
-      p <- forAll $ genElement @a
-      mul 1 p === p
-        where name = gname @a
+    testProperty
+    (mkTestName @a "scalar_identity") .
+    withNTests $ do
+      p <- arbitrary @a
+      pure $ mul 1 p === p
 
+-- | (-1)p = -p for all group elements p.
 prop_scalar_inverse :: forall a. TestableAbelianGroup a => TestTree
 prop_scalar_inverse =
-    testPropertyNamed
-    (printf "-p = (-1)*p for all p in %s" name)
-    (fromString $ printf "%s_scalar_inverse" $ gname @a) .
-    withNTests $ withShrinks 0 $ property $ do
-      p <- forAll $ genElement @a
-      neg p === mul (-1) p
-        where name = gname @a
+    testProperty
+    (mkTestName @a "scalar_inverse") .
+    withNTests $ property $ do
+      p <- arbitrary @a
+      pure $ neg p === mul (-1) p
 
-prop_scalar_distributive :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_distributive =
-    testPropertyNamed
-    (printf "Scalar multiplication distributes over addition in %s" name)
-    (fromString $ printf "%s_scalar_distributive" name) .
-    withNTests $ withShrinks 0 $ property $ do
-      a <- forAll genScalar
-      b <- forAll genScalar
-      p <- forAll $ genElement @a
-      mul (a+b) p === add (mul a p) (mul b p)
-        where name = gname @a
-
+-- Check that scalar multiplication is repeated addition (including negative
+-- scalars). We should really check this for scalars greater than the group
+-- order, but that would be prohibitively slow because the order of G1 and G2
+-- has 256 bits (about 5*10^76).
 prop_scalar_multiplication :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_multiplication = let name = gname @a in
-    testPropertyNamed
-    (printf "Scalar multiplication is repeated addition in %s" name)
-    (fromString $ printf "%s_scalar_multiplication" name) .
-    withNTests $ withShrinks 0 $ property $ do
-      n <- forAll genSmallScalar
-      p <- forAll $ genElement @a
-      mul n p === repeatedAdd n p
+prop_scalar_multiplication =
+    testProperty
+    (mkTestName @a "scalar_multiplication") .
+    withNTests $ do
+      n <- resize 10000 arbitrary
+      p <- arbitrary @a
+      pure $ mul n p === repeatedAdd n p
           where repeatedAdd :: Integer -> a -> a
                 repeatedAdd n p =
                     if n >= 0
-                    then foldl' add (zero @a) $ genericReplicate n p
+                    then foldl' add zero $ genericReplicate n p
                     else repeatedAdd (-n) (neg p)
 
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
 test_Z_action_good =
-    testGroup (printf "Z acts correctly on %s" name)
-         [ prop_scalar_zero           @a
-         , prop_scalar_inverse        @a
-         , prop_scalar_assoc          @a
-         , prop_scalar_distributive   @a
-         , prop_scalar_identity       @a
-         , prop_scalar_multiplication @a
+    testGroup (printf "Z acts correctly on %s" $ gname @a)
+         [ prop_scalar_assoc              @a
+         , prop_scalar_distributive_left  @a
+         , prop_scalar_distributive_right @a
+         , prop_scalar_zero               @a
+         , prop_scalar_identity           @a
+         , prop_scalar_inverse            @a
+         , prop_scalar_multiplication     @a
          ]
-        where name = gname @a
+
 
 ---------------- Compression, uncompression, and hashing work properly ----------------
 
+-- | Check that if we compress a group element then it will always uncompress
+-- succesfully and give you back the same thing.
 prop_roundtrip_compression :: forall e a. HashAndCompress e a => TestTree
 prop_roundtrip_compression =
-    testPropertyNamed
-    (printf "Compression followed by uncompression is the identity function on %s" name)
-    (fromString $ printf "%s_roundtrip_compression" name) .
-    withNTests $
-    withShrinks 0 $
-    property $ do
-      p <- forAll $ genElement @a
+    testProperty
+    (mkTestName @a "roundtrip_compression") .
+    withNTests $ do
+      p <- arbitrary @a
       case uncompress @e @a $ compress @e @a p of
         Left e  -> error $ show e
-        Right q -> p === q
-        where name = gname @a
+        Right q -> pure $ p === q
 
--- Uncompression should only accept inputs of length (but not all inputs of
--- length are valid).
-
--- There's no point in shrinking here; in fact, if you use `filter` on the
--- generator, Hedgehog occasionally seems to go into an infinite loop if you
--- deliberately let good inputs through (eg, by putting the wrong size in the
--- filter).
+-- | Uncompression should only accept inputs of the expected length, so we check
+-- it on random inputs of the incorrect length.  Inputs of the expected length
+-- are excluded by the incorrectSize predicate; however even if an input did
+-- have the expected length it would be very unlikely to deserialise to a point
+-- in the group because the cofactors are very big for G1 and (especially) G2.
 prop_uncompression_input_size :: forall e a. HashAndCompress e a => TestTree
 prop_uncompression_input_size =
-    testPropertyNamed
-    (printf "%s uncompression fails if the input has length not equal to %d" name expectedSize)
-    (fromString $ printf "%s_uncompression_input_size" name) .
-    withTests 1000 $
-    withShrinks 0 $
-    property $ do
-      b <- forAll $ Gen.filter (\x -> BS.length x /= expectedSize) $ genByteString100
-      assert $ isLeft $ uncompress @e @a b
-    where name = gname @a
-          expectedSize = fromIntegral $ compressedSize @e @a
+    testProperty
+    (mkTestName @a "uncompression_input_size") .
+    withNTests $ do
+      b <- suchThat (resize 128 arbitrary) incorrectSize
+      pure $ isLeft $ uncompress @e @a b
+    where incorrectSize s =
+              BS.length s /= compressedSize @e @a
 
-prop_hash :: forall e a. HashAndCompress e a => TestTree
-prop_hash =
-    testPropertyNamed
-    (printf "Different inputs hash to different points in %s" name)
-    (fromString $ printf "%s_no_hash_collisions" name) .
-    withNTests $
-    withShrinks 0 $
-    property $ do
-      b1 <- forAll genByteString
-      b2 <- forAll $ Gen.filter (/= b1) genByteString  -- Does this do what I think it does?
-      hashTo @e @a b1 /== hashTo @e @a b2
-        where name = gname @a
+-- | This tests the case we've omitted in the previous test, and should fail
+-- with very high probablity.  Ideally we'd check that the point really isn't in
+-- the group, but we can't do that until we've uncompressed it anyway.
+prop_uncompress_out_of_group :: forall e a. HashAndCompress e a => TestTree
+prop_uncompress_out_of_group =
+    testProperty
+    (mkTestName @a "uncompress_out_of_group") .
+    withNTests $ do
+      b <- resize (compressedSize @e @a) arbitrary
+      pure $ isLeft $ uncompress @e @a b
+
+-- | Hashing into G1 or G2 should be collision-free. A failure here would be
+-- interesting.
+prop_no_hash_collisions :: forall e a. HashAndCompress e a => TestTree
+prop_no_hash_collisions =
+    testProperty
+    (mkTestName @a "no_hash_collisions") .
+    withNTests $ do
+      b1 <- arbitrary
+      b2 <- arbitrary
+      pure $ b1 /= b2 ==> hashTo @e @a b1 =/= hashTo @e @a b2
 
 test_compress_hash :: forall e a. HashAndCompress e a => TestTree
 test_compress_hash =
     testGroup (printf "Uncompression and hashing behave properly for %s" $ gname @a)
-         [ prop_roundtrip_compression @e @a
+         [ prop_roundtrip_compression    @e @a
          , prop_uncompression_input_size @e @a
-         , prop_hash @e @a
+         , prop_uncompress_out_of_group  @e @a
+         , prop_no_hash_collisions       @e @a
          ]
-
-
 
 
 ---------------- Pairing tests ----------------
@@ -232,30 +238,28 @@ pairing p q =
 -- <p1+p2,q> = <p1,q>.<p2,q>
 prop_pairing_left_additive :: TestTree
 prop_pairing_left_additive =
-    testPropertyNamed
-    "Pairing is left additive"
+    testProperty
     "pairing_left_additive" .
-    withNTests $ withShrinks 0 $ property $ do
-      p1 <- forAll genElement
-      p2 <- forAll genElement
-      q <- forAll genElement
+    withNTests $ do
+      p1 <- arbitrary
+      p2 <- arbitrary
+      q  <- arbitrary
       let e1 = pairing (add p1 p2) q
           e2 = GT.mul (pairing p1 q) (pairing p2 q)
-      GT.finalVerify e1 e2 === True
+      pure $ GT.finalVerify e1 e2 === True
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
 prop_pairing_right_additive :: TestTree
 prop_pairing_right_additive =
-    testPropertyNamed
-    "Pairing is right additive"
+    testProperty
     "pairing_right_additive" .
-    withNTests $ withShrinks 0 $ property $ do
-      p <- forAll genElement
-      q1 <- forAll genElement
-      q2 <- forAll genElement
+    withNTests $ do
+      p <-  arbitrary
+      q1 <- arbitrary
+      q2 <- arbitrary
       let e1 = pairing p (G2.add q1 q2)
           e2 = GT.mul (pairing p q1) (pairing p q2)
-      GT.finalVerify e1 e2 === True
+      pure $ GT.finalVerify e1 e2 === True
 
 -- <[n]p,q> = <p,[n]q> for all n in Z, p in G1, q in G2.
 -- We could also test that both of these are equal to <p,q>^n, but we don't have
@@ -263,50 +267,46 @@ prop_pairing_right_additive =
 -- multiplication, but that would require some work.
 prop_pairing_balanced :: TestTree
 prop_pairing_balanced =
-     testPropertyNamed
-     "Pairing is balanced"
+     testProperty
      "pairing_balanced" .
-     withTests 100 $ withShrinks 0 $ property $ do
-       n <- forAll genScalar
-       p <- forAll $ genElement @G1.Element
-       q <- forAll $ genElement @G2.Element
-       GT.finalVerify (pairing (mul n p) q) (pairing p (mul n q)) === True
+     withNTests $ do
+       n <-  arbitrary
+       p <-  arbitrary
+       q <-  arbitrary
+       pure $ GT.finalVerify (pairing (mul n p) q) (pairing p (mul n q)) === True
 
+-- finalVerify returns False for random inputs
 prop_random_pairing :: TestTree
 prop_random_pairing =
-    testPropertyNamed
-    "Pairings of random points are unequal"
-    "pairing_random" .
+    testProperty
+    "pairing_random_unequal" .
     withNTests $
-    withShrinks 0 $
-    property $ do
-       a <- forAll $ genElement @G1.Element
-       b <- forAll $ genElement @G2.Element
-       a' <- forAll $ Gen.filter (/= a) genElement
-       b' <- forAll $ Gen.filter (/= b) genElement
-       let x = case GT.pairing a b of
-                 Left e   -> error $ show e
-                 Right xx -> xx
-       let y = case GT.pairing a' b' of
-                 Left e   -> error $ show e
-                 Right yy -> yy
-       GT.finalVerify x y === False
-
+    do
+       a  <- arbitrary @G1.Element
+       b  <- arbitrary @G2.Element
+       a' <- arbitrary
+       b' <- arbitrary
+       pure $ a /= a' && b /= b' ==>
+            GT.finalVerify (doPairing a b) (doPairing a' b') === False
+                where doPairing p q =
+                          case GT.pairing p q of
+                            Left e  -> error $ show e
+                            Right r -> r
 
 -- All the tests
 
 tests :: TestTree
 tests = testGroup "*** Haskell property tests ***" [
          testGroup "G1 properties"
-         [ test_is_an_Abelian_group @G1.Element
-         , test_Z_action_good @G1.Element
-         , test_compress_hash @BLSTError @G1.Element
+         [ test_is_an_abelian_group @G1.Element
+         , test_Z_action_good       @G1.Element
+         , test_compress_hash       @BLSTError @G1.Element
          ]
 
         , testGroup "G2 properties"
-         [ test_is_an_Abelian_group @G2.Element
-         , test_Z_action_good @G2.Element
-         , test_compress_hash @BLSTError @G2.Element
+         [ test_is_an_abelian_group @G2.Element
+         , test_Z_action_good       @G2.Element
+         , test_compress_hash       @BLSTError @G2.Element
          ]
         , testGroup "Pairing properties"
          [ prop_pairing_left_additive
