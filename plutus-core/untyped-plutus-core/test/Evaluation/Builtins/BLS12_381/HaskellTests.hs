@@ -184,7 +184,8 @@ prop_roundtrip_compression =
 -- it on random inputs of the incorrect length.  Inputs of the expected length
 -- are excluded by the incorrectSize predicate; however even if an input did
 -- have the expected length it would be very unlikely to deserialise to a point
--- in the group because the cofactors are very big for G1 and (especially) G2.
+-- in the group because the cofactors are very big (7.6*10^37 for G1 and
+-- 3.1*10^152 for G2).
 prop_uncompression_input_size :: forall e a. HashAndCompress e a => TestTree
 prop_uncompression_input_size =
     testProperty
