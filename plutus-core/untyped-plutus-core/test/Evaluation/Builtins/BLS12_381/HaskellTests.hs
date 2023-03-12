@@ -232,7 +232,7 @@ test_compress_hash =
 -- | Tests for the BLS12-381 paring operations.  These are a little difficult to
 -- test directly because we don't have direct access to elements of GT.  The
 -- best we can do is to check elements (which can only be constructed by the
--- paring operation and multiplicaiton in GT) using finalVerify.
+-- paring operation and multiplication in GT) using finalVerify.
 
 pairing :: G1.Element -> G2.Element -> GT.Element
 pairing p q =
