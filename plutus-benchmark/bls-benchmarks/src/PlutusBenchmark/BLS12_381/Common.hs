@@ -174,6 +174,9 @@ mkPairingScript p1 p2 q1 q2 =
 
 ---------------- Groth16 verification ----------------
 
+-- The data here is derived from
+-- https://github.com/achimcc/groth16-example/blob/main/src/lib.rs
+
 -- Wrappers for serialised group elements for slightly better type safety
 newtype SerialisedG1Element = SerialisedG1Element { g1 :: BuiltinByteString }
     deriving newtype (Tx.Lift DefaultUni)
