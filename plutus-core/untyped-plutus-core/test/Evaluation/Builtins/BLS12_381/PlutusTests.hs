@@ -109,7 +109,7 @@ prop_scalar_distributive_left =
 prop_scalar_distributive_right :: forall a. TestableAbelianGroup a => TestTree
 prop_scalar_distributive_right =
     testProperty
-    (mkTestName @a "scalar_distributive") .
+    (mkTestName @a "scalar_distributive_right") .
     withNTests $  do
       a <- arbitraryScalar
       p <- arbitraryConstant @a
