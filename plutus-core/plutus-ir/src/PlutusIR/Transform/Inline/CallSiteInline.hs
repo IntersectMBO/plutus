@@ -142,8 +142,8 @@ Also, we currently reject `Constant` (has acceptable cost but not acceptable siz
 We may want to check their sizes instead of just rejecting them.
 -}
 
--- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
-type TermOrTypeOrder = [TermOrType]
+-- | The arity of a let-binding. I.e., a list of `LamAbs` and `TyAbs`, in order.
+type Arity = [TermOrType]
 
 -- | Datatype capturing both terms and types.
 data TermOrType =
@@ -153,12 +153,12 @@ data TermOrType =
 instance Pretty TermOrType where
   pretty = viaShow
 
--- | Counts the type and term lambdas in the RHS of a binding and returns an ordered list
-countLam ::
+-- | Computes the arity in the RHS of a binding.
+computeArity ::
     Term tyname name uni fun a -- ^ the RHS of the let binding
-    -> TermOrTypeOrder
-countLam = \case
-    LamAbs _ _ _ body -> MkTerm : countLam body
-    TyAbs _ _ _ body  -> MkType : countLam body
+    -> Arity
+computeArity = \case
+    LamAbs _ _ _ body -> MkTerm : computeArity body
+    TyAbs _ _ _ body  -> MkType : computeArity body
     -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
     _                 -> []
