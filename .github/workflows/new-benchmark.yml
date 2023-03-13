@@ -1,4 +1,4 @@
-name: New Benchmark
+name: Longitudinal Benchmarking
 
 on:
   push:
@@ -45,12 +45,13 @@ jobs:
           tool: 'customSmallerIsBetter'
           output-file-path: output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Workflow will fail when an alert happens
-          fail-on-alert: true
           # Push and deploy GitHub pages branch automatically
           auto-push: true
           # Enable alert commit comment
           comment-on-alert: true
-          # Mention @zeme-iohk in the commit comment
-          alert-comment-cc-users: '@zeme-iohk'
-          alert-threshold: '110%'
+          # Mention @input-output-hk/plutus-core in the commit comment
+          alert-comment-cc-users: '@input-output-hk/plutus-core'
+          # Percentage value like "110%". 
+          # It is a ratio indicating how worse the current benchmark result is. 
+          # For example, if we now get 110 ns/iter and previously got 100 ns/iter, it gets 110% worse.
+          alert-threshold: '105%'
