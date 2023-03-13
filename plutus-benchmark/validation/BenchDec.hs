@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Main where
 
 import PlutusLedgerApi.V1
@@ -27,7 +26,8 @@ main = benchWith mkDecBM
             UPLC.Program _ v (fullyApplied :: Term) = unsafeUnflat file bsFlat
 
             -- script arguments are not 64-byte size limited, so we make
-            -- sure to remove them from the fully-applied script, and then decode back just the "unsaturated" script
+            -- sure to remove them from the fully-applied script, and then decode back just the
+            -- "unsaturated" script
             -- See Note [Deserialization size limits]
             (unsaturated, _args) = peelDataArguments fullyApplied
 

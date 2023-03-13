@@ -20,8 +20,8 @@ import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
 import UntypedPlutusCore.Core.Type (Program (Program),
-                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var), progTerm,
-                                    termAnn)
+                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var),
+                                    progTerm, termAnn)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)

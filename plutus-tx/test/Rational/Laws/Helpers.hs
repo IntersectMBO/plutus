@@ -21,7 +21,8 @@ import Data.Functor.Contravariant (contramap)
 import Data.Kind (Type)
 import Data.Maybe (isJust, isNothing)
 import GHC.Exts (fromString)
-import Hedgehog (Gen, MonadTest, Property, PropertyT, assert, cover, failure, forAllWith, property, success, (===))
+import Hedgehog (Gen, MonadTest, Property, PropertyT, assert, cover, failure, forAllWith, property,
+                 success, (===))
 import Hedgehog.Function (Arg (build), CoGen, vary, via)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range

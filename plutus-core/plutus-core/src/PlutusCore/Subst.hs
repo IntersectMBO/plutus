@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 module PlutusCore.Subst
@@ -86,7 +85,8 @@ termSubstNamesM
     -> m (Term tyname name uni fun ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
--- | Naively monadically substitute type names using the given function (i.e. do not substitute binders).
+-- | Naively monadically substitute type names using the given function
+-- (i.e. do not substitute binders).
 termSubstTyNamesM
     :: Monad m
     => (tyname -> m (Maybe (Type tyname uni ann)))
@@ -181,7 +181,8 @@ ftvTermCtx :: Ord tyname => Set.Set tyname -> Traversal' (Term tyname name uni f
 ftvTermCtx bound f = \case
     TyAbs a ty k t -> TyAbs a ty k <$> ftvTermCtx (Set.insert ty bound) f t
     -- sound because the subterms and subtypes are disjoint
-    t              -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
+    t              ->
+        ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free type variables in a type.
 ftvTy :: Ord tyname => Traversal' (Type tyname uni ann) tyname

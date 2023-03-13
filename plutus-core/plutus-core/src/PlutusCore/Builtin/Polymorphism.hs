@@ -124,7 +124,7 @@ manually. But that doesn't seem to give rise to a terribly nice API. And we'd lo
 guarantees, which is not a big deal, but losing the automatic inference of type schemes would suck,
 given that it's quite handy.
 
-Representing contructors as poly-kinded data families and handling those with open type families
+Representing constructors as poly-kinded data families and handling those with open type families
 and/or type classes is a way of solving the expression problem for indexed data types at the type
 level, if you are into these things.
 
@@ -182,8 +182,8 @@ type NoStandalonePolymorphicDataErrMsg =
     'Text "An unwrapped built-in type constructor can't be applied to a type variable" ':$$:
     'Text "Are you trying to define a polymorphic built-in function over a polymorphic type?" ':$$:
     'Text "In that case you need to wrap all polymorphic built-in types applied to type" ':$$:
-    'Text "  variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the" ':$$:
-    'Text "  type of an argument or the type of the result, respectively"
+    'Text " variables with either ‘SomeConstant’ or ‘Opaque’ depending on whether its the" ':$$:
+    'Text " type of an argument or the type of the result, respectively"
 
 instance TypeError NoStandalonePolymorphicDataErrMsg => uni `Contains` TyVarRep where
     knownUni = underTypeError

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances    #-}
@@ -93,8 +92,8 @@ With the recent change of CEK to use DeBruijn instead of Name,
 we decided to change Index to be a Word instead of Natural, for performance reasons.
 
 However, to be absolutely sure that the script format *does not change*
-for plutus language version 1, we are converting from/to Word64 and (de)-serialize *only through Natural*,
-to keep the old v1 flat format the same.
+for plutus language version 1, we are converting from/to Word64 and (de)-serialize *only through
+Natural*, to keep the old v1 flat format the same.
 
 Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
 However, the current blockchain might have already stored a plutus v1 script
@@ -102,10 +101,11 @@ containing a hugely-indexed variable `>maxBound::Word64` -- such a script must b
 because such a huge index must be a free variable (given the current script-size constraints).
 
 When decoding such an already-stored (failing) script
-the Natural deserializer makes the script fail at the scopechecking step (previously undebruijnification step).
-Hypotheically using the Word64 deserializer, the script would *hopefully* fail as well, although earlier
-at the deserialization step. Initial tests and looking at flat internals make this likely,
-but until proven, we postpone the transition to Word64 deserializer for version 2 language.
+the Natural deserializer makes the script fail at the scopechecking step (previously
+undebruijnification step). Hypotheically using the Word64 deserializer, the script would *hopefully*
+fail as well, although earlier at the deserialization step. Initial tests and looking at flat
+internals make this likely, but until proven, we postpone the transition to Word64 deserializer for
+version 2 language.
 -}
 
 

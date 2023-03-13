@@ -44,8 +44,8 @@ import PlutusTx.Eq qualified as PlutusTx
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
-import PlutusLedgerApi.V1.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress, outValue, pubKeyHashTxOut,
-                              txOutDatum, txOutPubKey)
+import PlutusLedgerApi.V1.Tx hiding (TxOut (..), isPayToScriptOut, isPubKeyOut, outAddress,
+                              outValue, pubKeyHashTxOut, txOutDatum, txOutPubKey)
 import PlutusLedgerApi.V1.Value
 
 -- | The datum attached to an output: either nothing; a datum hash; or the datum itself (an "inline datum").

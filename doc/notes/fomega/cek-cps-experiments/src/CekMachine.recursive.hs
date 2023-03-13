@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 
 -- This file contains a version of the CEK machine in
@@ -17,7 +16,8 @@
 -- This is for efficiency reasons.
 -- The type checker pass is required as well (and in our case it subsumes the renamer pass).
 -- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
--- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
+-- The CEK machine generates booleans along the way which might contain globally non-unique
+-- 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
 module PlutusCore.Interpreter.CekMachine
@@ -84,12 +84,14 @@ evalCek !cl@(Closure term env) =
       Unwrap _ term' ->
              case evalCek $ Closure term' env of
                Closure (Wrap _ _ _ t) env' -> evalCek $ Closure t env'
-               _                           -> throw $ MachineException NonWrapUnwrappedMachineError term'
+               _                           ->
+                throw $ MachineException NonWrapUnwrappedMachineError term'
 
       Error{} -> throw $ MachineException OpenTermEvaluatedMachineError term
 
       Var _ name -> case lookupName name env of
-                      Nothing                     -> throw $ MachineException OpenTermEvaluatedMachineError term
+                      Nothing                     ->
+                        throw $ MachineException OpenTermEvaluatedMachineError term
                       Just cl@(Closure val7 env7) -> cl
 
 -- | Instantiate a term with a type and proceed.
@@ -101,10 +103,12 @@ instantiateEvaluate
 instantiateEvaluate _  !(Closure (TyAbs _ _ _ body) env) = evalCek (Closure body env)
 instantiateEvaluate ty !(Closure fun env)
     | isJust $! termAsPrimIterApp fun = Closure (TyInst () fun ty) env
-    | otherwise                      = throw $ MachineException NonPrimitiveInstantiationMachineError fun
+    | otherwise                      =
+        throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
--- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
+-- If the function is a 'LamAbs', then extend the current environment with a new variable and
+-- proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
@@ -121,9 +125,11 @@ applyEvaluate !(Closure funVal funEnv) !(Closure argVal argEnv) =
             Just (IterApp headName spine) ->
                 case runQuote $! ((applyBuiltinName $! headName) $! spine) of
                     ConstAppSuccess term' -> Closure term' funEnv
-                    ConstAppFailure       -> throw $ MachineException OpenTermEvaluatedMachineError term
+                    ConstAppFailure       ->
+                        throw $ MachineException OpenTermEvaluatedMachineError term
                     ConstAppStuck         -> Closure term funEnv
-                    ConstAppError err     -> throw $ MachineException (ConstAppMachineError err) term
+                    ConstAppError err     ->
+                        throw $ MachineException (ConstAppMachineError err) term
 
 -- | Evaluate a term using the CEK machine. May throw a 'MachineException'.
 evaluateCek :: Term TyName Name () -> EvaluationResult

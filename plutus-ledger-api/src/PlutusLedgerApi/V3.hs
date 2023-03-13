@@ -108,9 +108,9 @@ import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluate
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
-import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
-                           assertScriptWellFormed, evaluateScriptCounting, evaluateScriptRestricting,
-                           mkEvaluationContext)
+import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..),
+                           TxOut (..), assertScriptWellFormed, evaluateScriptCounting,
+                           evaluateScriptRestricting, mkEvaluationContext)
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 import PlutusLedgerApi.V3.EvaluationContext

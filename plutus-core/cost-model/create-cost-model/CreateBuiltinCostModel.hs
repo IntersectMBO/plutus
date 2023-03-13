@@ -103,7 +103,10 @@ builtinCostModelNames = BuiltinCostModelBase
 
 -- | Loads the models from R.
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
-costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+costModelsR :: MonadR m =>
+  FilePath
+  -> FilePath
+  -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR bmfile rfile = do
   list <- [r|
              source(rfile_hs)

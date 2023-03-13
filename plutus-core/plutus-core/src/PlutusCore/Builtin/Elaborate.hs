@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- GHC doesn't like the definition of 'TrySpecializeAsVar'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
@@ -26,7 +25,8 @@ import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
 
--- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
+-- The 'TryUnify' gadget explained in detail in
+-- https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
 
 -- | Check if two values of different kinds are in fact the same value (with the same kind).
 -- A heterogeneous version of @Type.Equality.(==)@.

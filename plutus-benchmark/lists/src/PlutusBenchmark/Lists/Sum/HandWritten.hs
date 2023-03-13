@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 
 module PlutusBenchmark.Lists.Sum.HandWritten where
@@ -21,10 +20,12 @@ mkBuiltinList :: [Integer] -> Term
 mkBuiltinList l = compiledCodeToTerm (Tx.liftCode $ BI.BuiltinList l)
 
 mkSumLeftBuiltinTerm :: [Integer] -> Term
-mkSumLeftBuiltinTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm BuiltinList.sum) (mkBuiltinList l)
+mkSumLeftBuiltinTerm l =
+    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm BuiltinList.sum) (mkBuiltinList l)
 
 mkSumRightBuiltinTerm :: [Integer] -> Term
-mkSumRightBuiltinTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm BuiltinList.sumr) (mkBuiltinList l)
+mkSumRightBuiltinTerm l =
+    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm BuiltinList.sumr) (mkBuiltinList l)
 
 mkScottList :: [Integer] -> Term
 mkScottList l = compiledCodeToTerm (Tx.liftCode l)
@@ -33,9 +34,11 @@ mkSumLeftScottTerm :: [Integer] -> Term
 mkSumLeftScottTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sum) (mkScottList l)
 
 mkSumRightScottTerm :: [Integer] -> Term
-mkSumRightScottTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sumr) (mkScottList l)
+mkSumRightScottTerm l =
+    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sumr) (mkScottList l)
 
 
 debruijnTermUnsafe :: UPLC.Term UPLC.Name uni fun ann
                     -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
-debruijnTermUnsafe = fromRight (error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm
+debruijnTermUnsafe =
+    fromRight (error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm

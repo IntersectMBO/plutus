@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
@@ -68,8 +67,12 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser (
        command "apply"
            (info (Apply <$> applyOpts)
-            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            (progDesc $
+            "Given a list of input scripts f g1 g2 ... gn, output a script consisting of "
+              ++ "(... ((f g1) g2) ... gn); "
+              ++ "for example, "
+              ++ "'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat"
+              ++" --of flat -o Script.flat'"))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))

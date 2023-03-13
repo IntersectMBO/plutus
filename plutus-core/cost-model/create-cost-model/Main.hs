@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Main where
 
 import CreateBuiltinCostModel (createBuiltinCostModel)
@@ -46,7 +45,8 @@ data Output = NamedOutput FilePath | StdOutput
 benchmarkFile :: Parser BenchmarkFile
 benchmarkFile = namedBenchmarkFile <|> pure defaultBenchmarkFile
 
--- | Parser for an input stream. If none is specified, default to stdin: this makes use in pipelines easier
+-- | Parser for an input stream. If none is specified, default to stdin:
+-- this makes use in pipelines easier
 namedBenchmarkFile :: Parser BenchmarkFile
 namedBenchmarkFile = BenchmarkFile <$> strOption
   (  long "csv"
@@ -65,7 +65,8 @@ namedRFile  = RFile <$> strOption
   <> help "The file containing the R modelling code" )
 
 
--- | Parser for an output stream. If none is specified, default to stdout: this makes use in pipelines easier
+-- | Parser for an output stream. If none is specified, default to stdout:
+-- this makes use in pipelines easier
 output :: Parser Output
 output = fileOutput <|> stdOutput <|> pure StdOutput
 
