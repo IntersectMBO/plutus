@@ -87,11 +87,13 @@ import PlutusCore.Data (Data (..))
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
-import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
-                          consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
-                          equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString,
+                          appendString, consByteString, decodeUtf8, emptyByteString, emptyString,
+                          encodeUtf8, equalsByteString, equalsString, error, fromBuiltin,
+                          greaterThanByteString, indexByteString, lengthOfByteString,
                           lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
-                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          verifySchnorrSecp256k1Signature)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum

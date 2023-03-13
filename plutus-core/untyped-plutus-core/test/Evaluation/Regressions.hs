@@ -11,7 +11,8 @@ import Data.ByteString (ByteString)
 import Data.List.Split (chunksOf)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN)
-import PlutusCore (DefaultFun (VerifySchnorrSecp256k1Signature), EvaluationResult (EvaluationFailure))
+import PlutusCore (DefaultFun (VerifySchnorrSecp256k1Signature),
+                   EvaluationResult (EvaluationFailure))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import PlutusPrelude

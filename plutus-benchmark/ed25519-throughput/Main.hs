@@ -27,8 +27,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import PlutusTx.IsData (toData, unstableMakeIsData)
 import PlutusTx.Prelude as Tx hiding (sort, traverse_, (*))
 
-import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
-                                   rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN, signDSIGN)
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN,
+                                   genKeyDSIGN, rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN,
+                                   signDSIGN)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 

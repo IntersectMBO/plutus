@@ -27,7 +27,8 @@ import Data.String (fromString)
 import Unsafe.Coerce (unsafeCoerce)
 
 import H.Prelude as H (MonadR, io)
-import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion, withEmbeddedR)
+import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion,
+                        withEmbeddedR)
 import Language.R.QQ (r)
 
 import Hedgehog
