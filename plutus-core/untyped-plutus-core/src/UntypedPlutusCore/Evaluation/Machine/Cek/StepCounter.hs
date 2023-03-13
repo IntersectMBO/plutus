@@ -17,7 +17,7 @@ class (Num (Index c), Integral (Index c), Monad (M c)) => StepCounter c where
     resetCounter :: c -> (M c) c
     resetCounter _ = newCounter
 
-    iforCounter :: Applicative f => c -> (Index c -> Word8 -> f ()) -> f ()
+    iforCounter :: Applicative f => c -> (Index c -> Word8 -> f ()) -> (M c) (f ())
 
     readCounter :: c -> Index c -> (M c) Word8
     writeCounter :: c -> Index c -> Word8 -> (M c) c
@@ -31,7 +31,7 @@ instance StepCounter WA64.WordArray where
     type M WA64.WordArray = Identity
 
     newCounter = pure $ WA64.WordArray 0
-    iforCounter = WA64.iforWordArray
+    iforCounter c f = pure $ WA64.iforWordArray c f
 
     readCounter c i = pure $ WA64.readArray c i
     writeCounter c i v = pure $ WA64.writeArray c i v
@@ -44,6 +44,6 @@ instance StepCounter (MutablePrimArray s Word8) where
     resetCounter c = setPrimArray c 0 8 0 >> pure c
     readCounter = readPrimArray
     writeCounter c i v = writePrimArray c i v >> pure c
-    iforCounter c f = for_ [0..sizeofMutablePrimArray c] $ \i -> do
-          v <- readPrimArray c i
-          f i v
+    iforCounter c f = do
+      c' <- unsafeFreezePrimArray c
+      pure $ for_ [0..sizeofPrimArray c'] $ \i -> f i (indexPrimArray c' i)

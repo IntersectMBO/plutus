@@ -81,6 +81,7 @@ import Control.Monad.Except
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.DList (DList)
+import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
@@ -305,7 +306,7 @@ defaultSlippage = 200
 type Steps s = WA64.WordArray
 
 liftCounter :: M (Steps s) a -> CekM uni fun s a
-liftCounter = runIdentity
+liftCounter = pure . runIdentity
 
 {- Note [DList-based emitting]
 Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
@@ -614,7 +615,10 @@ enterComputeCek
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
     -> CekM uni fun s (NTerm uni fun ())
-enterComputeCek = computeCek newCounter where
+enterComputeCek c e t = do
+  ctr <- liftCounter newCounter
+  computeCek ctr c e t
+  where
     -- | The computing part of the CEK machine.
     -- Either
     -- 1. adds a frame to the context and calls 'computeCek' ('Force', 'Apply')
@@ -754,7 +758,7 @@ enterComputeCek = computeCek newCounter where
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: Steps s -> CekM uni fun s ()
-    spendAccumulatedBudget !unbudgetedSteps = iforCounter unbudgetedSteps $ \ix v -> spend (fromIntegral ix) v
+    spendAccumulatedBudget !unbudgetedSteps = join $ liftCounter $ iforCounter unbudgetedSteps $ \ix v -> spend (fromIntegral ix) v
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
@@ -771,8 +775,8 @@ enterComputeCek = computeCek newCounter where
         -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
         -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromIntegral $ fromEnum kind
-            !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
-            !unbudgetedStepsTotal = readCounter unbudgetedSteps' 7
+        !unbudgetedSteps' <- liftCounter $ overIndex 7 (+1) =<< overIndex ix (+1) unbudgetedSteps
+        !unbudgetedStepsTotal <- liftCounter $ readCounter unbudgetedSteps' 7
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.
         if unbudgetedStepsTotal >= ?cekSlippage
