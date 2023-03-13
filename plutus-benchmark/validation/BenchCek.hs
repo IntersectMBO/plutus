@@ -17,10 +17,11 @@ import UntypedPlutusCore as UPLC
      `cabal bench -- plutus-benchmark:validation --benchmark-options crowdfunding`.
 -}
 main :: IO ()
-main = evaluate (force getEvalCtx) *> benchWith mkCekBM
- where
-   mkCekBM file program =
+main = do
+  evalCtx <- evaluate (force mkEvalCtx)
+  let mkCekBM file program =
        -- don't count the undebruijn . unflat cost
        -- `force` to try to ensure that deserialiation is not included in benchmarking time.
        let !nterm = force (toNamedDeBruijnTerm $ UPLC._progTerm $ unsafeUnflat file program)
-       in whnf evaluateCekLikeInProd nterm
+       in whnf (evaluateCekLikeInProd evalCtx) nterm
+  benchWith mkCekBM
