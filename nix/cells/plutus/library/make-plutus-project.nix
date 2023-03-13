@@ -32,7 +32,9 @@ let
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
     # No source-repository-packages right now
-    sha256map = { };
+    sha256map = {
+      "https://github.com/michaelpj/wide-word"."7b2c02616558e9350b47a6192059d4e30fbaa823" = "sha256-kZiZzO9iJo9MsrC2M982/HpF8r5XSn/+CJtzLIk90Vg="; # editorconfig-checker-disable-line
+    };
 
     # TODO: move this into the cabal.project using the new conditional support?
     # Configuration settings needed for cabal configure to work when cross compiling

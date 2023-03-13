@@ -62,3 +62,11 @@ extra-packages: ieee, filemanip
 -- dependency but turn off the warning?
 constraints:
   dependent-sum >= 0.7.1.0,
+
+source-repository-package
+  type: git
+  location: https://github.com/michaelpj/wide-word
+  tag: 7b2c02616558e9350b47a6192059d4e30fbaa823
+  subdir: .
+
+

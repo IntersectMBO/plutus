@@ -8,6 +8,7 @@ import Data.Functor.Identity
 import Data.Kind
 import Data.Primitive
 import Data.Word
+import Data.Word128Array.Word8 qualified as WA128
 import Data.Word64Array.Word8 qualified as WA64
 
 class (Num (Index c), Integral (Index c), Monad (M c)) => StepCounter c where
@@ -36,6 +37,17 @@ instance StepCounter WA64.WordArray where
     readCounter c i = pure $ WA64.readArray c i
     writeCounter c i v = pure $ WA64.writeArray c i v
     overIndex i f c = pure $ WA64.overIndex i f c
+
+instance StepCounter WA128.WordArray where
+    type Index WA128.WordArray = WA128.Index
+    type M WA128.WordArray = Identity
+
+    newCounter = pure $ WA128.WordArray 0
+    iforCounter c f = pure $ WA128.iforWordArray c f
+
+    readCounter c i = pure $ WA128.readArray c i
+    writeCounter c i v = pure $ WA128.writeArray c i v
+    overIndex i f c = pure $ WA128.overIndex i f c
 
 instance StepCounter (MutablePrimArray s Word8) where
     type Index (MutablePrimArray s Word8) = Int

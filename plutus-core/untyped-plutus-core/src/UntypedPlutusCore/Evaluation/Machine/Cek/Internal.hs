@@ -87,6 +87,7 @@ import Data.Kind qualified as GHC
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
+import Data.Word128Array.Word8 qualified as WA128
 import Data.Word64Array.Word8 qualified as WA64
 import Prettyprinter
 import Universe
@@ -303,7 +304,7 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
-type Steps s = WA64.WordArray
+type Steps s = WA128.WordArray
 
 liftCounter :: M (Steps s) a -> CekM uni fun s a
 liftCounter = pure . runIdentity
@@ -768,6 +769,7 @@ enterComputeCek c e t = do
     spend :: Int -> Word8 -> CekM uni fun s ()
     spend !i !w = unless (i >= 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
+    {-# INLINE stepAndMaybeSpend #-}
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
     stepAndMaybeSpend :: StepKind -> Steps s -> CekM uni fun s (Steps s)
     stepAndMaybeSpend !kind !unbudgetedSteps = do

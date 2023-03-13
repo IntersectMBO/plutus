@@ -7,8 +7,6 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE UnboxedTuples       #-}
 
-{-# OPTIONS_GHC -ddump-simpl -ddump-to-file -dsuppress-uniques -dsuppress-coercions -dsuppress-type-applications -dsuppress-unfoldings -dsuppress-idinfo -dppr-cols=200 -dumpdir /tmp/dumps #-}
-
 module Data.Word128Array.Word8
   ( WordArray(..)
   , Index(..)
@@ -30,6 +28,7 @@ import Data.Maybe (fromMaybe)
 import Data.MonoTraversable
 import Data.WideWord
 import Data.Word
+import GHC.Exts (inline)
 import Numeric (showHex)
 import Text.Show (showListWith)
 
@@ -53,7 +52,7 @@ type instance Element WordArray = Word8
 
 newtype Index = Index { getIndex :: Int }
   deriving stock (Show, Eq, Ord)
-  deriving newtype (Num)
+  deriving newtype (Num, Real, Enum, Integral)
 
 instance Bounded Index where
   maxBound = 15
@@ -91,21 +90,21 @@ toTuple :: WordArray ->
 toTuple (WordArray !w) =
   let
     !w15 = w
-    !w14 = unsafeShiftR w15 8
-    !w13 = unsafeShiftR w14 8
-    !w12 = unsafeShiftR w13 8
-    !w11 = unsafeShiftR w12 8
-    !w10 = unsafeShiftR w11 8
-    !w9 = unsafeShiftR w10 8
-    !w8 = unsafeShiftR w9 8
-    !w7 = unsafeShiftR w8 8
-    !w6 = unsafeShiftR w7 8
-    !w5 = unsafeShiftR w6 8
-    !w4 = unsafeShiftR w5 8
-    !w3 = unsafeShiftR w4 8
-    !w2 = unsafeShiftR w3 8
-    !w1 = unsafeShiftR w2 8
-    !w0 = unsafeShiftR w1 8
+    !w14 = inline unsafeShiftR w15 8
+    !w13 = inline unsafeShiftR w14 8
+    !w12 = inline unsafeShiftR w13 8
+    !w11 = inline unsafeShiftR w12 8
+    !w10 = inline unsafeShiftR w11 8
+    !w9 = inline unsafeShiftR w10 8
+    !w8 = inline unsafeShiftR w9 8
+    !w7 = inline unsafeShiftR w8 8
+    !w6 = inline unsafeShiftR w7 8
+    !w5 = inline unsafeShiftR w6 8
+    !w4 = inline unsafeShiftR w5 8
+    !w3 = inline unsafeShiftR w4 8
+    !w2 = inline unsafeShiftR w3 8
+    !w1 = inline unsafeShiftR w2 8
+    !w0 = inline unsafeShiftR w1 8
   in
   (# fromIntegral w0
   ,  fromIntegral w1
@@ -148,21 +147,21 @@ fromTuple ::
 fromTuple (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) =
     WordArray
       (                (fromIntegral w15)
-      .|. unsafeShiftL (fromIntegral w14) 8
-      .|. unsafeShiftL (fromIntegral w13) 16
-      .|. unsafeShiftL (fromIntegral w12) 24
-      .|. unsafeShiftL (fromIntegral w11) 32
-      .|. unsafeShiftL (fromIntegral w10) 40
-      .|. unsafeShiftL (fromIntegral w9) 48
-      .|. unsafeShiftL (fromIntegral w8) 56
-      .|. unsafeShiftL (fromIntegral w7) 64
-      .|. unsafeShiftL (fromIntegral w6) 72
-      .|. unsafeShiftL (fromIntegral w5) 80
-      .|. unsafeShiftL (fromIntegral w4) 88
-      .|. unsafeShiftL (fromIntegral w3) 96
-      .|. unsafeShiftL (fromIntegral w2) 104
-      .|. unsafeShiftL (fromIntegral w1) 112
-      .|. unsafeShiftL (fromIntegral w0) 120
+      .|. inline unsafeShiftL (fromIntegral w14) 8
+      .|. inline unsafeShiftL (fromIntegral w13) 16
+      .|. inline unsafeShiftL (fromIntegral w12) 24
+      .|. inline unsafeShiftL (fromIntegral w11) 32
+      .|. inline unsafeShiftL (fromIntegral w10) 40
+      .|. inline unsafeShiftL (fromIntegral w9) 48
+      .|. inline unsafeShiftL (fromIntegral w8) 56
+      .|. inline unsafeShiftL (fromIntegral w7) 64
+      .|. inline unsafeShiftL (fromIntegral w6) 72
+      .|. inline unsafeShiftL (fromIntegral w5) 80
+      .|. inline unsafeShiftL (fromIntegral w4) 88
+      .|. inline unsafeShiftL (fromIntegral w3) 96
+      .|. inline unsafeShiftL (fromIntegral w2) 104
+      .|. inline unsafeShiftL (fromIntegral w1) 112
+      .|. inline unsafeShiftL (fromIntegral w0) 120
       )
 
 {-# INLINE toList #-}
@@ -213,13 +212,13 @@ mask 15 = 0xffffffffffffffffffffffffffffff00
 mask _  = error "mask"
 
 {-# INLINE iforWordArray #-}
-iforWordArray :: Applicative f => WordArray -> (Int -> Element WordArray -> f ()) -> f ()
+iforWordArray :: Applicative f => WordArray -> (Index -> Element WordArray -> f ()) -> f ()
 iforWordArray !w f =
   let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
   in   f 0 w0 *> f 1 w1 *> f 2 w2 *> f 3 w3 *> f 4 w4 *> f 5 w5 *> f 6 w6 *> f 7 w7 *> f 8 w8 *> f 9 w9 *> f 10 w10 *> f 11 w11 *> f 12 w12 *> f 13 w13 *> f 14 w14 *> f 15 w15
 
 {-# INLINE ifoldWordArray #-}
-ifoldWordArray :: (Int -> Element WordArray -> b -> b) -> b -> WordArray -> b
+ifoldWordArray :: (Index -> Element WordArray -> b -> b) -> b -> WordArray -> b
 ifoldWordArray f !b !w =
   let (# !w0, !w1, !w2, !w3, !w4, !w5, !w6, !w7, !w8, !w9, !w10, !w11, !w12, !w13, !w14, !w15 #) = toTuple w
   in  f 0 w0 $ f 1 w1 $ f 2 w2 $ f 3 w3 $ f 4 w4 $ f 5 w5 $ f 6 w6 $ f 7 w7 $ f 8 w8 $ f 9 w9 $ f 10 w10 $ f 11 w11 $ f 12 w12 $ f 13 w13 $ f 14 w14 $ f 15 w15 b
