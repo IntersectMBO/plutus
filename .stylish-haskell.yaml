@@ -11,7 +11,7 @@ steps:
       remove_redundant: false
 
   - trailing_whitespace: {}
-columns: 120
+columns: 100
 newline: native
 language_extensions:
   - DataKinds
