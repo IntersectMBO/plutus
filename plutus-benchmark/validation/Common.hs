@@ -19,9 +19,9 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Result
-import PlutusLedgerApi.Common (LedgerPlutusVersion (PlutusV1), evaluateTerm)
-import PlutusLedgerApi.Common.Versions (languageIntroducedIn)
-import PlutusLedgerApi.V3 (EvaluationContext, ParamName, VerboseMode (..), mkEvaluationContext)
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1), evaluateTerm)
+import PlutusLedgerApi.Common.Versions (ledgerLanguageIntroducedIn)
+import PlutusLedgerApi.V1 (EvaluationContext, ParamName, VerboseMode (..), mkEvaluationContext)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -160,7 +160,7 @@ evaluateCekLikeInProd term = do
     evalCtx <- getEvalCtx
     let (getRes, _, _) =
             -- The validation benchmarks were all created from PlutusV1 scripts
-            evaluateTerm UPLC.restrictingEnormous (languageIntroducedIn PlutusV1) Quiet evalCtx term
+            evaluateTerm UPLC.restrictingEnormous (ledgerLanguageIntroducedIn PlutusV1) Quiet evalCtx term
     getRes
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
