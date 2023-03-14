@@ -12,7 +12,9 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
+import Data.Map.Strict qualified as Map
 import PlutusIR.Core
+import PlutusIR.Transform.Inline.Utils
 import Prettyprinter
 
 {- Note [Inlining of fully applied functions]
@@ -142,28 +144,6 @@ Also, we currently reject `Constant` (has acceptable cost but not acceptable siz
 We may want to check their sizes instead of just rejecting them.
 -}
 
-{-|
-The (syntactic) arity of a term. That is, a record of the arguments that the
-term expects before it may do some work. Since we have both type and lambda
-abstractions, this is not a simple argument count, but rather a list of values
-indicating whether the next argument should be a term or a type.
-
-Note that this is the syntactic arity, i.e. it just corresponds to the number of
-syntactic lambda and type abstractions on the outside of the term. It is thus
-an under-approximation of how many arguments the term may need.
-e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
-arity @[]@, but does in fact need an argument before it does any work.
--}
-type Arity = [TermOrType]
-
--- | Is the next argument a term or a type?
-data TermOrType =
-    MkTerm | MkType
-    deriving stock (Eq, Show)
-
-instance Pretty TermOrType where
-  pretty = viaShow
-
 -- | Computes the 'Arity' of a term.
 computeArity ::
     Term tyname name uni fun a
@@ -173,3 +153,130 @@ computeArity = \case
     TyAbs _ _ _ body  -> MkType : computeArity body
     -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
     _                 -> []
+
+-- | Inline fully applied functions iff the body of the function is `acceptable`.
+considerInline ::
+    Term tyname name uni fun a -- the variable that is a function
+    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+considerInline v@(Var a n) = do
+-- look up the variable in the `CalledVar` map
+  varInfo <- gets (lookupCalled n)
+  case varInfo of
+      -- if it's not in the map, it's not a function, don't inline.
+      Nothing -> pure v
+      Just info -> do
+        let subst = calledVarDef info -- what we substitute in is its definition
+        isAcceptable <- acceptable subst
+      -- if the size and cost are not acceptable, don't inline
+        if not isAcceptable then pure v
+        -- if the size and cost are acceptable, then check if it's fully applied
+        -- See note [Identifying fully applied call sites].
+        else do
+          pure v
+considerInline _notVar = -- this should not happen
+  Prelude.error  "considerInline: should be a variable."
+
+-- | A record for each call sites of a variable.
+-- data ApplicationOrder ann =
+--   MkApplicationOrder {
+--     annotation         :: ann -- ^ The annotation of the call site.
+--     , applicationOrder :: AppOrder -- ^ The sequence of term or type applications applied to
+    -- this call site.
+  -- }
+
+-- | A mapping of a variable's unique name to a list of `ApplicationOrder` for each of its call
+-- sites.
+-- type ApplicationMap ann name = Map.Map name [ApplicationOrder ann]
+
+data Args tyname name uni fun ann =
+  MkTermArg (Term tyname name uni fun ann)
+  | MkTypeArg (Type tyname uni a)
+
+type ArgOrder = [Args tyname name uni fun ann]
+
+-- | Takes a term or type application expression and returns the function
+-- being applied and the arguments to which it is applied
+collectArgs :: Term tyname name uni fun ann
+  -> (Term tyname name uni fun ann, ArgOrder)
+collectArgs expr
+  = go expr []
+  where
+    go (Apply _ f a) as      = go f (a:as)
+    go (TyInst _ f tyArg) as = go f (tyArg:as)
+    go e as                  = (e, as)
+
+-- | Apply a list of term and type arguments to a function in potentially a nested fashion.
+mkApps :: Term tyname name uni fun ann -> ArgOrder -> Term tyname name uni fun ann
+mkApps f args = foldl' App f args
+
+enoughArgs :: Arity -> ArgOrder -> Bool
+enoughArgs [] argsOrder = True
+enoughArgs arity [] = False
+enoughArgs lamOrder argsOrder =
+  -- start comparing from the end because there may be over-application
+  case (last lamOrder, last argsOrder) of
+    (MkTerm, MkTermArg _) -> enoughArgs (init lamOrder) (init ArgOrder)
+    (MkType, MkTypeArg _) -> enoughArgs (init lamOrder) (init ArgOrder)
+    _                     -> False
+
+-- | Inline fully applied functions. See note [Identifying fully applied call sites].
+inlineFullyApplied ::
+    Ord name => -- needed for `Map`
+    Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
+    -> InlineM tyname name uni fun a (Term tyname name uni fun ann)
+-- If the term is a term application, get the `AppOrder` of the
+inlineFullyApplied (appTerm@(Apply _ fun arg)) = do
+    -- collect all the arguments of the term being applied to
+    (argsAppliedTo, args) <- collectArgs appTerm
+    case argsAppliedTo of
+      -- if it is a `Var` that is being applied to, check to see if it's fully applied
+      Var _ name -> do
+        varInfo <- gets (lookupCalled name)
+        if enoughArgs (varInfo arity) args then
+          -- if the `Var` is fully applied (over-application is allowed) then inline it
+          mkApps (varInfo calledVarDef) (go <$> args)
+        else pure $ Apply _ (go fun) (go arg) -- otherwise just keep going
+      -- if the term being applied is not a `Var`, just keep going
+      _ -> pure $ Apply _ (go fun) (go arg)
+inlineFullyApplied (TyInst _ fnBody _) =
+    -- If the term is a type application, add it to the application stack, and
+    -- keep on examining the body.
+    countLocal (appStack <> [MkType]) calledStack fnBody
+
+--  (Var ann name) =
+--             -- When we encounter a body that is a variable, we have found a call site of it.
+--             -- Using `insertWith` ensures that if a variable is called more than once, the new
+--             -- `ApplicationOrder` map will be appended to the existing one.
+--             Map.insertWith (<>) name [MkApplicationOrder ann appStack] calledStack
+--           go (Let _ _ bds letBody) =
+--             -- recursive or not, the bindings of this let term *may* contain the variable in
+--             -- question, so we need to check all the bindings and also the body
+--             let
+--               -- get the list of rhs's of the term bindings
+--               getRHS :: Binding tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+--               getRHS (TermBind _ _ _ rhs) = Just rhs
+--               getRHS _ =
+--                 -- no need to keep track of the type bindings. Even though this type variable
+--                 -- called in the body, it does not affect the resulting `ApplicationMap`
+--                 Nothing
+--               listOfRHSOfBindings = mapMaybe getRHS (toList bds)
+--             in
+--             foldr (flip $ countLocal []) (countLocal [] calledStack letBody) listOfRHSOfBindings
+--           go (TyAbs _ _ _ tyAbsBody) =
+--             -- start count in the body of the type lambda abstraction
+--             countLocal [] calledStack tyAbsBody
+--           go (LamAbs _ _ _ fnBody) =
+--             -- start the count in the body of the term lambda abstraction
+--             countLocal [] calledStack fnBody
+--           go (Constant _ _) =
+--             calledStack -- constants cannot call the variable
+--           go (Builtin _ _) =
+--             -- default builtin functions in `PlutusCore/Default/Builtins.hs`
+--             -- cannot call the variable
+--             calledStack
+--           go (Unwrap _ tm) =
+--             countLocal [] calledStack tm
+--           go (IWrap _ _ _ tm) =
+--             countLocal [] calledStack tm
+--           go (Error _ _) = calledStack
+

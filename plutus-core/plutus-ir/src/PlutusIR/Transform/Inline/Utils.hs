@@ -16,11 +16,12 @@ import PlutusIR.Purity (firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
-import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename
+
+import PlutusCore.Annotation
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
@@ -28,6 +29,7 @@ import Control.Monad.State
 
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
+import Prettyprinter (viaShow)
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -46,16 +48,55 @@ newtype TypeEnv tyname uni a =
     TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
     deriving newtype (Semigroup, Monoid)
 
+-- | A mapping including all let-bindings that are functions.
+newtype CalledVarEnv tyname name uni fun a =
+    CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun a)}
+    deriving newtype (Semigroup, Monoid)
+
+{-|
+The (syntactic) arity of a term. That is, a record of the arguments that the
+term expects before it may do some work. Since we have both type and lambda
+abstractions, this is not a simple argument count, but rather a list of values
+indicating whether the next argument should be a term or a type.
+
+Note that this is the syntactic arity, i.e. it just corresponds to the number of
+syntactic lambda and type abstractions on the outside of the term. It is thus
+an under-approximation of how many arguments the term may need.
+e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
+arity @[]@, but does in fact need an argument before it does any work.
+-}
+type Arity = [TermOrType]
+-- | An ordered list of the term and type arguments applied to a function.
+type AppOrder = [TermOrType]
+
+-- | Info attached to a let-binding needed for call site inlining.
+data CalledVarInfo tyname name uni fun a =
+  MkCalledVarInfo {
+    calledVarDef    :: Term tyname name uni fun a -- ^ its definition
+    , arity         :: Arity -- ^ its sequence of term and type lambdas
+    , calledVarBody :: Term tyname name uni fun a -- ^ the body of the function
+  }
+-- | Is the next argument a term or a type?
+data TermOrType =
+    MkTerm | MkType
+    deriving stock (Eq, Show)
+
+instance Pretty TermOrType where
+  pretty = viaShow
+
 -- | Substitution for both terms and types.
 -- Similar to 'Subst' in the paper, but the paper only has terms.
-data Subst tyname name uni fun a = Subst { _termEnv :: TermEnv tyname name uni fun a
-                                         , _typeEnv :: TypeEnv tyname uni a
-                                         }
+data Subst tyname name uni fun a =
+    Subst { _termEnv       :: TermEnv tyname name uni fun a
+           , _typeEnv      :: TypeEnv tyname uni a
+           , _calledVarEnv :: CalledVarEnv tyname name uni fun a
+          }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun a))
 
 makeLenses ''TermEnv
 makeLenses ''TypeEnv
+makeLenses ''CalledVarEnv
 makeLenses ''Subst
 
 -- | Look up the unprocessed variable in the substitution.
@@ -85,7 +126,7 @@ lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
 -- | Check if the type substitution is empty.
 isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
-isTypeSubstEmpty (Subst _ (TypeEnv tyEnv)) = isEmpty tyEnv
+isTypeSubstEmpty (Subst _ (TypeEnv tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the substitution.
 extendType
@@ -96,6 +137,22 @@ extendType
     -> Subst tyname name uni fun a
 extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
+-- | Look up the called variable in the substitution.
+lookupCalled
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Maybe (CalledVarInfo tyname name uni fun a)
+lookupCalled n subst = lookupName n $ subst ^. calledVarEnv . unCalledVarEnv
+
+-- | Insert the called variable into the substitution.
+extendCalled
+    :: (HasUnique name TermUnique)
+    => name -- ^ The name of the variable.
+    -> CalledVarInfo tyname name uni fun a -- ^ The called variable's info.
+    -> Subst tyname name uni fun a -- ^ The substitution.
+    -> Subst tyname name uni fun a
+extendCalled n info subst = subst & calledVarEnv . unCalledVarEnv %~ insertByName n info
 
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique

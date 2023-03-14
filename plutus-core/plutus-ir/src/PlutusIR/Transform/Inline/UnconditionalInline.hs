@@ -48,11 +48,9 @@ We differ from the paper a few ways, mostly leaving things out:
 Functionality
 ------------
 
-CallSiteInline: TODO in PLT-1146
-
 Inlining recursive bindings: not worth it, complicated.
 
-Context-based inlining: TODO
+Context-based inlining: Not needed atm.
 
 Dead code elimination: done in `DeadCode.hs`.
 
@@ -156,8 +154,9 @@ inline hints ver t = let
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 {- Note [Removing inlined bindings]
-We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
+We *do* remove bindings that we inline *unconditionally*. We *could*
 leave this to the dead code pass, but it's helpful to do it here.
+We *don't* remove bindings that we inline at the call site because they are fully applied.
 Crucially, we have to do the same reasoning wrt strict bindings and purity
 (see Note [Inlining and purity]):
 we can only inline *pure* strict bindings, which is effectively the same as what we do in the dead
@@ -178,7 +177,14 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         Term tyname name uni fun a
         -> InlineM tyname name uni fun a (Term tyname name uni fun a)
     handleTerm = \case
-        v@(Var _ n) -> fromMaybe v <$> substName n
+        v@(Var _ n) -> do
+            inSubMap <- substName n
+            case inSubMap of
+                -- If it's not in the substitution map, check if it's saturated
+                Nothing -> do
+                    considerInline v
+                -- If it's in the substitution map, do the substitution
+                Just v -> pure v
         Let a NonRec bs t -> do
             -- Process bindings, eliminating those which will be inlined unconditionally,
             -- and accumulating the new substitutions
@@ -193,24 +199,28 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             pure $ mkLet a NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> forMOf termSubterms t processTerm
-    applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
-    applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
-        -- The type substitution is very often empty, and there are lots of types in the program,
-        -- so this saves a lot of work (determined from profiling)
-        True -> pure t
-        _    -> typeSubstTyNamesM substTyName t
-    -- See Note [Renaming strategy]
-    substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
-    -- See Note [Renaming strategy]
-    substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-    substName name = gets (lookupTerm name) >>= traverse renameTerm
-    -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-    -- Already processed term, just rename and put it in, don't do any further optimization here.
-    renameTerm ::
-        InlineTerm tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    renameTerm (Done t) = liftDupable t
+
+applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
+applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
+    -- The type substitution is very often empty, and there are lots of types in the program,
+    -- so this saves a lot of work (determined from profiling)
+    True -> pure t
+    _    -> typeSubstTyNamesM substTyName t
+
+-- See Note [Renaming strategy]
+substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
+
+-- See Note [Renaming strategy]
+substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
+substName name = gets (lookupTerm name) >>= traverse renameTerm
+
+-- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+-- Already processed term, just rename and put it in, don't do any further optimization here.
+renameTerm ::
+    InlineTerm tyname name uni fun a
+    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+renameTerm (Done t) = liftDupable t
 
 {- Note [Renaming strategy]
 Since we assume global uniqueness, we can take a slightly different approach to
@@ -228,6 +238,56 @@ processSingleBinding
     -> Binding tyname name uni fun a -- ^ The binding.
     -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
 processSingleBinding body = \case
+    -- when the let binding is a function type, we add it to the `CalledVarEnv` and
+    -- consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
+        let
+          -- track the term and type lambda abstraction order of the function
+          varLamOrder = computeArity rhs
+          -- examine the `body` of the `Let` term and track all term/type applications.
+          appSites = countApp body
+          -- list of all call sites of this variable
+          listOfCallSites = Map.lookup n appSites
+        case listOfCallSites of
+          Nothing ->
+            -- we don't remove the binding because we decide *at the call site* whether we want to
+            -- inline, and it may be called more than once
+            pure $ TermBind a s v rhs
+          Just list -> do
+            let
+              isEqAppOrder :: ApplicationOrder a -> Bool
+              isEqAppOrder appOrder = applicationOrder appOrder == varLamOrder
+              -- filter the list to only call locations that are fully applied
+              filteredFullyApplied = filter isEqAppOrder list
+              fullyAppliedAnns = fmap annotation filteredFullyApplied
+            -- add the function to `CalledVarEnv`
+            void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder fullyAppliedAnns)
+            pure $ TermBind a s v rhs
+    -- when the let binding is a type lambda abstraction, we add it to the `CalledVarEnv` and
+    -- consider whether we want to inline at the call site.
+    TermBind a s v@(VarDecl _ n (TyLam _ann _tyname _tyArg _tyBody)) rhs -> do
+        let varLamOrder = countLam rhs
+            appSites = countApp body
+            listOfCallSites = Map.lookup n appSites
+        case listOfCallSites of
+            Nothing ->
+              -- we don't remove the binding because we decide *at the call site* whether we want to
+              -- inline, and it may be called more than once
+              pure $ TermBind a s v rhs
+            Just list -> do
+              let
+                isEqAppOrder :: ApplicationOrder a -> Bool
+                isEqAppOrder appOrder = applicationOrder appOrder == varLamOrder
+                -- filter the list to only call locations that are fully applied
+                filteredFullyApplied = filter isEqAppOrder list
+                fullyAppliedAnns = fmap annotation filteredFullyApplied
+              -- add the function to `CalledVarEnv`
+              -- add the type abstraction to `CalledVarEnv`
+              void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder fullyAppliedAnns)
+              -- we don't remove the binding because we decide *at the call site* whether we want to
+              -- inline, and it may be called more than once
+              pure $ TermBind a s v rhs
+    -- for binding that aren't functions, maybe do unconditional inline
     TermBind a s v@(VarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddSubst body a s n rhs
         pure $ TermBind a s v <$> maybeRhs'
