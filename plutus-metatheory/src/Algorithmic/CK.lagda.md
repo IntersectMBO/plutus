@@ -85,14 +85,9 @@ step ((s , (-·⋆ A)) ◅ V-Λ t)      = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)            = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
 step (s ▻ (builtin b / refl)) = s ◅ (irrValue (ival b btype-∅))
-step ((s , (V-I⇒ b {am = 0} bt ·-)) ◅ vu) =
-  s ▻ BUILTIN' b (app bt vu)
-step ((s , (V-I⇒ b {am = suc _} bt ·-)) ◅ vu) =
-  s ◅ V-I b (app bt vu)
-step ((s , -·⋆ A) ◅ V-IΠ b {tm = 0} bt) =
-  s ◅ V-I b (app⋆ bt refl refl) 
-step ((s , -·⋆ A) ◅ V-IΠ b {tm = suc _} bt) =
-  s ◅ V-I b (app⋆ bt refl refl)
+step ((s , (V-I⇒ b {am = 0} bt ·-)) ◅ vu) = s ▻ BUILTIN' b (app bt vu)
+step ((s , (V-I⇒ b {am = suc _} bt ·-)) ◅ vu) = s ◅ V-I b (app bt vu)
+step ((s , -·⋆ A) ◅ V-IΠ b  bt)   =  s ◅ V-I b (app⋆ bt refl refl) 
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 
