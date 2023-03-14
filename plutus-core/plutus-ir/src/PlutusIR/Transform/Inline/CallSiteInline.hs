@@ -142,10 +142,21 @@ Also, we currently reject `Constant` (has acceptable cost but not acceptable siz
 We may want to check their sizes instead of just rejecting them.
 -}
 
--- | A list of `LamAbs` and `TyAbs`, in order, of a let-binding.
-type TermOrTypeOrder = [TermOrType]
+{-|
+The (syntactic) arity of a term. That is, a record of the arguments that the
+term expects before it may do some work. Since we have both type and lambda
+abstractions, this is not a simple argument count, but rather a list of values
+indicating whether the next argument should be a term or a type.
 
--- | Datatype capturing both terms and types.
+Note that this is the syntactic arity, i.e. it just corresponds to the number of
+syntactic lambda and type abstractions on the outside of the term. It is thus
+an under-approximation of how many arguments the term may need.
+e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
+arity @[]@, but does in fact need an argument before it does any work.
+-}
+type Arity = [TermOrType]
+
+-- | Is the next argument a term or a type?
 data TermOrType =
     MkTerm | MkType
     deriving stock (Eq, Show)
@@ -153,12 +164,12 @@ data TermOrType =
 instance Pretty TermOrType where
   pretty = viaShow
 
--- | Counts the type and term lambdas in the RHS of a binding and returns an ordered list
-countLam ::
-    Term tyname name uni fun a -- ^ the RHS of the let binding
-    -> TermOrTypeOrder
-countLam = \case
-    LamAbs _ _ _ body -> MkTerm : countLam body
-    TyAbs _ _ _ body  -> MkType : countLam body
-    -- Whenever we encounter a body that is not a lambda abstraction, we are done counting
+-- | Computes the 'Arity' of a term.
+computeArity ::
+    Term tyname name uni fun a
+    -> Arity
+computeArity = \case
+    LamAbs _ _ _ body -> MkTerm : computeArity body
+    TyAbs _ _ _ body  -> MkType : computeArity body
+    -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
     _                 -> []
