@@ -84,6 +84,7 @@ import Data.DList (DList)
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.Primitive qualified as Prim
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
@@ -304,10 +305,10 @@ type Slippage = Word8
 defaultSlippage :: Slippage
 defaultSlippage = 200
 
-type Steps s = WA128.WordArray
+type Steps s = Prim.MutablePrimArray s Word8
 
 liftCounter :: M (Steps s) a -> CekM uni fun s a
-liftCounter = pure . runIdentity
+liftCounter = CekM
 
 {- Note [DList-based emitting]
 Instead of emitting log lines one by one, we have a 'DList' of them in the type of emitters
