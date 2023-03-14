@@ -1,9 +1,11 @@
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
 import Common
+import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
@@ -32,7 +34,8 @@ main = benchWith mkDecBM
             (unsaturated, _args) = peelDataArguments fullyApplied
 
             -- we then have to re-encode and serialise it
-            benchScript :: SerialisedScript = serialiseUPLC $ UPLC.Program () v unsaturated
+            !(benchScript :: SerialisedScript) =
+                force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)

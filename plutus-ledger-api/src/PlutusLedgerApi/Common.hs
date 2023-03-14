@@ -28,6 +28,8 @@ module PlutusLedgerApi.Common
     , Version (..)
     , builtinsIntroducedIn
     , builtinsAvailableIn
+    , ledgerLanguageIntroducedIn
+    , ledgerLanguagesAvailableIn
 
       -- * Network's costing parameters
       {-| A less drastic approach (that does not rely on a HF)

@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -6,6 +7,7 @@ import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
 import Common
+import Control.DeepSeq (force)
 import Criterion
 import Data.ByteString as BS
 import Data.Either
@@ -37,7 +39,7 @@ main = benchWith mkFullBM
             (term, args) = peelDataArguments body
 
             -- strictify and "short" the result cbor to create a real `SerialisedScript`
-            benchScript :: SerialisedScript = serialiseUPLC $ UPLC.Program () v term
+            !(benchScript :: SerialisedScript) = force (serialiseUPLC $ UPLC.Program () v term)
 
         in  whnf (\ script ->
                       (isRight $ snd $ evaluateScriptRestricting
