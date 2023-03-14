@@ -137,6 +137,8 @@ btype-sub b ρ = begin
           ≡⟨ refl ⟩
            subNf ρ (btype b)
           ∎
+
+postulate sub-Π : ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}{B} →  (Π B) [ A ] ≡ Π (B [ weakenNf A ])
 \end{code}
           
 Let `x`, `y` range over variables.

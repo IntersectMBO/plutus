@@ -25,7 +25,7 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
-open import Algorithmic using (Ctx;_⊢_;btype;_∋_;conv⊢;builtin_/_;btype-∅;btype-sig2type)
+open import Algorithmic using (Ctx;_⊢_;btype;_∋_;conv⊢;builtin_/_;btype-∅;btype-sig2type;sub-Π)
 open Ctx
 open _⊢_
 open _∋_
@@ -45,9 +45,6 @@ open Sig
 open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
     using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
 open SigTy
-
-
-postulate sub-Π : ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}{B} →  (Π B) [ A ]Nf ≡ Π (B [ weakenNf A ]Nf)
 
 _[_]SigTy : ∀{n} 
           → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 

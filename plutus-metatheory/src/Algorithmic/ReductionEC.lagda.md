@@ -27,7 +27,7 @@ open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;btype;conv⊢;btype-∅;btype-sig2type)
+open import Algorithmic using (Ctx;_⊢_;btype;conv⊢;btype-∅;btype-sig2type;sub-Π)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -55,8 +55,6 @@ open SigTy
 ```
 getTy : (b : Builtin) →  ∅ ⊢Nf⋆ *
 getTy b = proj₁ (sig2SigTy (signature b)) 
-
-postulate sub-Π : ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}{B} →  (Π B) [ A ]Nf ≡ Π (B [ weakenNf A ]Nf)
 
 _[_]SigTy : ∀{n} 
           → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
