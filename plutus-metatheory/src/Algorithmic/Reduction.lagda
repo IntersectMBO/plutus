@@ -15,18 +15,18 @@ open import Data.Unit using (tt)
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
 
-open import Utils using (Kind;*;_⇒_;_<>>_∈_;bubble;K) 
+open import Utils using (Kind;*;_⇒_;_∔_≣_;bubble;K) 
 open import Type using (Ctx⋆;∅;_,⋆_;Z;_⊢⋆_)
 open _⊢⋆_
 
 import Type.RenamingSubstitution as T
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Type.BetaNBE using (nf)
-open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
+open _⊢Ne⋆_
 
-open import Builtin using (Builtin;signature)
-open import Algorithmic using (Ctx;_⊢_;Term;Type;arity)
+open import Algorithmic using (Ctx;_⊢_)
 open _⊢_
 open Ctx
 open import Algorithmic.ReductionEC using (Value;BApp;BUILTIN';_—→⋆_;EC;_[_]ᴱ;Error)
@@ -34,6 +34,15 @@ open import Algorithmic.ReductionEC using (Value;BApp;BUILTIN';_—→⋆_;EC;_[
 open EC
 open _—→⋆_
 open import Algorithmic.ReductionEC.Progress using (step;done;error)
+
+open import Builtin using (Builtin;signature)
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
+open Sig
+
+open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
+    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+open SigTy
+
 
 import Algorithmic.ReductionEC as E
 import Algorithmic.ReductionEC.Progress as EP
@@ -93,27 +102,17 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
     → M —→V M'
     → wrap A B M —→V wrap A B M'
 
-  β-sbuiltin : ∀{A B}
+  β-sbuiltin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → ∀{az}
-    → (p : az <>> (Term ∷ []) ∈ arity (signature b))
-    → (bt : BApp b p t) -- one left
+    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
+    → {σB : SigTy pt (bubble pa) B}
+    → (bt : BApp b (A B⇒ σB) t) -- one left
     → (u : ∅ ⊢ A)
     → (vu : Value u)
       -----------------------------
-    → t · u —→V BUILTIN' b (bubble p) (BApp.step p bt vu)
-
-  β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
-      (b : Builtin)
-    → (t : ∅ ⊢ Π B)
-    → ∀{az}
-    → (p : az <>> (Type ∷ []) ∈ arity (signature b))
-    → (bt : BApp b p t) -- one left
-    → ∀ A
-    → (q : C ≡ _)
-      -----------------------------
-    → t ·⋆ A / q —→V BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
+    → t · u —→V BUILTIN' b (BApp.step bt vu)
 \end{code}
 
 \begin{code}
@@ -174,8 +173,7 @@ lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→V M'
 lem—→⋆ (β-ƛ v) = β-ƛ v
 lem—→⋆ (β-Λ refl) = β-Λ
 lem—→⋆ (β-wrap v refl) = β-wrap v
-lem—→⋆ (β-sbuiltin b t p bt u vu) = β-sbuiltin b t p bt u vu
-lem—→⋆ (β-sbuiltin⋆ b t p bt A q) = β-sbuiltin⋆ b t p bt A q
+lem—→⋆ (β-sbuiltin b t bt u vu) = β-sbuiltin b t bt u vu
 
 lemCS—→V : ∀{A}
          → ∀{B}{L L' : ∅ ⊢ B}
@@ -228,10 +226,8 @@ lemSC—→V (ξ-unwrap p) with lemSC—→V p
 lemSC—→V (ξ-wrap p) with lemSC—→V p
 ... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
   B ,, wrap E ,, L ,, L' ,, refl ,, refl ,, q
-lemSC—→V (β-sbuiltin b t p bt u vu) =
-  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin b t p bt u vu
-lemSC—→V (β-sbuiltin⋆ b t p bt A q) =
-  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin⋆ b t p bt A q
+lemSC—→V (β-sbuiltin b t bt u vu) =
+  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin b t bt u vu
 
 lemSC—→E : ∀{A}{M : ∅ ⊢ A}
   → M —→E error A
