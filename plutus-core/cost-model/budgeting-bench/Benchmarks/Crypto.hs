@@ -2,7 +2,8 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 
-module Benchmarks.CryptoAndHashes (makeBenchmarks) where
+-- | Budgeting benchmarks for cryptographic functions, including hashing.
+module Benchmarks.Crypto (makeBenchmarks) where
 
 import Common
 import Generators
