@@ -25,7 +25,7 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
-open import Algorithmic using (Ctx;_⊢_;btype;_∋_;conv⊢;builtin_/_;btype-∅;btype-sig2type;sub-Π)
+open import Algorithmic using (Ctx;_⊢_;btype;_∋_;conv⊢;builtin_/_;btype-∅;btype-sig2type;_[_]SigTy)
 open Ctx
 open _⊢_
 open _∋_
@@ -43,17 +43,8 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;
 open Sig
 
 open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
-    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+    using (sig2type;♯2*;SigTy;sig2SigTy;saturatedSigTy)
 open SigTy
-
-_[_]SigTy : ∀{n} 
-          → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
-          → ∀{am an at} {pa : an ∔ am ≣ at} 
-          → {B : (nat2Ctx⋆ (suc n)) ⊢Nf⋆ *} → SigTy pt pa B → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) → SigTy pt pa (B [ A ]Nf)
-bresult _ [ A ]SigTy = bresult _
-(B B⇒ bv) [ A ]SigTy = (B [ A ]Nf) B⇒ (bv [ A ]SigTy)
-sucΠ bt [ A ]SigTy rewrite sub-Π {_} {A} {sigTy2type bt} = sucΠ (bt [ weakenNf A ]SigTy)
-
 
 data Env : Ctx ∅ → Set
 

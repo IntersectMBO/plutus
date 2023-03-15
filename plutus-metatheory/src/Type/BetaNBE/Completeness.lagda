@@ -11,7 +11,7 @@ open import Relation.Binary.PropositionalEquality
    using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Utils using (*;_⇒_;J;K)
-open import Type using (Ctx⋆;Φ;Ψ;Θ;_⊢⋆_;_∋⋆_;S;Z)
+open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;Θ;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
 open import Type.Equality using (_≡β_;_≡βTyCon_)
 open _≡β_
@@ -20,7 +20,7 @@ open import Type.RenamingSubstitution using (Ren;ren;renTyCon;ext;Sub;sub;subTyC
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;evalTyCon;idEnv;nf)
+open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;evalTyCon;idEnv;nf;exte)
 open import Type.BetaNormal.Equality using (renNe-cong;renNf-id;renNe-id;renNf-comp;renNe-comp)
 import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
@@ -572,4 +572,10 @@ idCR x = reflectCR refl
 \begin{code}
 completeness : {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
 completeness p = reifyCR (fund idCR p)
+\end{code}
+
+\begin{code}
+exte-lem : ∀{Ψ J} → EnvCR (exte (idEnv Ψ)) (idEnv (Ψ ,⋆ J))
+exte-lem Z = idCR Z
+exte-lem (S x) = renVal-reflect S (` x)
 \end{code}

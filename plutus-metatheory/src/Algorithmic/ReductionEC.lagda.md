@@ -27,7 +27,7 @@ open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;btype;conv⊢;btype-∅;btype-sig2type;sub-Π)
+open import Algorithmic using (Ctx;_⊢_;btype;conv⊢;btype-∅;btype-sig2type;_[_]SigTy)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -52,19 +52,7 @@ open SigTy
 
 ## Values
 
-```
-getTy : (b : Builtin) →  ∅ ⊢Nf⋆ *
-getTy b = proj₁ (sig2SigTy (signature b)) 
-
-_[_]SigTy : ∀{n} 
-          → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
-          → ∀{am an at} {pa : an ∔ am ≣ at} 
-          → {B : (nat2Ctx⋆ (suc n)) ⊢Nf⋆ *} → SigTy pt pa B → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) → SigTy pt pa (B [ A ]Nf)
-bresult _ [ A ]SigTy = bresult _
-(B B⇒ bv) [ A ]SigTy = (B [ A ]Nf) B⇒ (bv [ A ]SigTy)
-sucΠ bt [ A ]SigTy rewrite sub-Π {_} {A} {sigTy2type bt} = sucΠ (bt [ weakenNf A ]SigTy)
-
-
+``` 
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
 data BApp (b : Builtin) : 

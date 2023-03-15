@@ -18,9 +18,10 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 
 import Type.RenamingSubstitution as ⋆
-open import Type.BetaNBE using (nf)
+open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
+open import Type.BetaNBE.Completeness using (reifyCR;idext;exte-lem)
 open import Type.BetaNBE.RenamingSubstitution 
-                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp) 
+                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp;subNf-cons;extsNf;subNf-lemma) 
                          renaming (_[_]Nf to _[_])
 open import Type.BetaNBE.Stability using (stability)
 
@@ -138,7 +139,28 @@ btype-sub b ρ = begin
            subNf ρ (btype b)
           ∎
 
-postulate sub-Π : ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}{B} →  (Π B) [ A ] ≡ Π (B [ weakenNf A ])
+subNf-Π : ∀{Φ Ψ J}(ρ : SubNf Φ Ψ)(B : Φ ,⋆ J ⊢Nf⋆ *) →  subNf ρ (Π B) ≡ Π (subNf (extsNf ρ) B)
+subNf-Π {Φ}{Ψ}{J} ρ B = begin
+    subNf ρ (Π B)
+  ≡⟨ refl ⟩
+    nf (⋆.sub (embNf ∘ ρ) (Π (embNf B)))
+  ≡⟨ refl ⟩
+    nf (Π (⋆.sub (⋆.exts (embNf ∘ ρ)) (embNf B)))
+  ≡⟨ refl ⟩  -- nf definition  
+    reify (eval (Π (⋆.sub (⋆.exts (embNf ∘ ρ)) (embNf B))) (idEnv _))
+  ≡⟨ refl ⟩  --eval (Π B)   η = Π (reify (eval B (exte η)))
+    reify (Π (reify (eval (⋆.sub (⋆.exts (embNf ∘ ρ)) (embNf B)) (exte (idEnv _)))))
+  ≡⟨ refl ⟩   -- reify def
+    Π (reify (eval (⋆.sub (⋆.exts (embNf ∘ ρ)) (embNf B)) (exte (idEnv _))))
+  ≡⟨ cong nf (cong Π (subNf-lemma ρ (embNf B)) ) ⟩
+    Π (reify (eval (⋆.sub (embNf ∘ extsNf ρ) (embNf B)) (exte (idEnv _))))
+  ≡⟨ cong Π (reifyCR (idext exte-lem ((⋆.sub (embNf ∘ extsNf ρ) (embNf B))))) ⟩
+   Π (reify (eval (⋆.sub (embNf ∘ extsNf ρ) (embNf B)) (idEnv _)))
+  ≡⟨ refl ⟩   -- nf def
+    Π (nf (⋆.sub (embNf ∘ extsNf ρ) (embNf B)))
+  ≡⟨ refl ⟩
+    Π (subNf (extsNf ρ) B)
+  ∎
 \end{code}
           
 Let `x`, `y` range over variables.
@@ -238,4 +260,45 @@ Ctx2type ∅        C = C
 Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
 Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
 \end{code}
- 
+  
+\begin{code}
+open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
+    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+open SigTy
+
+open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
+open import Data.Nat using (suc)
+
+subSigTy : ∀ {n m}
+  → SubNf (nat2Ctx⋆ n) (nat2Ctx⋆ m)
+  → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
+  → ∀{am an at} {pa : an ∔ am ≣ at} 
+  → {A : nat2Ctx⋆ n ⊢Nf⋆ *} → SigTy pt pa A 
+  -------------------------
+  → Σ (nat2Ctx⋆ m ⊢Nf⋆ *) (λ B → SigTy pt pa B)
+subSigTy σ {A = A} (bresult _) = subNf σ A ,, bresult _
+subSigTy σ (A B⇒ bt) with subSigTy σ bt
+... | B ,, bt' = (subNf σ A ⇒ B) ,, (subNf σ A B⇒ bt')
+subSigTy σ (sucΠ bt) with subSigTy (extsNf σ) bt 
+... | B ,, bt' = (Π B) ,, (sucΠ bt')
+
+subSigTyLem : ∀ {n m}
+  → (σ : SubNf (nat2Ctx⋆ n) (nat2Ctx⋆ m))
+  → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
+  → ∀{am an at} {pa : an ∔ am ≣ at} 
+  → {A : nat2Ctx⋆ n ⊢Nf⋆ *} 
+  → (bt : SigTy pt pa A) 
+  → proj₁ (subSigTy σ bt) ≡ subNf σ (sigTy2type bt) 
+subSigTyLem σ (bresult _) = refl
+subSigTyLem σ (A B⇒ bt) rewrite (subSigTyLem σ bt) = refl
+subSigTyLem σ (sucΠ bt) rewrite (subNf-Π σ (sigTy2type bt)) = cong Π (subSigTyLem (extsNf σ) bt)
+
+_[_]SigTy : ∀{n} 
+          → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
+          → ∀{am an at} {pa : an ∔ am ≣ at} 
+          → {B : (nat2Ctx⋆ (suc n)) ⊢Nf⋆ *} → SigTy pt pa B → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) → SigTy pt pa (B [ A ])
+_[_]SigTy bt A rewrite (sym (subSigTyLem (subNf-cons (ne ∘ `) A) bt)) = proj₂ (subSigTy (subNf-cons (ne ∘ `) A) bt)
+
+getTy : (b : Builtin) →  ∅ ⊢Nf⋆ *
+getTy b = proj₁ (sig2SigTy (signature b))
+\end{code} 
