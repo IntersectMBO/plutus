@@ -33,24 +33,24 @@ import Prettyprinter (viaShow)
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-newtype InlineTerm tyname name uni fun a =
-    Done (Dupable (Term tyname name uni fun a)) --out expressions
+newtype InlineTerm tyname name uni fun ann =
+    Done (Dupable (Term tyname name uni fun ann)) --out expressions
 
 -- | Term substitution, 'Subst' in the paper.
 -- A map of unprocessed variable and its substitution range.
-newtype TermEnv tyname name uni fun a =
-    TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun a) }
+newtype TermEnv tyname name uni fun ann =
+    TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun ann) }
     deriving newtype (Semigroup, Monoid)
 
 -- | Type substitution, similar to `TermEnv` but for types.
 -- A map of unprocessed type variable and its substitution range.
-newtype TypeEnv tyname uni a =
-    TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni a)) }
+newtype TypeEnv tyname uni ann =
+    TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni ann)) }
     deriving newtype (Semigroup, Monoid)
 
 -- | A mapping including all let-bindings that are functions.
-newtype CalledVarEnv tyname name uni fun a =
-    CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun a)}
+newtype CalledVarEnv tyname name uni fun ann =
+    CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun ann)}
     deriving newtype (Semigroup, Monoid)
 
 {-|
@@ -70,11 +70,11 @@ type Arity = [TermOrType]
 type AppOrder = [TermOrType]
 
 -- | Info attached to a let-binding needed for call site inlining.
-data CalledVarInfo tyname name uni fun a =
+data CalledVarInfo tyname name uni fun ann =
   MkCalledVarInfo {
-    calledVarDef    :: Term tyname name uni fun a -- ^ its definition
+    calledVarDef    :: Term tyname name uni fun ann -- ^ its definition
     , arity         :: Arity -- ^ its sequence of term and type lambdas
-    , calledVarBody :: Term tyname name uni fun a -- ^ the body of the function
+    , calledVarBody :: Term tyname name uni fun ann -- ^ the body of the function
   }
 -- | Is the next argument a term or a type?
 data TermOrType =
@@ -86,13 +86,13 @@ instance Pretty TermOrType where
 
 -- | Substitution for both terms and types.
 -- Similar to 'Subst' in the paper, but the paper only has terms.
-data Subst tyname name uni fun a =
-    Subst { _termEnv       :: TermEnv tyname name uni fun a
-           , _typeEnv      :: TypeEnv tyname uni a
-           , _calledVarEnv :: CalledVarEnv tyname name uni fun a
+data Subst tyname name uni fun ann =
+    Subst { _termEnv       :: TermEnv tyname name uni fun ann
+           , _typeEnv      :: TypeEnv tyname uni ann
+           , _calledVarEnv :: CalledVarEnv tyname name uni fun ann
           }
     deriving stock (Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun a))
+    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun ann))
 
 makeLenses ''TermEnv
 makeLenses ''TypeEnv
@@ -103,55 +103,55 @@ makeLenses ''Subst
 lookupTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Maybe (InlineTerm tyname name uni fun a)
+    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> Maybe (InlineTerm tyname name uni fun ann)
 lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> InlineTerm tyname name uni fun a -- ^ The substitution range.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Subst tyname name uni fun a
+    -> InlineTerm tyname name uni fun ann -- ^ The substitution range.
+    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> Subst tyname name uni fun ann
 extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
 
 -- | Look up the unprocessed type variable in the substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
-    -> Subst tyname name uni fun a
-    -> Maybe (Dupable (Type tyname uni a))
+    -> Subst tyname name uni fun ann
+    -> Maybe (Dupable (Type tyname uni ann))
 lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
 
 -- | Check if the type substitution is empty.
-isTypeSubstEmpty :: Subst tyname name uni fun a -> Bool
+isTypeSubstEmpty :: Subst tyname name uni fun ann -> Bool
 isTypeSubstEmpty (Subst _ (TypeEnv tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname -- ^ The name of the type variable.
-    -> Type tyname uni a -- ^ Its type.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Subst tyname name uni fun a
+    -> Type tyname uni ann -- ^ Its type.
+    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> Subst tyname name uni fun ann
 extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
 
 -- | Look up the called variable in the substitution.
 lookupCalled
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Maybe (CalledVarInfo tyname name uni fun a)
+    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> Maybe (CalledVarInfo tyname name uni fun ann)
 lookupCalled n subst = lookupName n $ subst ^. calledVarEnv . unCalledVarEnv
 
 -- | Insert the called variable into the substitution.
 extendCalled
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> CalledVarInfo tyname name uni fun a -- ^ The called variable's info.
-    -> Subst tyname name uni fun a -- ^ The substitution.
-    -> Subst tyname name uni fun a
+    -> CalledVarInfo tyname name uni fun ann -- ^ The called variable's info.
+    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> Subst tyname name uni fun ann
 extendCalled n info subst = subst & calledVarEnv . unCalledVarEnv %~ insertByName n info
 
 type ExternalConstraints tyname name uni fun m =
@@ -169,12 +169,12 @@ type InliningConstraints tyname name uni fun =
     , PLC.ToBuiltinMeaning uni fun
     )
 
-data InlineInfo name fun a = InlineInfo
+data InlineInfo name fun ann = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
     -- ^ Is it strict? Only needed for PIR, not UPLC
     , _iiUsages        :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints         :: InlineHints name a
+    , _iiHints         :: InlineHints name ann
     -- ^ have we explicitly been told to inline.
     , _iiBuiltinVer    :: PLC.BuiltinVersion fun
     -- ^ the builtin version.
@@ -184,13 +184,13 @@ makeLenses ''InlineInfo
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
 -- | The monad the inliner runs in.
-type InlineM tyname name uni fun a =
-    ReaderT (InlineInfo name fun a) (StateT (Subst tyname name uni fun a) Quote)
+type InlineM tyname name uni fun ann =
+    ReaderT (InlineInfo name fun ann) (StateT (Subst tyname name uni fun ann) Quote)
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 checkPurity t = do
     strctMap <- view iiStrictnessMap
     builtinVer <- view iiBuiltinVer
@@ -212,20 +212,20 @@ For non-strict bindings, the effects already happened at the use site, so it's f
 unconditionally.
 -}
 
-nameUsedAtMostOnce :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
+nameUsedAtMostOnce :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => name
-    -> InlineM tyname name uni fun a Bool
+    -> InlineM tyname name uni fun ann Bool
 nameUsedAtMostOnce n = do
     usgs <- view iiUsages
     -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
     pure $ Usages.getUsageCount n usgs <= 1
 
-effectSafe :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
+effectSafe :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann
     -> Strictness
     -> name
     -> Bool -- ^ is it pure?
-    -> InlineM tyname name uni fun a Bool
+    -> InlineM tyname name uni fun ann Bool
 effectSafe body s n purity = do
     -- This can in the worst case traverse a lot of the term, which could lead to us
     -- doing ~quadratic work as we process the program. However in practice most term
@@ -239,7 +239,7 @@ effectSafe body s n purity = do
 
 -- | Should we inline? Should only inline things that won't duplicate work or code.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-acceptable ::  Term tyname name uni fun a -> InlineM tyname name uni fun a Bool
+acceptable ::  Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 acceptable t =
     -- See Note [Inlining criteria]
     pure $ costIsAcceptable t && sizeIsAcceptable t
@@ -263,7 +263,7 @@ based on whether a function is fully applied.
 
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?
-costIsAcceptable :: Term tyname name uni fun a -> Bool
+costIsAcceptable :: Term tyname name uni fun ann -> Bool
 costIsAcceptable = \case
   Builtin{}  -> True
   Var{}      -> True
@@ -284,7 +284,7 @@ costIsAcceptable = \case
 
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
-sizeIsAcceptable :: Term tyname name uni fun a -> Bool
+sizeIsAcceptable :: Term tyname name uni fun ann -> Bool
 sizeIsAcceptable = \case
   Builtin{}  -> True
   Var{}      -> True
@@ -302,8 +302,8 @@ sizeIsAcceptable = \case
   TyInst{}   -> False
   Let{}      -> False
 
--- | Is this a an utterly trivial type which might as well be inlined?
-trivialType :: Type tyname uni a -> Bool
+-- | Is this an utterly trivial type which might as well be inlined?
+trivialType :: Type tyname uni ann -> Bool
 trivialType = \case
     TyBuiltin{} -> True
     TyVar{}     -> True

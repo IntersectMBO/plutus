@@ -12,6 +12,7 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
+import Control.Monad.State
 import Data.Map.Strict qualified as Map
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
@@ -146,7 +147,7 @@ We may want to check their sizes instead of just rejecting them.
 
 -- | Computes the 'Arity' of a term.
 computeArity ::
-    Term tyname name uni fun a
+    Term tyname name uni fun ann
     -> Arity
 computeArity = \case
     LamAbs _ _ _ body -> MkTerm : computeArity body
@@ -156,9 +157,9 @@ computeArity = \case
 
 -- | Inline fully applied functions iff the body of the function is `acceptable`.
 considerInline ::
-    Term tyname name uni fun a -- the variable that is a function
-    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-considerInline v@(Var a n) = do
+    Term tyname name uni fun ann -- the variable that is a function
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+considerInline v@(Var ann n) = do
 -- look up the variable in the `CalledVar` map
   varInfo <- gets (lookupCalled n)
   case varInfo of
@@ -190,58 +191,64 @@ considerInline _notVar = -- this should not happen
 
 data Args tyname name uni fun ann =
   MkTermArg (Term tyname name uni fun ann)
-  | MkTypeArg (Type tyname uni a)
+  | MkTypeArg (Type tyname uni ann)
 
-type ArgOrder = [Args tyname name uni fun ann]
+type ArgOrder tyname name uni fun ann = [Args tyname name uni fun ann]
 
 -- | Takes a term or type application expression and returns the function
 -- being applied and the arguments to which it is applied
 collectArgs :: Term tyname name uni fun ann
-  -> (Term tyname name uni fun ann, ArgOrder)
+  -> (Term tyname name uni fun ann, ArgOrder tyname name uni fun ann)
 collectArgs expr
   = go expr []
   where
-    go (Apply _ f a) as      = go f (a:as)
-    go (TyInst _ f tyArg) as = go f (tyArg:as)
+    go (Apply _ f a) as      = go f (MkTermArg a:as)
+    go (TyInst _ f tyArg) as = go f (MkTypeArg tyArg:as)
     go e as                  = (e, as)
 
 -- | Apply a list of term and type arguments to a function in potentially a nested fashion.
-mkApps :: Term tyname name uni fun ann -> ArgOrder -> Term tyname name uni fun ann
-mkApps f args = foldl' App f args
+mkApps :: Term tyname name uni fun ann
+  -> ArgOrder tyname name uni fun ann
+  -> Term tyname name uni fun ann
+mkApps f (MkTermArg tmArg : args) = Apply  f args
 
-enoughArgs :: Arity -> ArgOrder -> Bool
+enoughArgs :: Arity -> ArgOrder tyname name uni fun ann -> Bool
 enoughArgs [] argsOrder = True
 enoughArgs arity [] = False
 enoughArgs lamOrder argsOrder =
   -- start comparing from the end because there may be over-application
   case (last lamOrder, last argsOrder) of
-    (MkTerm, MkTermArg _) -> enoughArgs (init lamOrder) (init ArgOrder)
-    (MkType, MkTypeArg _) -> enoughArgs (init lamOrder) (init ArgOrder)
+    (MkTerm, MkTermArg _) -> enoughArgs (init lamOrder) (init argsOrder)
+    (MkType, MkTypeArg _) -> enoughArgs (init lamOrder) (init argsOrder)
     _                     -> False
 
 -- | Inline fully applied functions. See note [Identifying fully applied call sites].
-inlineFullyApplied ::
-    Ord name => -- needed for `Map`
-    Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
-    -> InlineM tyname name uni fun a (Term tyname name uni fun ann)
+inlineFullyApplied :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 -- If the term is a term application, get the `AppOrder` of the
-inlineFullyApplied (appTerm@(Apply _ fun arg)) = do
+inlineFullyApplied appTerm@(Apply _ fun arg) = do
     -- collect all the arguments of the term being applied to
-    (argsAppliedTo, args) <- collectArgs appTerm
+    let argsAppliedTo = fst $ collectArgs appTerm
+        args = snd $ collectArgs appTerm
     case argsAppliedTo of
       -- if it is a `Var` that is being applied to, check to see if it's fully applied
       Var _ name -> do
-        varInfo <- gets (lookupCalled name)
-        if enoughArgs (varInfo arity) args then
-          -- if the `Var` is fully applied (over-application is allowed) then inline it
-          mkApps (varInfo calledVarDef) (go <$> args)
-        else pure $ Apply _ (go fun) (go arg) -- otherwise just keep going
-      -- if the term being applied is not a `Var`, just keep going
+        maybeVarInfo <- gets (lookupCalled name)
+        case maybeVarInfo of
+          Nothing -> pure $ Apply _ (go fun) (go arg)
+          Just varInfo -> do
+            if enoughArgs (arity varInfo) args then
+              -- if the `Var` is fully applied (over-application is allowed) then inline it
+              mkApps (calledVarDef varInfo) (go <$> args)
+            else pure $ Apply _ (go fun) (go arg) -- otherwise just keep going
+          -- if the term being applied is not a `Var`, just keep going
       _ -> pure $ Apply _ (go fun) (go arg)
 inlineFullyApplied (TyInst _ fnBody _) =
     -- If the term is a type application, add it to the application stack, and
     -- keep on examining the body.
     countLocal (appStack <> [MkType]) calledStack fnBody
+inlineFullyApplied tm = pure tm
 
 --  (Var ann name) =
 --             -- When we encounter a body that is a variable, we have found a call site of it.
@@ -253,7 +260,7 @@ inlineFullyApplied (TyInst _ fnBody _) =
 --             -- question, so we need to check all the bindings and also the body
 --             let
 --               -- get the list of rhs's of the term bindings
---               getRHS :: Binding tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+--               getRHS :: Binding tyname name uni fun ann -> Maybe (Term tyname name uni fun ann)
 --               getRHS (TermBind _ _ _ rhs) = Just rhs
 --               getRHS _ =
 --                 -- no need to keep track of the type bindings. Even though this type variable

@@ -137,14 +137,14 @@ and rename everything when we substitute in, which GHC considers too expensive b
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
-    :: forall tyname name uni fun a m
+    :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => InlineHints name a
+    => InlineHints name ann
     -> PLC.BuiltinVersion fun
-    -> Term tyname name uni fun a
-    -> m (Term tyname name uni fun a)
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
 inline hints ver t = let
-        inlineInfo :: InlineInfo name fun a
+        inlineInfo :: InlineInfo name fun ann
         inlineInfo = InlineInfo (snd deps) usgs hints ver
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
@@ -169,13 +169,13 @@ This might mean reinventing GHC's OccAnal...
 
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ Term to be processed.
-    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -- ^ Term to be processed.
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     handleTerm ::
-        Term tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+        Term tyname name uni fun ann
+        -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
     handleTerm = \case
         v@(Var _ n) -> do
             inSubMap <- substName n
@@ -185,7 +185,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     considerInline v
                 -- If it's in the substitution map, do the substitution
                 Just v -> pure v
-        Let a NonRec bs t -> do
+        Let ann NonRec bs t -> do
             -- Process bindings, eliminating those which will be inlined unconditionally,
             -- and accumulating the new substitutions
             -- See Note [Removing inlined bindings]
@@ -196,11 +196,12 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             t' <- processTerm t
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
             -- actually have got rid of all of them!
-            pure $ mkLet a NonRec bs' t'
+            pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> forMOf termSubterms t processTerm
 
-applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
+applyTypeSubstitution :: Type tyname uni ann
+    -> InlineM tyname name uni fun ann (Type tyname uni ann)
 applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
     -- The type substitution is very often empty, and there are lots of types in the program,
     -- so this saves a lot of work (determined from profiling)
@@ -208,18 +209,18 @@ applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
     _    -> typeSubstTyNamesM substTyName t
 
 -- See Note [Renaming strategy]
-substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+substTyName :: tyname -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
 substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
 
 -- See Note [Renaming strategy]
-substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
+substName :: name -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 substName name = gets (lookupTerm name) >>= traverse renameTerm
 
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 -- Already processed term, just rename and put it in, don't do any further optimization here.
 renameTerm ::
-    InlineTerm tyname name uni fun a
-    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    InlineTerm tyname name uni fun ann
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 renameTerm (Done t) = liftDupable t
 
 {- Note [Renaming strategy]
@@ -233,14 +234,14 @@ We rename both terms and types as both may have binders in them.
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ The body of the let binding.
-    -> Binding tyname name uni fun a -- ^ The binding.
-    -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -- ^ The body of the let binding.
+    -> Binding tyname name uni fun ann -- ^ The binding.
+    -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
     -- when the let binding is a function type, we add it to the `CalledVarEnv` and
     -- consider whether we want to inline at the call site.
-    TermBind a s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
+    TermBind ann s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
         let
           -- track the term and type lambda abstraction order of the function
           varLamOrder = computeArity rhs
@@ -252,20 +253,20 @@ processSingleBinding body = \case
           Nothing ->
             -- we don't remove the binding because we decide *at the call site* whether we want to
             -- inline, and it may be called more than once
-            pure $ TermBind a s v rhs
+            pure $ TermBind ann s v rhs
           Just list -> do
             let
-              isEqAppOrder :: ApplicationOrder a -> Bool
+              isEqAppOrder :: ApplicationOrder ann -> Bool
               isEqAppOrder appOrder = applicationOrder appOrder == varLamOrder
               -- filter the list to only call locations that are fully applied
               filteredFullyApplied = filter isEqAppOrder list
               fullyAppliedAnns = fmap annotation filteredFullyApplied
             -- add the function to `CalledVarEnv`
             void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder fullyAppliedAnns)
-            pure $ TermBind a s v rhs
+            pure $ TermBind ann s v rhs
     -- when the let binding is a type lambda abstraction, we add it to the `CalledVarEnv` and
     -- consider whether we want to inline at the call site.
-    TermBind a s v@(VarDecl _ n (TyLam _ann _tyname _tyArg _tyBody)) rhs -> do
+    TermBind ann s v@(VarDecl _ n (TyLam _ann _tyname _tyArg _tyBody)) rhs -> do
         let varLamOrder = countLam rhs
             appSites = countApp body
             listOfCallSites = Map.lookup n appSites
@@ -273,10 +274,10 @@ processSingleBinding body = \case
             Nothing ->
               -- we don't remove the binding because we decide *at the call site* whether we want to
               -- inline, and it may be called more than once
-              pure $ TermBind a s v rhs
+              pure $ TermBind ann s v rhs
             Just list -> do
               let
-                isEqAppOrder :: ApplicationOrder a -> Bool
+                isEqAppOrder :: ApplicationOrder ann -> Bool
                 isEqAppOrder appOrder = applicationOrder appOrder == varLamOrder
                 -- filter the list to only call locations that are fully applied
                 filteredFullyApplied = filter isEqAppOrder list
@@ -286,14 +287,14 @@ processSingleBinding body = \case
               void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder fullyAppliedAnns)
               -- we don't remove the binding because we decide *at the call site* whether we want to
               -- inline, and it may be called more than once
-              pure $ TermBind a s v rhs
+              pure $ TermBind ann s v rhs
     -- for binding that aren't functions, maybe do unconditional inline
-    TermBind a s v@(VarDecl _ n _) rhs -> do
-        maybeRhs' <- maybeAddSubst body a s n rhs
-        pure $ TermBind a s v <$> maybeRhs'
-    TypeBind a v@(TyVarDecl _ n _) rhs -> do
+    TermBind ann s v@(VarDecl _ n _) rhs -> do
+        maybeRhs' <- maybeAddSubst body ann s n rhs
+        pure $ TermBind ann s v <$> maybeRhs'
+    TypeBind ann v@(TyVarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddTySubst n rhs
-        pure $ TypeBind a v <$> maybeRhs'
+        pure $ TypeBind ann v <$> maybeRhs'
     -- Just process all the subterms
     b -> Just <$> forMOf bindingSubterms b processTerm
 
@@ -303,19 +304,19 @@ processSingleBinding body = \case
 --   * we have extended the substitution, and
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
-    -> a
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann
+    -> ann
     -> Strictness
     -> name
-    -> Term tyname name uni fun a
-    -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-maybeAddSubst body a s n rhs = do
+    -> Term tyname name uni fun ann
+    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+maybeAddSubst body ann s n rhs = do
     rhs' <- processTerm rhs
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
-    let hinted = shouldInline hints a n
+    let hinted = shouldInline hints ann n
 
     if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
@@ -339,18 +340,18 @@ maybeAddSubst body a s n rhs = do
             else pure $ Just rhs'
     where
         extendAndDrop ::
-            forall b . InlineTerm tyname name uni fun a
-            -> InlineM tyname name uni fun a (Maybe b)
+            forall b . InlineTerm tyname name uni fun ann
+            -> InlineM tyname name uni fun ann (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
 -- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
 -- just return the type without inlining.
 -- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
 maybeAddTySubst
-    :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
+    :: forall tyname name uni fun ann . InliningConstraints tyname name uni fun
     => tyname -- ^ The type variable
-    -> Type tyname uni a -- ^  The value of the type variable.
-    -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+    -> Type tyname uni ann -- ^  The value of the type variable.
+    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
 maybeAddTySubst tn rhs = do
     usgs <- view iiUsages
     -- No need for multiple phases here
