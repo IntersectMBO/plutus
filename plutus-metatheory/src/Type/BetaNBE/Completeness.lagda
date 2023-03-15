@@ -569,10 +569,14 @@ idCR : (x : Φ ∋⋆ K) → CR K (idEnv Φ x) (idEnv Φ x)
 idCR x = reflectCR refl
 \end{code}
 
+Finally, the completeness theorem.
+
 \begin{code}
 completeness : {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
 completeness p = reifyCR (fund idCR p)
 \end{code}
+
+A small lemma relating environments.
 
 \begin{code}
 exte-lem : ∀{Ψ J} → EnvCR (exte (idEnv Ψ)) (idEnv (Ψ ,⋆ J))

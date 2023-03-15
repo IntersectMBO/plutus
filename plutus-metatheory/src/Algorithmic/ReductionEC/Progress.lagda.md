@@ -10,7 +10,8 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 
 open import Utils using (*;bubble)
 open import Type using (Ctx⋆;∅)
-open import Algorithmic using (Ctx;_⊢_;btype-∅)
+open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 

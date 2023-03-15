@@ -25,7 +25,8 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
-open import Algorithmic using (Ctx;_⊢_;btype;_∋_;conv⊢;builtin_/_;btype-∅;btype-sig2type;_[_]SigTy)
+open import Algorithmic using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_)
+open import Algorithmic.Signature using (btype;btype-∅;btype-sig2type;_[_]SigTy)
 open Ctx
 open _⊢_
 open _∋_

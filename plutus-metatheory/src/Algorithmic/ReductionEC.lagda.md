@@ -27,7 +27,8 @@ open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;btype;conv⊢;btype-∅;btype-sig2type;_[_]SigTy)
+open import Algorithmic using (Ctx;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype;btype-∅;btype-sig2type;_[_]SigTy)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)

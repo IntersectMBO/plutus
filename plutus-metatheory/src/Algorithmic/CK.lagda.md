@@ -21,7 +21,8 @@ open _⊢⋆_
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic using (Ctx;_⊢_;btype-∅)
+open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 
