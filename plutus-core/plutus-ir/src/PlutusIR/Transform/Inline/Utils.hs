@@ -66,6 +66,7 @@ e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
 arity @[]@, but does in fact need an argument before it does any work.
 -}
 type Arity = [TermOrType]
+
 -- | An ordered list of the term and type arguments applied to a function.
 type AppOrder = [TermOrType]
 
@@ -74,7 +75,8 @@ data CalledVarInfo tyname name uni fun ann =
   MkCalledVarInfo {
     calledVarDef    :: Term tyname name uni fun ann -- ^ its definition
     , arity         :: Arity -- ^ its sequence of term and type lambdas
-    , calledVarBody :: Term tyname name uni fun ann -- ^ the body of the function
+    , calledVarBody :: Term tyname name uni fun ann
+    -- ^ the body of the function, for checking `acceptable` or not
   }
 -- | Is the next argument a term or a type?
 data TermOrType =

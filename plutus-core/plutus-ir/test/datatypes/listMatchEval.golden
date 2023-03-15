@@ -1,1 +1,13 @@
-(delay (lam x_0 x_0))
+(lam
+  Nil_0
+  (lam
+    Cons_1
+    (lam
+      match_List_2
+      [
+        [ (force [ (force match_List_2) (force Nil_0) ]) (delay (lam x_3 x_3)) ]
+        (lam head_4 (lam tail_5 head_4))
+      ]
+    )
+  )
+)
