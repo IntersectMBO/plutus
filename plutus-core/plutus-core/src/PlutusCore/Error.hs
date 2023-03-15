@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -117,16 +116,25 @@ data Error uni fun ann
     | FreeVariableErrorE !FreeVariableError
     deriving stock (Eq, Generic, Functor)
     deriving anyclass (NFData)
-deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
+deriving stock instance
+    (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
+        Show (Error uni fun ann)
 
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
 instance Pretty ParserError where
-    pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
-    pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
-    pretty (UnknownBuiltinFunction s loc lBuiltin)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+> ". Parsable functions are " <+> pretty lBuiltin
-    pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinType s loc)       =
+        "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (BuiltinTypeNotAStar ty loc)     =
+        "Expected a type of kind star (to later parse a constant), but got:" <+>
+            squotes (pretty ty) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction s loc lBuiltin)   =
+        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+>
+            ". Parsable functions are " <+> pretty lBuiltin
+    pretty (InvalidBuiltinConstant c s loc) =
+        "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+>
+            pretty loc
     pretty (InvalidData err loc) = "Invalid data:" <+> squotes (pretty err) <+> "at" <+> pretty loc
 
 instance ShowErrorComponent ParserError where

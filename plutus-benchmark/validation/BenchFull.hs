@@ -1,4 +1,4 @@
--- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -7,6 +7,7 @@ import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
 import Common
+import Control.DeepSeq (force)
 import Criterion
 import Data.ByteString as BS
 import Data.Either
@@ -30,14 +31,15 @@ main = benchWith mkFullBM
             (UPLC.Program _ v body) = unsafeUnflat file bsFlat
 
             -- We make some effort to mimic what happens on-chain, including the provision of the
-            -- script arguments. However, the inputs we have are *fully applied*. So we try and reverse
-            -- that by stripping off the arguments here. Conveniently, we know that they will be
-            -- Data constants. Annoyingly we can't just assume it's the first 3 arguments, since some
+            -- script arguments. However, the inputs we have are *fully applied*. So we try and
+            -- reverse that by stripping off the arguments here.
+            -- Conveniently, we know that they will be Data constants.
+            -- Annoyingly we can't just assume it's the first 3 arguments, since some
             -- of them are policy scripts with only 2.
             (term, args) = peelDataArguments body
 
             -- strictify and "short" the result cbor to create a real `SerialisedScript`
-            benchScript :: SerialisedScript = serialiseUPLC $ UPLC.Program () v term
+            !(benchScript :: SerialisedScript) = force (serialiseUPLC $ UPLC.Program () v term)
 
         in  whnf (\ script ->
                       (isRight $ snd $ evaluateScriptRestricting
@@ -45,7 +47,8 @@ main = benchWith mkFullBM
                         -- no logs
                         Quiet
                         evalCtxForTesting
-                        -- uses restricting(enormous) instead of counting to include the periodic budget-overspent check
+                        -- uses restricting(enormous) instead of counting to include the periodic
+                        -- budget-overspent check
                         (unExRestrictingBudget enormousBudget)
                         script
                         args)

@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+-- cannot fix line length in this file because of large int.
 {-% Primality testing functions taken from nofib/spectral/primetest.
   Most of the literate Haskell stuff has been removed and everything's
   been put into one file for simplicity. %-}
@@ -119,8 +120,10 @@ initRNG :: Integer -> Integer -> RNGstate
 initRNG s1 s2 =
     if 1 <= s1 && s1 <= 2147483562 then
         if 1 <= s2 && s2 <= 2147483398 then RNGstate s1 s2
-        else {-Tx.trace "randomInts: Bad second seed." $-} Tx.error () -- error "randomInts: Bad second seed."
-    else {-Tx.trace "randomInts: Bad first seed." $-} Tx.error () -- error "randomInts: Bad first seed."
+        -- error "randomInts: Bad second seed."
+        else {-Tx.trace "randomInts: Bad second seed." $-} Tx.error ()
+    -- error "randomInts: Bad first seed."
+    else {-Tx.trace "randomInts: Bad first seed." $-} Tx.error ()
 
 
 -- % Make a single random integer, returning that and the updated state.  In the
@@ -249,9 +252,12 @@ getPrime =
      P40 -> 5991810554633396517767024967580894321153
      P50 -> 22953686867719691230002707821868552601124472329079
      P60 -> 511704374946917490638851104912462284144240813125071454126151
-     P100 -> 2193992993218604310884461864618001945131790925282531768679169054389241527895222169476723691605898517
-     P150 -> 533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207
-     P200 -> 58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839
+     P100 ->
+        2193992993218604310884461864618001945131790925282531768679169054389241527895222169476723691605898517
+     P150 ->
+        533791764536500962982816454877600313815808544134584704665367971790938714376754987723404131641943766815146845004667377003395107827504566198008424339207
+     P200 ->
+        58021664585639791181184025950440248398226136069516938232493687505822471836536824298822733710342250697739996825938232641940670857624514103125986134050997697160127301547995788468137887651823707102007839
 
 
 -- % Only for textual output of PLC scripts
@@ -304,7 +310,7 @@ mkPrimalityTestTerm :: Integer -> Term
 mkPrimalityTestTerm n =
   compiledCodeToTerm  $
      $$(Tx.compile [|| runPrimalityTest ||])
-           `Tx.applyCode` Tx.liftCode n
+           `Tx.unsafeApplyCode` Tx.liftCode n
 
 -- Run the program on one of the fixed primes listed above
 runFixedPrimalityTest :: PrimeID -> Result
@@ -314,7 +320,7 @@ runFixedPrimalityTest pid = runPrimalityTest (getPrime pid)
 mkPrimalityCode :: PrimeID -> Tx.CompiledCode Result
 mkPrimalityCode pid =
     $$(Tx.compile [|| runFixedPrimalityTest ||])
-          `Tx.applyCode` Tx.liftCode pid
+          `Tx.unsafeApplyCode` Tx.liftCode pid
 
 -- % Run the program on a number known to be prime, for benchmarking
 -- (primes take a long time, composite numbers generally don't).

@@ -1,2 +1,7 @@
-letrec unit_0 = all a_1. unit_0 -> unit_0 in
-let !lazyVal_2 : unit_0 -> integer = \(x_3 : unit_0) -> 3 in lazyVal_2
+letrec
+  unit_0 = all a_1. unit_0 -> unit_0
+in
+let
+  !lazyVal_2 : unit_0 -> integer = \(x_3 : unit_0) -> 3
+in
+lazyVal_2

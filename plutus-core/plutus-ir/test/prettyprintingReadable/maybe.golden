@@ -1,4 +1,6 @@
-let data (Maybe_0 :: * -> *) a_1 | match_Maybe_2 where
-      Nothing_3 : Maybe_0 a_1
-      Just_4 : a_1 -> Maybe_0 a_1
-in Just_4 {all a_1. a_1 -> a_1} (/\a_1 -> \(x_5 : a_1) -> x_5)
+let
+  data (Maybe_0 :: * -> *) a_1 | match_Maybe_2 where
+    Nothing_3 : Maybe_0 a_1
+    Just_4 : a_1 -> Maybe_0 a_1
+in
+Just_4 {all a_1. a_1 -> a_1} (/\a_1 -> \(x_5 : a_1) -> x_5)

@@ -19,6 +19,7 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
 import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
@@ -41,6 +42,7 @@ transform =
         , letFloatInRelaxed
         , recSplit
         , inline
+        , computeArityTest
         , beta
         , unwrapCancel
         , deadCode
@@ -180,7 +182,7 @@ inline :: TestNested
 inline =
     testNested "inline" $
         map
-            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) $ pTerm)
+            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) pTerm)
             [ "var"
             , "builtin"
             , "constant"
@@ -189,6 +191,45 @@ inline =
             , "single"
             , "immediateVar"
             , "immediateApp"
+            -- these tests are all let bindings of functions
+            , "letFunConstInt" -- const fn fully applied (integer)
+            , "letFunConstBool" -- const fn fully applied (bool)
+            , "letFunConstMulti" -- multiple occurrences of a let binding of the const fn.
+            , "letFunInFun" -- fully applied fn inside another let, single occurrence.
+            , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
+            -- similar to "letFunInFunMulti" but all fns are fully applied.
+            , "letFunInFunMultiFullyApplied"
+            -- singe occurrence of a polymorphic id function that is fully applied
+            , "letIdFunForall"
+            -- multiple occurrences of a polymorphic id function that IS fully applied
+            , "letIdFunForallMulti"
+            -- multiple occurrences of a polymorphic id function that is NOT fully applied
+            , "letIdFunForallMultiNotSat"
+            , "letApp" -- single occurrence of a function application in rhs
+            , "letAppMulti" -- multiple occurrences of a function application in rhs
+            , "letOverApp" -- over-application of a function, single occurrence
+            , "letOverAppMulti" -- multiple occurrences of an over-application of a function
+            ]
+
+computeArityTest :: TestNested
+computeArityTest = testNested "computeArityTest" $
+        map
+            (goldenPir (computeArity . runQuote . PLC.rename) pTerm)
+            [ "var" -- from inline tests, testing let terms
+            , "tyvar"
+            , "single"
+            , "immediateVar"
+            -- from beta tests, testing app terms
+            , "absapp" -- type application
+            , "multiapp"
+            , "multilet"
+            , "lamAbs3" -- 3 term lambdas
+            , "lamAbsApp" -- 3 term lambdas and the function body is an application
+            , "ifError" -- more complicated body
+            , "tyAbs" -- type lambda abstraction
+            , "tyAbs2" -- 2 type lambda abstractions
+            , "tyAbs2Arrow" -- type lambda abstraction with an arrow kind
+            , "tyAbsInterleaved" -- interleaving type and term lambda abstractions
             ]
 
 beta :: TestNested

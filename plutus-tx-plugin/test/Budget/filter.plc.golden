@@ -1,193 +1,49 @@
-(program
-  (let
-    (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    (let
-      (rec)
-      (datatypebind
-        (datatype
-          (tyvardecl List (fun (type) (type)))
-          (tyvardecl a (type))
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !foldr : all a. all b. (a -> b -> b) -> b -> List a -> b
+    = /\a
+        b ->
+        \(f : a -> b -> b)
+         (acc : b)
+         (l : List a) ->
           Nil_match
-          (vardecl Nil [ List a ])
-          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
-        )
-      )
-      (let
-        (rec)
-        (termbind
-          (strict)
-          (vardecl
-            foldr
-            (all
-              a
-              (type)
-              (all b (type) (fun (fun a (fun b b)) (fun b (fun [ List a ] b))))
-            )
-          )
-          (abs
-            a
-            (type)
-            (abs
-              b
-              (type)
-              (lam
-                f
-                (fun a (fun b b))
-                (lam
-                  acc
-                  b
-                  (lam
-                    l
-                    [ List a ]
-                    {
-                      [
-                        [
-                          { [ { Nil_match a } l ] (all dead (type) b) }
-                          (abs dead (type) acc)
-                        ]
-                        (lam
-                          x
-                          a
-                          (lam
-                            xs
-                            [ List a ]
-                            (abs
-                              dead
-                              (type)
-                              [ [ f x ] [ [ [ { { foldr a } b } f ] acc ] xs ] ]
-                            )
-                          )
-                        )
-                      ]
-                      (all dead (type) dead)
-                    }
-                  )
-                )
-              )
-            )
-          )
-        )
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl eta [ List (con integer) ])
-            [
-              [
-                (let
-                  (nonrec)
-                  (typebind (tyvardecl a (type)) [ List (con integer) ])
-                  (lam
-                    c
-                    (fun (con integer) (fun a a))
-                    (lam
-                      n
-                      a
-                      [
-                        [ c (con integer 1) ]
-                        [
-                          [ c (con integer 2) ]
-                          [
-                            [ c (con integer 3) ]
-                            [
-                              [ c (con integer 4) ]
-                              [
-                                [ c (con integer 5) ]
-                                [
-                                  [ c (con integer 6) ]
-                                  [
-                                    [ c (con integer 7) ]
-                                    [
-                                      [ c (con integer 8) ]
-                                      [
-                                        [ c (con integer 9) ]
-                                        [ [ c (con integer 10) ] n ]
-                                      ]
-                                    ]
-                                  ]
-                                ]
-                              ]
-                            ]
-                          ]
-                        ]
-                      ]
-                    )
-                  )
-                )
-                (lam
-                  ds
-                  (con integer)
-                  (lam
-                    ds
-                    [ List (con integer) ]
-                    [ [ { Cons (con integer) } ds ] ds ]
-                  )
-                )
-              ]
-              { Nil (con integer) }
-            ]
-          )
-          [
-            [
-              [
-                { { foldr (con integer) } [ List (con integer) ] }
-                (lam
-                  e
-                  (con integer)
-                  (lam
-                    xs
-                    [ List (con integer) ]
-                    {
-                      [
-                        [
-                          {
-                            [
-                              Bool_match
-                              [
-                                [
-                                  [
-                                    { (builtin ifThenElse) Bool }
-                                    [
-                                      [
-                                        (builtin equalsInteger)
-                                        [
-                                          [ (builtin modInteger) e ]
-                                          (con integer 2)
-                                        ]
-                                      ]
-                                      (con integer 0)
-                                    ]
-                                  ]
-                                  True
-                                ]
-                                False
-                              ]
-                            ]
-                            (all dead (type) [ List (con integer) ])
-                          }
-                          (abs dead (type) [ [ { Cons (con integer) } e ] xs ])
-                        ]
-                        (abs dead (type) xs)
-                      ]
-                      (all dead (type) dead)
-                    }
-                  )
-                )
-              ]
-              { Nil (con integer) }
-            ]
-            eta
-          ]
-        )
-      )
-    )
-  )
-)
+            {a}
+            l
+            {all dead. b}
+            (/\dead -> acc)
+            (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
+            {all dead. dead}
+in
+let
+  !eta : List integer
+    = (let
+          a = List integer
+        in
+        \(c : integer -> a -> a)
+         (n : a) ->
+          c 1 (c 2 (c 3 (c 4 (c 5 (c 6 (c 7 (c 8 (c 9 (c 10 n))))))))))
+        (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+        (Nil {integer})
+in
+foldr
+  {integer}
+  {List integer}
+  (\(e : integer)
+    (xs : List integer) ->
+     Bool_match
+       (ifThenElse {Bool} (equalsInteger (modInteger e 2) 0) True False)
+       {all dead. List integer}
+       (/\dead -> Cons {integer} e xs)
+       (/\dead -> xs)
+       {all dead. dead})
+  (Nil {integer})
+  eta

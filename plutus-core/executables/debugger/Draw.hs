@@ -4,6 +4,8 @@
 -- | Renders the debugger in the terminal.
 module Draw where
 
+import PlutusPrelude (render)
+
 import Types
 
 import Brick.AttrMap qualified as B
@@ -18,6 +20,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Lens.Micro
+import Prettyprinter hiding (line)
 
 drawDebugger ::
     DebuggerState ->
@@ -51,18 +54,26 @@ drawDebugger st =
                 focusRing
                 (BE.renderEditor (B.txt . Text.unlines))
                 (st ^. dsReturnValueEditor)
-    cekStateEditor =
-        BB.borderWithLabel (B.txt "Placeholder") $
+    logsEditor =
+        BB.borderWithLabel (B.txt "Logs") $
             B.withFocusRing
                 focusRing
                 (BE.renderEditor (B.txt . Text.unlines))
-                (st ^. dsCekStateEditor)
+                (st ^. dsLogsEditor)
+    budgetTxt = B.hBox
+        [ prettyTxt "Spent:" (st ^. dsBudgetData . budgetSpent)
+          -- do not show Remaining in absence of `--budget`
+        , maybe B.emptyWidget (prettyTxt "Remaining:") (st ^. dsBudgetData . budgetRemaining)
+        ]
+    prettyTxt title = B.txt . render . group . (title <>) . pretty
+
     ui =
         B.vBox
             [ BC.center uplcEditor B.<+> B.hLimit (st ^. dsHLimitRightEditors) sourceEditor
             , B.vLimit (st ^. dsVLimitBottomEditors) $
                 BC.center returnValueEditor B.<+>
-                    B.hLimit (st ^. dsHLimitRightEditors) cekStateEditor
+                    B.hLimit (st ^. dsHLimitRightEditors) logsEditor
+            , budgetTxt
             , footer
             ]
 

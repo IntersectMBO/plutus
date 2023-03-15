@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
@@ -13,11 +12,11 @@ import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PP
 
-import Data.Functor (void)
+import Data.Maybe (fromJust)
 import Data.Text.IO qualified as T
+import PlutusPrelude
 
 import Control.DeepSeq (rnf)
-import Control.Lens ((&), (^.))
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -69,8 +68,12 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
-            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, output a script consisting of (... ((f g1) g2) ... gn); "
-            ++ "for example, 'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
+            (progDesc $
+            "Given a list of input scripts f g1 g2 ... gn, output a script consisting of "
+              ++ "(... ((f g1) g2) ... gn); "
+              ++ "for example, "
+              ++ "'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat"
+              ++" --of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -86,7 +89,8 @@ plutusOpts = hsubparser $
     <> command "typecheck"
            (info (Typecheck <$> typecheckOpts)
             (progDesc "Typecheck a typed Plutus Core program."))
-    <> command "optimise" (optimise "Run the PLC optimisation pipeline on the input. At present there are no PLC optimisations.")
+    <> command "optimise" (optimise $ "Run the PLC optimisation pipeline on the input.  "
+                                        ++ "At present there are no PLC optimisations.")
     <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "erase"
            (info (Erase <$> eraseOpts)
@@ -112,7 +116,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 PLC.applyProgram progAndargs
+          progAndargs -> foldl1 (fromJust .* PLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Typechecking ----------------

@@ -50,7 +50,7 @@ library
     , directory
     , filepath
     , lens
-    , plutus-core             ^>=1.1
+    , plutus-core             ^>=1.3
     , plutus-metatheory
     , tasty
     , tasty-expected-failure
@@ -68,7 +68,7 @@ executable test-utils
     , base                  >=4.9 && <5
     , optparse-applicative
     , plutus-conformance
-    , plutus-core           ^>=1.1
+    , plutus-core           ^>=1.3
     , tasty-golden
     , text
 
@@ -104,6 +104,6 @@ test-suite agda-conformance
   build-depends:
     , base                >=4.9 && <5
     , plutus-conformance
-    , plutus-core         ^>=1.1
+    , plutus-core         ^>=1.3
     , plutus-metatheory
     , transformers

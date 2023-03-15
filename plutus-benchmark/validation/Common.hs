@@ -3,7 +3,8 @@
 module Common (
     benchWith
     , unsafeUnflat
-    , unsafeEvaluateCekNoEmit'
+    , mkEvalCtx
+    , evaluateCekLikeInProd
     , peelDataArguments
     , Term
     ) where
@@ -14,8 +15,11 @@ import PlutusBenchmark.NaturalSort
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
+import PlutusCore.Default qualified as PLC (BuiltinVersion (DefaultFunV1))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.Exception
+import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1), evaluateTerm,
+                               ledgerLanguageIntroducedIn, mkDynEvaluationContext)
+import PlutusLedgerApi.V1 (EvaluationContext, VerboseMode (..))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -128,13 +132,30 @@ benchWith act = do
         env (BS.readFile $ dir </> file) $ \scriptBS ->
             bench (dropExtension file) $ act file scriptBS
 
-unsafeEvaluateCekNoEmit' :: UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun () -> PLC.EvaluationResult  (UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
-unsafeEvaluateCekNoEmit' =
-       (\(e, _, _) -> unsafeExtractEvaluationResult e) .
-            UPLC.runCekDeBruijn
-                PLC.defaultCekParameters
-                UPLC.restrictingEnormous
-                UPLC.noEmitter
+-- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
+-- on-chain, but that's okay because the evaluation context is cached by the ledger, so we're
+-- deliberately not including it in the benchmarks.
+mkEvalCtx :: EvaluationContext
+mkEvalCtx =
+    case PLC.defaultCostModelParams of
+        -- The validation benchmarks were all created from PlutusV1 scripts
+        Just p -> case mkDynEvaluationContext PLC.DefaultFunV1 p of
+            Right ec -> ec
+            Left err -> error $ show err
+        Nothing -> error "Couldn't get cost model params"
+
+-- | Evaluate a term as it would be evaluated using the on-chain evaluator.
+evaluateCekLikeInProd
+    :: EvaluationContext
+    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    -> Either
+            (UPLC.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+evaluateCekLikeInProd evalCtx term = do
+    let (getRes, _, _) =
+            -- The validation benchmarks were all created from PlutusV1 scripts
+            evaluateTerm UPLC.restrictingEnormous (ledgerLanguageIntroducedIn PlutusV1) Quiet evalCtx term
+    getRes
 
 type Term = UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
 

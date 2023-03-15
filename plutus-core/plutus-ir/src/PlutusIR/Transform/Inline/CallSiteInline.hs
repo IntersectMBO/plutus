@@ -1,6 +1,7 @@
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
+{-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
 {-|
@@ -10,6 +11,9 @@ See note [Inlining of fully applied functions].
 -}
 
 module PlutusIR.Transform.Inline.CallSiteInline where
+
+import PlutusIR.Core
+import Prettyprinter
 
 {- Note [Inlining of fully applied functions]
 
@@ -69,16 +73,19 @@ To find out whether a function is fully applied,
 we first need to count the number of type/term lambda abstractions,
 so we know how many term/type arguments they have.
 
-We pattern match the _rhs_ with `LamAbs` or `TyAbs` (lambda abstraction for terms or types),
-and count the number of lambdas.
-Then, in the _body_, we check for term or type application (`Apply` or `TyInst`) of _v_.
+We pattern match the _rhs_ with `LamAbs` and `TyAbs` (lambda abstraction for terms or types),
+and track the sequence of lambdas.
+Then, in the _body_, we track the term and type application (`Apply` or `TyInst`) of _v_.
 
-If _v_ is fully applied in the body, i.e., if
+If _v_ is fully applied in the body, i.e., if the sequence of type and term lambda abstractions is
+exactly matched by the corresponding sequence of type and term applications, then
+we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_. Because PIR is typed,
+over-application of a function should not occur, so we don't need to worry about that. See note
+[Identifying fully applied call sites].
 
-1. the number of type lambdas equals the number of type arguments applied, and
-2. the number of term lambdas equals the number of term arguments applied, and
-
-we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_.
+Because a function can be called in the `body` multiple times and may not be fully applied for all
+its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
+which substitute *all* occurrences of a variable.
 
 Below are some more examples:
 
@@ -105,7 +112,7 @@ In terms of terms, `id` takes one argument, and is indeed applied to one.
 So `id` is fully applied! And we inline it.
 Inlining and reducing `id` reduces the amount of code, as desired.
 
-Example 3: function application in _RHS_
+Example 3: function application in _rhs_
 
 let f = (\x.\y.x+y) 4
 in f 5
@@ -113,6 +120,13 @@ in f 5
 With beta-reduction, `f` becomes `\y.4+y` and it has 1 lambda.
 The _body_ `f 5` is a fully applied function!
 We can reduce it to 4+5.
+
+Example 4: applications and lambda abstractions in _body_
+
+let f = \x.\y.x+y
+in (\z.f 3 4) 2
+
+With beta-reduction, the _body_ becomes `f 3 4` and thus `f` is fully applied.
 
 (2) How do we decide whether cost and size are acceptable?
 
@@ -127,3 +141,35 @@ counted out already so we should not immediately encounter those in `VBody`.
 Also, we currently reject `Constant` (has acceptable cost but not acceptable size).
 We may want to check their sizes instead of just rejecting them.
 -}
+
+{-|
+The (syntactic) arity of a term. That is, a record of the arguments that the
+term expects before it may do some work. Since we have both type and lambda
+abstractions, this is not a simple argument count, but rather a list of values
+indicating whether the next argument should be a term or a type.
+
+Note that this is the syntactic arity, i.e. it just corresponds to the number of
+syntactic lambda and type abstractions on the outside of the term. It is thus
+an under-approximation of how many arguments the term may need.
+e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
+arity @[]@, but does in fact need an argument before it does any work.
+-}
+type Arity = [TermOrType]
+
+-- | Is the next argument a term or a type?
+data TermOrType =
+    MkTerm | MkType
+    deriving stock (Eq, Show)
+
+instance Pretty TermOrType where
+  pretty = viaShow
+
+-- | Computes the 'Arity' of a term.
+computeArity ::
+    Term tyname name uni fun a
+    -> Arity
+computeArity = \case
+    LamAbs _ _ _ body -> MkTerm : computeArity body
+    TyAbs _ _ _ body  -> MkType : computeArity body
+    -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
+    _                 -> []

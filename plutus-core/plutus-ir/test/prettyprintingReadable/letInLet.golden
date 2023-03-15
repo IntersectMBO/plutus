@@ -1,4 +1,8 @@
-let !unitval2_0 : all a_1. a_1 -> a_1
-      = let !unitval_2 : all a_1. a_1 -> a_1 = /\a_1 -> \(x_3 : a_1) -> x_3
-        in unitval_2
-in unitval2_0
+let
+  !unitval2_0 : all a_1. a_1 -> a_1
+    = let
+      !unitval_2 : all a_1. a_1 -> a_1 = /\a_1 -> \(x_3 : a_1) -> x_3
+    in
+    unitval_2
+in
+unitval2_0

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs       #-}
 {-# LANGUAGE QuasiQuotes #-}
 module Examples where
@@ -33,8 +32,9 @@ onlySizes sig = (putStrLn ("before: size = " ++ (show (size sig)))) >>
 beforeAfter :: AlgSignature -> (Integer,Integer)
 beforeAfter sig = (size sig , size (demutualize sig))
 
--- 'randomTest p size n' generates n random systems of mutually recursive types where each bit is 1 with
--- probability p of size 'size', and returns the size of each system before and after demutualization.
+-- 'randomTest p size n' generates n random systems of mutually recursive types where each bit is 1
+-- with probability p of size 'size', and returns the size of each system before and after
+-- demutualization.
 randomTest :: Probability -> Int -> Int -> IO TestResult
 randomTest p size n = randomTest' p size n >>= (return . TR p size)
 
@@ -61,11 +61,13 @@ instance Show TestResult where
 
 -- TODAY:
 -- + get test data: run a bunch of tests for each density, each number of types in system
--- + plot test data for each density (as points): x-axis is number of types in system, y-axis is demutualized size
---   also plot a line running through the average size across all tests for each number of types.
+-- + plot test data for each density (as points): x-axis is number of types in system, y-axis is
+-- demutualized size also plot a line running through the average size across all tests for each
+-- number of types.
 -- + make images. Be sure to label. Stare at images to draw conclusions.
 
--- 'testRandom rng t d path' generates t random systems of i types with density d, for each i in rng.
+-- 'testRandom rng t d path' generates t random systems of i types with density d, for each i in
+-- rng.
 --  It then writes the resulting pairs of (initial size, size after mutual recursion removed) to a
 --  file "path" in the current directory.
 testRandom :: [Int] -> Int -> Probability -> FilePath -> IO ()
@@ -94,8 +96,9 @@ writePoint file (x,y) = hPutStrLn file ((show x) ++ " " ++ (show y))
 --------------
 -- Examples --
 --------------
--- parser has a bunch of shift/reduce conflicts, so these might not actually be the thing I was intending due to lack
--- of brackets. Luckily, the demutualizer only requires substitution, so it works anyway.
+-- parser has a bunch of shift/reduce conflicts, so these might not actually be the thing I was
+-- intending due to lack of brackets.
+-- Luckily, the demutualizer only requires substitution, so it works anyway.
 
 list :: Decl AlgType
 list = algDecl [declExp| list = all x . 1 + (list x) * x |]
@@ -138,7 +141,8 @@ multi = algSignature [typeF,typeG,typeH,tree,forest,binarytree,list,rosetree]
 -- Generating Examples --
 -------------------------
 
-{- We may think of a system of fixed point equations (corresponding to some mutually recursive types)
+{- We may think of a system of fixed point equations
+(corresponding to some mutually recursive types)
 
 t1 = T1(t1,...,tn)
 ...
@@ -186,7 +190,8 @@ diagonal n = count 0 n
   count x n = if x == n then []
                 else ((replicate x 0) ++ (1 : (replicate (n - (succ x)) 0))) : (count (succ x) n)
 
--- in which each definition refers only to the next definition, ensuring that all definitions rely on each other.
+-- in which each definition refers only to the next definition, ensuring that all definitions rely
+-- on each other.
 thinCycle :: Int -> Density
 thinCycle n = map shift (diagonal n)
   where

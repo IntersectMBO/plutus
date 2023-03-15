@@ -3,16 +3,32 @@ title: Builtins
 layout: page
 ---
 
-This module contains an enumeration of builtins.
+This module contains the formalisation of builtins.
 
 ```
 module Builtin where
+```
+
+## Imports
+
+```
+open import Data.Nat using (ℕ;suc)
+open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_])
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
+open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
+import Builtin.Constant.Type ℕ (_⊢♯) as T
+```
 
+## Built-in functions
+
+The type `Builtin` contains an enumeration of the built-in functions.
+
+```
 data Builtin : Set where
   -- Integers
   addInteger                      : Builtin
@@ -79,7 +95,130 @@ data Builtin : Set where
   mkPairData                      : Builtin
   mkNilData                       : Builtin
   mkNilPairData                   : Builtin
+```
 
+## Signatures
+
+The following module defines a `signature` function assigning to each builtin an abstract type.
+
+```
+private module SugaredSignature where
+```
+Syntactic sugar for writing the signature of built-ins.
+This is defined in its own module so that these definitions are not exported.
+
+```
+    open import Data.Product using (_×_) renaming (_,_ to _,,_)
+
+    -- number of different type variables
+    ∙ = 0
+    ∀a = 1
+    ∀b,a = 2
+
+    -- shortened names for type constants and type constructors
+    integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
+    integer = con T.integer
+    bool = con T.bool
+    bytestring = con T.bytestring
+    string = con T.string
+    unit = con T.unit
+    pdata = con T.pdata
+
+    pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
+    pair x y = con (T.pair x y)
+
+    list : ∀{n} → n ⊢♯ → n ⊢♯
+    list x = con (T.list x)
+
+    -- names for type variables
+    a : ∀{n} → suc n ⊢♯
+    a = ` Z
+
+    b : ∀{n} → suc (suc n) ⊢♯
+    b = ` (S Z)
+
+    -- operators for constructing signatures
+
+    _]⟶_ : ∀{n} → n ⊢♯ → n ⊢♯ → Args n  ×  n ⊢♯
+    _]⟶_ x y = [ x ] ,, y
+
+    infix 10 _[_
+    _[_ : (n : ℕ) →  Args n  ×  n ⊢♯ → Sig
+    _[_ n (as ,, r) = sig n as r
+
+    infixr 11 _,_
+
+    _,_ : ∀{n} → n ⊢♯ → Args n  ×  n ⊢♯ → Args n  ×  n ⊢♯
+    _,_ x (as ,, r) = x  ∷⁺ as ,, r
+    ```
+
+    The signature of each builtin
+
+    ```
+    signature : Builtin → Sig
+    signature addInteger                      = ∙ [ integer , integer ]⟶ integer
+    signature subtractInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature multiplyInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature divideInteger                   = ∙ [ integer , integer ]⟶ integer
+    signature quotientInteger                 = ∙ [ integer , integer ]⟶ integer
+    signature remainderInteger                = ∙ [ integer , integer ]⟶ integer
+    signature modInteger                      = ∙ [ integer , integer ]⟶ integer
+    signature equalsInteger                   = ∙ [ integer , integer ]⟶ bool
+    signature lessThanInteger                 = ∙ [ integer , integer ]⟶ bool
+    signature lessThanEqualsInteger           = ∙ [ integer , integer ]⟶ bool
+    signature appendByteString                = ∙ [ bytestring , bytestring ]⟶ bytestring
+    signature consByteString                  = ∙ [ integer , bytestring ]⟶ bytestring
+    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring                            
+    signature lengthOfByteString              = ∙ [ bytestring ]⟶ integer
+    signature indexByteString                 = ∙ [ bytestring , integer ]⟶ integer
+    signature equalsByteString                = ∙ [ bytestring , bytestring ]⟶ bool
+    signature lessThanByteString              = ∙ [ bytestring , bytestring ]⟶ bool
+    signature lessThanEqualsByteString        = ∙ [ bytestring , bytestring ]⟶ bool
+    signature sha2-256                        = ∙ [ bytestring ]⟶ bytestring
+    signature sha3-256                        = ∙ [ bytestring ]⟶ bytestring
+    signature blake2b-256                     = ∙ [ bytestring ]⟶ bytestring
+    signature verifyEd25519Signature          = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
+    signature appendString                    = ∙ [ string , string ]⟶ string
+    signature equalsString                    = ∙ [ string , string ]⟶ bool
+    signature encodeUtf8                      = ∙ [ string ]⟶ bytestring
+    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string 
+    signature ifThenElse                      = ∀a [ bool , a , a ]⟶ a
+    signature chooseUnit                      = ∀a [ a , unit ]⟶ a
+    signature trace                           = ∀a [ string , a ]⟶ a
+    signature fstPair                         = ∀b,a [ pair b a ]⟶ b
+    signature sndPair                         = ∀b,a [ pair b a ]⟶ a
+    signature chooseList                      = ∀b,a [ list b , a , a ]⟶ a
+    signature mkCons                          = ∀a [ a , list a ]⟶ list a
+    signature headList                        = ∀a [ list a ]⟶ a
+    signature tailList                        = ∀a [ list a ]⟶ list a
+    signature nullList                        = ∀a [ list a ]⟶ bool
+    signature chooseData                      = ∀a [ pdata , a , a , a , a , a ]⟶ a
+    signature constrData                      = ∙ [ integer , list pdata ]⟶ pdata
+    signature mapData                         = ∙ [ list (pair pdata pdata) ]⟶ pdata
+    signature listData                        = ∙ [ list pdata ]⟶ pdata
+    signature iData                           = ∙ [ integer ]⟶ pdata
+    signature bData                           = ∙ [ bytestring ]⟶ pdata
+    signature unConstrData                    = ∙ [ pdata ]⟶ pair integer (list pdata)
+    signature unMapData                       = ∙ [ pdata ]⟶ list (pair pdata pdata)
+    signature unListData                      = ∙ [ pdata ]⟶ list pdata
+    signature unIData                         = ∙ [ pdata ]⟶ integer
+    signature unBData                         = ∙ [ pdata ]⟶ bytestring
+    signature equalsData                      = ∙ [ pdata , pdata ]⟶ bool
+    signature serialiseData                   = ∙ [ pdata ]⟶ bytestring
+    signature mkPairData                      = ∙ [ pdata , pdata ]⟶ pair pdata pdata
+    signature mkNilData                       = ∙ [ unit ]⟶ list pdata
+    signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair pdata pdata)
+
+open SugaredSignature using (signature) public
+```
+
+## GHC Mappings
+
+Each Agda built-in name must be mapped to a Haskell name.
+
+```
 {-# FOREIGN GHC import PlutusCore.Default #-}
 {-# COMPILE GHC Builtin = data DefaultFun ( AddInteger
                                           | SubtractInteger
@@ -138,7 +277,10 @@ data Builtin : Set where
                                           ) #-}
 ```
 
-## Abstract semantics of builtins
+### Abstract semantics of builtins
+
+We need to postulate the Agda type of built-in functions 
+whose semantics are provided by a Haskell funciton.
 
 ```
 postulate
@@ -168,7 +310,7 @@ postulate
   serialiseDATA : DATA → ByteString
 ```
 
-# What builtin operations should be compiled to if we compile to Haskell
+### What builtin operations should be compiled to if we compile to Haskell
 
 ```
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
@@ -227,5 +369,5 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
-
 ```
+ 

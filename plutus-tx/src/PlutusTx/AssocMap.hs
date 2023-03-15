@@ -101,8 +101,8 @@ instance Functor (Map k) where
     fmap f (Map mp) = Map (fmap (fmap f) mp)
 
 instance Foldable (Map k) where
-    {-# INLINABLE foldMap #-}
-    foldMap f (Map mp) = foldMap (foldMap f) mp
+    {-# INLINABLE foldr #-}
+    foldr f z (Map mp) = foldr (f . snd) z mp
 
 instance Traversable (Map k) where
     {-# INLINABLE traverse #-}

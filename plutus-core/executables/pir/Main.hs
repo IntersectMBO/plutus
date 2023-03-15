@@ -148,7 +148,7 @@ pPirOptions = hsubparser $
 ---------------- Compilation ----------------
 
 compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcTerm UnitProvenance)
-compileToPlc optimise (PIR.Program _ term) = do
+compileToPlc optimise (PIR.Program _ _ term) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let ctx = getCtx plcTcConfig
     runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileTerm term
@@ -178,7 +178,7 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
     case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
       Right plcTerm ->
-          let plcProg = PLC.Program () PLC.defaultVersion (() <$ plcTerm)
+          let plcProg = PLC.Program () PLC.latestVersion (() <$ plcTerm)
           in case language of
             PLC  -> if test
                     then putStrLn "!!! Compilation successful"
@@ -208,10 +208,11 @@ doOptimisations term = do
 -- | Run the PIR optimisations
 runOptimisations:: PirOptimiseOptions -> IO ()
 runOptimisations (PirOptimiseOptions inp ifmt outp ofmt mode) = do
-  Program _ term <- readProgram (pirFormatToFormat ifmt) inp
+  Program _ _ term <- readProgram (pirFormatToFormat ifmt) inp
   case doOptimisations term of
     Left e  -> error $ show e
-    Right t -> writeProgram outp (pirFormatToFormat ofmt) mode (Program () (() <$ t))
+    Right t -> writeProgram outp (pirFormatToFormat ofmt) mode
+               (Program () PLC.latestVersion(() <$ t))
 
 
 ---------------- Analysis ----------------
@@ -227,7 +228,7 @@ loadPirAndAnalyse :: AnalyseOptions -> IO ()
 loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
     -- load pir and make sure that it is globally unique (required for retained size)
     p :: PirProg PLC.SrcSpan <- readProgram (pirFormatToFormat ifmt) inp
-    let PIR.Program _ term = PLC.runQuote . PLC.rename $ () <$ p
+    let PIR.Program _ _ term = PLC.runQuote . PLC.rename $ () <$ p
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)

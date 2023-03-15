@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -50,7 +49,8 @@ data Data =
 instance Pretty Data where
     pretty = \case
         Constr _ ds -> angles (sep (punctuate comma (fmap pretty ds)))
-        Map entries -> braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
+        Map entries ->
+          braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
         List ds     -> brackets (sep (punctuate comma (fmap pretty ds)))
         I i         -> pretty i
         B b         ->
@@ -78,16 +78,18 @@ start using them.
 The scheme is:
 - Alternatives 0-6 -> tags 121-127, followed by the arguments in a list
 - Alternatives 7-127 -> tags 1280-1400, followed by the arguments in a list
-- Any alternatives, including those that don't fit in the above -> tag 102 followed by a list containing
-an unsigned integer for the actual alternative, and then the arguments in a (nested!) list.
+- Any alternatives, including those that don't fit in the above -> tag 102 followed by a list
+containing an unsigned integer for the actual alternative, and then the arguments in a (nested!)
+list.
 -}
 
 {- Note [The 64-byte limit]
-We impose a 64-byte *on-the-wire* limit on the leaves of a serialized 'Data'. This prevents people from inserting
-Mickey Mouse entire.
+We impose a 64-byte *on-the-wire* limit on the leaves of a serialized 'Data'. This prevents people
+from inserting Mickey Mouse entire.
 
-The simplest way of doing this is to check during deserialization that we never deserialize something that uses
-more than 64-bytes, and this is largely what we do. Then it's the user's problem to not produce something too big.
+The simplest way of doing this is to check during deserialization that we never deserialize
+something that uses more than 64-bytes, and this is largely what we do. Then it's the user's problem
+to not produce something too big.
 
 But this is quite inconvenient, so see Note [Evading the 64-byte limit] for how we get around this.
 -}
@@ -95,15 +97,16 @@ But this is quite inconvenient, so see Note [Evading the 64-byte limit] for how 
 {- Note [Evading the 64-byte limit]
 Implementing Note [The 64-byte limit] naively would be quite annoying:
 - Users would be responsible for not creating Data values with leaves that were too big.
-- If a script *required* such a thing (e.g. a counter that somehow got above 64 bytes), then the user is totally
-stuck: the script demands something they cannot represent.
+- If a script *required* such a thing (e.g. a counter that somehow got above 64 bytes), then the
+user is totally stuck: the script demands something they cannot represent.
 
-This is unpleasant and introduces limits. Probably limits that nobody will hit, but it's nicer to just not have them.
+This is unpleasant and introduces limits. Probably limits that nobody will hit, but it's nicer to
+just not have them.
 And it turns out that we can evade the problem with some clever encoding.
 
-The fundamental
- trick is that an *indefinite-length* CBOR bytestring is just as obfuscated as a list of bytestrings,
-since it consists of a list of definite-length chunks, and each definite-length chunk must be *tagged* (at least with the size).
+The fundamental trick is that an *indefinite-length* CBOR bytestring is just as obfuscated as a list
+of bytestrings, since it consists of a list of definite-length chunks, and each definite-length
+chunk must be *tagged* (at least with the size).
 So we get a sequence like:
 
    <list start>
@@ -113,8 +116,8 @@ So we get a sequence like:
    ...
    <list end>
 
-The chunk length metadata has a prescribed format, such that it's difficult to manipulate it so that it
-matches your "desired" data.
+The chunk length metadata has a prescribed format, such that it's difficult to manipulate it so that
+it matches your "desired" data.
 So this effectively breaks up the bytestring in much the same way as a list of <64 byte bytestrings.
 
 So that solves the problem for bytestrings on the encoding side:
@@ -127,13 +130,14 @@ bytestring of >64 bytes. That covers our two cases:
 - Long indefinite-length bytestrings are just made of short definite-length bytestings.
 
 Unfortunately this all means that we have to write our own encoders/decoders so we can produce
-chunks of the right size and check the sizes when we decode, but that's okay. Users need to do the same
-thing: anyone encoding `Data` with their own encoders who doesn't split up big bytestrings in this way
-will get failures when we decode them.
+chunks of the right size and check the sizes when we decode, but that's okay. Users need to do the
+same thing: anyone encoding `Data` with their own encoders who doesn't split up big bytestrings in
+this way will get failures when we decode them.
 
-For integers, we have two cases. Small integers (<=64bits) can be encoded normally. Big integers are already
-encoded *with a byte string*. The spec allows this to be an indefinite-length bytestring (although cborg doesn't
-like it), so we can reuse our trick. Again, we need to write some manual encoders/decoders.
+For integers, we have two cases. Small integers (<=64bits) can be encoded normally. Big integers are
+already encoded *with a byte string*. The spec allows this to be an indefinite-length bytestring
+(although cborg doesn't like it), so we can reuse our trick.
+Again, we need to write some manual encoders/decoders.
 -}
 
 -- | Turn Data into a CBOR Term.
@@ -143,13 +147,17 @@ encodeData = \case
     Constr i ds | 0 <= i && i < 7   -> CBOR.encodeTag (fromIntegral (121 + i)) <> encode ds
     Constr i ds | 7 <= i && i < 128 -> CBOR.encodeTag (fromIntegral (1280 + (i - 7))) <> encode ds
     Constr i ds | otherwise         ->
-                  let tagEncoding = if fromIntegral (minBound @Word64) <= i && i <= fromIntegral (maxBound @Word64)
-                                    then CBOR.encodeWord64 (fromIntegral i)
-                                    -- This is a "correct"-ish encoding of the tag, but it will *not* deserialise, since we insist on a
-                                    -- 'Word64' when we deserialise. So this is really a "soft" failure, without using 'error' or something.
-                                    else CBOR.encodeInteger i
-                  in CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> tagEncoding <> encode ds
-    Map es                          -> CBOR.encodeMapLen (fromIntegral $ length es) <> mconcat [ encode t <> encode t' | (t, t') <-es ]
+        let tagEncoding =
+              if fromIntegral (minBound @Word64) <= i && i <= fromIntegral (maxBound @Word64)
+              then CBOR.encodeWord64 (fromIntegral i)
+              -- This is a "correct"-ish encoding of the tag, but it will *not* deserialise, since
+              -- we insist on a 'Word64' when we deserialise.
+              -- So this is really a "soft" failure, without using 'error' or something.
+              else CBOR.encodeInteger i
+        in CBOR.encodeTag 102 <> CBOR.encodeListLen 2 <> tagEncoding <> encode ds
+    Map es ->
+      CBOR.encodeMapLen (fromIntegral $ length es) <>
+        mconcat [ encode t <> encode t' | (t, t') <-es ]
     List ds                         -> encode ds
     I i                             -> encodeInteger i
     B b                             -> encodeBs b
@@ -183,8 +191,8 @@ integerToBytes n0
 -- | Given an bytestring, create a 'CBOR.Term' that encodes it, following our size restrictions.
 encodeBs :: BS.ByteString -> Encoding
 encodeBs b | BS.length b <= 64 = CBOR.encodeBytes b
--- It's a bit tricky to get cborg to emit an indefinite-length bytestring with chunks that we control,
--- so we encode it manually
+-- It's a bit tricky to get cborg to emit an indefinite-length bytestring with chunks that we
+-- control, so we encode it manually
 -- See Note [Evading the 64-byte limit]
 encodeBs b = CBOR.encodeBytesIndef <> foldMap encode (to64ByteChunks b) <> CBOR.encodeBreak
 
@@ -196,7 +204,8 @@ to64ByteChunks b | BS.length b > 64 =
 to64ByteChunks b = [b]
 
 {- Note [Definite and indefinite forms of CBOR]
-CBOR is annoying and you can have both definite (with a fixed length) and indefinite lists, maps, etc.
+CBOR is annoying and you can have both definite (with a fixed length) and indefinite lists, maps,
+etc.
 
 So we have to be careful to handle both cases when decoding. When encoding we mostly don't make
 the indefinite kinds, but see Note [Avoiding the 64-byte limit] for some cases where we do.

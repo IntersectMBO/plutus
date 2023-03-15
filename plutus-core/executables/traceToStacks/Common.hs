@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -49,7 +48,9 @@ data LogRow = LogRow String [Integer]
 
 instance CSV.FromRecord LogRow where
     parseRecord v | V.length v == 0 = fail "empty"
-    parseRecord v = LogRow <$> CSV.parseField (V.unsafeHead v) <*> traverse CSV.parseField (V.toList $ V.unsafeTail v)
+    parseRecord v =
+      LogRow <$>
+        CSV.parseField (V.unsafeHead v) <*> traverse CSV.parseField (V.toList $ V.unsafeTail v)
 
 processLog :: Int -> BSL.ByteString -> [StackVal]
 processLog valIx content =
@@ -84,7 +85,8 @@ getStacks = go []
           go
             (MkStackFrame{varName, startVal, valSpentCalledFun = 0}:curStack)
             tl
-    go (MkStackFrame {varName=curTopVar, startVal, valSpentCalledFun}:poppedStack) ((MkProfileEvent exitVal Exit var):tl)
+    go (MkStackFrame {varName=curTopVar, startVal, valSpentCalledFun}:poppedStack)
+        ((MkProfileEvent exitVal Exit var):tl)
       | curTopVar == var =
         let diffVal = exitVal - startVal
             updateValSpent (hd@MkStackFrame{valSpentCalledFun}:tl) =

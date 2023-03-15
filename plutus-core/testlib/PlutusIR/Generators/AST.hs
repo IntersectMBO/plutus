@@ -17,8 +17,8 @@ module PlutusIR.Generators.AST
 import PlutusIR
 
 import PlutusCore.Default qualified as PLC
-import PlutusCore.Generators.Hedgehog.AST as Export (AstGen, genBuiltin, genConstant, genKind, genVersion, runAstGen,
-                                                     simpleRecursive)
+import PlutusCore.Generators.Hedgehog.AST as Export (AstGen, genBuiltin, genConstant, genKind,
+                                                     genVersion, runAstGen, simpleRecursive)
 import PlutusCore.Generators.Hedgehog.AST qualified as PLC
 
 import Hedgehog hiding (Rec, Var)
@@ -85,4 +85,4 @@ genTerm = simpleRecursive nonRecursive recursive where
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni PLC.DefaultFun ())
-genProgram = Program () <$> genTerm
+genProgram = Program () <$> genVersion <*> genTerm

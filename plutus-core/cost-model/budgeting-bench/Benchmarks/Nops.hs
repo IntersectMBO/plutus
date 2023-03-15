@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
@@ -22,7 +21,7 @@ import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
-import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
+import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -266,7 +265,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning _ver Nop4o =
         makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
+             @(Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer)
              (\_ _ _ _ -> fromValueOf DefaultUniInteger 44)
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning _ver Nop5o =
@@ -278,7 +281,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     toBuiltinMeaning _ver Nop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
-               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer
+               -> Opaque val Integer)
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 

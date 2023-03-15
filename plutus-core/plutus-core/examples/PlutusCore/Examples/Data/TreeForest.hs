@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -67,7 +66,8 @@ using this representation:
     TreeForest : Set -> (Set -> Set -> Set) -> Set
     TreeForest =
       Fix₂ λ Rec A tag ->
-        ∀ R -> tag ((A -> AsForest Rec A -> R) -> R) (R -> (AsTree Rec A -> AsForest Rec A -> R) -> R)
+      ∀ R ->
+        tag ((A -> AsForest Rec A -> R) -> R) (R -> (AsTree Rec A -> AsForest Rec A -> R) -> R)
 
     Tree : Set -> Set
     Tree = AsTree TreeForest

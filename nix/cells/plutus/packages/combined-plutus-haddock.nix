@@ -25,7 +25,6 @@ cell.library.combine-haddock {
         * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
         * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
         * "PlutusCore": Programming language in which scripts on the Cardano blockchain are written.
-        * "PlutusIR": Intermediate Representation language that compiles to Plutus Core.
         * "UntypedPlutusCore": On-chain Plutus code.
     '';
   };

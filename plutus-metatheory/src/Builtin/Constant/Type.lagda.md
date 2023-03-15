@@ -33,7 +33,7 @@ data TyCon (Φ : Con) : Set where
   bool       : TyCon Φ
   list       : Ty Φ → TyCon Φ
   pair       : Ty Φ → Ty Φ → TyCon Φ
-  Data       : TyCon Φ
+  pdata      : TyCon Φ
 
 
 --{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}

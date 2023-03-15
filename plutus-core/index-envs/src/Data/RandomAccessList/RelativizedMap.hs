@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Data.RandomAccessList.RelativizedMap (RelativizedMap (..))where
@@ -10,7 +9,8 @@ import Data.RandomAccessList.Class qualified as RAL
 import Data.IntMap.Strict qualified as IM
 import GHC.Exts (IsList)
 
--- | A sequence implemented by a map from "levels" to values and a counter giving the "current" level.
+-- | A sequence implemented by a map from "levels" to values and a counter giving the "current"
+-- level.
 data RelativizedMap a = RelativizedMap (IM.IntMap a) {-# UNPACK #-} !Word64
     deriving stock (Show, Eq)
     deriving (IsList) via RAL.AsRAL (RelativizedMap a)
@@ -31,4 +31,6 @@ instance RAL.RandomAccessList (RelativizedMap a) where
     length (RelativizedMap _ l) = l
     {-# INLINABLE indexZero #-}
     indexZero (RelativizedMap _ 0) _  = Nothing
-    indexZero (RelativizedMap im l) w = let maxIndex = l-1 in if w > maxIndex then Nothing else IM.lookup (fromIntegral maxIndex - fromIntegral w) im
+    indexZero (RelativizedMap im l) w =
+        let maxIndex = l-1 in
+            if w > maxIndex then Nothing else IM.lookup (fromIntegral maxIndex - fromIntegral w) im

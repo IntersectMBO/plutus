@@ -450,6 +450,11 @@ hoistExpr
 hoistExpr var t = do
     let name = GHC.getName var
         lexName = LexName name
+        -- If the original ID has an "always inline" pragma, then
+        -- propagate that to PIR so that the PIR inliner will deal
+        -- with it.
+        hasInlinePragma = GHC.isInlinePragma $ GHC.idInlinePragma var
+        ann = if hasInlinePragma then annAlwaysInline else annMayInline
     -- See Note [Dependency tracking]
     modifyCurDeps (Set.insert lexName)
     maybeDef <- PIR.lookupTerm annMayInline lexName
@@ -460,11 +465,11 @@ hoistExpr var t = do
         Just term -> pure term
         -- See Note [Dependency tracking]
         Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-            var' <- compileVarFresh annMayInline var
+            var' <- compileVarFresh ann var
             -- See Note [Occurrences of recursive names]
             PIR.defineTerm
                 lexName
-                (PIR.Def var' (PIR.mkVar annMayInline var', PIR.Strict))
+                (PIR.Def var' (PIR.mkVar ann var', PIR.Strict))
                 mempty
 
             t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
@@ -473,7 +478,7 @@ hoistExpr var t = do
             let strict = PIR.isPure ver (const PIR.NonStrict) t'
 
             PIR.modifyTermDef lexName (const $ PIR.Def var' (t', if strict then PIR.Strict else PIR.NonStrict))
-            pure $ PIR.mkVar annMayInline var'
+            pure $ PIR.mkVar ann var'
 
 maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do

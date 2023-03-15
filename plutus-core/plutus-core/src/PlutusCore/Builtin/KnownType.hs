@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -66,7 +65,8 @@ https://github.com/input-output-hk/plutus/pull/4307
 Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
 'KnownTypeError' data type gave us a speedup of up to 4%.
 
-All the same considerations apply to 'makeKnown': https://github.com/input-output-hk/plutus/pull/4421
+All the same considerations apply to 'makeKnown':
+https://github.com/input-output-hk/plutus/pull/4421
 
 It's beneficial to inline 'readKnown' and 'makeKnown' not only because we use them directly over
 concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise GHC compiles each of

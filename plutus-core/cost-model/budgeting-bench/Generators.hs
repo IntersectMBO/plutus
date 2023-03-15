@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {- |  Generators for various types of data for benchmarking built-in functions -}
 
 module Generators where
@@ -57,9 +56,12 @@ seedB :: H.Seed
 seedB = H.Seed 44 45
 
 genSample :: H.Seed -> G.Gen a -> a
-genSample seed gen = Prelude.maybe (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (H.Size 1) seed gen
+genSample seed gen =
+    Prelude.maybe
+        (Prelude.error "Couldn't create a sample") T.treeValue $ G.evalGen (H.Size 1) seed gen
 
--- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random integer
+-- Given a list [n_1, n_2, ...] create a list [m_1, m_2, ...] where m_i is an n_i-word random
+-- integer
 makeSizedIntegers :: StdGen -> [Int] -> ([Integer], StdGen)
 makeSizedIntegers g [] = ([], g)
 makeSizedIntegers g (n:ns) =
@@ -83,11 +85,13 @@ makeSizedByteStrings seed l = map (makeSizedByteString seed) l
 
 -- Create a list containing m bytestrings of length n (also terrible)
 listOfSizedByteStrings :: Int -> Int -> [ByteString]
-listOfSizedByteStrings m n = unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.singleton n))
+listOfSizedByteStrings m n =
+    unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.singleton n))
 
 -- Create a list containing m bytestrings of random lengths
 listOfByteStrings :: Int -> [ByteString]
-listOfByteStrings m = unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.linear 0 10000))
+listOfByteStrings m =
+    unsafePerformIO . G.sample $ G.list (R.singleton m) (G.bytes (R.linear 0 10000))
 
 
 ---------------- Strings (Hedgehog) ----------------
@@ -164,11 +168,12 @@ genBoundedData imem bmem size = genD size
               then
                   Test.QuickCheck.oneof [ genI imem, genB bmem]
               else
-                  Test.QuickCheck.oneof [ Constr <$> choose (1,100) <*> resize 5 (listOf (genD (n `div` 2)))
-                                        -- Constr is unilkely to have very many arguments.
-                                        , List <$> listOf' (genD (n `div` 2))
-                                        , Map <$> (listOf' $ (,) <$> genD (n `div` 2) <*> genD (n `div` 2))
-                                        ]
+                  Test.QuickCheck.oneof
+                    [ Constr <$> choose (1,100) <*> resize 5 (listOf (genD (n `div` 2)))
+                    -- Constr is unilkely to have very many arguments.
+                    , List <$> listOf' (genD (n `div` 2))
+                    , Map <$> (listOf' $ (,) <$> genD (n `div` 2) <*> genD (n `div` 2))
+                    ]
                   where listOf' g = frequency [ (800, resize   10 (listOf g))
                                               , (200, resize  100 (listOf g))
                                               , (2,   resize 1000 (listOf g))
@@ -183,7 +188,8 @@ genBoundedData imem bmem size = genD size
 genDataSample :: [(Int, (Int, Int, Int))] -> [Data]
 genDataSample l =
     unsafePerformIO $ concat <$> mapM gen1 l
-        where gen1 (count, (imem, bmem, size)) = replicateM count . generate $ genBoundedData imem bmem size
+        where gen1 (count, (imem, bmem, size)) =
+                replicateM count . generate $ genBoundedData imem bmem size
 
 
 -- A list of parameters for genDataSample
@@ -215,4 +221,6 @@ dataSample = genDataSample (take 500 $ cycle dataParams)
 -- currently 4, since each node costs that much).  We also exclude really large
 -- objects.
 dataSampleForEq :: [Data]
-dataSampleForEq = take 400 . filter (\d -> memoryUsage d < 1000000) . genDataSample . take 1000 $ cycle ((20, (1,1,1)):dataParams)
+dataSampleForEq =
+    take 400 . filter (\d -> memoryUsage d < 1000000) . genDataSample . take 1000 $
+        cycle ((20, (1,1,1)):dataParams)

@@ -25,8 +25,8 @@ module PlutusTx.Numeric (
 
 import Data.Semigroup (Product (Product), Sum (Sum))
 import PlutusTx.Bool (Bool (False, True), (&&), (||))
-import PlutusTx.Builtins (Integer, addInteger, divideInteger, modInteger, multiplyInteger, quotientInteger,
-                          remainderInteger, subtractInteger)
+import PlutusTx.Builtins (Integer, addInteger, divideInteger, modInteger, multiplyInteger,
+                          quotientInteger, remainderInteger, subtractInteger)
 import PlutusTx.Monoid (Group, Monoid (mempty), gsub)
 import PlutusTx.Ord (Ord ((<)))
 import PlutusTx.Semigroup (Semigroup ((<>)))

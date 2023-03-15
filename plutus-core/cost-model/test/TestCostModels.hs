@@ -27,11 +27,11 @@ import Data.String (fromString)
 import Unsafe.Coerce (unsafeCoerce)
 
 import H.Prelude as H (MonadR, io)
-import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion, withEmbeddedR)
+import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion,
+                        withEmbeddedR)
 import Language.R.QQ (r)
 
-import Hedgehog (Gen, Group (..), Property, PropertyName, PropertyT, TestLimit, checkSequential, diff, forAll, property,
-                 withTests)
+import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
@@ -166,7 +166,9 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
     sizeGen = memUsageGen
   x <- forAll sizeGen
   byR <- lift $ predictR x
-  diff byR (>=) 0  -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost becase of that
+  -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost
+  -- because of that
+  diff byR (>=) 0
   diff byR (~=) (predictH x)
 
 testPredictTwo
@@ -185,7 +187,8 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
         xD = fromIntegral x :: Double
         yD = fromIntegral y :: Double
       in
-        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$>
+          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
     predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExM x) (ExM y)
     sizeGen = case domain of
@@ -213,9 +216,11 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
         yD = fromIntegral y :: Double
         zD = fromIntegral z :: Double
       in
-        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+        microToPico . fromSomeSEXP <$>
+          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y z = coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
+    predictH x y z =
+      coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z) <- forAll sizeGen
   byR <- lift $ predictR x y z
@@ -242,12 +247,21 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
         vD = fromIntegral v :: Double
         wD = fromIntegral w :: Double
       in
-        microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+        microToPico . fromSomeSEXP <$>
+          [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
-    predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
+    predictH :: CostingInteger
+      -> CostingInteger
+      -> CostingInteger
+      -> CostingInteger
+      -> CostingInteger
+      -> CostingInteger
+      -> CostingInteger
     predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
                                                      (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
-    sizeGen = (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
+    sizeGen =
+      (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
+        <*> memUsageGen
   (x, y, z, u, v, w) <- forAll sizeGen
   byR <- lift $ predictR x y z u v w
   diff byR (>=) 0
@@ -296,7 +310,8 @@ main =
     withEmbeddedR R.defaultConfig $ runRegion $ do
       models <- CreateBuiltinCostModel.costModelsR DFP.benchingResultsFile DFP.rModelFile
       H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests models)]
-          where tests models =  -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
+          where tests models =
+            -- 'models' doesn't appear explicitly below, but 'genTest' generates code which uses it.
                     [ $(genTest 2 "addInteger")            Everywhere
                     , $(genTest 2 "subtractInteger")       Everywhere
                     , $(genTest 2 "multiplyInteger")       Everywhere

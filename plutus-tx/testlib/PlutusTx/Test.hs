@@ -15,6 +15,7 @@ module PlutusTx.Test (
     fitsUnder,
     -- * Compilation testing
     goldenPir,
+    goldenPirReadable,
     goldenPirBy,
     goldenTPlc,
     goldenUPlc,
@@ -33,6 +34,7 @@ import Control.Monad.Except
 import Control.Monad.Reader qualified as Reader
 import Data.Either.Extras
 import Data.Kind (Type)
+import Data.Maybe
 import Data.Tagged (Tagged (Tagged))
 import Data.Text (Text)
 import Flat (Flat)
@@ -41,17 +43,18 @@ import System.FilePath ((</>))
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Extras
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
-import Type.Reflection (Typeable)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Test
+import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Core.Type (progTerm)
+import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
 
 -- Size testing for Tasty
 
@@ -129,16 +132,54 @@ measureBudget compiledCode =
 
 -- Compilation testing
 
-goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
+goldenPir ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , uni `PLC.Everywhere` Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
 goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPirNoAnn value
 
-goldenPirBy
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
-    => PrettyConfigClassic PrettyConfigName -> String -> CompiledCodeIn uni fun a -> TestNested
-goldenPirBy config name value = nestedGoldenVsDoc name $ pretty $
-  AttachPrettyConfig config $ getPir value
+-- | Use `prettyPirReadableNoUnique` for the golden files.
+goldenPirReadable ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , PLC.Everywhere uni Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
+goldenPirReadable name value =
+    nestedGoldenVsDoc name
+        . fromMaybe "PIR not found in CompiledCode"
+        . fmap (prettyPirReadableNoUnique . view progTerm)
+        $ getPirNoAnn value
+
+goldenPirBy ::
+    ( PLC.Closed uni
+    , uni `PLC.Everywhere` PrettyConst
+    , uni `PLC.Everywhere` Flat
+    , Pretty (PLC.SomeTypeIn uni)
+    , Pretty fun
+    , Flat fun
+    ) =>
+    PrettyConfigClassic PrettyConfigName ->
+    String ->
+    CompiledCodeIn uni fun a ->
+    TestNested
+goldenPirBy config name value =
+    nestedGoldenVsDoc name $
+        pretty $
+            AttachPrettyConfig config $
+                getPir value
 
 -- Evaluation testing
 
@@ -160,7 +201,7 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
      fromRightM (throwError . SomeException) $
          UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p^.UPLC.progTerm)
 
@@ -170,7 +211,7 @@ runPlcCekTrace ::
      ExceptT SomeException IO ([Text], UPLC.CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)

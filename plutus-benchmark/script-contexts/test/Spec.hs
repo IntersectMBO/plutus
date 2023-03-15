@@ -40,11 +40,22 @@ testCheckSc2 = testGroup "checkScriptContext2"
           mkCheckScriptContext2Code (mkScriptContext 20)
     ]
 
+testCheckScEquality :: TestTree
+testCheckScEquality = testGroup "checkScriptContextEquality"
+    [ runTestNested $ Tx.goldenBudget "checkScriptContexEqualityData-20" $
+          mkScriptContextEqualityDataCode (mkScriptContext 20)
+    , runTestNested $ Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
+          mkScriptContextEqualityTermCode (mkScriptContext 20)
+    , runTestNested $ Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+          mkScriptContextEqualityOverheadCode (mkScriptContext 20)
+    ]
+
 allTests :: TestTree
 allTests =
   testGroup "plutus-benchmark script-contexts tests"
     [ testCheckSc1
     , testCheckSc2
+    , testCheckScEquality
     ]
 
 main :: IO ()

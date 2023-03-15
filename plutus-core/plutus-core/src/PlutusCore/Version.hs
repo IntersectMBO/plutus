@@ -1,17 +1,23 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module PlutusCore.Version (
   Version(..)
   , versionMajor
   , versionMinor
   , versionPatch
-  , defaultVersion) where
+  , plcVersion100
+  , plcVersion110
+  , firstVersion
+  , latestVersion
+  , knownVersions) where
 
 import PlutusPrelude
 
 import Control.Lens
 import Data.Hashable
+import Data.Set qualified as Set
 import Instances.TH.Lift ()
 
 {- |
@@ -48,6 +54,26 @@ instance Ord Version where
   compare (Version major1 minor1 patch1) (Version major2 minor2 patch2) =
     compare major1 major2 <> compare minor1 minor2 <> compare patch1 patch2
 
--- | The default version of Plutus Core supported by this library.
-defaultVersion :: Version
-defaultVersion = Version 1 0 0
+-- | The first version of Plutus Core supported by this library.
+firstVersion :: Version
+firstVersion = plcVersion100
+
+-- | Plutus Core version 1.0.0
+plcVersion100 :: Version
+plcVersion100 = Version 1 0 0
+
+-- | Plutus Core version 1.1.0
+plcVersion110 :: Version
+plcVersion110 = Version 1 1 0
+
+-- | The latest version of Plutus Core supported by this library.
+latestVersion :: Version
+latestVersion = plcVersion110
+
+-- | The set of versions that are "known", i.e. that have been released
+-- and have actual differences associated with them.
+knownVersions :: Set.Set Version
+knownVersions = Set.fromList [ plcVersion100, plcVersion110 ]
+
+instance Pretty Version where
+    pretty (Version i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

@@ -1,99 +1,17 @@
-(program
-  (let
-    (nonrec)
-    (termbind
-      (nonstrict)
-      (vardecl
-        fAdditiveSemigroupInteger
-        [ (lam a (type) (fun a (fun a a))) (con integer) ]
-      )
-      (lam
-        x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ])
-      )
-    )
-    (termbind
-      (strict)
-      (vardecl
-        bad_name
-        (all
-          a
-          (type)
-          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a (fun a a)))
-        )
-      )
-      (abs a (type) (lam v [ (lam a (type) (fun a (fun a a))) a ] v))
-    )
-    (termbind
-      (nonstrict)
-      (vardecl a (con integer))
-      [
-        [
-          [ { bad_name (con integer) } fAdditiveSemigroupInteger ]
-          (con integer 1)
-        ]
-        (con integer 2)
-      ]
-    )
-    (datatypebind
-      (datatype
-        (tyvardecl Bool (type))
-
-        Bool_match
-        (vardecl True Bool) (vardecl False Bool)
-      )
-    )
-    [
-      [
-        [
-          {
-            [
-              Bool_match
-              [
-                [
-                  [
-                    { (builtin ifThenElse) Bool }
-                    [
-                      [ (builtin lessThanInteger) (con integer 3) ]
-                      (con integer 4)
-                    ]
-                  ]
-                  True
-                ]
-                False
-              ]
-            ]
-            (fun (con integer) (con integer))
-          }
-          (lam
-            x
-            (con integer)
-            [
-              [ [ { bad_name (con integer) } fAdditiveSemigroupInteger ] x ]
-              (con integer 5)
-            ]
-          )
-        ]
-        (lam
-          x
-          (con integer)
-          [
-            [
-              [ { bad_name (con integer) } fAdditiveSemigroupInteger ]
-              [
-                [ [ { bad_name (con integer) } fAdditiveSemigroupInteger ] x ] a
-              ]
-            ]
-            a
-          ]
-        )
-      ]
-      [
-        [
-          [ { bad_name (con integer) } fAdditiveSemigroupInteger ]
-          (con integer 6)
-        ]
-        (con integer 7)
-      ]
-    ]
-  )
-)
+let
+  ~a : integer = addInteger 1 2
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+Bool_match
+  (ifThenElse {Bool} (lessThanInteger 3 4) True False)
+  {integer -> integer}
+  (\(x : integer) -> addInteger x 5)
+  (\(x : integer) ->
+     let
+       !x : integer = let !y : integer = a in addInteger x y
+       !y : integer = a
+     in
+     addInteger x y)
+  (addInteger 6 7)
