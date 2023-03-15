@@ -73,7 +73,7 @@ module PlutusTx.Builtins (
                          , BuiltinBLS12_381_G1_Element
                          , bls12_381_G1_equals
                          , bls12_381_G1_add
-                         , bls12_381_G1_mul
+                         , bls12_381_G1_scalarMul
                          , bls12_381_G1_neg
                          , bls12_381_G1_compress
                          , bls12_381_G1_uncompress
@@ -81,14 +81,14 @@ module PlutusTx.Builtins (
                          , BuiltinBLS12_381_G2_Element
                          , bls12_381_G2_equals
                          , bls12_381_G2_add
-                         , bls12_381_G2_mul
+                         , bls12_381_G2_scalarMul
                          , bls12_381_G2_neg
                          , bls12_381_G2_compress
                          , bls12_381_G2_uncompress
                          , bls12_381_G2_hashToCurve
-                         , BuiltinBLS12_381_GT_Element
-                         , bls12_381_GT_mul
+                         , BuiltinBLS12_381_MlResult
                          , bls12_381_pairing
+                         , bls12_381_mulMlResult
                          , bls12_381_finalVerify
                          -- * Conversions
                          , fromBuiltin
@@ -99,7 +99,7 @@ import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..), BuiltinBLS12_381_G2_Element (..),
-                                   BuiltinBLS12_381_GT_Element (..), BuiltinByteString (..), BuiltinData, BuiltinString)
+                                   BuiltinBLS12_381_MlResult (..), BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 
@@ -476,9 +476,9 @@ bls12_381_G1_equals a b = fromBuiltin (BI.bls12_381_G1_equals a b)
 bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_add = BI.bls12_381_G1_add
 
-{-# INLINABLE bls12_381_G1_mul #-}
-bls12_381_G1_mul :: Integer -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
-bls12_381_G1_mul = BI.bls12_381_G1_mul
+{-# INLINABLE bls12_381_G1_scalarMul #-}
+bls12_381_G1_scalarMul :: Integer -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_scalarMul = BI.bls12_381_G1_scalarMul
 
 {-# INLINABLE bls12_381_G1_neg #-}
 bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
@@ -505,9 +505,9 @@ bls12_381_G2_equals a b = fromBuiltin (BI.bls12_381_G2_equals a b)
 bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_add = BI.bls12_381_G2_add
 
-{-# INLINABLE bls12_381_G2_mul #-}
-bls12_381_G2_mul :: Integer -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
-bls12_381_G2_mul = BI.bls12_381_G2_mul
+{-# INLINABLE bls12_381_G2_scalarMul #-}
+bls12_381_G2_scalarMul :: Integer -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_scalarMul = BI.bls12_381_G2_scalarMul
 
 {-# INLINABLE bls12_381_G2_neg #-}
 bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
@@ -526,16 +526,16 @@ bls12_381_G2_hashToCurve :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToCurve = BI.bls12_381_G2_hashToCurve
 
 -- G2 --
-{-# INLINABLE bls12_381_GT_mul #-}
-bls12_381_GT_mul ::  BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element
-bls12_381_GT_mul = BI.bls12_381_GT_mul
+{-# INLINABLE bls12_381_mulMlResult #-}
+bls12_381_mulMlResult ::  BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
+bls12_381_mulMlResult = BI.bls12_381_mulMlResult
 
 {-# INLINABLE bls12_381_pairing #-}
-bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
+bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
 bls12_381_pairing = BI.bls12_381_pairing
 
 {-# INLINABLE bls12_381_finalVerify #-}
-bls12_381_finalVerify :: BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> Bool
+bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
 bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
 
 

@@ -31,7 +31,7 @@ import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
@@ -538,13 +538,13 @@ bls12_381_G1_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G1_Elemen
 bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_add (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G1_Element b) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.add a b)
 
-{-# NOINLINE bls12_381_G1_mul #-}
-bls12_381_G1_mul :: BuiltinInteger -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
-bls12_381_G1_mul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.mul n a)
-
 {-# NOINLINE bls12_381_G1_neg #-}
 bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_neg (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.neg a)
+
+{-# NOINLINE bls12_381_G1_scalarMul #-}
+bls12_381_G1_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_scalarMul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.scalarMul n a)
 
 {-# NOINLINE bls12_381_G1_compress #-}
 bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
@@ -582,13 +582,13 @@ bls12_381_G2_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G2_Elemen
 bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_add (BuiltinBLS12_381_G2_Element a) (BuiltinBLS12_381_G2_Element b) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.add a b)
 
-{-# NOINLINE bls12_381_G2_mul #-}
-bls12_381_G2_mul :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
-bls12_381_G2_mul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.mul n a)
-
 {-# NOINLINE bls12_381_G2_neg #-}
 bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_neg (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.neg a)
+
+{-# NOINLINE bls12_381_G2_scalarMul #-}
+bls12_381_G2_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.scalarMul n a)
 
 {-# NOINLINE bls12_381_G2_compress #-}
 bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
@@ -606,28 +606,32 @@ bls12_381_G2_hashToCurve ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToCurve (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToCurve b
 
 
----------------- GT ----------------
+---------------- Pairing ----------------
 
-data BuiltinBLS12_381_GT_Element = BuiltinBLS12_381_GT_Element BLS12_381.GT.Element
+data BuiltinBLS12_381_MlResult = BuiltinBLS12_381_MlResult BLS12_381.Pairing.MlResult
 
-instance Haskell.Show BuiltinBLS12_381_GT_Element where
-    show (BuiltinBLS12_381_GT_Element a) = show a
-instance Haskell.Eq BuiltinBLS12_381_GT_Element where
-    (==) (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = (==) a b
-instance NFData BuiltinBLS12_381_GT_Element where
-     rnf (BuiltinBLS12_381_GT_Element a) = rnf a
-instance Pretty BuiltinBLS12_381_GT_Element where
-    pretty (BuiltinBLS12_381_GT_Element a) = pretty a
+instance Haskell.Show BuiltinBLS12_381_MlResult where
+    show (BuiltinBLS12_381_MlResult a) = show a
+instance Haskell.Eq BuiltinBLS12_381_MlResult where
+    (==) (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b) = (==) a b
+instance NFData BuiltinBLS12_381_MlResult where
+     rnf (BuiltinBLS12_381_MlResult a) = rnf a
+instance Pretty BuiltinBLS12_381_MlResult where
+    pretty (BuiltinBLS12_381_MlResult a) = pretty a
 
-{-# NOINLINE bls12_381_GT_mul #-}
-bls12_381_GT_mul :: BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element -> BuiltinBLS12_381_GT_Element
-bls12_381_GT_mul (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = BuiltinBLS12_381_GT_Element (BLS12_381.GT.mul a b)
-
-bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_GT_Element
+{-# NOINLINE bls12_381_pairing #-}
+bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
 bls12_381_pairing (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
-    case BLS12_381.GT.pairing a b of
+    case BLS12_381.Pairing.pairing a b of
       Left err -> mustBeReplaced $ "BSL12_381 pairing error: " ++ show err
-      Right c  -> BuiltinBLS12_381_GT_Element c
+      Right c  -> BuiltinBLS12_381_MlResult c
 
-bls12_381_finalVerify ::  BuiltinBLS12_381_GT_Element ->  BuiltinBLS12_381_GT_Element -> BuiltinBool
-bls12_381_finalVerify (BuiltinBLS12_381_GT_Element a) (BuiltinBLS12_381_GT_Element b) = BuiltinBool (BLS12_381.GT.finalVerify a b)
+{-# NOINLINE bls12_381_mulMlResult #-}
+bls12_381_mulMlResult :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
+bls12_381_mulMlResult (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
+    = BuiltinBLS12_381_MlResult (BLS12_381.Pairing.mulMlResult a b)
+
+{-# NOINLINE bls12_381_finalVerify #-}
+bls12_381_finalVerify ::  BuiltinBLS12_381_MlResult ->  BuiltinBLS12_381_MlResult -> BuiltinBool
+bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
+    = BuiltinBool (BLS12_381.Pairing.finalVerify a b)

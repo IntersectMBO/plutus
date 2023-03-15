@@ -36,7 +36,7 @@ import PlutusIR.Purity qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote
@@ -245,8 +245,8 @@ builtinNames = [
     , ''Builtins.BuiltinBLS12_381_G1_Element
     , 'Builtins.bls12_381_G1_equals
     , 'Builtins.bls12_381_G1_add
-    , 'Builtins.bls12_381_G1_mul
     , 'Builtins.bls12_381_G1_neg
+    , 'Builtins.bls12_381_G1_scalarMul
     , 'Builtins.bls12_381_G1_compress
     , 'Builtins.bls12_381_G1_uncompress
     , 'Builtins.bls12_381_G1_hashToCurve
@@ -254,15 +254,15 @@ builtinNames = [
     , ''Builtins.BuiltinBLS12_381_G2_Element
     , 'Builtins.bls12_381_G2_equals
     , 'Builtins.bls12_381_G2_add
-    , 'Builtins.bls12_381_G2_mul
     , 'Builtins.bls12_381_G2_neg
+    , 'Builtins.bls12_381_G2_scalarMul
     , 'Builtins.bls12_381_G2_compress
     , 'Builtins.bls12_381_G2_uncompress
     , 'Builtins.bls12_381_G2_hashToCurve
 
-    , ''Builtins.BuiltinBLS12_381_GT_Element
-    , 'Builtins.bls12_381_GT_mul
+    , ''Builtins.BuiltinBLS12_381_MlResult
     , 'Builtins.bls12_381_pairing
+    , 'Builtins.bls12_381_mulMlResult
     , 'Builtins.bls12_381_finalVerify
     ]
 
@@ -397,21 +397,21 @@ defineBuiltinTerms = do
     -- BLS
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_equals      $ mkBuiltin PLC.Bls12_381_G1_equal
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_add         $ mkBuiltin PLC.Bls12_381_G1_add
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_mul         $ mkBuiltin PLC.Bls12_381_G1_mul
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_neg         $ mkBuiltin PLC.Bls12_381_G1_neg
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_scalarMul   $ mkBuiltin PLC.Bls12_381_G1_scalarMul
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compress    $ mkBuiltin PLC.Bls12_381_G1_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_uncompress  $ mkBuiltin PLC.Bls12_381_G1_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_hashToCurve $ mkBuiltin PLC.Bls12_381_G1_hashToCurve
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_equals      $ mkBuiltin PLC.Bls12_381_G2_equal
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_add         $ mkBuiltin PLC.Bls12_381_G2_add
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_mul         $ mkBuiltin PLC.Bls12_381_G2_mul
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_scalarMul   $ mkBuiltin PLC.Bls12_381_G2_scalarMul
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_neg         $ mkBuiltin PLC.Bls12_381_G2_neg
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compress    $ mkBuiltin PLC.Bls12_381_G2_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToCurve $ mkBuiltin PLC.Bls12_381_G2_hashToCurve
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_GT_mul         $ mkBuiltin PLC.Bls12_381_GT_mul
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_pairing        $ mkBuiltin PLC.Bls12_381_GT_pairing
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_GT_finalVerify
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_pairing        $ mkBuiltin PLC.Bls12_381_pairing
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult    $ mkBuiltin PLC.Bls12_381_mulMlResult
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_finalVerify
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann
@@ -427,7 +427,7 @@ defineBuiltinTypes = do
     defineBuiltinType ''Builtins.BuiltinList . ($> annMayInline) $ PLC.TyBuiltin () (PLC.SomeTypeIn PLC.DefaultUniProtoList)
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G1_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G1.Element
     defineBuiltinType ''Builtins.BuiltinBLS12_381_G2_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.G2.Element
-    defineBuiltinType ''Builtins.BuiltinBLS12_381_GT_Element . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.GT.Element
+    defineBuiltinType ''Builtins.BuiltinBLS12_381_MlResult . ($> annMayInline) $ PLC.toTypeAst $ Proxy @BLS12_381.Pairing.MlResult
 
 -- | Lookup a builtin term by its TH name. These are assumed to be present, so fails if it cannot find it.
 lookupBuiltinTerm :: Compiling uni fun m ann => TH.Name -> m (PIRTerm uni fun)

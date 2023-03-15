@@ -25,7 +25,7 @@ import PlutusIR.Compiler.Definitions
 import PlutusCore qualified as PLC
 import PlutusCore.BLS12_381.G1 (Element)
 import PlutusCore.BLS12_381.G2 (Element)
-import PlutusCore.BLS12_381.GT (Element)
+import PlutusCore.BLS12_381.Pairing (MlResult)
 import PlutusCore.Data
 import PlutusCore.Quote
 import PlutusIR.MkPir
@@ -171,5 +171,5 @@ instance uni `PLC.Includes` PlutusCore.BLS12_381.G1.Element => Lift uni BuiltinB
 instance uni `PLC.Includes` PlutusCore.BLS12_381.G2.Element => Lift uni BuiltinBLS12_381_G2_Element where
     lift a = liftBuiltin $ fromBuiltin a
 
-instance uni `PLC.Includes` PlutusCore.BLS12_381.GT.Element => Lift uni BuiltinBLS12_381_GT_Element where
+instance uni `PLC.Includes` PlutusCore.BLS12_381.Pairing.MlResult => Lift uni BuiltinBLS12_381_MlResult where
     lift a = liftBuiltin $ fromBuiltin a
