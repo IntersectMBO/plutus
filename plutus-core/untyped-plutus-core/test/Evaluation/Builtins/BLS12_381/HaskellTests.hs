@@ -8,7 +8,7 @@ where
 import Evaluation.Builtins.BLS12_381.Common
 import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
-import PlutusCore.BLS12_381.GT qualified as GT
+import PlutusCore.BLS12_381.Pairing qualified as Pairing
 
 import Crypto.EllipticCurve.BLS12_381 (BLSTError)
 import Data.ByteString as BS (length)
@@ -84,7 +84,7 @@ prop_scalar_assoc =
       a <- arbitrary
       b <- arbitrary
       p <- arbitrary @a
-      pure $ mul (a*b) p === mul a (mul b p)
+      pure $ scalarMul (a*b) p === scalarMul a (scalarMul b p)
 
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
 prop_scalar_distributive_left :: forall a. TestableAbelianGroup a => TestTree
@@ -95,7 +95,7 @@ prop_scalar_distributive_left =
       a <- arbitrary
       b <- arbitrary
       p <- arbitrary @a
-      pure $ mul (a+b) p === add (mul a p) (mul b p)
+      pure $ scalarMul (a+b) p === add (scalarMul a p) (scalarMul b p)
 
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
 prop_scalar_distributive_right :: forall a. TestableAbelianGroup a => TestTree
@@ -106,7 +106,7 @@ prop_scalar_distributive_right =
       a <- arbitrary
       p <- arbitrary @a
       q <- arbitrary
-      pure $ mul a (add p q) === add (mul a p) (mul a q)
+      pure $ scalarMul a (add p q) === add (scalarMul a p) (scalarMul a q)
 
 -- | 0p = 0 for all group elements p.
 prop_scalar_zero :: forall a. TestableAbelianGroup a => TestTree
@@ -115,7 +115,7 @@ prop_scalar_zero =
     (mkTestName @a "scalar_zero") .
     withNTests $ do
       p <- arbitrary @a
-      pure $ mul 0 p === zero
+      pure $ scalarMul 0 p === zero
 
 -- | 1p = p for all group elements p.
 prop_scalar_identity :: forall a. TestableAbelianGroup a => TestTree
@@ -124,7 +124,7 @@ prop_scalar_identity =
     (mkTestName @a "scalar_identity") .
     withNTests $ do
       p <- arbitrary @a
-      pure $ mul 1 p === p
+      pure $ scalarMul 1 p === p
 
 -- | (-1)p = -p for all group elements p.
 prop_scalar_inverse :: forall a. TestableAbelianGroup a => TestTree
@@ -133,7 +133,7 @@ prop_scalar_inverse =
     (mkTestName @a "scalar_inverse") .
     withNTests $ property $ do
       p <- arbitrary @a
-      pure $ neg p === mul (-1) p
+      pure $ neg p === scalarMul (-1) p
 
 -- Check that scalar multiplication is repeated addition (including negative
 -- scalars). We should really check this for scalars greater than the group
@@ -146,7 +146,7 @@ prop_scalar_multiplication =
     withNTests $ do
       n <- resize 10000 arbitrary
       p <- arbitrary @a
-      pure $ mul n p === repeatedAdd n p
+      pure $ scalarMul n p === repeatedAdd n p
           where repeatedAdd :: Integer -> a -> a
                 repeatedAdd n p =
                     if n >= 0
@@ -234,9 +234,9 @@ test_compress_hash =
 -- best we can do is to check elements (which can only be constructed by the
 -- paring operation and multiplication in GT) using finalVerify.
 
-pairing :: G1.Element -> G2.Element -> GT.Element
-pairing p q =
-    case GT.pairing p q of
+doPairing :: G1.Element -> G2.Element -> Pairing.MlResult
+doPairing p q =
+    case Pairing.pairing p q of
       Left e  -> error $ show e
       Right r -> r
 
@@ -249,9 +249,9 @@ prop_pairing_left_additive =
       p1 <- arbitrary
       p2 <- arbitrary
       q  <- arbitrary
-      let e1 = pairing (add p1 p2) q
-          e2 = GT.mul (pairing p1 q) (pairing p2 q)
-      pure $ GT.finalVerify e1 e2 === True
+      let e1 = doPairing (add p1 p2) q
+          e2 = Pairing.mulMlResult (doPairing p1 q) (doPairing p2 q)
+      pure $ Pairing.finalVerify e1 e2 === True
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
 prop_pairing_right_additive :: TestTree
@@ -262,9 +262,9 @@ prop_pairing_right_additive =
       p <-  arbitrary
       q1 <- arbitrary
       q2 <- arbitrary
-      let e1 = pairing p (G2.add q1 q2)
-          e2 = GT.mul (pairing p q1) (pairing p q2)
-      pure $ GT.finalVerify e1 e2 === True
+      let e1 = doPairing p (G2.add q1 q2)
+          e2 = Pairing.mulMlResult (doPairing p q1) (doPairing p q2)
+      pure $ Pairing.finalVerify e1 e2 === True
 
 -- <[n]p,q> = <p,[n]q> for all n in Z, p in G1, q in G2.
 -- We could also test that both of these are equal to <p,q>^n, but we don't have
@@ -278,7 +278,10 @@ prop_pairing_balanced =
        n <-  arbitrary
        p <-  arbitrary
        q <-  arbitrary
-       pure $ GT.finalVerify (pairing (mul n p) q) (pairing p (mul n q)) === True
+       pure $ Pairing.finalVerify
+                (doPairing (scalarMul n p) q)
+                (doPairing p (scalarMul n q))
+                === True
 
 -- finalVerify returns False for random inputs
 prop_random_pairing :: TestTree
@@ -292,11 +295,7 @@ prop_random_pairing =
        a' <- arbitrary
        b' <- arbitrary
        pure $ a /= a' && b /= b' ==>
-            GT.finalVerify (doPairing a b) (doPairing a' b') === False
-                where doPairing p q =
-                          case GT.pairing p q of
-                            Left e  -> error $ show e
-                            Right r -> r
+            Pairing.finalVerify (doPairing a b) (doPairing a' b') === False
 
 -- All the tests
 

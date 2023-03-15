@@ -88,8 +88,8 @@ prop_scalar_assoc =
       a <- arbitraryScalar
       b <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = mulP @a (mkApp2 MultiplyInteger a b) p
-          e2 = mulP @a a (mulP @a b p)
+      let e1 = scalarMulP @a (mkApp2 MultiplyInteger a b) p
+          e2 = scalarMulP @a a (scalarMulP @a b p)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -101,8 +101,8 @@ prop_scalar_distributive_left =
       a <- arbitraryScalar
       b <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = mulP @a (mkApp2 AddInteger a b) p
-          e2 = addP @a (mulP @a a p) (mulP @a b p)
+      let e1 = scalarMulP @a (mkApp2 AddInteger a b) p
+          e2 = addP @a (scalarMulP @a a p) (scalarMulP @a b p)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -114,8 +114,8 @@ prop_scalar_distributive_right =
       a <- arbitraryScalar
       p <- arbitraryConstant @a
       q <- arbitraryConstant @a
-      let e1 = mulP @a a (addP @a p q)
-          e2 = addP @a (mulP @a a p) (mulP @a a q)
+      let e1 = scalarMulP @a a (addP @a p q)
+          e2 = addP @a (scalarMulP @a a p) (scalarMulP @a a q)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -125,7 +125,7 @@ prop_scalar_zero =
     (mkTestName @a "scalar_zero") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (mulP @a (integer 0) p) $ zeroP @a
+      let e = eqP @a (scalarMulP @a (integer 0) p) $ zeroP @a
       pure $ evalTerm e === uplcTrue
 
 prop_scalar_identity :: forall a. TestableAbelianGroup a => TestTree
@@ -134,7 +134,7 @@ prop_scalar_identity =
     (mkTestName @a "scalar_identity") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (mulP @a (integer 1) p) p
+      let e = eqP @a (scalarMulP @a (integer 1) p) p
       pure $ evalTerm e === uplcTrue
 
 prop_scalar_inverse :: forall a. TestableAbelianGroup a => TestTree
@@ -143,7 +143,7 @@ prop_scalar_inverse =
     (mkTestName @a "scalar_inverse") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (mulP @a (integer (-1)) p) (negP @a p)
+      let e = eqP @a (scalarMulP @a (integer (-1)) p) (negP @a p)
       pure $ evalTerm e == uplcTrue
 
 prop_scalar_multiplication :: forall a. TestableAbelianGroup a => TestTree
@@ -154,7 +154,7 @@ prop_scalar_multiplication =
       n <- resize 100 arbitrary
       p <- arbitraryConstant @a
       let e1 = repeatedAdd n p
-          e2 = eqP @a (mulP @a (integer n) p) e1
+          e2 = eqP @a (scalarMulP @a (integer n) p) e1
       pure $ evalTerm e2 === uplcTrue
           where
             repeatedAdd :: Integer -> PlcTerm -> PlcTerm
@@ -238,7 +238,7 @@ prop_pairing_left_additive =
       p2 <- arbitraryConstant @G1.Element
       q  <- arbitraryConstant @G2.Element
       let e1 = pairingPlc (addP @G1.Element p1 p2) q
-          e2 = mulGT (pairingPlc p1 q) (pairingPlc p2 q)
+          e2 = mulMlResultPlc (pairingPlc p1 q) (pairingPlc p2 q)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -252,7 +252,7 @@ prop_pairing_right_additive =
       q1 <- arbitraryConstant @G2.Element
       q2 <- arbitraryConstant @G2.Element
       let e1 = pairingPlc p (addP @G2.Element q1 q2)
-          e2 = mulGT (pairingPlc p q1) (pairingPlc p q2)
+          e2 = mulMlResultPlc (pairingPlc p q1) (pairingPlc p q2)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -265,8 +265,8 @@ prop_pairing_balanced =
       n <- arbitraryScalar
       p <- arbitraryConstant @G1.Element
       q <- arbitraryConstant @G2.Element
-      let e1 = pairingPlc (mulP @G1.Element n p) q
-          e2 = pairingPlc p (mulP @G2.Element n q)
+      let e1 = pairingPlc (scalarMulP @G1.Element n p) q
+          e2 = pairingPlc p (scalarMulP @G2.Element n q)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 

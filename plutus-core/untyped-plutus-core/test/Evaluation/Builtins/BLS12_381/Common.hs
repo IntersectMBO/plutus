@@ -40,12 +40,12 @@ class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a) => TestableAbelianGroup a
       zero       :: a
       add        :: a -> a -> a
       neg        :: a -> a
-      mul        :: Integer -> a -> a
+      scalarMul  :: Integer -> a -> a
       zeroP      :: PlcTerm
-      negP       :: PlcTerm -> PlcTerm
       addP       :: PlcTerm -> PlcTerm -> PlcTerm
+      negP       :: PlcTerm -> PlcTerm
+      scalarMulP :: PlcTerm -> PlcTerm -> PlcTerm
       eqP        :: PlcTerm -> PlcTerm -> PlcTerm
-      mulP       :: PlcTerm -> PlcTerm -> PlcTerm
       toPlc      :: a -> PlcTerm
 
 class (Show e, TestableAbelianGroup a) => HashAndCompress e a
@@ -74,12 +74,12 @@ instance TestableAbelianGroup G1.Element
       zero       = G1.zero
       add        = G1.add
       neg        = G1.neg
-      mul        = G1.mul
+      scalarMul  = G1.scalarMul
       zeroP      = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
-      negP       = mkApp1 Bls12_381_G1_neg
       addP       = mkApp2 Bls12_381_G1_add
+      negP       = mkApp1 Bls12_381_G1_neg
+      scalarMulP = mkApp2 Bls12_381_G1_scalarMul
       eqP        = mkApp2 Bls12_381_G1_equal
-      mulP       = mkApp2 Bls12_381_G1_mul
       toPlc      = mkConstant ()
 
 instance HashAndCompress BLSTError G1.Element
@@ -103,12 +103,12 @@ instance TestableAbelianGroup G2.Element
       zero       = G2.zero
       add        = G2.add
       neg        = G2.neg
-      mul        = G2.mul
+      scalarMul  = G2.scalarMul
       zeroP      = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
-      negP       = mkApp1 Bls12_381_G2_neg
       addP       = mkApp2 Bls12_381_G2_add
+      negP       = mkApp1 Bls12_381_G2_neg
+      scalarMulP = mkApp2 Bls12_381_G2_scalarMul
       eqP        = mkApp2 Bls12_381_G2_equal
-      mulP       = mkApp2 Bls12_381_G2_mul
       toPlc      = mkConstant ()
 
 instance HashAndCompress BLSTError G2.Element
@@ -172,11 +172,12 @@ mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 -- Constructing pairing terms
 
 pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
-pairingPlc = mkApp2 Bls12_381_GT_pairing
+pairingPlc = mkApp2 Bls12_381_pairing
+
+mulMlResultPlc :: PlcTerm -> PlcTerm -> PlcTerm
+mulMlResultPlc = mkApp2 Bls12_381_mulMlResult
 
 finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
-finalVerifyPlc = mkApp2 Bls12_381_GT_finalVerify
+finalVerifyPlc = mkApp2 Bls12_381_finalVerify
 
-mulGT :: PlcTerm -> PlcTerm -> PlcTerm
-mulGT = mkApp2 Bls12_381_GT_mul
 

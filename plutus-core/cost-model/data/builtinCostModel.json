@@ -113,23 +113,23 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_mul": {
+    "bls12_381_G1_neg": {
         "cpu": {
-            "arguments": {
-                "intercept": 94607019,
-                "slope": 87060
-            },
-            "type": "linear_in_x"
+            "arguments": 292890,
+            "type": "constant_cost"
         },
         "memory": {
             "arguments": 18,
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_neg": {
+    "bls12_381_G1_scalarMul": {
         "cpu": {
-            "arguments": 292890,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 94607019,
+                "slope": 87060
+            },
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 18,
@@ -189,23 +189,23 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_mul": {
+    "bls12_381_G2_neg": {
         "cpu": {
-            "arguments": {
-                "intercept": 190191402,
-                "slope": 85902
-            },
-            "type": "linear_in_x"
+            "arguments": 307813,
+            "type": "constant_cost"
         },
         "memory": {
             "arguments": 36,
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_neg": {
+    "bls12_381_G2_scalarMul": {
         "cpu": {
-            "arguments": 307813,
-            "type": "constant_cost"
+            "arguments": {
+                "intercept": 190191402,
+                "slope": 85902
+            },
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 36,
@@ -222,7 +222,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_GT_finalVerify": {
+    "bls12_381_finalVerify": {
         "cpu": {
             "arguments": 388656972,
             "type": "constant_cost"
@@ -232,7 +232,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_GT_mul": {
+    "bls12_381_mulMlResult": {
         "cpu": {
             "arguments": 2544991,
             "type": "constant_cost"
@@ -242,7 +242,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_GT_pairing": {
+    "bls12_381_pairing": {
         "cpu": {
             "arguments": 402099373,
             "type": "constant_cost"

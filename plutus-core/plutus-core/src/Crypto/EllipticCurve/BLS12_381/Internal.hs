@@ -628,7 +628,7 @@ data BLSTError
   | BLST_PK_IS_INFINITY
   | BLST_BAD_SCALAR
   | BLST_UNKNOWN_ERROR
-  deriving (Show, Eq, Ord, Enum, Bounded)
+  deriving stock (Show, Eq, Ord, Enum, Bounded)
 
 mkBLSTError :: CInt -> BLSTError
 mkBLSTError e

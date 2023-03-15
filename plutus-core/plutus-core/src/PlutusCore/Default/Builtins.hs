@@ -27,7 +27,7 @@ import PlutusCore.Pretty
 
 import PlutusCore.BLS12_381.G1 qualified
 import PlutusCore.BLS12_381.G2 qualified
-import PlutusCore.BLS12_381.GT qualified
+import PlutusCore.BLS12_381.Pairing qualified
 
 import Codec.Serialise (serialise)
 import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
@@ -126,7 +126,7 @@ data DefaultFun
     -- BLS12_381 operations
     -- G1
     | Bls12_381_G1_add
-    | Bls12_381_G1_mul
+    | Bls12_381_G1_scalarMul
     | Bls12_381_G1_neg
     | Bls12_381_G1_equal
     | Bls12_381_G1_hashToCurve
@@ -134,17 +134,16 @@ data DefaultFun
     | Bls12_381_G1_uncompress
     -- G2
     | Bls12_381_G2_add
-    | Bls12_381_G2_mul
+    | Bls12_381_G2_scalarMul
     | Bls12_381_G2_neg
     | Bls12_381_G2_equal
     | Bls12_381_G2_hashToCurve
     | Bls12_381_G2_compress
     | Bls12_381_G2_uncompress
     -- GT
-    | Bls12_381_GT_mul
-      -- Pairing
-    | Bls12_381_GT_finalVerify
-    | Bls12_381_GT_pairing
+    | Bls12_381_pairing
+    | Bls12_381_mulMlResult
+    | Bls12_381_finalVerify
 
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
@@ -1394,14 +1393,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.add
             (runCostingFunTwoArguments . paramBls12_381_G1_add)
-    toBuiltinMeaning _var Bls12_381_G1_mul =
-        makeBuiltinMeaning
-            PlutusCore.BLS12_381.G1.mul
-            (runCostingFunTwoArguments . paramBls12_381_G1_mul)
     toBuiltinMeaning _var Bls12_381_G1_neg =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.neg
             (runCostingFunOneArgument . paramBls12_381_G1_neg)
+    toBuiltinMeaning _var Bls12_381_G1_scalarMul =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G1.scalarMul
+            (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
     toBuiltinMeaning _var Bls12_381_G1_compress =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G1.compress
@@ -1427,14 +1426,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.add
             (runCostingFunTwoArguments . paramBls12_381_G2_add)
-    toBuiltinMeaning _var Bls12_381_G2_mul =
-        makeBuiltinMeaning
-            PlutusCore.BLS12_381.G2.mul
-            (runCostingFunTwoArguments . paramBls12_381_G2_mul)
     toBuiltinMeaning _var Bls12_381_G2_neg =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.neg
             (runCostingFunOneArgument . paramBls12_381_G2_neg)
+    toBuiltinMeaning _var Bls12_381_G2_scalarMul =
+        makeBuiltinMeaning
+            PlutusCore.BLS12_381.G2.scalarMul
+            (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
     toBuiltinMeaning _var Bls12_381_G2_compress =
         makeBuiltinMeaning
             PlutusCore.BLS12_381.G2.compress
@@ -1455,23 +1454,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             ((==) @PlutusCore.BLS12_381.G2.Element)
             (runCostingFunTwoArguments . paramBls12_381_G2_equal)
-    -- BLS12_381.GT
-    toBuiltinMeaning _var Bls12_381_GT_mul =
+    -- BLS12_381.Pairing
+    toBuiltinMeaning _var Bls12_381_mulMlResult =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.GT.mul
-            (runCostingFunTwoArguments . paramBls12_381_GT_mul)
-    toBuiltinMeaning _var Bls12_381_GT_pairing =
+            PlutusCore.BLS12_381.Pairing.mulMlResult
+            (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
+    toBuiltinMeaning _var Bls12_381_pairing =
         makeBuiltinMeaning
             ml
-            (runCostingFunTwoArguments . paramBls12_381_GT_pairing)
+            (runCostingFunTwoArguments . paramBls12_381_pairing)
         where ml a b =
-                  case PlutusCore.BLS12_381.GT.pairing a b of
+                  case PlutusCore.BLS12_381.Pairing.pairing a b of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
-    toBuiltinMeaning _var Bls12_381_GT_finalVerify =
+    toBuiltinMeaning _var Bls12_381_finalVerify =
         makeBuiltinMeaning
-            PlutusCore.BLS12_381.GT.finalVerify
-            (runCostingFunTwoArguments . paramBls12_381_GT_finalVerify)
+            PlutusCore.BLS12_381.Pairing.finalVerify
+            (runCostingFunTwoArguments . paramBls12_381_finalVerify)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1561,22 +1560,22 @@ instance Flat DefaultFun where
               VerifyEcdsaSecp256k1Signature   -> 52
               VerifySchnorrSecp256k1Signature -> 53
               Bls12_381_G1_add                -> 54
-              Bls12_381_G1_mul                -> 55
-              Bls12_381_G1_neg                -> 56
+              Bls12_381_G1_neg                -> 55
+              Bls12_381_G1_scalarMul          -> 56
               Bls12_381_G1_equal              -> 57
               Bls12_381_G1_compress           -> 58
               Bls12_381_G1_uncompress         -> 59
               Bls12_381_G1_hashToCurve        -> 60
               Bls12_381_G2_add                -> 61
-              Bls12_381_G2_mul                -> 62
-              Bls12_381_G2_neg                -> 63
+              Bls12_381_G2_neg                -> 62
+              Bls12_381_G2_scalarMul          -> 63
               Bls12_381_G2_equal              -> 64
               Bls12_381_G2_compress           -> 65
               Bls12_381_G2_uncompress         -> 66
               Bls12_381_G2_hashToCurve        -> 67
-              Bls12_381_GT_mul                -> 68
-              Bls12_381_GT_finalVerify        -> 69
-              Bls12_381_GT_pairing            -> 70
+              Bls12_381_pairing               -> 68
+              Bls12_381_mulMlResult           -> 69
+              Bls12_381_finalVerify           -> 70
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1634,22 +1633,22 @@ instance Flat DefaultFun where
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
               go 54 = pure Bls12_381_G1_add
-              go 55 = pure Bls12_381_G1_mul
-              go 56 = pure Bls12_381_G1_neg
+              go 55 = pure Bls12_381_G1_neg
+              go 56 = pure Bls12_381_G1_scalarMul
               go 57 = pure Bls12_381_G1_equal
               go 58 = pure Bls12_381_G1_compress
               go 59 = pure Bls12_381_G1_uncompress
               go 60 = pure Bls12_381_G1_hashToCurve
               go 61 = pure Bls12_381_G2_add
-              go 62 = pure Bls12_381_G2_mul
-              go 63 = pure Bls12_381_G2_neg
+              go 62 = pure Bls12_381_G2_neg
+              go 63 = pure Bls12_381_G2_scalarMul
               go 64 = pure Bls12_381_G2_equal
               go 65 = pure Bls12_381_G2_compress
               go 66 = pure Bls12_381_G2_uncompress
               go 67 = pure Bls12_381_G2_hashToCurve
-              go 68 = pure Bls12_381_GT_mul
-              go 69 = pure Bls12_381_GT_finalVerify
-              go 70 = pure Bls12_381_GT_pairing
+              go 68 = pure Bls12_381_pairing
+              go 69 = pure Bls12_381_mulMlResult
+              go 70 = pure Bls12_381_finalVerify
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

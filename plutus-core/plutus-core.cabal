@@ -85,7 +85,7 @@ library
     PlutusCore.Annotation
     PlutusCore.BLS12_381.G1
     PlutusCore.BLS12_381.G2
-    PlutusCore.BLS12_381.GT
+    PlutusCore.BLS12_381.Pairing
     PlutusCore.BLS12_381.Utils
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug

@@ -23,7 +23,7 @@ import PlutusPrelude
 
 import PlutusCore.BLS12_381.G1
 import PlutusCore.BLS12_381.G2
-import PlutusCore.BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing
 
 import Codec.Serialise (Serialise)
 import Control.Monad.RWS.Strict
@@ -287,5 +287,5 @@ instance ExMemoryUsage PlutusCore.BLS12_381.G1.Element where
 instance ExMemoryUsage PlutusCore.BLS12_381.G2.Element where
     memoryUsage _ = 24
 
-instance ExMemoryUsage PlutusCore.BLS12_381.GT.Element where
+instance ExMemoryUsage PlutusCore.BLS12_381.Pairing.MlResult where
     memoryUsage _ = 144

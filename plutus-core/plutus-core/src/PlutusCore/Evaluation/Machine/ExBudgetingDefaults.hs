@@ -179,21 +179,21 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramSerialiseData                   = unitCostOneArgument
     -- BLS12_381 operations
     , paramBls12_381_G1_add                = unitCostTwoArguments
-    , paramBls12_381_G1_mul                = unitCostTwoArguments
     , paramBls12_381_G1_neg                = unitCostOneArgument
+    , paramBls12_381_G1_scalarMul          = unitCostTwoArguments
     , paramBls12_381_G1_equal              = unitCostTwoArguments
     , paramBls12_381_G1_compress           = unitCostOneArgument
     , paramBls12_381_G1_uncompress         = unitCostOneArgument
     , paramBls12_381_G1_hashToCurve        = unitCostOneArgument
     , paramBls12_381_G2_add                = unitCostTwoArguments
-    , paramBls12_381_G2_mul                = unitCostTwoArguments
     , paramBls12_381_G2_neg                = unitCostOneArgument
+    , paramBls12_381_G2_scalarMul          = unitCostTwoArguments
     , paramBls12_381_G2_equal              = unitCostTwoArguments
     , paramBls12_381_G2_compress           = unitCostOneArgument
     , paramBls12_381_G2_uncompress         = unitCostOneArgument
     , paramBls12_381_G2_hashToCurve        = unitCostOneArgument
-    , paramBls12_381_GT_mul                = unitCostTwoArguments
-    , paramBls12_381_GT_finalVerify        = unitCostTwoArguments
-    , paramBls12_381_GT_pairing            = unitCostTwoArguments
+    , paramBls12_381_pairing               = unitCostTwoArguments
+    , paramBls12_381_mulMlResult           = unitCostTwoArguments
+    , paramBls12_381_finalVerify           = unitCostTwoArguments
     }
 

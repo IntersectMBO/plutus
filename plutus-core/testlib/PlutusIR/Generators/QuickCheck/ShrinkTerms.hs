@@ -124,9 +124,9 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go (DefaultUniProtoList `DefaultUniApply` _)                        = []
     go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)
     go (f  `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
-    go DefaultUniBLS12_381G1Element                                     = BLS12_381.G1.zero
-    go DefaultUniBLS12_381G2Element                                     = BLS12_381.G2.zero
-    go DefaultUniBLS12_381GTElement                                     = error "No representation for GT elements" -- FIXME!!
+    go DefaultUniBLS12_381_G1_Element                                   = BLS12_381.G1.zero
+    go DefaultUniBLS12_381_G2_Element                                   = BLS12_381.G2.zero
+    go DefaultUniBLS12_381_MlResult                                     = error "No representation for GT elements" -- FIXME!!
 
 shrinkBind :: HasCallStack
            => Recursivity

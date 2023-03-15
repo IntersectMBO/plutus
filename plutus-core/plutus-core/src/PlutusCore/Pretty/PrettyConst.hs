@@ -15,7 +15,7 @@ module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 
 import Codec.Serialise (serialise)
@@ -131,7 +131,7 @@ instance PrettyBy ConstConfig BLS12_381.G1.Element where
 instance PrettyBy ConstConfig  BLS12_381.G2.Element where
     prettyBy _ = pretty
 
-instance PrettyBy ConstConfig BLS12_381.GT.Element where
+instance PrettyBy ConstConfig BLS12_381.Pairing.MlResult where
     prettyBy _ = pretty
 
 instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where

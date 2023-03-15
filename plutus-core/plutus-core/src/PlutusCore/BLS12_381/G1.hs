@@ -5,8 +5,8 @@
 module PlutusCore.BLS12_381.G1
     ( Element (..)
     , add
-    , mul
     , neg
+    , scalarMul
     , hashToCurve
     , compress
     , uncompress
@@ -51,11 +51,11 @@ instance NFData Element where
 add :: Element -> Element -> Element
 add (Element a) (Element b) = Element $ BLS12_381.addOrDouble @BLS12_381.Curve1 a b
 
-mul :: Integer -> Element -> Element -- Other way round from implementation
-mul k (Element a) = Element $ BLS12_381.mult @BLS12_381.Curve1 a k
-
 neg :: Element -> Element
 neg (Element a) = Element $ BLS12_381.neg @BLS12_381.Curve1 a
+
+scalarMul :: Integer -> Element -> Element -- Other way round from implementation
+scalarMul k (Element a) = Element $ BLS12_381.mult @BLS12_381.Curve1 a k
 
 compress :: Element -> ByteString  -- 48 bytes
 compress (Element a) = BLS12_381.compress @BLS12_381.Curve1 a

@@ -10,7 +10,7 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 import PlutusCore
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.GT qualified as BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)
@@ -123,10 +123,10 @@ instance ArbitraryBuiltin BLS12_381.G2.Element where
     arbitraryBuiltin = BLS12_381.G2.hashToCurve <$> arbitrary
     shrinkBuiltin _ = []
 
-instance ArbitraryBuiltin BLS12_381.GT.Element where
+instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
     arbitraryBuiltin = pairing <$> arbitraryBuiltin <*> arbitraryBuiltin
                        where pairing p1 p2 =
-                                 case BLS12_381.GT.pairing p1 p2 of
+                                 case BLS12_381.Pairing.pairing p1 p2 of
                                    Left err -> error $ "pairing: " ++ show err
                                    Right p  -> p
     shrinkBuiltin _ = []

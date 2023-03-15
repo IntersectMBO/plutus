@@ -18,7 +18,7 @@ import Cardano.Crypto.Seed (mkSeedFromBytes)
 
 import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
-import PlutusCore.BLS12_381.GT qualified as GT
+import PlutusCore.BLS12_381.Pairing qualified as Pairing
 
 import Criterion.Main (Benchmark, bgroup)
 import Data.ByteString (ByteString)
@@ -147,16 +147,16 @@ g2inputsB = fmap G2.hashToCurve byteStringsB
 
 -- We can only get points on G2 via pairing.  It should always succeed on the
 -- inputs we give it here.
-miller :: G1.Element -> G2.Element -> GT.Element
+miller :: G1.Element -> G2.Element -> Pairing.MlResult
 miller e1 e2 =
-    case GT.pairing e1 e2 of
-      Left _  -> error "pairing failed while generating GT points"
+    case Pairing.pairing e1 e2 of
+      Left _  -> error "pairing failed while generating MlResult points"
       Right p -> p
 
-gtinputsA :: [GT.Element]
+gtinputsA :: [Pairing.MlResult]
 gtinputsA = zipWith miller g1inputsA g2inputsA
 
-gtinputsB :: [GT.Element]
+gtinputsB :: [Pairing.MlResult]
 gtinputsB = zipWith miller g1inputsB g2inputsB
 
 -- Need to generate random elements of G1 and G2, probably by hashing random
@@ -170,17 +170,17 @@ benchBls12_381_G1_add =
 -- const
 -- Two args, points on G1
 
-benchBls12_381_G1_mul :: [Integer] -> Benchmark
-benchBls12_381_G1_mul multipliers =
-    let name = Bls12_381_G1_mul
-    in createTwoTermBuiltinBenchElementwise name [] multipliers g1inputsA
--- linear in x (size of scalar)
-
 benchBls12_381_G1_neg :: Benchmark
 benchBls12_381_G1_neg =
     let name = Bls12_381_G1_neg
     in createOneTermBuiltinBench name [] g1inputsA
 -- const
+
+benchBls12_381_G1_scalarMul :: [Integer] -> Benchmark
+benchBls12_381_G1_scalarMul multipliers =
+    let name = Bls12_381_G1_scalarMul
+    in createTwoTermBuiltinBenchElementwise name [] multipliers g1inputsA
+-- linear in x (size of scalar)
 
 benchBls12_381_G1_equal :: Benchmark
 benchBls12_381_G1_equal =
@@ -215,18 +215,17 @@ benchBls12_381_G2_add =
     in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsB
 -- const
 
-benchBls12_381_G2_mul :: [Integer] -> Benchmark
-benchBls12_381_G2_mul multipliers =
-    let name = Bls12_381_G2_mul
-    in createTwoTermBuiltinBenchElementwise name [] multipliers g2inputsA
--- linear in x (size of scalar)
-
 benchBls12_381_G2_neg :: Benchmark
 benchBls12_381_G2_neg =
     let name = Bls12_381_G2_neg
     in createOneTermBuiltinBench name [] g2inputsB
-
 -- const
+
+benchBls12_381_G2_scalarMul :: [Integer] -> Benchmark
+benchBls12_381_G2_scalarMul multipliers =
+    let name = Bls12_381_G2_scalarMul
+    in createTwoTermBuiltinBenchElementwise name [] multipliers g2inputsA
+-- linear in x (size of scalar)
 
 benchBls12_381_G2_equal :: Benchmark
 benchBls12_381_G2_equal =
@@ -255,44 +254,45 @@ benchBls12_381_G2_uncompress =
     in createOneTermBuiltinBench name [] inputs
 -- const
 
-benchBls12_381_GT_mul :: Benchmark
-benchBls12_381_GT_mul =
-    let name = Bls12_381_GT_mul
+benchBls12_381_pairing :: Benchmark
+benchBls12_381_pairing =
+    let name = Bls12_381_pairing
+    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
+-- const?
+
+benchBls12_381_mulMlResult :: Benchmark
+benchBls12_381_mulMlResult =
+    let name = Bls12_381_mulMlResult
     in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
 -- const
 
-benchBls12_381_GT_finalVerify :: Benchmark
-benchBls12_381_GT_finalVerify =
-    let name = Bls12_381_GT_finalVerify
+benchBls12_381_finalVerify :: Benchmark
+benchBls12_381_finalVerify =
+    let name = Bls12_381_finalVerify
     in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
 -- const?
 
-benchBls12_381_GT_pairing :: Benchmark
-benchBls12_381_GT_pairing =
-    let name = Bls12_381_GT_pairing
-    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
--- const?
 
 blsBenchmarks :: StdGen -> [Benchmark]
 blsBenchmarks gen =
     let multipliers = fst $ makeSizedIntegers gen [1..100] -- Constants for scalar multiplication functions
     in [ benchBls12_381_G1_add
-       , benchBls12_381_G1_mul multipliers
        , benchBls12_381_G1_neg
+       , benchBls12_381_G1_scalarMul multipliers
        , benchBls12_381_G1_equal
        , benchBls12_381_G1_hashToCurve
        , benchBls12_381_G1_compress
        , benchBls12_381_G1_uncompress
        , benchBls12_381_G2_add
-       , benchBls12_381_G2_mul multipliers
        , benchBls12_381_G2_neg
+       , benchBls12_381_G2_scalarMul multipliers
        , benchBls12_381_G2_equal
        , benchBls12_381_G2_hashToCurve
        , benchBls12_381_G2_compress
        , benchBls12_381_G2_uncompress
-       , benchBls12_381_GT_mul
-       , benchBls12_381_GT_finalVerify
-       , benchBls12_381_GT_pairing
+       , benchBls12_381_pairing
+       , benchBls12_381_mulMlResult
+       , benchBls12_381_finalVerify
   ]
 
 ---------------- Main benchmarks ----------------

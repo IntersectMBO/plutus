@@ -10,7 +10,7 @@ import PlutusPrelude
 import PlutusCore.Annotation
 import PlutusCore.BLS12_381.G1 as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 as BLS12_381.G2
-import PlutusCore.BLS12_381.GT as BLS12_381.GT
+import PlutusCore.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Core.Type
 import PlutusCore.Data
 import PlutusCore.Default
@@ -76,7 +76,9 @@ pType = choice $ map try
     , varType
     ]
 
--- | Parser for built-in type applications.
+-- | Parser for built-in type applications.  The textul anmes here should match
+-- the ones in the PrettyBy instance for DefaultUni in
+-- PlutusCore.Default.Universe
 defaultUniApplication :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUniApplication = do
     -- Parse the head of the application.
@@ -122,17 +124,17 @@ defaultUniApplication = do
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
     [ trailingWhitespace (inParens defaultUniApplication)
-    , someType @_ @Integer <$ symbol "integer"
+    , someType @_ @Integer    <$ symbol "integer"
     , someType @_ @ByteString <$ symbol "bytestring"
-    , someType @_ @Text <$ symbol "string"
-    , someType @_ @() <$ symbol "unit"
-    , someType @_ @Bool <$ symbol "bool"
-    , someType @_ @[] <$ symbol "list"
-    , someType @_ @(,) <$ symbol "pair"
-    , someType @_ @Data <$ symbol "data"
-    , someType @_ @BLS12_381.G1.Element <$ symbol "BLS12_381G1Element"  -- FIXME !!!!  Upper/lower case? Better name?
-    , someType @_ @BLS12_381.G2.Element <$ symbol "BLS12_381G2Element"
-    , someType @_ @BLS12_381.GT.Element <$ symbol "BLS12_381GTElement"
+    , someType @_ @Text       <$ symbol "string"
+    , someType @_ @()         <$ symbol "unit"
+    , someType @_ @Bool       <$ symbol "bool"
+    , someType @_ @[]         <$ symbol "list"
+    , someType @_ @(,)        <$ symbol "pair"
+    , someType @_ @Data       <$ symbol "data"
+    , someType @_ @BLS12_381.G1.Element       <$ symbol "bls12_381_G1_element"
+    , someType @_ @BLS12_381.G2.Element       <$ symbol "bls12_381_G2_element"
+    , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
     ]
 
 tyName :: Parser TyName

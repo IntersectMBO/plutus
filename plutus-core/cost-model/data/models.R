@@ -108,22 +108,22 @@ arity <- function(name) {
         "MkNilData" = 1,
         "MkNilPairData" = 1,
         "Bls12_381_G1_add" = 2 ,
-        "Bls12_381_G1_mul" = 2,
         "Bls12_381_G1_neg" = 1,
+        "Bls12_381_G1_scalarMul" = 2,
         "Bls12_381_G1_equal" = 2,
         "Bls12_381_G1_hashToCurve" = 1,
         "Bls12_381_G1_compress" = 1,
         "Bls12_381_G1_uncompress" = 1,
         "Bls12_381_G2_add" = 2,
-        "Bls12_381_G2_mul" = 2,
         "Bls12_381_G2_neg" = 1,
+        "Bls12_381_G2_scalarMul" = 2,
         "Bls12_381_G2_equal" = 2,
         "Bls12_381_G2_hashToCurve" = 1,
         "Bls12_381_G2_compress" = 1,
         "Bls12_381_G2_uncompress" = 1,
-        "Bls12_381_GT_mul" = 2,
-        "Bls12_381_GT_finalVerify" = 2,
-        "Bls12_381_GT_pairing" = 2
+        "Bls12_381_pairing" = 2,
+        "Bls12_381_mulMlResult" = 2,
+        "Bls12_381_finalVerify" = 2
         )
 }
 
@@ -624,23 +624,23 @@ modelFun <- function(path) {
 
     ##### BLS12_381 operations #####
 
-    bls12_381_G1_addModel         <- constantModel ("Bls12_381_G1_add")
-    bls12_381_G1_mulModel         <- linearInX     ("Bls12_381_G1_mul")
-    bls12_381_G1_negModel         <- constantModel ("Bls12_381_G1_neg")
-    bls12_381_G1_equalModel       <- constantModel ("Bls12_381_G1_equal")
-    bls12_381_G1_hashToCurveModel <- linearInX     ("Bls12_381_G1_hashToCurve")
-    bls12_381_G1_compressModel    <- constantModel ("Bls12_381_G1_compress")
-    bls12_381_G1_uncompressModel  <- constantModel ("Bls12_381_G1_uncompress")
-    bls12_381_G2_addModel         <- constantModel ("Bls12_381_G2_add")
-    bls12_381_G2_mulModel         <- linearInX     ("Bls12_381_G2_mul")
-    bls12_381_G2_negModel         <- constantModel ("Bls12_381_G2_neg")
-    bls12_381_G2_equalModel       <- constantModel ("Bls12_381_G2_equal")
-    bls12_381_G2_hashToCurveModel <- linearInX     ("Bls12_381_G2_hashToCurve")
-    bls12_381_G2_compressModel    <- constantModel ("Bls12_381_G2_compress")
-    bls12_381_G2_uncompressModel  <- constantModel ("Bls12_381_G2_uncompress")
-    bls12_381_GT_mulModel         <- constantModel ("Bls12_381_GT_mul")
-    bls12_381_GT_finalVerifyModel <- constantModel ("Bls12_381_GT_finalVerify")
-    bls12_381_GT_pairingModel     <- constantModel ("Bls12_381_GT_pairing")
+    bls12_381_G1_addModel            <- constantModel ("Bls12_381_G1_add")
+    bls12_381_G1_negModel            <- constantModel ("Bls12_381_G1_neg")
+    bls12_381_G1_scalarMulModel      <- linearInX     ("Bls12_381_G1_scalarMul")
+    bls12_381_G1_equalModel          <- constantModel ("Bls12_381_G1_equal")
+    bls12_381_G1_hashToCurveModel    <- linearInX     ("Bls12_381_G1_hashToCurve")
+    bls12_381_G1_compressModel       <- constantModel ("Bls12_381_G1_compress")
+    bls12_381_G1_uncompressModel     <- constantModel ("Bls12_381_G1_uncompress")
+    bls12_381_G2_addModel            <- constantModel ("Bls12_381_G2_add")
+    bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
+    bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
+    bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
+    bls12_381_G2_hashToCurveModel    <- linearInX     ("Bls12_381_G2_hashToCurve")
+    bls12_381_G2_compressModel       <- constantModel ("Bls12_381_G2_compress")
+    bls12_381_G2_uncompressModel     <- constantModel ("Bls12_381_G2_uncompress")
+    bls12_381_pairingModel           <- constantModel ("Bls12_381_pairing")
+    bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
+    bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
     list(
         addIntegerModel                      = addIntegerModel,
@@ -698,21 +698,21 @@ modelFun <- function(path) {
         mkNilPairDataModel                   = mkNilPairDataModel,
         serialiseDataModel                   = serialiseDataModel,
         bls12_381_G1_addModel                = bls12_381_G1_addModel,
-        bls12_381_G1_mulModel                = bls12_381_G1_mulModel,
         bls12_381_G1_negModel                = bls12_381_G1_negModel,
+        bls12_381_G1_scalarMulModel          = bls12_381_G1_scalarMulModel,
         bls12_381_G1_equalModel              = bls12_381_G1_equalModel,
         bls12_381_G1_hashToCurveModel        = bls12_381_G1_hashToCurveModel,
         bls12_381_G1_compressModel           = bls12_381_G1_compressModel,
         bls12_381_G1_uncompressModel         = bls12_381_G1_uncompressModel,
         bls12_381_G2_addModel                = bls12_381_G2_addModel,
-        bls12_381_G2_mulModel                = bls12_381_G2_mulModel,
         bls12_381_G2_negModel                = bls12_381_G2_negModel,
+        bls12_381_G2_scalarMulModel          = bls12_381_G2_scalarMulModel,
         bls12_381_G2_equalModel              = bls12_381_G2_equalModel,
         bls12_381_G2_hashToCurveModel        = bls12_381_G2_hashToCurveModel,
         bls12_381_G2_compressModel           = bls12_381_G2_compressModel,
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
-        bls12_381_GT_mulModel                = bls12_381_GT_mulModel,
-        bls12_381_GT_finalVerifyModel        = bls12_381_GT_finalVerifyModel,
-        bls12_381_GT_pairingModel            = bls12_381_GT_pairingModel
+        bls12_381_pairingModel               = bls12_381_pairingModel,
+        bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
+        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
     )
 }
