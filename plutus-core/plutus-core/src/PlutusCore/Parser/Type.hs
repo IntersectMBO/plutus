@@ -10,7 +10,6 @@ import PlutusPrelude
 import PlutusCore.Annotation
 import PlutusCore.BLS12_381.G1 as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 as BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Core.Type
 import PlutusCore.Data
 import PlutusCore.Default
@@ -121,6 +120,7 @@ defaultUniApplication = do
 -- i.e. parse into @Tree Text@ and do the kind checking afterwards, but given that we'll still need
 -- to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
 -- doing it.
+-- We don't support constants of type bls12_381_mlresult, so there's no case for that.
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
     [ trailingWhitespace (inParens defaultUniApplication)
@@ -134,7 +134,6 @@ defaultUni = choice $ map try
     , someType @_ @Data       <$ symbol "data"
     , someType @_ @BLS12_381.G1.Element       <$ symbol "bls12_381_G1_element"
     , someType @_ @BLS12_381.G2.Element       <$ symbol "bls12_381_G2_element"
-    , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
     ]
 
 tyName :: Parser TyName

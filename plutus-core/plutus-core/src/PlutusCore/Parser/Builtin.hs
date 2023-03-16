@@ -8,7 +8,6 @@ import PlutusPrelude (Word8, reoption)
 
 import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
@@ -99,19 +98,15 @@ conBLS12_381_G1_Element :: Parser BLS12_381.G1.Element
 conBLS12_381_G1_Element = do
     s <- con0xBS
     case BLS12_381.G1.uncompress s of
-      Left err -> fail $ "Error decoding BLS12_381 G1 element: " ++ show err
+      Left err -> fail $ "Failed to decode value of type bls12_381_G1_element: " ++ show err
       Right e  -> pure e
 
 conBLS12_381_G2_Element :: Parser BLS12_381.G2.Element
 conBLS12_381_G2_Element = do
     s <- con0xBS
     case BLS12_381.G2.uncompress s of
-      Left err -> fail $ "Error decoding BLS12_381 G2 element: " ++ show err
+      Left err -> fail $ "Failed to decode value of type bls12_381_G2_element: " ++ show err
       Right e  -> pure e
-
-conBLS12_381_MlResult :: Parser BLS12_381.Pairing.MlResult
-conBLS12_381_MlResult = do
-  fail "Parsing BLS12_381GTElement is not supported"
 
 -- | Parser for constants of the given type.
 constantOf :: DefaultUni (Esc a) -> Parser a
@@ -127,7 +122,8 @@ constantOf uni = case uni of
     DefaultUniData                                                    -> conData
     DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
     DefaultUniBLS12_381_G2_Element                                    -> conBLS12_381_G2_Element
-    DefaultUniBLS12_381_MlResult                                      -> conBLS12_381_MlResult
+    DefaultUniBLS12_381_MlResult
+        -> error "Constants of type bls12_381_mlresult are not supported"
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))
