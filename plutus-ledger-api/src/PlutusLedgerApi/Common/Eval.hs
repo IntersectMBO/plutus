@@ -13,6 +13,7 @@ module PlutusLedgerApi.Common.Eval
     , VerboseMode (..)
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    , evaluateTerm
     , mkDynEvaluationContext
     , toMachineParameters
     , mkTermToEvaluate
@@ -21,7 +22,7 @@ module PlutusLedgerApi.Common.Eval
 
 import Control.Lens
 import PlutusCore
-import PlutusCore as ScriptPlutus (Version, defaultVersion)
+import PlutusCore as ScriptPlutus (Version)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -39,6 +40,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.Monad.Except
 import Control.Monad.Writer
+import Data.Set qualified as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
@@ -88,7 +90,7 @@ Given a 'SerialisedScript':
 -}
 mkTermToEvaluate
     :: (MonadError EvaluationError m)
-    => LedgerPlutusVersion -- ^ the ledger Plutus version of the script under execution.
+    => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ which protocol version to run the operation in
     -> SerialisedScript -- ^ the script to evaluate in serialised form
     -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
@@ -96,7 +98,7 @@ mkTermToEvaluate
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v == ScriptPlutus.defaultVersion) $ throwError $ IncompatibleVersionError v
+    unless (v `Set.member` plcVersionsAvailableIn lv pv) $ throwError $ IncompatibleVersionError v
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
 
@@ -132,6 +134,28 @@ mkDynEvaluationContext ver newCMP =
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
 assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defaultCekCostModel
 
+-- | Evaluate a fully-applied term using the CEK machine. Useful for mimicking the behaviour of the
+-- on-chain evaluator.
+evaluateTerm
+    :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
+    -> ProtocolVersion
+    -> VerboseMode
+    -> EvaluationContext
+    -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> ( Either
+            (UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+            (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+       , cost
+       , [Text]
+       )
+evaluateTerm budgetMode pv verbose ectx =
+    UPLC.runCekDeBruijn
+        (toMachineParameters pv ectx)
+        budgetMode
+        (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
+-- Just replicating the old behavior, probably doesn't matter.
+{-# INLINE evaluateTerm #-}
+
 {-| Evaluates a script, with a cost model and a budget that restricts how many
 resources it can use according to the cost model. Also returns the budget that
 was actually used.
@@ -139,10 +163,12 @@ was actually used.
 Can be used to calculate budgets for scripts, but even in this case you must give
 a limit to guard against scripts that run for a long time or loop.
 
-Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
+Note: Parameterized over the 'LedgerPlutusVersion' since
+1. The builtins allowed (during decoding) differ, and
+2. The Plutus language versions allowed differ.
 -}
 evaluateScriptRestricting
-    :: LedgerPlutusVersion -- ^ The ledger Plutus version of the script under execution.
+    :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
@@ -152,14 +178,8 @@ evaluateScriptRestricting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting lv pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
-
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
-            UPLC.runCekDeBruijn
-                (toMachineParameters pv ectx)
-                (UPLC.restricting $ ExRestrictingBudget budget)
-                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
-                appliedTerm
-
+            evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
     tell logs
     liftEither $ first CekError $ void res
     pure (budget `minusExBudget` final)
@@ -172,7 +192,7 @@ also returns the used budget.
 Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
 -}
 evaluateScriptCounting
-    :: LedgerPlutusVersion -- ^ The ledger Plutus version of the script under execution.
+    :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
     -> ProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
@@ -181,14 +201,8 @@ evaluateScriptCounting
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
-
     let (res, UPLC.CountingSt final, logs) =
-            UPLC.runCekDeBruijn
-                (toMachineParameters pv ectx)
-                UPLC.counting
-                (if verbose == Verbose then UPLC.logEmitter else UPLC.noEmitter)
-                appliedTerm
-
+            evaluateTerm UPLC.counting pv verbose ectx appliedTerm
     tell logs
     liftEither $ first CekError $ void res
     pure final

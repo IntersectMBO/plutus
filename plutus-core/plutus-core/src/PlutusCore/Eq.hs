@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | An internal module that defines functions for deciding equality of values of data types
 -- that encode things with binders.
 
@@ -56,7 +55,8 @@ The simplest way to track that twin variables map to each other is to have two c
 - left-hand side variables and what they map to
 - right-hand side variables and what they map to
 
-(we refer to a first argument as being on the left-hand side and to a second argument as being on the right-hand side)
+(we refer to a first argument as being on the left-hand side and to a second argument as being on
+the right-hand side)
 
 E.g. when checking equality of these two types:
 

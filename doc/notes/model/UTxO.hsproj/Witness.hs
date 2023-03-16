@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE GADTs                #-}
 {-# LANGUAGE PackageImports       #-}
@@ -99,7 +98,9 @@ lockWithMultiSigValidator pubkeys requiredSigCount
                    length sigs == requiredSigCount
                    && disjoint sigs
                    && all (\sig ->
-                             any (\pubkey -> verify SHA256 pubkey sig (stateTxPreHash state)) pubkeys)
+                             any
+                              (\pubkey -> verify SHA256 pubkey sig (stateTxPreHash state))
+                              pubkeys)
                           sigs
            ||]
 
@@ -210,7 +211,8 @@ lockWithPublicKeyHash pubKey sig
             (script [|| const $ (pubKey, sig) ||])
 
 revealCollision :: (BA.ByteArrayAccess v, Eq v, Lift v) => v -> v -> Q (TExp Witness)
-revealCollision value1 value2 = witness revealCollisionValidator (script [|| const (value1, value2) ||])
+revealCollision value1 value2 =
+  witness revealCollisionValidator (script [|| const (value1, value2) ||])
 
 revealFixedPoint :: (BA.ByteArrayAccess v, Lift v) => v -> Q (TExp Witness)
 revealFixedPoint value = witness revealFixedPointValidator (script [|| const value ||])

@@ -22,6 +22,7 @@ import PlutusCore.Executable.Parsers
 import Data.Foldable
 import Data.List (nub)
 import Data.List.Split (splitOn)
+import Data.Maybe (fromJust)
 import Data.Text qualified as T
 import PlutusPrelude
 
@@ -197,7 +198,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 UPLC.applyProgram progAndargs
+          progAndargs -> foldl1 (fromJust .* UPLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Evaluation ----------------

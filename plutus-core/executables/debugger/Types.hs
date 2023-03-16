@@ -7,7 +7,8 @@
 module Types where
 
 import PlutusCore.Annotation
-import UntypedPlutusCore qualified as UPLC
+import PlutusCore.Evaluation.Machine.ExBudget
+import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 
@@ -39,14 +40,20 @@ instance D.Breakpointable DAnn Breakpoints where
               UplcBP p -> unPos (sourceLine p) == srcSpanSLine (uplcAnn ann)
               TxBP p   -> oany (lineInSrcSpan $ sourceLine p) $ txAnn ann
 
+data BudgetData = BudgetData
+    { _budgetSpent     :: ExBudget
+    , _budgetRemaining ::  Maybe ExBudget
+    }
+makeLenses ''BudgetData
+
 -- | The custom events that can arrive at our brick mailbox.
 data CustomBrickEvent =
-    UpdateClientEvent (CekState UPLC.DefaultUni UPLC.DefaultFun DAnn)
+    UpdateClientEvent BudgetData (CekState DefaultUni DefaultFun DAnn)
     -- ^ the driver passes a new cek state to the brick client
     -- this should mean that the brick client should update its tui
   | LogEvent String
     -- ^ the driver logged some text, the brick client can decide to show it in the tui
-  | ErrorEvent (CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
+  | ErrorEvent BudgetData (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
     -- ^ the underlying cek machine errored (either by call to Error, builtin or type failure)
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden
@@ -81,6 +88,7 @@ data DebuggerState = DebuggerState
     -- ^ Controls the height limit of the bottom windows.
     , _dsHLimitRightEditors  :: Int
     -- ^ Controls the width limit of the right windows.
+    , _dsBudgetData          :: BudgetData
     }
 
 makeLenses ''DebuggerState

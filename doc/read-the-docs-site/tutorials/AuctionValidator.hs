@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -9,7 +8,8 @@ import PlutusCore.Default qualified as PLC
 import PlutusLedgerApi.V1 (POSIXTime, PubKeyHash, Value, adaSymbol, adaToken, singleton)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
 import PlutusLedgerApi.V1.Interval (contains)
-import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxInfo (..), TxOut (..), from, to)
+import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxInfo (..),
+                           TxOut (..), from, to)
 import PlutusLedgerApi.V2.Contexts (getContinuingOutputs)
 import PlutusTx
 import PlutusTx.Bool
@@ -193,5 +193,5 @@ auctionValidatorScript ::
   CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
-    `PlutusTx.applyCode` PlutusTx.liftCode params
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode params
 -- BLOCK9

@@ -72,7 +72,7 @@ loadPir :: Input -> IO (PirProg ())
 loadPir = loadASTfromFlat Named
 
 compile :: COpts -> PirProg () -> Either PIRError PLCTerm
-compile opts (PIR.Program _ pirT) = do
+compile opts (PIR.Program _ _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
@@ -100,7 +100,7 @@ loadPirAndCompile copts = do
 loadPirAndAnalyse :: IOSpec -> IO ()
 loadPirAndAnalyse ioSpecs = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    PIR.Program _ pirT <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
+    PIR.Program _ _ pirT <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)

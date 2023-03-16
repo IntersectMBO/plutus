@@ -9,10 +9,13 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , maryPV
     , alonzoPV
     , vasilPV
-    , changPV
+    , valentinePV
+    , knownPVs
+    , futurePV
     ) where
 
 import Codec.Serialise (Serialise)
+import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import Prettyprinter
 
@@ -53,6 +56,21 @@ alonzoPV = ProtocolVersion 5 0
 vasilPV :: ProtocolVersion
 vasilPV = ProtocolVersion 7 0
 
--- | Chang era is not yet published. It will probably be introduced in protocol version 8.0
-changPV :: ProtocolVersion
-changPV = ProtocolVersion 8 0
+-- | Protocol version 8.0 was the Valentine intra-era HF
+valentinePV :: ProtocolVersion
+valentinePV = ProtocolVersion 8 0
+
+-- | The set of protocol versions that are "known", i.e. that have been released
+-- and have actual differences associated with them.
+knownPVs :: Set.Set ProtocolVersion
+knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV ]
+
+-- | This is a placeholder for when we don't yet know what protocol
+-- version will be used for something. It's a very high protocol
+-- version that should never appear in reality.
+--
+-- We should not assign names to future protocol versions until it's
+-- confirmed that they are correct, otherwise we could accidentally
+-- associate something with the wrong protocol version.
+futurePV :: ProtocolVersion
+futurePV = ProtocolVersion maxBound 0

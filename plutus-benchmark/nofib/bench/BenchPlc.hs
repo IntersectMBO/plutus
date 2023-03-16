@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {- | Plutus benchmarks based on some nofib examples. -}
 module Main where
 
@@ -53,5 +52,6 @@ benchKnights depth sz = benchTermCek $ Knights.mkKnightsTerm depth sz
 main :: IO ()
 main = do
   let runners = (benchClausify, benchKnights, benchPrime, benchQueens)
-  config <- getConfig 60.0  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
+  -- Run each benchmark for at least one minute.  Change this with -L or --timeout.
+  config <- getConfig 60.0
   defaultMainWith config $ mkBenchMarks runners

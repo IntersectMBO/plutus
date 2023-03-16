@@ -38,8 +38,8 @@ import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.BLS12_381
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
-                                                  schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop,
+                                                  ed25519_V2Prop, schnorrSecp256k1Prop)
 
 
 import Control.Exception

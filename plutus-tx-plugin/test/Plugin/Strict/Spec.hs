@@ -30,6 +30,8 @@ strict = testNested "Strict" [
   , goldenPir "strictPair" strictPair
   , goldenPir "strictList" strictList
   , goldenPir "strictData" strictData
+  , goldenPir "issue4645" issue4645
+  , goldenEvalCekLog "issue4645Eval" [ issue4645 ]
   ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
@@ -82,3 +84,20 @@ strictData = plc (Proxy @"strictData") strictDataExample
 
 strictDataExample :: BI.BuiltinData -> Integer
 strictDataExample !d = BI.unsafeDataAsI d
+
+issue4645 :: CompiledCode Bool
+issue4645 = plc (Proxy @"issue4645") issue4645Example
+
+-- Reproducer for plutus#4645
+issue4645Example :: Bool
+issue4645Example =
+    let
+      !x = P.trace "x" 0 :: Integer
+      !y = P.trace "y" (1, 2) :: (Integer,Integer)
+      !z = P.trace "z" y
+      (!zz, _) = P.trace "zz" z
+      !t = P.trace "t" zz
+
+      !valid = x P.== t
+   in valid
+

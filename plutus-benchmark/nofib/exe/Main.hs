@@ -12,6 +12,7 @@ import Control.Monad ()
 import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString qualified as BS
 import Data.Char (isSpace)
+import Data.Foldable (traverse_)
 import Flat qualified
 import Options.Applicative as Opt hiding (action)
 import System.Exit (exitFailure)
@@ -35,7 +36,7 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
-import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
+import PlutusTx.Prelude hiding (fmap, mappend, traverse_, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -296,7 +297,7 @@ printSizesAndBudgets = do
 
   putStrLn "Script                     Size     CPU budget      Memory budget"
   putStrLn "-----------------------------------------------------------------"
-  mapM_ (putStr . formatInfo) statistics
+  traverse_ (putStr . formatInfo) statistics
 
 
 main :: IO ()
@@ -314,12 +315,12 @@ main = do
           Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        Hs.mapM_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.mkDefaultProg . getTerm $ pa
+        traverse_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.Program () PLC.latestVersion . getTerm $ pa
             where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
-        writeFlatNamed . UPLC.mkDefaultProg . getTerm $ pa
+        writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
     DumpFlatDeBruijn pa ->
-        writeFlatDeBruijn . UPLC.mkDefaultProg . toAnonDeBruijnTerm . getTerm $ pa
+        writeFlatDeBruijn . UPLC.Program () PLC.latestVersion . toAnonDeBruijnTerm . getTerm $ pa
     SizesAndBudgets
         -> printSizesAndBudgets
     -- Write the output to stdout and let the user deal with redirecting it.

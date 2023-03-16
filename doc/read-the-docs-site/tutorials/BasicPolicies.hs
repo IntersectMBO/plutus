@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -45,7 +44,8 @@ currencyValueOf (Value m) c = case Map.lookup c m of
 -- some of this boilerplate.
 oneAtATimePolicyUntyped :: BuiltinData -> BuiltinData -> ()
 -- 'check' fails with 'error' if the argument is not 'True'.
-oneAtATimePolicyUntyped r c = check $ oneAtATimePolicy (unsafeFromBuiltinData r) (unsafeFromBuiltinData c)
+oneAtATimePolicyUntyped r c =
+    check $ oneAtATimePolicy (unsafeFromBuiltinData r) (unsafeFromBuiltinData c)
 
 -- We can use 'compile' to turn a minting policy into a compiled Plutus Core program,
 -- just as for validator scripts.

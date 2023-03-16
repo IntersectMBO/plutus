@@ -29,7 +29,7 @@ insertionSortWorstCase n = [1..n]
 
 mkInsertionSortTerm :: [Integer] -> Term
 mkInsertionSortTerm l =
-    compiledCodeToTerm $ $$(Tx.compile [|| insertionSort ||]) `Tx.applyCode` Tx.liftCode l
+    compiledCodeToTerm $ $$(Tx.compile [|| insertionSort ||]) `Tx.unsafeApplyCode` Tx.liftCode l
 
 mkWorstCaseInsertionSortTerm :: Integer -> Term
 mkWorstCaseInsertionSortTerm = mkInsertionSortTerm . insertionSortWorstCase

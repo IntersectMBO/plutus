@@ -10,7 +10,8 @@ import Hedgehog.Range qualified as Range
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
 import Prelude
-import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, genRational, testCoverProperty)
+import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, genRational,
+                              testCoverProperty)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 

@@ -43,7 +43,6 @@ import System.FilePath ((</>))
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Extras
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
-import Type.Reflection (Typeable)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
@@ -52,6 +51,7 @@ import PlutusCore.Pretty
 import PlutusCore.Test
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Core.Type (progTerm)
+import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
@@ -201,7 +201,7 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
      fromRightM (throwError . SomeException) $
          UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p^.UPLC.progTerm)
 
@@ -211,7 +211,7 @@ runPlcCekTrace ::
      ExceptT SomeException IO ([Text], UPLC.CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
-     let p = foldl1 UPLC.applyProgram ps
+     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)

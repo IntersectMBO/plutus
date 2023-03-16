@@ -1,5 +1,3 @@
--- editorconfig-checker-disable-file
-
 -- This file contains a version of the CEK machine in
 -- continuation-passing-style, where the frames and return
 -- operation of the original version are replaced with explicit
@@ -14,7 +12,8 @@
 -- This is for efficiency reasons.
 -- The type checker pass is required as well (and in our case it subsumes the renamer pass).
 -- Feeding ill-typed terms to the CEK machine will likely result in a 'MachineException'.
--- The CEK machine generates booleans along the way which might contain globally non-unique 'Unique's.
+-- The CEK machine generates booleans along the way which might contain globally non-unique
+-- 'Unique's.
 -- This is not a problem as the CEK machines handles name capture by design.
 
 module PlutusCore.Interpreter.CekMachine
@@ -103,15 +102,23 @@ instantiateEvaluate
 instantiateEvaluate k env _  (TyAbs _ _ _ body) = computeCek k env body
 instantiateEvaluate k env ty fun
     | isJust $ termAsPrimIterApp fun = k env $ TyInst () fun ty
-    | otherwise                      = throw $ MachineException NonPrimitiveInstantiationMachineError fun
+    | otherwise                      =
+        throw $ MachineException NonPrimitiveInstantiationMachineError fun
 
 -- | Apply a function to an argument and proceed.
--- If the function is a 'LamAbs', then extend the current environment with a new variable and proceed.
+-- If the function is a 'LamAbs', then extend the current environment with a new variable and
+-- proceed.
 -- If the function is not a 'LamAbs', then 'Apply' it to the argument and view this
 -- as an iterated application of a 'BuiltinName' to a list of 'Value's.
 -- If succesful, proceed with either this same term or with the result of the computation
 -- depending on whether 'BuiltinName' is saturated or not.
-applyEvaluate :: Cont -> Environment -> Environment -> Plain Value -> Plain Value -> EvaluationResult
+applyEvaluate ::
+    Cont
+    -> Environment
+    -> Environment
+    -> Plain Value
+    -> Plain Value
+    -> EvaluationResult
 applyEvaluate k funEnv argEnv lam@(LamAbs _ name _ body) arg =
     computeCek k (extendEnvironment name arg argEnv funEnv) body
 applyEvaluate k funEnv _ fun                    arg =
@@ -124,7 +131,8 @@ applyEvaluate k funEnv _ fun                    arg =
                     ConstAppSuccess term' -> k funEnv term'
                     ConstAppFailure       -> EvaluationFailure
                     ConstAppStuck         -> k funEnv term
-                    ConstAppError err     -> throw $ MachineException (ConstAppMachineError err) term
+                    ConstAppError err     ->
+                        throw $ MachineException (ConstAppMachineError err) term
 
 -- | Evaluate a term using the CEK machine. May throw a 'MachineException'.
 evaluateCek :: Term TyName Name () -> EvaluationResult

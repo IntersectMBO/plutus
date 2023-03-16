@@ -126,8 +126,8 @@ instance ( PLC.PrettyClassicBy configName tyname
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni fun ann) where
-    prettyBy config (Program ann t) =
-        sexp "program" (PLC.consAnnIf config ann [prettyBy config t])
+    prettyBy config (Program ann v t) =
+        sexp "program" (PLC.consAnnIf config ann [pretty v, prettyBy config t])
 
 -- See note [Default pretty instances for PLC]
 instance (PLC.PrettyClassic tyname, Pretty ann) =>

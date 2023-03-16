@@ -33,4 +33,4 @@ markNonFreshProgram
     :: (PLC.HasUniques (Program tyname name uni fun ann), MonadQuote m)
     => Program tyname name uni fun ann
     -> m ()
-markNonFreshProgram (Program _ body) = markNonFreshTerm body
+markNonFreshProgram (Program _ _ body) = markNonFreshTerm body

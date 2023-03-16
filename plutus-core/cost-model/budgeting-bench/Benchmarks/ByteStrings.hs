@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Benchmarks.ByteStrings (makeBenchmarks) where
 
 import Common
@@ -28,7 +27,8 @@ largerByteStrings21 :: H.Seed -> [BS.ByteString]
 largerByteStrings21 seed = makeSizedByteStrings seed $ fmap (250*) [0..20]
 
 benchTwoByteStrings :: DefaultFun -> Benchmark
-benchTwoByteStrings name = createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
+benchTwoByteStrings name =
+    createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
 
 benchLengthOfByteString :: Benchmark
 benchLengthOfByteString =
@@ -36,22 +36,27 @@ benchLengthOfByteString =
         where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
               name = LengthOfByteString
 
--- Copy the byteString here, because otherwise it'll be exactly the same and the equality will short-circuit.
+-- Copy the byteString here, because otherwise it'll be exactly the same and the equality will
+-- short-circuit.
 benchSameTwoByteStrings :: DefaultFun -> Benchmark
-benchSameTwoByteStrings name = createTwoTermBuiltinBenchElementwise name [] inputs (fmap BS.copy inputs)
+benchSameTwoByteStrings name =
+    createTwoTermBuiltinBenchElementwise name [] inputs (fmap BS.copy inputs)
     where inputs = smallerByteStrings150 seedA
 
 -- Here we benchmark different pairs of bytestrings elementwise.  This is used
 -- to get times for off-diagonal comparisons, which we expect to be roughly
 -- constant since the equality test returns quickly in that case.
 benchDifferentByteStringsElementwise :: DefaultFun -> Benchmark
-benchDifferentByteStringsElementwise name = createTwoTermBuiltinBenchElementwise name [] inputs1 inputs2
+benchDifferentByteStringsElementwise name =
+    createTwoTermBuiltinBenchElementwise name [] inputs1 inputs2
     where inputs1 = smallerByteStrings150 seedA
           inputs2 = smallerByteStrings150 seedB
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
-benchIndexByteString gen = createTwoTermBuiltinBenchElementwise IndexByteString [] bytestrings (randomIndices gen bytestrings)
+benchIndexByteString gen =
+    createTwoTermBuiltinBenchElementwise
+        IndexByteString [] bytestrings (randomIndices gen bytestrings)
     where bytestrings = smallerByteStrings150 seedA
           randomIndices gen1 l =
               case l of
@@ -98,7 +103,8 @@ makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,
                         benchSliceByteString
                       ]
                       <> [benchDifferentByteStringsElementwise EqualsByteString]
-                      <> (benchSameTwoByteStrings <$> [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+                      <> (benchSameTwoByteStrings <$>
+                        [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
 
 
 {- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Benchmarks.Integers (makeBenchmarks) where
 
 import Common
@@ -41,7 +40,8 @@ makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
 makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3..101]
 
 benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
-benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise builtinName [] inputs inputs'
+benchSameTwoIntegers gen builtinName =
+   createTwoTermBuiltinBenchElementwise builtinName [] inputs inputs'
     where
       (numbers,_) = makeBiggerIntegerArgs gen
       inputs  = numbers
@@ -49,7 +49,7 @@ benchSameTwoIntegers gen builtinName = createTwoTermBuiltinBenchElementwise buil
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-       [benchTwoIntegers gen makeLargeIntegerArgs AddInteger]      -- SubtractInteger behaves identically.
+       [benchTwoIntegers gen makeLargeIntegerArgs AddInteger]-- SubtractInteger behaves identically.
     <> (benchTwoIntegers gen makeDefaultIntegerArgs <$> [MultiplyInteger, DivideInteger])
            -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
     <> (benchSameTwoIntegers gen <$> [ EqualsInteger

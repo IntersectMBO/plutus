@@ -14,7 +14,6 @@ import PlutusPrelude
 
 import UntypedPlutusCore.Core.Type
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
 

@@ -109,16 +109,20 @@ import PlutusCore.Data (Data (..))
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
-import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element, BuiltinBLS12_381_MlResult,
-                          BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
-                          bls12_381_G1_add, bls12_381_G1_compress, bls12_381_G1_equals, bls12_381_G1_hashToCurve,
-                          bls12_381_G1_neg, bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G2_add,
-                          bls12_381_G2_compress, bls12_381_G2_equals, bls12_381_G2_hashToCurve, bls12_381_G2_neg,
-                          bls12_381_G2_scalarMul, bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_mulMlResult,
-                          bls12_381_pairing, consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
-                          equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString, indexByteString,
-                          lengthOfByteString, lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
-                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
+                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinData, BuiltinString,
+                          Integer, appendByteString, appendString, bls12_381_G1_add,
+                          bls12_381_G1_compress, bls12_381_G1_equals, bls12_381_G1_hashToCurve,
+                          bls12_381_G1_neg, bls12_381_G1_scalarMul, bls12_381_G1_uncompress,
+                          bls12_381_G2_add, bls12_381_G2_compress, bls12_381_G2_equals,
+                          bls12_381_G2_hashToCurve, bls12_381_G2_neg, bls12_381_G2_scalarMul,
+                          bls12_381_G2_uncompress, bls12_381_finalVerify, bls12_381_mulMlResult,
+                          bls12_381_pairing, consByteString, decodeUtf8, emptyByteString,
+                          emptyString, encodeUtf8, equalsByteString, equalsString, error,
+                          fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
+                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          verifySchnorrSecp256k1Signature)
 
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either

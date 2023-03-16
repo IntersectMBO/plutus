@@ -1,5 +1,4 @@
--- editorconfig-checker-disable-file
-{- | Plutus benchmarks for some simple list algortihms.  See README.md for more information. -}
+{- | Plutus benchmarks for some simple list algorithms.  See README.md for more information. -}
 
 module Main (main) where
 
@@ -24,8 +23,10 @@ benchmarks =
       [ bgroup "compiled-from-Haskell"
         [ mkBMsForSum "sum-right-builtin" Sum.Compiled.mkSumRightBuiltinTerm
         , mkBMsForSum "sum-right-Scott"   Sum.Compiled.mkSumRightScottTerm
+        , mkBMsForSum "sum-right-data"    Sum.Compiled.mkSumRightDataTerm
         , mkBMsForSum "sum-left-builtin"  Sum.Compiled.mkSumLeftBuiltinTerm
         , mkBMsForSum "sum-left-Scott"    Sum.Compiled.mkSumLeftScottTerm
+        , mkBMsForSum "sum-left-data"     Sum.Compiled.mkSumLeftDataTerm
        ]
       , bgroup "hand-written-PLC"
         [ mkBMsForSum "sum-right-builtin" Sum.HandWritten.mkSumRightBuiltinTerm
@@ -36,13 +37,16 @@ benchmarks =
       ]
     ]
     where
-      mkBMsForSort name f = bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ n) sizesForSort
+      mkBMsForSort name f =
+        bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ n) sizesForSort
       sizesForSort = [10, 20..500]
-      mkBMsForSum name f = bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ [1..n]) sizesForSum
+      mkBMsForSum name f =
+        bgroup name $ map (\n -> bench (show n) . benchTermCek . f $ [1..n]) sizesForSum
       sizesForSum = [10, 50, 100, 500, 1000, 5000, 10000]
 
 main :: IO ()
 main = do
-  config <- getConfig 15.0  -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
+  -- Run each benchmark for at least 15 seconds.  Change this with -L or --timeout.
+  config <- getConfig 15.0
   defaultMainWith config benchmarks
 

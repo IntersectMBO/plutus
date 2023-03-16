@@ -19,7 +19,7 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline.CallSiteInline (countLam)
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
 import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
@@ -42,7 +42,7 @@ transform =
         , letFloatInRelaxed
         , recSplit
         , inline
-        , countLamTest
+        , computeArityTest
         , beta
         , unwrapCancel
         , deadCode
@@ -211,10 +211,10 @@ inline =
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
             ]
 
-countLamTest :: TestNested
-countLamTest = testNested "countLamTest" $
+computeArityTest :: TestNested
+computeArityTest = testNested "computeArityTest" $
         map
-            (goldenPir (countLam . runQuote . PLC.rename) pTerm)
+            (goldenPir (computeArity . runQuote . PLC.rename) pTerm)
             [ "var" -- from inline tests, testing let terms
             , "tyvar"
             , "single"

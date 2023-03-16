@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-% nofib/spectral/constraints converted to Plutus.
     Renamed to avoid conflict with existing package. %-}
 {-# LANGUAGE DataKinds             #-}
@@ -100,8 +99,8 @@ runQueens n alg = nqueens n (lookupAlgorithm alg)
 mkQueensCode :: Integer -> Algorithm -> Tx.CompiledCode [State]
 mkQueensCode sz alg =
               $$(Tx.compile [|| runQueens ||])
-              `Tx.applyCode` Tx.liftCode sz
-              `Tx.applyCode` Tx.liftCode alg
+              `Tx.unsafeApplyCode` Tx.liftCode sz
+              `Tx.unsafeApplyCode` Tx.liftCode alg
 
 mkQueensTerm :: Integer -> Algorithm -> Term
 mkQueensTerm sz alg = compiledCodeToTerm $ mkQueensCode sz alg
@@ -238,7 +237,8 @@ generate CSP{vals=vals,vars=vars} = g vars
 
 {-# INLINABLE inconsistencies #-}
 inconsistencies :: CSP -> State -> [(Var,Var)]
-inconsistencies CSP{rel=rel} as =  [ (level a, level b) | a <- as, b <- reverse as, a > b, not (rel a b) ]
+inconsistencies CSP{rel=rel} as =
+  [ (level a, level b) | a <- as, b <- reverse as, a > b, not (rel a b) ]
 
 {-# INLINABLE consistent #-}
 consistent :: CSP -> State -> Bool
@@ -302,7 +302,8 @@ initTree f a = Node a (map (initTree f) (f a))
 {-# INLINABLE mkTree #-}
 mkTree :: CSP -> Tree State
 mkTree CSP{vars=vars,vals=vals} = initTree next []
-  where next ss = [ ((maxLevel ss + 1) := j):ss | maxLevel ss < vars, j <- vallist ]  -- Removed [1..vals]
+        -- Removed [1..vals]
+  where next ss = [ ((maxLevel ss + 1) := j):ss | maxLevel ss < vars, j <- vallist ]
         vallist = interval 1 vals
 
 {-# INLINABLE earliestInconsistency #-}
@@ -353,7 +354,11 @@ type Labeler = CSP -> Transform State (State, ConflictSet)
 {-# INLINABLE search #-}
 search :: Labeler -> CSP -> [State]
 search labeler csp =
-  (map fst . filter (knownSolution . snd) . leaves . prune (knownConflict . snd) . labeler csp . mkTree) csp
+  (map
+    fst .
+      filter
+        (knownSolution . snd) . leaves . prune (knownConflict . snd) . labeler csp . mkTree)
+        csp
 
 {-# INLINABLE bt #-}
 bt :: Labeler
@@ -373,7 +378,8 @@ btsolver = search bt
 
 {-# INLINABLE hrandom #-}
 hrandom :: Integer -> Transform a a
-hrandom seed (Node a cs) = Node a (randomList seed' (zipWith hrandom (randoms (length cs) seed') cs))
+hrandom seed (Node a cs) =
+  Node a (randomList seed' (zipWith hrandom (randoms (length cs) seed') cs))
   where seed' = random seed
 
 {-# INLINABLE btr #-}

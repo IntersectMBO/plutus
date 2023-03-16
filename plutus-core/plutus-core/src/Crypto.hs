@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}

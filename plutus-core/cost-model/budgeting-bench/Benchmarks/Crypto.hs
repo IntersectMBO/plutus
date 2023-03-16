@@ -9,8 +9,9 @@ import Common
 import Generators
 import PlutusCore
 
-import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
-                                   rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN, signDSIGN)
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN,
+                                   genKeyDSIGN, rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN,
+                                   signDSIGN)
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
@@ -304,6 +305,3 @@ makeBenchmarks gen =  [ benchVerifyEd25519Signature
                       ]
                      <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
                      <> blsBenchmarks gen
--- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
--- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the
--- input.

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 module Data.Aeson.Flatten
     ( flattenObject
@@ -32,8 +31,9 @@ hmToObj = fromHashMapText
 hmToObj = id
 #endif
 
--- | Turn a nested object into a "flat" object where the keys represent paths into the original object. The keys in the result
--- will be the keys in the original path, separated by `sep`. The inverse of 'unflattenObject'.
+-- | Turn a nested object into a "flat" object where the keys represent paths into the original
+-- object. The keys in the result will be the keys in the original path, separated by `sep`.
+-- The inverse of 'unflattenObject'.
 flattenObject :: Text.Text -> Object -> Object
 flattenObject sep o = hmToObj $ go Nothing (objToHm o)
     where
@@ -46,10 +46,12 @@ flattenObject sep o = hmToObj $ go Nothing (objToHm o)
                 Object o' -> go (Just newName) $ objToHm o'
                 leaf      -> HM.singleton newName leaf
 
--- | Turn a "flat" object whose keys represent paths into an unflattened object. The keys in the result will be the
--- resulting path, separated by `sep`. The inverse of 'flattenObject'.
+-- | Turn a "flat" object whose keys represent paths into an unflattened object.
+-- The keys in the result will be the resulting path, separated by `sep`.
+-- The inverse of 'flattenObject'.
 unflattenObject :: Text.Text -> Object -> Object
-unflattenObject sep o = HM.foldlWithKey (\acc k v -> mergeObject acc (mkPathObject k v)) mempty (objToHm o)
+unflattenObject sep o =
+    HM.foldlWithKey (\acc k v -> mergeObject acc (mkPathObject k v)) mempty (objToHm o)
     where
         mkPathObject :: Text.Text -> Value -> Object
         mkPathObject k value =
@@ -61,7 +63,8 @@ unflattenObject sep o = HM.foldlWithKey (\acc k v -> mergeObject acc (mkPathObje
                 go [n] v       = HM.singleton n v
                 go (n:n':xs) v = HM.singleton n $ Object $ hmToObj $ go (n':xs) v
 
--- | Merge two objects, merging the values where both sides have an entry for a key rather than taking the first.
+-- | Merge two objects, merging the values where both sides have an entry for a key rather than
+-- taking the first.
 mergeObject :: Object -> Object -> Object
 mergeObject o1 o2 = hmToObj $ HM.unionWith mergeValue (objToHm o1) (objToHm o2)
 
