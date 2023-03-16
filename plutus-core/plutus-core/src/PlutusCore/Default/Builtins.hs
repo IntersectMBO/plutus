@@ -140,7 +140,7 @@ data DefaultFun
     | Bls12_381_G2_hashToCurve
     | Bls12_381_G2_compress
     | Bls12_381_G2_uncompress
-    -- GT
+    -- Pairing
     | Bls12_381_pairing
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
