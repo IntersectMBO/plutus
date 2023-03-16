@@ -25,6 +25,11 @@ import Data.ByteString as BS (ByteString, pack)
 import Text.Printf (printf)
 
 
+-- | The size of G1, G2, and GT.  Scalar multiplication is periodic modulo this number.
+-- FIXME: import this from the library when it's merged.
+groupSize :: Integer
+groupSize = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+
 ---------------- Typeclasses for groups ----------------
 
 -- | The code for the property tests for G1 and G2 is essentially identical, so

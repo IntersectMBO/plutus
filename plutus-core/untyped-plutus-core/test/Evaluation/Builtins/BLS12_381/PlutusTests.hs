@@ -80,76 +80,76 @@ test_is_an_abelian_group =
 
 ---------------- Z acts on G correctly ----------------
 
-prop_scalar_assoc :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_assoc =
+prop_scalarMul_assoc :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_assoc =
     testProperty
-    (mkTestName @a "scalar_mul_assoc") .
+    (mkTestName @a "scalarMul_mul_assoc") .
     withNTests $ do
-      a <- arbitraryScalar
-      b <- arbitraryScalar
+      m <- arbitraryScalar
+      n <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = scalarMulP @a (mkApp2 MultiplyInteger a b) p
-          e2 = scalarMulP @a a (scalarMulP @a b p)
+      let e1 = scalarMulP @a (mkApp2 MultiplyInteger m n) p
+          e2 = scalarMulP @a m (scalarMulP @a n p)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
-prop_scalar_distributive_left :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_distributive_left =
+prop_scalarMul_distributive_left :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_distributive_left =
     testProperty
-    (mkTestName @a "scalar_distributive_left") .
+    (mkTestName @a "scalarMul_distributive_left") .
     withNTests $  do
-      a <- arbitraryScalar
-      b <- arbitraryScalar
+      m <- arbitraryScalar
+      n <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = scalarMulP @a (mkApp2 AddInteger a b) p
-          e2 = addP @a (scalarMulP @a a p) (scalarMulP @a b p)
+      let e1 = scalarMulP @a (mkApp2 AddInteger m n) p
+          e2 = addP @a (scalarMulP @a m p) (scalarMulP @a n p)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
-prop_scalar_distributive_right :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_distributive_right =
+prop_scalarMul_distributive_right :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_distributive_right =
     testProperty
-    (mkTestName @a "scalar_distributive_right") .
+    (mkTestName @a "scalarMul_distributive_right") .
     withNTests $  do
-      a <- arbitraryScalar
+      n <- arbitraryScalar
       p <- arbitraryConstant @a
       q <- arbitraryConstant @a
-      let e1 = scalarMulP @a a (addP @a p q)
-          e2 = addP @a (scalarMulP @a a p) (scalarMulP @a a q)
+      let e1 = scalarMulP @a n (addP @a p q)
+          e2 = addP @a (scalarMulP @a n p) (scalarMulP @a n q)
           e3 = eqP @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
-prop_scalar_zero :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_zero =
+prop_scalarMul_zero :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_zero =
     testProperty
-    (mkTestName @a "scalar_zero") .
+    (mkTestName @a "scalarMul_zero") .
     withNTests $ do
       p <- arbitraryConstant @a
       let e = eqP @a (scalarMulP @a (integer 0) p) $ zeroP @a
       pure $ evalTerm e === uplcTrue
 
-prop_scalar_identity :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_identity =
+prop_scalarMul_one :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_one =
     testProperty
-    (mkTestName @a "scalar_identity") .
+    (mkTestName @a "scalarMul_one") .
     withNTests $ do
       p <- arbitraryConstant @a
       let e = eqP @a (scalarMulP @a (integer 1) p) p
       pure $ evalTerm e === uplcTrue
 
-prop_scalar_inverse :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_inverse =
+prop_scalarMul_inverse :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_inverse =
     testProperty
-    (mkTestName @a "scalar_inverse") .
+    (mkTestName @a "scalarMul_inverse") .
     withNTests $ do
       p <- arbitraryConstant @a
       let e = eqP @a (scalarMulP @a (integer (-1)) p) (negP @a p)
       pure $ evalTerm e == uplcTrue
 
-prop_scalar_multiplication :: forall a. TestableAbelianGroup a => TestTree
-prop_scalar_multiplication =
+prop_scalarMul_repeated_addition :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_repeated_addition =
     testProperty
-    (mkTestName @a "scalar_multiplication") .
+    (mkTestName @a "scalarMul_repeated_addition") .
     withNTests $ do
       n <- resize 100 arbitrary
       p <- arbitraryConstant @a
@@ -163,16 +163,30 @@ prop_scalar_multiplication =
                 then foldl' (addP @a) (zeroP @a) $ genericReplicate n t
                 else repeatedAdd (-n) (negP @a t)
 
+prop_scalarMul_periodic :: forall a. TestableAbelianGroup a => TestTree
+prop_scalarMul_periodic =
+    testProperty
+    (mkTestName @a "scalarMul_periodic") .
+    withNTests $ do
+      m <- arbitraryScalar
+      n <- arbitraryScalar
+      p <- arbitraryConstant @a
+      let e1 = scalarMulP @a m p
+          e2 = scalarMulP @a (mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer groupSize))) p
+          e = eqP @a e1 e2
+      pure $ evalTerm e === uplcTrue
+
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
 test_Z_action_good =
     testGroup (printf "Z acts correctly on %s" $ gname @a)
-         [ prop_scalar_assoc              @a
-         , prop_scalar_distributive_left  @a
-         , prop_scalar_distributive_right @a
-         , prop_scalar_zero               @a
-         , prop_scalar_identity           @a
-         , prop_scalar_inverse            @a
-         , prop_scalar_multiplication     @a
+         [ prop_scalarMul_assoc              @a
+         , prop_scalarMul_distributive_left  @a
+         , prop_scalarMul_distributive_right @a
+         , prop_scalarMul_zero               @a
+         , prop_scalarMul_one                @a
+         , prop_scalarMul_inverse            @a
+         , prop_scalarMul_repeated_addition  @a
+         , prop_scalarMul_periodic           @a
          ]
 
 
