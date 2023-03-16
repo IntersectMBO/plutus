@@ -340,6 +340,57 @@ BUILTIN mkNilData = λ
 BUILTIN mkNilPairData = λ
   { _ -> inj₁ userError
   }
+BUILTIN bls12-381-G1-add = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-neg = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-scalarMul = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-equal = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-hashToCurve = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-compress = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-uncompress = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-add = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-neg = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-scalarMul = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-equal = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-hashToCurve = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-compress = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-uncompress = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-pairing = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-mulMlResult = λ
+  { _ -> inj₁ userError
+  }
+BUILTIN bls12-381-finalVerify = λ
+  { _ -> inj₁ userError
+  }
 
 convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
   → BApp b p
@@ -410,6 +461,24 @@ ival sliceByteString = V-I⇒ sliceByteString (start _) base
 ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) base
 ival indexByteString = V-I⇒ indexByteString (start _) base
 ival blake2b-256 = V-I⇒ blake2b-256 (start _) base
+ival bls12-381-G1-add = V-I⇒ bls12-381-G1-add (start _) base
+ival bls12-381-G1-neg = V-I⇒ bls12-381-G1-neg (start _) base
+ival bls12-381-G1-scalarMul = V-I⇒ bls12-381-G1-scalarMul (start _) base
+ival bls12-381-G1-equal = V-I⇒ bls12-381-G1-equal (start _) base
+ival bls12-381-G1-hashToCurve = V-I⇒ bls12-381-G1-hashToCurve (start _) base
+ival bls12-381-G1-compress = V-I⇒ bls12-381-G1-compress (start _) base
+ival bls12-381-G1-uncompress = V-I⇒ bls12-381-G1-uncompress (start _) base
+ival bls12-381-G2-add = V-I⇒ bls12-381-G2-add (start _) base
+ival bls12-381-G2-neg = V-I⇒ bls12-381-G2-neg (start _) base
+ival bls12-381-G2-scalarMul = V-I⇒ bls12-381-G2-scalarMul (start _) base
+ival bls12-381-G2-equal = V-I⇒ bls12-381-G2-equal (start _) base
+ival bls12-381-G2-hashToCurve = V-I⇒ bls12-381-G2-hashToCurve (start _) base
+ival bls12-381-G2-compress = V-I⇒ bls12-381-G2-compress (start _) base
+ival bls12-381-G2-uncompress = V-I⇒ bls12-381-G2-uncompress (start _) base
+ival bls12-381-pairing = V-I⇒ bls12-381-pairing (start _) base
+ival bls12-381-mulMlResult = V-I⇒ bls12-381-mulMlResult (start _) base
+ival bls12-381-finalVerify = V-I⇒ bls12-381-finalVerify (start _) base
+
 
 step : State → State
 step (s ; ρ ▻ ` x)       = s ◅ lookup ρ x

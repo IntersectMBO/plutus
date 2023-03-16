@@ -66,6 +66,9 @@ uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
 uglyTermCon (pdata d) = "(DATA)"
+uglyTermCon (g1elt e) = "(g1elt)"
+uglyTermCon (g2elt e) = "(g2elt)"
+uglyTermCon (mlresult r) = "(mlresult)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 

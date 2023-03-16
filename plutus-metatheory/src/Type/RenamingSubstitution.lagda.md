@@ -65,6 +65,9 @@ renTyCon ρ bool       = bool
 renTyCon ρ (list A)   = list (ren ρ A)
 renTyCon ρ (pair A B) = pair (ren ρ A) (ren ρ B)
 renTyCon ρ pdata      = pdata
+renTyCon ρ g1elt      = g1elt
+renTyCon ρ g2elt      = g2elt
+renTyCon ρ mlresult   = mlresult
 
 ren ρ (` α)       = ` (ρ α)
 ren ρ (Π B)       = Π (ren (ext ρ) B)
@@ -133,6 +136,9 @@ renTyCon-cong p bool       = refl
 renTyCon-cong p (list A)   = cong list (ren-cong p A)
 renTyCon-cong p (pair A B) = cong₂ pair (ren-cong p A) (ren-cong p B)
 renTyCon-cong p pdata       = refl
+renTyCon-cong p g1elt       = refl
+renTyCon-cong p g2elt       = refl
+renTyCon-cong p mlresult    = refl
 
 ren-cong p (` α)   = cong ` (p α)
 ren-cong p (Π A)   = cong Π (ren-cong (ext-cong p) A)
@@ -160,7 +166,10 @@ renTyCon-id unit       = refl
 renTyCon-id bool       = refl
 renTyCon-id (list A)   = cong list (ren-id A)
 renTyCon-id (pair A B) = cong₂ pair (ren-id A) (ren-id B)
-renTyCon-id pdata       = refl
+renTyCon-id pdata      = refl
+renTyCon-id g1elt      = refl
+renTyCon-id g2elt      = refl
+renTyCon-id mlresult   = refl
 
 ren-id (` α)   = refl
 ren-id (Π A)   = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -200,6 +209,9 @@ renTyCon-comp bool       = refl
 renTyCon-comp (list A)   = cong list (ren-comp A)
 renTyCon-comp (pair A B) = cong₂ pair (ren-comp A) (ren-comp B)
 renTyCon-comp pdata       = refl
+renTyCon-comp g1elt       = refl
+renTyCon-comp g2elt       = refl
+renTyCon-comp mlresult    = refl
 
 ren-comp (` x)   = refl
 ren-comp (Π A)   = cong Π (trans (ren-cong ext-comp A) (ren-comp A))
@@ -253,7 +265,10 @@ subTyCon σ unit       = unit
 subTyCon σ bool       = bool
 subTyCon σ (list A)   = list (sub σ A)
 subTyCon σ (pair A B) = pair (sub σ A) (sub σ B)
-subTyCon σ pdata       = pdata
+subTyCon σ pdata      = pdata
+subTyCon σ g1elt      = g1elt
+subTyCon σ g2elt      = g2elt
+subTyCon σ mlresult   = mlresult
 
 sub σ (` α)   = σ α
 sub σ (Π B)   = Π (sub (exts σ) B)
@@ -327,7 +342,10 @@ subTyCon-cong p unit       = refl
 subTyCon-cong p bool       = refl
 subTyCon-cong p (list A)   = cong list (sub-cong p A)
 subTyCon-cong p (pair A B) = cong₂ pair (sub-cong p A) (sub-cong p B)
-subTyCon-cong p pdata       = refl
+subTyCon-cong p pdata      = refl
+subTyCon-cong p g1elt      = refl
+subTyCon-cong p g2elt      = refl
+subTyCon-cong p mlresult   = refl
 
 sub-cong p (` α)   = p α
 sub-cong p (Π A)   = cong Π (sub-cong (exts-cong p) A)
@@ -357,6 +375,9 @@ subTyCon-id bool       = refl
 subTyCon-id (list A)   = cong  list (sub-id A)
 subTyCon-id (pair A B) = cong₂ pair (sub-id A) (sub-id B)
 subTyCon-id pdata       = refl
+subTyCon-id g1elt       = refl
+subTyCon-id g2elt       = refl
+subTyCon-id mlresult    = refl
 
 sub-id (` α)      = refl
 sub-id (Π A)      = cong Π (trans (sub-cong exts-id A) (sub-id A))
@@ -396,6 +417,9 @@ subTyCon-renTyCon bool       = refl
 subTyCon-renTyCon (list A)   = cong list (sub-ren A)
 subTyCon-renTyCon (pair A B) = cong₂ pair (sub-ren A) (sub-ren B)
 subTyCon-renTyCon pdata       = refl
+subTyCon-renTyCon g1elt       = refl
+subTyCon-renTyCon g2elt       = refl
+subTyCon-renTyCon mlresult    = refl
 
 sub-ren (` α)   = refl
 sub-ren (Π A)   = cong Π (trans (sub-cong exts-ext A) (sub-ren A))
@@ -435,6 +459,9 @@ renTyCon-subTyCon bool       = refl
 renTyCon-subTyCon (list A)   = cong list (ren-sub A)
 renTyCon-subTyCon (pair A B) = cong₂ pair (ren-sub A) (ren-sub B) 
 renTyCon-subTyCon pdata       = refl
+renTyCon-subTyCon g1elt       = refl
+renTyCon-subTyCon g2elt       = refl
+renTyCon-subTyCon mlresult    = refl
 
 ren-sub (` α)   = refl
 ren-sub (Π A)   = cong Π (trans (sub-cong ren-ext-exts  A) (ren-sub A))
@@ -474,6 +501,9 @@ subTyCon-comp bool       = refl
 subTyCon-comp (list A)   = cong list (sub-comp A)
 subTyCon-comp (pair A B) = cong₂ pair (sub-comp A) (sub-comp B)
 subTyCon-comp pdata       = refl
+subTyCon-comp g1elt       = refl
+subTyCon-comp g2elt       = refl
+subTyCon-comp mlresult    = refl
 
 sub-comp (` x)   = refl
 sub-comp (Π A)   = cong Π (trans (sub-cong extscomp A) (sub-comp A))

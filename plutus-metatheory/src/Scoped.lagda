@@ -241,6 +241,9 @@ scopeCheckTyCon (pair A B) = do
   B ← scopeCheckTy B
   return (S.pair A B)
 scopeCheckTyCon pdata       = inj₂ S.pdata
+scopeCheckTyCon g1elt       = inj₂ S.g1elt
+scopeCheckTyCon g2elt       = inj₂ S.g2elt
+scopeCheckTyCon mlresult    = inj₂ S.mlresult
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -306,6 +309,9 @@ extricateTyCon S.bool       = bool
 extricateTyCon (S.list A)   = list (extricateScopeTy A)
 extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
 extricateTyCon S.pdata      = pdata
+extricateTyCon S.g1elt      = g1elt
+extricateTyCon S.g2elt      = g2elt
+extricateTyCon S.mlresult   = mlresult
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B

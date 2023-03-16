@@ -47,9 +47,13 @@ data RawTyCon where
   bool       : RawTyCon
   list       : RawTy → RawTyCon
   pair       : RawTy → RawTy → RawTyCon
-  pdata       : RawTyCon
+  pdata      : RawTyCon
+  g1elt      : RawTyCon
+  g2elt      : RawTyCon
+  mlresult   : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
+
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData | RTyConG1elt | RTyConG2elt | RTyConMlResult) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -76,6 +80,9 @@ decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
 decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
+decRTyCon g1elt      g1elt      = true
+decRTyCon g2elt      g2elt      = true
+decRTyCon mlresult   mlresult   = true  -- Maybe not: no eq for mlresult in Plutus
 decRTyCon _          _          = false
 
 decTermCon : (C C' : TermCon) → Bool
@@ -92,6 +99,7 @@ decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
 decTermCon unit unit = true
+-- FIXME: not sure what to do about the BLS types here.
 decTermCon _ _ = false
 
 decBuiltin : (b b' : Builtin) → Bool
@@ -114,6 +122,23 @@ decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = tru
 decBuiltin equalsByteString equalsByteString = true
 decBuiltin appendString appendString = true
 decBuiltin trace trace = true
+decBuiltin bls12-381-G1-add bls12-381-G1-add = true
+decBuiltin bls12-381-G1-neg bls12-381-G1-neg = true
+decBuiltin bls12-381-G1-scalarMul bls12-381-G1-scalarMul = true
+decBuiltin bls12-381-G1-equal bls12-381-G1-equal = true
+decBuiltin bls12-381-G1-hashToCurve bls12-381-G1-hashToCurve = true
+decBuiltin bls12-381-G1-compress bls12-381-G1-compress = true
+decBuiltin bls12-381-G1-uncompress bls12-381-G1-uncompress = true
+decBuiltin bls12-381-G2-add bls12-381-G2-add = true
+decBuiltin bls12-381-G2-neg bls12-381-G2-neg = true
+decBuiltin bls12-381-G2-scalarMul bls12-381-G2-scalarMul = true
+decBuiltin bls12-381-G2-equal bls12-381-G2-equal = true
+decBuiltin bls12-381-G2-hashToCurve bls12-381-G2-hashToCurve = true
+decBuiltin bls12-381-G2-compress bls12-381-G2-compress = true
+decBuiltin bls12-381-G2-uncompress bls12-381-G2-uncompress = true
+decBuiltin bls12-381-pairing bls12-381-pairing = true
+decBuiltin bls12-381-mulMlResult bls12-381-mulMlResult = true
+decBuiltin bls12-381-finalVerify bls12-381-finalVerify = true
 decBuiltin _ _ = false
 
 decRKi : (K K' : Kind) → Bool

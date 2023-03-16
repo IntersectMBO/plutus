@@ -164,6 +164,9 @@ inferKindCon Φ (S.pair A B) = do
   B ← isStar (inferKind Φ B)  
   return (T.pair A B)
 inferKindCon Φ S.pdata = inj₂ T.pdata
+inferKindCon Φ S.g1elt = inj₂ T.g1elt
+inferKindCon Φ S.g2elt = inj₂ T.g2elt
+inferKindCon Φ S.mlresult = inj₂ T.mlresult
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
@@ -221,75 +224,143 @@ meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
 
-meqTyCon T.integer    T.integer      = inj₂ refl
-meqTyCon T.bytestring T.bytestring   = inj₂ refl
-meqTyCon T.string     T.string       = inj₂ refl
-meqTyCon T.bool       T.bool         = inj₂ refl
-meqTyCon T.unit       T.unit         = inj₂ refl
-meqTyCon T.integer    T.bytestring   = inj₁ λ()
-meqTyCon T.integer    T.string       = inj₁ λ()
-meqTyCon T.integer    T.unit         = inj₁ λ()
-meqTyCon T.integer    T.bool         = inj₁ λ()
-meqTyCon T.bytestring T.integer      = inj₁ λ()
-meqTyCon T.bytestring T.string       = inj₁ λ()
-meqTyCon T.bytestring T.unit         = inj₁ λ()
-meqTyCon T.bytestring T.bool         = inj₁ λ()
-meqTyCon T.string     T.integer      = inj₁ λ()
-meqTyCon T.string     T.bytestring   = inj₁ λ()
-meqTyCon T.string     T.unit         = inj₁ λ()
-meqTyCon T.string     T.bool         = inj₁ λ()
-meqTyCon T.unit       T.integer      = inj₁ λ()
-meqTyCon T.unit       T.bytestring   = inj₁ λ()
-meqTyCon T.unit       T.string       = inj₁ λ()
-meqTyCon T.unit       T.bool         = inj₁ λ()
-meqTyCon T.bool       T.integer      = inj₁ λ()
-meqTyCon T.bool       T.bytestring   = inj₁ λ()
-meqTyCon T.bool       T.string       = inj₁ λ()
-meqTyCon T.bool       T.unit         = inj₁ λ()
-meqTyCon (T.pair A B) T.integer      = inj₁ λ()
-meqTyCon T.pdata       T.integer     = inj₁ λ()
-meqTyCon (T.list A)   T.bytestring   = inj₁ λ()
-meqTyCon (T.pair A B) T.bytestring   = inj₁ λ()
-meqTyCon T.pdata       T.bytestring  = inj₁ λ()
-meqTyCon (T.list A)   T.string       = inj₁ λ()
-meqTyCon (T.pair A B) T.string       = inj₁ λ()
-meqTyCon T.pdata       T.string      = inj₁ λ()
-meqTyCon (T.list A)   T.unit         = inj₁ λ()
-meqTyCon (T.pair A B) T.unit         = inj₁ λ()
-meqTyCon T.pdata       T.unit        = inj₁ λ()
-meqTyCon (T.list A)   T.bool         = inj₁ λ()
-meqTyCon (T.pair A B) T.bool         = inj₁ λ()
-meqTyCon T.pdata       T.bool        = inj₁ λ()
-meqTyCon (T.list A)   T.integer      = inj₁ λ()
-meqTyCon T.integer    (T.list A)     = inj₁ λ()
-meqTyCon T.bytestring (T.list A)     = inj₁ λ()
-meqTyCon T.string     (T.list A)     = inj₁ λ()
-meqTyCon T.unit       (T.list A)     = inj₁ λ()
-meqTyCon T.bool       (T.list A)     = inj₁ λ()
+meqTyCon T.integer    T.integer    = inj₂ refl
+meqTyCon T.bytestring T.bytestring = inj₂ refl
+meqTyCon T.string     T.string     = inj₂ refl
+meqTyCon T.bool       T.bool       = inj₂ refl
+meqTyCon T.unit       T.unit       = inj₂ refl
+meqTyCon T.pdata      T.pdata      = inj₂ refl
+meqTyCon T.g1elt      T.g1elt      = inj₂ refl
+meqTyCon T.g2elt      T.g2elt      = inj₂ refl
+meqTyCon T.mlresult   T.mlresult   = inj₂ refl
 meqTyCon (T.list A)   (T.list A')    = do
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
   return refl
-meqTyCon (T.pair A B) (T.list A')    = inj₁ λ()
-meqTyCon T.pdata       (T.list A)    = inj₁ λ()
-meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
-meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
-meqTyCon T.string     (T.pair A' B') = inj₁ λ()
-meqTyCon T.unit       (T.pair A' B') = inj₁ λ()
-meqTyCon T.bool       (T.pair A' B') = inj₁ λ()
-meqTyCon (T.list A)   (T.pair A' B') = inj₁ λ()
 meqTyCon (T.pair A B) (T.pair A' B') = do
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
   return refl
-meqTyCon T.pdata       (T.pair A' B') = inj₁ λ()
-meqTyCon T.integer    T.pdata = inj₁ λ()
-meqTyCon T.bytestring T.pdata = inj₁ λ()
-meqTyCon T.string     T.pdata = inj₁ λ()
-meqTyCon T.unit       T.pdata = inj₁ λ()
-meqTyCon T.bool       T.pdata = inj₁ λ()
-meqTyCon (T.list A)   T.pdata = inj₁ λ()
-meqTyCon (T.pair A B) T.pdata = inj₁ λ()
-meqTyCon T.pdata       T.pdata = inj₂ refl
+--
+meqTyCon T.integer    T.bytestring   = inj₁ λ()
+meqTyCon T.integer    T.string       = inj₁ λ()
+meqTyCon T.integer    T.bool         = inj₁ λ()
+meqTyCon T.integer    T.unit         = inj₁ λ()
+meqTyCon T.integer    T.pdata        = inj₁ λ()
+meqTyCon T.integer    T.g1elt        = inj₁ λ()
+meqTyCon T.integer    T.g2elt        = inj₁ λ()
+meqTyCon T.integer    T.mlresult     = inj₁ λ()
+meqTyCon T.integer    (T.list A)     = inj₁ λ()
+meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
+--
+meqTyCon T.bytestring T.integer      = inj₁ λ()
+meqTyCon T.bytestring T.string       = inj₁ λ()
+meqTyCon T.bytestring T.bool         = inj₁ λ()
+meqTyCon T.bytestring T.unit         = inj₁ λ()
+meqTyCon T.bytestring T.pdata        = inj₁ λ()
+meqTyCon T.bytestring T.g1elt        = inj₁ λ()
+meqTyCon T.bytestring T.g2elt        = inj₁ λ()
+meqTyCon T.bytestring T.mlresult     = inj₁ λ()
+meqTyCon T.bytestring (T.list A)     = inj₁ λ()
+meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
+--
+meqTyCon T.string     T.integer      = inj₁ λ()
+meqTyCon T.string     T.bytestring   = inj₁ λ()
+meqTyCon T.string     T.bool         = inj₁ λ()
+meqTyCon T.string     T.unit         = inj₁ λ()
+meqTyCon T.string     T.pdata        = inj₁ λ()
+meqTyCon T.string     T.g1elt        = inj₁ λ()
+meqTyCon T.string     T.g2elt        = inj₁ λ()
+meqTyCon T.string     T.mlresult     = inj₁ λ()
+meqTyCon T.string     (T.list A)     = inj₁ λ()
+meqTyCon T.string     (T.pair A' B') = inj₁ λ()
+--
+meqTyCon T.bool       T.integer      = inj₁ λ()
+meqTyCon T.bool       T.bytestring   = inj₁ λ()
+meqTyCon T.bool       T.string       = inj₁ λ()
+meqTyCon T.bool       T.unit         = inj₁ λ()
+meqTyCon T.bool       T.pdata        = inj₁ λ()
+meqTyCon T.bool       T.g1elt        = inj₁ λ()
+meqTyCon T.bool       T.g2elt        = inj₁ λ()
+meqTyCon T.bool       T.mlresult     = inj₁ λ()
+meqTyCon T.bool       (T.list A)     = inj₁ λ()
+meqTyCon T.bool       (T.pair A' B') = inj₁ λ()
+--
+meqTyCon T.unit      T.integer       = inj₁ λ()
+meqTyCon T.unit      T.bytestring    = inj₁ λ()
+meqTyCon T.unit      T.string        = inj₁ λ()
+meqTyCon T.unit      T.bool          = inj₁ λ()
+meqTyCon T.unit      T.pdata         = inj₁ λ()
+meqTyCon T.unit      T.g1elt         = inj₁ λ()
+meqTyCon T.unit      T.g2elt         = inj₁ λ()
+meqTyCon T.unit      T.mlresult      = inj₁ λ()
+meqTyCon T.unit      (T.list A)      = inj₁ λ()
+meqTyCon T.unit      (T.pair A' B')  = inj₁ λ()
+--
+meqTyCon T.pdata     T.integer       = inj₁ λ()
+meqTyCon T.pdata     T.bytestring    = inj₁ λ()
+meqTyCon T.pdata     T.string        = inj₁ λ()
+meqTyCon T.pdata     T.bool          = inj₁ λ()
+meqTyCon T.pdata     T.unit          = inj₁ λ()
+meqTyCon T.pdata     T.g1elt         = inj₁ λ()
+meqTyCon T.pdata     T.g2elt         = inj₁ λ()
+meqTyCon T.pdata     T.mlresult      = inj₁ λ()
+meqTyCon T.pdata     (T.list A)      = inj₁ λ()
+meqTyCon T.pdata     (T.pair A' B')  = inj₁ λ()
+--
+meqTyCon T.g1elt     T.integer       = inj₁ λ()
+meqTyCon T.g1elt     T.string        = inj₁ λ()
+meqTyCon T.g1elt     T.bytestring    = inj₁ λ()
+meqTyCon T.g1elt     T.bool          = inj₁ λ()
+meqTyCon T.g1elt     T.unit          = inj₁ λ()
+meqTyCon T.g1elt     T.pdata         = inj₁ λ()
+meqTyCon T.g1elt     T.g2elt         = inj₁ λ()
+meqTyCon T.g1elt     T.mlresult      = inj₁ λ()
+meqTyCon T.g1elt     (T.list A)      = inj₁ λ()
+meqTyCon T.g1elt     (T.pair A' B')  = inj₁ λ()
+--
+meqTyCon T.g2elt     T.integer       = inj₁ λ()
+meqTyCon T.g2elt     T.string        = inj₁ λ()
+meqTyCon T.g2elt     T.bytestring    = inj₁ λ()
+meqTyCon T.g2elt     T.bool          = inj₁ λ()
+meqTyCon T.g2elt     T.unit          = inj₁ λ()
+meqTyCon T.g2elt     T.pdata         = inj₁ λ()
+meqTyCon T.g2elt     T.g1elt         = inj₁ λ()
+meqTyCon T.g2elt     T.mlresult      = inj₁ λ()
+meqTyCon T.g2elt     (T.list A)      = inj₁ λ()
+meqTyCon T.g2elt     (T.pair A' B')  = inj₁ λ()
+--
+meqTyCon T.mlresult   T.integer      = inj₁ λ()
+meqTyCon T.mlresult   T.string       = inj₁ λ()
+meqTyCon T.mlresult   T.bytestring   = inj₁ λ()
+meqTyCon T.mlresult   T.bool         = inj₁ λ()
+meqTyCon T.mlresult   T.unit         = inj₁ λ()
+meqTyCon T.mlresult   T.pdata        = inj₁ λ()
+meqTyCon T.mlresult   T.g1elt        = inj₁ λ()
+meqTyCon T.mlresult   T.g2elt        = inj₁ λ()
+meqTyCon T.mlresult   (T.list A)     = inj₁ λ()
+meqTyCon T.mlresult   (T.pair A' B') = inj₁ λ()
+--
+meqTyCon (T.list A)   T.integer      = inj₁ λ()
+meqTyCon (T.list A)   T.string       = inj₁ λ()
+meqTyCon (T.list A)   T.bytestring   = inj₁ λ()
+meqTyCon (T.list A)   T.bool         = inj₁ λ()
+meqTyCon (T.list A)   T.unit         = inj₁ λ()
+meqTyCon (T.list A)   T.pdata        = inj₁ λ()
+meqTyCon (T.list A)   T.g1elt        = inj₁ λ()
+meqTyCon (T.list A)   T.g2elt        = inj₁ λ()
+meqTyCon (T.list A)   T.mlresult     = inj₁ λ()
+meqTyCon (T.list A)   (T.pair A' B') = inj₁ λ()
+--
+meqTyCon (T.pair A B) T.integer      = inj₁ λ()
+meqTyCon (T.pair A B) T.string       = inj₁ λ()
+meqTyCon (T.pair A B) T.bytestring   = inj₁ λ()
+meqTyCon (T.pair A B) T.bool         = inj₁ λ()
+meqTyCon (T.pair A B) T.unit         = inj₁ λ()
+meqTyCon (T.pair A B) T.pdata        = inj₁ λ()
+meqTyCon (T.pair A B) T.g1elt        = inj₁ λ()
+meqTyCon (T.pair A B) T.g2elt        = inj₁ λ()
+meqTyCon (T.pair A B) T.mlresult     = inj₁ λ()
+meqTyCon (T.pair A B) (T.list A')    = inj₁ λ()
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
@@ -361,6 +432,9 @@ inferTypeCon (string s)     = T.string ,, A.string s
 inferTypeCon (bool b)       = T.bool ,, A.bool b
 inferTypeCon unit           = T.unit ,, A.unit
 inferTypeCon (pdata d)      = T.pdata ,, A.pdata d
+inferTypeCon (g1elt e)      = T.g1elt ,, A.g1elt e
+inferTypeCon (g2elt e)      = T.g2elt ,, A.g2elt e
+inferTypeCon (mlresult r)   = T.mlresult ,, A.mlresult r
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)

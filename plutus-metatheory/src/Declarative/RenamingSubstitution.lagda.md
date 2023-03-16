@@ -80,7 +80,10 @@ renTermCon _ (bytestring b) = bytestring b
 renTermCon _ (string s)     = string s
 renTermCon _ (bool b)       = bool b
 renTermCon _ unit           = unit
-renTermCon _ (pdata d)       = pdata d
+renTermCon _ (pdata d)      = pdata d
+renTermCon _ (g1elt e)      = g1elt e
+renTermCon _ (g2elt e)      = g2elt e
+renTermCon _ (mlresult r)   = mlresult r
 ```
 
 Renaming for terms
@@ -173,6 +176,9 @@ subTermCon _ (string s)     = string s
 subTermCon _ (bool b)       = bool b
 subTermCon _ unit           = unit
 subTermCon _ (pdata d)       = pdata d
+subTermCon _ (g1elt e)       = g1elt e
+subTermCon _ (g2elt e)       = g2elt e
+subTermCon _ (mlresult r)    = mlresult r
 
 ```
 

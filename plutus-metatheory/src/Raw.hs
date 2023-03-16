@@ -36,6 +36,9 @@ data RTyCon = RTyConInt
             | RTyConList RType
             | RTyConPair RType RType
             | RTyConData
+            | RTyConG1elt
+            | RTyConG2elt
+            | RTyConMlResult
             deriving Show
 
 
@@ -78,6 +81,9 @@ convTyCon (SomeTypeIn (DefaultUniApply (DefaultUniApply DefaultUniProtoPair a) b
 convTyCon (SomeTypeIn (DefaultUniApply _ _)) = error "unsupported builtin type application"
 convTyCon (SomeTypeIn DefaultUniProtoList) = error "unsupported usage of builtin list type"
 convTyCon (SomeTypeIn DefaultUniProtoPair) = error "unsupported usage of builtin pair type"
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element)   = RTyConG1elt
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element)   = RTyConG2elt
+convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)    = RTyConMlResult
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -137,6 +143,9 @@ unconvTyCon i (RTyConPair (RTyCon a) (RTyCon b)) =
 unconvTyCon i (RTyConPair a b) =
   error "builtin pairs of arbitrary type not supported"
 unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
+unconvTyCon i RTyConG1elt      = SomeTypeIn DefaultUniBLS12_381_G1_Element
+unconvTyCon i RTyConG2elt      = SomeTypeIn DefaultUniBLS12_381_G2_Element
+unconvTyCon i RTyConMlResult   = SomeTypeIn DefaultUniBLS12_381_MlResult
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']

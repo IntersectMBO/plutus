@@ -22,7 +22,7 @@ module Builtin.Constant.Type
 
 ## Type constants
 
-We have six base types referred to as type constants:
+We have twelve base types referred to as type constants:
 
 ```
 data TyCon (Φ : Con) : Set where
@@ -34,18 +34,23 @@ data TyCon (Φ : Con) : Set where
   list       : Ty Φ → TyCon Φ
   pair       : Ty Φ → Ty Φ → TyCon Φ
   pdata      : TyCon Φ
-
+  g1elt      : TyCon Φ
+  g2elt      : TyCon Φ
+  mlresult   : TyCon Φ
 
 --{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
 --{-# FOREIGN GHC import PlutusCore                                      #-}
---{-# FOREIGN GHC type TypeBuiltin = SomeTypeIn DefaultUni               #-}
---{-# FOREIGN GHC pattern TyInteger    = SomeTypeIn DefaultUniInteger    #-}
---{-# FOREIGN GHC pattern TyByteString = SomeTypeIn DefaultUniByteString #-}
---{-# FOREIGN GHC pattern TyString     = SomeTypeIn DefaultUniString     #-}
---{-# FOREIGN GHC pattern TyUnit       = SomeTypeIn DefaultUniUnit       #-}
---{-# FOREIGN GHC pattern TyBool       = SomeTypeIn DefaultUniBool       #-}
---{-# FOREIGN GHC pattern TyList a     = SomeTypeIn DefaultUniList a     #-}
---{-# FOREIGN GHC pattern TyPair a b   = SomeTypeIn DefaultUniPair a b   #-}
---{-# FOREIGN GHC pattern TyData       = SomeTypeIn DefaultUniData       #-}
---{-# COMPILE GHC TyCon = data TypeBuiltin (TyInteger | TyByteString | TyString | TyUnit | TyBool | TyList | TyPair | TyData) #-}
+--{-# FOREIGN GHC type TypeBuiltin               = SomeTypeIn DefaultUni #-}
+--{-# FOREIGN GHC pattern TyInteger              = SomeTypeIn DefaultUniInteger    #-}
+--{-# FOREIGN GHC pattern TyByteString           = SomeTypeIn DefaultUniByteString #-}
+--{-# FOREIGN GHC pattern TyString               = SomeTypeIn DefaultUniString     #-}
+--{-# FOREIGN GHC pattern TyUnit                 = SomeTypeIn DefaultUniUnit       #-}
+--{-# FOREIGN GHC pattern TyBool                 = SomeTypeIn DefaultUniBool       #-}
+--{-# FOREIGN GHC pattern TyList a               = SomeTypeIn DefaultUniList a     #-}
+--{-# FOREIGN GHC pattern TyPair a b             = SomeTypeIn DefaultUniPair a b   #-}
+--{-# FOREIGN GHC pattern TyData                 = SomeTypeIn DefaultUniData       #-}
+--{-# FOREIGN GHC pattern TyBLS12_381_G1_Element = SomeTypeIn DefaultUniBLS12_381_G1_Element #-}
+--{-# FOREIGN GHC pattern TyBLS12_381_G2_Element = SomeTypeIn DefaultUniBLS12_381_G2_Element #-}
+--{-# FOREIGN GHC pattern TyBLS12_381_MlResult   = SomeTypeIn DefaultUniBLS12_381_MlResult   #-}
+--{-# COMPILE GHC TyCon  = data TypeBuiltin (TyInteger | TyByteString | TyString | TyUnit | TyBool | TyList | TyPair | TyData | TyBLS12_381_G1_Element | TyBLS12_381_G2_Element | TyBLS12_381_MlResult) #-}
 ```

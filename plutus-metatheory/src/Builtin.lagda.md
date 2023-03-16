@@ -20,7 +20,7 @@ open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
-open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
+open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args)
 import Builtin.Constant.Type ℕ (_⊢♯) as T
 ```
 
@@ -61,7 +61,7 @@ data Builtin : Set where
   appendString                    : Builtin
   equalsString                    : Builtin
   encodeUtf8                      : Builtin
-  decodeUtf8                      : Builtin  
+  decodeUtf8                      : Builtin
   -- Bool
   ifThenElse                      : Builtin
   -- Unit
@@ -95,6 +95,28 @@ data Builtin : Set where
   mkPairData                      : Builtin
   mkNilData                       : Builtin
   mkNilPairData                   : Builtin
+  -- BLS12_381
+  -- G1
+  bls12-381-G1-add                : Builtin
+  bls12-381-G1-neg                : Builtin
+  bls12-381-G1-scalarMul          : Builtin
+  bls12-381-G1-equal              : Builtin
+  bls12-381-G1-hashToCurve        : Builtin
+  bls12-381-G1-compress           : Builtin
+  bls12-381-G1-uncompress         : Builtin
+ --  G2
+  bls12-381-G2-add                : Builtin
+  bls12-381-G2-neg                : Builtin
+  bls12-381-G2-scalarMul          : Builtin
+  bls12-381-G2-equal              : Builtin
+  bls12-381-G2-hashToCurve        : Builtin
+  bls12-381-G2-compress           : Builtin
+  bls12-381-G2-uncompress         : Builtin
+  -- Pairing
+  bls12-381-pairing               : Builtin
+  bls12-381-mulMlResult           : Builtin
+  bls12-381-finalVerify           : Builtin
+
 ```
 
 ## Signatures
@@ -116,13 +138,16 @@ This is defined in its own module so that these definitions are not exported.
     ∀b,a = 2
 
     -- shortened names for type constants and type constructors
-    integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
+    integer bool bytestring string unit pdata g1elt g2elt mlresult : ∀{n} → n ⊢♯
     integer = con T.integer
     bool = con T.bool
     bytestring = con T.bytestring
     string = con T.string
     unit = con T.unit
     pdata = con T.pdata
+    g1elt = con T.g1elt
+    g2elt = con T.g2elt
+    mlresult = con T.mlresult
 
     pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
     pair x y = con (T.pair x y)
@@ -168,7 +193,7 @@ This is defined in its own module so that these definitions are not exported.
     signature lessThanEqualsInteger           = ∙ [ integer , integer ]⟶ bool
     signature appendByteString                = ∙ [ bytestring , bytestring ]⟶ bytestring
     signature consByteString                  = ∙ [ integer , bytestring ]⟶ bytestring
-    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring                            
+    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring
     signature lengthOfByteString              = ∙ [ bytestring ]⟶ integer
     signature indexByteString                 = ∙ [ bytestring , integer ]⟶ integer
     signature equalsByteString                = ∙ [ bytestring , bytestring ]⟶ bool
@@ -183,7 +208,7 @@ This is defined in its own module so that these definitions are not exported.
     signature appendString                    = ∙ [ string , string ]⟶ string
     signature equalsString                    = ∙ [ string , string ]⟶ bool
     signature encodeUtf8                      = ∙ [ string ]⟶ bytestring
-    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string 
+    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string
     signature ifThenElse                      = ∀a [ bool , a , a ]⟶ a
     signature chooseUnit                      = ∀a [ a , unit ]⟶ a
     signature trace                           = ∀a [ string , a ]⟶ a
@@ -210,6 +235,23 @@ This is defined in its own module so that these definitions are not exported.
     signature mkPairData                      = ∙ [ pdata , pdata ]⟶ pair pdata pdata
     signature mkNilData                       = ∙ [ unit ]⟶ list pdata
     signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair pdata pdata)
+    signature bls12-381-G1-add                = ∙ [ g1elt , g1elt ]⟶ g1elt
+    signature bls12-381-G1-neg                = ∙ [ g1elt ]⟶ g1elt
+    signature bls12-381-G1-scalarMul          = ∙ [ integer , g1elt ]⟶ g1elt
+    signature bls12-381-G1-equal              = ∙ [ g1elt , g1elt ]⟶ bool
+    signature bls12-381-G1-hashToCurve        = ∙ [ bytestring ]⟶ g1elt
+    signature bls12-381-G1-compress           = ∙ [ g1elt ]⟶ bytestring
+    signature bls12-381-G1-uncompress         = ∙ [ bytestring ]⟶ g1elt
+    signature bls12-381-G2-add                = ∙ [ g2elt , g2elt ]⟶ g2elt
+    signature bls12-381-G2-neg                = ∙ [ g2elt ]⟶ g2elt
+    signature bls12-381-G2-scalarMul          = ∙ [ integer , g2elt ]⟶ g2elt
+    signature bls12-381-G2-equal              = ∙ [ g2elt , g2elt ]⟶ bool
+    signature bls12-381-G2-hashToCurve        = ∙ [ bytestring ]⟶ g2elt
+    signature bls12-381-G2-compress           = ∙ [ g2elt ]⟶ bytestring
+    signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ g2elt
+    signature bls12-381-pairing               = ∙ [ g1elt , g2elt ]⟶ mlresult
+    signature bls12-381-mulMlResult           = ∙ [ mlresult , mlresult ]⟶ mlresult
+    signature bls12-381-finalVerify           = ∙ [ mlresult , mlresult ]⟶ bool
 
 open SugaredSignature using (signature) public
 ```
@@ -274,12 +316,30 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
-                                          ) #-}
+                                          | Bls12_381_G1_add
+                                          | Bls12_381_G1_neg
+                                          | Bls12_381_G1_scalarMul
+                                          | Bls12_381_G1_equal
+                                          | Bls12_381_G1_hashToCurve
+                                          | Bls12_381_G1_compress
+                                          | Bls12_381_G1_uncompress
+                                          | Bls12_381_G2_add
+                                          | Bls12_381_G2_neg
+                                          | Bls12_381_G2_scalarMul
+                                          | Bls12_381_G2_equal
+                                          | Bls12_381_G2_hashToCurve
+                                          | Bls12_381_G2_compress
+                                          | Bls12_381_G2_uncompress
+                                          | Bls12_381_pairing
+                                          | Bls12_381_mulMlResult
+                                          | Bls12_381_finalVerify
+
+) #-}
 ```
 
 ### Abstract semantics of builtins
 
-We need to postulate the Agda type of built-in functions 
+We need to postulate the Agda type of built-in functions
 whose semantics are provided by a Haskell funciton.
 
 ```
@@ -370,4 +430,3 @@ postulate
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 ```
- 

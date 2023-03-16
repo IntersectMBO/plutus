@@ -38,6 +38,9 @@ renNfTyCon-cong p bool       = refl
 renNfTyCon-cong p (list A)   = cong list (renNf-cong p A) 
 renNfTyCon-cong p (pair A B) = cong₂ pair (renNf-cong p A) (renNf-cong p B)
 renNfTyCon-cong p pdata       = refl
+renNfTyCon-cong p g1elt       = refl
+renNfTyCon-cong p g2elt       = refl
+renNfTyCon-cong p mlresult    = refl
 
 
 renNe-cong : {f g : Ren Φ Ψ}
@@ -73,6 +76,9 @@ renNfTyCon-id bool       = refl
 renNfTyCon-id (list A)   = cong list (renNf-id A) 
 renNfTyCon-id (pair A B) = cong₂ pair (renNf-id A) (renNf-id B)
 renNfTyCon-id pdata       = refl
+renNfTyCon-id g1elt       = refl
+renNfTyCon-id g2elt       = refl
+renNfTyCon-id mlresult    = refl
 
 renNe-id : (n : Φ ⊢Ne⋆ J)
            --------------
@@ -109,6 +115,9 @@ renNfTyCon-comp bool       = refl
 renNfTyCon-comp (list A)   = cong list (renNf-comp A) 
 renNfTyCon-comp (pair A B) = cong₂ pair (renNf-comp A) (renNf-comp B)
 renNfTyCon-comp pdata       = refl
+renNfTyCon-comp g1elt       = refl
+renNfTyCon-comp g2elt       = refl
+renNfTyCon-comp mlresult    = refl
 
 renNe-comp : {g : Ren Φ Ψ}
            → {f : Ren Ψ Θ}

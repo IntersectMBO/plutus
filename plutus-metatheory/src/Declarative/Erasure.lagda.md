@@ -57,6 +57,9 @@ eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
 eraseTC unit           = unit
 eraseTC (pdata d)       = pdata d
+eraseTC (g1elt e)       = g1elt e
+eraseTC (g2elt e)       = g2elt e
+eraseTC (mlresult r)    = mlresult r
 
 
 
