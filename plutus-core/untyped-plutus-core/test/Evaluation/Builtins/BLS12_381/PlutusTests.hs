@@ -10,7 +10,7 @@ import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
 
-import Crypto.EllipticCurve.BLS12_381 (BLSTError)
+import Crypto.EllipticCurve.BLS12_381 (BLSTError, scalarPeriod)
 import Data.ByteString as BS (length)
 import Data.List (foldl', genericReplicate)
 import Text.Printf (printf)
@@ -172,7 +172,8 @@ prop_scalarMul_periodic =
       n <- arbitraryScalar
       p <- arbitraryConstant @a
       let e1 = scalarMulP @a m p
-          e2 = scalarMulP @a (mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer groupSize))) p
+          k = mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer scalarPeriod))
+          e2 = scalarMulP @a k p -- k = m+n|G|
           e = eqP @a e1 e2
       pure $ evalTerm e === uplcTrue
 

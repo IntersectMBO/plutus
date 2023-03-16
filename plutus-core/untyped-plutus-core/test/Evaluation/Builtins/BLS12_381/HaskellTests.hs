@@ -10,7 +10,7 @@ import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
 import PlutusCore.BLS12_381.Pairing qualified as Pairing
 
-import Crypto.EllipticCurve.BLS12_381 (BLSTError)
+import Crypto.EllipticCurve.BLS12_381 (BLSTError, scalarPeriod)
 import Data.ByteString as BS (length)
 import Data.Either (isLeft)
 import Data.List (foldl', genericReplicate)
@@ -153,6 +153,8 @@ prop_scalarMul_repeated_addition =
                     then foldl' add zero $ genericReplicate n p
                     else repeatedAdd (-n) (neg p)
 
+-- (m + n|G|)p = mp for all group elements p and integers m and n.
+-- We have |G1| = |G2| = scalarPeriod
 prop_scalarMul_periodic :: forall a. TestableAbelianGroup a => TestTree
 prop_scalarMul_periodic =
     testProperty
@@ -161,7 +163,7 @@ prop_scalarMul_periodic =
       m <- arbitrary
       n <- arbitrary
       p <- arbitrary @a
-      pure $ scalarMul m p === scalarMul (m+n*groupSize) p
+      pure $ scalarMul m p === scalarMul (m+n*scalarPeriod) p
 
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
 test_Z_action_good =
