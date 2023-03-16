@@ -51,8 +51,8 @@ failingTests = [
     , "test-cases/uplc/evaluation/builtin/semantics/consByteString/consByteString2"
     ]
     -- The tests for the BLS12-381 builtins are disabled because the metatheory
-    -- doesn't yet deal with the builtins properly.  -- The commented-out tests
-    -- will "succeed" because failure (for a genuine reason) is expected.
+    -- doesn't yet deal with the builtins properly. The commented-out tests will
+    -- "succeed" because failure (for a genuine reason) is expected.
      ++ fmap ("test-cases/uplc/evaluation/builtin/semantics/" ++)
      [ "bls12_381_G1_add/add-associative"
      , "bls12_381_G1_add/add-zero"
