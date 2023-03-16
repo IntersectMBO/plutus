@@ -120,7 +120,8 @@ V-I b {tm = suc tm} bt = V-IΠ b bt
 
 BUILTIN : ∀ b → BApp b (alldone (fv♯ (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
 BUILTIN addInteger = λ
-  { (app (app base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i + i')))  ; _ -> inj₁ userError
+  { (app (app base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i + i')))  
+  ; _ -> inj₁ userError
   }
 BUILTIN subtractInteger = λ
   { (app (app base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i - i')))
@@ -352,13 +353,6 @@ BUILTIN mkNilData = λ
 BUILTIN mkNilPairData = λ
   { _ -> inj₁ userError
   }
-
-{-
-convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity (signature b))
-  → BApp b p
-  → BApp b p'
-convBApp b p p' q rewrite unique<>> p p' = q
--}
 
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
