@@ -79,7 +79,7 @@ hashAndAddG1 (p:ps) =
 mkHashAndAddG1Script :: [ByteString] -> UProg
 mkHashAndAddG1Script l =
     let points = map toBuiltin l
-    in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.applyCode` Tx.liftCode points
+    in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Hash some bytestrings onto G2 and add them all together
 
@@ -94,7 +94,7 @@ hashAndAddG2 (p:ps) =
 mkHashAndAddG2Script :: [ByteString] -> UProg
 mkHashAndAddG2Script l =
     let points = map toBuiltin l
-    in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.applyCode` Tx.liftCode points
+    in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Deserialise a list of compressed G1 points and add them all together
 
@@ -109,7 +109,7 @@ uncompressAndAddG1 (p:ps) =
 mkUncompressAndAddG1Script :: [ByteString] -> UProg
 mkUncompressAndAddG1Script l =
     let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
-    in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.applyCode` Tx.liftCode points
+    in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 
 -- Check that point addition is commutative in G1
@@ -136,7 +136,7 @@ uncompressAndAddG2 (p:ps) =
 mkUncompressAndAddG2Script :: [ByteString] -> UProg
 mkUncompressAndAddG2Script l =
     let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
-    in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.applyCode` Tx.liftCode points
+    in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Check that point addition is commutative in G2
 checkUncompressAndAddG2_Haskell :: Integer -> IO ()
@@ -171,10 +171,10 @@ mkPairingScript
     -> UProg
 mkPairingScript p1 p2 q1 q2 =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| runPairingFunctions ||])
-          `Tx.applyCode` Tx.liftCode p1
-          `Tx.applyCode` Tx.liftCode p2
-          `Tx.applyCode` Tx.liftCode q1
-          `Tx.applyCode` Tx.liftCode q2
+          `Tx.unsafeApplyCode` Tx.liftCode p1
+          `Tx.unsafeApplyCode` Tx.liftCode p2
+          `Tx.unsafeApplyCode` Tx.liftCode q1
+          `Tx.unsafeApplyCode` Tx.liftCode q2
 
 ---------------- Groth16 verification ----------------
 
@@ -333,16 +333,16 @@ groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
 mkGroth16VerifyScript :: UProg
 mkGroth16VerifyScript =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| groth16Verify ||])
-           `Tx.applyCode` (Tx.liftCode $ g1 alpha)
-           `Tx.applyCode` (Tx.liftCode $ g2 beta)
-           `Tx.applyCode` (Tx.liftCode $ g2 gamma)
-           `Tx.applyCode` (Tx.liftCode $ g2 delta)
-           `Tx.applyCode` (Tx.liftCode $ g1 gamma_abc_1)
-           `Tx.applyCode` (Tx.liftCode $ g1 gamma_abc_2)
-           `Tx.applyCode` (Tx.liftCode $ g1 a)
-           `Tx.applyCode` (Tx.liftCode $ g2 b)
-           `Tx.applyCode` (Tx.liftCode $ g1 c)
-           `Tx.applyCode` Tx.liftCode scalar
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g1 alpha)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g2 beta)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g2 gamma)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g2 delta)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g1 gamma_abc_1)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g1 gamma_abc_2)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g1 a)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g2 b)
+           `Tx.unsafeApplyCode` (Tx.liftCode $ g1 c)
+           `Tx.unsafeApplyCode` Tx.liftCode scalar
 
 -- | Check that the Haskell version returns the correct result.
 checkGroth16Verify_Haskell :: Bool

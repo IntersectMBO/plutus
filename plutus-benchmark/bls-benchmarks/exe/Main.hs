@@ -23,7 +23,7 @@ import Data.ByteString qualified as BS
 import Flat qualified
 import Text.Printf (printf)
 
-import Prelude (Double, IO, Integral, String, fromIntegral, show, (*), (/))
+import Prelude (Double, IO, Integral, String, fromIntegral, mapM_, show, (*), (/))
 
 -- Protocol parameters (November 2022)
 
