@@ -44,7 +44,7 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;
 open Sig
 
 open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
-    using (sig2type;♯2*;SigTy;sig2SigTy;saturatedSigTy)
+    using (sig2type;♯2*;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
 open SigTy
 
 data Env : Ctx ∅ → Set
@@ -106,7 +106,7 @@ data BApp b where
     → {A : ∅ ⊢Nf⋆ *}
     → (q : C ≡ B [ A ]Nf)
     → {σC : SigTy (bubble pt) pa C}
-    → (σq : σC ≡ substEq (SigTy (bubble pt) pa) (sym q) (σB [ A ]SigTy))
+    → (σq : σC ≡ convSigTy (sym q) (σB [ A ]SigTy))
     → BApp b C σC
 ```
 

@@ -189,7 +189,7 @@ indexed by the concrete types
 
     -- A SigTy (0 ∔ tn ≣ tn) at A is a type that expects the total number of type arguments (tn) and the total number of term arguments (at)  
 
-    module _ where 
+    private module _ where 
         --Some examples to see if the definitions work.
         p : (1 ∔ 2 ≣ 3) 
         p = bubble (start 3)
@@ -250,14 +250,19 @@ indexed by the concrete types
 
     saturatedSigTy : ∀ (σ : Sig) → (A : Ty ∅) → Set
     saturatedSigTy σ A = SigTy (alldone (fv♯ σ)) (alldone (args♯ σ)) A
+```
 
+## Conversion of Signature types
+
+```
     convSigTy :
-          ∀{tn tm tt} → (pt pt' : tn ∔ tm ≣ tt)
-        → ∀{an am at} → (pa pa' : an ∔ am ≣ at)
-        → ∀{n}{A : Ty (nat2Ctx n)}
+          ∀{tn tm tt} → {pt pt' : tn ∔ tm ≣ tt}
+        → ∀{an am at} → {pa pa' : an ∔ am ≣ at}
+        → ∀{n}{A A' : Ty (nat2Ctx n)}
+        → A ≡ A'
         → SigTy pt pa A
-        → SigTy pt' pa' A
-    convSigTy pt pt' pa pa' q rewrite unique∔ pt pt' | unique∔ pa pa' = q
+        → SigTy pt' pa' A'
+    convSigTy {pt = pt} {pt'} {pa = pa} {pa'} refl sty rewrite unique∔ pt pt' | unique∔ pa pa' = sty
 -- -}
 ```
 
