@@ -113,6 +113,7 @@ library
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.ReductionEC.Progress
     MAlonzo.Code.Algorithmic.RenamingSubstitution
+    MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
@@ -299,6 +300,7 @@ library
     MAlonzo.Code.Algorithmic.ReductionEC
     MAlonzo.Code.Algorithmic.ReductionEC.Progress
     MAlonzo.Code.Algorithmic.RenamingSubstitution
+    MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type

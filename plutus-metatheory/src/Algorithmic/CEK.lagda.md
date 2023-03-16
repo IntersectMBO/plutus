@@ -49,7 +49,7 @@ open SigTy
 
 data Env : Ctx ∅ → Set
 
-data BApp (σ : Sig) : 
+data BApp (b : Builtin) : 
     ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
   → ∀{an am at} → {pa : an ∔ am ≣ at}
   → (A : ∅ ⊢Nf⋆ *) → SigTy pt pa A → Set
@@ -79,35 +79,35 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
        → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → {σB : SigTy pt (bubble pa) B}
-       → BApp (signature b) (A ⇒ B) (A B⇒ σB)
+       → BApp b (A ⇒ B) (A B⇒ σB)
        → Value (A ⇒ B)
 
   V-IΠ : ∀ b {B : ∅ ,⋆ * ⊢Nf⋆ *}
        → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σB : SigTy (bubble pt) pa B}
-       → BApp (signature b) (Π B) (sucΠ σB)
+       → BApp b (Π B) (sucΠ σB)
        → Value (Π B)
 
-data BApp σ where
-  base : BApp σ (proj₁ (sig2SigTy σ)) (proj₂ (sig2SigTy σ))
+data BApp b where
+  base : BApp b (proj₁ (sig2SigTy (signature b))) (proj₂ (sig2SigTy (signature b)))
   app : ∀{A B}{tn}
-    → {pt : tn ∔ 0 ≣ fv♯ σ} 
-    → ∀{an am}{pa : an ∔ suc am ≣ args♯ σ}
+    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
-    → BApp σ (A ⇒ B) (A B⇒ σB)
+    → BApp b (A ⇒ B) (A B⇒ σB)
     → Value A 
-    → BApp σ B σB
+    → BApp b B σB
   app⋆ : ∀{B C}
-    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ σ} 
-    → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ σ}
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → {σB : SigTy (bubble pt) pa B}
-    → BApp σ (Π B) (sucΠ σB)
+    → BApp b (Π B) (sucΠ σB)
     → {A : ∅ ⊢Nf⋆ *}
     → (q : C ≡ B [ A ]Nf)
     → {σC : SigTy (bubble pt) pa C}
     → (σq : σC ≡ substEq (SigTy (bubble pt) pa) (sym q) (σB [ A ]SigTy))
-    → BApp σ C σC
+    → BApp b C σC
 ```
 
 ## Environments
@@ -120,14 +120,6 @@ data Env where
 lookup : ∀{Γ A} → Γ ∋ A → Env Γ → Value A
 lookup Z     (ρ ∷ v) = v
 lookup (S x) (ρ ∷ v) = lookup x ρ
-```
-
-```
-BA : (b : Builtin) 
-  → ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
-  → ∀{an am at} → {pa : an ∔ am ≣ at} 
-  → (A : ∅ ⊢Nf⋆ *) → SigTy pt pa A → Set
-BA b = BApp (signature b)
 ```
 
 ## Conversion of Values to Terms
@@ -160,7 +152,7 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
 dischargeB : ∀(b : Builtin)
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
-          → ∀{C} → {Cb : SigTy pt pa C} → (bp : BA b C Cb) 
+          → ∀{C} → {Cb : SigTy pt pa C} → (bp : BApp b C Cb) 
           → ∅ ⊢ C
 dischargeB b base = builtin b / btype-∅
 dischargeB b (app bt x) = dischargeB b bt · discharge x
@@ -178,7 +170,7 @@ discharge (V-IΠ b bt) = dischargeB b bt
 
 ```
 
-BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BA b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
+BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
 BUILTIN addInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
 BUILTIN subtractInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
 BUILTIN multiplyInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
@@ -255,7 +247,7 @@ BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
-  → BApp (signature b) A σA
+  → BApp b A σA
   → ∅ ⊢ A
 BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
 ... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
@@ -269,7 +261,7 @@ V-I : ∀ (b : Builtin) {A : ∅ ⊢Nf⋆ *}
        → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
        → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy pt pa A}
-       → BApp (signature b) A σA
+       → BApp b A σA
        → Value A
 V-I b {tm = zero} {σA = A B⇒ σA} bt = V-I⇒ b bt
 V-I b {tm = suc tm} {σA = sucΠ σA} bt = V-IΠ b bt
