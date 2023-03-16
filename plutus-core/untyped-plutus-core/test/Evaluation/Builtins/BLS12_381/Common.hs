@@ -24,6 +24,59 @@ import Test.QuickCheck
 import Data.ByteString as BS (ByteString, pack)
 import Text.Printf (printf)
 
+-- PLC utilities
+
+-- Evaluating PLC terms
+
+type PlcTerm = PLC.Term TyName Name DefaultUni DefaultFun ()
+type UplcTerm = UPLC.Term Name DefaultUni DefaultFun ()
+
+data CekResult =
+    TypeCheckEvaluateError (Error DefaultUni DefaultFun ())
+  | CekError
+  | CekSuccess UplcTerm
+    deriving stock (Eq, Show)
+
+evalTerm :: PlcTerm -> CekResult
+evalTerm term =
+    case typecheckEvaluateCekNoEmit DefaultFunV1 defaultBuiltinCostModel term
+    of Left e -> TypeCheckEvaluateError e
+       Right x  ->
+           case x of
+             EvaluationFailure   -> CekError
+             EvaluationSuccess s -> CekSuccess s
+
+-- Constructing PLC constants and applications
+
+uplcTrue :: CekResult
+uplcTrue = CekSuccess $ mkConstant () True
+
+uplcFalse :: CekResult
+uplcFalse = CekSuccess $ mkConstant () False
+
+integer :: Integer -> PlcTerm
+integer = mkConstant ()
+
+bytestring :: ByteString -> PlcTerm
+bytestring = mkConstant ()
+
+mkApp1 :: DefaultFun -> PlcTerm -> PlcTerm
+mkApp1 b x = mkIterApp () (builtin () b) [x]
+
+mkApp2 :: DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
+mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
+
+-- Constructing pairing terms
+
+pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
+pairingPlc = mkApp2 Bls12_381_pairing
+
+mulMlResultPlc :: PlcTerm -> PlcTerm -> PlcTerm
+mulMlResultPlc = mkApp2 Bls12_381_mulMlResult
+
+finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
+finalVerifyPlc = mkApp2 Bls12_381_finalVerify
+
 
 -- | The size of G1, G2, and GT.  Scalar multiplication is periodic modulo this number.
 -- FIXME: import this from the library when it's merged.
@@ -134,55 +187,5 @@ mkTestName s = printf "%s_%s" (gname @a) s
 withNTests :: Testable prop => prop -> Property
 withNTests = withMaxSuccess 200
 
--- PLC utilities
-
--- Evaluating PLC terms
-
-type PlcTerm = PLC.Term TyName Name DefaultUni DefaultFun ()
-type UplcTerm = UPLC.Term Name DefaultUni DefaultFun ()
-
-data CekResult =
-    TypeCheckEvaluateError (Error DefaultUni DefaultFun ())
-  | CekError
-  | CekSuccess UplcTerm
-    deriving stock (Eq, Show)
-
-evalTerm :: PlcTerm -> CekResult
-evalTerm term =
-    case typecheckEvaluateCekNoEmit DefaultFunV1 defaultBuiltinCostModel term
-    of Left e -> TypeCheckEvaluateError e
-       Right x  ->
-           case x of
-             EvaluationFailure   -> CekError
-             EvaluationSuccess s -> CekSuccess s
-
-uplcTrue :: CekResult
-uplcTrue = CekSuccess $ mkConstant () True
-
-uplcFalse :: CekResult
-uplcFalse = CekSuccess $ mkConstant () False
-
-integer :: Integer -> PlcTerm
-integer = mkConstant ()
-
-bytestring :: ByteString -> PlcTerm
-bytestring = mkConstant ()
-
-mkApp1 :: DefaultFun -> PlcTerm -> PlcTerm
-mkApp1 b x = mkIterApp () (builtin () b) [x]
-
-mkApp2 :: DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
-
--- Constructing pairing terms
-
-pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
-pairingPlc = mkApp2 Bls12_381_pairing
-
-mulMlResultPlc :: PlcTerm -> PlcTerm -> PlcTerm
-mulMlResultPlc = mkApp2 Bls12_381_mulMlResult
-
-finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
-finalVerifyPlc = mkApp2 Bls12_381_finalVerify
 
 

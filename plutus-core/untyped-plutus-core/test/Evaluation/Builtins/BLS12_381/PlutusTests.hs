@@ -19,13 +19,13 @@ import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
+-- QuickCheck generators for scalars and group elements as PLC terms
 
 arbitraryConstant :: forall a . TestableAbelianGroup a => Gen PlcTerm
 arbitraryConstant = toPlc <$> (arbitrary @a)
 
 arbitraryScalar :: Gen PlcTerm
 arbitraryScalar = integer <$> (arbitrary @Integer)
-
 
 ---------------- G is an Abelian group ----------------
 
