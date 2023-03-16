@@ -106,7 +106,7 @@ data DefaultUni a where
     DefaultUniData                 :: DefaultUni (Esc Data)
     DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
     DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
-    DefaultUniBLS12_381_MlResult  :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
+    DefaultUniBLS12_381_MlResult   :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.

@@ -126,16 +126,16 @@ data DefaultFun
     -- BLS12_381 operations
     -- G1
     | Bls12_381_G1_add
-    | Bls12_381_G1_scalarMul
     | Bls12_381_G1_neg
+    | Bls12_381_G1_scalarMul
     | Bls12_381_G1_equal
     | Bls12_381_G1_hashToCurve
     | Bls12_381_G1_compress
     | Bls12_381_G1_uncompress
     -- G2
     | Bls12_381_G2_add
-    | Bls12_381_G2_scalarMul
     | Bls12_381_G2_neg
+    | Bls12_381_G2_scalarMul
     | Bls12_381_G2_equal
     | Bls12_381_G2_hashToCurve
     | Bls12_381_G2_compress
