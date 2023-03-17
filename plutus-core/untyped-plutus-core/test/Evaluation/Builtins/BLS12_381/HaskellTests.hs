@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -10,9 +11,8 @@ import PlutusCore.BLS12_381.G1 qualified as G1
 import PlutusCore.BLS12_381.G2 qualified as G2
 import PlutusCore.BLS12_381.Pairing qualified as Pairing
 
-import Crypto.EllipticCurve.BLS12_381 (BLSTError, scalarPeriod)
+import Crypto.EllipticCurve.BLS12_381 (BLSTError (..), scalarPeriod)
 import Data.ByteString as BS (length)
-import Data.Either (isLeft)
 import Data.List (foldl', genericReplicate)
 import Text.Printf (printf)
 
@@ -24,8 +24,8 @@ import Test.Tasty.QuickCheck
 ---------------- G is an Abelian group ----------------
 
 -- | Group addition is associative.
-prop_add_assoc :: forall a. TestableAbelianGroup a => TestTree
-prop_add_assoc =
+test_add_assoc :: forall a. TestableAbelianGroup a => TestTree
+test_add_assoc =
     testProperty
     (mkTestName @a "add_assoc") .
     withNTests $ do
@@ -35,8 +35,8 @@ prop_add_assoc =
       pure $ add p1 (add p2 p3) === add (add p1 p2) p3
 
 -- | Zero is an identity for addition.
-prop_add_zero :: forall a. TestableAbelianGroup a => TestTree
-prop_add_zero =
+test_add_zero :: forall a. TestableAbelianGroup a => TestTree
+test_add_zero =
     testProperty
     (mkTestName @a "add_zero") .
     withNTests $ do
@@ -45,8 +45,8 @@ prop_add_zero =
 
 -- | Every element has an inverse
 -- | a+(-a) = 0 for all group elements.
-prop_neg :: forall a. TestableAbelianGroup a => TestTree
-prop_neg =
+test_neg :: forall a. TestableAbelianGroup a => TestTree
+test_neg =
     testProperty
     (mkTestName @a "additive_inverse") .
     withNTests $ do
@@ -54,8 +54,8 @@ prop_neg =
       pure $ add p (neg p) === zero
 
 -- | Group addition is commutative.
-prop_add_commutative :: forall a. TestableAbelianGroup a => TestTree
-prop_add_commutative =
+test_add_commutative :: forall a. TestableAbelianGroup a => TestTree
+test_add_commutative =
     testProperty
     (mkTestName @a "add_commutative") .
     withNTests $ do
@@ -66,18 +66,18 @@ prop_add_commutative =
 test_is_an_abelian_group :: forall a. TestableAbelianGroup a => TestTree
 test_is_an_abelian_group =
     testGroup (mkTestName @a "is_an_abelian_group")
-         [ prop_add_assoc       @a
-         , prop_add_zero        @a
-         , prop_neg             @a
-         , prop_add_commutative @a
+         [ test_add_assoc       @a
+         , test_add_zero        @a
+         , test_neg             @a
+         , test_add_commutative @a
          ]
 
 
 ---------------- Z acts on G correctly ----------------
 
 -- | (ab)p = a(bp) for all scalars a and b and all group elements p.
-prop_scalarMul_assoc :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_assoc =
+test_scalarMul_assoc :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_assoc =
     testProperty
     (mkTestName @a "scalarMul_assoc") .
     withNTests $ do
@@ -87,8 +87,8 @@ prop_scalarMul_assoc =
       pure $ scalarMul (m*n) p === scalarMul m (scalarMul n p)
 
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
-prop_scalarMul_distributive_left :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_distributive_left =
+test_scalarMul_distributive_left :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_distributive_left =
     testProperty
     (mkTestName @a "scalarMul_distributive_left") .
     withNTests $  do
@@ -98,8 +98,8 @@ prop_scalarMul_distributive_left =
       pure $ scalarMul (m+n) p === add (scalarMul m p) (scalarMul n p)
 
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
-prop_scalarMul_distributive_right :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_distributive_right =
+test_scalarMul_distributive_right :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_distributive_right =
     testProperty
     (mkTestName @a "scalarMul_distributive_right") .
     withNTests $  do
@@ -109,8 +109,8 @@ prop_scalarMul_distributive_right =
       pure $ scalarMul n (add p q) === add (scalarMul n p) (scalarMul n q)
 
 -- | 0p = 0 for all group elements p.
-prop_scalarMul_zero :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_zero =
+test_scalarMul_zero :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_zero =
     testProperty
     (mkTestName @a "scalarMul_zero") .
     withNTests $ do
@@ -118,8 +118,8 @@ prop_scalarMul_zero =
       pure $ scalarMul 0 p === zero
 
 -- | 1p = p for all group elements p.
-prop_scalarMul_one :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_one =
+test_scalarMul_one :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_one =
     testProperty
     (mkTestName @a "scalarMul_one") .
     withNTests $ do
@@ -127,8 +127,8 @@ prop_scalarMul_one =
       pure $ scalarMul 1 p === p
 
 -- | (-1)p = -p for all group elements p.
-prop_scalarMul_inverse :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_inverse =
+test_scalarMul_inverse :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_inverse =
     testProperty
     (mkTestName @a "scalarMul_inverse") .
     withNTests $ property $ do
@@ -139,8 +139,8 @@ prop_scalarMul_inverse =
 -- scalars). We should really check this for scalars greater than the group
 -- order, but that would be prohibitively slow because the order of G1 and G2
 -- has 256 bits (about 5*10^76).
-prop_scalarMul_repeated_addition :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_repeated_addition =
+test_scalarMul_repeated_addition :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_repeated_addition =
     testProperty
     (mkTestName @a "scalarMul_repeated_addition") .
     withNTests $ do
@@ -155,8 +155,8 @@ prop_scalarMul_repeated_addition =
 
 -- (m + n|G|)p = mp for all group elements p and integers m and n.
 -- We have |G1| = |G2| = scalarPeriod
-prop_scalarMul_periodic :: forall a. TestableAbelianGroup a => TestTree
-prop_scalarMul_periodic =
+test_scalarMul_periodic :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_periodic =
     testProperty
     (mkTestName @a "scalarMul_periodic") .
     withNTests $ do
@@ -168,14 +168,14 @@ prop_scalarMul_periodic =
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
 test_Z_action_good =
     testGroup (printf "Z acts correctly on %s" $ gname @a)
-         [ prop_scalarMul_assoc              @a
-         , prop_scalarMul_distributive_left  @a
-         , prop_scalarMul_distributive_right @a
-         , prop_scalarMul_zero               @a
-         , prop_scalarMul_one                @a
-         , prop_scalarMul_inverse            @a
-         , prop_scalarMul_repeated_addition  @a
-         , prop_scalarMul_periodic           @a
+         [ test_scalarMul_assoc              @a
+         , test_scalarMul_distributive_left  @a
+         , test_scalarMul_distributive_right @a
+         , test_scalarMul_zero               @a
+         , test_scalarMul_one                @a
+         , test_scalarMul_inverse            @a
+         , test_scalarMul_repeated_addition  @a
+         , test_scalarMul_periodic           @a
          ]
 
 
@@ -183,13 +183,13 @@ test_Z_action_good =
 
 -- | Check that if we compress a group element then it will always uncompress
 -- succesfully and give you back the same thing.
-prop_roundtrip_compression :: forall e a. HashAndCompress e a => TestTree
-prop_roundtrip_compression =
+test_roundtrip_compression :: forall a . HashAndCompress a => TestTree
+test_roundtrip_compression =
     testProperty
     (mkTestName @a "roundtrip_compression") .
     withNTests $ do
       p <- arbitrary @a
-      case uncompress @e @a $ compress @e @a p of
+      case uncompress @a $ compress @a p of
         Left e  -> error $ show e
         Right q -> pure $ p === q
 
@@ -199,45 +199,98 @@ prop_roundtrip_compression =
 -- have the expected length it would be very unlikely to deserialise to a point
 -- in the group because the cofactors are very big (7.6*10^37 for G1 and
 -- 3.1*10^152 for G2).
-prop_uncompression_input_size :: forall e a. HashAndCompress e a => TestTree
-prop_uncompression_input_size =
+test_uncompression_wrong_size :: forall a . HashAndCompress a => TestTree
+test_uncompression_wrong_size =
     testProperty
-    (mkTestName @a "uncompression_input_size") .
+    (mkTestName @a "uncompression_wrong_size") .
     withNTests $ do
       b <- suchThat (resize 128 arbitrary) incorrectSize
-      pure $ isLeft $ uncompress @e @a b
-    where incorrectSize s =
-              BS.length s /= compressedSize @e @a
+      pure $ uncompress @a b == Left BLST_BAD_ENCODING
+    where incorrectSize s = BS.length s /= compressedSize @a
 
 -- | This tests the case we've omitted in the previous test, and should fail
--- with very high probablity.  Ideally we'd check that the point really isn't in
--- the group, but we can't do that until we've uncompressed it anyway.
-prop_uncompress_out_of_group :: forall e a. HashAndCompress e a => TestTree
-prop_uncompress_out_of_group =
+-- with very high probablity.  It's quite difficult to test this with random
+-- inputs.  We can improve our chances of getting a bytestring which encodes a
+-- point on the curve by setting the compression bit and clearing the infinity
+-- bit, but about 50% of the samples will still not be the x-coordinate of a
+-- point on the curve.  We can generate also generate points with an
+-- x-coordinate that's bigger than the field size (especially for G2), which
+-- will give us a bad encoding.  Maybe this just isn't a very good test.
+test_uncompress_out_of_group :: forall a . HashAndCompress a => TestTree
+test_uncompress_out_of_group =
     testProperty
     (mkTestName @a "uncompress_out_of_group") .
+    withMaxSuccess 400 $ do
+      b <- suchThat (resize  128 arbitrary) correctSize
+      let b' = setBits compressionBit $ clearBits infinityBit b
+          r = uncompress @a b'
+      pure $ r === Left BLST_BAD_ENCODING .||.
+             r === Left BLST_POINT_NOT_ON_CURVE .||.
+             r === Left BLST_POINT_NOT_IN_GROUP
+    where correctSize s = BS.length s == compressedSize @a
+
+-- | Check that the most significant bit is set for all compressed points
+test_compression_bit_set :: forall a. HashAndCompress a => TestTree
+test_compression_bit_set =
+    testProperty
+    (mkTestName @a "compression_bit_set") .
     withNTests $ do
-      b <- resize (compressedSize @e @a) arbitrary
-      pure $ isLeft $ uncompress @e @a b
+      p <- arbitrary @a
+      pure $ isSet compressionBit $ compress @a p
+
+-- | Check that bytestrings with the compression bit clear fail to uncompress.
+test_clear_compression_bit :: forall a. HashAndCompress a => TestTree
+test_clear_compression_bit =
+    testProperty
+    (mkTestName @a "clear_compression_bit") .
+    withNTests $ do
+      p <- arbitrary @a
+      let b = clearBits compressionBit $ compress @a p
+      pure $ uncompress @a b === Left BLST_BAD_ENCODING
+
+-- | Check that flipping the sign bit in a compressed point gives the inverse of
+-- the point.
+test_flip_sign_bit :: forall a. HashAndCompress a => TestTree
+test_flip_sign_bit =
+    testProperty
+    (mkTestName @a "flip_sign_bit") .
+    withNTests $ do
+      p <- arbitrary @a
+      let b = flipBits signBit $ compress @a p
+      pure $ uncompress @a b === (Right $ neg @a p)
+
+-- | Check that bytestrings with the infinity bit set fail to uncompress.
+test_set_infinity_bit :: forall a. HashAndCompress a => TestTree
+test_set_infinity_bit =
+    testProperty
+    (mkTestName @a "set_infinity_bit") .
+    withNTests $ do
+      p <- arbitrary @a
+      let b = setBits infinityBit $ compress @a p
+      pure $ uncompress @a b === Left BLST_BAD_ENCODING
 
 -- | Hashing into G1 or G2 should be collision-free. A failure here would be
 -- interesting.
-prop_no_hash_collisions :: forall e a. HashAndCompress e a => TestTree
-prop_no_hash_collisions =
+test_no_hash_collisions :: forall a . HashAndCompress a => TestTree
+test_no_hash_collisions =
     testProperty
     (mkTestName @a "no_hash_collisions") .
     withNTests $ do
       b1 <- arbitrary
       b2 <- arbitrary
-      pure $ b1 /= b2 ==> hashTo @e @a b1 =/= hashTo @e @a b2
+      pure $ b1 /= b2 ==> hashTo @a b1 =/= hashTo @a b2
 
-test_compress_hash :: forall e a. HashAndCompress e a => TestTree
+test_compress_hash :: forall a . HashAndCompress a => TestTree
 test_compress_hash =
     testGroup (printf "Uncompression and hashing behave properly for %s" $ gname @a)
-         [ prop_roundtrip_compression    @e @a
-         , prop_uncompression_input_size @e @a
-         , prop_uncompress_out_of_group  @e @a
-         , prop_no_hash_collisions       @e @a
+         [ test_roundtrip_compression    @a
+         , test_uncompression_wrong_size @a
+         , test_compression_bit_set      @a
+         , test_clear_compression_bit    @a
+         , test_flip_sign_bit            @a
+         , test_set_infinity_bit         @a
+         , test_uncompress_out_of_group  @a
+         , test_no_hash_collisions       @a
          ]
 
 
@@ -254,8 +307,8 @@ doPairing p q =
       Right r -> r
 
 -- <p1+p2,q> = <p1,q>.<p2,q>
-prop_pairing_left_additive :: TestTree
-prop_pairing_left_additive =
+test_pairing_left_additive :: TestTree
+test_pairing_left_additive =
     testProperty
     "pairing_left_additive" .
     withNTests $ do
@@ -267,8 +320,8 @@ prop_pairing_left_additive =
       pure $ Pairing.finalVerify e1 e2 === True
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
-prop_pairing_right_additive :: TestTree
-prop_pairing_right_additive =
+test_pairing_right_additive :: TestTree
+test_pairing_right_additive =
     testProperty
     "pairing_right_additive" .
     withNTests $ do
@@ -283,8 +336,8 @@ prop_pairing_right_additive =
 -- We could also test that both of these are equal to <p,q>^n, but we don't have
 -- an exponentiation function in GT.  We could implement exponentiation using GT
 -- multiplication, but that would require some work.
-prop_pairing_balanced :: TestTree
-prop_pairing_balanced =
+test_pairing_balanced :: TestTree
+test_pairing_balanced =
      testProperty
      "pairing_balanced" .
      withNTests $ do
@@ -297,8 +350,8 @@ prop_pairing_balanced =
                 === True
 
 -- finalVerify returns False for random inputs
-prop_random_pairing :: TestTree
-prop_random_pairing =
+test_random_pairing :: TestTree
+test_random_pairing =
     testProperty
     "pairing_random_unequal" .
     withNTests $
@@ -317,19 +370,18 @@ tests = testGroup "*** Haskell property tests ***" [
          testGroup "G1 properties"
          [ test_is_an_abelian_group @G1.Element
          , test_Z_action_good       @G1.Element
-         , test_compress_hash       @BLSTError @G1.Element
+         , test_compress_hash       @G1.Element
          ]
-
         , testGroup "G2 properties"
          [ test_is_an_abelian_group @G2.Element
          , test_Z_action_good       @G2.Element
-         , test_compress_hash       @BLSTError @G2.Element
+         , test_compress_hash       @G2.Element
          ]
         , testGroup "Pairing properties"
-         [ prop_pairing_left_additive
-         , prop_pairing_right_additive
-         , prop_pairing_balanced
-         , prop_random_pairing
+         [ test_pairing_left_additive
+         , test_pairing_right_additive
+         , test_pairing_balanced
+         , test_random_pairing
          ]
         ]
 

@@ -1,6 +1,5 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeApplications    #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -19,9 +18,11 @@ import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
 import UntypedPlutusCore as UPLC
 
 import PlutusCore.Generators.QuickCheck.Builtin
-import Test.QuickCheck
+import Test.QuickCheck hiding ((.&.))
 
-import Data.ByteString as BS (ByteString, pack)
+import Data.Bits (complement, xor, (.&.), (.|.))
+import Data.ByteString as BS (ByteString, cons, pack, uncons)
+import Data.Word (Word8)
 import Text.Printf (printf)
 
 -- PLC utilities
@@ -77,6 +78,56 @@ mulMlResultPlc = mkApp2 Bls12_381_mulMlResult
 finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
 finalVerifyPlc = mkApp2 Bls12_381_finalVerify
 
+-- ByteString utilities
+
+-- The most siginificant bit of a serialised curve point is set if the
+-- serialised point is in compressed form (x-coordinate only)
+compressionBit :: Word8
+compressionBit = 0x80
+
+-- The second most significant bit is set if and only if the point is the point
+-- at infinity (the zero of the group); if it is set, all other bits should be zero.
+infinityBit :: Word8
+infinityBit = 0x40
+
+-- The third most significant bit of a compressed point denotes the "sign" of
+-- the y-coordinate of the associated point : it is set if and only if point is
+-- not the point at infinity and the y-coordinate is the lexicographically
+-- larger one with the given x coordinate.
+signBit :: Word8
+signBit = 0x20
+
+unsafeUnconsBS :: ByteString -> (Word8, ByteString)
+unsafeUnconsBS b =
+    case BS.uncons b of
+      Nothing -> error "Tried to uncons empty bytestring"
+      Just p  -> p
+
+-- Apply some function to the most significant byte of a bytestring
+modifyMSB :: (Word8 -> Word8) -> ByteString -> ByteString
+modifyMSB f s =
+    let (w,rest) = unsafeUnconsBS s
+    in BS.cons (f w) rest
+
+flipBits :: Word8 -> ByteString -> ByteString
+flipBits mask = modifyMSB (mask `xor`)
+
+clearBits :: Word8 -> ByteString -> ByteString
+clearBits mask = modifyMSB ((complement mask) .&.)
+
+setBits :: Word8 -> ByteString -> ByteString
+setBits mask = modifyMSB (mask .|.)
+
+isSet :: Word8 -> ByteString -> Bool
+isSet mask s =
+    let (w,_) = unsafeUnconsBS s
+    in w .&. mask /= 0
+
+fix :: ByteString -> ByteString
+fix s =
+    let (_,s1) = unsafeUnconsBS s
+        (_,s2) = unsafeUnconsBS s1
+    in BS.cons 0x80 (BS.cons 0x00 s2)
 
 ---------------- Typeclasses for groups ----------------
 
@@ -101,11 +152,11 @@ class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a) => TestableAbelianGroup a
       eqP        :: PlcTerm -> PlcTerm -> PlcTerm
       toPlc      :: a -> PlcTerm
 
-class (Show e, TestableAbelianGroup a) => HashAndCompress e a
+class TestableAbelianGroup a => HashAndCompress a
     where
       hashTo         :: ByteString -> a
       compress       :: a -> ByteString
-      uncompress     :: ByteString -> Either e a
+      uncompress     :: ByteString -> Either BLSTError a
       compressedSize :: Int
       compressP      :: PlcTerm -> PlcTerm
       uncompressP    :: PlcTerm -> PlcTerm
@@ -135,7 +186,7 @@ instance TestableAbelianGroup G1.Element
       eqP        = mkApp2 Bls12_381_G1_equal
       toPlc      = mkConstant ()
 
-instance HashAndCompress BLSTError G1.Element
+instance HashAndCompress G1.Element
     where
       hashTo         = G1.hashToCurve
       compress       = G1.compress
@@ -164,12 +215,12 @@ instance TestableAbelianGroup G2.Element
       eqP        = mkApp2 Bls12_381_G2_equal
       toPlc      = mkConstant ()
 
-instance HashAndCompress BLSTError G2.Element
+instance HashAndCompress G2.Element
     where
       hashTo         = G2.hashToCurve
       compress       = G2.compress
       uncompress     = G2.uncompress
-      compressedSize = 48
+      compressedSize = 96
       compressP      = mkApp1 Bls12_381_G2_compress
       uncompressP    = mkApp1 Bls12_381_G2_uncompress
       hashToCurveP   = mkApp1 Bls12_381_G2_hashToCurve
