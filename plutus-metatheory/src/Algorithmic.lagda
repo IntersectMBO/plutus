@@ -88,7 +88,6 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
 \end{code}
-
           
 Let `x`, `y` range over variables.
 
