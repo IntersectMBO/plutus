@@ -150,21 +150,6 @@ indexed by the concrete types
     -- an : number of arguments to be added to the type 
     -- am : number of arguments expected
     -- at : total number of arguments
-{-
-    data SigTy⇒ : ∀{n an am at} → an ∔ am ≣ at → Ty (nat2Ctx n) → Set where
-       bresult  : ∀{n at}
-                → (p : at ∔ 0 ≣ at)
-                → (A : Ty (nat2Ctx n)) 
-                → SigTy⇒ p A
-       _B⇒_ : ∀{n an am at} 
-              → (A : Ty (nat2Ctx n)) 
-              →  {B : Ty (nat2Ctx n)} 
-              →  {p : an ∔ suc am ≣ at} 
-              → SigTy⇒ (bubble p) B 
-              → SigTy⇒ p (A ⇒ B)
--}
-    -- a SigTy (0 ∔ t ≡ t) (0 ∔ n ≣ n) A is the type that expects the total number type and term parameters
-
     -- tm : number of Π applied
     -- tn : number of Π yet to be applied
     -- tt: number of Π in the signature (fv♯)
@@ -263,7 +248,6 @@ indexed by the concrete types
         → SigTy pt pa A
         → SigTy pt' pa' A'
     convSigTy {pt = pt} {pt'} {pa = pa} {pa'} refl sty rewrite unique∔ pt pt' | unique∔ pa pa' = sty
--- -}
 ```
 
 ## Auxiliary functions

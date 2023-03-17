@@ -181,9 +181,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
-Ctx2type : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-Ctx2type ∅        C = C
-Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
-Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
 \end{code}
