@@ -11,14 +11,13 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 open import Utils using (*;bubble)
 open import Type using (Ctx⋆;∅)
 open import Algorithmic using (Ctx;_⊢_)
-open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;irrValue)
+open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error)
 open Value
 open BApp
 open _—→⋆_

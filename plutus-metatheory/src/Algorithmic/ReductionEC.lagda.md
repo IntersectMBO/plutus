@@ -28,7 +28,7 @@ open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
 open import Algorithmic using (Ctx;_⊢_;conv⊢)
-open import Algorithmic.Signature using (btype;btype-∅;btype-sig2type;_[_]SigTy)
+open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -60,7 +60,7 @@ data BApp (b : Builtin) :
     ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
   → ∀{an am at} → {pa : an ∔ am ≣ at}
   → ∀{A} → SigTy pt pa A → ∅ ⊢ A → Set where
-  base : (q : sig2type (signature b) ≡ btype b) → BApp b (sig2SigTy (signature b)) (builtin b / q )
+  base : BApp b (sig2SigTy (signature b)) (builtin b / refl )
   step : ∀{A B}{tn}
     → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
@@ -120,91 +120,91 @@ deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
 
 BUILTIN : ∀ b {A}{t : ∅ ⊢ A}  {Ab : saturatedSigTy (signature b) A} → BApp b Ab t → ∅ ⊢ A
-BUILTIN addInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
-BUILTIN subtractInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
-BUILTIN multiplyInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
-BUILTIN divideInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN addInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
+BUILTIN subtractInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
+BUILTIN multiplyInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
+BUILTIN divideInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (div i j))
 ... | yes p = error _
-BUILTIN quotientInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN quotientInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (quot i j))
 ... | yes p = error _
-BUILTIN remainderInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN remainderInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (rem i j))
 ... | yes p = error _
-BUILTIN modInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN modInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (mod i j))
 ... | yes p = error _
-BUILTIN lessThanInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN lessThanInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i <? j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN lessThanEqualsInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN lessThanEqualsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i ≤? j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN equalsInteger (step (step (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN equalsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i ≟ j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN appendByteString (step (step (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN appendByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bytestring (concat b b'))
-BUILTIN lessThanByteString (step (step (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN lessThanByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
-BUILTIN lessThanEqualsByteString (step (step (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) = 
+BUILTIN lessThanEqualsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) = 
   con (bool (B<= b b'))
-BUILTIN sha2-256 (step (base refl) (V-con (bytestring b))) =
+BUILTIN sha2-256 (step base (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 (step (base refl) (V-con (bytestring b))) =
+BUILTIN sha3-256 (step base (V-con (bytestring b))) =
   con (bytestring (SHA3-256 b))
-BUILTIN blake2b-256 (step (base refl) (V-con (bytestring b))) =
+BUILTIN blake2b-256 (step base (V-con (bytestring b))) =
   con (bytestring (BLAKE2B-256 b))
-BUILTIN verifyEd25519Signature (step (step (step (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifyEd25519Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifyEd25519Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN verifyEcdsaSecp256k1Signature (step (step (step (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifyEcdsaSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifyEcdsaSecp256k1Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN verifySchnorrSecp256k1Signature (step (step (step (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifySchnorrSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifySchnorrSecp256k1Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN equalsByteString (step (step (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN equalsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (equals b b'))
-BUILTIN ifThenElse (step (step (step (step⋆ (base refl) refl refl) (V-con (bool true))) t) f) = deval t
-BUILTIN ifThenElse (step (step (step (step⋆ (base refl) refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN appendString (step (step (base refl) (V-con (string s))) (V-con (string s'))) =
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool true))) t) f) = deval t
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool false))) t) f) = deval f
+BUILTIN appendString (step (step base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
-BUILTIN trace (step (step (step⋆ (base refl) refl refl) (V-con (string s))) v) = TRACE s (deval v)
-BUILTIN iData (step (base refl) (V-con (integer i))) = con (pdata (iDATA i))
-BUILTIN bData (step (base refl) (V-con (bytestring b))) = con (pdata (bDATA b))
-BUILTIN consByteString (step (step (base refl) (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
-BUILTIN sliceByteString (step (step (step (base refl) (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
-BUILTIN lengthOfByteString (step (base refl) (V-con (bytestring b))) = con (integer (Builtin.length b))
-BUILTIN indexByteString (step (step (base refl) (V-con (bytestring b))) (V-con (integer i)))
+BUILTIN trace (step (step (step⋆ base refl refl) (V-con (string s))) v) = TRACE s (deval v)
+BUILTIN iData (step base (V-con (integer i))) = con (pdata (iDATA i))
+BUILTIN bData (step base (V-con (bytestring b))) = con (pdata (bDATA b))
+BUILTIN consByteString (step (step base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
+BUILTIN sliceByteString (step (step (step base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
+BUILTIN lengthOfByteString (step base (V-con (bytestring b))) = con (integer (Builtin.length b))
+BUILTIN indexByteString (step (step base (V-con (bytestring b))) (V-con (integer i)))
   with Data.Integer.ℤ.pos 0 ≤? i
 ... | no  _ = error _
 ... | yes _
   with i <? Builtin.length b
 ... | no _ =  error _
 ... | yes _ = con (integer (index b i))
-BUILTIN equalsString (step (step (base refl) (V-con (string s))) (V-con (string s'))) =
+BUILTIN equalsString (step (step base (V-con (string s))) (V-con (string s'))) =
   con (bool (primStringEquality s s'))
-BUILTIN encodeUtf8 (step (base refl) (V-con (string s))) =
+BUILTIN encodeUtf8 (step base (V-con (string s))) =
   con (bytestring (ENCODEUTF8 s))
-BUILTIN decodeUtf8 (step (base refl) (V-con (bytestring b)))
+BUILTIN decodeUtf8 (step base (V-con (bytestring b)))
   with DECODEUTF8 b
 ... | nothing = error _
 ... | just s  = con (string s)
-BUILTIN unIData (step (base refl) (V-con (pdata (iDATA i)))) = con (integer i)
-BUILTIN unBData (step (base refl) (V-con (pdata (bDATA b)))) = con (bytestring b)
-BUILTIN serialiseData (step (base refl) (V-con (pdata d))) = con (bytestring (serialiseDATA d))
+BUILTIN unIData (step base (V-con (pdata (iDATA i)))) = con (integer i)
+BUILTIN unBData (step base (V-con (pdata (bDATA b)))) = con (bytestring b)
+BUILTIN serialiseData (step base (V-con (pdata d))) = con (bytestring (serialiseDATA d))
 BUILTIN _ _ = error _
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
@@ -369,21 +369,11 @@ V-I b {tm = zero} {σA = A B⇒ σA} bt = V-I⇒ b bt
 V-I b {tm = suc tm} {σA = sucΠ σA} bt = V-IΠ b bt
 ```
 
-The following function use proof irrelevance to convert any proof that 
-`A ≡ btype b` to `refl`.
-
-```
-irrValue : ∀ {b}{A : ∅ ⊢Nf⋆ *}{p : A ≡ btype b}
-          → Value (builtin b / p) 
-          → Value (builtin b / refl)
-irrValue {p = refl} v = v
-```
-
 For each builtin, return the value corresponding to the completely unapplied builtin
 
 ```
 ival : ∀ b → Value (builtin b / refl)
-ival b = irrValue (V-I b (base btype-∅))
+ival b = V-I b base
 -- -}
 ```
 

@@ -8,7 +8,7 @@ module Algorithmic.Signature where
 ```
 open import Data.Nat using (suc)
 
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 
 open import Function using (_∘_)
@@ -38,8 +38,8 @@ open SigTy
 ```
 
 ```
-btype : Builtin → Φ ⊢Nf⋆ *
-btype b = subNf (λ()) (sig2type (signature b))
+btype' : Builtin → Φ ⊢Nf⋆ *
+btype' b = subNf (λ()) (sig2type (signature b))
 
 btype-∅ : ∀ {A : ∅ ⊢Nf⋆ *} → A ≡ subNf {∅} {∅} (λ()) {*} A
 btype-∅ {A} = begin
@@ -52,23 +52,33 @@ btype-∅ {A} = begin
              subNf (λ ()) A
            ∎
 
-btype-sig2type : ∀ (b : Builtin) → btype {∅} b ≡ sig2type (signature b)
-btype-sig2type b = sym btype-∅
+-- A version of btype' where btype {∅} b = sig2type (signature b) holds definitionally
+btype : Builtin → Φ ⊢Nf⋆ *
+btype {∅} b = sig2type (signature b)
+btype {Φ ,⋆ x} b = btype' b
 
-btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-btype-ren b ρ = begin
-             btype b
+-- Both versions are the same
+btype-btype' : ∀ {Φ} b → btype {Φ} b ≡ btype' {Φ} b
+btype-btype' {∅} b = btype-∅
+btype-btype' {Φ ,⋆ x} b = refl
+
+btype'-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype' b ≡ renNf ρ (btype' b)
+btype'-ren b ρ = begin
+             btype' b
              ≡⟨ refl ⟩
              subNf (λ()) (sig2type (signature b))
              ≡⟨ subNf-cong {f = λ()} {renNf ρ ∘ λ ()} (λ ()) (sig2type (signature b)) ⟩
              subNf (renNf ρ ∘ λ ()) (sig2type (signature b))
              ≡⟨ renNf-subNf (λ()) ρ (sig2type (signature b)) ⟩
-             renNf ρ (btype b)
+             renNf ρ (btype' b)
            ∎
 
-btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
-btype-sub b ρ = begin 
-           btype b
+btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
+btype-ren b ρ = trans (btype-btype' b) (trans (btype'-ren b ρ) (cong (renNf ρ) (sym (btype-btype' b))))
+
+btype'-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype' b ≡ subNf ρ (btype' b)
+btype'-sub b ρ = begin 
+           btype' b
           ≡⟨ refl ⟩
            subNf (λ()) (sig2type (signature b))
           ≡⟨ subNf-cong {f = λ()} {subNf ρ ∘ λ ()} (λ ()) (sig2type (signature b)) ⟩
@@ -76,8 +86,11 @@ btype-sub b ρ = begin
           ≡⟨ subNf-comp (λ()) ρ (sig2type (signature b)) ⟩
            subNf ρ (subNf (λ()) (sig2type (signature b)))
           ≡⟨ refl ⟩
-           subNf ρ (btype b)
+           subNf ρ (btype' b)
           ∎
+
+btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
+btype-sub b ρ = trans ((btype-btype' b)) (trans (btype'-sub b ρ) (cong (subNf ρ) (sym (btype-btype' b))))
 ```
 
 ## Substitution in Signature types
@@ -118,4 +131,4 @@ _[_]SigTy : ∀{n}
           → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) 
           → SigTy pt pa (B [ A ])
 _[_]SigTy bt A  = subSigTy (subNf-cons (ne ∘ `) A) bt
-```
+``` 

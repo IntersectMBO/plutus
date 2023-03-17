@@ -26,7 +26,7 @@ open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
 open import Algorithmic using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_)
-open import Algorithmic.Signature using (btype;btype-∅;btype-sig2type;_[_]SigTy)
+open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
 open _∋_
@@ -154,7 +154,7 @@ dischargeB : ∀(b : Builtin)
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → ∀{C} → {Cb : SigTy pt pa C} → (bp : BApp b C Cb) 
           → ∅ ⊢ C
-dischargeB b base = builtin b / btype-∅
+dischargeB b base = builtin b / refl
 dischargeB b (app bt x) = dischargeB b bt · discharge x
 dischargeB b (app⋆ bt q _) = dischargeB b bt  ·⋆ _ /  q
 
@@ -294,7 +294,7 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   ◆     : ∅ ⊢Nf⋆ * → State T
 
 ival : ∀(b : Builtin) → Value (btype b)
-ival b rewrite btype-sig2type b = V-I b base 
+ival b = V-I b base 
 
 step : ∀{T} → State T → State T
 step (s ; ρ ▻ ` x) = s ◅ lookup x ρ

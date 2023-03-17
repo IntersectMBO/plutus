@@ -22,11 +22,10 @@ open import Utils using (*;bubble)
 open import Type using (Ctx⋆;∅)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open import Algorithmic using (Ctx;_⊢_)
-open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Value;BApp;EC;Frame;ival;deval;BUILTIN';V-I;irrValue)
+open import Algorithmic.ReductionEC using (Value;BApp;EC;Frame;ival;deval;BUILTIN';V-I)
 open Value
 open BApp
 open EC

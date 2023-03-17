@@ -22,12 +22,11 @@ open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
 open import Algorithmic using (Ctx;_⊢_)
-open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;irrValue) 
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I) 
                                     renaming (step to app;step⋆ to app⋆)
 open Frame
 open Value
