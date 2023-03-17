@@ -1,3 +1,4 @@
+-- Check that compression of a random point in G1 succeeds and gives the expected result.
 (program 1.0.0
  [
   (builtin bls12_381_G1_compress)

@@ -1,3 +1,4 @@
+-- Check that adding two random points on G2 gives the expected result.
 (program 1.0.0
  [
   [

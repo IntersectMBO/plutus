@@ -1,3 +1,4 @@
+-- n(p+q) = np + nq (n scalar, p and q random points in G1).
 (program 1.0.0
  [
   [

@@ -1,3 +1,5 @@
+-- This value was obtained by hashing 0x0102030405 to G2 and has the compression
+-- bit set, so uncompression should succeed.
 (program
   0.0.0
   (con

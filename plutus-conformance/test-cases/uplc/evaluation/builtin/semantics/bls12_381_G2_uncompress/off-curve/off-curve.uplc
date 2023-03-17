@@ -1,3 +1,4 @@
+-- This contains a value which is not the x-coordinate of a point on the E2 curve.
 (program 0.0.0
  [
   (builtin bls12_381_G2_uncompress)

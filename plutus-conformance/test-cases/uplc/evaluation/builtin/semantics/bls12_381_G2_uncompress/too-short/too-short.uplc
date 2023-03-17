@@ -1,3 +1,4 @@
+-- The bytestring is the compressed version of the G2 zero point, but truncated to 94 bytes.
 (program 0.0.0
  [
   (builtin bls12_381_G2_uncompress)

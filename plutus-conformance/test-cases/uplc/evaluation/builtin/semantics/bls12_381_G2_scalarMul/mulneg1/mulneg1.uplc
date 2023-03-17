@@ -1,3 +1,4 @@
+-- Check that the result of multiplying by -1 is as expected.
 (program 1.0.0
  [
   [

@@ -1,3 +1,4 @@
+-- Check that multiplication by the scalar 44 gives the expected result.
 (program 1.0.0
  [
   [

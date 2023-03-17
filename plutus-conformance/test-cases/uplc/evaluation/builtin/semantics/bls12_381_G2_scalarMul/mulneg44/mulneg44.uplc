@@ -1,3 +1,4 @@
+-- Multiplying a random point in G2 by the scalar -44 gives the expected result.
 (program 1.0.0
  [
   [

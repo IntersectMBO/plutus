@@ -1,4 +1,4 @@
---  This should give the same result as muladd
+-- 2157p + 2157q for random points p and q in G1.  This should give the same result as muladd.
 (program 1.0.0
  [
   [

@@ -1,4 +1,4 @@
--- This should give the same result as mul44
+-- 19p+25p for a random point p in G1.  This should give the same result as mul44.
 (program 1.0.0
  [
   [

@@ -1,3 +1,4 @@
+-- p+q = q+p for two random points in G2.
 (program 1.0.0
  [
   [

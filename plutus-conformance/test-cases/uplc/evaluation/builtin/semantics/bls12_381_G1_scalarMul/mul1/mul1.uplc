@@ -1,3 +1,4 @@
+-- Scalar multiplication by 1 leaves a random point unchanged.
 (program 1.0.0
  [
   [

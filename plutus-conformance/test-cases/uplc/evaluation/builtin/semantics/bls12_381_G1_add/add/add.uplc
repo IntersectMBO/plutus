@@ -1,3 +1,4 @@
+-- Adding a random pair of points in G1
 (program 1.0.0
  [
   [

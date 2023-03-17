@@ -1,3 +1,4 @@
+-- Multiplication by the zero scalar gives the zero point of G1.
 (program 1.0.0
  [
   [

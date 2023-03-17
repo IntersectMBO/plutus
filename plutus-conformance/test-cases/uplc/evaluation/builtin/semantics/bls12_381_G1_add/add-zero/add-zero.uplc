@@ -1,3 +1,4 @@
+-- Adding the zero element to a random point doesn't change it.
 (program 1.0.0
  [
   [

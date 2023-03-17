@@ -1,3 +1,4 @@
+-- Check that adding a random point to its negative gives the zero element.
 (program 1.0.0
  [
   [

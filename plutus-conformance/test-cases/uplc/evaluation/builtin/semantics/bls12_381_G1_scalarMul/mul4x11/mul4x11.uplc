@@ -1,4 +1,4 @@
--- This should give the same result as mul44
+-- 4*(11*p) for a point in G1.  This should give the same result as mul44.
 (program 1.0.0
  [
   [

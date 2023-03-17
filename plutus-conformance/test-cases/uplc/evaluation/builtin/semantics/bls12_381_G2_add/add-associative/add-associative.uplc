@@ -1,3 +1,4 @@
+-- p+(q+r) = (p+q)+r for three random points on G2.
 (program 1.0.0
  [
   [

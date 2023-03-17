@@ -1,3 +1,5 @@
+-- This value was obtained by hashing 0x0102030405 to G1 but has had the
+-- compression bit cleared, so uncompression should fail.
 (program 0.0.0
  [
   (builtin bls12_381_G1_uncompress)
