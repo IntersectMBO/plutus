@@ -7,7 +7,7 @@ open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Function using (_∘_)
-open import Data.Product using (proj₁;proj₂)
+--open import Data.Product using (proj₁;proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
                                                   renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
@@ -90,7 +90,7 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
        → Value (Π B)
 
 data BApp b where
-  base : BApp b (proj₁ (sig2SigTy (signature b))) (proj₂ (sig2SigTy (signature b)))
+  base : BApp b (sig2type (signature b)) (sig2SigTy (signature b))
   app : ∀{A B}{tn}
     → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
@@ -169,7 +169,6 @@ discharge (V-IΠ b bt) = dischargeB b bt
 ## Builtin Semantics
 
 ```
-
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
 BUILTIN addInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
 BUILTIN subtractInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
@@ -329,3 +328,4 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 -- -}
+ 

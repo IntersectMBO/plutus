@@ -102,7 +102,7 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
     → M —→V M'
     → wrap A B M —→V wrap A B M'
 
-  β-sbuiltin : ∀{A B}{tn}
+  β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
     → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
@@ -173,7 +173,7 @@ lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→V M'
 lem—→⋆ (β-ƛ v) = β-ƛ v
 lem—→⋆ (β-Λ refl) = β-Λ
 lem—→⋆ (β-wrap v refl) = β-wrap v
-lem—→⋆ (β-sbuiltin b t bt u vu) = β-sbuiltin b t bt u vu
+lem—→⋆ (β-builtin b t bt u vu) = β-builtin b t bt u vu
 
 lemCS—→V : ∀{A}
          → ∀{B}{L L' : ∅ ⊢ B}
@@ -226,8 +226,8 @@ lemSC—→V (ξ-unwrap p) with lemSC—→V p
 lemSC—→V (ξ-wrap p) with lemSC—→V p
 ... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
   B ,, wrap E ,, L ,, L' ,, refl ,, refl ,, q
-lemSC—→V (β-sbuiltin b t bt u vu) =
-  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin b t bt u vu
+lemSC—→V (β-builtin b t bt u vu) =
+  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-builtin b t bt u vu
 
 lemSC—→E : ∀{A}{M : ∅ ⊢ A}
   → M —→E error A

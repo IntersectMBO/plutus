@@ -60,7 +60,7 @@ progress (M · M')     with progress M
 progress (.(ƛ M) · M') | done (V-ƛ M) | done VM' =
   step (ruleEC [] (β-ƛ VM') refl refl)
 progress (M · M') | done (V-I⇒ b {am = 0} q) | done VM' =
-  step (ruleEC [] (β-sbuiltin b M q M' VM') refl refl)
+  step (ruleEC [] (β-builtin b M q M' VM') refl refl)
 progress (M · M') | done (V-I⇒ b {am = suc _} q) | done VM' =
   done (V-I b (step q VM'))
 progress (Λ M)        = done (V-Λ M)
@@ -83,7 +83,7 @@ progress (unwrap M refl) with progress M
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V refl) refl refl)
 ... | error E-error = step (ruleErr (unwrap [] / refl) refl)
 progress (con c)      = done (V-con c)
-progress {A} (builtin b / refl ) = done (irrValue (ival b btype-∅) )
+progress (builtin b / refl ) = done (irrValue (ival b btype-∅) )
 progress (error A)    = error E-error
 
 {- These definitions seems unused
@@ -108,7 +108,7 @@ lemma51 (M · M') with lemma51 M
 lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M)      | inj₁ VM' =
   inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-ƛ VM') ,, refl)
 lemma51 (M · M') | inj₁ (V-I⇒ b {as' = []} p x) | inj₁ VM' =
-  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-sbuiltin b M p x M' VM') ,, refl)
+  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-builtin b M p x M' VM') ,, refl)
 lemma51 (M · M') | inj₁ (V-I⇒ b {as' = a ∷ as'} p x) | inj₁ VM' =
   inj₁ (V-I b (bubble p) (step p x VM'))
 lemma51 (Λ M) = inj₁ (V-Λ M)
@@ -118,7 +118,7 @@ lemma51 (M ·⋆ A / refl) with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, p ,, q) =
   inj₂ (B ,, E ·⋆ A / refl ,, L ,, p ,, cong (_·⋆ A / refl) q)
 lemma51 (M ·⋆ A / refl) | inj₁ (V-IΠ b {as' = []} p x) =
-  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-sbuiltin⋆ b M p x A refl) ,, refl)
+  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-builtin⋆ b M p x A refl) ,, refl)
 lemma51 (M ·⋆ A / refl) | inj₁ (V-IΠ b {as' = a ∷ as} p x) =
   inj₁ (V-I b (bubble p) (step⋆ p x refl))
 lemma51 (wrap A B M) with lemma51 M

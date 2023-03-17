@@ -196,16 +196,16 @@ valred (V-I⇒ b .(bubble p₁) (step⋆ p₁ () .p)) (β-Λ p)
 valred (V-IΠ b .(bubble p₁) (step⋆ p₁ () .p)) (β-Λ p)
 valred (V-I⇒ b p₁ ()) (β-wrap VN p)
 valred (V-IΠ b p₁ ()) (β-wrap VN p)
-valred (V-I⇒ b₁ .(bubble p₁) (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
+valred (V-I⇒ b₁ .(bubble p₁) (step p₁ x x₁)) (β-builtin b t p bt u vu)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-valred (V-IΠ b₁ .(bubble p₁) (step p₁ x x₁)) (β-sbuiltin b t p bt u vu)
+valred (V-IΠ b₁ .(bubble p₁) (step p₁ x x₁)) (β-builtin b t p bt u vu)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-valred (V-I⇒ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-sbuiltin⋆ b t p bt A q)
+valred (V-I⇒ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-builtin⋆ b t p bt A q)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
-valred (V-IΠ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-sbuiltin⋆ b t p bt A r)
+valred (V-IΠ b₁ .(bubble p₁) (step⋆ p₁ x q)) (β-builtin⋆ b t p bt A r)
   with uniqueBApp' t p₁ p x bt
 ... | refl ,, refl ,, () ,, refl
 
@@ -243,9 +243,9 @@ determinism⋆ : ∀{A}{L N N' : ∅ ⊢ A} → L —→⋆ N → L —→⋆ N'
 determinism⋆ (β-ƛ _) (β-ƛ _) = refl
 determinism⋆ (β-Λ refl) (β-Λ refl) = refl
 determinism⋆ (β-wrap _ refl) (β-wrap _ refl) = refl
-determinism⋆ (β-sbuiltin b t p bt u vu) (β-sbuiltin b' .t p' bt' .u vu') =
+determinism⋆ (β-builtin b t p bt u vu) (β-builtin b' .t p' bt' .u vu') =
   BUILTIN-eq _ (bubble p) (bubble p') (step p bt vu) (step p' bt' vu')
-determinism⋆ (β-sbuiltin⋆ b t p bt A refl) (β-sbuiltin⋆ b' .t p' bt' .A refl) =
+determinism⋆ (β-builtin⋆ b t p bt A refl) (β-builtin⋆ b' .t p' bt' .A refl) =
   BUILTIN-eq _ (bubble p) (bubble p') (step⋆ p bt refl) (step⋆ p' bt' refl)
 
 data Redex {A : ∅ ⊢Nf⋆ *} : ∅ ⊢ A → Set where
@@ -315,7 +315,7 @@ U·⋆2 : ∀{K}{C}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{M : ∅ ⊢ �
    ≡ E'
    × substEq (_⊢_ ∅) p₁ L ≡ L')
 U·⋆2 ¬VM eq [] refl (β (β-Λ .eq)) U = ⊥-elim (¬VM (V-Λ _))
-U·⋆2 ¬VM eq [] refl (β (β-sbuiltin⋆ b _ p bt _ .eq)) U =
+U·⋆2 ¬VM eq [] refl (β (β-builtin⋆ b _ p bt _ .eq)) U =
   ⊥-elim (¬VM (V-IΠ b p bt))
 U·⋆2 ¬VM eq (E ·⋆ A / .eq) refl q U with U E refl q
 ... | refl ,, refl ,, refl = refl ,, refl ,, refl
@@ -403,7 +403,7 @@ rlemma51! (M · N) with rlemma51! M
   p
   (cong (_· N) q)
   λ { [] refl (β (β-ƛ VN)) → ⊥-elim (¬VM (V-ƛ _))
-    ; [] refl (β (β-sbuiltin b .M p bt .N vu)) → ⊥-elim (¬VM (V-I⇒ b p bt))
+    ; [] refl (β (β-builtin b .M p bt .N vu)) → ⊥-elim (¬VM (V-I⇒ b p bt))
     ; (E' l· N') refl r → let X ,, Y ,, Y' = U E' refl r in
       X ,,  trans ( subst-l· E N X)  (cong (_l· N) Y)  ,, Y'
     ; (VM ·r E') refl r → ⊥-elim (¬VM VM)
@@ -415,7 +415,7 @@ rlemma51! (M · N) with rlemma51! M
   p
   (cong (M ·_) q)
   λ { [] refl (β (β-ƛ VN)) → ⊥-elim (¬VN VN)
-    ; [] refl (β (β-sbuiltin b .M p bt .N VN)) → ⊥-elim (¬VN VN)
+    ; [] refl (β (β-builtin b .M p bt .N VN)) → ⊥-elim (¬VN VN)
     ; (E' l· N') refl q → ⊥-elim (valredex (lemVE _ _ VM) q)
     ; (VM' ·r E') refl q → let X ,, X'' ,, X''' = U E' refl q in
       X
@@ -434,11 +434,11 @@ rlemma51! (.(ƛ M) · N) | done (V-ƛ M) | done VN = step
       ⊥-elim (valredex (lemVE _ E' (substEq Value Y (substƛVal X))) q)
     ; (VM' ·r E') refl q → ⊥-elim (valredex (lemVE _ E' VN) q)}
 rlemma51! (M · N) | done (V-I⇒ b {as' = []}       p x) | done VN = step
-  (λ V → valred V (β-sbuiltin b M p x N VN))
+  (λ V → valred V (β-builtin b M p x N VN))
   []
-  (β (β-sbuiltin b M p x N VN))
+  (β (β-builtin b M p x N VN))
   refl
-  λ { [] refl (β (β-sbuiltin b .M p bt .N vu)) → refl ,, refl ,, refl
+  λ { [] refl (β (β-builtin b .M p bt .N vu)) → refl ,, refl ,, refl
     ; (E' l· N') refl q → ⊥-elim (valredex (lemBE _ E' x) q)
     ; (VM' ·r E') refl q → ⊥-elim (valredex (lemVE _ E' VN) q)}
 rlemma51! (M · N) | done (V-I⇒ b {as' = a' ∷ as'} p x) | done VN =
@@ -452,9 +452,9 @@ rlemma51! (M ·⋆ A / x) with rlemma51! M
   refl
   (U·⋆1 x)
 rlemma51! (M ·⋆ A / x) | done (V-IΠ b {as' = []} p q) = step
-  (λ V → valred V (β-sbuiltin⋆ b M p q A x))
+  (λ V → valred V (β-builtin⋆ b M p q A x))
   []
-  (β (β-sbuiltin⋆ b M p q A x))
+  (β (β-builtin⋆ b M p q A x))
   refl
   λ E p' q' → U·⋆3 x E (V-IΠ b _ q) p' q'
 rlemma51! (M ·⋆ A / x) | done (V-IΠ b {as' = x₁ ∷ as'} p q) =

@@ -60,7 +60,7 @@ data BApp (b : Builtin) :
     ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
   → ∀{an am at} → {pa : an ∔ am ≣ at}
   → ∀{A} → SigTy pt pa A → ∅ ⊢ A → Set where
-  base : (q : proj₁ (sig2SigTy (signature b)) ≡ btype b) → BApp b (proj₂ (sig2SigTy (signature b))) (builtin b / q )
+  base : (q : sig2type (signature b) ≡ btype b) → BApp b (sig2SigTy (signature b)) (builtin b / q )
   step : ∀{A B}{tn}
     → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
@@ -300,7 +300,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → (p : C ≡ _)
     → unwrap (wrap A B M) p —→⋆ substEq (∅ ⊢_) (sym p) M
 
-  β-sbuiltin : ∀{A B}{tn}
+  β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
     → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
