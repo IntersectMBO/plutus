@@ -83,7 +83,7 @@ progress (unwrap M refl) with progress M
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V refl) refl refl)
 ... | error E-error = step (ruleErr (unwrap [] / refl) refl)
 progress (con c)      = done (V-con c)
-progress (builtin b / refl ) = done (irrValue (ival b btype-∅) )
+progress (builtin b / refl ) = done (ival b)
 progress (error A)    = error E-error
 
 {- These definitions seems unused

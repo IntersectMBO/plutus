@@ -18,7 +18,8 @@ open import Type.BetaNormal.Equality using (renNf-id;renNf-comp)
 open import Type.BetaNBE.RenamingSubstitution 
                 using (ren[]Nf;ren-nf-μ;SubNf;subNf-id;subNf;weakenNf[];weakenNf-subNf)
                 using (sub-nf-Π;sub[]Nf';sub-nf-μ;subNf-cons;extsNf)
-open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype-ren;btype-sub)
 open Ctx
 open _∋_
 open _⊢_

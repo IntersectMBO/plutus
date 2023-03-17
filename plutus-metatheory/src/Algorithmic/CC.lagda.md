@@ -21,7 +21,8 @@ open import Data.List using (_∷_;[])
 open import Utils using (*;bubble)
 open import Type using (Ctx⋆;∅)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-open import Algorithmic using (Ctx;_⊢_;btype-∅)
+open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic.Signature using (btype-∅)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -102,7 +103,7 @@ stepT (E ▻ (M ·⋆ A / refl))    = extEC E (-·⋆ A) ▻ M
 stepT (E ▻ wrap A B M)         = extEC E wrap- ▻ M
 stepT (E ▻ unwrap M refl)      = extEC E unwrap- ▻ M
 stepT (E ▻ con c)              = E ◅ V-con c
-stepT (E ▻ (builtin b / refl)) = E ◅ irrValue (ival b btype-∅)
+stepT (E ▻ (builtin b / refl)) = E ◅ ival b
 stepT (E ▻ error A)            = ◆ A
 stepT (E ◅ V)                  = stepV V (dissect E)
 stepT (□ V)                    = □ V

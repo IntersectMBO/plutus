@@ -369,13 +369,6 @@ V-I b {tm = zero} {σA = A B⇒ σA} bt = V-I⇒ b bt
 V-I b {tm = suc tm} {σA = sucΠ σA} bt = V-IΠ b bt
 ```
 
-For each builtin, return the value corresponding to the completely unapplied builtin
-
-```
-ival : ∀ b q → Value (builtin b / q)
-ival b q = V-I b (base q)
-```
-
 The following function use proof irrelevance to convert any proof that 
 `A ≡ btype b` to `refl`.
 
@@ -384,5 +377,13 @@ irrValue : ∀ {b}{A : ∅ ⊢Nf⋆ *}{p : A ≡ btype b}
           → Value (builtin b / p) 
           → Value (builtin b / refl)
 irrValue {p = refl} v = v
+```
+
+For each builtin, return the value corresponding to the completely unapplied builtin
+
+```
+ival : ∀ b → Value (builtin b / refl)
+ival b = irrValue (V-I b (base btype-∅))
 -- -}
 ```
+
