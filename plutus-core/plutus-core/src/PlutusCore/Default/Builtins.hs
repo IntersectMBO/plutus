@@ -129,7 +129,7 @@ data DefaultFun
     | Bls12_381_G1_neg
     | Bls12_381_G1_scalarMul
     | Bls12_381_G1_equal
-    | Bls12_381_G1_hashToCurve
+    | Bls12_381_G1_hashToGroup
     | Bls12_381_G1_compress
     | Bls12_381_G1_uncompress
     -- G2
@@ -137,7 +137,7 @@ data DefaultFun
     | Bls12_381_G2_neg
     | Bls12_381_G2_scalarMul
     | Bls12_381_G2_equal
-    | Bls12_381_G2_hashToCurve
+    | Bls12_381_G2_hashToGroup
     | Bls12_381_G2_compress
     | Bls12_381_G2_uncompress
     -- Pairing
@@ -1413,10 +1413,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   case Crypto.BLS12_381.G1.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
-    toBuiltinMeaning _var Bls12_381_G1_hashToCurve =
+    toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.hashToCurve
-            (runCostingFunOneArgument . paramBls12_381_G1_hashToCurve)
+            Crypto.BLS12_381.G1.hashToGroup
+            (runCostingFunOneArgument . paramBls12_381_G1_hashToGroup)
     toBuiltinMeaning _var Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @Crypto.BLS12_381.G1.Element)
@@ -1446,10 +1446,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   case Crypto.BLS12_381.G2.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
-    toBuiltinMeaning _var Bls12_381_G2_hashToCurve =
+    toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.hashToCurve
-            (runCostingFunOneArgument . paramBls12_381_G2_hashToCurve)
+            Crypto.BLS12_381.G2.hashToGroup
+            (runCostingFunOneArgument . paramBls12_381_G2_hashToGroup)
     toBuiltinMeaning _var Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @Crypto.BLS12_381.G2.Element)
@@ -1565,14 +1565,14 @@ instance Flat DefaultFun where
               Bls12_381_G1_equal              -> 57
               Bls12_381_G1_compress           -> 58
               Bls12_381_G1_uncompress         -> 59
-              Bls12_381_G1_hashToCurve        -> 60
+              Bls12_381_G1_hashToGroup        -> 60
               Bls12_381_G2_add                -> 61
               Bls12_381_G2_neg                -> 62
               Bls12_381_G2_scalarMul          -> 63
               Bls12_381_G2_equal              -> 64
               Bls12_381_G2_compress           -> 65
               Bls12_381_G2_uncompress         -> 66
-              Bls12_381_G2_hashToCurve        -> 67
+              Bls12_381_G2_hashToGroup        -> 67
               Bls12_381_pairing               -> 68
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
@@ -1638,14 +1638,14 @@ instance Flat DefaultFun where
               go 57 = pure Bls12_381_G1_equal
               go 58 = pure Bls12_381_G1_compress
               go 59 = pure Bls12_381_G1_uncompress
-              go 60 = pure Bls12_381_G1_hashToCurve
+              go 60 = pure Bls12_381_G1_hashToGroup
               go 61 = pure Bls12_381_G2_add
               go 62 = pure Bls12_381_G2_neg
               go 63 = pure Bls12_381_G2_scalarMul
               go 64 = pure Bls12_381_G2_equal
               go 65 = pure Bls12_381_G2_compress
               go 66 = pure Bls12_381_G2_uncompress
-              go 67 = pure Bls12_381_G2_hashToCurve
+              go 67 = pure Bls12_381_G2_hashToGroup
               go 68 = pure Bls12_381_pairing
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify

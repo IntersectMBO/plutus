@@ -8,7 +8,7 @@ module Crypto.BLS12_381.G1
     , add
     , neg
     , scalarMul
-    , hashToCurve
+    , hashToGroup
     , compress
     , uncompress
     , zero
@@ -68,8 +68,8 @@ uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.uncompress @BlstBindings.Curve1
 
 -- Take an arbitrary bytestring and hash it to a get point on the curve;
-hashToCurve :: ByteString -> Element
-hashToCurve s = Element $ BlstBindings.hash @BlstBindings.Curve1 s Nothing Nothing
+hashToGroup :: ByteString -> Element
+hashToGroup s = Element $ BlstBindings.hash @BlstBindings.Curve1 s Nothing Nothing
 
 -- This is only here for the QuickCheck shrinker in the PlutusIR tests.  I'm not
 -- sure if it even makes sense for that.

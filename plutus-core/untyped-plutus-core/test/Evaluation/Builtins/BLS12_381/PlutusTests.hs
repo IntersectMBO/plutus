@@ -307,7 +307,7 @@ test_no_hash_collisions =
     withNTests $ do
       b1 <- arbitrary
       b2 <- arbitrary
-      let e = eqP @a (hashToCurveP @a $ bytestring b1) (hashToCurveP @a $ bytestring b2)
+      let e = eqP @a (hashToGroupP @a $ bytestring b1) (hashToGroupP @a $ bytestring b2)
       pure $ b1 /= b2 ==> evalTerm e === uplcFalse
 
 test_compress_hash :: forall a. HashAndCompress a => TestTree

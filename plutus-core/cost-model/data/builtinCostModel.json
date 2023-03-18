@@ -100,7 +100,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G1_hashToCurve": {
+    "bls12_381_G1_hashToGroup": {
         "cpu": {
             "arguments": {
                 "intercept": 66311195,
@@ -176,7 +176,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_G2_hashToCurve": {
+    "bls12_381_G2_hashToGroup": {
         "cpu": {
             "arguments": {
                 "intercept": 204557793,

@@ -558,9 +558,9 @@ bls12_381_G1_uncompress (BuiltinByteString b) =
       Left err -> mustBeReplaced $ "BSL12_381 G1 uncompression error: " ++ show err
       Right a  -> BuiltinBLS12_381_G1_Element a
 
-{-# NOINLINE bls12_381_G1_hashToCurve #-}
-bls12_381_G1_hashToCurve ::  BuiltinByteString -> BuiltinBLS12_381_G1_Element
-bls12_381_G1_hashToCurve (BuiltinByteString b) = BuiltinBLS12_381_G1_Element $ BLS12_381.G1.hashToCurve b
+{-# NOINLINE bls12_381_G1_hashToGroup #-}
+bls12_381_G1_hashToGroup ::  BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup (BuiltinByteString b) = BuiltinBLS12_381_G1_Element $ BLS12_381.G1.hashToGroup b
 
 ---------------- G2 ----------------
 
@@ -602,9 +602,9 @@ bls12_381_G2_uncompress (BuiltinByteString b) =
       Left err -> mustBeReplaced $ "BSL12_381 G2 uncompression error: " ++ show err
       Right a  -> BuiltinBLS12_381_G2_Element a
 
-{-# NOINLINE bls12_381_G2_hashToCurve #-}
-bls12_381_G2_hashToCurve ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
-bls12_381_G2_hashToCurve (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToCurve b
+{-# NOINLINE bls12_381_G2_hashToGroup #-}
+bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToGroup b
 
 
 ---------------- Pairing ----------------

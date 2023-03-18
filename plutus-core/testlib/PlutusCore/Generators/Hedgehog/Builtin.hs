@@ -159,10 +159,10 @@ genConstr depth =
             (genData (depth - 1))
 
 genBls12_381_G1_Element :: Gen Crypto.BLS12_381.G1.Element
-genBls12_381_G1_Element = Crypto.BLS12_381.G1.hashToCurve <$> genByteString
+genBls12_381_G1_Element = Crypto.BLS12_381.G1.hashToGroup <$> genByteString
 
 genBls12_381_G2_Element :: Gen Crypto.BLS12_381.G2.Element
-genBls12_381_G2_Element = Crypto.BLS12_381.G2.hashToCurve <$> genByteString
+genBls12_381_G2_Element = Crypto.BLS12_381.G2.hashToGroup <$> genByteString
 
 genBls12_381_MlResult :: Gen Crypto.BLS12_381.Pairing.MlResult
 genBls12_381_MlResult = do

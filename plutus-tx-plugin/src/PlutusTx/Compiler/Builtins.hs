@@ -249,7 +249,7 @@ builtinNames = [
     , 'Builtins.bls12_381_G1_scalarMul
     , 'Builtins.bls12_381_G1_compress
     , 'Builtins.bls12_381_G1_uncompress
-    , 'Builtins.bls12_381_G1_hashToCurve
+    , 'Builtins.bls12_381_G1_hashToGroup
 
     , ''Builtins.BuiltinBLS12_381_G2_Element
     , 'Builtins.bls12_381_G2_equals
@@ -258,7 +258,7 @@ builtinNames = [
     , 'Builtins.bls12_381_G2_scalarMul
     , 'Builtins.bls12_381_G2_compress
     , 'Builtins.bls12_381_G2_uncompress
-    , 'Builtins.bls12_381_G2_hashToCurve
+    , 'Builtins.bls12_381_G2_hashToGroup
 
     , ''Builtins.BuiltinBLS12_381_MlResult
     , 'Builtins.bls12_381_pairing
@@ -401,14 +401,14 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_scalarMul   $ mkBuiltin PLC.Bls12_381_G1_scalarMul
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compress    $ mkBuiltin PLC.Bls12_381_G1_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_uncompress  $ mkBuiltin PLC.Bls12_381_G1_uncompress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_hashToCurve $ mkBuiltin PLC.Bls12_381_G1_hashToCurve
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_hashToGroup $ mkBuiltin PLC.Bls12_381_G1_hashToGroup
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_equals      $ mkBuiltin PLC.Bls12_381_G2_equal
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_add         $ mkBuiltin PLC.Bls12_381_G2_add
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_scalarMul   $ mkBuiltin PLC.Bls12_381_G2_scalarMul
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_neg         $ mkBuiltin PLC.Bls12_381_G2_neg
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compress    $ mkBuiltin PLC.Bls12_381_G2_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToCurve $ mkBuiltin PLC.Bls12_381_G2_hashToCurve
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToGroup $ mkBuiltin PLC.Bls12_381_G2_hashToGroup
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_pairing        $ mkBuiltin PLC.Bls12_381_pairing
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult    $ mkBuiltin PLC.Bls12_381_mulMlResult
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_finalVerify

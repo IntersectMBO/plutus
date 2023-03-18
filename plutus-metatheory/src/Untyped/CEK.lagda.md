@@ -352,7 +352,7 @@ BUILTIN bls12-381-G1-scalarMul = λ
 BUILTIN bls12-381-G1-equal = λ
   { _ -> inj₁ userError
   }
-BUILTIN bls12-381-G1-hashToCurve = λ
+BUILTIN bls12-381-G1-hashToGroup = λ
   { _ -> inj₁ userError
   }
 BUILTIN bls12-381-G1-compress = λ
@@ -373,7 +373,7 @@ BUILTIN bls12-381-G2-scalarMul = λ
 BUILTIN bls12-381-G2-equal = λ
   { _ -> inj₁ userError
   }
-BUILTIN bls12-381-G2-hashToCurve = λ
+BUILTIN bls12-381-G2-hashToGroup = λ
   { _ -> inj₁ userError
   }
 BUILTIN bls12-381-G2-compress = λ
@@ -465,14 +465,14 @@ ival bls12-381-G1-add = V-I⇒ bls12-381-G1-add (start _) base
 ival bls12-381-G1-neg = V-I⇒ bls12-381-G1-neg (start _) base
 ival bls12-381-G1-scalarMul = V-I⇒ bls12-381-G1-scalarMul (start _) base
 ival bls12-381-G1-equal = V-I⇒ bls12-381-G1-equal (start _) base
-ival bls12-381-G1-hashToCurve = V-I⇒ bls12-381-G1-hashToCurve (start _) base
+ival bls12-381-G1-hashToGroup = V-I⇒ bls12-381-G1-hashToGroup (start _) base
 ival bls12-381-G1-compress = V-I⇒ bls12-381-G1-compress (start _) base
 ival bls12-381-G1-uncompress = V-I⇒ bls12-381-G1-uncompress (start _) base
 ival bls12-381-G2-add = V-I⇒ bls12-381-G2-add (start _) base
 ival bls12-381-G2-neg = V-I⇒ bls12-381-G2-neg (start _) base
 ival bls12-381-G2-scalarMul = V-I⇒ bls12-381-G2-scalarMul (start _) base
 ival bls12-381-G2-equal = V-I⇒ bls12-381-G2-equal (start _) base
-ival bls12-381-G2-hashToCurve = V-I⇒ bls12-381-G2-hashToCurve (start _) base
+ival bls12-381-G2-hashToGroup = V-I⇒ bls12-381-G2-hashToGroup (start _) base
 ival bls12-381-G2-compress = V-I⇒ bls12-381-G2-compress (start _) base
 ival bls12-381-G2-uncompress = V-I⇒ bls12-381-G2-uncompress (start _) base
 ival bls12-381-pairing = V-I⇒ bls12-381-pairing (start _) base

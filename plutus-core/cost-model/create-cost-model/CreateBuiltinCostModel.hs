@@ -104,14 +104,14 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_G1_equal              = "bls12_381_G1_equalModel"
   , paramBls12_381_G1_compress           = "bls12_381_G1_compressModel"
   , paramBls12_381_G1_uncompress         = "bls12_381_G1_uncompressModel"
-  , paramBls12_381_G1_hashToCurve        = "bls12_381_G1_hashToCurveModel"
+  , paramBls12_381_G1_hashToGroup        = "bls12_381_G1_hashToGroupModel"
   , paramBls12_381_G2_add                = "bls12_381_G2_addModel"
   , paramBls12_381_G2_neg                = "bls12_381_G2_negModel"
   , paramBls12_381_G2_scalarMul          = "bls12_381_G2_scalarMulModel"
   , paramBls12_381_G2_equal              = "bls12_381_G2_equalModel"
   , paramBls12_381_G2_compress           = "bls12_381_G2_compressModel"
   , paramBls12_381_G2_uncompress         = "bls12_381_G2_uncompressModel"
-  , paramBls12_381_G2_hashToCurve        = "bls12_381_G2_hashToCurveModel"
+  , paramBls12_381_G2_hashToGroup        = "bls12_381_G2_hashToGroupModel"
   , paramBls12_381_pairing               = "bls12_381_pairingModel"
   , paramBls12_381_mulMlResult           = "bls12_381_mulMlResultModel"
   , paramBls12_381_finalVerify           = "bls12_381_finalVerifyModel"
@@ -214,14 +214,14 @@ createBuiltinCostModel bmfile rfile = do
     paramBls12_381_G1_equal          <- getParams bls12_381_G1_equal       paramBls12_381_G1_equal
     paramBls12_381_G1_compress       <- getParams bls12_381_G1_compress    paramBls12_381_G1_compress
     paramBls12_381_G1_uncompress     <- getParams bls12_381_G1_uncompress  paramBls12_381_G1_uncompress
-    paramBls12_381_G1_hashToCurve    <- getParams bls12_381_G1_hashToCurve paramBls12_381_G1_hashToCurve
+    paramBls12_381_G1_hashToGroup    <- getParams bls12_381_G1_hashToGroup paramBls12_381_G1_hashToGroup
     paramBls12_381_G2_add            <- getParams bls12_381_G2_add         paramBls12_381_G2_add
     paramBls12_381_G2_neg            <- getParams bls12_381_G2_neg         paramBls12_381_G2_neg
     paramBls12_381_G2_scalarMul      <- getParams bls12_381_G2_scalarMul   paramBls12_381_G2_scalarMul
     paramBls12_381_G2_equal          <- getParams bls12_381_G2_equal       paramBls12_381_G2_equal
     paramBls12_381_G2_compress       <- getParams bls12_381_G2_compress    paramBls12_381_G2_compress
     paramBls12_381_G2_uncompress     <- getParams bls12_381_G2_uncompress  paramBls12_381_G2_uncompress
-    paramBls12_381_G2_hashToCurve    <- getParams bls12_381_G2_hashToCurve paramBls12_381_G2_hashToCurve
+    paramBls12_381_G2_hashToGroup    <- getParams bls12_381_G2_hashToGroup paramBls12_381_G2_hashToGroup
     paramBls12_381_pairing           <- getParams bls12_381_pairing        paramBls12_381_pairing
     paramBls12_381_mulMlResult       <- getParams bls12_381_mulMlResult    paramBls12_381_mulMlResult
     paramBls12_381_finalVerify       <- getParams bls12_381_finalVerify    paramBls12_381_finalVerify
@@ -818,8 +818,8 @@ bls12_381_G1_equal cpuModelR = do
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G1_hashToCurve :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-bls12_381_G1_hashToCurve cpuModelR = do
+bls12_381_G1_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G1_hashToGroup cpuModelR = do
     cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
     let memModel = ModelOneArgumentConstantCost g1MemSize
     pure $ CostingFun cpuModel memModel
@@ -860,8 +860,8 @@ bls12_381_G2_equal cpuModelR = do
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G2_hashToCurve :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-bls12_381_G2_hashToCurve cpuModelR = do
+bls12_381_G2_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G2_hashToGroup cpuModelR = do
     cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
     let memModel = ModelOneArgumentConstantCost g2MemSize
     pure $ CostingFun cpuModel memModel

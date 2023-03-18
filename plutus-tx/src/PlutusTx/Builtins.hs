@@ -77,7 +77,7 @@ module PlutusTx.Builtins (
                          , bls12_381_G1_neg
                          , bls12_381_G1_compress
                          , bls12_381_G1_uncompress
-                         , bls12_381_G1_hashToCurve
+                         , bls12_381_G1_hashToGroup
                          , BuiltinBLS12_381_G2_Element
                          , bls12_381_G2_equals
                          , bls12_381_G2_add
@@ -85,7 +85,7 @@ module PlutusTx.Builtins (
                          , bls12_381_G2_neg
                          , bls12_381_G2_compress
                          , bls12_381_G2_uncompress
-                         , bls12_381_G2_hashToCurve
+                         , bls12_381_G2_hashToGroup
                          , BuiltinBLS12_381_MlResult
                          , bls12_381_pairing
                          , bls12_381_mulMlResult
@@ -98,8 +98,9 @@ module PlutusTx.Builtins (
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
-import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..), BuiltinBLS12_381_G2_Element (..),
-                                   BuiltinBLS12_381_MlResult (..), BuiltinByteString (..), BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
+                                   BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
+                                   BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 
@@ -492,9 +493,9 @@ bls12_381_G1_compress = BI.bls12_381_G1_compress
 bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_uncompress = BI.bls12_381_G1_uncompress
 
-{-# INLINABLE bls12_381_G1_hashToCurve #-}
-bls12_381_G1_hashToCurve :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
-bls12_381_G1_hashToCurve = BI.bls12_381_G1_hashToCurve
+{-# INLINABLE bls12_381_G1_hashToGroup #-}
+bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup = BI.bls12_381_G1_hashToGroup
 
 -- G2 --
 {-# INLINABLE bls12_381_G2_equals #-}
@@ -521,9 +522,9 @@ bls12_381_G2_compress = BI.bls12_381_G2_compress
 bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_uncompress = BI.bls12_381_G2_uncompress
 
-{-# INLINABLE bls12_381_G2_hashToCurve #-}
-bls12_381_G2_hashToCurve :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
-bls12_381_G2_hashToCurve = BI.bls12_381_G2_hashToCurve
+{-# INLINABLE bls12_381_G2_hashToGroup #-}
+bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
 
 -- G2 --
 {-# INLINABLE bls12_381_mulMlResult #-}

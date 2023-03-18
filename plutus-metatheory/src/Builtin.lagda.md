@@ -101,7 +101,7 @@ data Builtin : Set where
   bls12-381-G1-neg                : Builtin
   bls12-381-G1-scalarMul          : Builtin
   bls12-381-G1-equal              : Builtin
-  bls12-381-G1-hashToCurve        : Builtin
+  bls12-381-G1-hashToGroup        : Builtin
   bls12-381-G1-compress           : Builtin
   bls12-381-G1-uncompress         : Builtin
  --  G2
@@ -109,7 +109,7 @@ data Builtin : Set where
   bls12-381-G2-neg                : Builtin
   bls12-381-G2-scalarMul          : Builtin
   bls12-381-G2-equal              : Builtin
-  bls12-381-G2-hashToCurve        : Builtin
+  bls12-381-G2-hashToGroup        : Builtin
   bls12-381-G2-compress           : Builtin
   bls12-381-G2-uncompress         : Builtin
   -- Pairing
@@ -239,14 +239,14 @@ This is defined in its own module so that these definitions are not exported.
     signature bls12-381-G1-neg                = ∙ [ g1elt ]⟶ g1elt
     signature bls12-381-G1-scalarMul          = ∙ [ integer , g1elt ]⟶ g1elt
     signature bls12-381-G1-equal              = ∙ [ g1elt , g1elt ]⟶ bool
-    signature bls12-381-G1-hashToCurve        = ∙ [ bytestring ]⟶ g1elt
+    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring ]⟶ g1elt
     signature bls12-381-G1-compress           = ∙ [ g1elt ]⟶ bytestring
     signature bls12-381-G1-uncompress         = ∙ [ bytestring ]⟶ g1elt
     signature bls12-381-G2-add                = ∙ [ g2elt , g2elt ]⟶ g2elt
     signature bls12-381-G2-neg                = ∙ [ g2elt ]⟶ g2elt
     signature bls12-381-G2-scalarMul          = ∙ [ integer , g2elt ]⟶ g2elt
     signature bls12-381-G2-equal              = ∙ [ g2elt , g2elt ]⟶ bool
-    signature bls12-381-G2-hashToCurve        = ∙ [ bytestring ]⟶ g2elt
+    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring ]⟶ g2elt
     signature bls12-381-G2-compress           = ∙ [ g2elt ]⟶ bytestring
     signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ g2elt
     signature bls12-381-pairing               = ∙ [ g1elt , g2elt ]⟶ mlresult
@@ -320,14 +320,14 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_G1_neg
                                           | Bls12_381_G1_scalarMul
                                           | Bls12_381_G1_equal
-                                          | Bls12_381_G1_hashToCurve
+                                          | Bls12_381_G1_hashToGroup
                                           | Bls12_381_G1_compress
                                           | Bls12_381_G1_uncompress
                                           | Bls12_381_G2_add
                                           | Bls12_381_G2_neg
                                           | Bls12_381_G2_scalarMul
                                           | Bls12_381_G2_equal
-                                          | Bls12_381_G2_hashToCurve
+                                          | Bls12_381_G2_hashToGroup
                                           | Bls12_381_G2_compress
                                           | Bls12_381_G2_uncompress
                                           | Bls12_381_pairing

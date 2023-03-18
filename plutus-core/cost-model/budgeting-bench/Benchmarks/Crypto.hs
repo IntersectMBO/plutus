@@ -135,16 +135,16 @@ byteStringsB :: [ByteString]
 byteStringsB = take 100 (drop 100 byteStrings)
 
 g1inputsA :: [G1.Element]
-g1inputsA = fmap G1.hashToCurve byteStringsA
+g1inputsA = fmap G1.hashToGroup byteStringsA
 
 g1inputsB :: [G1.Element]
-g1inputsB = fmap G1.hashToCurve byteStringsB
+g1inputsB = fmap G1.hashToGroup byteStringsB
 
 g2inputsA :: [G2.Element]
-g2inputsA = fmap G2.hashToCurve byteStringsA
+g2inputsA = fmap G2.hashToGroup byteStringsA
 
 g2inputsB :: [G2.Element]
-g2inputsB = fmap G2.hashToCurve byteStringsB
+g2inputsB = fmap G2.hashToGroup byteStringsB
 
 -- We can only get points on G2 via pairing.  It should always succeed on the
 -- inputs we give it here.
@@ -190,9 +190,9 @@ benchBls12_381_G1_equal =
     -- Same arguments twice
 -- const
 
-benchBls12_381_G1_hashToCurve :: Benchmark
-benchBls12_381_G1_hashToCurve =
-    let name = Bls12_381_G1_hashToCurve
+benchBls12_381_G1_hashToGroup :: Benchmark
+benchBls12_381_G1_hashToGroup =
+    let name = Bls12_381_G1_hashToGroup
         inputs = listOfByteStrings 100
     in createOneTermBuiltinBench name [] inputs
 -- linear in input size
@@ -235,9 +235,9 @@ benchBls12_381_G2_equal =
     -- Same arguments twice
 -- const
 
-benchBls12_381_G2_hashToCurve :: Benchmark
-benchBls12_381_G2_hashToCurve =
-    let name = Bls12_381_G2_hashToCurve
+benchBls12_381_G2_hashToGroup :: Benchmark
+benchBls12_381_G2_hashToGroup =
+    let name = Bls12_381_G2_hashToGroup
         inputs = listOfByteStrings 100
     in createOneTermBuiltinBench name [] inputs
 -- linear in size of input
@@ -281,14 +281,14 @@ blsBenchmarks gen =
        , benchBls12_381_G1_neg
        , benchBls12_381_G1_scalarMul multipliers
        , benchBls12_381_G1_equal
-       , benchBls12_381_G1_hashToCurve
+       , benchBls12_381_G1_hashToGroup
        , benchBls12_381_G1_compress
        , benchBls12_381_G1_uncompress
        , benchBls12_381_G2_add
        , benchBls12_381_G2_neg
        , benchBls12_381_G2_scalarMul multipliers
        , benchBls12_381_G2_equal
-       , benchBls12_381_G2_hashToCurve
+       , benchBls12_381_G2_hashToGroup
        , benchBls12_381_G2_compress
        , benchBls12_381_G2_uncompress
        , benchBls12_381_pairing

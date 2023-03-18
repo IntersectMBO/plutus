@@ -36,10 +36,10 @@ benchPairing :: Benchmark
 benchPairing =
     case listOfSizedByteStrings 4 4 of
       [b1, b2, b3, b4] ->
-          let p1 = Tx.bls12_381_G1_hashToCurve $ Tx.toBuiltin b1
-              p2 = Tx.bls12_381_G2_hashToCurve $ Tx.toBuiltin b2
-              q1 = Tx.bls12_381_G1_hashToCurve $ Tx.toBuiltin b3
-              q2 = Tx.bls12_381_G2_hashToCurve $ Tx.toBuiltin b4
+          let p1 = Tx.bls12_381_G1_hashToGroup $ Tx.toBuiltin b1
+              p2 = Tx.bls12_381_G2_hashToGroup $ Tx.toBuiltin b2
+              q1 = Tx.bls12_381_G1_hashToGroup $ Tx.toBuiltin b3
+              q2 = Tx.bls12_381_G2_hashToGroup $ Tx.toBuiltin b4
               prog = mkPairingScript p1 p2 q1 q2
           in bench "pairing" $ benchProgCek prog
       _ -> error "Unexpected list returned by listOfSizedByteStrings"

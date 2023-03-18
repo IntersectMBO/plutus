@@ -160,17 +160,17 @@ class TestableAbelianGroup a => HashAndCompress a
       compressedSize :: Int
       compressP      :: PlcTerm -> PlcTerm
       uncompressP    :: PlcTerm -> PlcTerm
-      hashToCurveP   :: PlcTerm -> PlcTerm
+      hashToGroupP   :: PlcTerm -> PlcTerm
 
 
 -- | Generate an arbitrary element of G1.  It's tricky to construct such an
 -- element directly without using quite low-level operations on the curve
 -- because a random point on the curve is highly unlikely to be in the subgroup
--- G1, but fortunately `hashToCurve` always produces an element of the subgroup,
+-- G1, but fortunately `hashToGroup` always produces an element of the subgroup,
 -- so we can produce random elements of G1 by hasing random bytestrings.
 instance Arbitrary G1.Element
     where
-      arbitrary = G1.hashToCurve <$> arbitrary
+      arbitrary = G1.hashToGroup <$> arbitrary
 
 instance TestableAbelianGroup G1.Element
     where
@@ -188,18 +188,18 @@ instance TestableAbelianGroup G1.Element
 
 instance HashAndCompress G1.Element
     where
-      hashTo         = G1.hashToCurve
+      hashTo         = G1.hashToGroup
       compress       = G1.compress
       uncompress     = G1.uncompress
       compressedSize = 48
       compressP      = mkApp1 Bls12_381_G1_compress
       uncompressP    = mkApp1 Bls12_381_G1_uncompress
-      hashToCurveP   = mkApp1 Bls12_381_G1_hashToCurve
+      hashToGroupP   = mkApp1 Bls12_381_G1_hashToGroup
 
 -- | See the comment for the Arbitrary instance for G1.
 instance Arbitrary G2.Element
     where
-      arbitrary = G2.hashToCurve <$> arbitrary
+      arbitrary = G2.hashToGroup <$> arbitrary
 
 instance TestableAbelianGroup G2.Element
     where
@@ -217,13 +217,13 @@ instance TestableAbelianGroup G2.Element
 
 instance HashAndCompress G2.Element
     where
-      hashTo         = G2.hashToCurve
+      hashTo         = G2.hashToGroup
       compress       = G2.compress
       uncompress     = G2.uncompress
       compressedSize = 96
       compressP      = mkApp1 Bls12_381_G2_compress
       uncompressP    = mkApp1 Bls12_381_G2_uncompress
-      hashToCurveP   = mkApp1 Bls12_381_G2_hashToCurve
+      hashToGroupP   = mkApp1 Bls12_381_G2_hashToGroup
 
 -- QuickCheck utilities
 

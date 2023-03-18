@@ -116,11 +116,11 @@ instance ArbitraryBuiltin ByteString where
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
 
 instance ArbitraryBuiltin Crypto.BLS12_381.G1.Element where
-    arbitraryBuiltin = Crypto.BLS12_381.G1.hashToCurve <$> arbitrary
+    arbitraryBuiltin = Crypto.BLS12_381.G1.hashToGroup <$> arbitrary
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin Crypto.BLS12_381.G2.Element where
-    arbitraryBuiltin = Crypto.BLS12_381.G2.hashToCurve <$> arbitrary
+    arbitraryBuiltin = Crypto.BLS12_381.G2.hashToGroup <$> arbitrary
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin Crypto.BLS12_381.Pairing.MlResult where

@@ -72,9 +72,9 @@ listOfSizedByteStrings n l = unsafePerformIO . G.sample $
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 hashAndAddG1 [] = error ()
 hashAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_hashToCurve p)
+    go ps (Tx.bls12_381_G1_hashToGroup p)
     where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToCurve q) acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q) acc
 
 mkHashAndAddG1Script :: [ByteString] -> UProg
 mkHashAndAddG1Script l =
@@ -87,9 +87,9 @@ mkHashAndAddG1Script l =
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 hashAndAddG2 [] = error ()
 hashAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_hashToCurve p)
+    go ps (Tx.bls12_381_G2_hashToGroup p)
     where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToCurve q) acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q) acc
 
 mkHashAndAddG2Script :: [ByteString] -> UProg
 mkHashAndAddG2Script l =
@@ -108,7 +108,7 @@ uncompressAndAddG1 (p:ps) =
 
 mkUncompressAndAddG1Script :: [ByteString] -> UProg
 mkUncompressAndAddG1Script l =
-    let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
+    let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToGroup . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 
@@ -116,7 +116,7 @@ mkUncompressAndAddG1Script l =
 checkUncompressAndAddG1_Haskell :: Integer -> IO ()
 checkUncompressAndAddG1_Haskell n =
     let l = listOfSizedByteStrings 100 n
-        points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToCurve . toBuiltin) l
+        points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToGroup . toBuiltin) l
         result1 = uncompressAndAddG1 points
         result2 = uncompressAndAddG1 (reverse points)
     in do
@@ -135,14 +135,14 @@ uncompressAndAddG2 (p:ps) =
 
 mkUncompressAndAddG2Script :: [ByteString] -> UProg
 mkUncompressAndAddG2Script l =
-    let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
+    let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToGroup . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Check that point addition is commutative in G2
 checkUncompressAndAddG2_Haskell :: Integer -> IO ()
 checkUncompressAndAddG2_Haskell n =
     let l = listOfSizedByteStrings 100 n
-        points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToCurve . toBuiltin) l
+        points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToGroup . toBuiltin) l
         result1 = uncompressAndAddG2 points
         result2 = uncompressAndAddG2 (reverse points)
     in do
