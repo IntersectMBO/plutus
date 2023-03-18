@@ -725,7 +725,7 @@ runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
     let builtins = enumerate @UPLC.DefaultFun
     mapM_
-      (\x -> putStr (printf "%-30s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
+      (\x -> putStr (printf "%-32s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
     getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) =
