@@ -1,0 +1,75 @@
+# Longitudinal Benchmarking 
+# 
+# This workflow will run the benchmarks defined in the environment variable BENCHMARKS.
+# It will collect and aggreate the benchmark output, format it and feed it to github-action-benchmark.
+#
+# The benchmark charts are live at https://input-output-hk.github.io/plutus/dev/bench
+# The benchmark data is available at https://input-output-hk.github.io/plutus/dev/bench/data.js
+
+name: Longitudinal Benchmarking
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  # Deployments permission to deploy GitHub pages website
+  deployments: write
+  # Contents permission to update benchmark contents in gh-pages branch
+  contents: write
+
+jobs:
+  new-benchmark:
+    name: Performance regression check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Run benchmarks
+        env: 
+          BENCHMARKS: "validation validation-decode"
+        run: | 
+          for bench in $BENCHMARKS; do 
+            2>&1 cabal run "$bench" | tee "$bench-output.txt"
+          done 
+          
+          read -r -d '' PYTHON_SCRIPT <<- END_SCRIPT
+              import json 
+              result = []
+              for benchmark in "$BENCHMARKS".split():
+                  with open(f"{benchmark}-output.txt", "r") as file:
+                      name = ""
+                      for line in file.readlines():
+                          if line.startswith("benchmarking"):
+                              name = line.split()[1]
+                          elif line.startswith("mean"):
+                              parts = line.split()
+                              mean = parts[1]
+                              unit = parts[2]
+                              result.append({
+                                  "name": f"{benchmark}-{name}",
+                                  "unit": unit,
+                                  "value": float(mean)
+                              })
+              with open("output.json", "w") as file: 
+                json.dump(result, file)
+          END_SCRIPT
+          
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1.16.2
+        with:
+          name: My Project Go Benchmark
+          tool: 'customSmallerIsBetter'
+          output-file-path: output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Push and deploy GitHub pages branch automatically
+          auto-push: true
+          # Enable alert commit comment
+          comment-on-alert: true
+          # Mention @input-output-hk/plutus-core in the commit comment
+          alert-comment-cc-users: '@input-output-hk/plutus-core'
+          # Percentage value like "110%". 
+          # It is a ratio indicating how worse the current benchmark result is. 
+          # For example, if we now get 110 ns/iter and previously got 100 ns/iter, it gets 110% worse.
+          alert-threshold: '105%'
