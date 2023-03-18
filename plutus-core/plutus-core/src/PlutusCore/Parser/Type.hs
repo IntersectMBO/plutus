@@ -124,16 +124,16 @@ defaultUniApplication = do
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
     [ trailingWhitespace (inParens defaultUniApplication)
-    , someType @_ @Integer    <$ symbol "integer"
-    , someType @_ @ByteString <$ symbol "bytestring"
-    , someType @_ @Text       <$ symbol "string"
-    , someType @_ @()         <$ symbol "unit"
-    , someType @_ @Bool       <$ symbol "bool"
-    , someType @_ @[]         <$ symbol "list"
-    , someType @_ @(,)        <$ symbol "pair"
-    , someType @_ @Data       <$ symbol "data"
-    , someType @_ @BLS12_381.G1.Element       <$ symbol "bls12_381_G1_element"
-    , someType @_ @BLS12_381.G2.Element       <$ symbol "bls12_381_G2_element"
+    , someType @_ @Integer              <$ symbol "integer"
+    , someType @_ @ByteString           <$ symbol "bytestring"
+    , someType @_ @Text                 <$ symbol "string"
+    , someType @_ @()                   <$ symbol "unit"
+    , someType @_ @Bool                 <$ symbol "bool"
+    , someType @_ @[]                   <$ symbol "list"
+    , someType @_ @(,)                  <$ symbol "pair"
+    , someType @_ @Data                 <$ symbol "data"
+    , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381_G1_element"
+    , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
     ]
 
 tyName :: Parser TyName
