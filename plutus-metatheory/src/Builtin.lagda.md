@@ -408,7 +408,8 @@ postulate
 {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
-{-# FOREIGN GHC import Crypto #-}
+{-# FOREIGN GHC import Crypto.Ed25519 #-}
+{-# FOREIGN GHC import Crypto.Secp256k1 #-}
 
 -- The Vasil verification functions return results wrapped in Emitters, which
 -- may perform a side-effect such as writing some text to a log.  The code below

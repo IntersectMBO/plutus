@@ -75,9 +75,10 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Crypto
+    Crypto.Ed25519
     Crypto.EllipticCurve.BLS12_381
     Crypto.EllipticCurve.BLS12_381.Internal
+    Crypto.Secp256k1
     Data.ByteString.Hash
     Data.Either.Extras
     Data.MultiSet.Lens
@@ -179,6 +180,7 @@ library
     UntypedPlutusCore.Rename
 
   other-modules:
+    Crypto.Utils
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
