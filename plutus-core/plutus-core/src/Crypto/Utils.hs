@@ -1,11 +1,14 @@
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Crypto.Utils
+module Crypto.Utils (failWithMessage, byteStringAsHex)
 where
 
+import Data.ByteString (ByteString, foldr')
 import Data.Kind (Type)
 import Data.Text (Text)
+import Text.Printf (printf)
+
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
@@ -19,3 +22,6 @@ failWithMessage :: forall (a :: Type) .
 failWithMessage location reason = do
   emit $ location <> ": " <> reason
   pure EvaluationFailure
+
+byteStringAsHex :: ByteString -> String
+byteStringAsHex bs = "0x" ++ (Prelude.concat $ foldr' (\w s -> (printf "%02x" w):s) [] bs)

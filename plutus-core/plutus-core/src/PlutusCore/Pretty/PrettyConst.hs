@@ -13,9 +13,6 @@
 
 module PlutusCore.Pretty.PrettyConst where
 
-import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 
 import Codec.Serialise (serialise)
@@ -124,15 +121,6 @@ instance PrettyBy ConstConfig BS.ByteString where
 
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
-
-instance PrettyBy ConstConfig BLS12_381.G1.Element where
-    prettyBy _ = pretty
-
-instance PrettyBy ConstConfig  BLS12_381.G2.Element where
-    prettyBy _ = pretty
-
-instance PrettyBy ConstConfig BLS12_381.Pairing.MlResult where
-    prettyBy _ = pretty
 
 instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
     pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)

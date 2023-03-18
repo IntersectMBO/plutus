@@ -17,8 +17,8 @@ import PlutusCore.Generators.QuickCheck.ShrinkTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Utils
 
-import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
+import Crypto.BLS12_381.G1 qualified
+import Crypto.BLS12_381.G2 qualified
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default
@@ -124,8 +124,8 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go (DefaultUniProtoList `DefaultUniApply` _)                        = []
     go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)
     go (f  `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
-    go DefaultUniBLS12_381_G1_Element                                   = BLS12_381.G1.zero
-    go DefaultUniBLS12_381_G2_Element                                   = BLS12_381.G2.zero
+    go DefaultUniBLS12_381_G1_Element                                   = Crypto.BLS12_381.G1.zero
+    go DefaultUniBLS12_381_G2_Element                                   = Crypto.BLS12_381.G2.zero
     go DefaultUniBLS12_381_MlResult                                     = error "No representation for GT elements" -- FIXME!!
 
 shrinkBind :: HasCallStack

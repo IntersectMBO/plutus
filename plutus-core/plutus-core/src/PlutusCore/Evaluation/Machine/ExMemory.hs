@@ -21,9 +21,9 @@ import PlutusCore.Data
 import PlutusCore.Pretty
 import PlutusPrelude
 
-import PlutusCore.BLS12_381.G1
-import PlutusCore.BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing
+import Crypto.BLS12_381.G1
+import Crypto.BLS12_381.G2
+import Crypto.BLS12_381.Pairing
 
 import Codec.Serialise (Serialise)
 import Control.Monad.RWS.Strict
@@ -281,11 +281,11 @@ instance ExMemoryUsage Data where
               sizeDataPairs []           = 0
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
 
-instance ExMemoryUsage PlutusCore.BLS12_381.G1.Element where
+instance ExMemoryUsage Crypto.BLS12_381.G1.Element where
     memoryUsage _ = 12
 
-instance ExMemoryUsage PlutusCore.BLS12_381.G2.Element where
+instance ExMemoryUsage Crypto.BLS12_381.G2.Element where
     memoryUsage _ = 24
 
-instance ExMemoryUsage PlutusCore.BLS12_381.Pairing.MlResult where
+instance ExMemoryUsage Crypto.BLS12_381.Pairing.MlResult where
     memoryUsage _ = 144

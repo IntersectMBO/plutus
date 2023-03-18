@@ -22,10 +22,10 @@ module PlutusCore.Generators.Hedgehog.Builtin (
     genBls12_381_MlResult
 ) where
 
+import Crypto.BLS12_381.G1 qualified
+import Crypto.BLS12_381.G2 qualified
+import Crypto.BLS12_381.Pairing qualified
 import PlutusCore
-import PlutusCore.BLS12_381.G1 qualified
-import PlutusCore.BLS12_381.G2 qualified
-import PlutusCore.BLS12_381.Pairing qualified
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
@@ -83,11 +83,11 @@ genConstant tr
     | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeGen genByteString
     | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeGen genText
     | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeGen $ genData 5
-    | Just HRefl <- eqTypeRep tr (typeRep @PlutusCore.BLS12_381.G1.Element) =
+    | Just HRefl <- eqTypeRep tr (typeRep @Crypto.BLS12_381.G1.Element) =
                     SomeGen $ genBls12_381_G1_Element
-    | Just HRefl <- eqTypeRep tr (typeRep @PlutusCore.BLS12_381.G2.Element) =
+    | Just HRefl <- eqTypeRep tr (typeRep @Crypto.BLS12_381.G2.Element) =
                     SomeGen $ genBls12_381_G2_Element
-    | Just HRefl <- eqTypeRep tr (typeRep @PlutusCore.BLS12_381.Pairing.MlResult) =
+    | Just HRefl <- eqTypeRep tr (typeRep @Crypto.BLS12_381.Pairing.MlResult) =
                     SomeGen $ genBls12_381_MlResult
     | trPair `App` tr1 `App` tr2 <- tr
     , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
@@ -158,16 +158,16 @@ genConstr depth =
             (Range.linear 0 5)
             (genData (depth - 1))
 
-genBls12_381_G1_Element :: Gen PlutusCore.BLS12_381.G1.Element
-genBls12_381_G1_Element = PlutusCore.BLS12_381.G1.hashToCurve <$> genByteString
+genBls12_381_G1_Element :: Gen Crypto.BLS12_381.G1.Element
+genBls12_381_G1_Element = Crypto.BLS12_381.G1.hashToCurve <$> genByteString
 
-genBls12_381_G2_Element :: Gen PlutusCore.BLS12_381.G2.Element
-genBls12_381_G2_Element = PlutusCore.BLS12_381.G2.hashToCurve <$> genByteString
+genBls12_381_G2_Element :: Gen Crypto.BLS12_381.G2.Element
+genBls12_381_G2_Element = Crypto.BLS12_381.G2.hashToCurve <$> genByteString
 
-genBls12_381_MlResult :: Gen PlutusCore.BLS12_381.Pairing.MlResult
+genBls12_381_MlResult :: Gen Crypto.BLS12_381.Pairing.MlResult
 genBls12_381_MlResult = do
   p1 <- genBls12_381_G1_Element
   p2 <- genBls12_381_G2_Element
-  case PlutusCore.BLS12_381.Pairing.pairing p1 p2 of
+  case Crypto.BLS12_381.Pairing.pairing p1 p2 of
     Left e  -> error $ "BLS12-381 pairing failed in genBls12_381_MlResult" ++ (show e)
     Right r -> pure r

@@ -33,10 +33,10 @@ import PlutusIR.Compiler.Names
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Purity qualified as PIR
 
+import Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore qualified as PLC
-import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Quote

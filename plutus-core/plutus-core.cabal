@@ -75,19 +75,17 @@ common lang
 library
   import:             lang
   exposed-modules:
+    Crypto.BLS12_381.G1
+    Crypto.BLS12_381.G2
+    Crypto.BLS12_381.Pairing
     Crypto.Ed25519
-    Crypto.EllipticCurve.BLS12_381
-    Crypto.EllipticCurve.BLS12_381.Internal
+    Crypto.External.EllipticCurve.BLS12_381
     Crypto.Secp256k1
     Data.ByteString.Hash
     Data.Either.Extras
     Data.MultiSet.Lens
     PlutusCore
     PlutusCore.Annotation
-    PlutusCore.BLS12_381.G1
-    PlutusCore.BLS12_381.G2
-    PlutusCore.BLS12_381.Pairing
-    PlutusCore.BLS12_381.Utils
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -180,6 +178,7 @@ library
     UntypedPlutusCore.Rename
 
   other-modules:
+    Crypto.External.EllipticCurve.BLS12_381.Internal
     Crypto.Utils
     Data.Aeson.Flatten
     Data.Aeson.THReader
@@ -947,11 +946,3 @@ test-suite index-envs-test
     , quickcheck-instances
     , tasty
     , tasty-quickcheck
-
-executable bls-sizes
-  import:         lang
-  main-is:        Main.hs
-  hs-source-dirs: plutus-core/src/Crypto/EllipticCurve
-  build-depends:
-    , base         >=4.9 && <5
-    , plutus-core

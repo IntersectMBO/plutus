@@ -373,15 +373,15 @@ data DATA : Set where
 {-# COMPILE GHC DATA = data Data (I | B)   #-}
 
 postulate G1Elt : Set
-{-# FOREIGN GHC import qualified PlutusCore.BLS12_381.G1 as G1 #-}
+{-# FOREIGN GHC import qualified Crypto.BLS12_381.G1 as G1 #-}
 {-# COMPILE GHC G1Elt = type G1.Element #-}
 
 postulate G2Elt : Set
-{-# FOREIGN GHC import qualified PlutusCore.BLS12_381.G2 as G2 #-}
+{-# FOREIGN GHC import qualified Crypto.BLS12_381.G2 as G2 #-}
 {-# COMPILE GHC G2Elt = type G2.Element #-}
 
 postulate MlResult : Set
-{-# FOREIGN GHC import qualified PlutusCore.BLS12_381.Pairing as Pairing #-}
+{-# FOREIGN GHC import qualified Crypto.BLS12_381.Pairing as Pairing #-}
 {-# COMPILE GHC MlResult = type Pairing.MlResult #-}
 
 \end{code}

@@ -36,9 +36,9 @@ module PlutusCore.Default.Universe
     , noMoreTypeFunctions
     ) where
 
-import PlutusCore.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception

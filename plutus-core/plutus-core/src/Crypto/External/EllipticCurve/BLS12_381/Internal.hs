@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 
-module Crypto.EllipticCurve.BLS12_381.Internal
+module Crypto.External.EllipticCurve.BLS12_381.Internal
 (
   -- * Unsafe Types
     ScalarPtr
