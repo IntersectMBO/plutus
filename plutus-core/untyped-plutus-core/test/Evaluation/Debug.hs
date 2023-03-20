@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLists       #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
@@ -21,10 +22,12 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 import Control.Monad.Except
 import Control.Monad.RWS
 import Data.ByteString.Lazy.Char8 qualified as BS
+import Data.Proxy
 import Data.Void
 import Prettyprinter
 import Test.Tasty
 import Test.Tasty.Golden
+import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter (newCounter)
 
 test_debug :: TestTree
 test_debug = testGroup "debug" $
@@ -63,15 +66,16 @@ mock cmds = cekMToIO . runMocking . runDriver
       runMocking :: (m ~ CekM DefaultUni DefaultFun s)
                  => FreeT (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) m ()
                  -> m [String]
-      runMocking driver =
+      runMocking driver = do
+          ctr <- newCounter (Proxy @CounterSize)
           let ?cekRuntime = cekRuntime
               ?cekEmitter = const $ pure ()
               ?cekBudgetSpender = CekBudgetSpender $ \_ _ -> pure ()
               ?cekCosts = cekCosts
               ?cekSlippage = defaultSlippage
-          in
-              -- MAYBE: use cutoff or partialIterT to prevent runaway
-              fmap snd $ execRWST (iterTM handle driver) cmds ()
+              ?cekStepCounter = ctr
+          -- MAYBE: use cutoff or partialIterT to prevent runaway
+          fmap snd $ execRWST (iterTM handle driver) cmds ()
 
 -- Interpretation of the mocker
 -------------------------------

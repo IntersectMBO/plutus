@@ -23,12 +23,14 @@ import Data.Foldable
 import Data.List (nub)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
+import Data.Proxy
 import Data.Text qualified as T
 import PlutusPrelude
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
+import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter (newCounter)
 
 import Control.DeepSeq (rnf)
 import Control.Monad.Except
@@ -265,11 +267,14 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                                      , Repl.historyFile = Nothing
                                      , Repl.autoAddHistory = False
                                      }
+
+    ctr <- newCounter (Proxy @D.CounterSize)
     let ?cekRuntime = runtime
         ?cekEmitter = const $ pure ()
         ?cekBudgetSpender = Cek.CekBudgetSpender $ \_ _ -> pure ()
         ?cekCosts = costs
         ?cekSlippage = D.defaultSlippage
+        ?cekStepCounter = ctr
       in Repl.runInputT replSettings $
             -- MAYBE: use cutoff or partialIterT to prevent runaway
             D.iterTM handleDbg $ D.runDriver nterm

@@ -109,7 +109,7 @@ handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
                     EditorReturnValue
                     Nothing
                     mempty
-            Returning _ _ v ->
+            Returning _ v ->
                dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue
