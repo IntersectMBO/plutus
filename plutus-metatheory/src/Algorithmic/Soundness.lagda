@@ -20,6 +20,7 @@ open _≡β_
 
 import Declarative as Dec
 import Algorithmic as Alg
+import Algorithmic.Signature as Alg
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;ren-embNf;weakenNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_

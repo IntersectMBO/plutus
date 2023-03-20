@@ -14,7 +14,8 @@ module Builtin where
 ```
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_])
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
+open import Data.Product using (Σ;proj₁)
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
@@ -161,20 +162,35 @@ This is defined in its own module so that these definitions are not exported.
 
     b : ∀{n} → suc (suc n) ⊢♯
     b = ` (S Z)
+    ```
+    
+    ###Operators for constructing signatures
+   
+    The following operators are used to express signatures in a familiar way,
+    but ultimately, they construct a Sig 
 
-    -- operators for constructing signatures
+    An expression 
+      n [ t₁ , t₂ , t₃ ]⟶ tᵣ
+    
+    is actually parsed as
+      (((n [ t₁) , t₂) , t₃) ]⟶ tᵣ
+    
+    and constructs a signature
 
-    _]⟶_ : ∀{n} → n ⊢♯ → n ⊢♯ → Args n  ×  n ⊢♯
-    _]⟶_ x y = [ x ] ,, y
+    sig n (t₃ ∷ t₂ ∷ t₁) tᵣ
 
-    infix 10 _[_
-    _[_ : (n : ℕ) →  Args n  ×  n ⊢♯ → Sig
-    _[_ n (as ,, r) = sig n as r
+    ```
+    infix 12 _[_
+    _[_ : (n : ℕ) → n ⊢♯ → Σ ℕ (λ n → Args n) 
+    _[_ n x = n ,, [ x ]  
 
-    infixr 11 _,_
+    infixl 10 _,_
+    _,_ : (p : Σ ℕ (λ n → Args n)) → proj₁ p ⊢♯ → Σ ℕ (λ n → Args n)
+    _,_ (n ,, args) arg = n ,, arg  ∷⁺ args
 
-    _,_ : ∀{n} → n ⊢♯ → Args n  ×  n ⊢♯ → Args n  ×  n ⊢♯
-    _,_ x (as ,, r) = x  ∷⁺ as ,, r
+    infix 8 _]⟶_
+    _]⟶_ : (p : Σ ℕ (λ n → Args n)) → proj₁ p ⊢♯ → Sig
+    _]⟶_ (n ,, as) res = sig n as res
     ```
 
     The signature of each builtin

@@ -11,6 +11,7 @@ module Algorithmic.CC where
 ## Imports
 
 ```
+open import Data.Nat using (suc)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl) 
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Product using (Σ;_×_;∃) 
@@ -84,16 +85,13 @@ stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
 stepV V (inj₁ refl) = □ V
 stepV V (inj₂ (_ ,, E ,, (-· N))) = extEC E (V ·-) ▻ N
 stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
-stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = []} p q ·-))) =
-  E ▻ BUILTIN' b (bubble p) (step p q V)
-stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {as' = a ∷ as'} p q ·-))) =
-  E ◅ V-I b (bubble p) (step p q V)
+stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {am = 0} q ·-))) =
+  E ▻ BUILTIN' b (step q V)
+stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {am = suc _} q ·-))) =
+  E ◅ V-I b (step q V)
 stepV V (inj₂ (_ ,, E ,, wrap-)) = E ◅ V-wrap V
 stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
-stepV (V-IΠ b {as' = []} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
-  E ▻ BUILTIN' b (bubble p) (step⋆ p q refl)
-stepV (V-IΠ b {as' = a ∷ as'} p q) (inj₂ (_ ,, E ,, -·⋆ A)) =
-  E ◅ V-I b (bubble p) (step⋆ p q refl)
+stepV (V-IΠ b q) (inj₂ (_ ,, E ,, -·⋆ A)) = E ◅ V-I b (step⋆ q refl refl)
 stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V
 
 stepT : ∀{A} → State A → State A

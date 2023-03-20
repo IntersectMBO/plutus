@@ -123,7 +123,8 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
-import Algorithmic.Reduction
+-- TODO re-import when Determinism proof is updated
+--import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
@@ -142,7 +143,8 @@ Proof for Progress and Determinism of the Reduction Semantics:
 
 ```
 import Algorithmic.ReductionEC.Progress
-import Algorithmic.ReductionEC.Determinism
+-- TODO Update proof of Determinism
+--import Algorithmic.ReductionEC.Determinism
 ```
 
 There are proofs of correspondence of the semantics of:
@@ -152,9 +154,10 @@ There are proofs of correspondence of the semantics of:
  * (typed) CEK machine
 
 ```
-import Algorithmic.BehaviouralEquivalence.ReductionvsCC
-import Algorithmic.BehaviouralEquivalence.CCvsCK
-import Algorithmic.BehaviouralEquivalence.CKvsCEK
+-- TODO Update proofs ofBehavioural Equivalence.
+--import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+--import Algorithmic.BehaviouralEquivalence.CCvsCK
+--import Algorithmic.BehaviouralEquivalence.CKvsCEK
 ```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 

@@ -17,11 +17,15 @@ except for the minimal rule of guaranteeing well-formedness.
 module Builtin.Signature where
 
 open import Data.Nat using (ℕ;zero;suc)
-open import Data.Fin renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;foldr)
+open import Data.Nat.Properties using (+-identityʳ)
+open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
+open import Data.List using (List;[];_∷_;length)
+open import Data.List.NonEmpty using (List⁺;foldr;_∷_;toList;reverse) renaming (length to length⁺)
+open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst)
 
-open import Utils using (*)
-open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
+open import Utils using (*;_∔_≣_;start;bubble;alldone;unique∔)
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 ```
 
 ## Built-in compatible types 
@@ -81,6 +85,10 @@ record Sig : Set where
      -- type of result
     result : fv♯ ⊢♯
 
+open Sig
+
+args♯ : Sig → ℕ
+args♯ σ = length⁺ (args σ)
 ```
 
 ## Obtaining concrete types from signatures
@@ -102,6 +110,8 @@ The following parameters should be instantiated:
 import Builtin.Constant.Type as T2
 open T2.TyCon
 
+
+
 module FromSig (Ctx : Set)
                (Ty : Ctx → Set) 
                (nat2Ctx : ℕ → Ctx) 
@@ -110,7 +120,7 @@ module FromSig (Ctx : Set)
                (_⇒_ : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx n) → Ty (nat2Ctx n))
                (Π : ∀{n} → Ty (nat2Ctx (suc n)) → Ty (nat2Ctx n))
           where
-
+    
     -- convert a built-in-compatible type into a Ty type
     ♯2* : ∀{n} → n ⊢♯ → Ty (nat2Ctx n)
     ♯2* (` x) = fin2Ty x
@@ -126,37 +136,138 @@ module FromSig (Ctx : Set)
     ♯2* (con g2elt) = mkTyCon  T2.g2elt
     ♯2* (con mlresult) = mkTyCon  T2.mlresult
 
-    {- `sig2type-aux` takes a list of arguments and a result type, and produces
-        a function that takes all arguments and returns the result type.
-
-       sig2type-aux [ b₁ , b₂ , ... ,bₙ ] tᵣ = t₁ ⇒ t₂ ⇒ ... ⇒ tₙ ⇒ tᵣ
-          where tᵢ = ♯2* bᵢ
-    -}
-    sig2type-aux : ∀{n} 
-              → Args n 
-              → Ty (nat2Ctx n) → Ty (nat2Ctx n)
-    sig2type-aux xs = foldr (λ A xs res → (♯2* A) ⇒ (xs res)) (λ A res → ♯2* A ⇒ res) xs
-
-    -- take a type and close its type variables using Π
-    sig2type-aux2 : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx 0)
-    sig2type-aux2 {zero} t = t
-    sig2type-aux2 {suc n} t = sig2type-aux2 {n} (Π t)
-
-    -- The main conversion function
-    sig2type : Sig → Ty (nat2Ctx 0)
-    sig2type (sig _ as res) = sig2type-aux2 (sig2type-aux as (♯2* res)) 
+    -- The empty context
+    ∅ : Ctx 
+    ∅ = nat2Ctx 0
 ```
 
+ `sig2type⇒` takes a list of arguments and a result type, and produces
+        a function that takes all arguments and returns the result type.
+
+   sig2type⇒ [ b₁ , b₂ , ... ,bₙ ] tᵣ = tₙ ⇒ ... ⇒ t₂ ⇒ t₁ ⇒ tᵣ
+       where tᵢ = ♯2* bᵢ
+   
+```
+    sig2type⇒ : ∀{n} 
+              → List (n ⊢♯) 
+              → Ty (nat2Ctx n) → Ty (nat2Ctx n)
+    sig2type⇒ [] r = r
+    sig2type⇒ (a ∷ as) r = sig2type⇒ as (♯2* a ⇒ r)
+      --foldr (λ A xs res → (♯2* A) ⇒ (xs res)) (λ A res → ♯2* A ⇒ res) xs
+```
+
+  `sig2typeΠ` adds as many Π as needed to close the type.
+
+```
+    sig2typeΠ : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx 0)
+    sig2typeΠ {zero} t = t
+    sig2typeΠ {suc n} t = sig2typeΠ {n} (Π t)
+```
+
+   The main conversion function from a signature into a concrete type
+
+```
+    sig2type : Sig → Ty ∅
+    sig2type (sig _ as res) = sig2typeΠ (sig2type⇒ (toList as) (♯2* res)) 
+```
+
+### Types originating from a Signature
+
+The types produced by a signature have a particular form: possibly 
+some Π applications and then at least one function argument.
+
+We define a predicate for concrete types of that shape as a datatype 
+indexed by the concrete types
+
+```
+    -- an : number of arguments to be added to the type 
+    -- am : number of arguments expected
+    -- at : total number of arguments
+    -- tm : number of Π applied
+    -- tn : number of Π yet to be applied
+    -- tt: number of Π in the signature (fv♯)
+    data SigTy : ∀{tn tm tt} → tn ∔ tm ≣ tt 
+               → ∀{an am at} → an ∔ am ≣ at 
+               → ∀{n} → Ty (nat2Ctx n) → Set where
+       bresult  : ∀{tt} → {pt : tt ∔ 0 ≣ tt}
+                → ∀{at} → {pa : at ∔ 0 ≣ at}
+                → ∀{n} (A : Ty (nat2Ctx n)) 
+                → SigTy pt pa A
+       _B⇒_ : ∀{tn tt} → {pt : tn ∔ 0 ≣ tt }        -- all Π yet to be applied
+            → ∀{an am at} → {pa : an ∔ suc am ≣ at} -- there is one more argument to add
+            → ∀{n} → (A : Ty (nat2Ctx n)) 
+                   → {B : Ty (nat2Ctx n)} 
+            → SigTy pt (bubble pa) B 
+            → SigTy pt pa (A ⇒ B)
+       sucΠ : ∀{tn tm tt} → {pt : tn ∔ suc tm ≣ tt}
+            → ∀{am an at} → {pa : an ∔ am ≣ at}
+            → ∀{n}{A : Ty (nat2Ctx (suc n))} 
+            → SigTy (bubble pt) pa A 
+            → SigTy pt pa (Π A)
+
+```
+   
+   A `SigTy (0 ∔ tn ≣ tn) at A` is a type that expects the total number of 
+   type arguments `tn` and the total number of term arguments `at`.  
+
+## Conversion from a Signature to a SigType    
+
+```    
+    sig2SigTy⇒ : ∀{tt : ℕ} → {pt : tt ∔ 0 ≣ tt}
+               → (as : List (tt ⊢♯))
+               → ∀ {am at}(pa : length as ∔ am ≣ at)
+               → {A : Ty (nat2Ctx tt)} → (σA : SigTy pt pa A)
+               → SigTy pt (start at) (sig2type⇒ as A)
+    sig2SigTy⇒ [] (start _) bty = bty
+    sig2SigTy⇒ (a ∷ as) (bubble pa) bty = sig2SigTy⇒ as pa (♯2* a B⇒ bty)
+
+
+    sig2SigTyΠ : ∀{tn tm tt : ℕ} → (pt : tn ∔ tm ≣ tt) 
+                    → ∀ {at}{pa : 0 ∔ at ≣ at}
+                    → ∀{A : Ty (nat2Ctx tn)} → SigTy pt pa A
+                    → SigTy (start tt) pa (sig2typeΠ A)
+    sig2SigTyΠ (start _) bty = bty
+    sig2SigTyΠ (bubble pt) bty = sig2SigTyΠ pt (sucΠ bty)
+                        
+    -- From a signature obtain a signature type
+    sig2SigTy : (σ : Sig) → SigTy (start (fv♯ σ)) (start (args♯ σ)) (sig2type σ)
+    sig2SigTy (sig n as r) =
+                sig2SigTyΠ (alldone n) (sig2SigTy⇒ (toList as) (alldone (length⁺ as)) (bresult (♯2* r)))
+ 
+    -- extract the concrete type from a signature type.
+    sigTy2type : ∀{n tm tn tt an am at}{A : Ty (nat2Ctx n)} → {pt : tn ∔ tm ≣ tt} → {pa : an ∔ am ≣ at} → SigTy pt pa A → Ty (nat2Ctx n)
+    sigTy2type {A = A} _ = A
+
+    saturatedSigTy : ∀ (σ : Sig) → (A : Ty ∅) → Set
+    saturatedSigTy σ A = SigTy (alldone (fv♯ σ)) (alldone (args♯ σ)) A
+```
+
+## Conversion of Signature types
+
+```
+    convSigTy :
+          ∀{tn tm tt} → {pt pt' : tn ∔ tm ≣ tt}
+        → ∀{an am at} → {pa pa' : an ∔ am ≣ at}
+        → ∀{n}{A A' : Ty (nat2Ctx n)}
+        → A ≡ A'
+        → SigTy pt pa A
+        → SigTy pt' pa' A'
+    convSigTy {pt = pt} {pt'} {pa = pa} {pa'} refl sty rewrite unique∔ pt pt' | unique∔ pa pa' = sty
+-- -}
+```
+
+## Auxiliary functions
+
 The parameter `Ctx` above is usually `Ctx⋆`.  In this case, the parameters
- `nat2Ctx` and  `fin2Ty` con be instantiated with the help of the following 
+ `nat2Ctx` and  `fin2Ty` can be instantiated with the help of the following 
  auxiliary functions.
 
 ```
 nat2Ctx⋆ : ℕ → Ctx⋆
-nat2Ctx⋆ zero = ∅
+nat2Ctx⋆ zero = Ctx⋆.∅
 nat2Ctx⋆ (suc n) = nat2Ctx⋆ n ,⋆ *
 
 fin2∈⋆ : ∀{n} → Fin n → (nat2Ctx⋆ n) ∋⋆ *
 fin2∈⋆ Z = Z
 fin2∈⋆ (S x) = S (fin2∈⋆ x)
-```
+```  

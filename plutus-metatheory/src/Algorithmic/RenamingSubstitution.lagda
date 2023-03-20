@@ -16,7 +16,8 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 
 open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open import Algorithmic using (Ctx;_∋_;conv∋;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype-ren;btype-sub)
 open Ctx
 open _∋_
 open _⊢_

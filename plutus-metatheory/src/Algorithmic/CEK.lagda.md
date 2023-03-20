@@ -3,12 +3,11 @@
 ```
 module Algorithmic.CEK where
 
---open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ;zero;suc)
+open import Data.Nat.Properties using (+-identityʳ)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Function using (_∘_)
-open import Data.Product using (∃;proj₁;proj₂)
-open import Data.List using ([];_∷_)
+--open import Data.Product using (proj₁;proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
                                                   renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
@@ -26,7 +25,8 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id;subNf-cong;extsNf)
-open import Algorithmic using (Ctx;arity;_⊢_;Term;Type;btype;_∋_;conv⊢;builtin_/_)
+open import Algorithmic using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_)
+open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
 open _∋_
@@ -40,11 +40,19 @@ open TyCon
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open TermCon
 
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
+open Sig
+
+open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
+    using (sig2type;♯2*;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
+open SigTy
+
 data Env : Ctx ∅ → Set
 
-data BApp (b : Builtin) : ∀{az}{as}
-  → az <>> as ∈ arity b
-  → (A : ∅ ⊢Nf⋆ *) → Set
+data BApp (b : Builtin) : 
+    ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
+  → ∀{an am at} → {pa : an ∔ am ≣ at}
+  → (A : ∅ ⊢Nf⋆ *) → SigTy pt pa A → Set
 
 data Value : (A : ∅ ⊢Nf⋆ *) → Set where
   V-ƛ : ∀ {Γ}{A B : ∅ ⊢Nf⋆ *}
@@ -67,29 +75,44 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
     → (cn : TermCon {∅} (con tcn))
     → Value (con tcn)
 
-  V-I⇒ : ∀ b {A B as as'}
-       → (p : as <>> (Term ∷ as') ∈ arity b)
-       → BApp b p (A ⇒ B)
+  V-I⇒ : ∀ b {A B}{tn}
+       → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+       → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
+       → {σB : SigTy pt (bubble pa) B}
+       → BApp b (A ⇒ B) (A B⇒ σB)
        → Value (A ⇒ B)
 
-  V-IΠ : ∀ b {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{as as'}
-       → (p : as <>> (Type ∷ as') ∈ arity b)
-       → BApp b p (Π B)
+  V-IΠ : ∀ b {B : ∅ ,⋆ * ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+       → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+       → {σB : SigTy (bubble pt) pa B}
+       → BApp b (Π B) (sucΠ σB)
        → Value (Π B)
 
 data BApp b where
-  base : BApp b (start (arity b)) (btype b)
-  app : ∀{A B}{az as}
-    → (p : az <>> (Term ∷ as) ∈ arity b)
-    → BApp b p (A ⇒ B)
-    → Value A → BApp b (bubble p) B
-  app⋆ : ∀{B C}{az as}
-    → (p : az <>> (Type ∷ as) ∈ arity b)
-    → BApp b p (Π B)
-    → {A : ∅ ⊢Nf⋆ K}
+  base : BApp b (sig2type (signature b)) (sig2SigTy (signature b))
+  app : ∀{A B}{tn}
+    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+    → {σB : SigTy pt (bubble pa) B}
+    → BApp b (A ⇒ B) (A B⇒ σB)
+    → Value A 
+    → BApp b B σB
+  app⋆ : ∀{B C}
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
+    → {σB : SigTy (bubble pt) pa B}
+    → BApp b (Π B) (sucΠ σB)
+    → {A : ∅ ⊢Nf⋆ *}
     → (q : C ≡ B [ A ]Nf)
-    → BApp b (bubble p) C
+    → {σC : SigTy (bubble pt) pa C}
+    → (σq : σC ≡ convSigTy (sym q) (σB [ A ]SigTy))
+    → BApp b C σC
+```
 
+## Environments
+
+```
 data Env where
   [] : Env ∅
   _∷_ : ∀{Γ A} → Env Γ → Value A → Env (Γ , A)
@@ -97,14 +120,11 @@ data Env where
 lookup : ∀{Γ A} → Γ ∋ A → Env Γ → Value A
 lookup Z     (ρ ∷ v) = v
 lookup (S x) (ρ ∷ v) = lookup x ρ
+```
 
-convValue : ∀{A A'}(p : A ≡ A') → Value A → Value A'
-convValue refl v = v
+## Conversion of Values to Terms
 
-data Error : ∅ ⊢Nf⋆ * → Set where
-  -- an actual error term
-  E-error : (A : ∅ ⊢Nf⋆ *) → Error A
-
+```
 discharge : ∀{A} → Value A → ∅ ⊢ A
 
 env2sub : ∀{Γ} → Env Γ → Sub (ne ∘ `) Γ ∅
@@ -129,108 +149,113 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
     (subNf-id A))
   (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2sub ρ)) M)
 
-
-
-dischargeB : ∀{b A}{az}{as}{p : az <>> as ∈ arity b} → BApp b p A → ∅ ⊢ A
-dischargeB {b = b} base = builtin b / refl
-dischargeB (app p bt vu) = dischargeB bt · discharge vu
-dischargeB (app⋆ p bt refl) = dischargeB bt ·⋆ _ / refl
+dischargeB : ∀(b : Builtin)
+          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
+          → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
+          → ∀{C} → {Cb : SigTy pt pa C} → (bp : BApp b C Cb) 
+          → ∅ ⊢ C
+dischargeB b base = builtin b / refl
+dischargeB b (app bt x) = dischargeB b bt · discharge x
+dischargeB b (app⋆ bt q _) = dischargeB b bt  ·⋆ _ /  q
 
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c
-discharge (V-I⇒ b p bt) = dischargeB bt
-discharge (V-IΠ b p bt) = dischargeB bt
+discharge (V-I⇒ b bt) = dischargeB b bt
+discharge (V-IΠ b bt) = dischargeB b bt 
+```
 
-BUILTIN : ∀ b {A} → BApp b (saturated (arity b)) A → Either (∅ ⊢Nf⋆ *) (Value A)
-BUILTIN addInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
-BUILTIN subtractInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
-BUILTIN multiplyInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
-BUILTIN divideInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+## Builtin Semantics
+
+```
+BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
+BUILTIN addInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
+BUILTIN subtractInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
+BUILTIN multiplyInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
+BUILTIN divideInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
   (inj₂ (V-con (integer (div i i'))))
-BUILTIN quotientInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN quotientInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
   (inj₂ (V-con (integer (quot i i'))))
-BUILTIN remainderInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN remainderInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
   (inj₂ (V-con (integer (rem i i'))))
-BUILTIN modInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN modInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
   (inj₂ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN lessThanEqualsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN equalsInteger (app _ (app _ base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN appendByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
-BUILTIN lessThanByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
-BUILTIN sha2-256 (app _ base (V-con (bytestring b))) = inj₂ (V-con
+BUILTIN lessThanInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN lessThanEqualsInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN equalsInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
+BUILTIN appendByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
+BUILTIN lessThanByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
+BUILTIN lessThanEqualsByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
+BUILTIN sha2-256 (app base (V-con (bytestring b))) = inj₂ (V-con
   (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 (app _ base (V-con (bytestring b))) =
+BUILTIN sha3-256 (app base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (SHA3-256 b)))
-BUILTIN blake2b-256 (app _ base (V-con (bytestring b))) =
+BUILTIN blake2b-256 (app base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (BLAKE2B-256 b)))
-BUILTIN verifyEd25519Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
+BUILTIN verifyEd25519Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN verifyEcdsaSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
+BUILTIN verifyEcdsaSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN verifySchnorrSecp256k1Signature (app _ (app _ (app _ base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
+BUILTIN verifySchnorrSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN encodeUtf8 (app _ base (V-con (string s))) =
+BUILTIN encodeUtf8 (app base (V-con (string s))) =
   inj₂ (V-con (bytestring (ENCODEUTF8 s)))
-BUILTIN decodeUtf8 (app _ base (V-con (bytestring b))) with DECODEUTF8 b
+BUILTIN decodeUtf8 (app base (V-con (bytestring b))) with DECODEUTF8 b
 ... | nothing = inj₁ (con string)
 ... | just s  = inj₂ (V-con (string s))
-BUILTIN equalsByteString (app _ (app _ base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool false))) vt) vf) = inj₂ vf
-BUILTIN ifThenElse (app _ (app _ (app _ (app⋆ _ base refl) (V-con (bool true))) vt) vf) = inj₂ vt
-BUILTIN appendString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (string (primStringAppend s s')))
-BUILTIN trace (app _ (app _ (app⋆ _ base refl) (V-con (string s))) v) =
+BUILTIN equalsByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
+BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (bool false))) vt) vf) = inj₂ vf
+BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (bool true))) vt) vf) = inj₂ vt
+BUILTIN appendString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (string (primStringAppend s s')))
+BUILTIN trace (app (app (app⋆ base refl refl) (V-con (string s))) v) =
   inj₂ (TRACE s v)
-BUILTIN iData (app _ base (V-con (integer i))) =
+BUILTIN iData (app base (V-con (integer i))) =
   inj₂ (V-con (pdata (iDATA i)))
-BUILTIN bData (app _ base (V-con (bytestring b))) =
+BUILTIN bData (app base (V-con (bytestring b))) =
   inj₂ (V-con (pdata (bDATA b)))
-BUILTIN consByteString (app _ (app _ base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
-BUILTIN sliceByteString (app _ (app _ (app _ base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
-BUILTIN lengthOfByteString (app _ base (V-con (bytestring b))) =
+BUILTIN consByteString (app (app base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
+BUILTIN sliceByteString (app (app (app base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
+BUILTIN lengthOfByteString (app base (V-con (bytestring b))) =
   inj₂ (V-con (integer (length b)))
-BUILTIN indexByteString (app _ (app _ base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+BUILTIN indexByteString (app (app base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
 ... | no  _ = inj₁ (con integer)
 ... | yes _ with i <? length b
 ... | no _  = inj₁ (con integer)
 ... | yes _ = inj₂ (V-con (integer (index b i)))
-BUILTIN equalsString (app _ (app _ base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
-BUILTIN unIData (app _ base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))
-BUILTIN unBData (app _ base (V-con (pdata (bDATA b)))) =
+BUILTIN equalsString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
+BUILTIN unIData (app base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))
+BUILTIN unBData (app base (V-con (pdata (bDATA b)))) =
   inj₂ (V-con (bytestring b))
-BUILTIN serialiseData (app _ base (V-con (pdata d))) =
+BUILTIN serialiseData (app base (V-con (pdata d))) =
   inj₂ (V-con (bytestring (serialiseDATA d)))
-BUILTIN _ {A} _ = inj₁ A
-  
-convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
-  → ∀{A}
-  → BApp b p A
-  → BApp b p' A
-convBApp b p p' q rewrite unique<>> p p' = q
+BUILTIN _ {A = A} _ = inj₁ A
 
-BUILTIN' : ∀ b {A}{az}(p : az <>> [] ∈ arity b)
-  → BApp b p A
+BUILTIN' : ∀ b {A}
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
+  → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
+  → {σA : SigTy pt pa A}
+  → BApp b A σA
   → ∅ ⊢ A
-BUILTIN' b {az = az} p q
-  with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
-... | refl with BUILTIN b (convBApp b p (saturated (arity b)) q)
-... | inj₂ V = discharge V
+BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
+... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl with BUILTIN b bt
 ... | inj₁ A = error _
+... | inj₂ V = discharge V
+```
 
+<<<<<<< HEAD
 postulate bappTermLem : ∀  b {A}{az as}(p : az <>> (Term ∷ as) ∈ arity b) → BApp b p A → ∃ λ A' → ∃ λ A'' → A ≡ A' ⇒ A''
 
 {-
@@ -850,11 +875,21 @@ bappTypeLem blake2b-256 {az = az} p q
 V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
        → (p : as <>> a ∷ as' ∈ arity b)
        → BApp b p A
+=======
+```
+V-I : ∀ (b : Builtin) {A : ∅ ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+       → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
+       → {σA : SigTy pt pa A}
+       → BApp b A σA
+>>>>>>> master
        → Value A
-V-I b {a = Term} p q with bappTermLem b p q
-... | _ ,, _ ,, refl = V-I⇒ b p q
-V-I b {a = Type} p q  with bappTypeLem b p q
-... | _ ,, _ ,, refl = V-IΠ b p q
+V-I b {tm = zero} {σA = A B⇒ σA} bt = V-I⇒ b bt
+V-I b {tm = suc tm} {σA = sucΠ σA} bt = V-IΠ b bt
+
+data Error : ∅ ⊢Nf⋆ * → Set where
+  -- an actual error term
+  E-error : (A : ∅ ⊢Nf⋆ *) → Error A
 
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·     : ∀{Γ}{A B : ∅ ⊢Nf⋆ *} → Γ ⊢ A → Env Γ → Frame B (A ⇒ B)
@@ -880,108 +915,32 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
   □     : Value T → State T
   ◆     : ∅ ⊢Nf⋆ * → State T
 
-
-
-ival : ∀ b → Value (btype b)
-ival addInteger = V-I⇒ addInteger _ base
-ival subtractInteger = V-I⇒ subtractInteger _ base
-ival multiplyInteger = V-I⇒ multiplyInteger _ base
-ival divideInteger = V-I⇒ divideInteger _ base
-ival quotientInteger = V-I⇒ quotientInteger _ base
-ival remainderInteger = V-I⇒ remainderInteger _ base
-ival modInteger = V-I⇒ modInteger _ base
-ival lessThanInteger = V-I⇒ lessThanInteger _ base
-ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger _ base
-ival equalsInteger = V-I⇒ equalsInteger _ base
-ival appendByteString = V-I⇒ appendByteString _ base
-ival lessThanByteString = V-I⇒ lessThanByteString _ base
-ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString _ base
-ival sha2-256 = V-I⇒ sha2-256 _ base
-ival sha3-256 = V-I⇒ sha3-256 _ base
-ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature _ base
-ival verifyEcdsaSecp256k1Signature = V-I⇒ verifyEcdsaSecp256k1Signature _ base
-ival verifySchnorrSecp256k1Signature = V-I⇒ verifySchnorrSecp256k1Signature _ base
-ival equalsByteString = V-I⇒ equalsByteString _ base
-ival ifThenElse = V-IΠ ifThenElse _ base
-ival appendString = V-I⇒ appendString _ base
-ival trace = V-IΠ trace _ base
-ival equalsString = V-I⇒ equalsString (start _) base
-ival encodeUtf8 = V-I⇒ encodeUtf8 (start _) base
-ival decodeUtf8 = V-I⇒ decodeUtf8 (start _) base
-ival fstPair = V-IΠ fstPair (start _) base
-ival sndPair = V-IΠ sndPair (start _) base
-ival nullList = V-IΠ nullList (start _) base
-ival headList = V-IΠ headList (start _) base
-ival tailList = V-IΠ tailList (start _) base
-ival chooseList = V-IΠ chooseList (start _) base
-ival constrData = V-I⇒ constrData (start _) base
-ival mapData = V-I⇒ mapData (start _) base
-ival listData = V-I⇒ listData (start _) base
-ival iData = V-I⇒ iData (start _) base
-ival bData = V-I⇒ bData (start _) base
-ival unConstrData = V-I⇒ unConstrData (start _) base
-ival unMapData = V-I⇒ unMapData (start _) base
-ival unListData = V-I⇒ unListData (start _) base
-ival unIData = V-I⇒ unIData (start _) base
-ival unBData = V-I⇒ unBData (start _) base
-ival equalsData = V-I⇒ equalsData (start _) base
-ival serialiseData = V-I⇒ serialiseData (start _) base
-ival chooseData = V-IΠ chooseData (start _) base
-ival chooseUnit = V-IΠ chooseUnit (start _) base
-ival mkPairData = V-I⇒ mkPairData (start _) base
-ival mkNilData = V-I⇒ mkNilData (start _) base
-ival mkNilPairData = V-I⇒ mkNilPairData (start _) base
-ival mkCons = V-IΠ mkCons (start _) base
-ival consByteString = V-I⇒ consByteString (start _) base
-ival sliceByteString = V-I⇒ sliceByteString (start _) base
-ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) base
-ival indexByteString = V-I⇒ indexByteString (start _) base
-ival blake2b-256 = V-I⇒ blake2b-256 (start _) base
-ival bls12-381-G1-add = V-I⇒ bls12-381-G1-add (start _) base
-ival bls12-381-G1-neg = V-I⇒ bls12-381-G1-neg (start _) base
-ival bls12-381-G1-scalarMul = V-I⇒ bls12-381-G1-scalarMul (start _) base
-ival bls12-381-G1-equal = V-I⇒ bls12-381-G1-equal (start _) base
-ival bls12-381-G1-hashToGroup = V-I⇒ bls12-381-G1-hashToGroup (start _) base
-ival bls12-381-G1-compress = V-I⇒ bls12-381-G1-compress (start _) base
-ival bls12-381-G1-uncompress = V-I⇒ bls12-381-G1-uncompress (start _) base
-ival bls12-381-G2-add = V-I⇒ bls12-381-G2-add (start _) base
-ival bls12-381-G2-neg = V-I⇒ bls12-381-G2-neg (start _) base
-ival bls12-381-G2-scalarMul = V-I⇒ bls12-381-G2-scalarMul (start _) base
-ival bls12-381-G2-equal = V-I⇒ bls12-381-G2-equal (start _) base
-ival bls12-381-G2-hashToGroup = V-I⇒ bls12-381-G2-hashToGroup (start _) base
-ival bls12-381-G2-compress = V-I⇒ bls12-381-G2-compress (start _) base
-ival bls12-381-G2-uncompress = V-I⇒ bls12-381-G2-uncompress (start _) base
-ival bls12-381-pairing = V-I⇒ bls12-381-pairing (start _) base
-ival bls12-381-mulMlResult = V-I⇒ bls12-381-mulMlResult (start _) base
-ival bls12-381-finalVerify = V-I⇒ bls12-381-finalVerify (start _) base
+ival : ∀(b : Builtin) → Value (btype b)
+ival b = V-I b base 
 
 step : ∀{T} → State T → State T
-step (s ; ρ ▻ ` x)                    = s ◅ lookup x ρ
-step (s ; ρ ▻ ƛ L)                    = s ◅ V-ƛ L ρ
-step (s ; ρ ▻ (L · M))                = (s , -· M ρ) ; ρ ▻ L
-step (s ; ρ ▻ Λ L)                    = s ◅ V-Λ L ρ
-step (s ; ρ ▻ (L ·⋆ A / refl))        = (s , -·⋆ A) ; ρ ▻ L
-step (s ; ρ ▻ wrap A B L)             = (s , wrap-) ; ρ ▻ L
-step (s ; ρ ▻ unwrap L refl)          = (s , unwrap-) ; ρ ▻ L
-step (s ; ρ ▻ con c)                  = s ◅ V-con c
-step (s ; ρ ▻ (builtin b / refl))     = s ◅ ival b
-step (s ; ρ ▻ error A)                = ◆ A
-step (ε ◅ V)                          = □ V
-step ((s , -· M ρ') ◅ V)              = (s , V ·-) ; ρ' ▻ M
-step ((s , (V-ƛ M ρ ·-)) ◅ V)         = s ; ρ ∷ V ▻ M
-step ((s , -·⋆ A) ◅ V-Λ M ρ)          = s ; ρ ▻ (M [ A ]⋆)
-step ((s , wrap- {A = A}{B = B}) ◅ V) = s ◅ V-wrap V
-step ((s , unwrap-) ◅ V-wrap V)       = s ◅ V
-step ((s , (V-I⇒ b {as' = []} p vs ·-)) ◅ V) =
-  s ; [] ▻ (BUILTIN' b (bubble p) (app p vs V))
-step ((s , (V-I⇒ b {as' = x₂ ∷ as'} p vs ·-)) ◅ V) =
-  s ◅ V-I b (bubble p) (app p vs V)
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p vs) =
-  s ; [] ▻ BUILTIN' b (bubble p) (app⋆ p vs refl) 
-step ((s , -·⋆ A) ◅ V-IΠ b {as' = x₂ ∷ as'} p vs) =
-  s ◅ V-I b (bubble p) (app⋆ p vs refl)
-step (□ V)                            = □ V
-step (◆ A)                            = ◆ A
+step (s ; ρ ▻ ` x) = s ◅ lookup x ρ
+step (s ; ρ ▻ ƛ L) = s ◅ V-ƛ L ρ
+step (s ; ρ ▻ (L · M)) = (s , -· M ρ) ; ρ ▻ L
+step (s ; ρ ▻ Λ L) = s ◅ V-Λ L ρ
+step (s ; ρ ▻ (L ·⋆ A / refl)) = (s , -·⋆ A) ; ρ ▻ L
+step (s ; ρ ▻ wrap A B L) = (s , wrap-) ; ρ ▻ L
+step (s ; ρ ▻ unwrap L refl) = (s , unwrap-) ; ρ ▻ L
+step (s ; ρ ▻ con c) = s ◅ V-con c
+step (s ; ρ ▻ (builtin b / refl)) = s ◅ ival b
+step (s ; ρ ▻ error A) = ◆ A
+step (ε ◅ V) = □ V
+step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
+step ((s , (V-ƛ M ρ ·-)) ◅ V) = s ; ρ ∷ V ▻ M
+step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ V) = s ; [] ▻ (BUILTIN' b (app bapp V))
+step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ V) = s ◅ V-I b (app bapp V)
+step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
+step ((s , -·⋆ A) ◅ V-IΠ b bapp) = s ◅ V-I b (app⋆ bapp refl refl)
+step ((s , wrap-) ◅ V) = s ◅ V-wrap V
+step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
+step (□ V) = □ V
+step (◆ A) = ◆ A
+
 
 stepper : ℕ → ∀{T} → State T → Either RuntimeError (State T)
 stepper zero st = inj₁ gasError
@@ -990,3 +949,5 @@ stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
+-- -}
+ 

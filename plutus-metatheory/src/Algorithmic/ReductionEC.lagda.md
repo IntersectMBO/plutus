@@ -5,12 +5,14 @@ module Algorithmic.ReductionEC where
 
 ```
 open import Agda.Builtin.String using (primStringAppend ; primStringEquality)
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Nat.Properties using (+-identityʳ)
 open import Data.Bool using (Bool;true;false)
 open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (_<?_;∣_∣;_≤?_;_≟_)
 open import Data.List as List using (List; _∷_; [];length)
 open import Data.Maybe using (just;from-just)
-open import Data.Product using (_×_;∃) renaming (_,_ to _,,_)
+open import Data.Product using (_×_;∃;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Data.String using (String)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Unit using (tt)
@@ -25,40 +27,56 @@ open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;arity;btype;Term;Type;conv⊢)
+open import Algorithmic using (Ctx;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.Properties using (lem-·⋆;lem-unwrap)
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
-open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
+open _⊢Ne⋆_
 open import Builtin 
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open TermCon
+
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
+open Sig
+
+open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
+    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+open SigTy
 ```
 
 ## Values
 
-```
+``` 
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
 
-data BApp (b : Builtin) : ∀{az}{as}
-  → az <>> as ∈ arity b
-  → ∀{A} → ∅ ⊢ A → Set where
-  base : ∀{C}(p : C ≡ btype b) → BApp b (start (arity b)) (builtin b / p)
-  step : ∀{A B}{az as}
-    → (p : az <>> (Term ∷ as) ∈ arity b)
-    → {t : ∅ ⊢ A ⇒ B} → BApp b p t
-    → {u : ∅ ⊢ A} → Value u → BApp b (bubble p) (t · u)
-  step⋆ : ∀{C B}{az as}
-    → (p : az <>> (Type ∷ as) ∈ arity b)
-    → {t : ∅ ⊢ Π B} → BApp b p t
-    → {A : ∅ ⊢Nf⋆ K}
+data BApp (b : Builtin) : 
+    ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
+  → ∀{an am at} → {pa : an ∔ am ≣ at}
+  → ∀{A} → SigTy pt pa A → ∅ ⊢ A → Set where
+  base : BApp b (sig2SigTy (signature b)) (builtin b / refl )
+  step : ∀{A B}{tn}
+    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+    → {σB : SigTy pt (bubble pa) B}
+    → {t : ∅ ⊢ A ⇒ B} → BApp b (A B⇒ σB) t
+    → {u : ∅ ⊢ A} → Value u → BApp b σB (t · u)
+  step⋆ : ∀{C B}
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+    → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
+    → {σB : SigTy (bubble pt) pa B}
+    → {t : ∅ ⊢ Π B} → BApp b (sucΠ σB) t
+    → {A : ∅ ⊢Nf⋆ *}
     → (q : C ≡ B [ A ]Nf)
-    → BApp b (bubble p) (t ·⋆ A / q)
+    → {σC : SigTy (bubble pt) pa C}
+    → (σq : σC ≡ substEq (SigTy (bubble pt) pa) (sym q) (σB [ A ]SigTy))
+    → BApp b σC (t ·⋆ A / q)
 
 data Value where
   V-ƛ : {A B : ∅ ⊢Nf⋆ *}
@@ -82,125 +100,122 @@ data Value where
     → (cn : TermCon (con tcn))
     → Value (con cn)
 
-  V-I⇒ : ∀ b {A B as as'}
-       → (p : as <>> (Term ∷ as') ∈ arity b)
+  V-I⇒ : ∀ b {A B}{tn}
+       → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+       → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
+       → {σB : SigTy pt (bubble pa) B}
        → {t : ∅ ⊢ A ⇒ B}
-       → BApp b p t
+       → BApp b (A B⇒ σB) t
        → Value t
-  V-IΠ : ∀ b {A : ∅ ,⋆ K ⊢Nf⋆ *}{as as'}
-       → (p : as <>> (Type ∷ as') ∈ arity b)
+  V-IΠ : ∀ b {A : ∅ ,⋆ * ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+       → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+       → {σA : SigTy (bubble pt) pa A}
        → {t : ∅ ⊢ Π A}
-       → BApp b p t
+       → BApp b (sucΠ σA) t
        → Value t
+
 
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
 
-{-
-tval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢Nf⋆ *
-tval {A = A} _ = A
--}
-
-BUILTIN : ∀ b {A}{t : ∅ ⊢ A} → BApp b (saturated (arity b)) t → ∅ ⊢ A
-BUILTIN addInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
-BUILTIN subtractInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
-BUILTIN multiplyInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
-BUILTIN divideInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN : ∀ b {A}{t : ∅ ⊢ A}  {Ab : saturatedSigTy (signature b) A} → BApp b Ab t → ∅ ⊢ A
+BUILTIN addInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
+BUILTIN subtractInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
+BUILTIN multiplyInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
+BUILTIN divideInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (div i j))
 ... | yes p = error _
-BUILTIN quotientInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN quotientInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (quot i j))
 ... | yes p = error _
-BUILTIN remainderInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN remainderInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (rem i j))
 ... | yes p = error _
-BUILTIN modInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN modInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with j ≟ Data.Integer.ℤ.pos 0
 ... | no ¬p = con (integer (mod i j))
 ... | yes p = error _
-BUILTIN lessThanInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN lessThanInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i <? j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN lessThanEqualsInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN lessThanEqualsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i ≤? j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN equalsInteger (step _ (step _ (base refl) (V-con (integer i))) (V-con (integer j)))
+BUILTIN equalsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
   with i ≟ j
 ... | no ¬p = con (bool false)
 ... | yes p = con (bool true)
-BUILTIN appendByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN appendByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bytestring (concat b b'))
-BUILTIN lessThanByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN lessThanByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (B< b b'))
-BUILTIN lessThanEqualsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) = 
+BUILTIN lessThanEqualsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) = 
   con (bool (B<= b b'))
-BUILTIN sha2-256 (step _ (base refl) (V-con (bytestring b))) =
+BUILTIN sha2-256 (step base (V-con (bytestring b))) =
   con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 (step _ (base refl) (V-con (bytestring b))) =
+BUILTIN sha3-256 (step base (V-con (bytestring b))) =
   con (bytestring (SHA3-256 b))
-BUILTIN blake2b-256 (step _ (base refl) (V-con (bytestring b))) =
+BUILTIN blake2b-256 (step base (V-con (bytestring b))) =
   con (bytestring (BLAKE2B-256 b))
-BUILTIN verifyEd25519Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifyEd25519Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifyEd25519Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN verifyEcdsaSecp256k1Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifyEcdsaSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifyEcdsaSecp256k1Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN verifySchnorrSecp256k1Signature (step _ (step _ (step _ (base refl) (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
+BUILTIN verifySchnorrSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
   with verifySchnorrSecp256k1Sig k d c
 ... | just b = con (bool b)
 ... | nothing = error _
-BUILTIN equalsByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (bytestring b'))) =
+BUILTIN equalsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
   con (bool (equals b b'))
-BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ (base refl) refl) (V-con (bool true))) t) f) = deval t
-BUILTIN ifThenElse (step _ (step _ (step _ (step⋆ _ (base refl) refl) (V-con (bool false))) t) f) = deval f
-BUILTIN appendString (step _ (step _ (base refl) (V-con (string s))) (V-con (string s'))) =
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool true))) t) f) = deval t
+BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool false))) t) f) = deval f
+BUILTIN appendString (step (step base (V-con (string s))) (V-con (string s'))) =
   con (string (primStringAppend s s'))
-BUILTIN trace (step _ (step _ (step⋆ _ (base refl) refl) (V-con (string s))) v) = TRACE s (deval v)
-BUILTIN iData (step _ (base refl) (V-con (integer i))) = con (pdata (iDATA i))
-BUILTIN bData (step _ (base refl) (V-con (bytestring b))) = con (pdata (bDATA b))
-BUILTIN consByteString (step _ (step _ (base refl) (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
-BUILTIN sliceByteString (step _ (step _ (step _ (base refl) (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
-BUILTIN lengthOfByteString (step _ (base refl) (V-con (bytestring b))) = con (integer (Builtin.length b))
-BUILTIN indexByteString (step _ (step _ (base refl) (V-con (bytestring b))) (V-con (integer i)))
+BUILTIN trace (step (step (step⋆ base refl refl) (V-con (string s))) v) = TRACE s (deval v)
+BUILTIN iData (step base (V-con (integer i))) = con (pdata (iDATA i))
+BUILTIN bData (step base (V-con (bytestring b))) = con (pdata (bDATA b))
+BUILTIN consByteString (step (step base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
+BUILTIN sliceByteString (step (step (step base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
+BUILTIN lengthOfByteString (step base (V-con (bytestring b))) = con (integer (Builtin.length b))
+BUILTIN indexByteString (step (step base (V-con (bytestring b))) (V-con (integer i)))
   with Data.Integer.ℤ.pos 0 ≤? i
 ... | no  _ = error _
 ... | yes _
   with i <? Builtin.length b
 ... | no _ =  error _
 ... | yes _ = con (integer (index b i))
-BUILTIN equalsString (step _ (step _ (base refl) (V-con (string s))) (V-con (string s'))) =
+BUILTIN equalsString (step (step base (V-con (string s))) (V-con (string s'))) =
   con (bool (primStringEquality s s'))
-BUILTIN encodeUtf8 (step _ (base refl) (V-con (string s))) =
+BUILTIN encodeUtf8 (step base (V-con (string s))) =
   con (bytestring (ENCODEUTF8 s))
-BUILTIN decodeUtf8 (step _ (base refl) (V-con (bytestring b)))
+BUILTIN decodeUtf8 (step base (V-con (bytestring b)))
   with DECODEUTF8 b
 ... | nothing = error _
 ... | just s  = con (string s)
-BUILTIN unIData (step _ (base refl) (V-con (pdata (iDATA i)))) = con (integer i)
-BUILTIN unBData (step _ (base refl) (V-con (pdata (bDATA b)))) = con (bytestring b)
-BUILTIN serialiseData (step _ (base refl) (V-con (pdata d))) = con (bytestring (serialiseDATA d))
+BUILTIN unIData (step base (V-con (pdata (iDATA i)))) = con (integer i)
+BUILTIN unBData (step base (V-con (pdata (bDATA b)))) = con (bytestring b)
+BUILTIN serialiseData (step base (V-con (pdata d))) = con (bytestring (serialiseDATA d))
 BUILTIN _ _ = error _
 
-convBApp : (b : Builtin) → ∀{az}{as}(p p' : az <>> as ∈ arity b)
-  → ∀{A}(t : ∅ ⊢ A)
-  → BApp b p t
-  → BApp b p' t
-convBApp b p p' t q rewrite unique<>> p p' = q
-
-BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}{az}(p : az <>> [] ∈ arity b)
-  → BApp b p t
+BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
+  → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
+  → {σA : SigTy pt pa A}
+  → BApp b σA t
   → ∅ ⊢ A
-BUILTIN' b {t = t}{az = az} p q
-  with sym (trans (cong ([] <><_) (sym (<>>2<>>' _ _ _ p))) (lemma<>2 az []))
-... | refl = BUILTIN b (convBApp b p (saturated (arity b)) t q)
+BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
+... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl = BUILTIN b bt
 ```
 
 ```
@@ -208,26 +223,6 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
   -- an actual error term
   E-error : ∀{Φ Γ }{A : Φ ⊢Nf⋆ *} → Error {Γ = Γ} (error {Φ} A)
 ```
-
-{-
-convVal :  ∀ {A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
-  → ∀{t : ∅ ⊢ A} → Value t → Value (conv⊢ refl q t)
-convVal refl v = v
-
-convVal' :  ∀ {A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
-  → ∀{t : ∅ ⊢ A} → Value (conv⊢ refl q t) → Value t
-convVal' refl v = v
-
-
-convBApp1 :  ∀ b {az as}{p : az <>> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
-  → ∀{t : ∅ ⊢ A} → BApp b p t → BApp b p (conv⊢ refl q t)
-convBApp1 b refl v = v
-
-convBApp1' :  ∀ b {az as}{p : az <>> as ∈ arity b}{A A' : ∅ ⊢Nf⋆ *}(q : A ≡ A')
-  → ∀{t : ∅ ⊢ A} → BApp b p (conv⊢ refl q t) → BApp b p t
-convBApp1' b refl v = v
--}
-
 
 ## Intrinsically Type Preserving Reduction
 
@@ -305,52 +300,17 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → (p : C ≡ _)
     → unwrap (wrap A B M) p —→⋆ substEq (∅ ⊢_) (sym p) M
 
-  β-sbuiltin : ∀{A B}
+  β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → ∀{az}
-    → (p : az <>> (Term ∷ []) ∈ arity b)
-    → (bt : BApp b p t) -- one left
+    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
+    → {σB : SigTy pt (bubble pa) B}
+    → (bt : BApp b (A B⇒ σB) t) -- one left
     → (u : ∅ ⊢ A)
     → (vu : Value u)
       -----------------------------
-    → t · u —→⋆ BUILTIN' b (bubble p) (BApp.step p bt vu)
-
-  β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
-      (b : Builtin)
-    → (t : ∅ ⊢ Π B)
-    → ∀{az}
-    → (p : az <>> (Type ∷ []) ∈ arity b)
-    → (bt : BApp b p t) -- one left
-    → ∀ A
-    → (q : C ≡ _)
-      -----------------------------
-    → t ·⋆ A / q —→⋆ BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
-
-
-{-
--- does this need to be heterogeneous?
-lemΛE : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
-  → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}{Y}
-  → Y ≡ Π B
-  → (E : EC Y X)
-  → Λ L ≅ E [ L' ]ᴱ
-  → E ≅ EC.[] {A = Y} × Λ L ≅ L'
-lemΛE refl [] refl = refl ,, refl
-lemΛE refl (E l· M) ()
-lemΛE refl (x₂ ·r E) ()
-lemΛE refl (E ·⋆ A / q) ()
-lemΛE refl (unwrap E / q) ()
-
--- apparently not...
-lemΛE' : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
-  → ∀{L : ∅ ,⋆ K ⊢ B}{X}{L' : ∅ ⊢ X}
-  → (E : EC (Π B) X)
-  → Λ L ≡ E [ L' ]ᴱ
-  → ∃ λ (p : X ≡ Π B)
-  → substEq (EC (Π B)) p E ≡ EC.[] × Λ L ≡ substEq (∅ ⊢_) p L'
-lemΛE' [] refl = refl ,, refl ,, refl
--}
+    → t · u —→⋆ BUILTIN' b (step bt vu)
 ```
 
 
@@ -394,6 +354,7 @@ data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
     → M —↠ M''
 ```
 
+<<<<<<< HEAD
 ## Some auxiliary proofs used by Progress and Determinism.
 
 ```
@@ -911,98 +872,27 @@ bappTypeLem blake2b-256 {az = az} _ p q
 -}
 ```
 
+=======
+>>>>>>> master
 A smart constructor that looks at the arity and then puts on the
 right constructor
 
 ```
-V-I : ∀ b {A : ∅ ⊢Nf⋆ *}{a as as'}
-       → (p : as <>> a ∷ as' ∈ arity b)
+V-I :  ∀ (b : Builtin) {A : ∅ ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+       → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
+       → {σA : SigTy pt pa A}
        → {t : ∅ ⊢ A}
-       → BApp b p t
+       → BApp b σA t
        → Value t
-V-I b {a = Term} p q with bappTermLem b _ p q
-... | _ ,, _ ,, refl = V-I⇒ b p q
-V-I b {a = Type} p q  with bappTypeLem b _ p q
-... | _ ,, _ ,, refl = V-IΠ b p q
+V-I b {tm = zero} {σA = A B⇒ σA} bt = V-I⇒ b bt
+V-I b {tm = suc tm} {σA = sucΠ σA} bt = V-IΠ b bt
 ```
 
 For each builtin, return the value corresponding to the completely unapplied builtin
 
 ```
 ival : ∀ b → Value (builtin b / refl)
-
--- ival b = V-I b (start _) (base refl)
--- ^ not possible as we could have a builtin with no args
-
-ival addInteger = V-I⇒ addInteger (start _) (base refl) 
-ival subtractInteger = V-I⇒ subtractInteger (start _) (base refl) 
-ival multiplyInteger = V-I⇒ multiplyInteger (start _) (base refl) 
-ival divideInteger = V-I⇒ divideInteger (start _) (base refl) 
-ival quotientInteger = V-I⇒ quotientInteger (start _) (base refl) 
-ival remainderInteger = V-I⇒ remainderInteger (start _) (base refl) 
-ival modInteger = V-I⇒ modInteger (start _) (base refl) 
-ival lessThanInteger = V-I⇒ lessThanInteger (start _) (base refl) 
-ival lessThanEqualsInteger = V-I⇒ lessThanEqualsInteger (start _) (base refl) 
-ival lessThanByteString = V-I⇒ lessThanByteString (start _) (base refl) 
-ival sha2-256 = V-I⇒ sha2-256 (start _) (base refl) 
-ival sha3-256 = V-I⇒ sha3-256 (start _) (base refl) 
-ival verifyEd25519Signature = V-I⇒ verifyEd25519Signature (start _) (base refl) 
-ival verifyEcdsaSecp256k1Signature = V-I⇒ verifyEcdsaSecp256k1Signature (start _) (base refl) 
-ival verifySchnorrSecp256k1Signature = V-I⇒ verifySchnorrSecp256k1Signature (start _) (base refl) 
-ival equalsByteString = V-I⇒ equalsByteString (start _) (base refl) 
-ival ifThenElse = V-IΠ ifThenElse (start _) (base refl) 
-ival trace = V-IΠ trace (start _) (base refl) 
-ival equalsString = V-I _ (start _) (base refl)
-ival encodeUtf8 = V-I _ (start _) (base refl)
-ival decodeUtf8 = V-I _ (start _) (base refl)
-ival fstPair = V-I _ (start _) (base refl)
-ival sndPair = V-I _ (start _) (base refl)
-ival nullList = V-I _ (start _) (base refl)
-ival headList = V-I _ (start _) (base refl)
-ival tailList = V-I _ (start _) (base refl)
-ival chooseList = V-I _ (start _) (base refl)
-ival constrData = V-I _ (start _) (base refl)
-ival mapData = V-I _ (start _) (base refl)
-ival listData = V-I _ (start _) (base refl)
-ival iData = V-I _ (start _) (base refl)
-ival bData = V-I _ (start _) (base refl)
-ival unConstrData = V-I _ (start _) (base refl)
-ival unMapData = V-I _ (start _) (base refl)
-ival unListData = V-I _ (start _) (base refl)
-ival unIData = V-I _ (start _) (base refl)
-ival unBData = V-I _ (start _) (base refl)
-ival equalsData = V-I _ (start _) (base refl)
-ival serialiseData = V-I _ (start _) (base refl)
-ival chooseData = V-I _ (start _) (base refl)
-ival chooseUnit = V-I _ (start _) (base refl)
-ival mkPairData = V-I _ (start _) (base refl)
-ival mkNilData = V-I _ (start _) (base refl)
-ival mkNilPairData = V-I _ (start _) (base refl)
-ival mkCons = V-I _ (start _) (base refl)
-ival equalsInteger = V-I⇒ equalsInteger (start _) (base refl)
-ival appendByteString = V-I⇒ appendByteString (start _) (base refl)
-ival appendString = V-I⇒ appendString (start _) (base refl)
-ival lessThanEqualsByteString = V-I⇒ lessThanEqualsByteString (start _) (base refl)
-ival consByteString = V-I⇒ consByteString (start _) (base refl)
-ival sliceByteString = V-I⇒ sliceByteString (start _) (base refl)
-ival lengthOfByteString = V-I⇒ lengthOfByteString (start _) (base refl)
-ival indexByteString = V-I⇒ indexByteString (start _) (base refl)
-ival blake2b-256 = V-I⇒ blake2b-256 (start _) (base refl)
-ival bls12-381-G1-add = V-I⇒ bls12-381-G1-add (start _) (base refl)
-ival bls12-381-G1-neg = V-I⇒ bls12-381-G1-neg (start _) (base refl)
-ival bls12-381-G1-scalarMul = V-I⇒ bls12-381-G1-scalarMul (start _) (base refl)
-ival bls12-381-G1-equal = V-I⇒ bls12-381-G1-equal (start _) (base refl)
-ival bls12-381-G1-hashToGroup = V-I⇒ bls12-381-G1-hashToGroup (start _) (base refl)
-ival bls12-381-G1-compress = V-I⇒ bls12-381-G1-compress (start _) (base refl)
-ival bls12-381-G1-uncompress = V-I⇒ bls12-381-G1-uncompress (start _) (base refl)
-ival bls12-381-G2-add = V-I⇒ bls12-381-G2-add (start _) (base refl)
-ival bls12-381-G2-neg = V-I⇒ bls12-381-G2-neg (start _) (base refl)
-ival bls12-381-G2-scalarMul = V-I⇒ bls12-381-G2-scalarMul (start _) (base refl)
-ival bls12-381-G2-equal = V-I⇒ bls12-381-G2-equal (start _) (base refl)
-ival bls12-381-G2-hashToGroup = V-I⇒ bls12-381-G2-hashToGroup (start _) (base refl)
-ival bls12-381-G2-compress = V-I⇒ bls12-381-G2-compress (start _) (base refl)
-ival bls12-381-G2-uncompress = V-I⇒ bls12-381-G2-uncompress (start _) (base refl)
-ival bls12-381-pairing = V-I⇒ bls12-381-pairing (start _) (base refl)
-ival bls12-381-mulMlResult = V-I⇒ bls12-381-mulMlResult (start _) (base refl)
-ival bls12-381-finalVerify = V-I⇒ bls12-381-finalVerify (start _) (base refl)
+ival b = V-I b base
+-- -}
 ```
