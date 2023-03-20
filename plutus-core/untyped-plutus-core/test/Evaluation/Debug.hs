@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedLists       #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
@@ -21,6 +22,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
 import Control.Monad.Except
 import Control.Monad.RWS
 import Data.ByteString.Lazy.Char8 qualified as BS
+import Data.Proxy
 import Data.Void
 import Prettyprinter
 import Test.Tasty
@@ -65,7 +67,7 @@ mock cmds = cekMToIO . runMocking . runDriver
                  => FreeT (DebugF DefaultUni DefaultFun EmptyAnn Breakpoints) m ()
                  -> m [String]
       runMocking driver = do
-          ctr <- newCounter 8
+          ctr <- newCounter (Proxy @CounterSize)
           let ?cekRuntime = cekRuntime
               ?cekEmitter = const $ pure ()
               ?cekBudgetSpender = CekBudgetSpender $ \_ _ -> pure ()

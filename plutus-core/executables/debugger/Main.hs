@@ -48,6 +48,7 @@ import Control.Monad.Except
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
 import Data.Maybe
+import Data.Proxy
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
 import Data.Traversable
@@ -212,7 +213,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
     exBudgetInfo@(ExBudgetInfo spender _ _) <- stToIO initExBudgetInfo
 
-    ctr <- newCounter 8
+    ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = defaultRuntime
         ?cekEmitter = const $ pure () -- TODO: implement emitter
         ?cekBudgetSpender = spender

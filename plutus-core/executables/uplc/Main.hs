@@ -23,6 +23,7 @@ import Data.Foldable
 import Data.List (nub)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
+import Data.Proxy
 import Data.Text qualified as T
 import PlutusPrelude
 
@@ -267,7 +268,7 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                                      , Repl.autoAddHistory = False
                                      }
 
-    ctr <- newCounter 8
+    ctr <- newCounter (Proxy @D.CounterSize)
     let ?cekRuntime = runtime
         ?cekEmitter = const $ pure ()
         ?cekBudgetSpender = Cek.CekBudgetSpender $ \_ _ -> pure ()

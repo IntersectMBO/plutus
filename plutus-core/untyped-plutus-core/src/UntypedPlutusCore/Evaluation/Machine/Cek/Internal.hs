@@ -19,6 +19,7 @@
 {-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
@@ -50,6 +51,9 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , CekValEnv
     , GivenCekReqs
     , GivenCekSpender
+    , StepCounter
+    , CounterSize
+    , TotalCountIndex
     , Slippage
     , defaultSlippage
     , NTerm
@@ -84,9 +88,11 @@ import Control.Monad.ST.Unsafe
 import Data.DList (DList)
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
+import GHC.TypeLits
 import Prettyprinter
 import Universe
 
@@ -289,6 +295,16 @@ We keep the counters for each step in the first indices, so we can index them si
 the 'Enum' instance of 'StepKind', and the total counter in the last index.
 -}
 
+-- | The number of step counters that we need, should be the same as the number of constructors
+-- of 'StepKind'.
+type NumberOfStepCounters = 7
+-- | The total number of counters that we need, one extra for the total counter.
+-- See Note [Structure of the step counter]
+type CounterSize = NumberOfStepCounters + 1
+-- | The index at which the total step counter is kept.
+-- See Note [Structure of the step counter]
+type TotalCountIndex = NumberOfStepCounters
+
 type Slippage = Word8
 -- See Note [Cost slippage]
 -- | The default number of slippage (in machine steps) to allow.
@@ -350,7 +366,7 @@ type GivenCekEmitter uni fun s = (?cekEmitter :: CekEmitter uni fun s)
 -- | Implicit parameter for budget spender.
 type GivenCekSpender uni fun s = (?cekBudgetSpender :: (CekBudgetSpender uni fun s))
 type GivenCekSlippage = (?cekSlippage :: Slippage)
-type GivenCekStepCounter s = (?cekStepCounter :: StepCounter s)
+type GivenCekStepCounter s = (?cekStepCounter :: StepCounter CounterSize s)
 type GivenCekCosts = (?cekCosts :: CekMachineCosts)
 
 -- | Constraint requiring all of the machine's implicit parameters.
@@ -371,6 +387,7 @@ newtype CekM uni fun s a = CekM
 instance PrimMonad (CekM uni fun s) where
   type PrimState (CekM uni fun s) = s
   primitive f = CekM $ primitive f
+  {-# INLINE primitive #-}
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException name uni fun =
@@ -559,7 +576,7 @@ runCekM
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    ctr <- newCounter 8
+    ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
@@ -746,14 +763,18 @@ enterComputeCek = computeCek
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
-    spendAccumulatedBudget = iforCounter_ ?cekStepCounter spend
+    spendAccumulatedBudget = do
+        let ctr = ?cekStepCounter
+        iforCounter_ ctr spend
+        resetCounter ctr
 
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
-    spend !i !w = unless (i == 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+    spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
+      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
     {-# INLINE stepAndMaybeSpend #-}
     -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
@@ -764,12 +785,12 @@ enterComputeCek = computeCek
         -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
         let !ix = fromEnum kind
             ctr = ?cekStepCounter
-        modifyCounter 7 (+1) ctr
-        modifyCounter ix (+1) ctr
-        !unbudgetedStepsTotal <- readCounter ctr 7
+            !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
+        !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
+        _ <- modifyCounter ix (+1) ctr
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.
-        when (unbudgetedStepsTotal >= ?cekSlippage) $ spendAccumulatedBudget >> resetCounter ctr
+        when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
 
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.

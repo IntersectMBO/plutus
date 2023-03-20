@@ -15,6 +15,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -52,10 +53,12 @@ import Control.Lens hiding (Context, ix)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.ST
+import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import GHC.IO (ioToST)
+import GHC.TypeNats
 
 {- Note [Debuggable vs Original versions of CEK]
 
@@ -353,7 +356,7 @@ runCekM
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    ctr <- newCounter 8
+    ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
@@ -400,14 +403,18 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 -- | Spend the budget that has been accumulated for a number of machine steps.
 --
 spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => CekM uni fun s ()
-spendAccumulatedBudget = iforCounter_ ?cekStepCounter spend
+spendAccumulatedBudget = do
+    let ctr = ?cekStepCounter
+    iforCounter_ ctr spend
+    resetCounter ctr
   where
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
-    spend !i !w = unless (i == 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+    spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
+      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
 -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
 stepAndMaybeSpend :: (GivenCekReqs uni fun ann s) => StepKind -> CekM uni fun s ()
@@ -417,9 +424,9 @@ stepAndMaybeSpend !kind = do
     -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
     let !ix = fromEnum kind
         ctr = ?cekStepCounter
-    modifyCounter 7 (+1) ctr
-    modifyCounter ix (+1) ctr
-    !unbudgetedStepsTotal <- readCounter ctr 7
+        !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
+    !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
+    _ <- modifyCounter ix (+1) ctr
     -- There's no risk of overflow here, since we only ever increment the total
     -- steps by 1 and then check this condition.
-    when (unbudgetedStepsTotal >= ?cekSlippage) $ spendAccumulatedBudget >> resetCounter ctr
+    when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
