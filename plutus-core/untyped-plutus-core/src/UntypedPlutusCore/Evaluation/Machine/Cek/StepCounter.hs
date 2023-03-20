@@ -5,6 +5,7 @@
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
 import Control.Monad.Primitive
+import Data.Coerce (coerce)
 import Data.Primitive qualified as P
 import Data.Proxy
 import Data.Word
@@ -34,18 +35,27 @@ resetCounter (StepCounter arr) =
 
 {-# INLINE readCounter #-}
 -- | Read the value of a counter.
-readCounter :: PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
-readCounter (StepCounter arr) = P.readPrimArray arr
+readCounter :: forall m n . PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
+readCounter =
+  coerce
+  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
+  @(StepCounter n (PrimState m) -> Int -> m Word8)
+  P.readPrimArray
 
 {-# INLINE writeCounter #-}
 -- | Write to a counter.
 writeCounter
-  :: PrimMonad m
+  :: forall m n
+  . PrimMonad m
   => StepCounter n (PrimState m)
   -> Int
   -> Word8
   -> m ()
-writeCounter (StepCounter arr) = P.writePrimArray arr
+writeCounter =
+  coerce
+  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
+  @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
+  P.writePrimArray
 
 {-# INLINE modifyCounter #-}
 -- | Modify the value of a counter. Returns the modified value.
