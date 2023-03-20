@@ -12,9 +12,9 @@
 module Crypto.External.EllipticCurve.BLS12_381
 (
   -- * Types
-    P
-  , P1
-  , P2
+    Point
+  , Point1
+  , Point2
   , PT
   , Curve1
   , Curve2
@@ -22,31 +22,29 @@ module Crypto.External.EllipticCurve.BLS12_381
 
   -- * BLS Class
   , BLS
-  , BLS_P
-  , BLS_Curve
 
   -- * Point / Group operations
   -- | These work on both curves, and take phantom parameters of type 'Curve1'
   -- or 'Curve2' to select one of the two provided elliptic curves.
-  , inGroup
-  , addOrDouble
-  , mult
-  , cneg
-  , neg
-  , compress
-  , serialize
-  , uncompress
-  , deserialize
-  , hash
-  , generator
-  , isInf
+  , blsInGroup
+  , blsAddOrDouble
+  , blsMult
+  , blsCneg
+  , blsNeg
+  , blsCompress
+  , blsSerialize
+  , blsUncompress
+  , blsDeserialize
+  , blsHash
+  , blsGenerator
+  , blsIsInf
 
   -- * PT operations
   , ptMult
   , ptFinalVerify
 
   -- * Pairings
-  , miller_loop
+  , millerLoop
 
   -- * The period (modulo) of scalars
   , scalarPeriod
