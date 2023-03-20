@@ -13,6 +13,8 @@ import GHC.TypeLits (Nat)
 import GHC.TypeNats (KnownNat, natVal)
 
 -- See Note [Step counter data structure]
+-- You might think that since we can store whatever we like in here we might as well
+-- use machine words (i.e. 'Word64'), but that is actually slower.
 -- | A set of 'Word8' counters that is used in the CEK machine
 -- to count steps.
 newtype StepCounter (n :: Nat) s = StepCounter (P.MutablePrimArray s Word8)
