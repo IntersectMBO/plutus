@@ -29,7 +29,7 @@ import Prettyprinter
 -- We have to wrap the BLS points in a newtype because otherwise
 -- the builtin machinery seems to spot that they're applications,
 -- and we don't want to expose that to users.
-newtype Element = Element { unElement :: BlstBindings.P2 }
+newtype Element = Element { unElement :: BlstBindings.Point2 }
     deriving newtype (Eq)
 instance Show Element where
     show  = byteStringAsHex . compress
@@ -40,39 +40,39 @@ instance PrettyBy ConstConfig Element where
 instance Flat Element where
     decode = do
         x <- decode
-        case BlstBindings.uncompress @BlstBindings.Curve2 x of
+        case BlstBindings.blsUncompress @BlstBindings.Curve2 x of
              Left err -> fail $ show err
              Right e  -> pure $ Element e
-    encode = encode . BlstBindings.compress @BlstBindings.Curve2 . unElement
+    encode = encode . BlstBindings.blsCompress @BlstBindings.Curve2 . unElement
     size = size . compress
 instance NFData Element where
     rnf _ = ()
 
 add :: Element -> Element -> Element
-add (Element a) (Element b) = Element $ BlstBindings.addOrDouble @BlstBindings.Curve2 a b
+add (Element a) (Element b) = Element $ BlstBindings.blsAddOrDouble @BlstBindings.Curve2 a b
 
 neg :: Element -> Element
-neg (Element a) = Element $ BlstBindings.neg @BlstBindings.Curve2 a
+neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve2 a
 
 scalarMul :: Integer -> Element -> Element -- Other way round from library function
-scalarMul k (Element a) = Element $ BlstBindings.mult @BlstBindings.Curve2 a k
+scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve2 a k
 
 compress :: Element -> ByteString  -- 96 bytes
-compress (Element a) = BlstBindings.compress @BlstBindings.Curve2 a
+compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
 
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
-uncompress = second Element . BlstBindings.uncompress @BlstBindings.Curve2
+uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve2
 
 -- Take an arbitrary bytestring and hash it to a get point on the curve;
 hashToGroup :: ByteString -> Element
-hashToGroup s = Element $ BlstBindings.hash @BlstBindings.Curve2 s Nothing Nothing
+hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve2 s Nothing Nothing
 
 -- This is only here for the QuickCheck shrinker in the PlutusIR tests.  I'm not
 -- sure if it even makes sense for that.
 zero :: Element
 zero =
     let b = pack (0xc0 : replicate 95 0x00) -- Compressed serialised G2 points are bytestrings of length 96: see CIP-0381.
-    in case BlstBindings.uncompress @BlstBindings.Curve2 b of
+    in case BlstBindings.blsUncompress @BlstBindings.Curve2 b of
          Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G2:  " ++ show err
          Right infinity -> Element infinity   -- The zero point on this curve is chosen to be the point at infinity.
 

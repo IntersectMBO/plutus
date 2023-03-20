@@ -45,7 +45,7 @@ mulMlResult (MlResult a) (MlResult b) = MlResult $ BlstBindings.ptMult a b
 
 -- Fix this to return something more sensible and maybe log the error in the Left case
 pairing :: G1.Element -> G2.Element -> Either BlstBindings.BLSTError MlResult
-pairing (G1.Element e1) (G2.Element e2) = second MlResult $ BlstBindings.miller_loop e1 e2
+pairing (G1.Element e1) (G2.Element e2) = second MlResult $ BlstBindings.millerLoop e1 e2
 
 finalVerify :: MlResult -> MlResult -> Bool
 finalVerify (MlResult a) (MlResult b) = BlstBindings.ptFinalVerify a b
