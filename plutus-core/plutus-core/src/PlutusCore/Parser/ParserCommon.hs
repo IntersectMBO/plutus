@@ -9,11 +9,11 @@ module PlutusCore.Parser.ParserCommon where
 
 import Control.Monad.Except
 import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlpha, isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1)
+import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import PlutusCore.Annotation
@@ -114,7 +114,19 @@ inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (char '}')
 
 isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
+isIdentifierChar c = isAlphaNum c || elem c identifierSymbols
+
+-- | Cannot start with a number.
+isIdentifierStartingChar :: Char -> Bool
+isIdentifierStartingChar c = isAlpha c || elem c identifierSymbols
+
+-- | Similar to allowed ascii characters in Haskell names, but excluding:
+--
+--     * @:@ because it is used in type signatures in readable PIRs
+--     * @-@ because it is used to start and end comments
+--     * @!@ and @~@ because they are used to denote strict and nonstrict bindings in readable PIRs
+identifierSymbols :: [Char]
+identifierSymbols = "#$%&*+./<=>?@\\^|_'"
 
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
@@ -137,6 +149,6 @@ version = trailingWhitespace $ do
 -- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
 name = try $ do
-    void $ lookAhead letterChar
+    void $ lookAhead (satisfy isIdentifierStartingChar)
     str <- takeWhileP (Just "identifier") isIdentifierChar
     Name str <$> intern str

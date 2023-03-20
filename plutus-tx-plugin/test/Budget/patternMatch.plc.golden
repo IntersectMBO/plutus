@@ -9,13 +9,13 @@ Maybe_match
   {integer}
   x
   {all dead. Maybe integer}
-  (\(x : integer) ->
+  (\(x' : integer) ->
      /\dead ->
        Maybe_match
          {integer}
          y
          {all dead. Maybe integer}
-         (\(y : integer) -> /\dead -> Just {integer} (addInteger x y))
+         (\(y' : integer) -> /\dead -> Just {integer} (addInteger x' y'))
          (/\dead -> Nothing {integer})
          {all dead. dead})
   (/\dead -> Nothing {integer})

@@ -7,10 +7,10 @@
           (force
             (delay
               (lam
-                Plugin_Data_Spec_MyMonoRecord_i0
+                Plugin.Data.Spec.MyMonoRecord_i0
                 (lam
-                  match_Plugin_Data_Spec_MyMonoRecord_i0
-                  Plugin_Data_Spec_MyMonoRecord_i2
+                  match_Plugin.Data.Spec.MyMonoRecord_i0
+                  Plugin.Data.Spec.MyMonoRecord_i2
                 )
               )
             )
@@ -21,9 +21,9 @@
               arg_1_i0
               (delay
                 (lam
-                  case_Plugin_Data_Spec_MyMonoRecord_i0
+                  case_Plugin.Data.Spec.MyMonoRecord_i0
                   [
-                    [ case_Plugin_Data_Spec_MyMonoRecord_i1 arg_0_i3 ] arg_1_i2
+                    [ case_Plugin.Data.Spec.MyMonoRecord_i1 arg_0_i3 ] arg_1_i2
                   ]
                 )
               )

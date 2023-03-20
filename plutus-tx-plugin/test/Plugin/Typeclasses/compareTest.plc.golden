@@ -38,7 +38,7 @@
     (termbind
       (strict)
       (vardecl
-        fOrdInteger_ccompare (fun (con integer) (fun (con integer) Ordering))
+        $fOrdInteger_$ccompare (fun (con integer) (fun (con integer) Ordering))
       )
       (lam
         eta
@@ -102,7 +102,7 @@
     (termbind
       (strict)
       (vardecl
-        fOrdInteger_cmax (fun (con integer) (fun (con integer) (con integer)))
+        $fOrdInteger_$cmax (fun (con integer) (fun (con integer) (con integer)))
       )
       (lam
         x
@@ -140,7 +140,7 @@
     (termbind
       (strict)
       (vardecl
-        fOrdInteger_cmin (fun (con integer) (fun (con integer) (con integer)))
+        $fOrdInteger_$cmin (fun (con integer) (fun (con integer) (con integer)))
       )
       (lam
         x
@@ -288,7 +288,7 @@
     )
     (termbind
       (nonstrict)
-      (vardecl fOrdInteger [ Ord (con integer) ])
+      (vardecl $fOrdInteger [ Ord (con integer) ])
       [
         [
           [
@@ -297,7 +297,7 @@
                 [
                   [
                     [ { CConsOrd (con integer) } equalsInteger ]
-                    fOrdInteger_ccompare
+                    $fOrdInteger_$ccompare
                   ]
                   lessThanInteger
                 ]
@@ -307,9 +307,9 @@
             ]
             greaterThanEqualsInteger
           ]
-          fOrdInteger_cmax
+          $fOrdInteger_$cmax
         ]
-        fOrdInteger_cmin
+        $fOrdInteger_$cmin
       ]
     )
     (termbind
@@ -361,7 +361,7 @@
         a
         (type)
         (lam
-          dOrd
+          $dOrd
           [ Ord a ]
           (lam
             a
@@ -374,7 +374,7 @@
                   [
                     [
                       {
-                        [ Ordering_match [ [ [ { compare a } dOrd ] a ] b ] ]
+                        [ Ordering_match [ [ [ { compare a } $dOrd ] a ] b ] ]
                         (all dead (type) Ordering)
                       }
                       (abs dead (type) EQ)
@@ -391,7 +391,7 @@
       )
     )
     [
-      [ [ { opCompare (con integer) } fOrdInteger ] (con integer 1) ]
+      [ [ { opCompare (con integer) } $fOrdInteger ] (con integer 1) ]
       (con integer 2)
     ]
   )

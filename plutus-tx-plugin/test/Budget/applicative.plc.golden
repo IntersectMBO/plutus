@@ -8,11 +8,11 @@ let
     = (let
           b = integer -> integer
         in
-        \(dFunctor
+        \($dFunctor
             : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
          (f : integer -> b)
          (fa : Maybe integer) ->
-          dFunctor {integer} {b} f fa)
+          $dFunctor {integer} {b} f fa)
         (/\a
            b ->
            \(f : a -> b)

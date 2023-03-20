@@ -21,6 +21,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
+import PlutusCore.Parser (identifierSymbols)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -29,6 +30,8 @@ import Control.Monad.Reader
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
+import Data.Text (Text)
+import Data.Text qualified as Text
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Internal.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -55,6 +58,12 @@ genVersion :: MonadGen m => m Version
 genVersion = Version <$> int' <*> int' <*> int' where
     int' = Gen.integral_ $ Range.linear 0 10
 
+genNameText :: MonadGen m => m Text
+genNameText =
+    Text.cons
+        <$> Gen.choice [Gen.alpha, Gen.element identifierSymbols]
+        <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element identifierSymbols])
+
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
 -- We do not attempt not to generate reserved words such as @all@ or @abs@ as the classic syntax
@@ -64,9 +73,8 @@ genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
-    let genText = Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
-        text <- genText
+        text <- genNameText
         return $ Name text uniq
 
 genName :: AstGen Name

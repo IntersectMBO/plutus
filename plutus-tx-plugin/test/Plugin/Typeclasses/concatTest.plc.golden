@@ -16,7 +16,7 @@
       (termbind
         (strict)
         (vardecl
-          fFoldableNil_cfoldr
+          $fFoldableNil_$cfoldr
           (all
             a
             (type)
@@ -73,7 +73,7 @@
       (termbind
         (nonstrict)
         (vardecl
-          fFoldableNil
+          $fFoldableNil
           [
             (lam
               t
@@ -87,7 +87,7 @@
             List
           ]
         )
-        fFoldableNil_cfoldr
+        $fFoldableNil_$cfoldr
       )
       (termbind
         (strict)
@@ -152,7 +152,7 @@
             a
             (type)
             (lam
-              dFoldable
+              $dFoldable
               [
                 (lam
                   t
@@ -184,7 +184,7 @@
                         [
                           [
                             [
-                              { { dFoldable [ List a ] } b }
+                              { { $dFoldable [ List a ] } b }
                               (lam
                                 x
                                 [ List a ]
@@ -192,7 +192,9 @@
                                   y
                                   b
                                   [
-                                    [ [ { { fFoldableNil_cfoldr a } b } c ] y ]
+                                    [
+                                      [ { { $fFoldableNil_$cfoldr a } b } c ] y
+                                    ]
                                     x
                                   ]
                                 )
@@ -212,7 +214,7 @@
         )
       )
       [
-        [ { { concat List } (con integer) } fFoldableNil ]
+        [ { { concat List } (con integer) } $fFoldableNil ]
         [
           { build [ List (con integer) ] }
           (abs

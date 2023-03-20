@@ -12,7 +12,7 @@
     )
     (termbind
       (strict)
-      (vardecl WStrictTy (all a (type) (fun a (fun a [ StrictTy a ]))))
+      (vardecl $WStrictTy (all a (type) (fun a (fun a [ StrictTy a ]))))
       (abs
         a
         (type)
@@ -32,6 +32,6 @@
         )
       )
     )
-    [ [ { WStrictTy (con integer) } (con integer 1) ] (con integer 2) ]
+    [ [ { $WStrictTy (con integer) } (con integer 1) ] (con integer 2) ]
   )
 )

@@ -2,9 +2,9 @@
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Parser (isIdentifierChar, isIdentifierStartingChar)
 import PlutusCore.Quote
 
-import Data.Char
 import Data.List
 import Data.Text qualified as T
 
@@ -17,8 +17,9 @@ support unicode identifiers as well.
 
 replacements :: [(T.Text, T.Text)]
 replacements = [
-    -- this helps with module prefixes
-    (".", "_")
+    ("-", "minus")
+    , ("!", "bang")
+    , ("~", "tilde")
     ]
 
 typeReplacements :: [(T.Text, T.Text)]
@@ -61,9 +62,9 @@ safeName kind t =
             TermName -> termReplacements
         replaced = foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
         -- strip out disallowed characters
-        stripped = T.filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') replaced
+        stripped = T.filter isIdentifierChar replaced
         -- can't start with these
-        dropped = T.dropWhile (\c -> c == '_' || c == '`') stripped
+        dropped = T.dropWhile (not . isIdentifierStartingChar) stripped
         -- empty name, just put something to mark that
         nonEmpty = if T.null dropped then "bad_name" else dropped
     in nonEmpty
