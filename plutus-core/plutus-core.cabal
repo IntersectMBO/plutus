@@ -66,10 +66,10 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
-  ghc-options:
-    -pgml gcc "-optl-Wl,--allow-multiple-definition"
-    "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lblst"
-    "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
+--  ghc-options:
+--    -pgml gcc "-optl-Wl,--allow-multiple-definition"
+--    "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lblst"
+--    "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
 
 -- This contains UPLC+TPLC, PIR must be explicitly included by depending
 -- on the public sub-library.
@@ -312,7 +312,6 @@ library
     , witherable
     , word-array                  ^>=1.1
 
-  -- *** Comment out the next line to start "nix develop" ***
   extra-libraries:    blst
   c-sources:          cbits/blst_util.c
 
