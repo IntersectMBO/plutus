@@ -133,9 +133,9 @@ evalTyCon Syn.bool       η = Nf.bool
 evalTyCon (Syn.list A)   η = Nf.list (eval A η)
 evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
 evalTyCon Syn.pdata       η = Nf.pdata
-evalTyCon Syn.g1elt       η = Nf.g1elt
-evalTyCon Syn.g2elt       η = Nf.g2elt
-evalTyCon Syn.mlresult    η = Nf.mlresult
+evalTyCon Syn.bls12-381-g1-element η = Nf.bls12-381-g1-element
+evalTyCon Syn.bls12-381-g2-element η = Nf.bls12-381-g2-element
+evalTyCon Syn.bls12-381-mlresult   η = Nf.bls12-381-mlresult
 
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))

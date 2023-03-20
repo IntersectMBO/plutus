@@ -230,20 +230,20 @@ data ScopeError : Set where
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
 scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
 
-scopeCheckTyCon integer    = inj₂ S.integer
-scopeCheckTyCon bytestring = inj₂ S.bytestring
-scopeCheckTyCon string     = inj₂ S.string
-scopeCheckTyCon unit       = inj₂ S.unit
-scopeCheckTyCon bool       = inj₂ S.bool
-scopeCheckTyCon (list A)   = fmap S.list (scopeCheckTy A)
-scopeCheckTyCon (pair A B) = do
-  A ← scopeCheckTy A
-  B ← scopeCheckTy B
-  return (S.pair A B)
-scopeCheckTyCon pdata       = inj₂ S.pdata
-scopeCheckTyCon g1elt       = inj₂ S.g1elt
-scopeCheckTyCon g2elt       = inj₂ S.g2elt
-scopeCheckTyCon mlresult    = inj₂ S.mlresult
+scopeCheckTyCon integer              = inj₂ S.integer
+scopeCheckTyCon bytestring           = inj₂ S.bytestring
+scopeCheckTyCon string               = inj₂ S.string
+scopeCheckTyCon unit                 = inj₂ S.unit
+scopeCheckTyCon bool                 = inj₂ S.bool
+scopeCheckTyCon (list A)             = fmap S.list (scopeCheckTy A)
+scopeCheckTyCon (pair A B)           = do
+                                         A ← scopeCheckTy A
+                                         B ← scopeCheckTy B
+                                         return (S.pair A B)
+scopeCheckTyCon pdata                = inj₂ S.pdata
+scopeCheckTyCon bls12-381-g1-element = inj₂ S.bls12-381-g1-element
+scopeCheckTyCon bls12-381-g2-element = inj₂ S.bls12-381-g2-element
+scopeCheckTyCon bls12-381-mlresult   = inj₂ S.bls12-381-mlresult
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -301,17 +301,17 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
 
-extricateTyCon S.integer    = integer
-extricateTyCon S.bytestring = bytestring
-extricateTyCon S.string     = string
-extricateTyCon S.unit       = unit
-extricateTyCon S.bool       = bool
-extricateTyCon (S.list A)   = list (extricateScopeTy A)
-extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
-extricateTyCon S.pdata      = pdata
-extricateTyCon S.g1elt      = g1elt
-extricateTyCon S.g2elt      = g2elt
-extricateTyCon S.mlresult   = mlresult
+extricateTyCon S.integer              = integer
+extricateTyCon S.bytestring           = bytestring
+extricateTyCon S.string               = string
+extricateTyCon S.unit                 = unit
+extricateTyCon S.bool                 = bool
+extricateTyCon (S.list A)             = list (extricateScopeTy A)
+extricateTyCon (S.pair A B)           = pair (extricateScopeTy A) (extricateScopeTy B)
+extricateTyCon S.pdata                = pdata
+extricateTyCon S.bls12-381-g1-element = bls12-381-g1-element
+extricateTyCon S.bls12-381-g2-element = bls12-381-g2-element
+extricateTyCon S.bls12-381-mlresult   = bls12-381-mlresult
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B

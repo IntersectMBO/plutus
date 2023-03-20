@@ -194,9 +194,9 @@ evalSRTyCon Syn.bool p = refl≡β _
 evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
 evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
 evalSRTyCon Syn.pdata p = refl≡β _
-evalSRTyCon Syn.g1elt p = refl≡β _
-evalSRTyCon Syn.g2elt p = refl≡β _
-evalSRTyCon Syn.mlresult p = refl≡β _
+evalSRTyCon Syn.bls12-381-g1-element p = refl≡β _
+evalSRTyCon Syn.bls12-381-g2-element p = refl≡β _
+evalSRTyCon Syn.bls12-381-mlresult p = refl≡β _
 
 
 evalSR (` α)                   p = p α

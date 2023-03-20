@@ -67,9 +67,9 @@ eraseTC (AC.string s)     = string s
 eraseTC (AC.bool b)       = bool b
 eraseTC AC.unit           = unit
 eraseTC (AC.pdata d)       = pdata d
-eraseTC (AC.g1elt e)       = g1elt e
-eraseTC (AC.g2elt e)       = g2elt e
-eraseTC (AC.mlresult r)    = mlresult r
+eraseTC (AC.bls12-381-g1-element e) = bls12-381-g1-element e
+eraseTC (AC.bls12-381-g2-element e) = bls12-381-g2-element e
+eraseTC (AC.bls12-381-mlresult r)   = bls12-381-mlresult r
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -122,9 +122,9 @@ sameTC (DC.string s)     = refl
 sameTC (DC.bool b)       = refl
 sameTC DC.unit           = refl
 sameTC (DC.pdata d)      = refl
-sameTC (DC.g1elt e)      = refl
-sameTC (DC.g2elt e)      = refl
-sameTC (DC.mlresult r)   = refl
+sameTC (DC.bls12-381-g1-element e) = refl
+sameTC (DC.bls12-381-g2-element e) = refl
+sameTC (DC.bls12-381-mlresult r)   = refl
 
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
@@ -254,9 +254,9 @@ same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
 same'TC AC.unit           = refl
 same'TC (AC.pdata d)      = refl
-same'TC (AC.g1elt e)      = refl
-same'TC (AC.g2elt e)      = refl
-same'TC (AC.mlresult r)   = refl
+same'TC (AC.bls12-381-g1-element e) = refl
+same'TC (AC.bls12-381-g2-element e) = refl
+same'TC (AC.bls12-381-mlresult r)   = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

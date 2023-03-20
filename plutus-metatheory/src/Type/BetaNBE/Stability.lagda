@@ -33,9 +33,9 @@ stabilityTyCon bool       = refl
 stabilityTyCon (list A)   = cong list (stability A)
 stabilityTyCon (pair A B) = cong₂ pair (stability A) (stability B)
 stabilityTyCon pdata       = refl
-stabilityTyCon g1elt       = refl
-stabilityTyCon g2elt       = refl
-stabilityTyCon mlresult    = refl
+stabilityTyCon bls12-381-g1-element = refl
+stabilityTyCon bls12-381-g2-element = refl
+stabilityTyCon bls12-381-mlresult   = refl
 
 stabilityNe : (n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 

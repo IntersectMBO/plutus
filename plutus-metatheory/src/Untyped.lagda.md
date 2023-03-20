@@ -65,9 +65,9 @@ uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
 uglyTermCon (pdata d) = "(DATA)"
-uglyTermCon (g1elt e) = "(g1elt)"
-uglyTermCon (g2elt e) = "(g2elt)"
-uglyTermCon (mlresult r) = "(mlresult)"
+uglyTermCon (bls12-381-g1-element e) = "(bls12-381-g1-element)"
+uglyTermCon (bls12-381-g2-element e) = "(bls12-381-g2-element)"
+uglyTermCon (bls12-381-mlresult r) = "(bls12-381-mlresult)"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 

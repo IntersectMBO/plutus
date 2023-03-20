@@ -26,17 +26,17 @@ We have twelve base types referred to as type constants:
 
 ```
 data TyCon (Φ : Con) : Set where
-  integer    : TyCon Φ
-  bytestring : TyCon Φ
-  string     : TyCon Φ
-  unit       : TyCon Φ
-  bool       : TyCon Φ
-  list       : Ty Φ → TyCon Φ
-  pair       : Ty Φ → Ty Φ → TyCon Φ
-  pdata      : TyCon Φ
-  g1elt      : TyCon Φ
-  g2elt      : TyCon Φ
-  mlresult   : TyCon Φ
+  integer              : TyCon Φ
+  bytestring           : TyCon Φ
+  string               : TyCon Φ
+  unit                 : TyCon Φ
+  bool                 : TyCon Φ
+  list                 : Ty Φ → TyCon Φ
+  pair                 : Ty Φ → Ty Φ → TyCon Φ
+  pdata                : TyCon Φ
+  bls12-381-g1-element : TyCon Φ
+  bls12-381-g2-element : TyCon Φ
+  bls12-381-mlresult   : TyCon Φ
 
 --{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
 --{-# FOREIGN GHC import PlutusCore                                      #-}

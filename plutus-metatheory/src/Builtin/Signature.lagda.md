@@ -132,9 +132,9 @@ module FromSig (Ctx : Set)
     ♯2* (con (list x)) = mkTyCon  (T2.list (♯2* x))
     ♯2* (con (pair x y)) = mkTyCon  (T2.pair (♯2* x) (♯2* y))
     ♯2* (con pdata) = mkTyCon  T2.pdata
-    ♯2* (con g1elt) = mkTyCon  T2.g1elt
-    ♯2* (con g2elt) = mkTyCon  T2.g2elt
-    ♯2* (con mlresult) = mkTyCon  T2.mlresult
+    ♯2* (con bls12-381-g1-element) = mkTyCon  T2.bls12-381-g1-element
+    ♯2* (con bls12-381-g2-element) = mkTyCon  T2.bls12-381-g2-element
+    ♯2* (con bls12-381-mlresult) = mkTyCon  T2.bls12-381-mlresult
 
     -- The empty context
     ∅ : Ctx 

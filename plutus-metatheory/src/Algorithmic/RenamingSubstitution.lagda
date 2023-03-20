@@ -69,9 +69,9 @@ renTermCon ρ⋆ (string s)     = string s
 renTermCon ρ⋆ (bool b)       = bool b
 renTermCon ρ⋆ unit           = unit
 renTermCon ρ⋆ (pdata d)      = pdata d
-renTermCon ρ⋆ (g1elt e)      = g1elt e
-renTermCon ρ⋆ (g2elt e)      = g2elt e
-renTermCon ρ⋆ (mlresult r)   = mlresult r
+renTermCon ρ⋆ (bls12-381-g1-element e) = bls12-381-g1-element e
+renTermCon ρ⋆ (bls12-381-g2-element e) = bls12-381-g2-element e
+renTermCon ρ⋆ (bls12-381-mlresult r)   = bls12-381-mlresult r
 \end{code}
 
 \begin{code}
@@ -160,9 +160,9 @@ subTermCon σ⋆ (string s)     = string s
 subTermCon σ⋆ (bool b)       = bool b
 subTermCon σ⋆ unit           = unit
 subTermCon σ⋆ (pdata d)      = pdata d
-subTermCon σ⋆ (g1elt e)      = g1elt e
-subTermCon σ⋆ (g2elt e)      = g2elt e
-subTermCon σ⋆ (mlresult r)   = mlresult r
+subTermCon σ⋆ (bls12-381-g1-element e) = bls12-381-g1-element e
+subTermCon σ⋆ (bls12-381-g2-element e) = bls12-381-g2-element e
+subTermCon σ⋆ (bls12-381-mlresult r)   = bls12-381-mlresult r
 \end{code}
 
 \begin{code}

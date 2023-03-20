@@ -87,9 +87,9 @@ embTC (NTermCon.string s)     = STermCon.string s
 embTC (NTermCon.bool b)       = STermCon.bool b
 embTC NTermCon.unit           = STermCon.unit
 embTC (NTermCon.pdata d)       = STermCon.pdata d
-embTC (NTermCon.g1elt e)       = STermCon.g1elt e
-embTC (NTermCon.g2elt e)       = STermCon.g2elt e
-embTC (NTermCon.mlresult r)    = STermCon.mlresult r
+embTC (NTermCon.bls12-381-g1-element e) = STermCon.bls12-381-g1-element e
+embTC (NTermCon.bls12-381-g2-element e) = STermCon.bls12-381-g2-element e
+embTC (NTermCon.bls12-381-mlresult r)   = STermCon.bls12-381-mlresult r
 \end{code}
 
 \begin{code}

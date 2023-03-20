@@ -40,17 +40,17 @@ data RawTy where
 {-# FOREIGN GHC import Raw #-}
 
 data RawTyCon where
-  integer    : RawTyCon
-  bytestring : RawTyCon
-  string     : RawTyCon
-  unit       : RawTyCon
-  bool       : RawTyCon
-  list       : RawTy → RawTyCon
-  pair       : RawTy → RawTy → RawTyCon
-  pdata      : RawTyCon
-  g1elt      : RawTyCon
-  g2elt      : RawTyCon
-  mlresult   : RawTyCon
+  integer              : RawTyCon
+  bytestring           : RawTyCon
+  string               : RawTyCon
+  unit                 : RawTyCon
+  bool                 : RawTyCon
+  list                 : RawTy → RawTyCon
+  pair                 : RawTy → RawTy → RawTyCon
+  pdata                : RawTyCon
+  bls12-381-g1-element : RawTyCon
+  bls12-381-g2-element : RawTyCon
+  bls12-381-mlresult   : RawTyCon
 
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData | RTyConG1elt | RTyConG2elt | RTyConMlResult) #-}
@@ -80,9 +80,9 @@ decRTyCon bytestring bytestring = true
 decRTyCon string     string     = true
 decRTyCon unit       unit       = true
 decRTyCon bool       bool       = true
-decRTyCon g1elt      g1elt      = true
-decRTyCon g2elt      g2elt      = true
-decRTyCon mlresult   mlresult   = true  -- Maybe not: no eq for mlresult in Plutus
+decRTyCon bls12-381-g1-element bls12-381-g1-element = true
+decRTyCon bls12-381-g2-element bls12-381-g2-element = true
+decRTyCon bls12-381-mlresult   bls12-381-mlresult   = true  -- Maybe not: no eq for bls12-381-mlresult in Plutus
 decRTyCon _          _          = false
 
 decTermCon : (C C' : TermCon) → Bool

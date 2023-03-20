@@ -296,9 +296,9 @@ idextTyCon p Syn.bool       = refl
 idextTyCon p (Syn.list A)   = cong Nf.list (idext p A)
 idextTyCon p (Syn.pair A B) = cong₂ Nf.pair (idext p A) (idext p B)
 idextTyCon p Syn.pdata       = refl
-idextTyCon p Syn.g1elt       = refl
-idextTyCon p Syn.g2elt       = refl
-idextTyCon p Syn.mlresult    = refl
+idextTyCon p Syn.bls12-381-g1-element = refl
+idextTyCon p Syn.bls12-381-g2-element = refl
+idextTyCon p Syn.bls12-381-mlresult   = refl
 
 renVal-eval : ∀{Φ Ψ Θ K}
   → (t : Ψ ⊢⋆ K)
@@ -324,9 +324,9 @@ renValTyCon-eval (Syn.list A)   p ρ = cong Nf.list (renVal-eval A p ρ)
 renValTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (renVal-eval A p ρ) (renVal-eval B p ρ) 
 renValTyCon-eval Syn.pdata       p ρ = refl
-renValTyCon-eval Syn.g1elt       p ρ = refl
-renValTyCon-eval Syn.g2elt       p ρ = refl
-renValTyCon-eval Syn.mlresult    p ρ = refl
+renValTyCon-eval Syn.bls12-381-g1-element p ρ = refl
+renValTyCon-eval Syn.bls12-381-g2-element p ρ = refl
+renValTyCon-eval Syn.bls12-381-mlresult   p ρ = refl
 
 idext p (` x) = p x
 idext p (Π B) =
@@ -416,9 +416,9 @@ renTyCon-eval (Syn.list A)   p ρ = cong Nf.list (ren-eval A p ρ)
 renTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (ren-eval A p ρ) (ren-eval B p ρ) 
 renTyCon-eval Syn.pdata       p ρ = refl
-renTyCon-eval Syn.g1elt       p ρ = refl
-renTyCon-eval Syn.g2elt       p ρ = refl
-renTyCon-eval Syn.mlresult    p ρ = refl
+renTyCon-eval Syn.bls12-381-g1-element p ρ = refl
+renTyCon-eval Syn.bls12-381-g2-element p ρ = refl
+renTyCon-eval Syn.bls12-381-mlresult   p ρ = refl
 
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π B) p ρ =
@@ -480,9 +480,9 @@ subTyCon-eval (Syn.list A)   p ρ = cong Nf.list (sub-eval A p ρ)
 subTyCon-eval (Syn.pair A B) p ρ =
   cong₂ Nf.pair (sub-eval A p ρ) (sub-eval B p ρ) 
 subTyCon-eval Syn.pdata       p ρ = refl
-subTyCon-eval Syn.g1elt       p ρ = refl
-subTyCon-eval Syn.g2elt       p ρ = refl
-subTyCon-eval Syn.mlresult    p ρ = refl
+subTyCon-eval Syn.bls12-381-g1-element p ρ = refl
+subTyCon-eval Syn.bls12-381-g2-element p ρ = refl
+subTyCon-eval Syn.bls12-381-mlresult   p ρ = refl
 
 sub-eval (` x)      p σ = idext p (σ x)
 sub-eval (Π B)    p σ = cong Π (trans

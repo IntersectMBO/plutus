@@ -175,17 +175,17 @@ data DATA : Set where
 {-# FOREIGN GHC import PlutusCore.Data #-}
 {-# COMPILE GHC DATA = data Data (I | B)   #-}
 
-postulate G1Elt : Set
+postulate Bls12-381-G1-Element : Set
 {-# FOREIGN GHC import qualified Crypto.BLS12_381.G1 as G1 #-}
-{-# COMPILE GHC G1Elt = type G1.Element #-}
+{-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
 
-postulate G2Elt : Set
+postulate Bls12-381-G2-Element : Set
 {-# FOREIGN GHC import qualified Crypto.BLS12_381.G2 as G2 #-}
-{-# COMPILE GHC G2Elt = type G2.Element #-}
+{-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
 
-postulate MlResult : Set
+postulate Bls12-381-MlResult : Set
 {-# FOREIGN GHC import qualified Crypto.BLS12_381.Pairing as Pairing #-}
-{-# COMPILE GHC MlResult = type Pairing.MlResult #-}
+{-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 
 \end{code}
 
@@ -220,15 +220,15 @@ typed syntax.
 
 \begin{code}
 data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  unit       : TermCon
-  pdata      : DATA → TermCon
-  g1elt      : G1Elt → TermCon
-  g2elt      : G2Elt → TermCon
-  mlresult   : MlResult → TermCon
+ integer              : ℤ → TermCon
+ bytestring           : ByteString → TermCon
+ string               : String → TermCon
+ bool                 : Bool → TermCon
+ unit                 : TermCon
+ pdata                : DATA → TermCon
+ bls12-381-g1-element : Bls12-381-G1-Element → TermCon
+ bls12-381-g2-element : Bls12-381-G2-Element → TermCon
+ bls12-381-mlresult   : Bls12-381-MlResult → TermCon
 
 {-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
 {-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
