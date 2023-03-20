@@ -16,7 +16,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (subst to substEq) 
 
 open import Utils using (*;J;K)
-open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S;Z)
+open import Type using (Ctx⋆;_,⋆_;∅;Φ;Ψ;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
 open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
 open TyCon
@@ -345,6 +345,8 @@ sub-id : (A : Φ ⊢⋆ J)
          ------------
        → sub ` A ≡ A
 
+
+
 subTyCon-id : (c : TyCon Φ)
               ------------
             → subTyCon ` c ≡ c
@@ -557,4 +559,10 @@ sub-Π : ∀(A : Φ ⊢⋆ K)(B : Φ ,⋆ K ⊢⋆ J)(σ : Sub Φ Ψ)
       → sub (exts σ) B [ sub σ A ] ≡ sub σ (B [ A ])
 sub-Π A B σ =
   trans (sym (sub-comp B)) (trans (sub-cong (sub-sub-cons σ A) B) (sub-comp B))
+```
+
+Substituting in the empty type context is the same as doing nothing.
+```
+sub-∅ : (A : ∅ ⊢⋆ J)  → (x : Sub ∅ ∅) → sub x A ≡ A
+sub-∅ A x = trans (sub-cong (λ ()) A) (sub-id A)
 ```
