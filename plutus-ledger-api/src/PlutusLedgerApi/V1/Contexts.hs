@@ -132,7 +132,11 @@ data ScriptContext = ScriptContext
     { scriptContextTxInfo  :: TxInfo -- ^ information about the transaction the currently-executing script is included in
     , scriptContextPurpose :: ScriptPurpose -- ^ the purpose of the currently-executing script
     }
-    deriving stock (Generic, Haskell.Eq, Haskell.Show)
+    deriving stock (Generic, Haskell.Show)
+
+instance Haskell.Eq ScriptContext where
+    {-# INLINABLE (==) #-}
+    (==) = (==)
 
 instance Eq ScriptContext where
     {-# INLINABLE (==) #-}

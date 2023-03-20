@@ -22,13 +22,16 @@ import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
+import PlutusIR.Compiler.Definitions qualified as PIR
 
 import GHC qualified
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Plugins qualified as GHC
+import GHC.Types.TyThing qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Writer
 
 import Data.List.NonEmpty qualified as NE
@@ -174,6 +177,61 @@ stableModuleCmp m1 m2 =
     -- See Note [Stable name comparisons]
     (GHC.moduleUnit m1 `GHC.stableUnitCmp` GHC.moduleUnit m2)
 
+class Monad m => MonadCoreM m where
+    lookupId :: GHC.Name -> m GHC.Id
+    lookupDataCon :: GHC.Name -> m GHC.DataCon
+    lookupTyCon :: GHC.Name -> m GHC.TyCon
+    thNameToGhcName :: TH.Name -> m (Maybe GHC.Name)
+
+instance MonadCoreM GHC.CoreM where
+    lookupId = GHC.lookupId
+    lookupDataCon = GHC.lookupDataCon
+    lookupTyCon = GHC.lookupTyCon
+    thNameToGhcName = GHC.thNameToGhcName
+
+instance MonadCoreM m => MonadCoreM (ReaderT r m) where
+    lookupId = lift . lookupId
+    lookupDataCon = lift . lookupDataCon
+    lookupTyCon = lift . lookupTyCon
+    thNameToGhcName = lift . thNameToGhcName
+
+instance (MonadCoreM m, Monoid w) => MonadCoreM (WriterT w m) where
+    lookupId = lift . lookupId
+    lookupDataCon = lift . lookupDataCon
+    lookupTyCon = lift . lookupTyCon
+    thNameToGhcName = lift . thNameToGhcName
+
+instance MonadCoreM m => MonadCoreM (StateT s m) where
+    lookupId = lift . lookupId
+    lookupDataCon = lift . lookupDataCon
+    lookupTyCon = lift . lookupTyCon
+    thNameToGhcName = lift . thNameToGhcName
+
+instance MonadCoreM m => MonadCoreM (QuoteT m) where
+    lookupId = lift . lookupId
+    lookupDataCon = lift . lookupDataCon
+    lookupTyCon = lift . lookupTyCon
+    thNameToGhcName = lift . thNameToGhcName
+
+instance MonadCoreM m => MonadCoreM (ExceptT s m) where
+    lookupId = lift . lookupId
+    lookupDataCon = lift . lookupDataCon
+    lookupTyCon = lift . lookupTyCon
+    thNameToGhcName = lift . thNameToGhcName
+
+deriving newtype instance MonadCoreM m => MonadCoreM (PIR.DefT key uni fun ann m)
+
+-- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
+thNameToGhcNameOrFail ::
+    (MonadCoreM m, MonadError (CompileError uni fun ann) m) =>
+    TH.Name ->
+    m GHC.Name
+thNameToGhcNameOrFail name = do
+    maybeName <- thNameToGhcName name
+    case maybeName of
+        Just n  -> pure n
+        Nothing -> throwError . NoContext $ CoreNameLookupError name
+
 -- See Note [Scopes]
 type Compiling uni fun m ann =
     ( MonadError (CompileError uni fun ann) m
@@ -181,6 +239,7 @@ type Compiling uni fun m ann =
     , MonadReader (CompileContext uni fun) m
     , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
+    , MonadCoreM m
     )
 
 -- Packing up equality constraints gives us a nice way of writing type signatures as this way

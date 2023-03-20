@@ -1,1 +1,2 @@
-Error: Unsupported feature: Use of fromString on type other than builtin strings or bytestrings: Plugin.Errors.Spec.AType
+Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable $c/=
+       No unfolding

@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
-module PlutusIR.Compiler.Definitions (DefT
+module PlutusIR.Compiler.Definitions (DefT (..)
                                               , MonadDefs (..)
                                               , TermDefWithStrictness
                                               , runDefT

@@ -26,12 +26,13 @@ import GHC.Generics
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
+import Prelude ((*), (+), (-), (<), (<=), (==), (>=))
 import Prelude qualified as Haskell
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins (divideInteger, modInteger)
-import PlutusTx.Prelude as Tx hiding (even)
+import PlutusTx.Prelude as Tx hiding (even, (*), (+), (-), (/=), (<), (<=), (==), (>=))
 
 ---------------- Extras ----------------
 
@@ -84,7 +85,6 @@ powerMod a b m =
    @y@^3 &\geq & @x@, \mbox{ and}\\
    (@y@-1)^3 &<& @x@.
    \end{array}\]
-
    My implementation uses Newton's method.
 -}
 {-# INLINABLE cubeRoot #-}

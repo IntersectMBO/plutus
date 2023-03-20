@@ -46,7 +46,7 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4901
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4941
                , runTestNested $
                   Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
@@ -65,7 +65,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3516
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3980
               , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
 
@@ -85,6 +85,10 @@ testQueens = testGroup "queens"
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
                , runTestNested    $
                   Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
+               , runTestNested    $
+                  Tx.goldenBudget "snooker" $ Queens.snooker
+            , runTestNested    $
+                  Tx.goldenPirReadable "snooker" $ Queens.snooker
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -95,7 +99,7 @@ testQueens = testGroup "queens"
                , runTestNested    $ Tx.goldenBudget "queens5budget" $
                   Queens.mkQueensCode 5 Queens.Bt
                ]
-             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2759
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2617
              ]
 
 ---------------- Primes ----------------

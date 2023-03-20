@@ -1,4 +1,5 @@
 let
+  !x : integer = -1234567890
   !y : integer = 10
   data Bool | Bool_match where
     True : Bool
@@ -227,7 +228,6 @@ let
                     {all dead. dead})
                {all dead. dead})
           {all dead. dead}
-  !x : integer = -1234567890
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -270,6 +270,82 @@ letrec
                    {all dead. dead})
             {all dead. dead}
 in
+let
+  data (Show :: * -> *) a | Show_match where
+    CConsShow
+      : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
+  !showsPrec : all a. Show a -> integer -> a -> List string -> List string
+    = /\a ->
+        \(v : Show a) ->
+          Show_match
+            {a}
+            v
+            {integer -> a -> List string -> List string}
+            (\(v : integer -> a -> List string -> List string)
+              (v : a -> string) ->
+               v)
+  !wcshowsPrec
+     : all a. all b. all c. all d. all e. Show a -> Show b -> Show c -> Show d -> Show e -> a -> b -> c -> d -> e -> List string -> List string
+    = /\a
+        b
+        c
+        d
+        e ->
+        \(w : Show a)
+         (w : Show b)
+         (w : Show c)
+         (w : Show d)
+         (w : Show e)
+         (ww : a)
+         (ww : b)
+         (ww : c)
+         (ww : d)
+         (ww : e)
+         (x : List string) ->
+          Cons
+            {string}
+            "("
+            (showsPrec
+               {a}
+               w
+               0
+               ww
+               (Cons
+                  {string}
+                  ","
+                  (showsPrec
+                     {b}
+                     w
+                     0
+                     ww
+                     (Cons
+                        {string}
+                        ","
+                        (showsPrec
+                           {c}
+                           w
+                           0
+                           ww
+                           (Cons
+                              {string}
+                              ","
+                              (showsPrec
+                                 {d}
+                                 w
+                                 0
+                                 ww
+                                 (Cons
+                                    {string}
+                                    ","
+                                    (showsPrec
+                                       {e}
+                                       w
+                                       0
+                                       ww
+                                       (Cons {string} ")" x))))))))))
+  !fShowBool_cshow : Bool -> string
+    = \(b : Bool) -> Bool_match b {string} "True" "False"
+in
 letrec
   !fEnumBool_cenumFromTo : integer -> integer -> List integer
     = \(x : integer)
@@ -283,6 +359,22 @@ letrec
           {all dead. dead}
 in
 let
+  !fShowBuiltinByteString_cshowsPrec
+     : integer -> bytestring -> List string -> List string
+    = \(w : integer)
+       (w : bytestring) ->
+        foldr
+          {integer}
+          {List string -> List string}
+          (\(i : integer) ->
+             let
+               ~x : integer = indexByteString w i
+             in
+             \(acc : List string -> List string)
+              (x : List string) ->
+               toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
+          (id {List string})
+          (fEnumBool_cenumFromTo 0 (subtractInteger (lengthOfByteString w) 1))
   !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
     = \(w : integer) (w : integer) -> wcshowsPrec w
 in
@@ -370,179 +462,203 @@ letrec
                {all dead. dead})
 in
 let
-  !fShowInteger_cshow : integer -> string
-    = \(x : integer) ->
-        concatBuiltinStrings (fShowInteger_cshowsPrec 0 x (Nil {string}))
-  data (Show :: * -> *) a | Show_match where
-    CConsShow
-      : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
   ~fShowInteger : Show integer
-    = CConsShow {integer} fShowInteger_cshowsPrec fShowInteger_cshow
+    = CConsShow
+        {integer}
+        fShowInteger_cshowsPrec
+        (\(x : integer) ->
+           concatBuiltinStrings (fShowInteger_cshowsPrec 0 x (Nil {string})))
   data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
     Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
-  !showsPrec : all a. Show a -> integer -> a -> List string -> List string
+  !show : all a. Show a -> a -> string
     = /\a ->
         \(v : Show a) ->
           Show_match
             {a}
             v
-            {integer -> a -> List string -> List string}
+            {a -> string}
             (\(v : integer -> a -> List string -> List string)
               (v : a -> string) ->
                v)
-  !a : integer = trace {integer} (fShowInteger_cshow x) x
+  !wshowList
+     : all a. (a -> List string -> List string) -> List a -> List string -> UTuple2 string (List string)
+    = /\a ->
+        \(w : a -> List string -> List string)
+         (w : List a)
+         (w : List string) ->
+          Nil_match
+            {a}
+            w
+            {all dead. UTuple2 string (List string)}
+            (/\dead -> UTuple2 {string} {List string} "[]" w)
+            (\(x : a)
+              (xs : List a) ->
+               /\dead ->
+                 UTuple2
+                   {string}
+                   {List string}
+                   "["
+                   (w
+                      x
+                      (foldr
+                         {a}
+                         {List string -> List string}
+                         (\(a : a)
+                           (acc : List string -> List string)
+                           (x : List string) ->
+                            Cons {string} "," (w a (acc x)))
+                         (id {List string})
+                         xs
+                         (Cons {string} "]" w))))
+            {all dead. dead}
+  !a : integer = trace {integer} (show {integer} fShowInteger x) x
   !b : integer = trace {integer} "This is an example" a
   !c : integer
     = trace
         {integer}
-        (let
-          !x : bytestring = encodeUtf8 "This is an example"
-        in
-        concatBuiltinStrings
-          (foldr
-             {integer}
-             {List string -> List string}
-             (\(i : integer) ->
-                let
-                  ~x : integer = indexByteString x i
-                in
-                \(acc : List string -> List string)
-                 (x : List string) ->
-                  toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
-             (id {List string})
-             (fEnumBool_cenumFromTo
-                0
-                (subtractInteger (lengthOfByteString x) 1))
-             (Nil {string})))
+        (show
+           {bytestring}
+           (CConsShow
+              {bytestring}
+              fShowBuiltinByteString_cshowsPrec
+              (\(x : bytestring) ->
+                 concatBuiltinStrings
+                   (fShowBuiltinByteString_cshowsPrec 0 x (Nil {string}))))
+           (encodeUtf8 "This is an example"))
         b
   !d : integer
     = trace
         {integer}
-        (let
-          !b : Bool = ifThenElse {Bool} (lessThanEqualsInteger c 0) False True
-        in
-        Bool_match b {string} "True" "False")
+        (show
+           {Bool}
+           (CConsShow
+              {Bool}
+              (\(ds : integer)
+                (x : Bool)
+                (ss : List string) ->
+                 Cons {string} (fShowBool_cshow x) ss)
+              fShowBool_cshow)
+           (ifThenElse {Bool} (lessThanEqualsInteger c 0) False True))
         c
   !e : integer
     = trace
         {integer}
-        (let
-          !dShow : Show integer = fShowInteger
-          !x : List integer
-            = (let
-                  a = List integer
-                in
-                \(c : integer -> a -> a) (n : a) -> c a (c b (c c (c d n))))
-                (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
-                (Nil {integer})
-        in
-        concatBuiltinStrings
-          (let
-            !w : integer -> List string -> List string
-              = showsPrec {integer} dShow 0
-            !w : List string = Nil {string}
-          in
-          UTuple2_match
-            {string}
-            {List string}
-            (Nil_match
-               {integer}
-               x
-               {all dead. UTuple2 string (List string)}
-               (/\dead -> UTuple2 {string} {List string} "[]" w)
-               (\(x : integer)
-                 (xs : List integer) ->
-                  /\dead ->
-                    UTuple2
-                      {string}
-                      {List string}
-                      "["
-                      (w
-                         x
-                         (foldr
-                            {integer}
-                            {List string -> List string}
-                            (\(a : integer)
-                              (acc : List string -> List string)
-                              (x : List string) ->
-                               Cons {string} "," (w a (acc x)))
-                            (id {List string})
-                            xs
-                            (Cons {string} "]" w))))
-               {all dead. dead})
-            {List string}
-            (\(ww : string) (ww : List string) -> Cons {string} ww ww)))
+        (show
+           {List integer}
+           (let
+             !v : Show integer = fShowInteger
+           in
+           CConsShow
+             {List integer}
+             (\(w : integer)
+               (w : List integer)
+               (w : List string) ->
+                UTuple2_match
+                  {string}
+                  {List string}
+                  (wshowList {integer} (showsPrec {integer} v 0) w w)
+                  {List string}
+                  (\(ww : string) (ww : List string) -> Cons {string} ww ww))
+             (\(x : List integer) ->
+                concatBuiltinStrings
+                  (let
+                    !w : integer -> List string -> List string
+                      = showsPrec {integer} v 0
+                    !w : List string = Nil {string}
+                  in
+                  UTuple2_match
+                    {string}
+                    {List string}
+                    (wshowList {integer} w x w)
+                    {List string}
+                    (\(ww : string)
+                      (ww : List string) ->
+                       Cons {string} ww ww))))
+           ((let
+                a = List integer
+              in
+              \(c : integer -> a -> a) (n : a) -> c a (c b (c c (c d n))))
+              (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+              (Nil {integer})))
         d
   !x : integer
     = trace
         {integer}
-        (let
-          !w : Show integer = fShowInteger
-          !w : Show integer = fShowInteger
-          !w : Show integer = fShowInteger
-          !w : Show integer = fShowInteger
-          !w : Show integer = fShowInteger
-          !w : Tuple5 integer integer integer integer integer
-            = Tuple5 {integer} {integer} {integer} {integer} {integer} a b c d e
-        in
-        Tuple5_match
-          {integer}
-          {integer}
-          {integer}
-          {integer}
-          {integer}
-          w
-          {string}
-          (\(ww : integer)
-            (ww : integer)
-            (ww : integer)
-            (ww : integer)
-            (ww : integer) ->
-             concatBuiltinStrings
-               (let
-                 !x : List string = Nil {string}
-               in
-               Cons
-                 {string}
-                 "("
-                 (showsPrec
-                    {integer}
-                    w
-                    0
-                    ww
-                    (Cons
-                       {string}
-                       ","
-                       (showsPrec
+        (show
+           {Tuple5 integer integer integer integer integer}
+           (let
+             !v : Show integer = fShowInteger
+             !v : Show integer = fShowInteger
+             !v : Show integer = fShowInteger
+             !v : Show integer = fShowInteger
+             !v : Show integer = fShowInteger
+           in
+           CConsShow
+             {Tuple5 integer integer integer integer integer}
+             (\(w : integer)
+               (w : Tuple5 integer integer integer integer integer) ->
+                Tuple5_match
+                  {integer}
+                  {integer}
+                  {integer}
+                  {integer}
+                  {integer}
+                  w
+                  {List string -> List string}
+                  (\(ww : integer)
+                    (ww : integer)
+                    (ww : integer)
+                    (ww : integer)
+                    (ww : integer) ->
+                     wcshowsPrec
+                       {integer}
+                       {integer}
+                       {integer}
+                       {integer}
+                       {integer}
+                       v
+                       v
+                       v
+                       v
+                       v
+                       ww
+                       ww
+                       ww
+                       ww
+                       ww))
+             (\(w : Tuple5 integer integer integer integer integer) ->
+                Tuple5_match
+                  {integer}
+                  {integer}
+                  {integer}
+                  {integer}
+                  {integer}
+                  w
+                  {string}
+                  (\(ww : integer)
+                    (ww : integer)
+                    (ww : integer)
+                    (ww : integer)
+                    (ww : integer) ->
+                     concatBuiltinStrings
+                       (wcshowsPrec
                           {integer}
-                          w
-                          0
+                          {integer}
+                          {integer}
+                          {integer}
+                          {integer}
+                          v
+                          v
+                          v
+                          v
+                          v
                           ww
-                          (Cons
-                             {string}
-                             ","
-                             (showsPrec
-                                {integer}
-                                w
-                                0
-                                ww
-                                (Cons
-                                   {string}
-                                   ","
-                                   (showsPrec
-                                      {integer}
-                                      w
-                                      0
-                                      ww
-                                      (Cons
-                                         {string}
-                                         ","
-                                         (showsPrec
-                                            {integer}
-                                            w
-                                            0
-                                            ww
-                                            (Cons {string} ")" x)))))))))))))
+                          ww
+                          ww
+                          ww
+                          ww
+                          (Nil {string})))))
+           (Tuple5 {integer} {integer} {integer} {integer} {integer} a b c d e))
         e
 in
 multiplyInteger x 2

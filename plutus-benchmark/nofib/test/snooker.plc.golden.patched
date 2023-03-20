@@ -1,0 +1,1593 @@
+let
+  !n : integer = 4
+in
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  data ConflictSet | ConflictSet_match where
+    Known : List integer -> ConflictSet
+    Unknown : ConflictSet
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : List ConflictSet -> Bool
+    = \(ds : List ConflictSet) ->
+        Nil_match
+          {ConflictSet}
+          ds
+          {all dead. Bool}
+          (/\dead -> True)
+          (\(x : ConflictSet)
+            (xs : List ConflictSet) ->
+             /\dead ->
+               Bool_match
+                 (ConflictSet_match
+                    x
+                    {all dead. Bool}
+                    (\(ds : List integer) ->
+                       /\dead ->
+                         Nil_match
+                           {integer}
+                           ds
+                           {all dead. Bool}
+                           (/\dead -> False)
+                           (\(a : integer)
+                             (as : List integer) ->
+                              /\dead -> True)
+                           {all dead. dead})
+                    (/\dead -> False)
+                    {all dead. dead})
+                 {all dead. Bool}
+                 (/\dead -> go xs)
+                 (/\dead -> False)
+                 {all dead. dead})
+          {all dead. dead}
+in
+let
+  data Assign | Assign_match where
+    Cons : integer -> integer -> Assign
+in
+letrec
+  !rev : List Assign -> List Assign -> List Assign
+    = \(ds : List Assign)
+       (a : List Assign) ->
+        Nil_match
+          {Assign}
+          ds
+          {all dead. List Assign}
+          (/\dead -> a)
+          (\(x : Assign)
+            (xs : List Assign) ->
+             /\dead -> rev xs (Cons {Assign} x a))
+          {all dead. dead}
+in
+let
+  data Algorithm | Algorithm_match where
+    Bjbt : Algorithm
+    Bjbt : Algorithm
+    Bm : Algorithm
+    Bt : Algorithm
+    Fc : Algorithm
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  !equalsInteger : integer -> integer -> Bool
+    = \(x : integer)
+       (y : integer) ->
+        ifThenElse {Bool} (equalsInteger x y) True False
+  !maxLevel : List Assign -> integer
+    = \(ds : List Assign) ->
+        Nil_match
+          {Assign}
+          ds
+          {integer}
+          0
+          (\(ds : Assign)
+            (ds : List Assign) ->
+             Assign_match
+               ds
+               {integer}
+               (\(var : integer) (val : integer) -> var))
+  data Unit | Unit_match where
+    Unit : Unit
+in
+letrec
+  !deleteBy : all a. (a -> a -> Bool) -> a -> List a -> List a
+    = /\a ->
+        \(ds : a -> a -> Bool)
+         (ds : a)
+         (ds : List a) ->
+          Nil_match
+            {a}
+            ds
+            {all dead. List a}
+            (/\dead -> Nil {a})
+            (\(y : a)
+              (ys : List a) ->
+               /\dead ->
+                 Bool_match
+                   (ds ds y)
+                   {all dead. List a}
+                   (/\dead -> ys)
+                   (/\dead -> Cons {a} y (deleteBy {a} ds ds ys))
+                   {all dead. dead})
+            {all dead. dead}
+in
+letrec
+  !foldr : all a. all b. (a -> b -> b) -> b -> List a -> b
+    = /\a
+        b ->
+        \(f : a -> b -> b)
+         (acc : b)
+         (l : List a) ->
+          Nil_match
+            {a}
+            l
+            {all dead. b}
+            (/\dead -> acc)
+            (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
+            {all dead. dead}
+in
+letrec
+  !elemBy : all a. (a -> a -> Bool) -> a -> List a -> Bool
+    = /\a ->
+        \(ds : a -> a -> Bool)
+         (ds : a)
+         (ds : List a) ->
+          Nil_match
+            {a}
+            ds
+            {all dead. Bool}
+            (/\dead -> False)
+            (\(x : a)
+              (xs : List a) ->
+               /\dead ->
+                 Bool_match
+                   (ds x ds)
+                   {all dead. Bool}
+                   (/\dead -> True)
+                   (/\dead -> elemBy {a} ds ds xs)
+                   {all dead. dead})
+            {all dead. dead}
+in
+let
+  !unionBy : all a. (a -> a -> Bool) -> List a -> List a -> List a
+    = /\a ->
+        \(eq : a -> a -> Bool) ->
+          letrec
+            !nubBy : List a -> List a -> List a
+              = \(ds : List a)
+                 (ds : List a) ->
+                  Nil_match
+                    {a}
+                    ds
+                    {all dead. List a}
+                    (/\dead -> Nil {a})
+                    (\(y : a)
+                      (ys : List a) ->
+                       /\dead ->
+                         Bool_match
+                           (elemBy {a} eq y ds)
+                           {all dead. List a}
+                           (/\dead -> nubBy ys ds)
+                           (/\dead -> Cons {a} y (nubBy ys (Cons {a} y ds)))
+                           {all dead. dead})
+                    {all dead. dead}
+          in
+          letrec
+            !go : List a -> List a -> List a
+              = \(ds : List a) ->
+                  Nil_match
+                    {a}
+                    ds
+                    {all dead. List a -> List a}
+                    (/\dead -> \(x : List a) -> x)
+                    (\(x : a)
+                      (xs : List a) ->
+                       /\dead -> \(b : List a) -> go xs (deleteBy {a} eq x b))
+                    {all dead. dead}
+          in
+          \(xs : List a)
+           (ys : List a) ->
+            foldr
+              {a}
+              {List a}
+              (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+              (go xs (nubBy ys (Nil {a})))
+              xs
+in
+letrec
+  !combine
+     : List (Tuple2 (List Assign) ConflictSet) -> List integer -> List integer
+    = \(ds : List (Tuple2 (List Assign) ConflictSet))
+       (acc : List integer) ->
+        Nil_match
+          {Tuple2 (List Assign) ConflictSet}
+          ds
+          {all dead. List integer}
+          (/\dead -> acc)
+          (\(ds : Tuple2 (List Assign) ConflictSet)
+            (css : List (Tuple2 (List Assign) ConflictSet)) ->
+             /\dead ->
+               Tuple2_match
+                 {List Assign}
+                 {ConflictSet}
+                 ds
+                 {List integer}
+                 (\(s : List Assign) ->
+                    letrec
+                      !go : List integer -> Bool
+                        = \(ds : List integer) ->
+                            Nil_match
+                              {integer}
+                              ds
+                              {all dead. Bool}
+                              (/\dead -> False)
+                              (\(x : integer)
+                                (xs : List integer) ->
+                                 /\dead ->
+                                   Bool_match
+                                     (ifThenElse
+                                        {Bool}
+                                        (equalsInteger (maxLevel s) x)
+                                        True
+                                        False)
+                                     {all dead. Bool}
+                                     (/\dead -> True)
+                                     (/\dead -> go xs)
+                                     {all dead. dead})
+                              {all dead. dead}
+                    in
+                    \(ds : ConflictSet) ->
+                      ConflictSet_match
+                        ds
+                        {all dead. List integer}
+                        (\(cs : List integer) ->
+                           /\dead ->
+                             Bool_match
+                               (Bool_match
+                                  (go cs)
+                                  {all dead. Bool}
+                                  (/\dead -> False)
+                                  (/\dead -> True)
+                                  {all dead. dead})
+                               {all dead. List integer}
+                               (/\dead -> cs)
+                               (/\dead ->
+                                  combine
+                                    css
+                                    (unionBy {integer} equalsInteger cs acc))
+                               {all dead. dead})
+                        (/\dead ->
+                           Unit_match
+                             (error {Unit})
+                             {List integer}
+                             (error {List integer}))
+                        {all dead. dead}))
+          {all dead. dead}
+in
+letrec
+  data (Tree :: * -> *) a | Tree_match where
+    Node : a -> List (Tree a) -> Tree a
+in
+let
+  !label : all a. Tree a -> a
+    = /\a ->
+        \(ds : Tree a) ->
+          Tree_match {a} ds {a} (\(lab : a) (ds : List (Tree a)) -> lab)
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+in
+letrec
+  !map : all a. all b. (a -> b) -> List a -> List b
+    = /\a
+        b ->
+        \(f : a -> b)
+         (l : List a) ->
+          Nil_match
+            {a}
+            l
+            {all dead. List b}
+            (/\dead -> Nil {b})
+            (\(x : a)
+              (xs : List a) ->
+               /\dead -> Cons {b} (f x) (map {a} {b} f xs))
+            {all dead. dead}
+in
+letrec
+  !mapTree : all a. all b. (a -> b) -> Tree a -> Tree b
+    = /\a
+        b ->
+        \(f : a -> b)
+         (ds : Tree a) ->
+          Tree_match
+            {a}
+            ds
+            {Tree b}
+            (\(a : a)
+              (cs : List (Tree a)) ->
+               Node {b} (f a) (map {Tree a} {Tree b} (mapTree {a} {b} f) cs))
+in
+let
+  data CSP | CSP_match where
+    CSP : integer -> integer -> (Assign -> Assign -> Bool) -> CSP
+  !bt : CSP -> Tree (List Assign) -> Tree (Tuple2 (List Assign) ConflictSet)
+    = \(csp : CSP) ->
+        mapTree
+          {List Assign}
+          {Tuple2 (List Assign) ConflictSet}
+          (\(s : List Assign) ->
+             Tuple2
+               {List Assign}
+               {ConflictSet}
+               s
+               (Maybe_match
+                  {Tuple2 integer integer}
+                  (CSP_match
+                     csp
+                     {Maybe (Tuple2 integer integer)}
+                     (\(ds : integer)
+                       (ds : integer)
+                       (ds : Assign -> Assign -> Bool) ->
+                        Nil_match
+                          {Assign}
+                          s
+                          {all dead. Maybe (Tuple2 integer integer)}
+                          (/\dead -> Nothing {Tuple2 integer integer})
+                          (\(a : Assign)
+                            (as : List Assign) ->
+                             /\dead ->
+                               Nil_match
+                                 {Assign}
+                                 (foldr
+                                    {Assign}
+                                    {List Assign}
+                                    (\(e : Assign)
+                                      (xs : List Assign) ->
+                                       Bool_match
+                                         (Bool_match
+                                            (ds a e)
+                                            {all dead. Bool}
+                                            (/\dead -> False)
+                                            (/\dead -> True)
+                                            {all dead. dead})
+                                         {all dead. List Assign}
+                                         (/\dead -> Cons {Assign} e xs)
+                                         (/\dead -> xs)
+                                         {all dead. dead})
+                                    (Nil {Assign})
+                                    (rev as (Nil {Assign})))
+                                 {all dead. Maybe (Tuple2 integer integer)}
+                                 (/\dead -> Nothing {Tuple2 integer integer})
+                                 (\(b : Assign)
+                                   (ds : List Assign) ->
+                                    /\dead ->
+                                      Just
+                                        {Tuple2 integer integer}
+                                        (Tuple2
+                                           {integer}
+                                           {integer}
+                                           (Assign_match
+                                              a
+                                              {integer}
+                                              (\(var : integer)
+                                                (val : integer) ->
+                                                 var))
+                                           (Assign_match
+                                              b
+                                              {integer}
+                                              (\(var : integer)
+                                                (val : integer) ->
+                                                 var))))
+                                 {all dead. dead})
+                          {all dead. dead}))
+                  {all dead. ConflictSet}
+                  (\(ds : Tuple2 integer integer) ->
+                     /\dead ->
+                       Tuple2_match
+                         {integer}
+                         {integer}
+                         ds
+                         {ConflictSet}
+                         (\(a : integer)
+                           (b : integer) ->
+                            Known
+                              ((let
+                                   a = List integer
+                                 in
+                                 \(c : integer -> a -> a)
+                                  (n : a) ->
+                                   c a (c b n))
+                                 (\(ds : integer)
+                                   (ds : List integer) ->
+                                    Cons {integer} ds ds)
+                                 (Nil {integer}))))
+                  (/\dead ->
+                     Bool_match
+                       (CSP_match
+                          csp
+                          {Bool}
+                          (\(ds : integer)
+                            (ds : integer)
+                            (ds : Assign -> Assign -> Bool) ->
+                             ifThenElse
+                               {Bool}
+                               (equalsInteger (maxLevel s) ds)
+                               True
+                               False))
+                       {all dead. ConflictSet}
+                       (/\dead -> Known (Nil {integer}))
+                       (/\dead -> Unknown)
+                       {all dead. dead})
+                  {all dead. dead}))
+  data Ordering | Ordering_match where
+    EQ : Ordering
+    GT : Ordering
+    LT : Ordering
+  data (Ord :: * -> *) a | Ord_match where
+    CConsOrd
+      : (\a -> a -> a -> Bool) a -> (a -> a -> Ordering) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> a) -> (a -> a -> a) -> Ord a
+  ~fOrdInteger : Ord integer
+    = CConsOrd
+        {integer}
+        equalsInteger
+        (\(eta : integer)
+          (eta : integer) ->
+           Bool_match
+             (ifThenElse {Bool} (equalsInteger eta eta) True False)
+             {all dead. Ordering}
+             (/\dead -> EQ)
+             (/\dead ->
+                Bool_match
+                  (ifThenElse {Bool} (lessThanEqualsInteger eta eta) True False)
+                  {all dead. Ordering}
+                  (/\dead -> LT)
+                  (/\dead -> GT)
+                  {all dead. dead})
+             {all dead. dead})
+        (\(x : integer)
+          (y : integer) ->
+           ifThenElse {Bool} (lessThanInteger x y) True False)
+        (\(x : integer)
+          (y : integer) ->
+           ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+        (\(x : integer)
+          (y : integer) ->
+           ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+        (\(x : integer)
+          (y : integer) ->
+           ifThenElse {Bool} (lessThanInteger x y) False True)
+        (\(x : integer)
+          (y : integer) ->
+           Bool_match
+             (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+             {all dead. integer}
+             (/\dead -> y)
+             (/\dead -> x)
+             {all dead. dead})
+        (\(x : integer)
+          (y : integer) ->
+           Bool_match
+             (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+             {all dead. integer}
+             (/\dead -> x)
+             (/\dead -> y)
+             {all dead. dead})
+in
+letrec
+  !interval : integer -> integer -> List integer
+    = \(a : integer)
+       (b : integer) ->
+        Bool_match
+          ((let
+               !v : Ord integer = fOrdInteger
+             in
+             Ord_match
+               {integer}
+               v
+               {integer -> integer -> Bool}
+               (\(v : (\a -> a -> a -> Bool) integer)
+                 (v : integer -> integer -> Ordering)
+                 (v : integer -> integer -> Bool)
+                 (v : integer -> integer -> Bool)
+                 (v : integer -> integer -> Bool)
+                 (v : integer -> integer -> Bool)
+                 (v : integer -> integer -> integer)
+                 (v : integer -> integer -> integer) ->
+                  v))
+             a
+             b)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead -> Cons {integer} a (interval (addInteger a 1) b))
+          {all dead. dead}
+in
+let
+  !traceError : all a. string -> a
+    = /\a ->
+        \(str : string) ->
+          let
+            !thunk : unit = let !wild : Unit = trace {Unit} str Unit in ()
+          in
+          error {a}
+in
+letrec
+  !cacheChecks
+     : CSP -> List (List ConflictSet) -> Tree (List Assign) -> Tree (Tuple2 (List Assign) (List (List ConflictSet)))
+    = \(csp : CSP)
+       (tbl : List (List ConflictSet))
+       (ds : Tree (List Assign)) ->
+        Tree_match
+          {List Assign}
+          ds
+          {Tree (Tuple2 (List Assign) (List (List ConflictSet)))}
+          (\(s : List Assign)
+            (cs : List (Tree (List Assign))) ->
+             Node
+               {Tuple2 (List Assign) (List (List ConflictSet))}
+               (Tuple2 {List Assign} {List (List ConflictSet)} s tbl)
+               (map
+                  {Tree (List Assign)}
+                  {Tree (Tuple2 (List Assign) (List (List ConflictSet)))}
+                  (cacheChecks
+                     csp
+                     (let
+                       !tbl : List (List ConflictSet)
+                         = (let
+                               a = List ConflictSet
+                             in
+                             \(ds : List a) ->
+                               Nil_match
+                                 {a}
+                                 ds
+                                 {all dead. List a}
+                                 (/\dead -> traceError {List a} "PT9")
+                                 (\(ds : a) (as : List a) -> /\dead -> as)
+                                 {all dead. dead})
+                             tbl
+                     in
+                     Nil_match
+                       {Assign}
+                       s
+                       {all dead. List (List ConflictSet)}
+                       (/\dead -> tbl)
+                       (\(ds : Assign)
+                         (as : List Assign) ->
+                          /\dead ->
+                            Assign_match
+                              ds
+                              {List (List ConflictSet)}
+                              (\(var : integer)
+                                (val : integer) ->
+                                 CSP_match
+                                   csp
+                                   {List (List ConflictSet)}
+                                   (\(ds : integer)
+                                     (ds : integer)
+                                     (ds : Assign -> Assign -> Bool) ->
+                                      letrec
+                                        !go
+                                           : List ConflictSet -> List (Tuple2 integer integer) -> List ConflictSet
+                                          = \(ds : List ConflictSet)
+                                             (ds
+                                                : List (Tuple2 integer integer)) ->
+                                              Nil_match
+                                                {ConflictSet}
+                                                ds
+                                                {all dead. List ConflictSet}
+                                                (/\dead -> Nil {ConflictSet})
+                                                (\(ipv : ConflictSet)
+                                                  (ipv : List ConflictSet) ->
+                                                   /\dead ->
+                                                     Nil_match
+                                                       {Tuple2 integer integer}
+                                                       ds
+                                                       {all dead. List ConflictSet}
+                                                       (/\dead ->
+                                                          Nil {ConflictSet})
+                                                       (\(ipv
+                                                            : Tuple2 integer integer)
+                                                         (ipv
+                                                            : List (Tuple2 integer integer)) ->
+                                                          /\dead ->
+                                                            Cons
+                                                              {ConflictSet}
+                                                              (Tuple2_match
+                                                                 {integer}
+                                                                 {integer}
+                                                                 ipv
+                                                                 {ConflictSet}
+                                                                 (\(var
+                                                                      : integer)
+                                                                   (val
+                                                                      : integer) ->
+                                                                    Bool_match
+                                                                      (Bool_match
+                                                                         (ConflictSet_match
+                                                                            ipv
+                                                                            {all dead. Bool}
+                                                                            (\(v
+                                                                                 : List integer) ->
+                                                                               /\dead ->
+                                                                                 False)
+                                                                            (/\dead ->
+                                                                               True)
+                                                                            {all dead. dead})
+                                                                         {all dead. Bool}
+                                                                         (/\dead ->
+                                                                            Bool_match
+                                                                              (ds
+                                                                                 (Cons
+                                                                                    var
+                                                                                    val)
+                                                                                 (Cons
+                                                                                    var
+                                                                                    val))
+                                                                              {all dead. Bool}
+                                                                              (/\dead ->
+                                                                                 False)
+                                                                              (/\dead ->
+                                                                                 True)
+                                                                              {all dead. dead})
+                                                                         (/\dead ->
+                                                                            False)
+                                                                         {all dead. dead})
+                                                                      {all dead. ConflictSet}
+                                                                      (/\dead ->
+                                                                         Known
+                                                                           ((let
+                                                                                a
+                                                                                  = List integer
+                                                                              in
+                                                                              \(c
+                                                                                  : integer -> a -> a)
+                                                                               (n
+                                                                                  : a) ->
+                                                                                c
+                                                                                  var
+                                                                                  (c
+                                                                                     var
+                                                                                     n))
+                                                                              (\(ds
+                                                                                   : integer)
+                                                                                (ds
+                                                                                   : List integer) ->
+                                                                                 Cons
+                                                                                   {integer}
+                                                                                   ds
+                                                                                   ds)
+                                                                              (Nil
+                                                                                 {integer})))
+                                                                      (/\dead ->
+                                                                         ipv)
+                                                                      {all dead. dead}))
+                                                              (go ipv ipv))
+                                                       {all dead. dead})
+                                                {all dead. dead}
+                                      in
+                                      letrec
+                                        !go
+                                           : List (List ConflictSet) -> List (List (Tuple2 integer integer)) -> List (List ConflictSet)
+                                          = \(ds : List (List ConflictSet))
+                                             (ds
+                                                : List (List (Tuple2 integer integer))) ->
+                                              Nil_match
+                                                {List ConflictSet}
+                                                ds
+                                                {all dead. List (List ConflictSet)}
+                                                (/\dead ->
+                                                   Nil {List ConflictSet})
+                                                (\(ipv : List ConflictSet)
+                                                  (ipv
+                                                     : List (List ConflictSet)) ->
+                                                   /\dead ->
+                                                     Nil_match
+                                                       {List (Tuple2 integer integer)}
+                                                       ds
+                                                       {all dead. List (List ConflictSet)}
+                                                       (/\dead ->
+                                                          Nil
+                                                            {List ConflictSet})
+                                                       (\(ipv
+                                                            : List (Tuple2 integer integer))
+                                                         (ipv
+                                                            : List (List (Tuple2 integer integer))) ->
+                                                          /\dead ->
+                                                            Cons
+                                                              {List ConflictSet}
+                                                              (go ipv ipv)
+                                                              (go ipv ipv))
+                                                       {all dead. dead})
+                                                {all dead. dead}
+                                      in
+                                      go
+                                        tbl
+                                        ((let
+                                             a = List (Tuple2 integer integer)
+                                           in
+                                           \(g
+                                               : all b. (a -> b -> b) -> b -> b) ->
+                                             g
+                                               {List a}
+                                               (\(ds : a)
+                                                 (ds : List a) ->
+                                                  Cons {a} ds ds)
+                                               (Nil {a}))
+                                           (/\a ->
+                                              \(c
+                                                  : List (Tuple2 integer integer) -> a -> a)
+                                               (n : a) ->
+                                                letrec
+                                                  !go
+                                                     : List integer -> a
+                                                    = \(ds : List integer) ->
+                                                        Nil_match
+                                                          {integer}
+                                                          ds
+                                                          {all dead. a}
+                                                          (/\dead -> n)
+                                                          (\(y : integer)
+                                                            (ys
+                                                               : List integer) ->
+                                                             /\dead ->
+                                                               let
+                                                                 !ds : a = go ys
+                                                               in
+                                                               c
+                                                                 ((let
+                                                                      a
+                                                                        = Tuple2 integer integer
+                                                                    in
+                                                                    \(g
+                                                                        : all b. (a -> b -> b) -> b -> b) ->
+                                                                      g
+                                                                        {List a}
+                                                                        (\(ds
+                                                                             : a)
+                                                                          (ds
+                                                                             : List a) ->
+                                                                           Cons
+                                                                             {a}
+                                                                             ds
+                                                                             ds)
+                                                                        (Nil
+                                                                           {a}))
+                                                                    (/\a ->
+                                                                       \(c
+                                                                           : Tuple2 integer integer -> a -> a)
+                                                                        (n
+                                                                           : a) ->
+                                                                         letrec
+                                                                           !go
+                                                                              : List integer -> a
+                                                                             = \(ds
+                                                                                   : List integer) ->
+                                                                                 Nil_match
+                                                                                   {integer}
+                                                                                   ds
+                                                                                   {all dead. a}
+                                                                                   (/\dead ->
+                                                                                      n)
+                                                                                   (\(y
+                                                                                        : integer)
+                                                                                     (ys
+                                                                                        : List integer) ->
+                                                                                      /\dead ->
+                                                                                        let
+                                                                                          !ds
+                                                                                             : a
+                                                                                            = go
+                                                                                                ys
+                                                                                        in
+                                                                                        c
+                                                                                          (Tuple2
+                                                                                             {integer}
+                                                                                             {integer}
+                                                                                             y
+                                                                                             y)
+                                                                                          ds)
+                                                                                   {all dead. dead}
+                                                                         in
+                                                                         let
+                                                                           !eta
+                                                                              : List integer
+                                                                             = interval
+                                                                                 1
+                                                                                 ds
+                                                                         in
+                                                                         go
+                                                                           eta))
+                                                                 ds)
+                                                          {all dead. dead}
+                                                in
+                                                let
+                                                  !eta : List integer
+                                                    = interval
+                                                        (addInteger var 1)
+                                                        ds
+                                                in
+                                                go eta)))))
+                       {all dead. dead}))
+                  cs))
+in
+letrec
+  !collect : List ConflictSet -> List integer
+    = \(ds : List ConflictSet) ->
+        Nil_match
+          {ConflictSet}
+          ds
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (\(ds : ConflictSet)
+            (css : List ConflictSet) ->
+             /\dead ->
+               ConflictSet_match
+                 ds
+                 {all dead. List integer}
+                 (\(cs : List integer) ->
+                    /\dead -> unionBy {integer} equalsInteger cs (collect css))
+                 (/\dead ->
+                    Unit_match
+                      (error {Unit})
+                      {List integer}
+                      (error {List integer}))
+                 {all dead. dead})
+          {all dead. dead}
+in
+let
+  !emptyTable : CSP -> List (List ConflictSet)
+    = \(ds : CSP) ->
+        CSP_match
+          ds
+          {List (List ConflictSet)}
+          (\(ds : integer)
+            (ds : integer)
+            (ds : Assign -> Assign -> Bool) ->
+             Cons
+               {List ConflictSet}
+               (Nil {ConflictSet})
+               ((let
+                    a = List ConflictSet
+                  in
+                  \(g : all b. (a -> b -> b) -> b -> b) ->
+                    g
+                      {List a}
+                      (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                      (Nil {a}))
+                  (/\a ->
+                     \(c : List ConflictSet -> a -> a)
+                      (n : a) ->
+                       letrec
+                         !go : List integer -> a
+                           = \(ds : List integer) ->
+                               Nil_match
+                                 {integer}
+                                 ds
+                                 {all dead. a}
+                                 (/\dead -> n)
+                                 (\(y : integer)
+                                   (ys : List integer) ->
+                                    /\dead ->
+                                      let
+                                        !ds : a = go ys
+                                      in
+                                      c
+                                        ((let
+                                             a = List ConflictSet
+                                           in
+                                           \(c : ConflictSet -> a -> a)
+                                            (n : a) ->
+                                             letrec
+                                               !go : List integer -> a
+                                                 = \(ds : List integer) ->
+                                                     Nil_match
+                                                       {integer}
+                                                       ds
+                                                       {all dead. a}
+                                                       (/\dead -> n)
+                                                       (\(y : integer)
+                                                         (ys : List integer) ->
+                                                          /\dead ->
+                                                            let
+                                                              !ds : a = go ys
+                                                            in
+                                                            c Unknown ds)
+                                                       {all dead. dead}
+                                             in
+                                             let
+                                               !eta : List integer
+                                                 = interval 1 ds
+                                             in
+                                             go eta)
+                                           (\(ds : ConflictSet)
+                                             (ds : List ConflictSet) ->
+                                              Cons {ConflictSet} ds ds)
+                                           (Nil {ConflictSet}))
+                                        ds)
+                                 {all dead. dead}
+                       in
+                       let
+                         !eta : List integer = interval 1 ds
+                       in
+                       go eta)))
+in
+letrec
+  !bad_name : all a. List a -> integer -> a
+    = /\a ->
+        \(ds : List a)
+         (n : integer) ->
+          Bool_match
+            (ifThenElse {Bool} (lessThanInteger n 0) True False)
+            {all dead. a}
+            (/\dead -> traceError {a} "PT6")
+            (/\dead ->
+               Nil_match
+                 {a}
+                 ds
+                 {all dead. a}
+                 (/\dead -> traceError {a} "PT7")
+                 (\(x : a)
+                   (xs : List a) ->
+                    /\dead ->
+                      Bool_match
+                        (ifThenElse {Bool} (equalsInteger n 0) True False)
+                        {all dead. a}
+                        (/\dead -> x)
+                        (/\dead -> bad_name {a} xs (subtractInteger n 1))
+                        {all dead. dead})
+                 {all dead. dead})
+            {all dead. dead}
+in
+let
+  !head : all a. List a -> a
+    = /\a ->
+        \(ds : List a) ->
+          Nil_match
+            {a}
+            ds
+            {all dead. a}
+            (/\dead -> traceError {a} "PT8")
+            (\(x : a) (ds : List a) -> /\dead -> x)
+            {all dead. dead}
+  !lookupCache
+     : CSP -> Tree (Tuple2 (List Assign) (List (List ConflictSet))) -> Tree (Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet)))
+    = \(csp : CSP)
+       (t : Tree (Tuple2 (List Assign) (List (List ConflictSet)))) ->
+        mapTree
+          {Tuple2 (List Assign) (List (List ConflictSet))}
+          {Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))}
+          (\(ds : Tuple2 (List Assign) (List (List ConflictSet))) ->
+             Tuple2_match
+               {List Assign}
+               {List (List ConflictSet)}
+               ds
+               {Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))}
+               (\(ds : List Assign)
+                 (tbl : List (List ConflictSet)) ->
+                  Nil_match
+                    {Assign}
+                    ds
+                    {all dead. Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))}
+                    (/\dead ->
+                       Tuple2
+                         {Tuple2 (List Assign) ConflictSet}
+                         {List (List ConflictSet)}
+                         (Tuple2
+                            {List Assign}
+                            {ConflictSet}
+                            (Nil {Assign})
+                            Unknown)
+                         tbl)
+                    (\(a : Assign) ->
+                       let
+                         ~tableEntry : ConflictSet
+                           = bad_name
+                               {ConflictSet}
+                               (head {List ConflictSet} tbl)
+                               (subtractInteger
+                                  (Assign_match
+                                     a
+                                     {integer}
+                                     (\(var : integer) (val : integer) -> val))
+                                  1)
+                       in
+                       \(ds : List Assign) ->
+                         /\dead ->
+                           Tuple2
+                             {Tuple2 (List Assign) ConflictSet}
+                             {List (List ConflictSet)}
+                             (Tuple2
+                                {List Assign}
+                                {ConflictSet}
+                                ds
+                                (Bool_match
+                                   (ConflictSet_match
+                                      tableEntry
+                                      {all dead. Bool}
+                                      (\(v : List integer) -> /\dead -> False)
+                                      (/\dead -> True)
+                                      {all dead. dead})
+                                   {all dead. ConflictSet}
+                                   (/\dead ->
+                                      Bool_match
+                                        (CSP_match
+                                           csp
+                                           {Bool}
+                                           (\(ds : integer)
+                                             (ds : integer)
+                                             (ds : Assign -> Assign -> Bool) ->
+                                              ifThenElse
+                                                {Bool}
+                                                (equalsInteger
+                                                   (Nil_match
+                                                      {Assign}
+                                                      ds
+                                                      {integer}
+                                                      0
+                                                      (\(ds : Assign)
+                                                        (ds : List Assign) ->
+                                                         Assign_match
+                                                           ds
+                                                           {integer}
+                                                           (\(var : integer)
+                                                             (val : integer) ->
+                                                              var)))
+                                                   ds)
+                                                True
+                                                False))
+                                        {all dead. ConflictSet}
+                                        (/\dead -> Known (Nil {integer}))
+                                        (/\dead -> Unknown)
+                                        {all dead. dead})
+                                   (/\dead -> tableEntry)
+                                   {all dead. dead}))
+                             tbl)
+                    {all dead. dead}))
+          t
+  !bad_name : all a. Ord a -> a -> a -> Bool
+    = /\a ->
+        \(v : Ord a) ->
+          Ord_match
+            {a}
+            v
+            {a -> a -> Bool}
+            (\(v : (\a -> a -> a -> Bool) a)
+              (v : a -> a -> Ordering)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> Bool)
+              (v : a -> a -> a)
+              (v : a -> a -> a) ->
+               v)
+  !abs : integer -> integer
+    = \(n : integer) ->
+        Bool_match
+          (bad_name {integer} fOrdInteger n 0)
+          {all dead. integer}
+          (/\dead -> subtractInteger 0 n)
+          (/\dead -> n)
+          {all dead. dead}
+in
+letrec
+  !foldTree : all a. all b. (a -> List b -> b) -> Tree a -> b
+    = /\a
+        b ->
+        \(f : a -> List b -> b)
+         (ds : Tree a) ->
+          Tree_match
+            {a}
+            ds
+            {b}
+            (\(a : a)
+              (cs : List (Tree a)) ->
+               f a (map {Tree a} {b} (foldTree {a} {b} f) cs))
+in
+let
+  !fst : all a. all b. Tuple2 a b -> a
+    = /\a
+        b ->
+        \(ds : Tuple2 a b) ->
+          Tuple2_match {a} {b} ds {a} (\(a : a) (ds : b) -> a)
+in
+letrec
+  !leaves : all a. Tree a -> List a
+    = /\a ->
+        \(ds : Tree a) ->
+          Tree_match
+            {a}
+            ds
+            {List a}
+            (\(leaf : a)
+              (ds : List (Tree a)) ->
+               Nil_match
+                 {Tree a}
+                 ds
+                 {all dead. List a}
+                 (/\dead ->
+                    (let
+                        a = List a
+                      in
+                      \(c : a -> a -> a) (n : a) -> c leaf n)
+                      (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                      (Nil {a}))
+                 (\(ipv : Tree a)
+                   (ipv : List (Tree a)) ->
+                    /\dead ->
+                      (let
+                          b = List a
+                        in
+                        \(c : a -> b -> b)
+                         (n : b) ->
+                          letrec
+                            !go : List (List a) -> b
+                              = \(ds : List (List a)) ->
+                                  Nil_match
+                                    {List a}
+                                    ds
+                                    {all dead. b}
+                                    (/\dead -> n)
+                                    (\(x : List a)
+                                      (xs : List (List a)) ->
+                                       letrec
+                                         !go : List a -> b
+                                           = \(ds : List a) ->
+                                               Nil_match
+                                                 {a}
+                                                 ds
+                                                 {all dead. b}
+                                                 (/\dead -> go xs)
+                                                 (\(x : a)
+                                                   (xs : List a) ->
+                                                    /\dead -> c x (go xs))
+                                                 {all dead. dead}
+                                       in
+                                       /\dead -> go x)
+                                    {all dead. dead}
+                          in
+                          go (map {Tree a} {List a} (leaves {a}) ds))
+                        (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                        (Nil {a}))
+                 {all dead. dead})
+in
+letrec
+  !initTree : all a. (a -> List a) -> a -> Tree a
+    = /\a ->
+        \(f : a -> List a)
+         (a : a) ->
+          Node {a} a (map {a} {Tree a} (initTree {a} f) (f a))
+in
+let
+  !labeler
+     : CSP -> Tree (List Assign) -> Tree (Tuple2 (List Assign) ConflictSet)
+    = Algorithm_match
+        Bt
+        {all dead. CSP -> Tree (List Assign) -> Tree (Tuple2 (List Assign) ConflictSet)}
+        (/\dead ->
+           \(csp : CSP)
+            (x : Tree (List Assign)) ->
+             foldTree
+               {Tuple2 (List Assign) ConflictSet}
+               {Tree (Tuple2 (List Assign) ConflictSet)}
+               (\(ds : Tuple2 (List Assign) ConflictSet)
+                 (chs : List (Tree (Tuple2 (List Assign) ConflictSet))) ->
+                  Tuple2_match
+                    {List Assign}
+                    {ConflictSet}
+                    ds
+                    {Tree (Tuple2 (List Assign) ConflictSet)}
+                    (\(a : List Assign)
+                      (ds : ConflictSet) ->
+                       ConflictSet_match
+                         ds
+                         {all dead. Tree (Tuple2 (List Assign) ConflictSet)}
+                         (\(cs : List integer) ->
+                            /\dead ->
+                              Node
+                                {Tuple2 (List Assign) ConflictSet}
+                                (Tuple2
+                                   {List Assign}
+                                   {ConflictSet}
+                                   a
+                                   (Known cs))
+                                chs)
+                         (/\dead ->
+                            Node
+                              {Tuple2 (List Assign) ConflictSet}
+                              (Tuple2
+                                 {List Assign}
+                                 {ConflictSet}
+                                 a
+                                 (Known
+                                    (combine
+                                       (map
+                                          {Tree (Tuple2 (List Assign) ConflictSet)}
+                                          {Tuple2 (List Assign) ConflictSet}
+                                          (label
+                                             {Tuple2 (List Assign) ConflictSet})
+                                          chs)
+                                       (Nil {integer}))))
+                              chs)
+                         {all dead. dead}))
+               (bt csp x))
+        (/\dead ->
+           \(csp : CSP)
+            (x : Tree (List Assign)) ->
+             foldTree
+               {Tuple2 (List Assign) ConflictSet}
+               {Tree (Tuple2 (List Assign) ConflictSet)}
+               (\(ds : Tuple2 (List Assign) ConflictSet)
+                 (chs : List (Tree (Tuple2 (List Assign) ConflictSet))) ->
+                  let
+                    ~cs : ConflictSet
+                      = Known
+                          (combine
+                             (map
+                                {Tree (Tuple2 (List Assign) ConflictSet)}
+                                {Tuple2 (List Assign) ConflictSet}
+                                (label {Tuple2 (List Assign) ConflictSet})
+                                chs)
+                             (Nil {integer}))
+                  in
+                  Tuple2_match
+                    {List Assign}
+                    {ConflictSet}
+                    ds
+                    {Tree (Tuple2 (List Assign) ConflictSet)}
+                    (\(a : List Assign)
+                      (ds : ConflictSet) ->
+                       ConflictSet_match
+                         ds
+                         {all dead. Tree (Tuple2 (List Assign) ConflictSet)}
+                         (\(cs : List integer) ->
+                            /\dead ->
+                              Node
+                                {Tuple2 (List Assign) ConflictSet}
+                                (Tuple2
+                                   {List Assign}
+                                   {ConflictSet}
+                                   a
+                                   (Known cs))
+                                chs)
+                         (/\dead ->
+                            Bool_match
+                              (ConflictSet_match
+                                 cs
+                                 {all dead. Bool}
+                                 (\(ds : List integer) ->
+                                    /\dead ->
+                                      Nil_match
+                                        {integer}
+                                        ds
+                                        {all dead. Bool}
+                                        (/\dead -> False)
+                                        (\(a : integer)
+                                          (as : List integer) ->
+                                           /\dead -> True)
+                                        {all dead. dead})
+                                 (/\dead -> False)
+                                 {all dead. dead})
+                              {all dead. Tree (Tuple2 (List Assign) ConflictSet)}
+                              (/\dead ->
+                                 Node
+                                   {Tuple2 (List Assign) ConflictSet}
+                                   (Tuple2 {List Assign} {ConflictSet} a cs)
+                                   (Nil
+                                      {Tree (Tuple2 (List Assign) ConflictSet)}))
+                              (/\dead ->
+                                 Node
+                                   {Tuple2 (List Assign) ConflictSet}
+                                   (Tuple2 {List Assign} {ConflictSet} a cs)
+                                   chs)
+                              {all dead. dead})
+                         {all dead. dead}))
+               (bt csp x))
+        (/\dead ->
+           \(csp : CSP)
+            (x : Tree (List Assign)) ->
+             mapTree
+               {Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))}
+               {Tuple2 (List Assign) ConflictSet}
+               (fst
+                  {Tuple2 (List Assign) ConflictSet}
+                  {List (List ConflictSet)})
+               (lookupCache csp (cacheChecks csp (emptyTable csp) x)))
+        (/\dead -> bt)
+        (/\dead ->
+           \(csp : CSP)
+            (x : Tree (List Assign)) ->
+             let
+               !t
+                  : Tree (Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet)))
+                 = lookupCache csp (cacheChecks csp (emptyTable csp) x)
+             in
+             mapTree
+               {Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))}
+               {Tuple2 (List Assign) ConflictSet}
+               (\(ds
+                    : Tuple2 (Tuple2 (List Assign) ConflictSet) (List (List ConflictSet))) ->
+                  Tuple2_match
+                    {Tuple2 (List Assign) ConflictSet}
+                    {List (List ConflictSet)}
+                    ds
+                    {Tuple2 (List Assign) ConflictSet}
+                    (\(ds : Tuple2 (List Assign) ConflictSet)
+                      (tbl : List (List ConflictSet)) ->
+                       let
+                         ~wipedDomains : List (List ConflictSet)
+                           = (let
+                                 a = List ConflictSet
+                               in
+                               \(g : all b. (a -> b -> b) -> b -> b) ->
+                                 g
+                                   {List a}
+                                   (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                                   (Nil {a}))
+                               (/\a ->
+                                  \(c : List ConflictSet -> a -> a)
+                                   (n : a) ->
+                                    (let
+                                        a = List ConflictSet
+                                      in
+                                      /\b ->
+                                        \(k : a -> b -> b)
+                                         (z : b) ->
+                                          letrec
+                                            !go : List a -> b
+                                              = \(ds : List a) ->
+                                                  Nil_match
+                                                    {a}
+                                                    ds
+                                                    {all dead. b}
+                                                    (/\dead -> z)
+                                                    (\(y : a)
+                                                      (ys : List a) ->
+                                                       /\dead -> k y (go ys))
+                                                    {all dead. dead}
+                                          in
+                                          \(eta : List a) -> go eta)
+                                      {a}
+                                      (\(ds : List ConflictSet)
+                                        (ds : a) ->
+                                         Bool_match
+                                           (go ds)
+                                           {all dead. a}
+                                           (/\dead -> c ds ds)
+                                           (/\dead -> ds)
+                                           {all dead. dead})
+                                      n
+                                      tbl)
+                       in
+                       Tuple2_match
+                         {List Assign}
+                         {ConflictSet}
+                         ds
+                         {Tuple2 (List Assign) ConflictSet}
+                         (\(as : List Assign)
+                           (cs : ConflictSet) ->
+                            Tuple2
+                              {List Assign}
+                              {ConflictSet}
+                              as
+                              (Bool_match
+                                 (let
+                                   !ds : List (List ConflictSet) = wipedDomains
+                                 in
+                                 Nil_match
+                                   {List ConflictSet}
+                                   ds
+                                   {all dead. Bool}
+                                   (/\dead -> True)
+                                   (\(x : List ConflictSet)
+                                     (xs : List (List ConflictSet)) ->
+                                      /\dead -> False)
+                                   {all dead. dead})
+                                 {all dead. ConflictSet}
+                                 (/\dead -> cs)
+                                 (/\dead ->
+                                    Known
+                                      (collect
+                                         (head
+                                            {List ConflictSet}
+                                            wipedDomains)))
+                                 {all dead. dead}))))
+               t)
+        {all dead. dead}
+  !csp : CSP
+    = CSP
+        n
+        n
+        (\(ds : Assign)
+          (ds : Assign) ->
+           Assign_match
+             ds
+             {Bool}
+             (\(i : integer)
+               (m : integer) ->
+                Assign_match
+                  ds
+                  {Bool}
+                  (\(j : integer)
+                    (n : integer) ->
+                     Bool_match
+                       (Bool_match
+                          (equalsInteger m n)
+                          {all dead. Bool}
+                          (/\dead -> False)
+                          (/\dead -> True)
+                          {all dead. dead})
+                       {all dead. Bool}
+                       (/\dead ->
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (equalsInteger
+                                  (abs (subtractInteger i j))
+                                  (abs (subtractInteger m n)))
+                               True
+                               False)
+                            {all dead. Bool}
+                            (/\dead -> False)
+                            (/\dead -> True)
+                            {all dead. dead})
+                       (/\dead -> False)
+                       {all dead. dead})))
+in
+map
+  {Tuple2 (List Assign) ConflictSet}
+  {List Assign}
+  (fst {List Assign} {ConflictSet})
+  (foldr
+     {Tuple2 (List Assign) ConflictSet}
+     {List (Tuple2 (List Assign) ConflictSet)}
+     (\(e : Tuple2 (List Assign) ConflictSet)
+       (xs : List (Tuple2 (List Assign) ConflictSet)) ->
+        Bool_match
+          (ConflictSet_match
+             (Tuple2_match
+                {List Assign}
+                {ConflictSet}
+                e
+                {ConflictSet}
+                (\(ds : List Assign) (b : ConflictSet) -> b))
+             {all dead. Bool}
+             (\(ds : List integer) ->
+                /\dead ->
+                  Nil_match
+                    {integer}
+                    ds
+                    {all dead. Bool}
+                    (/\dead -> True)
+                    (\(ipv : integer) (ipv : List integer) -> /\dead -> False)
+                    {all dead. dead})
+             (/\dead -> False)
+             {all dead. dead})
+          {all dead. List (Tuple2 (List Assign) ConflictSet)}
+          (/\dead -> Cons {Tuple2 (List Assign) ConflictSet} e xs)
+          (/\dead -> xs)
+          {all dead. dead})
+     (Nil {Tuple2 (List Assign) ConflictSet})
+     (leaves
+        {Tuple2 (List Assign) ConflictSet}
+        (foldTree
+           {Tuple2 (List Assign) ConflictSet}
+           {Tree (Tuple2 (List Assign) ConflictSet)}
+           (\(a : Tuple2 (List Assign) ConflictSet)
+             (cs : List (Tree (Tuple2 (List Assign) ConflictSet))) ->
+              Node
+                {Tuple2 (List Assign) ConflictSet}
+                a
+                (foldr
+                   {Tree (Tuple2 (List Assign) ConflictSet)}
+                   {List (Tree (Tuple2 (List Assign) ConflictSet))}
+                   (\(e : Tree (Tuple2 (List Assign) ConflictSet))
+                     (xs : List (Tree (Tuple2 (List Assign) ConflictSet))) ->
+                      Bool_match
+                        (Bool_match
+                           (ConflictSet_match
+                              (Tuple2_match
+                                 {List Assign}
+                                 {ConflictSet}
+                                 (Tree_match
+                                    {Tuple2 (List Assign) ConflictSet}
+                                    e
+                                    {Tuple2 (List Assign) ConflictSet}
+                                    (\(lab : Tuple2 (List Assign) ConflictSet)
+                                      (ds
+                                         : List (Tree (Tuple2 (List Assign) ConflictSet))) ->
+                                       lab))
+                                 {ConflictSet}
+                                 (\(ds : List Assign) (b : ConflictSet) -> b))
+                              {all dead. Bool}
+                              (\(ds : List integer) ->
+                                 /\dead ->
+                                   Nil_match
+                                     {integer}
+                                     ds
+                                     {all dead. Bool}
+                                     (/\dead -> False)
+                                     (\(a : integer)
+                                       (as : List integer) ->
+                                        /\dead -> True)
+                                     {all dead. dead})
+                              (/\dead -> False)
+                              {all dead. dead})
+                           {all dead. Bool}
+                           (/\dead -> False)
+                           (/\dead -> True)
+                           {all dead. dead})
+                        {all dead. List (Tree (Tuple2 (List Assign) ConflictSet))}
+                        (/\dead ->
+                           Cons {Tree (Tuple2 (List Assign) ConflictSet)} e xs)
+                        (/\dead -> xs)
+                        {all dead. dead})
+                   (Nil {Tree (Tuple2 (List Assign) ConflictSet)})
+                   cs))
+           (labeler
+              csp
+              (CSP_match
+                 csp
+                 {Tree (List Assign)}
+                 (\(ds : integer)
+                   (ds : integer)
+                   (ds : Assign -> Assign -> Bool) ->
+                    initTree
+                      {List Assign}
+                      (\(ss : List Assign) ->
+                         (let
+                             a = List Assign
+                           in
+                           \(g : all b. (a -> b -> b) -> b -> b) ->
+                             g
+                               {List a}
+                               (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                               (Nil {a}))
+                           (/\a ->
+                              \(c : List Assign -> a -> a)
+                               (n : a) ->
+                                letrec
+                                  !go : List integer -> a
+                                    = \(ds : List integer) ->
+                                        Nil_match
+                                          {integer}
+                                          ds
+                                          {all dead. a}
+                                          (/\dead -> n)
+                                          (\(y : integer)
+                                            (ys : List integer) ->
+                                             /\dead ->
+                                               let
+                                                 !ds : a = go ys
+                                               in
+                                               c
+                                                 (Cons
+                                                    {Assign}
+                                                    (Cons
+                                                       (addInteger
+                                                          (maxLevel ss)
+                                                          1)
+                                                       y)
+                                                    ss)
+                                                 ds)
+                                          {all dead. dead}
+                                in
+                                Bool_match
+                                  (bad_name
+                                     {integer}
+                                     fOrdInteger
+                                     (maxLevel ss)
+                                     ds)
+                                  {all dead. a}
+                                  (/\dead ->
+                                     let
+                                       !eta : List integer = interval 1 ds
+                                     in
+                                     go eta)
+                                  (/\dead -> n)
+                                  {all dead. dead}))
+                      (Nil {Assign})))))))

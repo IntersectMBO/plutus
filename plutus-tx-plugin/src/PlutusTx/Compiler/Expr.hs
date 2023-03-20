@@ -39,6 +39,9 @@ import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Compiler.Dictionary.Integer qualified as Dictionary.Integer
+import PlutusTx.Compiler.Dictionary.List qualified as Dictionary.List
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
@@ -58,13 +61,19 @@ import Control.Monad
 import Control.Monad.Reader (ask, asks)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
-import Data.List (elemIndex)
+import Data.List.Extra (elemIndex, find, splitAtEnd)
 import Data.List.NonEmpty qualified as NE
+import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
+import Data.Tuple.Extra
+import GHC.Classes qualified
+import GHC.Num qualified
+import GHC.Real qualified
+import Language.Haskell.TH qualified as TH
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -706,8 +715,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
             PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
 
-        -- See Note [Uses of Eq]
-        GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
         GHC.Var n | GHC.getName n == GHC.integerEqName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
         GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
 
@@ -744,7 +751,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                     "Variable" GHC.<+> GHC.ppr n
                     GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                     GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
-
+        ((bimap strip (fmap strip) . GHC.collectArgs) -> (GHC.Var n, args))
+            | Just action <- isKnownApp n args -> action
+            | Just action <- isKnownPred (GHC.exprType e) n args -> action
         -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
         l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
         -- arg can be a type here, in which case it's a type instantiation
@@ -847,6 +856,280 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+-- | Checks whether the given application should be compiled in a specific way.
+--
+-- If yes, returns @Just compilation_action@. Otherwise returns @Nothing@, and it will
+-- be compiled the normal way.
+isKnownApp ::
+    CompilingDefault uni fun m ann =>
+    GHC.Var ->
+    [GHC.CoreExpr] ->
+    Maybe (m (PIRTerm uni fun))
+isKnownApp fun args = Map.lookup (splitGhcName (GHC.varName fun)) knownApps >>= ($ args)
+
+-- | A list of applications that should be compiled in specific ways.
+knownApps ::
+    CompilingDefault uni fun m ann =>
+    Map (Maybe String, String) ([GHC.CoreExpr] -> Maybe (m (PIRTerm uni fun)))
+knownApps =
+    Map.fromListWithKey (\n -> error ("knownApps: key defined more than once: " <> show n))
+        . fmap (first splitThName)
+        $ [ ( '(GHC.Classes.==)
+          , \case
+                [GHC.Type ty, _eqDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        -- Compile `(==) @Integer` via `Builtins.equalsInteger`.
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.equalsInteger
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        -- If both arguments of `(==) @Integer` are literals, we perform constant folding.
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i == j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Classes./=)
+            , \case
+                [GHC.Type ty, _eqDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.notEqualsInteger
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i /= j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Classes.<)
+            , \case
+                [GHC.Type ty, _ordDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.lessThanInteger
+                [GHC.Type ty, _ordDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i < j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Classes.<=)
+            , \case
+                [GHC.Type ty, _ordDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.lessThanEqualsInteger
+                [GHC.Type ty, _ordDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i <= j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Classes.>)
+            , \case
+                [GHC.Type ty, _ordDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.greaterThanInteger
+                [GHC.Type ty, _ordDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i > j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Classes.>=)
+            , \case
+                [GHC.Type ty, _ordDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'Builtins.greaterThanEqualsInteger
+                [GHC.Type ty, _ordDict, GHC.Lit (GHC.LitNumber _ i), GHC.Lit (GHC.LitNumber _ j)]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        res <- lookupDataCon =<< thNameToGhcNameOrFail (if i >= j then 'True else 'False)
+                        compileDataConRef res
+                _ -> Nothing
+            )
+          , ( '(GHC.Num.+)
+            , \case
+                [GHC.Type ty, _numDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'BI.addInteger
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber numTy i), GHC.Lit (GHC.LitNumber _numTy j)]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just . compileExpr . GHC.Lit $ GHC.LitNumber numTy (i + j)
+                _ -> Nothing
+            )
+          , ( '(GHC.Num.-)
+            , \case
+                [GHC.Type ty, _numDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'BI.subtractInteger
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber numTy i), GHC.Lit (GHC.LitNumber _numTy j)]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just . compileExpr . GHC.Lit $ GHC.LitNumber numTy (i - j)
+                _ -> Nothing
+            )
+          , ( '(GHC.Num.*)
+            , \case
+                [GHC.Type ty, _numDict]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just $
+                            compileExpr . GHC.Var =<< lookupId =<< thNameToGhcNameOrFail 'BI.multiplyInteger
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber numTy i), GHC.Lit (GHC.LitNumber _numTy j)]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just . compileExpr . GHC.Lit $ GHC.LitNumber numTy (i * j)
+                _ -> Nothing
+            )
+          , ( 'GHC.Num.fromInteger
+            , \case
+                -- Compile `fromInteger @Integer` via `id`.
+                [GHC.Type ty, _numDict]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        idId <- lookupId =<< thNameToGhcNameOrFail 'id
+                        compileExpr $ GHC.mkCoreApps (GHC.Var idId) [GHC.Type GHC.integerTy]
+                [GHC.Type ty, _numDict, arg]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ compileExpr arg
+                _ -> Nothing
+            )
+          , ( 'GHC.Num.negate
+            , \case
+                -- Compile `negate @Integer` via `subtractInteger 0`.
+                [GHC.Type ty, _numDict]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        subtractIntegerId <- lookupId =<< thNameToGhcNameOrFail 'BI.subtractInteger
+                        compileExpr $
+                            GHC.mkCoreApps
+                                (GHC.Var subtractIntegerId)
+                                [GHC.Lit $ GHC.LitNumber GHC.LitNumInteger 0]
+                [GHC.Type ty, _numDict, GHC.Lit (GHC.LitNumber numTy i)]
+                    | ty `GHC.eqType` GHC.integerTy ->
+                        Just . compileExpr . GHC.Lit $ GHC.LitNumber numTy (-i)
+                _ -> Nothing
+            )
+          , ( 'GHC.Real.toInteger
+            , \case
+                -- Compile `toInteger @Integer` via `id`.
+                [GHC.Type ty, _integralDict]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ do
+                        idId <- lookupId =<< thNameToGhcNameOrFail 'id
+                        compileExpr $ GHC.mkCoreApps (GHC.Var idId) [GHC.Type GHC.integerTy]
+                [GHC.Type ty, _numDict, arg]
+                    | ty `GHC.eqType` GHC.integerTy -> Just $ compileExpr arg
+                _ -> Nothing
+            )
+          ]
+
+-- | Like `isKnownApp` but for class dictionaries.
+isKnownPred ::
+    CompilingDefault uni fun m ann =>
+    GHC.Type ->
+    GHC.Var ->
+    [GHC.CoreExpr] ->
+    Maybe (m (PIRTerm uni fun))
+isKnownPred ty v@(GHC.idDetails -> GHC.DataConWorkId _) args =
+    if GHC.isPredTy ty
+        then do
+            (tc, targs) <- GHC.splitTyConApp_maybe ty
+            cls <- GHC.tyConClass_maybe tc
+            f <- Map.lookup (splitGhcName (GHC.tyConName tc)) knownPreds
+            f targs (cls, v, args)
+        else Nothing
+isKnownPred _ _ _ = Nothing
+
+-- | Like `knownApps` but for class dictionaries.
+knownPreds ::
+    CompilingDefault uni fun m ann =>
+    Map (Maybe String, String)
+        ([GHC.Type] -> (GHC.Class, GHC.Var, [GHC.CoreExpr]) -> Maybe (m (PIRTerm uni fun)))
+knownPreds =
+    Map.fromListWithKey (\n -> error ("knownApps: key defined more than once: " <> show n))
+        . fmap (first splitThName)
+        $ [ ( ''GHC.Classes.Eq
+            , \case
+                -- `Eq Integer`
+                [ty] | ty `GHC.eqType` GHC.integerTy -> \(cls, v, args) ->
+                    Just $ compileDict cls v args Dictionary.Integer.selectorsEq
+                -- `Eq [a]`
+                [GHC.splitTyConApp_maybe -> Just (tc, [_targ])] | tc == GHC.listTyCon ->
+                    \(cls, v, args) ->
+                        Just $ compileDict cls v args Dictionary.List.selectorsEq
+                _ -> const Nothing
+            ),
+            ( ''GHC.Classes.Ord
+            , \case
+                -- `Ord Integer`
+                [ty] | ty `GHC.eqType` GHC.integerTy -> \(cls, v, args) ->
+                    Just $ compileDict cls v args Dictionary.Integer.selectorsOrd
+                -- `Ord [a]`
+                [GHC.splitTyConApp_maybe -> Just (tc, [_targ])] | tc == GHC.listTyCon ->
+                    \(cls, v, args) ->
+                        Just $ compileDict cls v args Dictionary.List.selectorsOrd
+                _ -> const Nothing
+            )
+          ]
+
+-- | Compile a class dictionary using alternative method definitions.
+--
+-- This is useful because some class instances' methods either don't have unfoldings,
+-- or cannot be directly compiled. Or we may want to use an alternative definition
+-- because it is more efficient.
+--
+-- For instance, the unfolding of `== @Integer` contains primitive operations that the
+-- plugin cannot handle, so we compile the dictionary of `Eq Integer` by using an
+-- alternative `==` from `PlutusTx.Compiler.Dictionary.Integer`.
+--
+-- Another example is `== [a]` which does not have unfolding. So we compile the dictionary
+-- of `Eq [a]` by using an alternative `==` from `PlutusTx.Compiler.Dictionary.List`.
+compileDict ::
+    CompilingDefault uni fun m ann =>
+    -- | The class whose dictionary we are compiling
+    GHC.Class ->
+    -- | Dictionary data constructor
+    GHC.Var ->
+    -- | Arguments to the dictionary data constructor
+    [GHC.CoreExpr] ->
+    -- | A list of dictionary method names where alternative definitions exist
+    [TH.Name] ->
+    m (PIRTerm uni fun)
+compileDict cls v args0 txSelNames = do
+    let selNames = GHC.getName <$> GHC.classAllSelIds cls
+        (otherArgs, selArgs0) = splitAtEnd (length selNames) args0
+    selArgs <- for (zip selNames selArgs0) $ \(n, arg) -> do
+        let (_argFun, argArgs) = GHC.collectArgs arg
+            txName =
+                find
+                    ( \n' ->
+                        GHC.occNameString (GHC.nameOccName n)
+                            == TH.nameBase n'
+                    )
+                    txSelNames
+        maybe
+            (pure arg)
+            ( pure . flip GHC.mkCoreApps argArgs . GHC.Var
+                <=< lookupId
+                <=< thNameToGhcNameOrFail
+            )
+            txName
+    case NE.nonEmpty (otherArgs <> selArgs) of
+        Nothing -> throwPlain $ UnsupportedError "Empty class"
+        Just args ->
+            -- Here we cannot apply `compileExpr` to
+            -- `GHC.mkCoreApps (GHC.Var v) (otherArgs <> selArgs)` directly, because
+            -- it will loop. We therefore separately compile the last argument.
+            PIR.Apply annMayInline
+                <$> compileExpr (GHC.mkCoreApps (GHC.Var v) (NE.init args))
+                <*> compileExpr (NE.last args)
+
+splitGhcName :: GHC.Name -> (Maybe String, String)
+splitGhcName name = (modu, occ)
+  where
+    modu = fmap (GHC.moduleNameString . GHC.moduleName) (GHC.nameModule_maybe name)
+    occ = GHC.occNameString (GHC.nameOccName name)
+
+splitThName :: TH.Name -> (Maybe String, String)
+splitThName = TH.nameModule &&& TH.nameBase
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
