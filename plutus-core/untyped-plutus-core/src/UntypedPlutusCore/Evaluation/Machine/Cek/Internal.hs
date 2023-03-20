@@ -22,6 +22,7 @@
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UnboxedTuples            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -382,12 +383,7 @@ type CekM :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type -> GHC.Type -> GHC.T
 -- | The monad the CEK machine runs in.
 newtype CekM uni fun s a = CekM
     { unCekM :: ST s a
-    } deriving newtype (Functor, Applicative, Monad)
-
-instance PrimMonad (CekM uni fun s) where
-  type PrimState (CekM uni fun s) = s
-  primitive f = CekM $ primitive f
-  {-# INLINE primitive #-}
+    } deriving newtype (Functor, Applicative, Monad, PrimMonad)
 
 -- | The CEK machine-specific 'EvaluationException'.
 type CekEvaluationException name uni fun =
