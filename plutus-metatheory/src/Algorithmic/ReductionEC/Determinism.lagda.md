@@ -162,45 +162,15 @@ lemVβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ,⋆ K ⊢ B}{C}{p : C ≡ B [
 lemVβ⋆ (V-I⇒ b q) = lemBAppβ⋆ q
 lemVβ⋆ (V-IΠ b q) = lemBAppβ⋆ q
 
-
-
-postulate lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
-
-{-
-This currently triggers an agda bug:
-Panic: Pattern match failure in do expression at
-src/full/Agda/TypeChecking/Rules/LHS/Unify.hs:1313:7-14
-when checking that the pattern V-I⇒ b p q has type
-Value ((x ·r E) [ M ]ᴱ)
-
 lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
-lemVE M []             V = V
-lemVE M (x ·r E) (V-I⇒ b p q) = 
-lemVE M (x ·r E) (V-IΠ b p q) = 
-lemVE M (E l· x) (V-I⇒ b .(bubble p) (step p x₁ x₂)) = lemVE _ E (V-I⇒ b p x₁)
-lemVE M (E l· x) (V-IΠ b .(bubble p) (step p x₁ x₂)) = lemVE _ E (V-I⇒ b p x₁)
-lemVE M (E ·⋆ A / x)   V = 
-lemVE M (wrap E)       V = 
-lemVE M (unwrap E / x) V = 
-{-
 lemVE M [] V = V
-lemVE M (E l· M') (V-I⇒ b .(bubble p) (step p x x₁)) =
-  lemVE _ E (V-I⇒ b p x)
-lemVE M (E l· M') (V-IΠ b .(bubble p) (step p x x₁)) =
-  lemVE _ E (V-I⇒ b p x)
-lemVE M (VM' ·r E) (V-I⇒ b .(bubble p) (step p x x₁)) =
-  lemVE _ E x₁
-lemVE M (VM' ·r E) (V-IΠ b .(bubble p) (step p x x₁)) =
-  lemVE _ E x₁
-lemVE M (E ·⋆ A / refl) (V-I⇒ b .(bubble p) q (step⋆ p x)) =
-  lemVE _ E (V-IΠ b p refl x)
-lemVE M (E ·⋆ A / refl) (V-IΠ b .(bubble p) q (step⋆ p x)) =
-  lemVE _ E (V-IΠ b p refl x)
-lemVE M (wrap E) (V-wrap V) = lemVE _ E V
-lemVE M (unwrap E) (V-I⇒ b p q ())
-lemVE M (unwrap E) (V-IΠ b p q ())
--}
--}
+lemVE M (EC₁ l· x) (V-I⇒ b (step x₁ x₂)) = lemVE M EC₁ ((V-I⇒ b x₁))
+lemVE M (x ·r EC₁) (V-I⇒ b (step x₁ v)) = lemVE M EC₁ v
+lemVE M (EC₁ ·⋆ A / x) (V-I⇒ b (step⋆ x₁ .x σq)) = lemVE _ EC₁ (V-I b x₁)
+lemVE M (EC₁ ·⋆ A / x) (V-IΠ b (step⋆ x₁ .x σq)) = lemVE _ EC₁ (V-I b x₁)
+lemVE M (wrap EC₁) (V-wrap V) = lemVE _ EC₁ V
+lemVE M (unwrap EC₁ / x) (V-I⇒ b ())
+lemVE M (unwrap EC₁ / x) (V-IΠ b ())
 
 lemBE : ∀{A B b} M (E : EC A B)
   → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
