@@ -12,13 +12,12 @@ module Crypto.BLS12_381.G1
     , compress
     , uncompress
     , zero
+    , memSizeBytes
+    , compressedSizeBytes
     ) where
 
--- FIXME: perhaps export the in-memory and (compressed) serialised sizes of
--- elements.  We need these in ExMemory.hs and CreateBuiltinCostModel.hs.  Can
--- we get these numbers from the library easily?
-
 import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
 import Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
@@ -27,12 +26,29 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 import Control.DeepSeq (NFData, rnf)
 import Data.Bifunctor (second)
 import Data.ByteString (ByteString, pack)
+import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
--- We have to wrap the BLS points in a newtype because otherwise
--- the builtin machinery seems to spot that they're applications,
--- and we don't want to expose that to users.
+
+{- | Note [Wrapping the BLS12-381 types].  In the Haskell bidings to the `blst`
+library, points in G1 and G2 are represented as ForeignPtrs pointing to C
+objects, with a phantom type deterimining which group is involved. We have to
+wrap these in a newtype here because otherwise the builtin machinery spots that
+they're applications and can't find the relevant type parameters.  In theory I
+think we could add a couple of phantom types to the default universe, but it
+seemed simpler and safer to use monomorphic types instead, even though it
+requires a bit of code duplication between G1 and G2.
+
+The newtype wrappers suffice for Plutus Core, but there's a further complication
+in PlutusTx: if you try to use the newtypes directly then the plugin sees
+through the newtypes to the foreign pointers and fails because it doesn't know
+how to handle them.  To avoid this we further wrap the newtypes in datatypes.
+We could do this here (just write `data` instead of `newtype`), but then the
+code dealing with BLS types and builtins in PlutusTx doesn't look like the code
+for the other builtins.  Because of this it seemed safer and more uniform to add
+the datatype wrapper in PlutusTx rather than here.
+-}
 newtype Element = Element { unElement :: BlstBindings.Point1 }
     deriving newtype (Eq)
 instance Show Element where
@@ -52,31 +68,58 @@ instance Flat Element where
 instance NFData Element where
     rnf _ = ()
 
+-- | Add two G1 group elements
 add :: Element -> Element -> Element
 add (Element a) (Element b) = Element $ BlstBindings.blsAddOrDouble @BlstBindings.Curve1 a b
 
+-- | Negate a G1 group element
 neg :: Element -> Element
 neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve1 a
 
-scalarMul :: Integer -> Element -> Element -- Other way round from implementation
+-- | Multiplication of group elements by scalars. In the blst library the
+-- arguments are the other way round, but scalars acting on the left is more
+-- consistent with standard mathematical practice.
+scalarMul :: Integer -> Element -> Element
 scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve1 a k
 
-compress :: Element -> ByteString  -- 48 bytes
+-- | Compress a G1 element to a bytestring. This serialises a curve point to its
+-- x coordinate only, using an extra bit to determine which of two possible y
+-- coordinates the point has. The compressed bytestring is 48 bytes long. See
+-- https://github.com/supranational/blst#serialization-format
+compress :: Element -> ByteString
 compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
 
+{- | Uncompress a bytestring to get a G1 point.  This can fail if
+     * The bytestring is not exactly 48 bytes long
+     * The most significant three bits are used incorrectly
+     * The bytestring encodes a field element which is not the
+       x coordinate of a point on the E1 curve
+     * The bytestring does represent a point on the E1 curve, but the
+       point is not in the G1 subgroup
+-}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
 
--- Take an arbitrary bytestring and hash it to a get point on the curve;
+-- | Take an arbitrary bytestring and hash it to a get point in G1
 hashToGroup :: ByteString -> Element
 hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve1 s Nothing Nothing
 
--- This is only here for the QuickCheck shrinker in the PlutusIR tests.  I'm not
--- sure if it even makes sense for that.
+
+-- Utilities (not exposed as builtins)
+
+-- | The zero element of G1
 zero :: Element
 zero =
     let b = pack (0xc0 : replicate 47 0x00) -- Compressed serialised G1 points are bytestrings of length 48: see CIP-0381.
     in case BlstBindings.blsUncompress @BlstBindings.Curve1 b of
          Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G1:  " ++ show err
          Right infinity -> Element infinity  -- The zero point on this curve is chosen to be the point at infinity.
+
+-- | Memory usage of a G1 point (144 bytes)
+memSizeBytes :: Int
+memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve1)
+
+-- | Compressed size of a G1 point (48 bytes)
+compressedSizeBytes :: Int
+compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)
 

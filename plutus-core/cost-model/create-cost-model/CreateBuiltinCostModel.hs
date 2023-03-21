@@ -8,6 +8,9 @@
 
 module CreateBuiltinCostModel where
 
+import Crypto.BLS12_381.G1 qualified as G1
+import Crypto.BLS12_381.G2 qualified as G2
+import Crypto.BLS12_381.Pairing qualified as Pairing
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
@@ -766,6 +769,9 @@ mkNilPairData cpuModelR = do
 
 ---------------- BLS12_381 operations ----------------
 
+toMemSize :: Int -> CostingInteger
+toMemSize n = fromIntegral $ n `div` 8
+
 -- Group order is 255 bits -> 32 bytes (4 words).
 -- Field size is 381 bits  -> 48 bytes (6 words)
 -- (with three spare bits used for encoding purposes).
@@ -776,23 +782,23 @@ mkNilPairData cpuModelR = do
 -- In-memory G1 points take up 144 bytes (18 words).
 -- These are projective points, so we have *three* 48-byte coordinates.
 g1MemSize :: CostingInteger
-g1MemSize = 18
+g1MemSize = toMemSize G1.memSizeBytes
 
 -- Compressed serialised G1 points take up 48 bytes (6 words)
 g1CompressedSize :: CostingInteger
-g1CompressedSize = 6
+g1CompressedSize = toMemSize G1.compressedSizeBytes
 
 -- In-memory G2 points take up 288 bytes (36 words)
 g2MemSize :: CostingInteger
-g2MemSize = 36
+g2MemSize = toMemSize G2.memSizeBytes
 
 -- Compressed serialised G2 points take up 96 bytes (12 words)
 g2CompressedSize :: CostingInteger
-g2CompressedSize = 12
+g2CompressedSize = toMemSize G2.compressedSizeBytes
 
 -- In-memory G2 points take up 576 bytes (72 words)
-gtMemSize :: CostingInteger
-gtMemSize = 72
+mlResultMemSize :: CostingInteger
+mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
 
 bls12_381_G1_add :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 bls12_381_G1_add cpuModelR = do
@@ -881,13 +887,13 @@ bls12_381_G2_uncompress cpuModelR = do
 bls12_381_pairing :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 bls12_381_pairing cpuModelR = do
     cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost gtMemSize
+    let memModel = ModelTwoArgumentsConstantCost mlResultMemSize
     pure $ CostingFun cpuModel memModel
 
 bls12_381_mulMlResult :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 bls12_381_mulMlResult cpuModelR = do
     cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
-    let memModel = ModelTwoArgumentsConstantCost gtMemSize
+    let memModel = ModelTwoArgumentsConstantCost mlResultMemSize
     pure $ CostingFun cpuModel memModel
 
 bls12_381_finalVerify :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)

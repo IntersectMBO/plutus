@@ -282,10 +282,13 @@ instance ExMemoryUsage Data where
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
 
 instance ExMemoryUsage Crypto.BLS12_381.G1.Element where
-    memoryUsage _ = 12
+    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.G1.memSizeBytes `div` 8
+    -- Should be 12
 
 instance ExMemoryUsage Crypto.BLS12_381.G2.Element where
-    memoryUsage _ = 24
+    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.G2.memSizeBytes `div` 8
+    -- Should be
 
 instance ExMemoryUsage Crypto.BLS12_381.Pairing.MlResult where
-    memoryUsage _ = 144
+    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+    -- Soulh be 144

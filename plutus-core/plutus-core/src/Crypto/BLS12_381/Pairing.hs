@@ -6,10 +6,12 @@ module Crypto.BLS12_381.Pairing
      MlResult (..),
      mulMlResult,
      pairing,
-     finalVerify
+     finalVerify,
+     mlResultMemSizeBytes
     ) where
 
 import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
 import Crypto.BLS12_381.G1 qualified as G1
 import Crypto.BLS12_381.G2 qualified as G2
@@ -30,9 +32,9 @@ instance Pretty MlResult where
     pretty = pretty . show
 instance PrettyBy ConstConfig MlResult where
     prettyBy _ = pretty
--- !! FIXME. We need a Flat instance to get everything to build properly, but
--- we'll never want GT values in serialised scripts.  Is the instance below OK?
--- Also, do we need a tag for GT in Universe.hs?
+-- We need a Flat instance to get everything to build properly, but we'll never
+-- want GT values in serialised scripts, so the decoding and encoding functions
+-- just raise errors.
 instance Flat MlResult where
     decode = fail "BLS12_381.Pairing.MlResult: flat decoding disallowed"
     encode = error "BLS12_381.Pairing.MlResult: flat encoding disallowed"
@@ -49,3 +51,11 @@ pairing (G1.Element e1) (G2.Element e2) = second MlResult $ BlstBindings.millerL
 
 finalVerify :: MlResult -> MlResult -> Bool
 finalVerify (MlResult a) (MlResult b) = BlstBindings.ptFinalVerify a b
+
+
+-- Not exposed as a builtin
+
+-- | Memory usage of an MlResult point (576 bytes)
+mlResultMemSizeBytes :: Int
+mlResultMemSizeBytes = BlstBindings.Internal.sizePT
+
