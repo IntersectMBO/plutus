@@ -29,12 +29,7 @@ jobs:
       - name: Run benchmarks
         env: 
           BENCHMARKS: "validation validation-decode"
-        run: | 
-          for bench in $BENCHMARKS; do 
-            2>&1 cabal run "$bench" | tee "$bench-output.txt"
-          done 
-          python ./scripts/format-benchmark-output.py
-          
+        run: nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/run-longitudinal-benchmarks.sh
           
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1.16.2
