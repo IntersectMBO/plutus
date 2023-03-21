@@ -26,6 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
 
+      # This is a bit silly, but github-action-benchmark
+      # tries to commit and can't because it can't find
+      # pre-commit
+      - name: Turn off pre-commit hooks
+        run: rm .git/hooks/pre-commit
+
       - name: Run benchmarks
         env: 
           BENCHMARKS: "validation validation-decode"
