@@ -45,13 +45,6 @@ lemΛE'' : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
   → substEq (EC (Π B)) p E ≡ EC.[] × Λ L ≡ substEq (∅ ⊢_) p L'
 lemΛE'' [] refl = refl ,, refl ,, refl
 
-{-
-subst<>>∈ : ∀{b b' as as' az az'}
-  → az' <>> as' ∈ arity b'
-  → b ≡ b' → az ≡ az' → as ≡ as'
-  → az <>> as ∈ arity b
-subst<>>∈ p refl refl refl = p
--}
 conv∔≣ : ∀{tt tt' tn tm tn' tm'}
   → (tn'  ∔ tm'  ≣ tt') 
   → tt ≡ tt' → tn ≡ tn' → tm ≡ tm'
@@ -210,22 +203,10 @@ valred (V-IΠ b ()) (β-wrap x p)
 valred (V-I⇒ b₁ (step bt₁ x₁)) (β-builtin b t bt u vu)  with uniqueBApp' t bt₁ bt
 ... | ()
 
-{-
-bapperr : ∀{A}{L : ∅ ⊢ A}{b az as}{p : az <>> as ∈ arity b}
-  → Error L → BApp b p L → ⊥
-bapperr () base
-bapperr () (step p bs x)
-bapperr () (step⋆ p bs)
--}
-
 valerr : ∀{A}{L : ∅ ⊢ A} → Error L → Value L → ⊥
 valerr E-error (V-I⇒ b ())
 valerr E-error (V-IΠ b ())
 
-{-
-errred : ∀{A}{L N : ∅ ⊢ A} → Error L → L —→⋆ N → ⊥
-errred E-error ()
--}
 -- should replace this with something more general if something similar shows
 -- up again
 substƛVal : ∀{A A' B}{M : ∅ , A ⊢ B} (p : A ≡ A')
