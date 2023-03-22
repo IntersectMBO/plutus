@@ -78,6 +78,8 @@ altV1CostModelParamNames = Map.keys $ fromJust $ extractCostModelParams $
    -- here we rely on 'Deriving.Aeson.OmitNothingFields'
    -- to skip jsonifying any fields which are cleared.
    %~ omitV2V3Builtins
+   -- ^ FIXME: this is a crude attempt to fix these tests for the new BLS builtins.
+   -- We can surely do something better here.
   where
     -- "clears" some fields of builtincostmodel by setting them to Nothing. See 'MCostingFun'.
     omitV2V3Builtins :: BuiltinCostModel -> BuiltinCostModelBase MCostingFun
