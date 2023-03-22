@@ -100,6 +100,15 @@ builtinsIntroducedIn = Map.fromList [
           ]),
   ((PlutusV2, valentinePV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
+          ]),
+  ((PlutusV3, futurePV), Set.fromList [
+          Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
+          Bls12_381_G1_equal, Bls12_381_G1_hashToGroup,
+          Bls12_381_G1_compress, Bls12_381_G1_uncompress,
+          Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul,
+          Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
+          Bls12_381_G2_compress, Bls12_381_G2_uncompress,
+          Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify
           ])
   ]
 

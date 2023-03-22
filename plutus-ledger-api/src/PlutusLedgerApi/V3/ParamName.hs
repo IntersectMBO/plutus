@@ -32,6 +32,44 @@ data ParamName =
   | Blake2b_256'cpu'arguments'intercept
   | Blake2b_256'cpu'arguments'slope
   | Blake2b_256'memory'arguments
+  | Bls12_381_G1_add'cpu'arguments
+  | Bls12_381_G1_add'memory'arguments
+  | Bls12_381_G1_compress'cpu'arguments
+  | Bls12_381_G1_compress'memory'arguments
+  | Bls12_381_G1_equal'cpu'arguments
+  | Bls12_381_G1_equal'memory'arguments
+  | Bls12_381_G1_hashToGroup'cpu'arguments'intercept
+  | Bls12_381_G1_hashToGroup'cpu'arguments'slope
+  | Bls12_381_G1_hashToGroup'memory'arguments
+  | Bls12_381_G1_neg'cpu'arguments
+  | Bls12_381_G1_neg'memory'arguments
+  | Bls12_381_G1_scalarMul'cpu'arguments'intercept
+  | Bls12_381_G1_scalarMul'cpu'arguments'slope
+  | Bls12_381_G1_scalarMul'memory'arguments
+  | Bls12_381_G1_uncompress'cpu'arguments
+  | Bls12_381_G1_uncompress'memory'arguments
+  | Bls12_381_G2_add'cpu'arguments
+  | Bls12_381_G2_add'memory'arguments
+  | Bls12_381_G2_compress'cpu'arguments
+  | Bls12_381_G2_compress'memory'arguments
+  | Bls12_381_G2_equal'cpu'arguments
+  | Bls12_381_G2_equal'memory'arguments
+  | Bls12_381_G2_hashToGroup'cpu'arguments'intercept
+  | Bls12_381_G2_hashToGroup'cpu'arguments'slope
+  | Bls12_381_G2_hashToGroup'memory'arguments
+  | Bls12_381_G2_neg'cpu'arguments
+  | Bls12_381_G2_neg'memory'arguments
+  | Bls12_381_G2_scalarMul'cpu'arguments'intercept
+  | Bls12_381_G2_scalarMul'cpu'arguments'slope
+  | Bls12_381_G2_scalarMul'memory'arguments
+  | Bls12_381_G2_uncompress'cpu'arguments
+  | Bls12_381_G2_uncompress'memory'arguments
+  | Bls12_381_finalVerify'cpu'arguments
+  | Bls12_381_finalVerify'memory'arguments
+  | Bls12_381_millerLoop'cpu'arguments
+  | Bls12_381_millerLoop'memory'arguments
+  | Bls12_381_mulMlResult'cpu'arguments
+  | Bls12_381_mulMlResult'memory'arguments
   | CekApplyCost'exBudgetCPU
   | CekApplyCost'exBudgetMemory
   | CekBuiltinCost'exBudgetCPU

@@ -35,15 +35,15 @@ tests =
             166 @=? length v1CostModelParamNames
             175 @=? length (enumerate @V2.ParamName)
             175 @=? length v2CostModelParamNames
-            175 @=? length (enumerate @V3.ParamName)
-            175 @=? length v3CostModelParamNames
+            213 @=? length (enumerate @V3.ParamName)
+            213 @=? length v3CostModelParamNames
     , testCase "text" $ do
             -- this depends on the fact that V1/V2 are alphabetically-ordered;
             -- does not have to hold for future protocol versions when adding new builtins
             altV1CostModelParamNames @=? v1CostModelParamNames
             -- this depends on the fact that V1/V2 are alphabetically-ordered;
             -- does not have to hold for future protocol versions when adding new builtins
-            Map.keys (fromJust Plutus.defaultCostModelParams) @=? v2CostModelParamNames
+            Map.keys (fromJust Plutus.defaultCostModelParams) @=? v3CostModelParamNames
     , testCase "context length" $ do
             let defaultCostValues = Map.elems $ fromJust defaultCostModelParams
             -- the defaultcostmodelparams reflects only the latest version V3, so this should succeed because the lengths match
@@ -58,6 +58,8 @@ tests =
          assertBool "v1 params is proper subset of v2 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v2CostModelParamNames
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v3 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v3CostModelParamNames
+         -- v2 is missing some cost model parameters because new builtins are added in v3
+         assertBool "v2 params is proper subset of v3 params" $ Set.fromList v2CostModelParamNames `Set.isProperSubsetOf` Set.fromList v3CostModelParamNames
     ]
   where
     hasWarnMoreParams :: Int -> Int -> Either a (b, [CostModelApplyWarn]) -> Bool
@@ -75,19 +77,38 @@ altV1CostModelParamNames = Map.keys $ fromJust $ extractCostModelParams $
    & builtinCostModel
    -- here we rely on 'Deriving.Aeson.OmitNothingFields'
    -- to skip jsonifying any fields which are cleared.
-   %~ omitV2Builtins
+   %~ omitV2V3Builtins
   where
     -- "clears" some fields of builtincostmodel by setting them to Nothing. See 'MCostingFun'.
-    omitV2Builtins :: BuiltinCostModel -> BuiltinCostModelBase MCostingFun
-    omitV2Builtins bcm =
+    omitV2V3Builtins :: BuiltinCostModel -> BuiltinCostModelBase MCostingFun
+    omitV2V3Builtins bcm =
             -- transform all costing-functions to (Just costingFun)
             (bmap (MCostingFun . Just) bcm)
             {
-              -- 'SerialiseData','EcdsaSecp256k1',SchnorrSecp256k1 builtins not available in V1
-              paramSerialiseData = mempty
-            , paramVerifyEcdsaSecp256k1Signature = mempty
+              paramSerialiseData                   = mempty
+            , paramVerifyEcdsaSecp256k1Signature   = mempty
             , paramVerifySchnorrSecp256k1Signature = mempty
+            -- BLS12-381 builtins not available in V1 or V2
+            , paramBls12_381_G1_add                = mempty
+            , paramBls12_381_G1_neg                = mempty
+            , paramBls12_381_G1_scalarMul          = mempty
+            , paramBls12_381_G1_equal              = mempty
+            , paramBls12_381_G1_compress           = mempty
+            , paramBls12_381_G1_uncompress         = mempty
+            , paramBls12_381_G1_hashToGroup        = mempty
+            , paramBls12_381_G2_add                = mempty
+            , paramBls12_381_G2_neg                = mempty
+            , paramBls12_381_G2_scalarMul          = mempty
+            , paramBls12_381_G2_equal              = mempty
+            , paramBls12_381_G2_compress           = mempty
+            , paramBls12_381_G2_uncompress         = mempty
+            , paramBls12_381_G2_hashToGroup        = mempty
+            , paramBls12_381_millerLoop            = mempty
+            , paramBls12_381_mulMlResult           = mempty
+            , paramBls12_381_finalVerify           = mempty
             }
+
+
 
 v2CostModelParamNames :: [Text.Text]
 v2CostModelParamNames = Text.pack . showParamName <$> enumerate @V2.ParamName
