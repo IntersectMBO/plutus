@@ -133,6 +133,7 @@ data BuiltinCostModelBase f =
     , paramMkNilData                       :: f ModelOneArgument
     , paramMkNilPairData                   :: f ModelOneArgument
     , paramSerialiseData                   :: f ModelOneArgument
+    -- BLS12-381
     , paramBls12_381_G1_add                :: f ModelTwoArguments
     , paramBls12_381_G1_neg                :: f ModelOneArgument
     , paramBls12_381_G1_scalarMul          :: f ModelTwoArguments
