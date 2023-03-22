@@ -30,7 +30,6 @@ packages: doc/read-the-docs-site
           plutus-tx
           plutus-tx-plugin
           prettyprinter-configurable
-          word-array
           stubs/plutus-ghc-stub
 
 -- We never, ever, want this.

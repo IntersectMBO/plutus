@@ -176,6 +176,7 @@ library
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+    UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Rename
@@ -310,7 +311,6 @@ library
     , transformers
     , unordered-containers
     , witherable
-    , word-array                  ^>=1.1
 
   extra-libraries:    blst
   c-sources:          cbits/blst_util.c

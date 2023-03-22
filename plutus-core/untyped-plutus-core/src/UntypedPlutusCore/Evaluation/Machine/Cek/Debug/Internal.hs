@@ -15,6 +15,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -45,16 +46,19 @@ import PlutusCore.Evaluation.Result
 import PlutusPrelude
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
+import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context, ix)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.ST
+import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import Data.Word64Array.Word8 hiding (Index)
 import GHC.IO (ioToST)
+import GHC.TypeNats
 
 {- Note [Debuggable vs Original versions of CEK]
 
@@ -65,15 +69,14 @@ return with the CEK's machine new state (`CekState`), whereas previously these t
 
 The interface otherwise remains the same. Moreover, the `Original.runCekDeBruijn` and `Debug.runCekDeBruijn` must behave equivalently.
 -}
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 
 data CekState uni fun ann =
     -- loaded a term but not fired the cek yet
     Starting (NTerm uni fun ann)
     -- the next state is computing
-    | Computing WordArray (Context uni fun ann) (CekValEnv uni fun ann) (NTerm uni fun ann)
+    | Computing (Context uni fun ann) (CekValEnv uni fun ann) (NTerm uni fun ann)
     -- the next state is returning
-    | Returning WordArray (Context uni fun ann) (CekValue uni fun ann)
+    | Returning (Context uni fun ann) (CekValue uni fun ann)
     -- evaluation finished
     | Terminating (NTerm uni fun ())
 
@@ -94,67 +97,65 @@ data Context uni fun ann
 computeCek
     :: forall uni fun ann s
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-    => WordArray
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
 -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
-computeCek !unbudgetedSteps !ctx !env (Var _ varName) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BVar unbudgetedSteps
+computeCek !ctx !env (Var _ varName) = do
+    stepAndMaybeSpend BVar
     val <- lookupVarName varName env
-    pure $ Returning unbudgetedSteps' ctx val
-computeCek !unbudgetedSteps !ctx !_ (Constant _ val) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BConst unbudgetedSteps
-    pure $ Returning unbudgetedSteps' ctx (VCon val)
-computeCek !unbudgetedSteps !ctx !env (LamAbs _ name body) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BLamAbs unbudgetedSteps
-    pure $ Returning unbudgetedSteps' ctx (VLamAbs name body env)
-computeCek !unbudgetedSteps !ctx !env (Delay _ body) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BDelay unbudgetedSteps
-    pure $ Returning unbudgetedSteps' ctx (VDelay body env)
+    pure $ Returning ctx val
+computeCek !ctx !_ (Constant _ val) = do
+    stepAndMaybeSpend BConst
+    pure $ Returning ctx (VCon val)
+computeCek !ctx !env (LamAbs _ name body) = do
+    stepAndMaybeSpend BLamAbs
+    pure $ Returning ctx (VLamAbs name body env)
+computeCek !ctx !env (Delay _ body) = do
+    stepAndMaybeSpend BDelay
+    pure $ Returning ctx (VDelay body env)
 -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
-computeCek !unbudgetedSteps !ctx !env (Force _ body) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BForce unbudgetedSteps
-    pure $ Computing unbudgetedSteps' (FrameForce (termAnn body) ctx) env body
+computeCek !ctx !env (Force _ body) = do
+    stepAndMaybeSpend BForce
+    pure $ Computing (FrameForce (termAnn body) ctx) env body
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
-computeCek !unbudgetedSteps !ctx !env (Apply _ fun arg) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BApply unbudgetedSteps
-    pure $ Computing unbudgetedSteps' (FrameApplyArg (termAnn fun) env arg ctx) env fun
+computeCek !ctx !env (Apply _ fun arg) = do
+    stepAndMaybeSpend BApply
+    pure $ Computing (FrameApplyArg (termAnn fun) env arg ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
-computeCek !unbudgetedSteps !ctx !_ (Builtin _ bn) = do
-    !unbudgetedSteps' <- stepAndMaybeSpend BBuiltin unbudgetedSteps
+computeCek !ctx !_ (Builtin _ bn) = do
+    stepAndMaybeSpend BBuiltin
     let meaning = lookupBuiltin bn ?cekRuntime
     -- 'Builtin' is fully discharged.
-    pure $ Returning unbudgetedSteps' ctx (VBuiltin bn (Builtin () bn) meaning)
+    pure $ Returning ctx (VBuiltin bn (Builtin () bn) meaning)
 -- s ; ρ ▻ error A  ↦  <> A
-computeCek !_ !_ !_ (Error _) =
+computeCek !_ !_ (Error _) =
     throwing_ _EvaluationFailure
 
 returnCek
     :: forall uni fun ann s
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-    => WordArray
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
 --- Instantiate all the free variable of the resulting term in case there are any.
 -- . ◅ V           ↦  [] V
-returnCek !unbudgetedSteps NoFrame val = do
-    spendAccumulatedBudget unbudgetedSteps
+returnCek NoFrame val = do
+    spendAccumulatedBudget
     pure $ Terminating (dischargeCekValue val)
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
-returnCek !unbudgetedSteps (FrameForce _ ctx) fun = forceEvaluate unbudgetedSteps ctx fun
+returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-returnCek !unbudgetedSteps (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
+returnCek (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
-    pure $ Computing unbudgetedSteps (FrameApplyFun (termAnn arg) fun ctx) argVarEnv arg
+    pure $ Computing (FrameApplyFun (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
-returnCek !unbudgetedSteps (FrameApplyFun _ fun ctx) arg =
-    applyEvaluate unbudgetedSteps ctx fun arg
+returnCek (FrameApplyFun _ fun ctx) arg =
+    applyEvaluate ctx fun arg
 
 -- | @force@ a term and proceed.
 -- If v is a delay then compute the body of v;
@@ -165,13 +166,12 @@ returnCek !unbudgetedSteps (FrameApplyFun _ fun ctx) arg =
 forceEvaluate
     :: forall uni fun ann s
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-    => WordArray
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
-forceEvaluate !unbudgetedSteps !ctx (VDelay body env) =
-    pure $ Computing unbudgetedSteps ctx env body
-forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) = do
+forceEvaluate !ctx (VDelay body env) =
+    pure $ Computing ctx env body
+forceEvaluate !ctx (VBuiltin fun term runtime) = do
     -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
     let term' = Force (termAnn term) term
     case runtime of
@@ -182,10 +182,10 @@ forceEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) = do
             -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
             -- application.
             res <- evalBuiltinApp fun term' runtime'
-            pure $ Returning unbudgetedSteps ctx res
+            pure $ Returning ctx res
         _ ->
             throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
-forceEvaluate !_ !_ val =
+forceEvaluate !_ val =
     throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
 
 -- | Apply a function to an argument and proceed.
@@ -198,16 +198,15 @@ forceEvaluate !_ !_ val =
 applyEvaluate
     :: forall uni fun ann s
     . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
-    => WordArray
-    -> Context uni fun ann
+    => Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
     -> CekValue uni fun ann   -- rhs of application
     -> CekM uni fun s (CekState uni fun ann)
-applyEvaluate !unbudgetedSteps !ctx (VLamAbs _ body env) arg =
-    pure $ Computing unbudgetedSteps ctx (Env.cons arg env) body
+applyEvaluate !ctx (VLamAbs _ body env) arg =
+    pure $ Computing ctx (Env.cons arg env) body
 -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
 -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) arg = do
+applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
     let argTerm = dischargeCekValue arg
         -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
         -- in a 'VBuiltin'.
@@ -217,10 +216,10 @@ applyEvaluate !unbudgetedSteps !ctx (VBuiltin fun term runtime) arg = do
         -- argument next.
         BuiltinExpectArgument f -> do
             res <- evalBuiltinApp fun term' $ f arg
-            pure $ Returning unbudgetedSteps ctx res
+            pure $ Returning ctx res
         _ ->
             throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
-applyEvaluate !_ !_ val _ =
+applyEvaluate !_ val _ =
     throwingDischarged _MachineError NonFunctionalApplicationMachineError val
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
@@ -245,7 +244,7 @@ enterComputeCek
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
     -> CekM uni fun s (NTerm uni fun ())
-enterComputeCek ctx env term = iterToFinalState $ Computing (toWordArray 0) ctx env term
+enterComputeCek ctx env term = iterToFinalState $ Computing ctx env term
  where
    iterToFinalState :: CekState uni fun ann -> CekM uni fun s (NTerm uni fun ())
    iterToFinalState = handleStep
@@ -260,10 +259,10 @@ handleStep :: forall uni fun ann s c.
            => c
            -> CekM uni fun s c
 handleStep = \case
-    Starting term                           -> pure $ Computing (toWordArray 0) NoFrame Env.empty term
-    Computing !unbudgetedSteps ctx env term -> computeCek unbudgetedSteps ctx env term
-    Returning !unbudgetedSteps ctx val      -> returnCek unbudgetedSteps ctx val
-    self@Terminating{}                      -> pure self -- FINAL STATE, idempotent
+    Starting term          -> pure $ Computing NoFrame Env.empty term
+    Computing ctx env term -> computeCek ctx env term
+    Returning ctx val      -> returnCek ctx val
+    self@Terminating{}     -> pure self -- FINAL STATE, idempotent
 
 {- | As 'handleStep' but captures any exception during a single-state transition
 
@@ -287,16 +286,16 @@ cekMToIO = stToIO . unCekM
 
 cekStateContext :: Traversal' (CekState uni fun ann) (Context uni fun ann)
 cekStateContext f = \case
-    Computing w k e t -> (\k' -> Computing w k' e t) <$> f k
-    Returning w k v   -> Returning w `flip` v <$> f k
-    x                 -> pure x
+    Computing k e t -> (\k' -> Computing k' e t) <$> f k
+    Returning k v   -> Returning <$> f k <*> pure v
+    x               -> pure x
 
 cekStateAnn :: CekState uni fun ann -> Maybe ann
 cekStateAnn = \case
-    Computing _ _ _ t -> pure $ termAnn t
-    Returning _ ctx _ -> contextAnn ctx
-    Terminating{}     -> empty
-    Starting{}        -> empty
+    Computing _ _ t -> pure $ termAnn t
+    Returning ctx _ -> contextAnn ctx
+    Terminating{}   -> empty
+    Starting{}      -> empty
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
@@ -357,11 +356,13 @@ runCekM
 runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
     ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
     CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
+    ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = runtime
         ?cekEmitter = _cekEmitterInfoEmit
         ?cekBudgetSpender = _exBudgetModeSpender
         ?cekCosts = costs
         ?cekSlippage = defaultSlippage
+        ?cekStepCounter = ctr
     errOrRes <- unCekM $ tryError a
     st <- _exBudgetModeGetFinal
     logs <- _cekEmitterInfoGetFinal
@@ -401,28 +402,31 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 
 -- | Spend the budget that has been accumulated for a number of machine steps.
 --
-spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => WordArray -> CekM uni fun s ()
-spendAccumulatedBudget !unbudgetedSteps = iforWordArray unbudgetedSteps spend
+spendAccumulatedBudget :: (GivenCekReqs uni fun ann s) => CekM uni fun s ()
+spendAccumulatedBudget = do
+    let ctr = ?cekStepCounter
+    iforCounter_ ctr spend
+    resetCounter ctr
   where
     -- Making this a definition of its own causes it to inline better than actually writing it inline, for
     -- some reason.
     -- Skip index 7, that's the total counter!
     -- See Note [Structure of the step counter]
     {-# INLINE spend #-}
-    spend !i !w = unless (i == 7) $ let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
+    spend !i !w = unless (i == (fromIntegral $ natVal $ Proxy @TotalCountIndex)) $
+      let kind = toEnum i in spendBudgetCek (BStep kind) (stimes w (cekStepCost ?cekCosts kind))
 
 -- | Accumulate a step, and maybe spend the budget that has accumulated for a number of machine steps, but only if we've exceeded our slippage.
---
-stepAndMaybeSpend :: (GivenCekReqs uni fun ann s) => StepKind -> WordArray -> CekM uni fun s WordArray
-stepAndMaybeSpend !kind !unbudgetedSteps = do
+stepAndMaybeSpend :: (GivenCekReqs uni fun ann s) => StepKind -> CekM uni fun s ()
+stepAndMaybeSpend !kind = do
     -- See Note [Structure of the step counter]
     -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
     -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
-    let !ix = fromIntegral $ fromEnum kind
-        !unbudgetedSteps' = overIndex 7 (+1) $ overIndex ix (+1) unbudgetedSteps
-        !unbudgetedStepsTotal = readArray unbudgetedSteps' 7
+    let !ix = fromEnum kind
+        ctr = ?cekStepCounter
+        !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
+    !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
+    _ <- modifyCounter ix (+1) ctr
     -- There's no risk of overflow here, since we only ever increment the total
     -- steps by 1 and then check this condition.
-    if unbudgetedStepsTotal >= ?cekSlippage
-    then spendAccumulatedBudget unbudgetedSteps' >> pure (toWordArray 0)
-    else pure unbudgetedSteps'
+    when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget

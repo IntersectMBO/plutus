@@ -30,6 +30,7 @@ import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter (newCounter)
 import UntypedPlutusCore.Parser qualified as UPLC
 
 import Draw
@@ -47,6 +48,7 @@ import Control.Monad.Except
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
 import Data.Maybe
+import Data.Proxy
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
 import Data.Traversable
@@ -211,6 +213,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
     exBudgetInfo@(ExBudgetInfo spender _ _) <- stToIO initExBudgetInfo
 
+    ctr <- newCounter (Proxy @CounterSize)
     let ?cekRuntime = defaultRuntime
         ?cekEmitter = const $ pure () -- TODO: implement emitter
         ?cekBudgetSpender = spender
@@ -219,6 +222,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
         -- get *live* accounting/budgeting that is correct/up-to-date.
         -- One way to achieve this is by setting slippage to 0 (1 would also work).
         ?cekSlippage = 0
+        ?cekStepCounter = ctr
      in D.iterM (handle exBudgetInfo) $ D.runDriver ndterm
 
     where

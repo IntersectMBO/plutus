@@ -184,7 +184,6 @@ let
           # upstream fix, there's nothing we can do about it other than
           # disabling -Werror on it.
           # prettyprinter-configurable.ghcOptions = [ "-Werror" ];
-          word-array.ghcOptions = [ "-Werror" ];
         };
       })
 
