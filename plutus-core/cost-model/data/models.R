@@ -4,6 +4,10 @@ library(stringr, quietly=TRUE, warn.conflicts=FALSE)
 library(dplyr,   quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
+## Let's see any warnings immediately instead of them being saved up to surprise
+## us later on.
+options(warn=1)
+
 ## See Note [Creation of the Cost Model]
 
 ## This R code is used to analyse the data in `benching.csv` produced by
