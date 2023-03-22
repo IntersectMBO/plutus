@@ -117,7 +117,7 @@ executable gen-plugin-opts-doc
 
   default-language: Haskell2010
 
-test-suite plutus-tx-tests
+test-suite plutus-tx-plugin-tests
   import:         lang
 
   if impl(ghc <9.0)
