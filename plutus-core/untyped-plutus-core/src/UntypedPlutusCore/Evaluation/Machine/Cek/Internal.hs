@@ -58,6 +58,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , Slippage
     , defaultSlippage
     , NTerm
+    , runCekM
     )
 where
 
@@ -561,6 +562,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 
+{-# INLINE runCekM #-}
 runCekM
     :: forall a cost uni fun ann.
     (PrettyUni uni fun)

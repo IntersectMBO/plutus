@@ -11,7 +11,6 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NPlusKPatterns        #-}
-{-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -344,29 +343,6 @@ throwingDischarged
     -> CekValue uni fun ann
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
-
-runCekM
-    :: forall a cost uni fun ann.
-    (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> ExBudgetMode cost uni fun
-    -> EmitterMode uni fun
-    -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
-    ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
-    CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    ctr <- newCounter (Proxy @CounterSize)
-    let ?cekRuntime = runtime
-        ?cekEmitter = _cekEmitterInfoEmit
-        ?cekBudgetSpender = _exBudgetModeSpender
-        ?cekCosts = costs
-        ?cekSlippage = defaultSlippage
-        ?cekStepCounter = ctr
-    errOrRes <- unCekM $ tryError a
-    st <- _exBudgetModeGetFinal
-    logs <- _cekEmitterInfoGetFinal
-    pure (errOrRes, st, logs)
 
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
