@@ -6,7 +6,7 @@
     (termbind
       (strict)
       (vardecl funApp (fun (con integer) (con integer)))
-      (lam x (con integer) (builtin addInteger))
+      (lam x (con integer) [ [ (builtin addInteger) appNum ] x ])
     )
     [ funApp appNum ]
   )

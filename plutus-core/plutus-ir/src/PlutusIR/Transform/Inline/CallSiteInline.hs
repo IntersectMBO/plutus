@@ -200,4 +200,4 @@ inlineSat appOrTyInstTm =
                       pure $ mkApps (calledVarDef varInfo) args
                     else pure tm
                   -- if the term being applied is not a `Var`, don't inline
-              v -> pure tm
+              _ -> pure tm
