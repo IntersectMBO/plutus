@@ -58,6 +58,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , Slippage
     , defaultSlippage
     , NTerm
+    , runCekM
     )
 where
 
