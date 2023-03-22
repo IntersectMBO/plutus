@@ -124,11 +124,11 @@ failingTests = [
      -- , "bls12_381_G2_uncompress/too-long"
      -- , "bls12_381_G2_uncompress/bad-zero-2"
      -- , "bls12_381_G2_uncompress/bad-zero-3"
-     , "bls12_381_pairing/random-pairing"
-     , "bls12_381_pairing/balanced"
-     , "bls12_381_pairing/equal-pairing"
-     , "bls12_381_pairing/right-additive"
-     , "bls12_381_pairing/left-additive"
+     , "bls12_381_millerLoop/random-pairing"
+     , "bls12_381_millerLoop/balanced"
+     , "bls12_381_millerLoop/equal-pairing"
+     , "bls12_381_millerLoop/right-additive"
+     , "bls12_381_millerLoop/left-additive"
     ]
 
 main :: IO ()

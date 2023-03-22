@@ -1,5 +1,7 @@
 -- editorconfig-checker-disable-file
-{- | Plutus benchmarks based on some nofib examples. -}
+{- | Plutus benchmarks measuring actual execution times of some BSL12-381
+   operations, mainly intended to give us an idea of what we can do within the
+   on-chain execution limits. -}
 module Main where
 
 import Criterion.Main

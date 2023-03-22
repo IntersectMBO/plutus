@@ -407,7 +407,7 @@ main =
                     , $(genTest 1 "bls12_381_G2_compress")
                     , $(genTest 1 "bls12_381_G2_uncompress")
                     , $(genTest 1 "bls12_381_G2_hashToGroup")
-                    , $(genTest 2 "bls12_381_pairing")        Everywhere
+                    , $(genTest 2 "bls12_381_millerLoop")     Everywhere
                     , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
                     , $(genTest 2 "bls12_381_finalVerify")    Everywhere
                     ]

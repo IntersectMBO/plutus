@@ -69,8 +69,8 @@ mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 
 -- Constructing pairing terms
 
-pairingPlc :: PlcTerm -> PlcTerm -> PlcTerm
-pairingPlc = mkApp2 Bls12_381_pairing
+millerLoopPlc :: PlcTerm -> PlcTerm -> PlcTerm
+millerLoopPlc = mkApp2 Bls12_381_millerLoop
 
 mulMlResultPlc :: PlcTerm -> PlcTerm -> PlcTerm
 mulMlResultPlc = mkApp2 Bls12_381_mulMlResult

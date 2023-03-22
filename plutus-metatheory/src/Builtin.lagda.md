@@ -114,7 +114,7 @@ data Builtin : Set where
   bls12-381-G2-compress           : Builtin
   bls12-381-G2-uncompress         : Builtin
   -- Pairing
-  bls12-381-pairing               : Builtin
+  bls12-381-millerLoop            : Builtin
   bls12-381-mulMlResult           : Builtin
   bls12-381-finalVerify           : Builtin
 
@@ -265,7 +265,7 @@ This is defined in its own module so that these definitions are not exported.
     signature bls12-381-G2-hashToGroup        = ∙ [ bytestring ]⟶ bls12-381-g2-element
     signature bls12-381-G2-compress           = ∙ [ bls12-381-g2-element ]⟶ bytestring
     signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g2-element
-    signature bls12-381-pairing               = ∙ [ bls12-381-g1-element , bls12-381-g2-element ]⟶ bls12-381-mlresult
+    signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element , bls12-381-g2-element ]⟶ bls12-381-mlresult
     signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bls12-381-mlresult
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bool
 
@@ -346,7 +346,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_G2_hashToGroup
                                           | Bls12_381_G2_compress
                                           | Bls12_381_G2_uncompress
-                                          | Bls12_381_pairing
+                                          | Bls12_381_millerLoop
                                           | Bls12_381_mulMlResult
                                           | Bls12_381_finalVerify
 
@@ -398,7 +398,7 @@ postulate
   BLS12-381-G2-hashToGroup : ByteString → Bls12-381-G2-Element
   BLS12-381-G2-compress    : Bls12-381-G2-Element → ByteString
   BLS12-381-G2-uncompress  : ByteString → Bls12-381-G2-Element
-  BLS12-381-pairing        : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
+  BLS12-381-millerLoop     : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
   BLS12-381-mulMlResult    : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
   BLS12-381-finalVerify    : Bls12-381-MlResult → Bls12-381-MlResult → Bool
 ```

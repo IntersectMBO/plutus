@@ -395,7 +395,7 @@ BUILTIN bls12-381-G2-compress = λ
 BUILTIN bls12-381-G2-uncompress = λ
   { _ -> inj₁ userError
   }
-BUILTIN bls12-381-pairing = λ
+BUILTIN bls12-381-millerLoop = λ
   { _ -> inj₁ userError
   }
 BUILTIN bls12-381-mulMlResult = λ

@@ -6,11 +6,11 @@
 
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
--- | Approximations of the sort of computations involving BLS12-381 primitives
--- that one might wish to perform on the chain.  Real on-chain code will have
--- extra overhead, but these examples help to give us an idea of the sort of
--- computation that can feasibly be carried out within the validation budget
--- limits.
+{- | Approximations of the sort of computations involving BLS12-381 primitives
+ that one might wish to perform on the chain.  Real on-chain code will have
+ extra overhead, but these examples help to give us an idea of the sort of
+ computation that can feasibly be carried out within the validation budget
+ limits. -}
 module PlutusBenchmark.BLS12_381.Common ( UProg
                                         , UTerm
                                         , checkGroth16Verify_Haskell
@@ -40,7 +40,6 @@ import Text.Printf (printf)
 
 import Prelude (IO, fromIntegral, show)
 
-
 -------------------------------- PLC stuff--------------------------------
 
 type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun ()
@@ -62,7 +61,6 @@ listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
 listOfSizedByteStrings n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
                                   (G.bytes (R.singleton $ fromIntegral l))
-
 
 ---------------- Examples ----------------
 
@@ -159,8 +157,8 @@ runPairingFunctions
     -> Tx.BuiltinBLS12_381_G2_Element
     -> Bool
 runPairingFunctions p1 p2 q1 q2 =
-    let r1 = Tx.bls12_381_pairing p1 p2
-        r2 = Tx.bls12_381_pairing q1 q2
+    let r1 = Tx.bls12_381_millerLoop p1 p2
+        r2 = Tx.bls12_381_millerLoop q1 q2
     in Tx.bls12_381_finalVerify r1 r2
 
 mkPairingScript
@@ -319,17 +317,17 @@ groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
         a     = Tx.bls12_381_G1_uncompress a'
         b     = Tx.bls12_381_G2_uncompress b'
         c     = Tx.bls12_381_G1_uncompress c'
-        l1    = Tx.bls12_381_pairing a b
-        l2    = Tx.bls12_381_pairing alpha beta
-        l3    = Tx.bls12_381_pairing c delta
+        l1    = Tx.bls12_381_millerLoop a b
+        l2    = Tx.bls12_381_millerLoop alpha beta
+        l3    = Tx.bls12_381_millerLoop c delta
         p     = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
-        l4    = Tx.bls12_381_pairing p gamma
+        l4    = Tx.bls12_381_millerLoop p gamma
         y     = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
     in Tx.bls12_381_finalVerify l1 y
 
--- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
--- newtype inputs increases the size and CPU cost slightly, so we unwrap them
--- first.  This should return `True`.
+{- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
+ newtype inputs increases the size and CPU cost slightly, so we unwrap them
+ first.  This should return `True`. -}
 mkGroth16VerifyScript :: UProg
 mkGroth16VerifyScript =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| groth16Verify ||])

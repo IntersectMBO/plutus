@@ -147,7 +147,7 @@ data BuiltinCostModelBase f =
     , paramBls12_381_G2_compress           :: f ModelOneArgument
     , paramBls12_381_G2_uncompress         :: f ModelOneArgument
     , paramBls12_381_G2_hashToGroup        :: f ModelOneArgument
-    , paramBls12_381_pairing               :: f ModelTwoArguments
+    , paramBls12_381_millerLoop            :: f ModelTwoArguments
     , paramBls12_381_mulMlResult           :: f ModelTwoArguments
     , paramBls12_381_finalVerify           :: f ModelTwoArguments
     }

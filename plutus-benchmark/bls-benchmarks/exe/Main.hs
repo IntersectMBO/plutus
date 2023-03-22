@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE NumericUnderscores #-}
-
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
--- | Print out the costs of various test scripts involving the BLS12_381 primitives
-
+{- | Print out the costs of various test scripts involving the BLS12_381
+   primitives.  Most of these work on varying numbers of inputs so that we can
+   get an idea of what we can do within the on-chain execution limits.
+-}
 module Main (main)
 
 where
@@ -40,8 +41,6 @@ max_tx_ex_steps = 10_000_000_000
 max_tx_ex_mem :: Integer
 max_tx_ex_mem = 14_000_000
 
-
-
 -------------------------------- Printing --------------------------------
 
 -- Printing utilities
@@ -63,7 +62,6 @@ evaluate (UPLC.Program _ _ prog) =
               ExMemory mem = exBudgetMemory budget
           in (fromIntegral cpu, fromIntegral mem)
 
-
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
 -- protocol parameters.
@@ -79,7 +77,6 @@ printStatistics n script = do
            size (percentTxt size max_tx_size)
            cpu  (percentTxt cpu  max_tx_ex_steps)
            mem  (percentTxt mem  max_tx_ex_mem)
-
 
 ------------------------------- Examples ---------------------------------
 
@@ -114,7 +111,6 @@ printCosts_Pairing = do
         script = mkPairingScript p1 p2 q1 q2
     printStatistics (-1) script
 
-
 printCosts_Groth16Verify :: IO ()
 printCosts_Groth16Verify = do
   let script = mkGroth16VerifyScript
@@ -124,7 +120,6 @@ printHeader :: IO ()
 printHeader = do
   printf "    n     script size             CPU usage               Memory usage\n"
   printf "  ----------------------------------------------------------------------\n"
-
 
 main :: IO ()
 main = do

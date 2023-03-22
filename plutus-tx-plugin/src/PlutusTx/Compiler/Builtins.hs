@@ -261,7 +261,7 @@ builtinNames = [
     , 'Builtins.bls12_381_G2_hashToGroup
 
     , ''Builtins.BuiltinBLS12_381_MlResult
-    , 'Builtins.bls12_381_pairing
+    , 'Builtins.bls12_381_millerLoop
     , 'Builtins.bls12_381_mulMlResult
     , 'Builtins.bls12_381_finalVerify
     ]
@@ -409,7 +409,7 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compress    $ mkBuiltin PLC.Bls12_381_G2_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToGroup $ mkBuiltin PLC.Bls12_381_G2_hashToGroup
-    defineBuiltinTerm annMayInline 'Builtins.bls12_381_pairing        $ mkBuiltin PLC.Bls12_381_pairing
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_millerLoop     $ mkBuiltin PLC.Bls12_381_millerLoop
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult    $ mkBuiltin PLC.Bls12_381_mulMlResult
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_finalVerify
 

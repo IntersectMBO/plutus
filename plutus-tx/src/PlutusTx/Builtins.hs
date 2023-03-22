@@ -87,7 +87,7 @@ module PlutusTx.Builtins (
                          , bls12_381_G2_uncompress
                          , bls12_381_G2_hashToGroup
                          , BuiltinBLS12_381_MlResult
-                         , bls12_381_pairing
+                         , bls12_381_millerLoop
                          , bls12_381_mulMlResult
                          , bls12_381_finalVerify
                          -- * Conversions
@@ -526,14 +526,14 @@ bls12_381_G2_uncompress = BI.bls12_381_G2_uncompress
 bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
 
--- G2 --
+-- Pairing --
+{-# INLINABLE bls12_381_millerLoop #-}
+bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
+bls12_381_millerLoop = BI.bls12_381_millerLoop
+
 {-# INLINABLE bls12_381_mulMlResult #-}
 bls12_381_mulMlResult ::  BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
 bls12_381_mulMlResult = BI.bls12_381_mulMlResult
-
-{-# INLINABLE bls12_381_pairing #-}
-bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
-bls12_381_pairing = BI.bls12_381_pairing
 
 {-# INLINABLE bls12_381_finalVerify #-}
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool

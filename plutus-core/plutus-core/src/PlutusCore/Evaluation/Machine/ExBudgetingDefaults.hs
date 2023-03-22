@@ -177,7 +177,7 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramMkNilData                       = unitCostOneArgument
     , paramMkNilPairData                   = unitCostOneArgument
     , paramSerialiseData                   = unitCostOneArgument
-    -- BLS12_381 operations
+    -- BLS12-381 operations
     , paramBls12_381_G1_add                = unitCostTwoArguments
     , paramBls12_381_G1_neg                = unitCostOneArgument
     , paramBls12_381_G1_scalarMul          = unitCostTwoArguments
@@ -192,7 +192,7 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_G2_compress           = unitCostOneArgument
     , paramBls12_381_G2_uncompress         = unitCostOneArgument
     , paramBls12_381_G2_hashToGroup        = unitCostOneArgument
-    , paramBls12_381_pairing               = unitCostTwoArguments
+    , paramBls12_381_millerLoop            = unitCostTwoArguments
     , paramBls12_381_mulMlResult           = unitCostTwoArguments
     , paramBls12_381_finalVerify           = unitCostTwoArguments
     }

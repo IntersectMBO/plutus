@@ -242,7 +242,7 @@
             "type": "constant_cost"
         }
     },
-    "bls12_381_pairing": {
+    "bls12_381_millerLoop": {
         "cpu": {
             "arguments": 402099373,
             "type": "constant_cost"

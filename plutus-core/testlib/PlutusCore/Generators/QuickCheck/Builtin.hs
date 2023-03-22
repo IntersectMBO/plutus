@@ -124,9 +124,9 @@ instance ArbitraryBuiltin Crypto.BLS12_381.G2.Element where
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin Crypto.BLS12_381.Pairing.MlResult where
-    arbitraryBuiltin = pairing <$> arbitraryBuiltin <*> arbitraryBuiltin
-                       where pairing p1 p2 =
-                                 case Crypto.BLS12_381.Pairing.pairing p1 p2 of
+    arbitraryBuiltin = millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
+                       where millerLoop p1 p2 =
+                                 case Crypto.BLS12_381.Pairing.millerLoop p1 p2 of
                                    Left err -> error $ "pairing: " ++ show err
                                    Right p  -> p
     shrinkBuiltin _ = []

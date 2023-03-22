@@ -620,11 +620,11 @@ instance NFData BuiltinBLS12_381_MlResult where
 instance Pretty BuiltinBLS12_381_MlResult where
     pretty (BuiltinBLS12_381_MlResult a) = pretty a
 
-{-# NOINLINE bls12_381_pairing #-}
-bls12_381_pairing :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
-bls12_381_pairing (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
-    case BLS12_381.Pairing.pairing a b of
-      Left err -> mustBeReplaced $ "BSL12_381 pairing error: " ++ show err
+{-# NOINLINE bls12_381_millerLoop #-}
+bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
+bls12_381_millerLoop (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
+    case BLS12_381.Pairing.millerLoop a b of
+      Left err -> mustBeReplaced $ "BSL12_381.Pairing.millerLoop error: " ++ show err
       Right c  -> BuiltinBLS12_381_MlResult c
 
 {-# NOINLINE bls12_381_mulMlResult #-}

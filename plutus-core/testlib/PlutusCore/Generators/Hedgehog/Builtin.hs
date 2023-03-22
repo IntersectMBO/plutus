@@ -168,6 +168,6 @@ genBls12_381_MlResult :: Gen Crypto.BLS12_381.Pairing.MlResult
 genBls12_381_MlResult = do
   p1 <- genBls12_381_G1_Element
   p2 <- genBls12_381_G2_Element
-  case Crypto.BLS12_381.Pairing.pairing p1 p2 of
-    Left e  -> error $ "BLS12-381 pairing failed in genBls12_381_MlResult" ++ (show e)
+  case Crypto.BLS12_381.Pairing.millerLoop p1 p2 of
+    Left e  -> error $ "BLS12_381.Pairing.millerLoop failed in genBls12_381_MlResult" ++ (show e)
     Right r -> pure r

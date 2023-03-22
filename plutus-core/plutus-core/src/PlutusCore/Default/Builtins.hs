@@ -141,7 +141,7 @@ data DefaultFun
     | Bls12_381_G2_compress
     | Bls12_381_G2_uncompress
     -- Pairing
-    | Bls12_381_pairing
+    | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
 
@@ -1455,18 +1455,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ((==) @Crypto.BLS12_381.G2.Element)
             (runCostingFunTwoArguments . paramBls12_381_G2_equal)
     -- BLS12_381.Pairing
+    toBuiltinMeaning _var Bls12_381_millerLoop =
+        makeBuiltinMeaning
+            ml
+            (runCostingFunTwoArguments . paramBls12_381_millerLoop)
+        where ml a b =
+                  case Crypto.BLS12_381.Pairing.millerLoop a b of
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_mulMlResult =
         makeBuiltinMeaning
             Crypto.BLS12_381.Pairing.mulMlResult
             (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
-    toBuiltinMeaning _var Bls12_381_pairing =
-        makeBuiltinMeaning
-            ml
-            (runCostingFunTwoArguments . paramBls12_381_pairing)
-        where ml a b =
-                  case Crypto.BLS12_381.Pairing.pairing a b of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_finalVerify =
         makeBuiltinMeaning
             Crypto.BLS12_381.Pairing.finalVerify
@@ -1573,7 +1573,7 @@ instance Flat DefaultFun where
               Bls12_381_G2_compress           -> 65
               Bls12_381_G2_uncompress         -> 66
               Bls12_381_G2_hashToGroup        -> 67
-              Bls12_381_pairing               -> 68
+              Bls12_381_millerLoop            -> 68
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
 
@@ -1646,7 +1646,7 @@ instance Flat DefaultFun where
               go 65 = pure Bls12_381_G2_compress
               go 66 = pure Bls12_381_G2_uncompress
               go 67 = pure Bls12_381_G2_hashToGroup
-              go 68 = pure Bls12_381_pairing
+              go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t

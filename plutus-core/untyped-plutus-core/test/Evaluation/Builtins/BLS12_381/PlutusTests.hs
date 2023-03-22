@@ -335,8 +335,8 @@ test_pairing_left_additive =
       p1 <- arbitraryConstant @G1.Element
       p2 <- arbitraryConstant @G1.Element
       q  <- arbitraryConstant @G2.Element
-      let e1 = pairingPlc (addP @G1.Element p1 p2) q
-          e2 = mulMlResultPlc (pairingPlc p1 q) (pairingPlc p2 q)
+      let e1 = millerLoopPlc (addP @G1.Element p1 p2) q
+          e2 = mulMlResultPlc (millerLoopPlc p1 q) (millerLoopPlc p2 q)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -349,8 +349,8 @@ test_pairing_right_additive =
       p  <- arbitraryConstant @G1.Element
       q1 <- arbitraryConstant @G2.Element
       q2 <- arbitraryConstant @G2.Element
-      let e1 = pairingPlc p (addP @G2.Element q1 q2)
-          e2 = mulMlResultPlc (pairingPlc p q1) (pairingPlc p q2)
+      let e1 = millerLoopPlc p (addP @G2.Element q1 q2)
+          e2 = mulMlResultPlc (millerLoopPlc p q1) (millerLoopPlc p q2)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -363,8 +363,8 @@ test_pairing_balanced =
       n <- arbitraryScalar
       p <- arbitraryConstant @G1.Element
       q <- arbitraryConstant @G2.Element
-      let e1 = pairingPlc (scalarMulP @G1.Element n p) q
-          e2 = pairingPlc p (scalarMulP @G2.Element n q)
+      let e1 = millerLoopPlc (scalarMulP @G1.Element n p) q
+          e2 = millerLoopPlc p (scalarMulP @G2.Element n q)
           e3 = finalVerifyPlc e1 e2
       pure $ evalTerm e3 === uplcTrue
 
@@ -379,7 +379,7 @@ test_random_pairing =
        q1 <- arbitraryConstant @G2.Element
        q2 <- arbitraryConstant @G2.Element
        pure $ p1 /= p2 && q1 /= q2 ==>
-            let e = finalVerifyPlc (pairingPlc p1 q1) (pairingPlc p2 q2)
+            let e = finalVerifyPlc (millerLoopPlc p1 q1) (millerLoopPlc p2 q2)
             in evalTerm e === uplcFalse
 
 

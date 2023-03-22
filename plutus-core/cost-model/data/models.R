@@ -121,7 +121,7 @@ arity <- function(name) {
         "Bls12_381_G2_hashToGroup" = 1,
         "Bls12_381_G2_compress" = 1,
         "Bls12_381_G2_uncompress" = 1,
-        "Bls12_381_pairing" = 2,
+        "Bls12_381_millerLoop" = 2,
         "Bls12_381_mulMlResult" = 2,
         "Bls12_381_finalVerify" = 2
         )
@@ -638,7 +638,7 @@ modelFun <- function(path) {
     bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
     bls12_381_G2_compressModel       <- constantModel ("Bls12_381_G2_compress")
     bls12_381_G2_uncompressModel     <- constantModel ("Bls12_381_G2_uncompress")
-    bls12_381_pairingModel           <- constantModel ("Bls12_381_pairing")
+    bls12_381_millerLoopModel        <- constantModel ("Bls12_381_millerLoop")
     bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
@@ -711,7 +711,7 @@ modelFun <- function(path) {
         bls12_381_G2_hashToGroupModel        = bls12_381_G2_hashToGroupModel,
         bls12_381_G2_compressModel           = bls12_381_G2_compressModel,
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
-        bls12_381_pairingModel               = bls12_381_pairingModel,
+        bls12_381_millerLoopModel            = bls12_381_millerLoopModel,
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
     )

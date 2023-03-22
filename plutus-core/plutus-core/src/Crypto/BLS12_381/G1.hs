@@ -30,7 +30,6 @@ import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
-
 {- | Note [Wrapping the BLS12-381 types].  In the Haskell bidings to the `blst`
 library, points in G1 and G2 are represented as ForeignPtrs pointing to C
 objects, with a phantom type deterimining which group is involved. We have to
@@ -103,7 +102,6 @@ uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
 -- | Take an arbitrary bytestring and hash it to a get point in G1
 hashToGroup :: ByteString -> Element
 hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve1 s Nothing Nothing
-
 
 -- Utilities (not exposed as builtins)
 
