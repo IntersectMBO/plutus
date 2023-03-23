@@ -19,7 +19,7 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
+import PlutusIR.Transform.Inline.CallSiteInline (collectArgs, computeArity)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
@@ -43,6 +43,7 @@ transform =
         , recSplit
         , inline
         , computeArityTest
+        , collectArgsTest
         , beta
         , unwrapCancel
         , deadCode
@@ -230,6 +231,13 @@ computeArityTest = testNested "computeArityTest" $
             , "tyAbs2" -- 2 type lambda abstractions
             , "tyAbs2Arrow" -- type lambda abstraction with an arrow kind
             , "tyAbsInterleaved" -- interleaving type and term lambda abstractions
+            ]
+
+collectArgsTest :: TestNested
+collectArgsTest = testNested "collectArgs" $
+        map
+            (goldenPir (collectArgs . runQuote . PLC.rename) pTerm)
+            [
             ]
 
 beta :: TestNested

@@ -15,8 +15,10 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 import Control.Lens (forMOf)
 import Control.Monad.State
 import Data.Bifunctor (first)
+import PlutusCore.Pretty
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
+import Prettyprinter
 
 {- Note [Inlining of fully applied functions]
 
@@ -129,6 +131,10 @@ computeArity = \case
 data Args tyname name uni fun ann =
   MkTermArg (Term tyname name uni fun ann)
   | MkTypeArg (Type tyname uni ann)
+  deriving stock (Show)
+
+instance Pretty (Args tyname name uni fun ann) where
+  pretty = viaShow
 
 -- | A list of type or term argument(s) that are being applied.
 type ArgOrder tyname name uni fun ann = [Args tyname name uni fun ann]
@@ -157,15 +163,17 @@ mkApps f ((MkTermArg tmArg, ann) : args) = mkApps (Apply ann f tmArg) args
 mkApps f ((MkTypeArg tyArg, ann) : args) = mkApps (TyInst ann f tyArg) args
 mkApps f []                              = f
 
-enoughArgs :: Arity -> ArgOrder tyname name uni fun ann -> Bool
-enoughArgs [] (_argsOrder:_as) = True -- over-application
-enoughArgs (_arity:_) [] = False -- under-application
-enoughArgs [] [] = True
-enoughArgs lamOrder argsOrder =
+-- | Given the arity of a function, and the list of arguments applied to it, return whether it is
+-- fully applied or not.
+isFullyApplied :: Arity -> ArgOrder tyname name uni fun ann -> Bool
+isFullyApplied [] (_argsOrder:_as) = True -- over-application
+isFullyApplied (_arity:_) [] = False -- under-application
+isFullyApplied [] [] = True
+isFullyApplied lamOrder argsOrder =
   -- start comparing from the end because there may be over-application
   case (last lamOrder, last argsOrder) of
-    (MkTerm, MkTermArg _) -> enoughArgs (init lamOrder) (init argsOrder)
-    (MkType, MkTypeArg _) -> enoughArgs (init lamOrder) (init argsOrder)
+    (MkTerm, MkTermArg _) -> isFullyApplied (init lamOrder) (init argsOrder)
+    (MkType, MkTypeArg _) -> isFullyApplied (init lamOrder) (init argsOrder)
     _                     -> False
 
 -- | Inline fully applied functions iff the body of the function is `acceptable`.
@@ -194,7 +202,7 @@ inlineSat appOrTyInstTm =
                   Nothing -> pure tm
                   Just varInfo -> do
                     isAcceptable <- acceptable (calledVarBody varInfo)
-                    if isAcceptable && enoughArgs (arity varInfo) (map fst args) then do
+                    if isAcceptable && isFullyApplied (arity varInfo) (map fst args) then do
                       -- if the body of `Var` is `acceptable` and
                       -- it is fully applied (over-application is allowed) then inline it
                       pure $ mkApps (calledVarDef varInfo) args

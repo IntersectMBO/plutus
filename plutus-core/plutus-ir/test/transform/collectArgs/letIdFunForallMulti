@@ -1,0 +1,24 @@
+{- 
+This tests that type application is counted properly.
+idFun occurs more than once so it should not get inlined by the unconditional inlining
+optimization. However, it is fully applied so it should get inlined by the optimization that inlines
+fully applied functions.
+
+let 
+  idFun :: forall a . a -> a
+  idFun = \x -> x
+in Builtin.addInteger (idFun @Integer 3) (idFun @Integer 3)
+-}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl idFun (all a (type) (fun a a)))
+      (abs a (type) (lam x a x))
+    )
+    [
+      [ (builtin addInteger) [ { idFun (con integer) } (con integer 3) ] ]
+      [ { idFun (con integer) } (con integer 3) ]
+    ]
+)
