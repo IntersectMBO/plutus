@@ -80,7 +80,6 @@ mkHashAndAddG1Script l =
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Hash some bytestrings onto G2 and add them all together
-
 {-# INLINABLE hashAndAddG2 #-}
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 hashAndAddG2 [] = error ()
@@ -95,7 +94,6 @@ mkHashAndAddG2Script l =
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
 -- Deserialise a list of compressed G1 points and add them all together
-
 {-# INLINABLE uncompressAndAddG1 #-}
 uncompressAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 uncompressAndAddG1 [] = error ()
@@ -122,7 +120,6 @@ checkUncompressAndAddG1_Haskell n =
       printf "%s\n" (show result2)
 
 -- Deserialise a list of compressed G1 points and add them all together
-
 {-# INLINABLE uncompressAndAddG2 #-}
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 uncompressAndAddG2 [] = error ()
@@ -149,6 +146,8 @@ checkUncompressAndAddG2_Haskell n =
 
 -- Pairing operations
 
+-- Take two points p1 and p2 in G1 and two points q1 and q2 in G2, apply the
+-- Miller loop to (p1,q1) and (p2,q2), and then call finalVerify on the results.
 {-# INLINABLE runPairingFunctions #-}
 runPairingFunctions
     :: Tx.BuiltinBLS12_381_G1_Element
@@ -156,9 +155,9 @@ runPairingFunctions
     -> Tx.BuiltinBLS12_381_G1_Element
     -> Tx.BuiltinBLS12_381_G2_Element
     -> Bool
-runPairingFunctions p1 p2 q1 q2 =
-    let r1 = Tx.bls12_381_millerLoop p1 p2
-        r2 = Tx.bls12_381_millerLoop q1 q2
+runPairingFunctions p1 q1 p2 q2 =
+    let r1 = Tx.bls12_381_millerLoop p1 q1
+        r2 = Tx.bls12_381_millerLoop p2 q2
     in Tx.bls12_381_finalVerify r1 r2
 
 mkPairingScript
@@ -167,11 +166,11 @@ mkPairingScript
     -> BuiltinBLS12_381_G1_Element
     -> BuiltinBLS12_381_G2_Element
     -> UProg
-mkPairingScript p1 p2 q1 q2 =
+mkPairingScript p1 q1 p2 q2 =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| runPairingFunctions ||])
           `Tx.unsafeApplyCode` Tx.liftCode p1
-          `Tx.unsafeApplyCode` Tx.liftCode p2
           `Tx.unsafeApplyCode` Tx.liftCode q1
+          `Tx.unsafeApplyCode` Tx.liftCode p2
           `Tx.unsafeApplyCode` Tx.liftCode q2
 
 ---------------- Groth16 verification ----------------
