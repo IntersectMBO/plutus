@@ -32,7 +32,7 @@ import Prettyprinter
 
 {- | Note [Wrapping the BLS12-381 types].  In the Haskell bidings to the `blst`
 library, points in G1 and G2 are represented as ForeignPtrs pointing to C
-objects, with a phantom type deterimining which group is involved. We have to
+objects, with a phantom type determining which group is involved. We have to
 wrap these in a newtype here because otherwise the builtin machinery spots that
 they're applications and can't find the relevant type parameters.  In theory I
 think we could add a couple of phantom types to the default universe, but it
@@ -82,19 +82,23 @@ scalarMul :: Integer -> Element -> Element
 scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve1 a k
 
 -- | Compress a G1 element to a bytestring. This serialises a curve point to its
--- x coordinate only, using an extra bit to determine which of two possible y
--- coordinates the point has. The compressed bytestring is 48 bytes long. See
+-- x coordinate only.  The compressed bytestring is 48 bytes long, with three
+-- spare bits used to convey extra information about the point, including
+-- determining which of two possible y coordinates the point has and whether the
+-- point is the point at infinity. See
 -- https://github.com/supranational/blst#serialization-format
+
 compress :: Element -> ByteString
 compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
 
-{- | Uncompress a bytestring to get a G1 point.  This can fail if
-     * The bytestring is not exactly 48 bytes long
-     * The most significant three bits are used incorrectly
+{- | Uncompress a bytestring to get a G1 point.  This will fail if any of the
+   following are true.
+     * The bytestring is not exactly 48 bytes long.
+     * The most significant three bits are used incorrectly.
      * The bytestring encodes a field element which is not the
-       x coordinate of a point on the E1 curve
+       x coordinate of a point on the E1 curve.
      * The bytestring does represent a point on the E1 curve, but the
-       point is not in the G1 subgroup
+       point is not in the G1 subgroup.
 -}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
