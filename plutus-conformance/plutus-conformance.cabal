@@ -51,12 +51,10 @@ library
     , filepath
     , lens
     , plutus-core             ^>=1.4
-    , plutus-metatheory
     , tasty
     , tasty-expected-failure
     , tasty-golden
     , text
-    , transformers
     , witherable
 
 executable test-utils
@@ -69,8 +67,10 @@ executable test-utils
     , optparse-applicative
     , plutus-conformance
     , plutus-core           ^>=1.4
+    , plutus-metatheory
     , tasty-golden
     , text
+    , transformers
 
 executable haskell-implementation
   import:         lang
