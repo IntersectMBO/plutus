@@ -45,7 +45,7 @@ instance Flat MlResult where
 instance NFData MlResult where
     rnf _ = ()
 
--- Fix this to return something more sensible and maybe log the error in the Left case
+-- TODO: perhaps make this emit the error in the Left case.
 millerLoop :: G1.Element -> G2.Element -> Either BlstBindings.BLSTError MlResult
 millerLoop (G1.Element e1) (G2.Element e2) = second MlResult $ BlstBindings.millerLoop e1 e2
 

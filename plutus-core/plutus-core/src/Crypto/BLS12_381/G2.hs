@@ -78,6 +78,7 @@ compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
      * The bytestring does represent a point on the E2 curve, but the
        point is not in the G2 subgroup
 -}
+-- TODO: perhaps make this emit the error in the Left case.
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve2
 
