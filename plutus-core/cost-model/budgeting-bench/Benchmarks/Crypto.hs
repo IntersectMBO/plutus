@@ -134,20 +134,24 @@ byteStringsA = take 100 byteStrings
 byteStringsB :: [ByteString]
 byteStringsB = take 100 (drop 100 byteStrings)
 
+
+-- Random elements in G1
 g1inputsA :: [G1.Element]
 g1inputsA = fmap G1.hashToGroup byteStringsA
 
 g1inputsB :: [G1.Element]
 g1inputsB = fmap G1.hashToGroup byteStringsB
 
+-- Random elements in G2
 g2inputsA :: [G2.Element]
 g2inputsA = fmap G2.hashToGroup byteStringsA
 
 g2inputsB :: [G2.Element]
 g2inputsB = fmap G2.hashToGroup byteStringsB
 
--- We can only get points in GT via millerLoop.  It should always succeed on the
--- inputs we give it here.
+-- Random values of type MlResult.  The only way we can manufacture values of
+-- this type is by using millerLoop, which should always succeed on the inputs
+-- we give it here.
 millerLoop :: G1.Element -> G2.Element -> Pairing.MlResult
 millerLoop e1 e2 =
     case Pairing.millerLoop e1 e2 of
@@ -160,22 +164,18 @@ gtinputsA = zipWith millerLoop g1inputsA g2inputsA
 gtinputsB :: [Pairing.MlResult]
 gtinputsB = zipWith millerLoop g1inputsB g2inputsB
 
--- Need to generate random elements of G1 and G2, probably by hashing random
--- bytestrings to the curve.  GT is slightly problematic: we can only get points
--- on the curve by using pairing on elements of G1 and G2.
-
 benchBls12_381_G1_add :: Benchmark
 benchBls12_381_G1_add =
         let name = Bls12_381_G1_add
         in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsB
--- const
--- Two args, points on G1
+-- constant time
+-- Two arguments, points on G1
 
 benchBls12_381_G1_neg :: Benchmark
 benchBls12_381_G1_neg =
     let name = Bls12_381_G1_neg
     in createOneTermBuiltinBench name [] g1inputsA
--- const
+-- constant time
 
 benchBls12_381_G1_scalarMul :: [Integer] -> Benchmark
 benchBls12_381_G1_scalarMul multipliers =
@@ -188,7 +188,7 @@ benchBls12_381_G1_equal =
     let name = Bls12_381_G1_equal
     in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsA
     -- Same arguments twice
--- const
+-- constant time
 
 benchBls12_381_G1_hashToGroup :: Benchmark
 benchBls12_381_G1_hashToGroup =
@@ -201,26 +201,26 @@ benchBls12_381_G1_compress :: Benchmark
 benchBls12_381_G1_compress =
     let name = Bls12_381_G1_compress
     in createOneTermBuiltinBench name [] g1inputsA
--- const
+-- constant time
 
 benchBls12_381_G1_uncompress :: Benchmark
 benchBls12_381_G1_uncompress =
     let name = Bls12_381_G1_uncompress
         inputs = fmap G1.compress g1inputsA
     in createOneTermBuiltinBench name [] inputs
--- const
+-- constant time
 
 benchBls12_381_G2_add :: Benchmark
 benchBls12_381_G2_add =
     let name = Bls12_381_G2_add
     in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsB
--- const
+-- constant time
 
 benchBls12_381_G2_neg :: Benchmark
 benchBls12_381_G2_neg =
     let name = Bls12_381_G2_neg
     in createOneTermBuiltinBench name [] g2inputsB
--- const
+-- constant time
 
 benchBls12_381_G2_scalarMul :: [Integer] -> Benchmark
 benchBls12_381_G2_scalarMul multipliers =
@@ -233,7 +233,7 @@ benchBls12_381_G2_equal =
     let name = Bls12_381_G2_equal
     in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsA
     -- Same arguments twice
--- const
+-- constant time
 
 benchBls12_381_G2_hashToGroup :: Benchmark
 benchBls12_381_G2_hashToGroup =
@@ -246,32 +246,32 @@ benchBls12_381_G2_compress :: Benchmark
 benchBls12_381_G2_compress =
     let name = Bls12_381_G2_compress
     in createOneTermBuiltinBench name [] g2inputsA
--- const
+-- constant time
 
 benchBls12_381_G2_uncompress :: Benchmark
 benchBls12_381_G2_uncompress =
     let name = Bls12_381_G2_uncompress
         inputs = fmap G2.compress g2inputsA
     in createOneTermBuiltinBench name [] inputs
--- const
+-- constant time
 
 benchBls12_381_millerLoop :: Benchmark
 benchBls12_381_millerLoop =
     let name = Bls12_381_millerLoop
     in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
--- const?
+-- constant time
 
 benchBls12_381_mulMlResult :: Benchmark
 benchBls12_381_mulMlResult =
     let name = Bls12_381_mulMlResult
     in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
--- const
+-- constant time
 
 benchBls12_381_finalVerify :: Benchmark
 benchBls12_381_finalVerify =
     let name = Bls12_381_finalVerify
     in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
--- const?
+-- constant time
 
 
 blsBenchmarks :: StdGen -> [Benchmark]
