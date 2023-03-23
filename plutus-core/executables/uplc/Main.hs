@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ImplicitParams            #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -15,7 +14,6 @@ import PlutusCore.Annotation
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
@@ -23,14 +21,12 @@ import Data.Foldable
 import Data.List (nub)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
-import Data.Proxy
 import Data.Text qualified as T
 import PlutusPrelude
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
-import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter (newCounter)
 
 import Control.DeepSeq (rnf)
 import Control.Monad.Except
@@ -42,6 +38,7 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
+import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
 
@@ -262,22 +259,15 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
-        MachineParameters costs runtime = cekparams
         replSettings = Repl.Settings { Repl.complete = Repl.noCompletion
                                      , Repl.historyFile = Nothing
                                      , Repl.autoAddHistory = False
                                      }
-
-    ctr <- newCounter (Proxy @D.CounterSize)
-    let ?cekRuntime = runtime
-        ?cekEmitter = const $ pure ()
-        ?cekBudgetSpender = Cek.CekBudgetSpender $ \_ _ -> pure ()
-        ?cekCosts = costs
-        ?cekSlippage = D.defaultSlippage
-        ?cekStepCounter = ctr
-      in Repl.runInputT replSettings $
-            -- MAYBE: use cutoff or partialIterT to prevent runaway
-            D.iterTM handleDbg $ D.runDriver nterm
+    -- nilSlippage is important so as to get correct live up-to-date budget
+    cekTrans <- fst <$> D.mkCekTrans cekparams restrictingEnormous noEmitter D.nilSlippage
+    Repl.runInputT replSettings $
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
 -- TODO: this is just an example of an optional single breakpoint, decide
 -- if we actually want breakpoints for the cli
@@ -287,14 +277,16 @@ instance D.Breakpointable DAnn MaybeBreakpoint where
     hasBreakpoints = error "Not implemented: Breakpointable DAnn Breakpoints"
 
 -- Peel off one layer
-handleDbg :: (Cek.PrettyUni uni fun, D.GivenCekReqs uni fun DAnn RealWorld)
-          => D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
+handleDbg :: (Cek.PrettyUni uni fun)
+          => D.CekTrans uni fun DAnn RealWorld
+          -> D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
           -> Repl.InputT IO ()
-handleDbg = \case
+handleDbg cekTrans = \case
     D.StepF prevState k  -> do
         -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
         -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
-        eNewState <- liftIO $ D.cekMToIO $ D.tryHandleStep prevState
+        -- also liftIO would be unnecessary if haskeline.InputT worked with `primitive`
+        eNewState <- liftIO $ D.liftCek $ D.tryError $ cekTrans prevState
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e

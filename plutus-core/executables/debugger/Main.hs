@@ -21,7 +21,6 @@ import PlutusCore qualified as PLC
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
-import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
@@ -30,7 +29,6 @@ import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
-import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter (newCounter)
 import UntypedPlutusCore.Parser qualified as UPLC
 
 import Draw
@@ -48,7 +46,6 @@ import Control.Monad.Except
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
 import Data.Maybe
-import Data.Proxy
 import Data.Text (Text)
 import Data.Text.IO qualified as Text
 import Data.Traversable
@@ -200,30 +197,18 @@ driverThread :: forall uni fun ann
              -> IO ()
 driverThread driverMailbox brickMailbox prog mbudget = do
     let term = prog ^. UPLC.progTerm
-        MachineParameters defaultCosts defaultRuntime = PLC.defaultCekParameters
     ndterm <- case runExcept @FreeVariableError $ deBruijnTerm term of
             Right t -> pure t
             Left _  -> fail $ "deBruijnTerm failed: " <> PLC.displayPlcDef (void term)
-
     -- if user provided `--budget` the mode is restricting; otherwise just counting
     -- See NOTE [Budgeting implementation for the debugger]
-    let ExBudgetMode initExBudgetInfo = case mbudget of
+    let exBudgetMode = case mbudget of
             Just budgetLimit -> coerceMode $ restricting $ ExRestrictingBudget budgetLimit
             _                -> coerceMode counting
-
-    exBudgetInfo@(ExBudgetInfo spender _ _) <- stToIO initExBudgetInfo
-
-    ctr <- newCounter (Proxy @CounterSize)
-    let ?cekRuntime = defaultRuntime
-        ?cekEmitter = const $ pure () -- TODO: implement emitter
-        ?cekBudgetSpender = spender
-        ?cekCosts = defaultCosts
-        -- The slippage optimization must be *off* to effectively
-        -- get *live* accounting/budgeting that is correct/up-to-date.
-        -- One way to achieve this is by setting slippage to 0 (1 would also work).
-        ?cekSlippage = 0
-        ?cekStepCounter = ctr
-     in D.iterM (handle exBudgetInfo) $ D.runDriver ndterm
+    -- TODO: implement emitter
+    -- nilSlippage is important so as to get correct live up-to-date budget
+    cekTransWithBudgetRead <- mkCekTrans PLC.defaultCekParameters exBudgetMode noEmitter nilSlippage
+    D.iterM (handle cekTransWithBudgetRead) $ D.runDriverT ndterm
 
     where
         -- this gets rid of the CountingSt/RestrictingSt newtype wrappers
@@ -236,13 +221,13 @@ driverThread driverMailbox brickMailbox prog mbudget = do
         -- Peels off one Free monad layer
         -- Note to self: for some reason related to implicit params I cannot turn the following
         -- into a let block and avoid passing exbudgetinfo as parameter
-        handle :: (s ~ RealWorld, GivenCekReqs uni fun ann s)
-               => ExBudgetInfo ExBudget uni fun s
+        handle :: (s ~ RealWorld)
+               => (D.CekTrans uni fun ann s, ExBudgetInfo ExBudget uni fun s)
                -> D.DebugF uni fun ann Breakpoints (IO ())
                -> IO ()
-        handle exBudgetInfo = \case
+        handle (cekTrans, exBudgetInfo) = \case
           D.StepF prevState k  -> do
-              stepRes <- cekMToIO $ D.tryHandleStep prevState
+              stepRes <- liftCek $ D.tryError $ cekTrans prevState
               -- if error then handle it, otherwise "kontinue"
               case stepRes of
                   Left e         -> handleError exBudgetInfo e
