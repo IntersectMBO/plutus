@@ -7,7 +7,6 @@ open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Function using (_∘_)
---open import Data.Product using (proj₁;proj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
                                                   renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
@@ -149,21 +148,21 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
     (subNf-id A))
   (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2sub ρ)) M)
 
-dischargeB : ∀(b : Builtin)
+dischargeB : ∀{b : Builtin}
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → ∀{C} → {Cb : SigTy pt pa C} → (bp : BApp b C Cb) 
           → ∅ ⊢ C
-dischargeB b base = builtin b / refl
-dischargeB b (app bt x) = dischargeB b bt · discharge x
-dischargeB b (app⋆ bt q _) = dischargeB b bt  ·⋆ _ /  q
+dischargeB {b} base = builtin b / refl
+dischargeB (app bt x) = dischargeB bt · discharge x
+dischargeB (app⋆ bt q _) = dischargeB bt  ·⋆ _ /  q
 
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
 discharge (V-Λ M ρ)  = Λ (dischargeBody⋆ M ρ)
 discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c
-discharge (V-I⇒ b bt) = dischargeB b bt
-discharge (V-IΠ b bt) = dischargeB b bt 
+discharge (V-I⇒ b bt) = dischargeB bt
+discharge (V-IΠ b bt) = dischargeB bt 
 ```
 
 ## Builtin Semantics
@@ -328,4 +327,3 @@ stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
 -- -}
- 
