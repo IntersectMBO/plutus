@@ -1,4 +1,19 @@
 
+<a id='changelog-1.4.0.0'></a>
+# 1.4.0.0 — 2023-03-23
+
+## Added
+
+- New Plutus Core language version 1.1
+- PIR programs now have a version, which corresponds to the underlying Plutus Core language version.
+
+## Changed
+
+- `defaultVersion` renamed to `latestVersion`
+- `applyProgram` now merges annotations and requires matching program versions
+
+- Use a primitive array for the step counter; removed the word-array package.
+
 <a id='changelog-1.3.0.0'></a>
 # 1.3.0.0 — 2023-03-08
 
