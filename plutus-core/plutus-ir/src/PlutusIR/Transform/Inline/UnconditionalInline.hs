@@ -109,6 +109,10 @@ So it seems that we're stuck. We can't inline destructors in PIR.
 But we *can* do it in UPLC! No types, so no problem. The type abstraction/instantiation will
 turn into a delay/force pair and get simplified away, and then we have something that we can
 inline. This is essentially the reason for the existence of the UPLC inlining pass.
+
+Note that much the same reasoning applies to constructors also. The main difference
+is that they might not be applied saturated, so it's not _always_ clear that we want to
+inline them. But at least in UPLC we _can_ inline them.
 -}
 
 {- Note [Inlining and global uniqueness]
