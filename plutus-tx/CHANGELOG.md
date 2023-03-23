@@ -1,4 +1,15 @@
 
+<a id='changelog-1.4.0.0'></a>
+# 1.4.0.0 — 2023-03-23
+
+## Added
+
+- `unsafeApplyCode`, a variant of `applyCode` that throws if the language versions don't match.
+
+## Changed
+
+- `applyCode` now requires matching Plutus Core language versions.
+
 <a id='changelog-1.3.0.0'></a>
 # 1.3.0.0 — 2023-03-08
 

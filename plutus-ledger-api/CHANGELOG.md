@@ -1,4 +1,15 @@
 
+<a id='changelog-1.4.0.0'></a>
+# 1.4.0.0 — 2023-03-23
+
+## Added
+
+- Support for multiple Plutus Core language versions.
+
+## Changed
+
+- The naming around "Plutus langauge versions" changed to talk about "Plutus ledger languages" following CIP-35.
+
 <a id='changelog-1.3.0.0'></a>
 # 1.3.0.0 — 2023-03-08
 
