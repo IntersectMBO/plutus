@@ -46,7 +46,7 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
+import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -105,7 +105,7 @@ availablePasses =
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
                                                                                   ver <- view ccBuiltinVer
-                                                                                  UInline.inline hints ver t
+                                                                                  Inline.inline hints ver t
                                                                               )
     ]
 

@@ -10,7 +10,7 @@ in the paper 'Secrets of the GHC Inliner'.
 (2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
 
-module PlutusIR.Transform.Inline.UnconditionalInline (inline, InlineHints (..)) where
+module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages

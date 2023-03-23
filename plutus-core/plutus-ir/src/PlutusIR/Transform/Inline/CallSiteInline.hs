@@ -97,7 +97,7 @@ let id = \y -> y
 are acceptable.
 
 Because a function can be called in the `body` multiple times and may not be fully applied for all
-its calls, we cannot simply keep a simple substitution map like in `UnconditionalInline`,
+its calls, we cannot simply keep a simple substitution map like in `Inline`,
 which substitute *all* occurrences of a variable.
 
 (2) How do we decide whether cost and size are acceptable?
