@@ -1,3 +1,6 @@
+// IGNORE THIS FILE: it's required for the Haskell blst bindings but we'll be
+// able to remove it when the bindings are merged in cardano-base.
+
 #include "blst.h"
 #include <memory.h>
 

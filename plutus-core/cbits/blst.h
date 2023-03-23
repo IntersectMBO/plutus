@@ -1,3 +1,6 @@
+// IGNORE THIS FILE: it's required for the Haskell blst bindings but we'll be
+// able to remove it when the bindings are merged in cardano-base.
+
 /*
  * Copyright Supranational LLC
  * Licensed under the Apache License, Version 2.0, see LICENSE for details.
