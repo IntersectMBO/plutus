@@ -152,10 +152,9 @@ There are proofs of correspondence of the semantics of:
  * (typed) CEK machine
 
 ```
--- TODO Update proofs of Behavioural Equivalence.
---import Algorithmic.BehaviouralEquivalence.ReductionvsCC
---import Algorithmic.BehaviouralEquivalence.CCvsCK
---import Algorithmic.BehaviouralEquivalence.CKvsCEK
+import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+import Algorithmic.BehaviouralEquivalence.CCvsCK
+import Algorithmic.BehaviouralEquivalence.CKvsCEK
 ```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 
