@@ -91,8 +91,8 @@ infinityBit :: Word8
 infinityBit = 0x40
 
 -- The third most significant bit of a compressed point denotes the "sign" of
--- the y-coordinate of the associated point : it is set if and only if point is
--- not the point at infinity and the y-coordinate is the lexicographically
+-- the y-coordinate of the associated point: it is set if and only if the point
+-- is not the point at infinity and the y-coordinate is the lexicographically
 -- larger one with the given x coordinate.
 signBit :: Word8
 signBit = 0x20
@@ -131,13 +131,13 @@ fix s =
 
 ---------------- Typeclasses for groups ----------------
 
--- | The code for the property tests for G1 and G2 is essentially identical, so
--- it's worth abstracting over the common features.  The blst Haskell FFI uses a
--- phantom type to do this but unfortunately we have to hide that to stop the
--- builtin machinery spotting it and then we have to re-abstract here.
+{- | The code for the property tests for G1 and G2 is essentially identical, so
+ it's worth abstracting over the common features.  The blst Haskell FFI uses a
+ phantom type to do this but unfortunately we have to hide that to stop the
+ builtin machinery spotting it and then we have to re-abstract here. -}
 
--- | We could re-use the AbelianGroup class here, but that uses <> and `mempty`
--- and that's kind of confusing.
+-- We could re-use the AbelianGroup class here, but that uses <> and `mempty`
+-- and that's confusing.
 class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a) => TestableAbelianGroup a
     where
       gname      :: String
@@ -163,11 +163,11 @@ class TestableAbelianGroup a => HashAndCompress a
       hashToGroupP   :: PlcTerm -> PlcTerm
 
 
--- | Generate an arbitrary element of G1.  It's tricky to construct such an
--- element directly without using quite low-level operations on the curve
--- because a random point on the curve is highly unlikely to be in the subgroup
--- G1, but fortunately `hashToGroup` always produces an element of the subgroup,
--- so we can produce random elements of G1 by hasing random bytestrings.
+{- | Generate an arbitrary element of G1.  It's tricky to construct such an
+ element directly without using quite low-level operations on the curve
+ because a random point on the curve is highly unlikely to be in the subgroup
+ G1, but fortunately `hashToGroup` always produces an element of the subgroup,
+ so we can produce random elements of G1 by hasing random bytestrings. -}
 instance Arbitrary G1.Element
     where
       arbitrary = G1.hashToGroup <$> arbitrary

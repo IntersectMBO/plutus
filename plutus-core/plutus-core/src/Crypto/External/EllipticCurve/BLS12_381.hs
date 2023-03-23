@@ -1,7 +1,7 @@
--- FIXME. This is a local copy of
+-- IGNORE THIS FILE. It is a local copy of
 -- https://github.com/input-output-hk/cardano-base/tree/bls12-381, which
 -- currently has an open PR.  Once that is merged we should delete this and
--- depend on the code in cardano-base instead.  There may be a dnager of
+-- depend on the code in cardano-base instead.  There may be a danger of
 -- confusion when we do that because we've got module names beginning with
 -- `Crypto.` as well.
 

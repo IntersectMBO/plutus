@@ -630,16 +630,28 @@ test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
-                 testGroup "Ed25519 signatures (V1)" $ [
-                                testPropertyNamed "Ed25519_V1 verification behaves correctly on all inputs" "ed25519_V1_correct" . property $ ed25519_V1Prop
-                               ],
-                 testGroup "Ed25519 signatures (V2)" $ [
-                                testPropertyNamed "Ed25519_V2 verification behaves correctly on all inputs" "ed25519_V2_correct" . property $ ed25519_V2Prop
-                               ],
-                 testGroup "Signatures on the SECP256k1 curve" $ [
-                                testPropertyNamed "ECDSA verification behaves correctly on all inputs" "ecdsa_correct" . property $ ecdsaSecp256k1Prop,
-                                testPropertyNamed "Schnorr verification behaves correctly on all inputs" "schnorr_correct" . property $ schnorrSecp256k1Prop
-                               ]
+        testGroup "Ed25519 signatures (V1)"
+                      [ testPropertyNamed
+                        "Ed25519_V1 verification behaves correctly on all inputs"
+                        "ed25519_V1_correct" .
+                        property $ ed25519_V1Prop
+                      ],
+        testGroup "Ed25519 signatures (V2)"
+                      [ testPropertyNamed
+                        "Ed25519_V2 verification behaves correctly on all inputs"
+                        "ed25519_V2_correct"
+                        . property $ ed25519_V2Prop
+                      ],
+        testGroup "Signatures on the SECP256k1 curve"
+                      [ testPropertyNamed
+                        "ECDSA verification behaves correctly on all inputs"
+                        "ecdsa_correct"
+                        . property $ ecdsaSecp256k1Prop
+                      , testPropertyNamed
+                            "Schnorr verification behaves correctly on all inputs"
+                            "schnorr_correct"
+                            . property $ schnorrSecp256k1Prop
+                      ]
                 ]
 
 test_definition :: TestTree

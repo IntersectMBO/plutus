@@ -516,6 +516,10 @@ serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 BLS12_381
 -}
 
+{- | We have to wrap the BLS21_381 types in datatypes to stop the plugin from
+   seeing that they're really ForeignPtrs inside newtypes, which it can't deal
+   with. See Note [Wrapping the BLS12-381 types] -}
+
 ---------------- G1 ----------------
 
 data BuiltinBLS12_381_G1_Element = BuiltinBLS12_381_G1_Element BLS12_381.G1.Element
@@ -528,8 +532,6 @@ instance NFData BuiltinBLS12_381_G1_Element where
      rnf (BuiltinBLS12_381_G1_Element d) = rnf d
 instance Pretty BuiltinBLS12_381_G1_Element where
     pretty (BuiltinBLS12_381_G1_Element a) = pretty a
--- Group / Z-module instance??
-
 
 {-# NOINLINE bls12_381_G1_equals #-}
 bls12_381_G1_equals :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBool
@@ -605,7 +607,6 @@ bls12_381_G2_uncompress (BuiltinByteString b) =
 {-# NOINLINE bls12_381_G2_hashToGroup #-}
 bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToGroup b
-
 
 ---------------- Pairing ----------------
 

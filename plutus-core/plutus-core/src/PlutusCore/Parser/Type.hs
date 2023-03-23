@@ -75,9 +75,8 @@ pType = choice $ map try
     , varType
     ]
 
--- | Parser for built-in type applications.  The textul anmes here should match
--- the ones in the PrettyBy instance for DefaultUni in
--- PlutusCore.Default.Universe
+-- | Parser for built-in type applications.  The textual names here should match
+-- the ones in the PrettyBy instance for DefaultUni in PlutusCore.Default.Universe.
 defaultUniApplication :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUniApplication = do
     -- Parse the head of the application.
@@ -134,6 +133,7 @@ defaultUni = choice $ map try
     , someType @_ @Data                 <$ symbol "data"
     , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381_G1_element"
     , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
+    -- BLS12_381.G2.MlResult is deliberately not supported.
     ]
 
 tyName :: Parser TyName

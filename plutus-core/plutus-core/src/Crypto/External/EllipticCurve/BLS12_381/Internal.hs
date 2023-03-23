@@ -1,3 +1,8 @@
+-- IGNORE THIS FILE. It is a local copy of
+-- https://github.com/input-output-hk/cardano-base/tree/bls12-381, which
+-- currently has an open PR.  Once that is merged we should delete this and
+-- depend on the code in cardano-base instead.
+
 --- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns             #-}
 {-# LANGUAGE DataKinds                #-}
@@ -628,7 +633,7 @@ data BLSTError
   | BLST_PK_IS_INFINITY
   | BLST_BAD_SCALAR
   | BLST_UNKNOWN_ERROR
-  deriving (Show, Eq, Ord, Enum, Bounded)
+  deriving stock (Show, Eq, Ord, Enum, Bounded)
 
 mkBLSTError :: CInt -> BLSTError
 mkBLSTError e

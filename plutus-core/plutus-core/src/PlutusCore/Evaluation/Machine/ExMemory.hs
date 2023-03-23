@@ -287,8 +287,8 @@ instance ExMemoryUsage Crypto.BLS12_381.G1.Element where
 
 instance ExMemoryUsage Crypto.BLS12_381.G2.Element where
     memoryUsage _ = fromIntegral $ Crypto.BLS12_381.G2.memSizeBytes `div` 8
-    -- Should be
+    -- Should be 24
 
 instance ExMemoryUsage Crypto.BLS12_381.Pairing.MlResult where
     memoryUsage _ = fromIntegral $ Crypto.BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
-    -- Soulh be 144
+    -- Should be 144
