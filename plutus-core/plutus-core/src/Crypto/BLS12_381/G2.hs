@@ -61,14 +61,16 @@ neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve2 a
 scalarMul :: Integer -> Element -> Element -- Other way round from library function
 scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve2 a k
 
--- | Compress a G2 element to a bytestring. This serialises a curve point to its
--- x coordinate only, using an extra bit to determine which of two possible y
--- coordinates the point has. The compressed bytestring is 96 bytes long. See
--- https://github.com/supranational/blst#serialization-format
+{- | Compress a G2 element to a bytestring. This serialises a curve point to its x
+ coordinate only, using an extra bit to determine which of two possible y
+ coordinates the point has. The compressed bytestring is 96 bytes long. See
+ https://github.com/supranational/blst#serialization-format
+-}
 compress :: Element -> ByteString
 compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
 
-{- | Uncompress a bytestring to get a G2 point.  This can fail if
+{- | Uncompress a bytestring to get a G2 point.  This will fail if any of the
+   following are true:
      * The bytestring is not exactly 96 bytes long
      * The most significant three bits are used incorrectly
      * The bytestring encodes a field element which is not the

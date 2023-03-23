@@ -81,13 +81,13 @@ neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve1 a
 scalarMul :: Integer -> Element -> Element
 scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve1 a k
 
--- | Compress a G1 element to a bytestring. This serialises a curve point to its
--- x coordinate only.  The compressed bytestring is 48 bytes long, with three
--- spare bits used to convey extra information about the point, including
--- determining which of two possible y coordinates the point has and whether the
--- point is the point at infinity. See
--- https://github.com/supranational/blst#serialization-format
-
+{- | Compress a G1 element to a bytestring. This serialises a curve point to its
+ x coordinate only.  The compressed bytestring is 48 bytes long, with three
+ spare bits used to convey extra information about the point, including
+ determining which of two possible y coordinates the point has and whether the
+ point is the point at infinity. See
+ https://github.com/supranational/blst#serialization-format
+-}
 compress :: Element -> ByteString
 compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
 
