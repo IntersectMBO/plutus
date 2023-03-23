@@ -298,6 +298,12 @@ library
     , unordered-containers
     , witherable
 
+  -- We don't depend directly on dependent-sum, but we need to set the lower bound
+  -- since older versions cannot generate GCompare instances.
+  -- The version bound needs to be set here rather than in cabal.project, because
+  -- cabal.project constraints don't make it into published libraries.
+  build-depends:      dependent-sum >=0.7.1.0
+
   if impl(ghc <9.0)
     build-depends: integer-gmp
 
