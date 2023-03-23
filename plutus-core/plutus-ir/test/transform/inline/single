@@ -1,3 +1,16 @@
+{- let x = 42
+       simple = let f = \y.y in f 1
+       insideLambda = let f = \y.y in \y. (f 1)
+       trivialLambda = let f = \y.y in f (f 1)
+       variableCapture = let f = \y.y in let x = 24 in (f x)
+    in x
+
+- the `f` in `simple`, `insideLambda`, `variableCapture` get inlined by unconditional inlining 
+because it occurs only once in those.
+- the `f` in `trivialLambda` gets inlined by the call site inliner because `f` occurs more than once
+and is fully applied.
+-}
+
 (let
   (nonrec)
 
