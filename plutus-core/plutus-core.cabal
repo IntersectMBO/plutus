@@ -238,7 +238,9 @@ library
     plutus-core/src plutus-core/stdlib plutus-core/examples
     untyped-plutus-core/src prelude
 
-  -- Bound on cardano-crypto-class for the fixed SECP primitives
+  -- Notes on dependencies:
+  -- * Bound on cardano-crypto-class for the fixed SECP primitives
+  -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
   build-depends:
     , aeson
     , array
@@ -256,6 +258,7 @@ library
     , cryptonite
     , data-default-class
     , deepseq
+    , dependent-sum               >=0.7.1.0
     , dependent-sum-template
     , deriving-aeson              >=0.2.3
     , deriving-compat
