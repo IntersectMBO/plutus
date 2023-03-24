@@ -1,5 +1,4 @@
 -- editorconfig-checker-disable
-{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
 
@@ -42,10 +41,10 @@ instance PrettyBy ConstConfig Element where
 instance Flat Element where
     decode = do
         x <- decode
-        case BlstBindings.blsUncompress @BlstBindings.Curve2 x of
+        case uncompress x of
              Left err -> fail $ show err
-             Right e  -> pure $ Element e
-    encode = encode . BlstBindings.blsCompress @BlstBindings.Curve2 . unElement
+             Right e  -> pure e
+    encode = encode . compress
     size = size . compress
 instance NFData Element where
     rnf _ = ()
@@ -93,9 +92,9 @@ hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve2 s Nothing No
 zero :: Element
 zero =
     let b = pack (0xc0 : replicate 95 0x00) -- Compressed serialised G2 points are bytestrings of length 96: see CIP-0381.
-    in case BlstBindings.blsUncompress @BlstBindings.Curve2 b of
+    in case uncompress b of
          Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G2:  " ++ show err
-         Right infinity -> Element infinity   -- The zero point on this curve is chosen to be the point at infinity.
+         Right infinity -> infinity   -- The zero point on this curve is chosen to be the point at infinity.
 
 -- | Memory usage of a G2 point (288 bytes)
 memSizeBytes :: Int
