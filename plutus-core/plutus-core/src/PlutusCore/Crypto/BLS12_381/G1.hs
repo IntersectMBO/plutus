@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
 
-module Crypto.BLS12_381.G1
+module PlutusCore.Crypto.BLS12_381.G1
     ( Element (..)
     , add
     , neg
@@ -18,7 +18,7 @@ module Crypto.BLS12_381.G1
 import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
 import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
-import Crypto.Utils (byteStringAsHex)
+import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy, prettyBy)
 

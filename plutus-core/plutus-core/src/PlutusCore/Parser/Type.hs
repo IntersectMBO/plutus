@@ -7,10 +7,10 @@ module PlutusCore.Parser.Type where
 
 import PlutusPrelude
 
-import Crypto.BLS12_381.G1 as BLS12_381.G1
-import Crypto.BLS12_381.G2 as BLS12_381.G2
 import PlutusCore.Annotation
 import PlutusCore.Core.Type
+import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkIterTyApp)

@@ -25,13 +25,13 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import Crypto.BLS12_381.G1 qualified
-import Crypto.BLS12_381.G2 qualified
-import Crypto.BLS12_381.Pairing qualified
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
 import Codec.Serialise (serialise)
-import Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
-import Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
@@ -1391,68 +1391,68 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- BLS12_381.G1
     toBuiltinMeaning _var Bls12_381_G1_add =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.add
+            BLS12_381.G1.add
             (runCostingFunTwoArguments . paramBls12_381_G1_add)
     toBuiltinMeaning _var Bls12_381_G1_neg =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.neg
+            BLS12_381.G1.neg
             (runCostingFunOneArgument . paramBls12_381_G1_neg)
     toBuiltinMeaning _var Bls12_381_G1_scalarMul =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.scalarMul
+            BLS12_381.G1.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
     toBuiltinMeaning _var Bls12_381_G1_compress =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.compress
+            BLS12_381.G1.compress
             (runCostingFunOneArgument . paramBls12_381_G1_compress)
     toBuiltinMeaning _var Bls12_381_G1_uncompress =
         makeBuiltinMeaning
             uncompressG1
             (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
         where uncompressG1 s =
-                  case Crypto.BLS12_381.G1.uncompress s of
+                  case BLS12_381.G1.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G1.hashToGroup
+            BLS12_381.G1.hashToGroup
             (runCostingFunOneArgument . paramBls12_381_G1_hashToGroup)
     toBuiltinMeaning _var Bls12_381_G1_equal =
         makeBuiltinMeaning
-            ((==) @Crypto.BLS12_381.G1.Element)
+            ((==) @BLS12_381.G1.Element)
             (runCostingFunTwoArguments . paramBls12_381_G1_equal)
     -- BLS12_381.G2
     toBuiltinMeaning _var Bls12_381_G2_add =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.add
+            BLS12_381.G2.add
             (runCostingFunTwoArguments . paramBls12_381_G2_add)
     toBuiltinMeaning _var Bls12_381_G2_neg =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.neg
+            BLS12_381.G2.neg
             (runCostingFunOneArgument . paramBls12_381_G2_neg)
     toBuiltinMeaning _var Bls12_381_G2_scalarMul =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.scalarMul
+            BLS12_381.G2.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
     toBuiltinMeaning _var Bls12_381_G2_compress =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.compress
+            BLS12_381.G2.compress
             (runCostingFunOneArgument . paramBls12_381_G2_compress)
     toBuiltinMeaning _var Bls12_381_G2_uncompress =
         makeBuiltinMeaning
             uncompressG2
             (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
         where uncompressG2 s =
-                  case Crypto.BLS12_381.G2.uncompress s of
+                  case BLS12_381.G2.uncompress s of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
-            Crypto.BLS12_381.G2.hashToGroup
+            BLS12_381.G2.hashToGroup
             (runCostingFunOneArgument . paramBls12_381_G2_hashToGroup)
     toBuiltinMeaning _var Bls12_381_G2_equal =
         makeBuiltinMeaning
-            ((==) @Crypto.BLS12_381.G2.Element)
+            ((==) @BLS12_381.G2.Element)
             (runCostingFunTwoArguments . paramBls12_381_G2_equal)
     -- BLS12_381.Pairing
     toBuiltinMeaning _var Bls12_381_millerLoop =
@@ -1460,16 +1460,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             ml
             (runCostingFunTwoArguments . paramBls12_381_millerLoop)
         where ml a b =
-                  case Crypto.BLS12_381.Pairing.millerLoop a b of
+                  case BLS12_381.Pairing.millerLoop a b of
                     Left _  -> EvaluationFailure
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_mulMlResult =
         makeBuiltinMeaning
-            Crypto.BLS12_381.Pairing.mulMlResult
+            BLS12_381.Pairing.mulMlResult
             (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
     toBuiltinMeaning _var Bls12_381_finalVerify =
         makeBuiltinMeaning
-            Crypto.BLS12_381.Pairing.finalVerify
+            BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

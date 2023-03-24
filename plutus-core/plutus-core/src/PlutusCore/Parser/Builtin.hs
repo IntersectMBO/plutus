@@ -6,8 +6,8 @@ module PlutusCore.Parser.Builtin where
 
 import PlutusPrelude (Word8, reoption)
 
-import Crypto.BLS12_381.G1 qualified as BLS12_381.G1
-import Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))

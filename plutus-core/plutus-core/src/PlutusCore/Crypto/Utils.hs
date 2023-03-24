@@ -1,7 +1,7 @@
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Crypto.Utils (failWithMessage, byteStringAsHex)
+module PlutusCore.Crypto.Utils (failWithMessage, byteStringAsHex)
 where
 
 import Data.ByteString (ByteString, foldr')

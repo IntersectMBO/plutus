@@ -17,9 +17,6 @@ module PlutusTx.Builtins.Internal where
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
-import Crypto.BLS12_381.G1 qualified as BLS12_381.G1
-import Crypto.BLS12_381.G2 qualified as BLS12_381.G2
-import Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import Crypto.Ed25519 qualified
 import Crypto.Secp256k1 qualified
 import Data.ByteArray qualified as BA
@@ -34,6 +31,9 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusCore.Pretty (Pretty (..))

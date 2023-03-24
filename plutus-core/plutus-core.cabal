@@ -78,12 +78,7 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Crypto.BLS12_381.G1
-    Crypto.BLS12_381.G2
-    Crypto.BLS12_381.Pairing
-    Crypto.Ed25519
     Crypto.External.EllipticCurve.BLS12_381
-    Crypto.Secp256k1
     Data.ByteString.Hash
     Data.Either.Extras
     Data.MultiSet.Lens
@@ -100,6 +95,11 @@ library
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
     PlutusCore.Core
+    PlutusCore.Crypto.BLS12_381.G1
+    PlutusCore.Crypto.BLS12_381.G2
+    PlutusCore.Crypto.BLS12_381.Pairing
+    PlutusCore.Crypto.Ed25519
+    PlutusCore.Crypto.Secp256k1
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
@@ -183,7 +183,6 @@ library
 
   other-modules:
     Crypto.External.EllipticCurve.BLS12_381.Internal
-    Crypto.Utils
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
@@ -209,6 +208,7 @@ library
     PlutusCore.Core.Instance.Scoping
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
+    PlutusCore.Crypto.Utils
     PlutusCore.DeBruijn.Internal
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe

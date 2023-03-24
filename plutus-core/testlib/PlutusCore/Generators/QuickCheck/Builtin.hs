@@ -7,11 +7,11 @@
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
-import Crypto.BLS12_381.G1 qualified
-import Crypto.BLS12_381.G2 qualified
-import Crypto.BLS12_381.Pairing qualified
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)
 
@@ -115,18 +115,18 @@ instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
 
-instance ArbitraryBuiltin Crypto.BLS12_381.G1.Element where
-    arbitraryBuiltin = Crypto.BLS12_381.G1.hashToGroup <$> arbitrary
+instance ArbitraryBuiltin BLS12_381.G1.Element where
+    arbitraryBuiltin = BLS12_381.G1.hashToGroup <$> arbitrary
     shrinkBuiltin _ = []
 
-instance ArbitraryBuiltin Crypto.BLS12_381.G2.Element where
-    arbitraryBuiltin = Crypto.BLS12_381.G2.hashToGroup <$> arbitrary
+instance ArbitraryBuiltin BLS12_381.G2.Element where
+    arbitraryBuiltin = BLS12_381.G2.hashToGroup <$> arbitrary
     shrinkBuiltin _ = []
 
-instance ArbitraryBuiltin Crypto.BLS12_381.Pairing.MlResult where
+instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
     arbitraryBuiltin = millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
                        where millerLoop p1 p2 =
-                                 case Crypto.BLS12_381.Pairing.millerLoop p1 p2 of
+                                 case BLS12_381.Pairing.millerLoop p1 p2 of
                                    Left err -> error $ "pairing: " ++ show err
                                    Right p  -> p
     shrinkBuiltin _ = []

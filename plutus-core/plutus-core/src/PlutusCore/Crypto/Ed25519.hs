@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Crypto.Ed25519 (
+module PlutusCore.Crypto.Ed25519 (
    verifyEd25519Signature_V1,
    verifyEd25519Signature_V2
    ) where
 
-import Crypto.Utils
+import PlutusCore.Crypto.Utils
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)

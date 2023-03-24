@@ -17,9 +17,9 @@ import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
-import Crypto.BLS12_381.G1 qualified as G1
-import Crypto.BLS12_381.G2 qualified as G2
-import Crypto.BLS12_381.Pairing qualified as Pairing
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
 
 import Criterion.Main (Benchmark, bgroup)
 import Data.ByteString (ByteString)

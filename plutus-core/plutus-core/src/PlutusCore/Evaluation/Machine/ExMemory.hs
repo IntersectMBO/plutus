@@ -17,13 +17,12 @@ module PlutusCore.Evaluation.Machine.ExMemory
 , ExMemoryUsage(..)
 ) where
 
+import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Pretty
 import PlutusPrelude
-
-import Crypto.BLS12_381.G1
-import Crypto.BLS12_381.G2
-import Crypto.BLS12_381.Pairing
 
 import Codec.Serialise (Serialise)
 import Control.Monad.RWS.Strict
@@ -281,14 +280,14 @@ instance ExMemoryUsage Data where
               sizeDataPairs []           = 0
               sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
 
-instance ExMemoryUsage Crypto.BLS12_381.G1.Element where
-    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.G1.memSizeBytes `div` 8
+instance ExMemoryUsage BLS12_381.G1.Element where
+    memoryUsage _ = fromIntegral $ BLS12_381.G1.memSizeBytes `div` 8
     -- Should be 12
 
-instance ExMemoryUsage Crypto.BLS12_381.G2.Element where
-    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.G2.memSizeBytes `div` 8
+instance ExMemoryUsage BLS12_381.G2.Element where
+    memoryUsage _ = fromIntegral $ BLS12_381.G2.memSizeBytes `div` 8
     -- Should be 24
 
-instance ExMemoryUsage Crypto.BLS12_381.Pairing.MlResult where
-    memoryUsage _ = fromIntegral $ Crypto.BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+instance ExMemoryUsage BLS12_381.Pairing.MlResult where
+    memoryUsage _ = fromIntegral $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
     -- Should be 144

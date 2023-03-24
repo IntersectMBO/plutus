@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
-module Crypto.BLS12_381.Pairing
+module PlutusCore.Crypto.BLS12_381.Pairing
     (
      MlResult (..),
      millerLoop,
@@ -13,8 +13,8 @@ module Crypto.BLS12_381.Pairing
 import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
 import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
-import Crypto.BLS12_381.G1 qualified as G1
-import Crypto.BLS12_381.G2 qualified as G2
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy, prettyBy)
 

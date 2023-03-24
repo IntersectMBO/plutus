@@ -5,9 +5,9 @@
 module Evaluation.Builtins.BLS12_381.PlutusTests (tests)
 where
 
-import Crypto.BLS12_381.G1 qualified as G1
-import Crypto.BLS12_381.G2 qualified as G2
 import Evaluation.Builtins.BLS12_381.Common
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
 
 import Crypto.External.EllipticCurve.BLS12_381 (scalarPeriod)

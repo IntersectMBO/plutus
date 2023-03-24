@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
-module Crypto.Secp256k1 (
+module PlutusCore.Crypto.Secp256k1 (
    verifyEcdsaSecp256k1Signature,
    verifySchnorrSecp256k1Signature
    ) where
 
-import Crypto.Utils
+import PlutusCore.Crypto.Utils
 
 import Cardano.Crypto.DSIGN.Class qualified as DSIGN
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
