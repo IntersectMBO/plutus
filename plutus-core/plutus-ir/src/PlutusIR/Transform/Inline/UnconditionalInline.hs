@@ -82,27 +82,39 @@ which always provide all the arguments.
 2. They will reduce well after being inlined, since their bodies consist of just one argument
 applied to the others.
 
-Unfortunately, we can't inline them even after we've eliminated datatypes, because they look like
-this (see Note [Abstract data types]):
+Unfortunately, we can't inline them even after we've compiled datatypes, because compiled datatypes
+look like this (see Note [Abstract data types]). Here's an example with Maybe:
 
-(/\ ty :: * .
-  ...
-  -- ty abstract
-  \match : <destructor type> .
+(/\Maybe :: * -> * .
+  \Nothing :: forall a . Maybe a  .
+  \Just :: forall a . a -> Maybe .
+  \match_Maybe : forall r . Maybe a -> r -> (a -> r) -> r .
     <user term>
 )
-<defn of ty>
-...
--- ty concrete
-<defn of match>
+-- defn of Maybe
+{ \ a . forall r . r -> (a -> r) -> r }
+-- defn of Nothing
+(/\ a . /\ r . \(nothing_case :: r) . \(just_case :: a -> r) . nothing_case)
+-- defn of Just
+(/\ a . \(x : a) . /\ r . \(nothing_case :: r) . \(just_case :: a -> r) . just_case x)
+-- defn of match_Maybe
+(/\ a . \(dt : forall r . r -> (a -> r) -> r) . dt)
 
-This doesn't look like a let-binding because there is a type abstraction in between the lambda
-and its argument! And this abstraction is important: the body of the matcher only typechecks
-if it is *outside* the type abstraction, so we can't just push it inside or something.
+The definitions of the constructors/destructor don't look like let-bindings because there
+is a type abstraction in between the lambdas and their arguments! And this abstraction
+is important: the bodies of the constructors/destructor only typecheck if they are
+*outside* the type abstraction, because they fundamentally rely on knowing what the
+type actually *is* in order to be able to construct/destruct it. e.g. for a Scott-encoded
+type we actually need to know that the datatype is encoded as a matching function,
+not just an abstract type. So we can't just put the definitions of the
+constructors/destructor inside the type abstraction.
 
-We *could* inline 'ty', but this way lies madness: doing that consistently would mean inlining
-the definitions of *all* datatypes, which would enormously (exponentially!) bloat the types
-inside, making the typechecker (and everything else that processes the AST) incredibly slow.
+We *could* inline the datatype definition. That would get rid of the type abstraction,
+letting us inline the constructors/destructor (by effectively making the datatype not
+abstract inside the body). But this way lies madness: doing that consistently would
+mean inlining the definitions of *all* datatypes, which would enormously (exponentially!)
+bloat the types inside, making the typechecker (and everything else that processes the
+AST) incredibly slow.
 
 So it seems that we're stuck. We can't inline destructors in PIR.
 
