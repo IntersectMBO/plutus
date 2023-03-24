@@ -33,7 +33,7 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity, inlineSat)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -244,43 +244,34 @@ processSingleBinding
     => Term tyname name uni fun ann -- ^ The body of the let binding.
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
-processSingleBinding body = \case
+processSingleBinding body =
+    -- when we encounter a binding that is a function, we add it to the global map
+    -- `Utils.CalledVarEnv`. When we check the body of the let binding we look in this map for
+    -- call site inlining.
+    let addVarToMap letBody v ann s n rhs = do
+            -- we want to do unconditional inline if possible
+            maybeRhs' <- maybeAddSubst letBody ann s n rhs
+            case maybeRhs' of
+                -- inline and remove binding when the conditions for unconditional inlining are met.
+                Nothing -> pure $ TermBind ann s v <$> maybeRhs'
+                Just rhsProcess -> do
+                    let
+                        varLamOrder = fst $ computeArity rhs
+                        bodyToCheck = snd $ computeArity rhs
+                    -- add the function to `CalledVarEnv`, because we may want to inline this.
+                    -- We don't remove the binding because we decide *at the call site*
+                    -- whether we want to inline, and it may be called more than once.
+                    void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder bodyToCheck)
+                    pure $ Just $ TermBind ann s v rhsProcess
+    in
+    \case
     -- The let binding is a function type here.
     -- If it's not unconditionally inlined, we add it to the `CalledVarEnv`
     -- and consider whether we want to inline at the call site.
-    TermBind ann s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> do
-        -- we want to do unconditional inline if possible
-        maybeRhs' <- maybeAddSubst body ann s n rhs
-        case maybeRhs' of
-            -- inline and remove binding when the conditions for unconditional inlining are met.
-            Nothing -> pure $ TermBind ann s v <$> maybeRhs'
-            Just rhsProcess -> do
-                let
-                    varLamOrder = fst $ computeArity rhs
-                    bodyToCheck = snd $ computeArity rhs
-                -- add the function to `CalledVarEnv`, because we may want to inline this.
-                -- We don't remove the binding because we decide *at the call site*
-                -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder bodyToCheck)
-                pure $ Just $ TermBind ann s v rhsProcess
-    -- when the let binding is a type lambda abstraction, we add it to the `CalledVarEnv` and
-    -- consider whether we want to inline at the call site.
-    TermBind ann s v@(VarDecl _ n (TyLam _ann _tyname _tyArg _tyBody)) rhs -> do
-        -- we want to do unconditional inline if possible
-        maybeRhs' <- maybeAddSubst body ann s n rhs
-        case maybeRhs' of
-            -- inline and remove binding when the conditions for unconditional inlining are met.
-            Nothing -> pure $ TermBind ann s v <$> maybeRhs'
-            Just rhsProcess -> do
-                let
-                    varLamOrder = fst $ computeArity rhs
-                    bodyToCheck = snd $ computeArity rhs
-                -- add the function to `CalledVarEnv`, because we may want to inline this at the
-                -- call site. We don't remove the binding because we decide *at the call site*
-                -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendCalled n (MkCalledVarInfo rhs varLamOrder bodyToCheck)
-                pure $ Just $ TermBind ann s v rhsProcess
-    -- for binding that aren't functions, maybe do unconditional inline
+    TermBind ann s v@(VarDecl _ n (TyFun _ _tyArg _tyBody)) rhs -> addVarToMap body v ann s n rhs
+    -- The let binding is a type lambda abstraction.
+    TermBind ann s v@(VarDecl _ n _) rhs@(TyAbs {}) -> addVarToMap body v ann s n rhs
+    -- for binding that aren't functions, maybe unconditional inline
     TermBind ann s v@(VarDecl _ n _) rhs -> do
         maybeRhs' <- maybeAddSubst body ann s n rhs
         pure $ TermBind ann s v <$> maybeRhs'

@@ -15,10 +15,8 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 import Control.Lens (forMOf)
 import Control.Monad.State
 import Data.Bifunctor (first)
-import PlutusCore.Pretty
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
-import Prettyprinter
 
 {- Note [Inlining of fully applied functions]
 
@@ -131,10 +129,6 @@ computeArity = \case
 data Args tyname name uni fun ann =
   MkTermArg (Term tyname name uni fun ann)
   | MkTypeArg (Type tyname uni ann)
-  deriving stock (Show)
-
-instance Pretty (Args tyname name uni fun ann) where
-  pretty = viaShow
 
 -- | A list of type or term argument(s) that are being applied.
 type ArgOrder tyname name uni fun ann = [Args tyname name uni fun ann]
