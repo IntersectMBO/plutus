@@ -59,8 +59,7 @@ Beta-reduction: done in `Beta.hs`.
 Implementation
 --------------
 
-In-scope set: we don't bother keeping it, since we only ever substitute in things that
-don't have bound variables.
+In-scope set: we don't bother keeping it atm.
 
 Suspended substitutions ('SuspEx') for values: we don't need it, because we simplify the RHS before
 preInlineUnconditional. For GHC, they can do more simplification in context, but they only want to
@@ -127,11 +126,10 @@ inline them. But at least in UPLC we _can_ inline them.
 
 {- Note [Inlining and global uniqueness]
 Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
-preserve it because we don't currently inline anything with binders.
+preserve it because we don't inline anything with binders in unconditional inlining.
 
-If we do start inlining things with binders in them, we should probably try and preserve it by
-doing something like 'The rapier' section from the paper. We could also just bite the bullet
-and rename everything when we substitute in, which GHC considers too expensive but we might accept.
+With call site inlining, we do inlining things with binders in them. We will give the binders fresh
+name when we substitute in to preserve uniqueness in that case. TODO in a follow up PR.
 -}
 
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.

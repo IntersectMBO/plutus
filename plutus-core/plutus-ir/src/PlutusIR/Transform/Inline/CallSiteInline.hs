@@ -20,12 +20,12 @@ import PlutusIR.Transform.Inline.Utils
 
 {- Note [Inlining of fully applied functions]
 
-We inline if (1) a function is fully applied (2) if its cost and size are acceptable. We discuss
+We inline if (1) a function is fully applied (2) its cost and size are acceptable. We discuss
 each in detail below.
 
 (1) What do we mean by "fully applied"?
 
-A function is fully applied when it has been applied to all arguments of as indicated by its
+A function is fully applied when it has been applied to all arguments as indicated by its
 syntactic arity.
 
 Consider `let v = rhs in body`, in which `body` calls `v`.
@@ -45,8 +45,7 @@ an under-approximation of how many arguments the term may need.
 e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
 arity @[]@, but does in fact need an argument before it does any work.
 
-
-In the `body`, where `v` is *called*,
+In the `body`, where `v` is *called*, if `VBody` is acceptable in size and cost, and
 if it was given the `n` term or type arguments in the correct order, then it is *fully applied*.
 We inline the call of the fully applied `v` in this case, i.e.,
 we replace `v` in the `body` with `rhs`. E.g.
@@ -85,7 +84,7 @@ If _v_ is fully applied in the body, i.e., if the sequence of type and term lamb
 exactly matched by the corresponding sequence of type and term applications, then
 we inline _v_, i.e., replace its occurrence with _rhs_ in the _body_.
 
-Note that over-application of a function would be inlined. An example of over-application:
+Note that over-application of a function would also be inlined. An example of over-application:
 
 ```haskell
 let id = \y -> y
@@ -97,8 +96,9 @@ let id = \y -> y
 are acceptable.
 
 Because a function can be called in the `body` multiple times and may not be fully applied for all
-its calls, we cannot simply keep a simple substitution map like in `Inline`,
-which substitute *all* occurrences of a variable.
+its calls, we cannot simply keep a substitution map like in `Inline`,
+which substitute *all* occurrences of a variable. We store the function in a map
+`Utils.CalledVarEnv` with all information needed for inlining saturated functions.
 
 (2) How do we decide whether cost and size are acceptable?
 

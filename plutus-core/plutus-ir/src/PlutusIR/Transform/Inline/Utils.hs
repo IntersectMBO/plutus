@@ -31,6 +31,8 @@ import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Prettyprinter (viaShow)
 
+-- For unconditional inlining:
+
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
 newtype InlineTerm tyname name uni fun ann =
@@ -47,6 +49,8 @@ newtype TermEnv tyname name uni fun ann =
 newtype TypeEnv tyname uni ann =
     TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni ann)) }
     deriving newtype (Semigroup, Monoid)
+
+-- For call site inlining:
 
 -- | A mapping including all let-bindings that are functions.
 newtype CalledVarEnv tyname name uni fun ann =
@@ -100,6 +104,8 @@ makeLenses ''TermEnv
 makeLenses ''TypeEnv
 makeLenses ''CalledVarEnv
 makeLenses ''Subst
+
+-- Helper functions:
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm
@@ -156,6 +162,8 @@ extendCalled
     -> Subst tyname name uni fun ann
 extendCalled n info subst = subst & calledVarEnv . unCalledVarEnv %~ insertByName n info
 
+-- General infra:
+
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
@@ -188,6 +196,8 @@ makeLenses ''InlineInfo
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
     ReaderT (InlineInfo name fun ann) (StateT (Subst tyname name uni fun ann) Quote)
+
+-- Heuristics:
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity
