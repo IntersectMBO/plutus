@@ -306,23 +306,23 @@ groth16Verify
     -> BuiltinByteString  -- G1
     -> Integer
     -> Bool
-groth16Verify alpha' beta' gamma' delta' abc1' abc2' a' b' c' s =
-    let alpha = Tx.bls12_381_G1_uncompress alpha'
-        beta  = Tx.bls12_381_G2_uncompress beta'
-        gamma = Tx.bls12_381_G2_uncompress gamma'
-        delta = Tx.bls12_381_G2_uncompress delta'
-        abc1  = Tx.bls12_381_G1_uncompress abc1'
-        abc2  = Tx.bls12_381_G1_uncompress abc2'
-        a     = Tx.bls12_381_G1_uncompress a'
-        b     = Tx.bls12_381_G2_uncompress b'
-        c     = Tx.bls12_381_G1_uncompress c'
-        l1    = Tx.bls12_381_millerLoop a b
-        l2    = Tx.bls12_381_millerLoop alpha beta
-        l3    = Tx.bls12_381_millerLoop c delta
-        p     = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
-        l4    = Tx.bls12_381_millerLoop p gamma
-        y     = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
-    in Tx.bls12_381_finalVerify l1 y
+groth16Verify (Tx.bls12_381_G1_uncompress -> alpha)
+              (Tx.bls12_381_G2_uncompress -> beta)
+              (Tx.bls12_381_G2_uncompress -> gamma)
+              (Tx.bls12_381_G2_uncompress -> delta)
+              (Tx.bls12_381_G1_uncompress -> abc1)
+              (Tx.bls12_381_G1_uncompress -> abc2)
+              (Tx.bls12_381_G1_uncompress -> a)
+              (Tx.bls12_381_G2_uncompress -> b)
+              (Tx.bls12_381_G1_uncompress -> c)
+              s =
+                  let l1    = Tx.bls12_381_millerLoop a b
+                      l2    = Tx.bls12_381_millerLoop alpha beta
+                      l3    = Tx.bls12_381_millerLoop c delta
+                      p     = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
+                      l4    = Tx.bls12_381_millerLoop p gamma
+                      y     = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
+                  in Tx.bls12_381_finalVerify l1 y
 
 {- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
  newtype inputs increases the size and CPU cost slightly, so we unwrap them

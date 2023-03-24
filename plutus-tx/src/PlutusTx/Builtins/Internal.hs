@@ -17,8 +17,6 @@ module PlutusTx.Builtins.Internal where
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
-import Crypto.Ed25519 qualified
-import Crypto.Secp256k1 qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -34,6 +32,8 @@ import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 qualified
+import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusCore.Pretty (Pretty (..))
@@ -246,7 +246,7 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
+  case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "Ed25519 signature verification errored."
@@ -259,7 +259,7 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinByteString ->
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
+  case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
@@ -272,7 +272,7 @@ verifySchnorrSecp256k1Signature ::
   BuiltinByteString ->
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
+  case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
