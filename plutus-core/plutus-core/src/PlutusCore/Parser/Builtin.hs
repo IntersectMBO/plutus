@@ -123,7 +123,7 @@ constantOf uni = case uni of
     DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
     DefaultUniBLS12_381_G2_Element                                    -> conBLS12_381_G2_Element
     DefaultUniBLS12_381_MlResult
-        -> error "Constants of type bls12_381_mlresult are not supported"
+        -> fail "Constants of type bls12_381_mlresult are not supported"
 
 -- | Parser of constants whose type is in 'DefaultUni'.
 constant :: Parser (Some (ValueOf DefaultUni))
