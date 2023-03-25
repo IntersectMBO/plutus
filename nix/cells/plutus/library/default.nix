@@ -8,6 +8,8 @@
 
   plutus-project-925 = import ./plutus-project-925.nix block;
 
+  plutus-project-944 = import ./plutus-project-944.nix block;
+
   agda-project = import ./agda-project.nix block;
 
   agda-packages = import ./agda-packages.nix block;

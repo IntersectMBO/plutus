@@ -1,3 +1,3 @@
 { inputs, cell }:
 
-cell.library.plutus-project-925.pkg-set.config.ghc.package
+cell.library.plutus-project-944.pkg-set.config.ghc.package
