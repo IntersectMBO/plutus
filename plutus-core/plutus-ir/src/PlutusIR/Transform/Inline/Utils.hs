@@ -40,21 +40,21 @@ newtype InlineTerm tyname name uni fun ann =
 
 -- | Term substitution, 'Subst' in the paper.
 -- A map of unprocessed variable and its substitution range.
-newtype TermEnv tyname name uni fun ann =
-    TermEnv { _unTermEnv :: UniqueMap TermUnique (InlineTerm tyname name uni fun ann) }
+newtype TermSubst tyname name uni fun ann =
+    TermSubst { _unTermSubst :: UniqueMap TermUnique (InlineTerm tyname name uni fun ann) }
     deriving newtype (Semigroup, Monoid)
 
--- | Type substitution, similar to `TermEnv` but for types.
+-- | Type substitution, similar to `TermSubst` but for types.
 -- A map of unprocessed type variable and its substitution range.
-newtype TypeEnv tyname uni ann =
-    TypeEnv { _unTypeEnv :: UniqueMap TypeUnique (Dupable (Type tyname uni ann)) }
+newtype TypeSubst tyname uni ann =
+    TypeSubst { _unTypeSubst :: UniqueMap TypeUnique (Dupable (Type tyname uni ann)) }
     deriving newtype (Semigroup, Monoid)
 
 -- For call site inlining:
 
 -- | A mapping including all let-bindings that are functions.
-newtype CalledVarEnv tyname name uni fun ann =
-    CalledVarEnv { _unCalledVarEnv :: UniqueMap TermUnique (CalledVarInfo tyname name uni fun ann)}
+newtype InScopeSet tyname name uni fun ann =
+    InScopeSet { _unCalledVarEnv :: UniqueMap TermUnique (VarInfo tyname name uni fun ann)}
     deriving newtype (Semigroup, Monoid)
 
 {-|
@@ -69,41 +69,40 @@ an under-approximation of how many arguments the term may need.
 e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
 arity @[]@, but does in fact need an argument before it does any work.
 -}
-type Arity = [TermOrType]
-
--- | An ordered list of the term and type arguments applied to a function.
-type AppOrder = [TermOrType]
+type Arity = [ParamKind]
 
 -- | Info attached to a let-binding needed for call site inlining.
-data CalledVarInfo tyname name uni fun ann =
-  MkCalledVarInfo {
-    calledVarDef    :: Term tyname name uni fun ann -- ^ its definition
-    , arity         :: Arity -- ^ its sequence of term and type lambdas
-    , calledVarBody :: Term tyname name uni fun ann
+data VarInfo tyname name uni fun ann =
+  MkVarInfo {
+    varDef    :: Term tyname name uni fun ann -- ^ its definition
+    , arity   :: Arity -- ^ its arity, storing to avoid repeated calculations.
+    , varBody :: Term tyname name uni fun ann
     -- ^ the body of the function, for checking `acceptable` or not
   }
 -- | Is the next argument a term or a type?
-data TermOrType =
-    MkTerm | MkType
+data ParamKind =
+    TermParam | TypeParam
     deriving stock (Eq, Show)
 
-instance Pretty TermOrType where
+instance Pretty ParamKind where
   pretty = viaShow
 
--- | Substitution for both terms and types.
--- Similar to 'Subst' in the paper, but the paper only has terms.
-data Subst tyname name uni fun ann =
-    Subst { _termEnv       :: TermEnv tyname name uni fun ann
-           , _typeEnv      :: TypeEnv tyname uni ann
-           , _calledVarEnv :: CalledVarEnv tyname name uni fun ann
+-- | Inliner context for both unconditional inlining and call site inlining.
+-- It includes substitution for both terms and types, which is similar to 'Subst' in the paper.
+-- It also includes the in-scope set for call site inlining.
+data InlinerContext tyname name uni fun ann =
+    InlinerContext { _termSubst :: TermSubst tyname name uni fun ann
+           , _typeSubst         :: TypeSubst tyname uni ann
+           , _inScopeSet        :: InScopeSet tyname name uni fun ann
           }
     deriving stock (Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst tyname name uni fun ann))
+    deriving (Semigroup, Monoid) via
+        (GenericSemigroupMonoid (InlinerContext tyname name uni fun ann))
 
-makeLenses ''TermEnv
-makeLenses ''TypeEnv
-makeLenses ''CalledVarEnv
-makeLenses ''Subst
+makeLenses ''TermSubst
+makeLenses ''TypeSubst
+makeLenses ''InScopeSet
+makeLenses ''InlinerContext
 
 -- Helper functions:
 
@@ -111,56 +110,56 @@ makeLenses ''Subst
 lookupTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> Subst tyname name uni fun ann -- ^ The substitution.
+    -> InlinerContext tyname name uni fun ann -- ^ The substitution.
     -> Maybe (InlineTerm tyname name uni fun ann)
-lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
+lookupTerm n subst = lookupName n $ subst ^. termSubst . unTermSubst
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlineTerm tyname name uni fun ann -- ^ The substitution range.
-    -> Subst tyname name uni fun ann -- ^ The substitution.
-    -> Subst tyname name uni fun ann
-extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
+    -> InlinerContext tyname name uni fun ann -- ^ The substitution.
+    -> InlinerContext tyname name uni fun ann
+extendTerm n clos subst = subst & termSubst . unTermSubst %~ insertByName n clos
 
 -- | Look up the unprocessed type variable in the substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
-    -> Subst tyname name uni fun ann
+    -> InlinerContext tyname name uni fun ann
     -> Maybe (Dupable (Type tyname uni ann))
-lookupType tn subst = lookupName tn $ subst ^. typeEnv . unTypeEnv
+lookupType tn subst = lookupName tn $ subst ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
-isTypeSubstEmpty :: Subst tyname name uni fun ann -> Bool
-isTypeSubstEmpty (Subst _ (TypeEnv tyEnv) _) = isEmpty tyEnv
+isTypeSubstEmpty :: InlinerContext tyname name uni fun ann -> Bool
+isTypeSubstEmpty (InlinerContext _ (TypeSubst tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname -- ^ The name of the type variable.
     -> Type tyname uni ann -- ^ Its type.
-    -> Subst tyname name uni fun ann -- ^ The substitution.
-    -> Subst tyname name uni fun ann
-extendType tn ty subst = subst &  typeEnv . unTypeEnv %~ insertByName tn (dupable ty)
+    -> InlinerContext tyname name uni fun ann -- ^ The substitution.
+    -> InlinerContext tyname name uni fun ann
+extendType tn ty subst = subst &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
 
 -- | Look up the called variable in the substitution.
 lookupCalled
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> Subst tyname name uni fun ann -- ^ The substitution.
-    -> Maybe (CalledVarInfo tyname name uni fun ann)
-lookupCalled n subst = lookupName n $ subst ^. calledVarEnv . unCalledVarEnv
+    -> InlinerContext tyname name uni fun ann -- ^ The substitution.
+    -> Maybe (VarInfo tyname name uni fun ann)
+lookupCalled n subst = lookupName n $ subst ^. inScopeSet . unCalledVarEnv
 
 -- | Insert the called variable into the substitution.
 extendCalled
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> CalledVarInfo tyname name uni fun ann -- ^ The called variable's info.
-    -> Subst tyname name uni fun ann -- ^ The substitution.
-    -> Subst tyname name uni fun ann
-extendCalled n info subst = subst & calledVarEnv . unCalledVarEnv %~ insertByName n info
+    -> VarInfo tyname name uni fun ann -- ^ The called variable's info.
+    -> InlinerContext tyname name uni fun ann -- ^ The substitution.
+    -> InlinerContext tyname name uni fun ann
+extendCalled n info subst = subst & inScopeSet . unCalledVarEnv %~ insertByName n info
 
 -- General infra:
 
@@ -195,7 +194,7 @@ makeLenses ''InlineInfo
 -- (determined from profiling)
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo name fun ann) (StateT (Subst tyname name uni fun ann) Quote)
+    ReaderT (InlineInfo name fun ann) (StateT (InlinerContext tyname name uni fun ann) Quote)
 
 -- Heuristics:
 
@@ -251,10 +250,10 @@ effectSafe body s n purity = do
 
 -- | Should we inline? Should only inline things that won't duplicate work or code.
 -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-acceptable ::  Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
+acceptable ::  Term tyname name uni fun ann -> Bool
 acceptable t =
     -- See Note [Inlining criteria]
-    pure $ costIsAcceptable t && sizeIsAcceptable t
+    costIsAcceptable t && sizeIsAcceptable t
 
 {- Note [Inlining criteria]
 What gets inlined? Our goals are simple:
