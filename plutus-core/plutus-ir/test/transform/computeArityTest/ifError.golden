@@ -1,4 +1,4 @@
-( [MkTerm]
+( [TermParam]
 , [
   [
     { b (con integer) }

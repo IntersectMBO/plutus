@@ -1,1 +1,1 @@
-([MkTerm], (let (nonrec) (termbind (strict) (vardecl x (con integer)) y) x))
+([TermParam], (let (nonrec) (termbind (strict) (vardecl x (con integer)) y) x))
