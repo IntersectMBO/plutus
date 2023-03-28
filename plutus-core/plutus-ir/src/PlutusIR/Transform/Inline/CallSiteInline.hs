@@ -154,14 +154,13 @@ mkApps f []                              = f
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
 isFullyApplied :: Arity -> ArgOrder tyname name uni fun ann -> Bool
-isFullyApplied [] (_argsOrder:_as) = True -- over-application
-isFullyApplied (_arity:_) [] = False -- under-application
+isFullyApplied [] (_arg:_args) = True -- over-application
+isFullyApplied (_lam:_lams) [] = False -- under-application
 isFullyApplied [] [] = True
-isFullyApplied lamOrder argsOrder =
-  -- start comparing from the end because there may be over-application
-  case (last lamOrder, last argsOrder) of
-    (TermParam, MkTermArg _) -> isFullyApplied (init lamOrder) (init argsOrder)
-    (TypeParam, MkTypeArg _) -> isFullyApplied (init lamOrder) (init argsOrder)
+isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
+  case (hdLams, hdArg) of
+    (TermParam, MkTermArg _) -> isFullyApplied tlLams tlArg
+    (TypeParam, MkTypeArg _) -> isFullyApplied tlLams tlArg
     _                        -> False
 
 -- | Inline fully applied functions iff the body of the function is `acceptable`.
