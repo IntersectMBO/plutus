@@ -28,11 +28,12 @@ A function is fully applied when it has been applied to all arguments as indicat
 
 Consider `let v = rhs in body`, in which `body` calls `v`.
 
-We consider cases when `v` is a function. I.e., it has type/term lambda abstraction(s). I.e.:
+We focus on cases when `v` is a function. (Non-functions have arity () or 0).
+I.e., it has type/term lambda abstraction(s). I.e.:
 
 let v = \x1.\x2...\xn.VBody in body
 
-(x1,x2...xn) is the syntactic arity of a term. That is, a record of the arguments that the
+(x1,x2...xn) or n is the syntactic arity of a term. That is, a record of the arguments that the
 term expects before it may do some work. Since we have both type and lambda
 abstractions, this is not a simple argument count, but rather a list of values
 indicating whether the next argument should be a term or a type.
@@ -89,8 +90,8 @@ let id = \y -> y
  in f x y
 ```
 
-`f`'s arity is 1, but is applied to 2 arguments. We inline `f` in this case if its cost and size
-are acceptable.
+`f`'s arity is (\x) or 1, but is applied to 2 arguments. We inline `f` in this case if its cost and
+size are acceptable.
 
 (2) How do we decide whether cost and size are acceptable?
 
@@ -129,13 +130,13 @@ type ArgOrder tyname name uni fun ann = [Arg tyname name uni fun ann]
 
 -- | A pair of argument and the annotation of the term being applied to,
 -- so a term that was traversed can be built back with `mkApps`.
-type ArgOrderWithAnn tyname name uni fun ann =
+type ArgsWithAnns tyname name uni fun ann =
   [(Arg tyname name uni fun ann, ann)]
 
 -- | Takes a term or type application expression and returns the function
 -- being applied and the arguments to which it is applied
 collectArgs :: Term tyname name uni fun ann
-  -> (Term tyname name uni fun ann, ArgOrderWithAnn tyname name uni fun ann)
+  -> (Term tyname name uni fun ann, ArgsWithAnns tyname name uni fun ann)
 collectArgs expr
   = go expr []
   where
@@ -145,7 +146,7 @@ collectArgs expr
 
 -- | Apply a list of term and type arguments to a function in potentially a nested fashion.
 mkApps :: Term tyname name uni fun ann
-  -> ArgOrderWithAnn tyname name uni fun ann
+  -> ArgsWithAnns tyname name uni fun ann
   -> Term tyname name uni fun ann
 mkApps f ((MkTermArg tmArg, ann) : args) = mkApps (Apply ann f tmArg) args
 mkApps f ((MkTypeArg tyArg, ann) : args) = mkApps (TyInst ann f tyArg) args
@@ -164,34 +165,26 @@ isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
     _                        -> False
 
 -- | Inline fully applied functions iff the body of the function is `acceptable`.
-inlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-inlineSat t =
-    case t of
-      -- If the term is a term or type application, check it's applying to a var that we may inline
-      Apply _varAnn _fun _arg  -> go t
-      TyInst _varAnn _fun _arg -> go t
-      -- otherwise, check all subterms
-      _                        -> pure t
-      where
-        go tm = do
-            -- collect all the arguments of the term being applied to
-            let (fun, args) = collectArgs tm
-            case fun of
-              -- if it is a `Var` that is being applied to, check to see if it's fully applied
-              Var _ann name -> do
-                maybeVarInfo <- gets (lookupCalled name)
-                case maybeVarInfo of
-                  -- the variable maybe a *recursive* let binding, in which case we don't process,
-                  -- and it won't be in the map. ATM recursive bindings aren't inlined.
-                  Nothing -> pure tm
-                  Just varInfo -> do
-                    let isAcceptable = acceptable (varBody varInfo)
-                    if isAcceptable && isFullyApplied (arity varInfo) (map fst args) then do
-                      -- if the body of `Var` is `acceptable` and
-                      -- it is fully applied (over-application is allowed) then inline it
-                      pure $ mkApps (varDef varInfo) args
-                    else pure tm
-                  -- if the term being applied is not a `Var`, don't inline
-              _ -> pure tm
+considerInlineSat tm = do
+    -- collect all the arguments of the term being applied to
+    let (fun, args) = collectArgs tm
+    case fun of
+      -- if it is a `Var` that is being applied to, check to see if it's fully applied
+      Var _ann name -> do
+        maybeVarInfo <- gets (lookupVarInfo name)
+        case maybeVarInfo of
+          -- the variable maybe a *recursive* let binding, in which case we don't process,
+          -- and it won't be in the map. ATM recursive bindings aren't inlined.
+          Nothing -> pure tm
+          Just varInfo -> do
+            let isAcceptable = acceptable (varBody varInfo)
+            if isAcceptable && isFullyApplied (arity varInfo) (map fst args) then do
+              -- if the body of `Var` is `acceptable` and
+              -- it is fully applied (over-application is allowed) then inline it
+              pure $ mkApps (varDef varInfo) args
+            else pure tm
+          -- if the term being applied is not a `Var`, don't inline
+      _ -> pure tm

@@ -145,21 +145,21 @@ extendType
 extendType tn ty subst = subst &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
 
 -- | Look up the called variable in the substitution.
-lookupCalled
+lookupVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlinerContext tyname name uni fun ann -- ^ The substitution.
     -> Maybe (VarInfo tyname name uni fun ann)
-lookupCalled n subst = lookupName n $ subst ^. inScopeSet . unCalledVarEnv
+lookupVarInfo n subst = lookupName n $ subst ^. inScopeSet . unCalledVarEnv
 
 -- | Insert the called variable into the substitution.
-extendCalled
+extendVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> VarInfo tyname name uni fun ann -- ^ The called variable's info.
     -> InlinerContext tyname name uni fun ann -- ^ The substitution.
     -> InlinerContext tyname name uni fun ann
-extendCalled n info subst = subst & inScopeSet . unCalledVarEnv %~ insertByName n info
+extendVarInfo n info subst = subst & inScopeSet . unCalledVarEnv %~ insertByName n info
 
 -- General infra:
 
