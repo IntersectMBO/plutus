@@ -344,7 +344,7 @@ compileMarkedExpr locStr codeTy origE = do
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
     bsPir <- makeByteStringLiteral $ flat pirP
-    bsPlc <- makeByteStringLiteral $ flat uplcP
+    bsPlc <- makeByteStringLiteral $ flat (UPLC.UnrestrictedProgram uplcP)
     covIdxFlat <- makeByteStringLiteral $ flat covIdx
 
     builder <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'mkCompiledCode
@@ -434,7 +434,7 @@ runCompiler moduleName opts expr = do
     dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
     let uplcPNoAnn = UPLC.Program () PLC.latestVersion $ void dbT
         uplcP = UPLC.Program mempty PLC.latestVersion . fmap getSrcSpans $ dbT
-    when (_posDumpUPlc opts) . liftIO $ dumpFlat uplcPNoAnn "untyped PLC program" (moduleName ++ ".uplc.flat")
+    when (_posDumpUPlc opts) . liftIO $ dumpFlat (UPLC.UnrestrictedProgram uplcPNoAnn) "untyped PLC program" (moduleName ++ ".uplc.flat")
     pure (spirP, uplcP)
 
   where

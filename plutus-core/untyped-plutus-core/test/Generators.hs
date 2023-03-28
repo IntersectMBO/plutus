@@ -19,6 +19,7 @@ import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
+import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (Program (Program),
                                     Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var),
                                     progTerm, termAnn)
@@ -72,7 +73,7 @@ genProgram = fmap eraseProgram AST.genProgram
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
     prog <- forAllPretty $ runAstGen (Generators.genProgram @DefaultFun)
-    tripping prog Flat.flat Flat.unflat
+    tripping prog (Flat.flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . Flat.unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do

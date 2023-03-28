@@ -203,10 +203,10 @@ evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> UPLC
 evaluateWithCek = UPLC.unsafeExtractEvaluationResult . (\(fstT,_,_) -> fstT) . UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.restrictingEnormous UPLC.noEmitter
 
 writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatNamed prog = BS.putStr $ Flat.flat prog
+writeFlatNamed prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
 
 writeFlatDeBruijn ::UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatDeBruijn  prog = BS.putStr . Flat.flat $ prog
+writeFlatDeBruijn  prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
 
 description :: Hs.String
 description = "This program provides operations on a number of Plutus programs "

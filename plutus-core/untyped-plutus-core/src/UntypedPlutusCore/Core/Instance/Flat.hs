@@ -3,10 +3,8 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
@@ -157,15 +155,35 @@ sizeTerm
     => Term name uni fun ann
     -> NumBits
     -> NumBits
-sizeTerm tm sz = termTagWidth + sz + case tm of
-    Var      ann n    -> getSize ann + getSize n
-    Delay    ann t    -> getSize ann + getSize t
-    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
-    Apply    ann t t' -> getSize ann + getSize t + getSize t'
-    Constant ann c    -> getSize ann + getSize c
-    Force    ann t    -> getSize ann + getSize t
-    Error    ann      -> getSize ann
-    Builtin  ann bn   -> getSize ann + getSize bn
+sizeTerm tm sz =
+  let
+    sz' = termTagWidth + sz
+  in case tm of
+    Var      ann n    -> size ann $ size n sz'
+    Delay    ann t    -> size ann $ sizeTerm t sz'
+    LamAbs   ann n t  -> size ann $ size n $ sizeTerm t sz'
+    Apply    ann t t' -> size ann $ sizeTerm t $ sizeTerm t' sz'
+    Constant ann c    -> size ann $ size c sz'
+    Force    ann t    -> size ann $ sizeTerm t sz'
+    Error    ann      -> size ann sz'
+    Builtin  ann bn   -> size ann $ size bn sz'
+
+-- | An encoder for programs.
+--
+-- It is not easy to use this correctly with @flat@. The simplest thing
+-- is to go via the instance for 'UnrestrictedProgram', which uses this
+encodeProgram
+    :: forall name uni fun ann
+    . ( Closed uni
+    , uni `Everywhere` Flat
+    , Flat fun
+    , Flat ann
+    , Flat name
+    , Flat (Binder name)
+    )
+    => Program name uni fun ann
+    -> Encoding
+encodeProgram (Program ann v t) = encode ann <> encode v <> encodeTerm t
 
 decodeProgram
     :: forall name uni fun ann
@@ -180,14 +198,25 @@ decodeProgram
     -> Get (Program name uni fun ann)
 decodeProgram builtinPred = Program <$> decode <*> decode <*> decodeTerm builtinPred
 
-{- Note [Deserialization on the chain]
-As discussed in Note [Deserialization size limits], we want to limit how big constants are when deserializing.
-But the 'Flat' instances for plain terms and programs provided here don't do that: they implement unrestricted deserialization.
+sizeProgram
+    :: forall name uni fun ann
+    . ( Closed uni
+    , uni `Everywhere` Flat
+    , Flat fun
+    , Flat ann
+    , Flat name
+    , Flat (Binder name)
+    )
+    => Program name uni fun ann
+    -> NumBits
+    -> NumBits
+sizeProgram (Program ann v t) sz = size ann $ size v $ sizeTerm t sz
 
-In practice we use a specialized decoder for the on-chain decoding which calls 'decodeProgram' directly.
-Possibly we should remove these instances in future and only have instances for newtypes that clearly communicate
-the expected behaviour.
--}
+-- | A program that can be serialized without any restrictions, e.g.
+-- on the set of allowable builtins or term constructs. It is generally
+-- safe to use this newtype for serializing, but it should only be used
+-- for deserializing in tests.
+newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram { unUnrestrictedProgram :: Program name uni fun ann }
 
 instance ( Closed uni
          , uni `Everywhere` Flat
@@ -195,19 +224,8 @@ instance ( Closed uni
          , Flat ann
          , Flat name
          , Flat (Binder name)
-         ) => Flat (Term name uni fun ann) where
-    encode = encodeTerm
-    decode = decodeTerm (const Nothing)
-    size = sizeTerm
+         ) => Flat (UnrestrictedProgram name uni fun ann) where
+    encode (UnrestrictedProgram p) = encodeProgram p
+    decode = UnrestrictedProgram <$> decodeProgram (const Nothing)
 
--- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
-instance ( Closed uni
-         , uni `Everywhere` Flat
-         , Flat fun
-         , Flat ann
-         , Flat name
-         , Flat (Binder name)
-         ) => Flat (Program name uni fun ann) where
-    encode (Program ann v t) = encode ann <> encode v <> encode t
-
-    size (Program a v t) n = n + getSize a + getSize v + getSize t
+    size (UnrestrictedProgram p) = sizeProgram p

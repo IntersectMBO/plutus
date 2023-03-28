@@ -198,7 +198,7 @@ evaluate (UPLC.Program _ _ prog) =
 printStatistics :: Integer -> IO ()
 printStatistics n = do
     let script = mkSigCheckScript n
-        serialised = Flat.flat (toAnonDeBruijnProg script)
+        serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
     printf "  %3d %7d %8s %15d %8s %15d %8s \n"
