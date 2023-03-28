@@ -234,7 +234,7 @@ enormousBudget = ExRestrictingBudget $ ExBudget maxBound maxBound
 data ExBudgetStream
     = ExBudgetLast ExBudget
     | ExBudgetCons ExBudget ~ExBudgetStream
-    deriving stock (Show, Eq)
+    deriving stock (Show)
 
 -- | Convert a 'CostStream' to an 'ExBudgetStream' by applying a function to each element.
 costToExBudgetStream :: (CostingInteger -> ExBudget) -> CostStream -> ExBudgetStream

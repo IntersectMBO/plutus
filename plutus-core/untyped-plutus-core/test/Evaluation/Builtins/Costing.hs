@@ -20,6 +20,22 @@ import Test.Tasty.QuickCheck
 
 deriving newtype instance Foldable NonEmptyList  -- QuickCheck...
 
+sumExBudgetStream :: ExBudgetStream -> ExBudget
+sumExBudgetStream (ExBudgetLast budget)         = budget
+sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
+
+eqCostStream :: CostStream -> CostStream -> Bool
+eqCostStream (CostLast cost1) (CostLast cost2) = cost1 == cost2
+eqCostStream (CostCons cost1 costs1) (CostCons cost2 costs2) =
+    cost1 == cost2 && eqCostStream costs1 costs2
+eqCostStream _ _ = False
+
+eqExBudgetStream :: ExBudgetStream -> ExBudgetStream -> Bool
+eqExBudgetStream (ExBudgetLast budget1) (ExBudgetLast budget2) = budget1 == budget2
+eqExBudgetStream (ExBudgetCons budget1 budgets1) (ExBudgetCons budget2 budgets2) =
+    budget1 == budget2 && eqExBudgetStream budgets1 budgets2
+eqExBudgetStream _ _ = False
+
 fromCostList :: NonEmptyList CostingInteger -> CostStream
 fromCostList (NonEmpty [])               = error "cannot be empty"
 fromCostList (NonEmpty (cost0 : costs0)) = go cost0 costs0 where
@@ -30,10 +46,6 @@ toCostList :: CostStream -> NonEmptyList CostingInteger
 toCostList = NonEmpty . go where
     go (CostLast cost)       = [cost]
     go (CostCons cost costs) = cost : go costs
-
-sumExBudgetStream :: ExBudgetStream -> ExBudget
-sumExBudgetStream (ExBudgetLast budget)         = budget
-sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
 
 toExBudgetList :: ExBudgetStream -> NonEmptyList ExBudget
 toExBudgetList = NonEmpty . go where
@@ -74,6 +86,14 @@ instance CoArbitrary SatInt where
 instance Function SatInt where
     function = functionMap fromIntegral $ fromIntegral @Int64
 
+checkEqualsVia :: Show a => (a -> a -> Bool) -> a -> a -> Property
+checkEqualsVia eq x y =
+    counterexample (show x ++ interpret res ++ show y) res
+  where
+    res = eq x y
+    interpret True  = " === "
+    interpret False = " =/= "
+
 bottom :: a
 bottom = error "this value wasn't supposed to be forced"
 
@@ -95,7 +115,8 @@ test_CostStreamDistribution =
 test_toCostListRoundtrip :: TestTree
 test_toCostListRoundtrip =
     testProperty "fromCostList cancels toCostList" . withMaxSuccess 5000 $ \costs ->
-        fromCostList (toCostList costs) ===
+        checkEqualsVia eqCostStream
+            (fromCostList $ toCostList costs)
             costs
 
 test_fromCostListRoundtrip :: TestTree
@@ -107,7 +128,8 @@ test_fromCostListRoundtrip =
 test_unconsCostRoundtrip :: TestTree
 test_unconsCostRoundtrip =
     testProperty "reconsCost cancels unconsCost" . withMaxSuccess 5000 $ \costs ->
-        uncurry reconsCost (unconsCost costs) ===
+        checkEqualsVia eqCostStream
+            (uncurry reconsCost $ unconsCost costs)
             costs
 
 test_sumCostStreamIsSum :: TestTree
@@ -119,8 +141,9 @@ test_sumCostStreamIsSum =
 test_mapCostStreamIsMap :: TestTree
 test_mapCostStreamIsMap =
     testProperty "mapCostStream is map" . withMaxSuccess 500 $ \(Fun _ f) costs ->
-        mapCostStream f (fromCostList costs) ===
-            fromCostList (fmap f costs)
+        checkEqualsVia eqCostStream
+            (mapCostStream f $ fromCostList costs)
+            (fromCostList $ fmap f costs)
 
 test_addCostStreamIsAdd :: TestTree
 test_addCostStreamIsAdd =
@@ -365,8 +388,9 @@ test_flattenCostRoseSound =
             -- This assumes that 'flattenCostRose' is left-biased, which isn't really
             -- necessarily, but it doesn't seem like we're giving up on the assumption any time soon
             -- anyway, so why not keep it simple instead of sorting the results.
-            flattenCostRose rose ===
-                fromCostList (fromCostRose rose)
+            checkEqualsVia eqCostStream
+                (flattenCostRose rose)
+                (fromCostList $ fromCostRose rose)
 
 test_costing :: TestTree
 test_costing = testGroup "costing"

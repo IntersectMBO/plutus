@@ -36,7 +36,6 @@ import Data.Aeson
 import Data.ByteString qualified as BS
 import Data.Proxy
 import Data.SatInt
-import Data.Semigroup
 import Data.Text qualified as T
 import GHC.Exts (Int (I#))
 import GHC.Integer
@@ -209,22 +208,6 @@ traversing the list), while we of course want it to be O(1).
 data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
     deriving stock (Show)
 
-instance Semigroup CostRose where
-    -- Only used in the 'Data' instance below, so we make it strict.
-    CostRose cost1 forest1 <> CostRose cost2 forest2 =
-        CostRose (cost1 + cost2) (forest1 ++ forest2)
-    {-# INLINE (<>) #-}
-
-    sconcat (rose :| forest) = CostRose 0 $ rose : forest
-    {-# INLINE sconcat #-}
-
-instance Monoid CostRose where
-    mempty = CostRose 0 []
-    {-# INLINE mempty #-}
-
-    mconcat = CostRose 0
-    {-# INLINE mconcat #-}
-
 class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> CostRose -- ^ How much memory does 'a' use?
@@ -323,7 +306,11 @@ instance ExMemoryUsage Data where
         nodeMem = CostRose 4 []
         {-# INLINE nodeMem #-}
 
-        sizeData d = nodeMem <> case d of
+        combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
+            CostRose (cost1 + cost2) (forest1 ++ forest2)
+        {-# INLINE combine #-}
+
+        sizeData d = combine nodeMem $ case d of
             -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
             Constr _ l -> CostRose 0 $ l <&> sizeData
             Map l      -> CostRose 0 $ l <&> \(d1, d2) -> CostRose 0 $ [d1, d2] <&> sizeData
@@ -340,7 +327,7 @@ instance ExMemoryUsage Data where
 data CostStream
     = CostLast {-# UNPACK #-} !CostingInteger
     | CostCons {-# UNPACK #-} !CostingInteger CostStream
-    deriving stock (Show, Eq)
+    deriving stock (Show)
 
 -- TODO: (# CostingInteger, (# (# #) | CostStream #) #)?
 -- | Uncons an element from a 'CostStream' and return the rest of the stream, if not empty.
