@@ -24,7 +24,6 @@ module PlutusCore.Evaluation.Machine.ExMemory
     , mapCostStream
     , addCostStream
     , minCostStream
-    , toCostRose
     , flattenCostRose
     ) where
 
@@ -206,36 +205,20 @@ traversing the list), while we of course want it to be O(1).
 -- 'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can
 -- stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
 -- somehow (in particular, subtracts from the remaining budget).
-data CostRose
-    = CostLeaf {-# UNPACK #-} !CostingInteger
-    | CostFork {-# UNPACK #-} !CostingInteger CostForest
+data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
     deriving stock (Show)
-
-data CostForest
-    = CostForestLast !CostRose
-    | CostForestCons !CostRose CostForest
-    deriving stock (Show)
-
-toCostRose :: CostingInteger -> [CostRose] -> CostRose
-toCostRose i []             = CostLeaf i
--- TODO: try filtering out zeros somehow?
-toCostRose i (rose : roses) = CostFork i $ foldr step CostForestLast roses rose where
-    step :: CostRose -> (CostRose -> CostForest) -> CostRose -> CostForest
-    step new k old = CostForestCons old $ k new
-    {-# INLINE step #-}
-{-# INLINE toCostRose #-}
 
 class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
     memoryUsage :: a -> CostRose -- ^ How much memory does 'a' use?
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
-    memoryUsage (a, b) = toCostRose 1 [memoryUsage a, memoryUsage b]
+    memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
     {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
-  memoryUsage _ = toCostRose 1 [] -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+  memoryUsage _ = CostRose 1 [] -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
   {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
@@ -245,7 +228,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
-  memoryUsage () = toCostRose 1 []
+  memoryUsage () = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 memoryUsageInteger :: Integer -> CostingInteger
@@ -258,11 +241,11 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 {-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = toCostRose (memoryUsageInteger i) [] where
+  memoryUsage i = CostRose (memoryUsageInteger i) [] where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where
-  memoryUsage _ = toCostRose 1 []
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
@@ -271,7 +254,7 @@ instance ExMemoryUsage Word8 where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = toCostRose (((n-1) `quot` 8) + 1) []  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+  memoryUsage bs = CostRose (((n-1) `quot` 8) + 1) []  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
   {-# INLINE memoryUsage #-}
 
@@ -282,19 +265,19 @@ instance ExMemoryUsage T.Text where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-  memoryUsage _ = toCostRose 1 []
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
-  memoryUsage _ = toCostRose 1 []
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
-  memoryUsage _ = toCostRose 1 []
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = toCostRose 0 . map memoryUsage
+    memoryUsage = CostRose 0 . map memoryUsage
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
@@ -320,14 +303,18 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 -}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
-        addNodeMem = toCostRose 4 . pure
-        {-# INLINE addNodeMem #-}
+        nodeMem = CostRose 4 []
+        {-# INLINE nodeMem #-}
 
-        sizeData d = addNodeMem $ case d of
+        combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
+            CostRose (cost1 + cost2) (forest1 ++ forest2)
+        {-# INLINE combine #-}
+
+        sizeData d = combine nodeMem $ case d of
             -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
-            Constr _ l -> toCostRose 0 $ l <&> sizeData
-            Map l      -> toCostRose 0 $ l <&> \(d1, d2) -> toCostRose 0 $ [d1, d2] <&> sizeData
-            List l     -> toCostRose 0 $ l <&> sizeData
+            Constr _ l -> CostRose 0 $ l <&> sizeData
+            Map l      -> CostRose 0 $ l <&> \(d1, d2) -> CostRose 0 $ [d1, d2] <&> sizeData
+            List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
 
@@ -428,33 +415,19 @@ minCostStream costsL0 costsR0 = case (costsL0, costsR0) of
     _                                -> minCostStreamGo costsL0 costsR0
 {-# INLINE minCostStream #-}
 
-appendCostForest :: CostForest -> CostForest -> CostForest
-appendCostForest (CostForestLast rose1)         forest2 = CostForestCons rose1 forest2
-appendCostForest (CostForestCons rose1 forest1) forest2 =
-    CostForestCons rose1 $ appendCostForest forest1 forest2
-
 -- See Note [Global local functions].
-flattenCostRoseForestGo :: CostRose -> CostForest -> CostStream
-flattenCostRoseForestGo (CostLeaf cost1) forest2 =
-    CostCons cost1 $ flattenCostForestGo forest2
-flattenCostRoseForestGo (CostFork cost1 forest1) forest2 =
-    CostCons cost1 $ case forest1 of
-        CostForestLast rose1'          -> flattenCostRoseForestGo rose1' forest2
-        CostForestCons rose1' forest1' ->
-            flattenCostRoseForestGo rose1' $ appendCostForest forest1' forest2
-
--- See Note [Global local functions].
--- Exact copy of 'flattenCostRose'.
-flattenCostRoseGo :: CostRose -> CostStream
-flattenCostRoseGo (CostLeaf cost)        = CostLast cost
-flattenCostRoseGo (CostFork cost forest) = CostCons cost $ flattenCostForestGo forest
-
--- See Note [Global local functions].
-flattenCostForestGo :: CostForest -> CostStream
-flattenCostForestGo (CostForestLast rose)        = flattenCostRoseGo rose
-flattenCostForestGo (CostForestCons rose forest) = flattenCostRoseForestGo rose forest
+flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
+flattenCostRoseGo (CostRose cost1 forest1) forest2 =
+    case forest1 of
+        [] -> case forest2 of
+            []                -> CostLast cost1
+            rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
+        rose1' : forest1' ->
+            CostCons cost1 $ case forest1' of
+                [] -> flattenCostRoseGo rose1' forest2
+                _  -> flattenCostRoseGo rose1' $ forest1' ++ forest2
 
 flattenCostRose :: CostRose -> CostStream
-flattenCostRose (CostLeaf cost)        = CostLast cost
-flattenCostRose (CostFork cost forest) = CostCons cost $ flattenCostForestGo forest
+flattenCostRose (CostRose cost [])              = CostLast cost
+flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
 {-# INLINE flattenCostRose #-}

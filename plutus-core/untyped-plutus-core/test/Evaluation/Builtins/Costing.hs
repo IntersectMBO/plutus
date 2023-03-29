@@ -254,8 +254,8 @@ cndSize n0
 -- The parameter is the depth of the tree.
 cndRose :: Int -> CostRose
 cndRose n0
-    | n0 <= 1   = toCostRose 1 []
-    | otherwise = toCostRose (fromIntegral n0) . go . replicate 3 $ n0 - 1
+    | n0 <= 1   = CostRose 1 []
+    | otherwise = CostRose (fromIntegral n0) . go . replicate 3 $ n0 - 1
   where
     -- Inlining the definition of @map cndRose@ manually to make sure subtrees are definitely
     -- not shared, so that we don't retain them in memory unnecessarily.
@@ -333,20 +333,20 @@ multiSplit xs = do
 
 genCostRose :: NonEmptyList SatInt -> Gen CostRose
 genCostRose (NonEmpty [])             = error "an impossible happened"
-genCostRose (NonEmpty (cost : costs)) = toCostRose cost <$> do
+genCostRose (NonEmpty (cost : costs)) = CostRose cost <$> do
     forest <- multiSplit costs
     traverse genCostRose forest
 
--- fromCostRose :: CostRose -> NonEmptyList SatInt
--- fromCostRose (CostRose cost costs) =
---     NonEmpty $ cost : concatMap (getNonEmpty . fromCostRose) costs
+fromCostRose :: CostRose -> NonEmptyList SatInt
+fromCostRose (CostRose cost costs) =
+    NonEmpty $ cost : concatMap (getNonEmpty . fromCostRose) costs
 
 instance Arbitrary CostRose where
     arbitrary = arbitrary >>= genCostRose
 
-    -- shrink (CostRose cost costs) = do
-    --     (costs', cost') <- shrink (costs, cost)
-    --     pure $ toCostRose cost' costs'
+    shrink (CostRose cost costs) = do
+        (costs', cost') <- shrink (costs, cost)
+        pure $ CostRose cost' costs'
 
 test_multiSplitDistributionAt :: Int -> TestTree
 test_multiSplitDistributionAt n =
@@ -364,33 +364,33 @@ test_multiSplitDistribution =
         , test_multiSplitDistributionAt 5
         ]
 
--- collectListLengths :: CostRose -> [Int]
--- collectListLengths (CostRose _ costs) = length costs : concatMap collectListLengths costs
+collectListLengths :: CostRose -> [Int]
+collectListLengths (CostRose _ costs) = length costs : concatMap collectListLengths costs
 
--- test_CostRoseDistribution :: TestTree
--- test_CostRoseDistribution =
---     testProperty "distribution of list lengths in CostRose values" $
---         withMaxSuccess 5000 $ \rose ->
---             tabulate "" (map show $ collectListLengths rose) True
+test_CostRoseDistribution :: TestTree
+test_CostRoseDistribution =
+    testProperty "distribution of list lengths in CostRose values" $
+        withMaxSuccess 5000 $ \rose ->
+            tabulate "" (map show $ collectListLengths rose) True
 
--- test_genCostRoseSound :: TestTree
--- test_genCostRoseSound =
---     testProperty "genCostRose puts 100% of its input and nothing else into the output" $
---         withMaxSuccess 5000 $ \costs ->
---             forAll (genCostRose costs) $ \rose ->
---                 fromCostRose rose ===
---                     costs
+test_genCostRoseSound :: TestTree
+test_genCostRoseSound =
+    testProperty "genCostRose puts 100% of its input and nothing else into the output" $
+        withMaxSuccess 5000 $ \costs ->
+            forAll (genCostRose costs) $ \rose ->
+                fromCostRose rose ===
+                    costs
 
--- test_flattenCostRoseSound :: TestTree
--- test_flattenCostRoseSound =
---     testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
---         withMaxSuccess 5000 $ \rose ->
---             -- This assumes that 'flattenCostRose' is left-biased, which isn't really
---             -- necessarily, but it doesn't seem like we're giving up on the assumption any time soon
---             -- anyway, so why not keep it simple instead of sorting the results.
---             checkEqualsVia eqCostStream
---                 (flattenCostRose rose)
---                 (fromCostList $ fromCostRose rose)
+test_flattenCostRoseSound :: TestTree
+test_flattenCostRoseSound =
+    testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
+        withMaxSuccess 5000 $ \rose ->
+            -- This assumes that 'flattenCostRose' is left-biased, which isn't really
+            -- necessarily, but it doesn't seem like we're giving up on the assumption any time soon
+            -- anyway, so why not keep it simple instead of sorting the results.
+            checkEqualsVia eqCostStream
+                (flattenCostRose rose)
+                (fromCostList $ fromCostRose rose)
 
 test_costing :: TestTree
 test_costing = testGroup "costing"
@@ -414,7 +414,7 @@ test_costing = testGroup "costing"
     , test_zipCostStreamHandlesBottom
     , test_flattenCostRoseIsLinear
     , test_multiSplitDistribution
-    -- , test_CostRoseDistribution
-    -- , test_genCostRoseSound
-    -- , test_flattenCostRoseSound
+    , test_CostRoseDistribution
+    , test_genCostRoseSound
+    , test_flattenCostRoseSound
     ]

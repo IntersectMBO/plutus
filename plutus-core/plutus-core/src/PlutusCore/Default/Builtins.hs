@@ -135,7 +135,7 @@ instance Pretty DefaultFun where
         c : s -> toLower c : s
 
 instance ExMemoryUsage DefaultFun where
-    memoryUsage _ = toCostRose 1 []
+    memoryUsage _ = CostRose 1 []
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
