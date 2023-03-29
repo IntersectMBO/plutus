@@ -132,7 +132,7 @@ With call site inlining, we do inlining things with binders in them. We will giv
 name when we substitute in to preserve uniqueness in that case. TODO in a follow up PR.
 -}
 
--- | Inline simple bindings. Relies on global uniqueness, and preserves it.
+-- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
     :: forall tyname name uni fun ann m
@@ -176,10 +176,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
-        -- we need to check at an `Apply` note if there is a saturated function to be inlined.
         Let ann NonRec bs t -> do
             -- Process bindings, eliminating those which will be inlined unconditionally,
-            -- and accumulating the new substitutions
+            -- and accumulating the new substitutions.
             -- See Note [Removing inlined bindings]
             -- Note that we don't *remove* the bindings or scope the state, so the state will carry
             -- over into "sibling" terms. This is fine because we have global uniqueness
@@ -191,7 +190,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
+            -- process all subterms
             processedT <- forMOf termSubterms t processTerm
+            -- consider call site inlining for each node that have been unconditionally inlined
             considerInlineSat processedT
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -247,12 +248,13 @@ processSingleBinding body = \case
             Just rhsProcess -> do
                 let (varArity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
-                -- the global map `Utils.InScopeSet`.
+                -- the global map `Utils.NonRecInScopeSet`.
+                -- The `varDef` added to the map has been unconditionally inlined.
                 -- When we check the body of the let binding we look in this map for
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo rhs varArity bodyToCheck)
+                void $ modify' $ extendVarInfo n (MkVarInfo rhsProcess varArity bodyToCheck)
                 pure $ Just $ TermBind ann s v rhsProcess
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs

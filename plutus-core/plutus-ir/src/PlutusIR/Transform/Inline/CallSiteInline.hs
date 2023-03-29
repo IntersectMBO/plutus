@@ -29,7 +29,7 @@ A function is fully applied when it has been applied to all arguments as indicat
 Consider `let v = rhs in body`, in which `body` calls `v`.
 
 We focus on cases when `v` is a function. (Non-functions have arity () or 0).
-I.e., it has type/term lambda abstraction(s). I.e.:
+I.e., it has type/term lambda abstraction(s). E.g.:
 
 let v = \x1.\x2...\xn.VBody in body
 
@@ -38,7 +38,7 @@ term expects before it may do some work. Since we have both type and lambda
 abstractions, this is not a simple argument count, but rather a list of values
 indicating whether the next argument should be a term or a type.
 
-Note that this is the *syntactic* arity, i.e. it just corresponds to the number of
+Note that this just corresponds to the number of
 syntactic lambda and type abstractions on the outside of the term. It is thus
 an under-approximation of how many arguments the term may need.
 e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
@@ -73,16 +73,14 @@ our dead code elimination pass is able to further reduce the code to just `a`.
 
 Because a function can be called in the `body` multiple times and may not be fully applied for all
 its calls, we cannot simply keep a substitution map like in `Inline`,
-which substitute *all* occurrences of a variable. We store the function in a map,
-`Utils.InScopeSet`, with all information needed for inlining saturated functions.
+which substitute *all* occurrences of a variable. Instead, we store all in scope variables in a
+map, `Utils.NonRecInScopeSet`, with all information needed for inlining saturated functions.
 
-To find out whether a function is fully applied,
-we first find the arity of a variable and put it in the `Utils.InScopeSet` map.
+To find out whether a function is fully applied, when we encounter a variable in the `body`,
+we find its arity from the `Utils.NonRecInScopeSet` map and compare it with the list
+of arguments it has been applied to at that site. If it is fully applied, we inline it there.
 
-Then, in the _body_, we track the term and type application (`Apply` or `TyInst`) of the variable
-and inline right there if it is fully applied.
-
-Note that over-application of a function would also be inlined. An example of over-application:
+Note that over-application of a function would also be inlined. E.g.:
 
 ```haskell
 let id = \y -> y
@@ -126,23 +124,23 @@ data Arg tyname name uni fun ann =
   | MkTypeArg (Type tyname uni ann)
 
 -- | A list of type or term argument(s) that are being applied.
-type ArgOrder tyname name uni fun ann = [Arg tyname name uni fun ann]
+type Args tyname name uni fun ann = [Arg tyname name uni fun ann]
 
 -- | A pair of argument and the annotation of the term being applied to,
 -- so a term that was traversed can be built back with `mkApps`.
 type ArgsWithAnns tyname name uni fun ann =
   [(Arg tyname name uni fun ann, ann)]
 
--- | Takes a term or type application expression and returns the function
+-- | Takes a term or type application and returns the function
 -- being applied and the arguments to which it is applied
 collectArgs :: Term tyname name uni fun ann
   -> (Term tyname name uni fun ann, ArgsWithAnns tyname name uni fun ann)
-collectArgs expr
-  = go expr []
+collectArgs tm
+  = go tm []
   where
     go (Apply ann f a) as      = go f ((MkTermArg a, ann):as)
     go (TyInst ann f tyArg) as = go f ((MkTypeArg tyArg, ann):as)
-    go e as                    = (e, as)
+    go t as                    = (t, as)
 
 -- | Apply a list of term and type arguments to a function in potentially a nested fashion.
 mkApps :: Term tyname name uni fun ann
@@ -154,7 +152,7 @@ mkApps f []                              = f
 
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
-isFullyApplied :: Arity -> ArgOrder tyname name uni fun ann -> Bool
+isFullyApplied :: Arity -> Args tyname name uni fun ann -> Bool
 isFullyApplied [] _ = True -- The function needs no more arguments
 isFullyApplied (_lam:_lams) [] = False -- under-application
 isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
@@ -167,7 +165,8 @@ isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
       -- inlining, and it won't make it any worse, so we could consider accepting this.
       False
 
--- | Inline fully applied functions iff the body of the function is `acceptable`.
+-- | Consider whether to inline a single node. We inline fully applied functions iff the body of
+-- the function is `acceptable`.
 considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
@@ -179,8 +178,8 @@ considerInlineSat tm = do
       Var _ann name -> do
         maybeVarInfo <- gets (lookupVarInfo name)
         case maybeVarInfo of
-          -- the variable maybe a *recursive* let binding, in which case we don't process,
-          -- and it won't be in the map. ATM recursive bindings aren't inlined.
+          -- the variable maybe a *recursive* let binding, in which case it won't be in the map,
+          -- and we don't process it. ATM recursive bindings aren't inlined.
           Nothing -> pure tm
           Just varInfo -> do
             let isAcceptable = acceptable (varBody varInfo)
@@ -189,5 +188,5 @@ considerInlineSat tm = do
               -- it is fully applied (over-application is allowed) then inline it
               pure $ mkApps (varDef varInfo) args
             else pure tm
-          -- if the term being applied is not a `Var`, don't inline
+      -- if the term being applied is not a `Var`, don't inline
       _ -> pure tm
