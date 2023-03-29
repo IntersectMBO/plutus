@@ -570,10 +570,10 @@ data Context uni fun ann
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
-        VDelay {}   -> CostRose 1 []
-        VLamAbs {}  -> CostRose 1 []
-        VBuiltin {} -> CostRose 1 []
-        VConstr {}  -> CostRose 1 []
+        VDelay {}   -> toCostRose 1 []
+        VLamAbs {}  -> toCostRose 1 []
+        VBuiltin {} -> toCostRose 1 []
+        VConstr {}  -> toCostRose 1 []
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
