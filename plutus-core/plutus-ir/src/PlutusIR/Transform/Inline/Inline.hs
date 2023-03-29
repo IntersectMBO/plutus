@@ -246,17 +246,14 @@ processSingleBinding body = \case
             Nothing -> pure Nothing
             Just rhsProcess -> do
                 let (varArity, bodyToCheck) = computeArity rhs
-                -- if the variable is not a function, don't add it to the map
-                if null varArity then pure $ Just $ TermBind ann s v rhsProcess
-                else do
-                    -- when we encounter a binding that is a function (arity not 0), we add it to
-                    -- the global map `Utils.InScopeSet`.
-                    -- When we check the body of the let binding we look in this map for
-                    -- call site inlining.
-                    -- We don't remove the binding because we decide *at the call site*
-                    -- whether we want to inline, and it may be called more than once.
-                    void $ modify' $ extendVarInfo n (MkVarInfo rhs varArity bodyToCheck)
-                    pure $ Just $ TermBind ann s v rhsProcess
+                -- when we encounter a binding, we add it to
+                -- the global map `Utils.InScopeSet`.
+                -- When we check the body of the let binding we look in this map for
+                -- call site inlining.
+                -- We don't remove the binding because we decide *at the call site*
+                -- whether we want to inline, and it may be called more than once.
+                void $ modify' $ extendVarInfo n (MkVarInfo rhs varArity bodyToCheck)
+                pure $ Just $ TermBind ann s v rhsProcess
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
