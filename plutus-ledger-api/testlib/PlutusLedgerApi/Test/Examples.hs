@@ -45,7 +45,7 @@ summingFunction = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 body
 saltFunction :: Integer -> SerialisedScript -> SerialisedScript
 saltFunction salt b0 = serialiseUPLC $ UPLC.Program () version body
     where
-        UPLC.Program () version b1 = deserialiseUPLC b0
+        UPLC.Program () version b1 = uncheckedDeserialiseUPLC b0
 
         body = UPLC.Apply ()
             (UPLC.LamAbs () (UPLC.DeBruijn 0) b1)

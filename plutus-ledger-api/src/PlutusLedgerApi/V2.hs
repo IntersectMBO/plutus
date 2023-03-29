@@ -5,7 +5,7 @@ module PlutusLedgerApi.V2 (
       SerialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
-    , deserialiseUPLC
+    , uncheckedDeserialiseUPLC
     -- * Validating scripts
     , assertScriptWellFormed
     -- * Running scripts

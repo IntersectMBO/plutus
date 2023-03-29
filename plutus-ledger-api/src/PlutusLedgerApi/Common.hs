@@ -4,7 +4,7 @@ module PlutusLedgerApi.Common
       SerialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
-    , deserialiseUPLC
+    , uncheckedDeserialiseUPLC
     , ScriptDecodeError (..)
     , assertScriptWellFormed
 

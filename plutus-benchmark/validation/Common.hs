@@ -87,7 +87,7 @@ unsafeUnflat :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.Defau
 unsafeUnflat file contents =
     case unflat contents of
         Left e     -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
-        Right prog -> prog
+        Right (UPLC.UnrestrictedProgram prog) -> prog
 
 ----------------------- Main -----------------------
 
