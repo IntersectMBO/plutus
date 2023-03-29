@@ -198,15 +198,16 @@ inline =
             , "letFunInFun" -- fully applied fn inside another let, single occurrence.
             , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
             -- similar to "letFunInFunMulti" but all fns are fully applied.
-            , "letFunInFunMultiFullyApplied"
+            , "letTypeAppMulti"
             -- singe occurrence of a polymorphic id function that is fully applied
-            , "letIdFunForall"
+            , "letTypeApp"
             -- multiple occurrences of a polymorphic id function that IS fully applied
-            , "letIdFunForallMulti"
+            , "letTypeAppMultiSat"
             -- multiple occurrences of a polymorphic id function that is NOT fully applied
-            , "letIdFunForallMultiNotSat"
+            , "letTypeAppMultiNotSat"
             , "letApp" -- single occurrence of a function application in rhs
-            , "letAppMulti" -- multiple occurrences of a function application in rhs
+            -- multiple occurrences of a function application in rhs with not acceptable body
+            , "letAppMultiNotAcceptable"
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
             ]
