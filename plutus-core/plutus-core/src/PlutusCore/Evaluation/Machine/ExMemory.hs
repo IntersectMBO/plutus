@@ -416,24 +416,18 @@ minCostStream costsL0 costsR0 = case (costsL0, costsR0) of
 {-# INLINE minCostStream #-}
 
 -- See Note [Global local functions].
--- Unboxing @Int#@s manually, because no matter what I tried, GHC just wouldn't unbox an argument
--- of a function passed as an accumulator.
-flattenCostRoseGo :: Int# -> [CostRose] -> (Int# -> CostStream) -> CostStream
-flattenCostRoseGo i0 []                                    k = k i0
--- I cannot imagine this tilda making a difference in any even remotely realistic scenario, but
--- better safe than sorry.
-flattenCostRoseGo i0 (~(CostRose cost1 forest1) : forest2) k =
-    CostCons (coerce $ I# i0) $
-        case coerce cost1 of
-            I# i1 ->
-                flattenCostRoseGo i1 forest1 $ \i2 ->
-                    flattenCostRoseGo i2 forest2 k
+flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
+flattenCostRoseGo (CostRose cost1 forest1) forest2 =
+    case forest1 of
+        [] -> case forest2 of
+            []                -> CostLast cost1
+            rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
+        rose1' : forest1' ->
+            CostCons cost1 $ case forest1' of
+                [] -> flattenCostRoseGo rose1' forest2
+                _  -> flattenCostRoseGo rose1' $ forest1' ++ forest2
 
--- | Flatten the tree structure of 'CostRose' into a linear 'CostStream' lazily. This function
--- is productive regardless of the recursion pattern of the given argument.
 flattenCostRose :: CostRose -> CostStream
-flattenCostRose (CostRose cost [])     = CostLast cost
-flattenCostRose (CostRose cost forest) =
-    case coerce cost of
-        I# i0 -> flattenCostRoseGo i0 forest $ \iz -> coerce CostLast $ I# iz
+flattenCostRose (CostRose cost [])              = CostLast cost
+flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
 {-# INLINE flattenCostRose #-}
