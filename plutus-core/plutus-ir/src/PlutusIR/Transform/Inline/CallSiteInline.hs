@@ -155,14 +155,17 @@ mkApps f []                              = f
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
 isFullyApplied :: Arity -> ArgOrder tyname name uni fun ann -> Bool
-isFullyApplied [] (_arg:_args) = True -- over-application
+isFullyApplied [] _ = True -- The function needs no more arguments
 isFullyApplied (_lam:_lams) [] = False -- under-application
-isFullyApplied [] [] = True
 isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
   case (hdLams, hdArg) of
     (TermParam, MkTermArg _) -> isFullyApplied tlLams tlArg
     (TypeParam, MkTypeArg _) -> isFullyApplied tlLams tlArg
-    _                        -> False
+    _                        ->
+      -- wrong argument type, i.e., we have an ill-typed term here. It's not what we define as fully
+      -- applied. Although if the term was ill-typed before, it will be ill-typed after the
+      -- inlining, and it won't make it any worse, so we could consider accepting this.
+      False
 
 -- | Inline fully applied functions iff the body of the function is `acceptable`.
 considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun

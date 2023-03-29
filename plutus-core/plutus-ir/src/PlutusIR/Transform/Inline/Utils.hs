@@ -54,7 +54,7 @@ newtype TypeSubst tyname uni ann =
 
 -- | A mapping including all let-bindings that are functions.
 newtype InScopeSet tyname name uni fun ann =
-    InScopeSet { _unCalledVarEnv :: UniqueMap TermUnique (VarInfo tyname name uni fun ann)}
+    InScopeSet { _unInScopeSet :: UniqueMap TermUnique (VarInfo tyname name uni fun ann)}
     deriving newtype (Semigroup, Monoid)
 
 {-|
@@ -150,7 +150,7 @@ lookupVarInfo
     => name -- ^ The name of the variable.
     -> InlinerContext tyname name uni fun ann -- ^ The substitution.
     -> Maybe (VarInfo tyname name uni fun ann)
-lookupVarInfo n subst = lookupName n $ subst ^. inScopeSet . unCalledVarEnv
+lookupVarInfo n subst = lookupName n $ subst ^. inScopeSet . unInScopeSet
 
 -- | Insert the called variable into the substitution.
 extendVarInfo
@@ -159,7 +159,7 @@ extendVarInfo
     -> VarInfo tyname name uni fun ann -- ^ The called variable's info.
     -> InlinerContext tyname name uni fun ann -- ^ The substitution.
     -> InlinerContext tyname name uni fun ann
-extendVarInfo n info subst = subst & inScopeSet . unCalledVarEnv %~ insertByName n info
+extendVarInfo n info subst = subst & inScopeSet . unInScopeSet %~ insertByName n info
 
 -- General infra:
 
