@@ -242,7 +242,7 @@ processSingleBinding body = \case
         -- we want to do unconditional inline if possible
         maybeRhs' <- maybeAddSubst body ann s n rhs
         case maybeRhs' of
-            -- inline and remove binding when the conditions for unconditional inlining are met.
+            -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just rhsProcess -> do
                 let (varArity, bodyToCheck) = computeArity rhs
@@ -299,7 +299,7 @@ maybeAddSubst body ann s n rhs = do
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = (&&) termIsPure (acceptable rhs')
+            let postUnconditional = termIsPure && acceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'
