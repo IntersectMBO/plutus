@@ -1,11 +1,13 @@
 {- 
 This test checks that impure bindings are not inlined by call site inlining. 
-y is impure. x occurs more than once and so it would not be inlined by unconditional inlining.
+y is impure. It occurs more than once so it doesn't not get inlined by unconditional inlining.
+x occurs more than once and so it would not be inlined by unconditional inlining.
 We check purity for fully applied and "acceptable" binding for call site inlining.
 
 let ~y = trace "hello" 1
+    z = y
     !x = y -- so it looks small enough to inline
-in addInteger x x
+in addInteger z (addInteger x x)
  -}
 
 (let
@@ -15,6 +17,7 @@ in addInteger x x
       (vardecl y (con integer))
       [ [ {(builtin trace) (con integer) } (con string "hello") ] (con integer 1) ]
     )
+    (termbind (strict) (vardecl z (con integer)) y)
     (termbind (strict) (vardecl x (con integer)) y)
-    [ [(builtin addInteger) x ] x ]
+    [ (builtin addInteger) z [ [(builtin addInteger) x ] x ]]
 )
