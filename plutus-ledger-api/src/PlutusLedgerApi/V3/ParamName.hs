@@ -190,5 +190,9 @@ data ParamName =
   | VerifySchnorrSecp256k1Signature'cpu'arguments'intercept
   | VerifySchnorrSecp256k1Signature'cpu'arguments'slope
   | VerifySchnorrSecp256k1Signature'memory'arguments
+  | CekConstrCost'exBudgetCPU
+  | CekConstrCost'exBudgetMemory
+  | CekCaseCost'exBudgetCPU
+  | CekCaseCost'exBudgetMemory
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
