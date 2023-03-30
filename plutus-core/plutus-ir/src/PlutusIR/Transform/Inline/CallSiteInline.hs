@@ -175,7 +175,7 @@ considerInlineSat tm = do
     let (fun, args) = collectArgs tm
     case fun of
       -- if it is a `Var` that is being applied to, check to see if it's fully applied
-      Var _ann name -> do
+      v@(Var _ann name) -> do
         maybeVarInfo <- gets (lookupVarInfo name)
         case maybeVarInfo of
           -- the variable maybe a *recursive* let binding, in which case it won't be in the map,
@@ -183,10 +183,19 @@ considerInlineSat tm = do
           Nothing -> pure tm
           Just varInfo -> do
             let isAcceptable = acceptable (varBody varInfo)
-            if isAcceptable && isFullyApplied (arity varInfo) (map fst args) then do
-              -- if the body of `Var` is `acceptable` and
-              -- it is fully applied (over-application is allowed) then inline it
-              pure $ mkApps (varDef varInfo) args
+            -- if the body of `Var` is `acceptable` and
+            -- it is fully applied (over-application is allowed) then
+            if isAcceptable && isFullyApplied (arity varInfo) (map fst args)
+            then do
+              -- check if term is pure. Because non-functions or binding with arity 0 are always
+              -- fully applied, we only want to inline them if they are also pure.
+              -- For strict bindings we can't accidentally make any effects happen less often than
+              -- it would have before, but we can make it happen more often.
+              -- We could potentially do this safely in non-conservative mode.
+              isTermPure <- checkPurity v
+              if isTermPure then
+                pure $ mkApps (varDef varInfo) args
+              else pure tm -- term is not pure, don't inline by default.
             else pure tm
       -- if the term being applied is not a `Var`, don't inline
       _ -> pure tm

@@ -210,6 +210,7 @@ inline =
             , "letAppMultiNotAcceptable"
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
+            , "letNonPure" -- multiple occurrences of a non-pure binding
             ]
 
 computeArityTest :: TestNested

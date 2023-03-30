@@ -192,7 +192,8 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         t -> do
             -- process all subterms
             processedT <- forMOf termSubterms t processTerm
-            -- consider call site inlining for each node that have been unconditionally inlined
+            -- consider call site inlining for each node that have gone through unconditional
+            -- inlining
             considerInlineSat processedT
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -245,7 +246,7 @@ processSingleBinding body = \case
         case maybeRhs' of
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
-            Just rhsProcess -> do
+            Just rhsProcessed -> do
                 let (varArity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
@@ -254,8 +255,8 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo rhsProcess varArity bodyToCheck)
-                pure $ Just $ TermBind ann s v rhsProcess
+                void $ modify' $ extendVarInfo n (MkVarInfo rhsProcessed varArity bodyToCheck)
+                pure $ Just $ TermBind ann s v rhsProcessed
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
@@ -285,8 +286,8 @@ maybeAddSubst body ann s n rhs = do
     if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
     else do
-        termIsPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n termIsPure)
+        isTermPure <- checkPurity rhs'
+        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n isTermPure)
         -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
         -- I.e., it's used at most once AND it neither duplicate code or work.
         -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
@@ -298,7 +299,7 @@ maybeAddSubst body ann s n rhs = do
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = termIsPure && acceptable rhs'
+            let postUnconditional = isTermPure && acceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'
