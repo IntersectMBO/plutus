@@ -43,6 +43,12 @@
      - Add location coverage annotations in the trace output
 
 
+   * - ``datatype-compilation-style``
+     - DatatypeStyle
+     - SumsOfProducts
+     - How to compile datatypes
+
+
    * - ``defer-errors``
      - Bool
      - False
@@ -131,6 +137,12 @@
      - Bool
      - True
      - Run a simplification pass that cancels unwrap/wrap pairs
+
+
+   * - ``target-version``
+     - Version
+     - 1.1.0
+     - The target Plutus Core language version
 
 
    * - ``typecheck``

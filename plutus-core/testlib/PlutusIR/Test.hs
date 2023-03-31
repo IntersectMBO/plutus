@@ -7,6 +7,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE TypeFamilies          #-}
 module PlutusIR.Test (
     module PlutusIR.Test,
     initialSrcSpan,
@@ -47,13 +48,13 @@ import Prettyprinter.Render.Text
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Ord a
-         ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
-    toTPlc = asIfThrown . fmap (PLC.Program () PLC.latestVersion . void) . compileAndMaybeTypecheck True
+         ) => ToTPlc (PIR.Program TyName Name uni fun a) uni fun where
+    toTPlc = asIfThrown . fmap void . compileWithOpts id
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
          , Typeable a, Ord a
-         ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
+         ) => ToUPlc (PIR.Program TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
         pure $ PLC.runQuote $ flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram  p'
@@ -65,23 +66,20 @@ asIfThrown
     -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck
+compileWithOpts
     :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.Pretty (PLC.SomeTypeIn uni), uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a)
-    => Bool
-    -> Term TyName Name uni fun a
-    -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))
-compileAndMaybeTypecheck doTypecheck pir = do
+    => (CompilationCtx uni fun a -> CompilationCtx uni fun a)
+    -> Program TyName Name uni fun a
+    -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Program TyName Name uni fun (PIR.Provenance a))
+compileWithOpts optsMod pir = do
     tcConfig <- PLC.getDefTypeCheckConfig noProvenance
-    let pirCtx = toDefaultCompilationCtx tcConfig & if doTypecheck
-                                                    then id
-                                                    else set ccTypeCheckConfig Nothing
+    let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
     flip runReaderT pirCtx $ runQuoteT $ do
-        compiled <- compileTerm pir
-        when doTypecheck $ do
-            -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
-            -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
-            plcConcrete <- runExceptT $ void $ PLC.inferType tcConfig compiled
-            liftEither $ first (view (re _PLCError)) plcConcrete
+        compiled <- compileProgram pir
+        -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
+        -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
+        plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled
+        liftEither $ first (view (re _PLCError)) plcConcrete
         pure compiled
 
 withGoldenFileM :: String -> (T.Text -> IO T.Text) -> TestNested
@@ -131,6 +129,13 @@ goldenPlcFromPir ::
     Parser a -> String -> TestNested
 goldenPlcFromPir = goldenPirM (\ast -> ppThrow $ do
                                 p <- toTPlc ast
+                                withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
+
+goldenPlcFromPirScott ::
+    (Ord a, Typeable a, Pretty a, prog ~ PIR.Program TyName Name PLC.DefaultUni PLC.DefaultFun a) =>
+    Parser prog -> String -> TestNested
+goldenPlcFromPirScott = goldenPirM (\ast -> ppThrow $ do
+                                p <- asIfThrown . fmap void . compileWithOpts (set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) ScottEncoding) $ ast
                                 withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p)
 
 goldenNamedUPlcFromPir ::

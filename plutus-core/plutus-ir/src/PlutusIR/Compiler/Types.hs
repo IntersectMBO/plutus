@@ -25,9 +25,12 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
+import PlutusCore.Version qualified as PLC
 import PlutusPrelude
 
+import Control.Monad.Error.Lens (throwing)
 import Data.Text qualified as T
+import Prettyprinter (viaShow)
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -48,18 +51,35 @@ instance PLC.HasKindCheckConfig (PirTCConfig uni fun) where
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
+data DatatypeStyle = ScottEncoding | SumsOfProducts
+    deriving stock (Show, Read, Eq)
+
+instance Pretty DatatypeStyle where
+  pretty = viaShow
+
+data DatatypeCompilationOpts = DatatypeCompilationOpts
+    { _dcoStyle :: DatatypeStyle
+    } deriving stock (Show)
+
+makeLenses ''DatatypeCompilationOpts
+
+defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
+defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
+
 data CompilationOpts a = CompilationOpts {
     _coOptimize                   :: Bool
     , _coPedantic                 :: Bool
     , _coVerbose                  :: Bool
     , _coDebug                    :: Bool
-    , _coMaxSimplifierIterations  :: Int
+    , _coDatatypes                :: DatatypeCompilationOpts
     -- Simplifier passes
+    , _coMaxSimplifierIterations  :: Int
     , _coDoSimplifierUnwrapCancel :: Bool
     , _coDoSimplifierCaseReduce   :: Bool
     , _coDoSimplifierBeta         :: Bool
     , _coDoSimplifierInline       :: Bool
     , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
+    -- Profiling
     , _coProfile                  :: Bool
     , _coRelaxedFloatin           :: Bool
     } deriving stock (Show)
@@ -72,6 +92,7 @@ defaultCompilationOpts = CompilationOpts
   , _coPedantic = False
   , _coVerbose = False
   , _coDebug = False
+  , _coDatatypes = defaultDatatypeCompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
@@ -98,6 +119,11 @@ toDefaultCompilationCtx configPlc =
         (Just $ PirTCConfig configPlc YesEscape)
         def
 
+validateOpts :: Compiling m e uni fun a => PIR.Program tyname name uni fun a -> m ()
+validateOpts (PIR.Program _ v _) = do
+  datatypes <- view (ccOpts . coDatatypes . dcoStyle)
+  when (datatypes == SumsOfProducts && v <= PLC.plcVersion110) $ throwing _OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
+
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
 
@@ -116,6 +142,7 @@ runIf condition pass arg = do
 runIfOpts :: MonadReader (CompilationCtx uni fun a) m => (b -> m b) -> (b -> m b)
 runIfOpts = runIf $ view (ccOpts . coOptimize)
 
+type PLCProgram uni fun a = PLC.Program PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCTerm uni fun a = PLC.Term PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCType uni a = PLC.Type PLC.TyName uni (Provenance a)
 

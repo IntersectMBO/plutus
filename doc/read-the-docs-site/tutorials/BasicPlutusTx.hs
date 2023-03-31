@@ -120,7 +120,7 @@ addOneToN n =
     `unsafeApplyCode`
     -- 'liftCode' lifts the argument 'n' into a
     -- 'CompiledCode Integer'.
-    liftCode n
+    liftCodeDef n
 
 {- |
 >>> pretty $ getPlc addOne
@@ -168,9 +168,9 @@ pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
     `unsafeApplyCode`
-    liftCode end
+    liftCodeDef end
     `unsafeApplyCode`
-    liftCode current
+    liftCodeDef current
 
 {- |
 >>> let program = getPlc $ pastEndAt Never 5

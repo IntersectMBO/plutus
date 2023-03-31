@@ -437,6 +437,7 @@ library plutus-ir
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
+    PlutusIR.Compiler.Provenance
     PlutusIR.Core
     PlutusIR.Core.Instance
     PlutusIR.Core.Instance.Flat
@@ -477,7 +478,6 @@ library plutus-ir
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
-    PlutusIR.Compiler.Provenance
     PlutusIR.Compiler.Recursion
     PlutusIR.Compiler.Types
     PlutusIR.Normalize

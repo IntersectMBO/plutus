@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
 module PlutusIR.Compiler (
-    compileTerm,
+    compileProgram,
     compileToReadable,
     compileReadableToPlc,
     Compiling,
@@ -27,6 +27,9 @@ module PlutusIR.Compiler (
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
+    coDatatypes,
+    dcoStyle,
+    DatatypeStyle (..),
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -182,71 +185,75 @@ withVer = (view ccBuiltinVer >>=)
 -- to dump a "readable" version of pir (i.e. floated).
 compileToReadable
   :: (Compiling m e uni fun a, b ~ Provenance a)
-  => Term TyName Name uni fun a
-  -> m (Term TyName Name uni fun b)
-compileToReadable =
-    (pure . original)
-    -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
-    >=> (<$ logVerbose "  !!! rename")
-    >=> PLC.rename
-    >=> through typeCheckTerm
-    >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> (withVer . flip DeadCode.removeDeadBindings)
-    >=> (<$ logVerbose "  !!! simplifyTerm")
-    >=> simplifyTerm
-    >=> (<$ logVerbose "  !!! floatOut")
-    >=> floatOut
-    >=> through check
+  => Program TyName Name uni fun b
+  -> m (Program TyName Name uni fun b)
+compileToReadable (Program a v t) =
+  let pipeline =
+        -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
+        (<$ logVerbose "  !!! rename")
+        >=> PLC.rename
+        >=> through typeCheckTerm
+        >=> (<$ logVerbose "  !!! removeDeadBindings")
+        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> (<$ logVerbose "  !!! simplifyTerm")
+        >=> simplifyTerm
+        >=> (<$ logVerbose "  !!! floatOut")
+        >=> floatOut
+        >=> through check
+  in Program a v <$> pipeline t
 
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
 -- Note: the result *does* have globally unique names.
-compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m (PLCTerm uni fun a)
-compileReadableToPlc =
-    (<$ logVerbose "  !!! floatIn")
-    >=> floatIn
-    >=> through check
-    >=> (<$ logVerbose "  !!! compileNonStrictBindings")
-    >=> NonStrict.compileNonStrictBindings False
-    >=> through check
-    >=> (<$ logVerbose "  !!! thunkRecursions")
-    >=> (withVer . fmap pure . flip ThunkRec.thunkRecursions)
-    -- Thunking recursions breaks global uniqueness
-    >=> PLC.rename
-    >=> through check
-    -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
-    -- See Note [Using unit versus force/delay]
-    >=> (<$ logVerbose "  !!! compileNonStrictBindings")
-    >=> NonStrict.compileNonStrictBindings True
-    >=> through check
-    >=> (<$ logVerbose "  !!! compileLets DataTypes")
-    >=> Let.compileLets Let.DataTypes
-    >=> through check
-    >=> (<$ logVerbose "  !!! compileLets RecTerms")
-    >=> Let.compileLets Let.RecTerms
-    >=> through check
-    -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
-    -- can eliminate any of them which are unused here.
-    >=> (<$ logVerbose "  !!! removeDeadBindings")
-    >=> (withVer . flip DeadCode.removeDeadBindings)
-    >=> through check
-    >=> (<$ logVerbose "  !!! simplifyTerm")
-    >=> simplifyTerm
-    >=> through check
-    >=> (<$ logVerbose "  !!! compileLets Types")
-    >=> Let.compileLets Let.Types
-    >=> through check
-    >=> (<$ logVerbose "  !!! compileLets NonRecTerms")
-    >=> Let.compileLets Let.NonRecTerms
-    >=> through check
-    >=> (<$ logVerbose "  !!! lowerTerm")
-    >=> lowerTerm
+compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
+compileReadableToPlc (Program a v t) =
+  let pipeline =
+        (<$ logVerbose "  !!! floatIn")
+        >=> floatIn
+        >=> through check
+        >=> (<$ logVerbose "  !!! compileNonStrictBindings")
+        >=> NonStrict.compileNonStrictBindings False
+        >=> through check
+        >=> (<$ logVerbose "  !!! thunkRecursions")
+        >=> (withVer . fmap pure . flip ThunkRec.thunkRecursions)
+        -- Thunking recursions breaks global uniqueness
+        >=> PLC.rename
+        >=> through check
+        -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
+        -- See Note [Using unit versus force/delay]
+        >=> (<$ logVerbose "  !!! compileNonStrictBindings")
+        >=> NonStrict.compileNonStrictBindings True
+        >=> through check
+        >=> (<$ logVerbose "  !!! compileLets DataTypes")
+        >=> Let.compileLets Let.DataTypes
+        >=> through check
+        >=> (<$ logVerbose "  !!! compileLets RecTerms")
+        >=> Let.compileLets Let.RecTerms
+        >=> through check
+        -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
+        -- can eliminate any of them which are unused here.
+        >=> (<$ logVerbose "  !!! removeDeadBindings")
+        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> through check
+        >=> (<$ logVerbose "  !!! simplifyTerm")
+        >=> simplifyTerm
+        >=> through check
+        >=> (<$ logVerbose "  !!! compileLets Types")
+        >=> Let.compileLets Let.Types
+        >=> through check
+        >=> (<$ logVerbose "  !!! compileLets NonRecTerms")
+        >=> Let.compileLets Let.NonRecTerms
+        >=> through check
+        >=> (<$ logVerbose "  !!! lowerTerm")
+        >=> lowerTerm
+  in PLC.Program a v <$> pipeline t
 
---- | Compile a 'Term' into a PLC Term. Note: the result *does* have globally unique names.
-compileTerm :: Compiling m e uni fun a
-            => Term TyName Name uni fun a -> m (PLCTerm uni fun a)
-compileTerm =
-  (<$ logVerbose "!!! compileToReadable")
+--- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
+compileProgram :: Compiling m e uni fun a
+            => Program TyName Name uni fun a -> m (PLCProgram uni fun a)
+compileProgram =
+  (pure . original)
+  >=> (<$ logVerbose "!!! compileToReadable")
   >=> compileToReadable
   >=> (<$ logVerbose "!!! compileReadableToPlc")
   >=> compileReadableToPlc

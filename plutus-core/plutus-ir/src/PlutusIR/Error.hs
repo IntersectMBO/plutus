@@ -38,6 +38,7 @@ makeClassyPrisms ''TypeErrorExt
 
 data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation error.
                      | UnsupportedError !a !T.Text -- ^ An error relating specifically to an unsupported feature.
+                     | OptionsError !T.Text -- ^ An error relating to compilation options.
                      | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
                      | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
                      | PIRTypeError !(TypeErrorExt uni a)
@@ -86,6 +87,7 @@ instance (PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` P
      prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"
+        OptionsError e       -> "Compiler options error:" <+> PP.pretty e
         PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PLCTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
         PIRTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]

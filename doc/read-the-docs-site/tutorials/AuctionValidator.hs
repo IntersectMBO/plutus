@@ -193,5 +193,5 @@ auctionValidatorScript ::
   CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode params
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef params
 -- BLOCK9

@@ -9,6 +9,7 @@ import Data.Either
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.StdLib.Data.List qualified as BuiltinList
 import PlutusCore.StdLib.Data.ScottList qualified as ScottList
+import PlutusCore.Version qualified as PLC
 import PlutusTx qualified as Tx
 import PlutusTx.Builtins.Internal qualified as BI
 import UntypedPlutusCore qualified as UPLC
@@ -17,7 +18,7 @@ import UntypedPlutusCore qualified as UPLC
 ---------------- Hand-written folds, using stuff from PlutusCore.StdLib.Data  ----------------
 
 mkBuiltinList :: [Integer] -> Term
-mkBuiltinList l = compiledCodeToTerm (Tx.liftCode $ BI.BuiltinList l)
+mkBuiltinList l = compiledCodeToTerm (Tx.liftCodeDef $ BI.BuiltinList l)
 
 mkSumLeftBuiltinTerm :: [Integer] -> Term
 mkSumLeftBuiltinTerm l =
@@ -28,7 +29,7 @@ mkSumRightBuiltinTerm l =
     UPLC.Apply () (debruijnTermUnsafe $ eraseTerm BuiltinList.sumr) (mkBuiltinList l)
 
 mkScottList :: [Integer] -> Term
-mkScottList l = compiledCodeToTerm (Tx.liftCode l)
+mkScottList l = compiledCodeToTerm (Tx.liftCode PLC.plcVersion100 l)
 
 mkSumLeftScottTerm :: [Integer] -> Term
 mkSumLeftScottTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sum) (mkScottList l)

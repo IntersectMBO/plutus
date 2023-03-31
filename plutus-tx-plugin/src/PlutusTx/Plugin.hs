@@ -62,6 +62,7 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import PlutusIR.Compiler.Provenance (noProvenance, original)
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -394,49 +395,47 @@ runCompiler moduleName opts expr = do
                       then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
                       else Nothing
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
-                 & set (PIR.ccOpts . PIR.coOptimize) (_posOptimize opts)
-                 & set (PIR.ccOpts . PIR.coPedantic) (_posPedantic opts)
-                 & set (PIR.ccOpts . PIR.coVerbose) (_posVerbosity opts == Verbose)
-                 & set (PIR.ccOpts . PIR.coDebug) (_posVerbosity opts == Debug)
-                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (_posMaxSimplifierIterationsPir opts)
+                 & set (PIR.ccOpts . PIR.coOptimize) (opts ^. posOptimize)
+                 & set (PIR.ccOpts . PIR.coPedantic) (opts ^. posPedantic)
+                 & set (PIR.ccOpts . PIR.coVerbose) (opts ^. posVerbosity == Verbose)
+                 & set (PIR.ccOpts . PIR.coDebug) (opts ^. posVerbosity == Debug)
+                 & set (PIR.ccOpts . PIR.coMaxSimplifierIterations) (opts ^. posMaxSimplifierIterationsPir)
                  & set PIR.ccTypeCheckConfig pirTcConfig
                  -- Simplifier options
-                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
-                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (opts ^. posDoSimplifierUnwrapCancel)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (opts ^. posDoSimplifierBeta)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (opts ^. posDoSimplifierInline)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
-                 & set (PIR.ccOpts . PIR.coRelaxedFloatin) (_posRelaxedFloatin opts)
+                 & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
+                 & set (PIR.ccOpts . PIR.coDatatypes . PIR.dcoStyle) (opts ^. posDatatypeStyle)
         plcOpts = PLC.defaultCompilationOpts
-            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (opts ^. posMaxSimplifierIterationsUPlc)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
+    let plcVersion = PLC.latestVersion
     -- GHC.Core -> Pir translation.
-    pirT <- PIR.runDefT annMayInline $ compileExprWithDefs expr
-    when (_posDumpPir opts) . liftIO $
-        dumpFlat (PIR.Program () PLC.latestVersion (void pirT)) "initial PIR program" (moduleName ++ ".pir-initial.flat")
+    pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+    let pirP = PIR.Program noProvenance plcVersion pirT
+    when (opts ^. posDumpPir) . liftIO $ dumpFlat (void pirP) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    spirT <- flip runReaderT pirCtx $ PIR.compileToReadable pirT
-    let spirPNoAnn = PIR.Program () PLC.latestVersion $ void $ spirT
-        spirP = PIR.Program mempty PLC.latestVersion . fmap getSrcSpans $ spirT
-    when (_posDumpPir opts) . liftIO $ dumpFlat spirPNoAnn "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
+    spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
+    when (opts ^. posDumpPir) . liftIO $ dumpFlat (void spirP) "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
-    plcT <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirT
-    let plcP = PLC.Program () PLC.latestVersion $ void plcT
-    when (_posDumpPlc opts) . liftIO $ dumpFlat plcP "typed PLC program" (moduleName ++ ".plc.flat")
+    plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
+    when (opts ^. posDumpPlc) . liftIO $ dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".plc.flat")
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
-    when (_posDoTypecheck opts) . void $
+    when (opts ^. posDoTypecheck) . void $
         liftExcept $ PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-    uplcT <- flip runReaderT plcOpts $ PLC.compileTerm plcT
-    dbT <- liftExcept $ UPLC.deBruijnTerm uplcT
-    let uplcPNoAnn = UPLC.Program () PLC.latestVersion $ void dbT
-        uplcP = UPLC.Program mempty PLC.latestVersion . fmap getSrcSpans $ dbT
-    when (_posDumpUPlc opts) . liftIO $ dumpFlat (UPLC.UnrestrictedProgram uplcPNoAnn) "untyped PLC program" (moduleName ++ ".uplc.flat")
-    pure (spirP, uplcP)
-
+    uplcP <- flip runReaderT plcOpts $ PLC.compileProgram plcP
+    dbP <- liftExcept $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
+    when (opts ^. posDumpUPlc) . liftIO $ dumpFlat (UPLC.UnrestrictedProgram $ void dbP) "untyped PLC program" (moduleName ++ ".uplc.flat")
+    -- Discard the Provenance information at this point, just keep the SrcSpans
+    -- TODO: keep it and do something useful with it
+    pure (fmap getSrcSpans spirP, fmap getSrcSpans dbP)
   where
       -- ugly trick to take out the concrete plc.error and in case of error, map it / rethrow it using our 'CompileError'
       liftExcept :: ExceptT (PLC.Error PLC.DefaultUni PLC.DefaultFun Ann) m b -> m b
