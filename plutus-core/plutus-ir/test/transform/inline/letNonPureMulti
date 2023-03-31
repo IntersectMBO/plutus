@@ -1,8 +1,8 @@
 {- 
 This test checks that impure bindings are not inlined by call site inlining. 
 y is impure. It occurs more than once so it doesn't not get inlined by unconditional inlining.
-x occurs more than once and so it would not be inlined by unconditional inlining.
-We check purity for fully applied and "acceptable" binding for call site inlining.
+x occurs more than once but it is not pure so it would not be inlined by unconditional inlining
+nor call site inlining.
 
 let ~y = trace "hello" 1
     z = y

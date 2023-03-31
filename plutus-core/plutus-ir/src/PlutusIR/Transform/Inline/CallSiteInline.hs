@@ -192,10 +192,10 @@ considerInlineSat tm = do
               -- For strict bindings we can't accidentally make any effects happen less often than
               -- it would have before, but we can make it happen more often.
               -- We could potentially do this safely in non-conservative mode.
-              -- isTermPure <- checkPurity v
-              -- if isTermPure then
+              isTermPure <- checkPurity v
+              if isTermPure then
                 pure $ mkApps (varDef varInfo) args
               else pure tm -- term is not pure, don't inline by default.
-            -- else pure tm
+            else pure tm
       -- if the term being applied is not a `Var`, don't inline
       _ -> pure tm

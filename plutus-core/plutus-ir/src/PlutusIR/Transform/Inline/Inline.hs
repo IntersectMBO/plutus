@@ -52,9 +52,11 @@ Inlining recursive bindings: not worth it, complicated.
 
 Context-based inlining: Not needed atm.
 
-Dead code elimination: done in `DeadCode.hs`.
-
-Beta-reduction: done in `Beta.hs`.
+Also, GHC implements many different optimization in a single simplifier pass.
+The paper focusses on inlining, but does so in the context of GHC's monolithic simplifier, which
+includes beta reduction and deadcode elimination.
+We have opted to have more, single-purpose passes. See e.g. `Deadcode.hs` and `Beta.hs` for other
+passes.
 
 Implementation
 --------------
@@ -190,10 +192,15 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
-            -- process all subterms
+            -- process all subterms first, so that the rhs won't be processed more than once. This
+            -- is important because otherwise the number of times we process them can grow
+            -- exponentially in the case that it has nested `let`s.
             processedT <- forMOf termSubterms t processTerm
             -- consider call site inlining for each node that have gone through unconditional
-            -- inlining
+            -- inlining. Because `considerInlineSat` traverses *all* application nodes for each
+            -- subterm, the runtime is quadratic for terms with a long chain of applications.
+            -- If we use the context-based approach like in GHC, this won't be a problem, so we may
+            -- consider that in the future.
             considerInlineSat processedT
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -246,7 +253,7 @@ processSingleBinding body = \case
         case maybeRhs' of
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
-            Just rhsProcessed -> do
+            Just processedRhs -> do
                 let (varArity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
@@ -255,8 +262,8 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo rhsProcessed varArity bodyToCheck)
-                pure $ Just $ TermBind ann s v rhsProcessed
+                void $ modify' $ extendVarInfo n (MkVarInfo processedRhs varArity bodyToCheck)
+                pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
