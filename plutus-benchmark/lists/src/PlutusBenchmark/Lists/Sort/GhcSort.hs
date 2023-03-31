@@ -72,7 +72,7 @@ ghcSortWorstCase = mergeSortWorstCase
 
 mkGhcSortTerm :: [Integer] -> Term
 mkGhcSortTerm l =
-    compiledCodeToTerm $ $$(Tx.compile [|| ghcSort ||]) `Tx.unsafeApplyCode` Tx.liftCode l
+    compiledCodeToTerm $ $$(Tx.compile [|| ghcSort ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkWorstCaseGhcSortTerm :: Integer -> Term
 mkWorstCaseGhcSortTerm = mkGhcSortTerm . ghcSortWorstCase

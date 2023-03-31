@@ -147,11 +147,12 @@ pPirOptions = hsubparser $
 
 ---------------- Compilation ----------------
 
-compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcTerm UnitProvenance)
-compileToPlc optimise (PIR.Program _ _ term) = do
+compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcProg ())
+compileToPlc optimise p = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let ctx = getCtx plcTcConfig
-    runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileTerm term
+    plcProg <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileProgram p
+    pure $ () <$ plcProg
   where
     getCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
@@ -177,9 +178,8 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
     -- Now compile to plc, maybe optimising
     case compileToPlc optimise (() <$ pirProg) of
       Left pirError -> error $ show pirError
-      Right plcTerm ->
-          let plcProg = PLC.Program () PLC.latestVersion (() <$ plcTerm)
-          in case language of
+      Right plcProg ->
+          case language of
             PLC  -> if test
                     then putStrLn "!!! Compilation successful"
                     else writeProgram outp ofmt mode plcProg
