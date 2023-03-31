@@ -17,7 +17,7 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase qualified as TPLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
 import PlutusCore.TypeCheck

@@ -43,6 +43,7 @@ import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result

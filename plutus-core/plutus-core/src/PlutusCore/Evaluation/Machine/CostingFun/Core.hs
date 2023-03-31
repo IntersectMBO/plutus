@@ -33,8 +33,10 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     )
 where
 
-import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.CostStream
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Control.DeepSeq
 import Data.Default.Class

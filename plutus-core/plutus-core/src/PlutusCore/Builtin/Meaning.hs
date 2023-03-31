@@ -26,8 +26,8 @@ import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Builtin.Runtime
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExBudgetStream
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name
 
 import Control.DeepSeq

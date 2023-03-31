@@ -23,6 +23,7 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 

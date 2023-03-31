@@ -99,10 +99,13 @@ library
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
     PlutusCore.Evaluation.Machine.CostModelInterface
+    PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
     PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+    PlutusCore.Evaluation.Machine.ExBudgetStream
     PlutusCore.Evaluation.Machine.Exception
     PlutusCore.Evaluation.Machine.ExMemory
+    PlutusCore.Evaluation.Machine.ExMemoryUsage
     PlutusCore.Evaluation.Machine.MachineParameters
     PlutusCore.Evaluation.Machine.MachineParameters.Default
     PlutusCore.Evaluation.Result

@@ -20,8 +20,8 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExBudgetStream
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 

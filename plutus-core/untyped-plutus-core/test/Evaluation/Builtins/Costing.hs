@@ -6,8 +6,11 @@
 
 module Evaluation.Builtins.Costing where
 
+import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Data.Bifunctor
 import Data.Coerce

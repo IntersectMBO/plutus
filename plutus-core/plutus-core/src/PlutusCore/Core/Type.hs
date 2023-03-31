@@ -54,7 +54,7 @@ where
 
 import PlutusPrelude
 
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name
 import PlutusCore.Version as Export
 

@@ -7,7 +7,7 @@ module PlutusCore.Builtin.Runtime where
 import PlutusPrelude
 
 import PlutusCore.Builtin.KnownType
-import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
 import NoThunks.Class
