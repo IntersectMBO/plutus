@@ -20,7 +20,7 @@ import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
 import PlutusPrelude

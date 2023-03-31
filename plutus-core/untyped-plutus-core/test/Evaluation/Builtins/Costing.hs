@@ -24,10 +24,6 @@ import Test.Tasty.QuickCheck
 
 deriving newtype instance Foldable NonEmptyList  -- QuickCheck...
 
-sumExBudgetStream :: ExBudgetStream -> ExBudget
-sumExBudgetStream (ExBudgetLast budget)         = budget
-sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
-
 eqCostStream :: CostStream -> CostStream -> Bool
 eqCostStream (CostLast cost1) (CostLast cost2) = cost1 == cost2
 eqCostStream (CostCons cost1 costs1) (CostCons cost2 costs2) =

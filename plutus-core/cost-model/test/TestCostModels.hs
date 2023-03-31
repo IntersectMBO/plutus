@@ -15,7 +15,9 @@
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import CreateBuiltinCostModel
 import TH
@@ -143,7 +145,7 @@ propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegio
 -}
 newtype ExM = ExM CostingInteger
 instance ExMemoryUsage ExM where
-    memoryUsage (ExM n) = ExMemory n
+    memoryUsage (ExM n) = CostRose n []
 
 -- Creates the model on the R side, loads the parameters over to Haskell, and
 -- runs both models with a bunch of ExMemory combinations and compares the
@@ -163,7 +165,9 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
-    predictH x = coerce $ exBudgetCPU $ runCostingFunOneArgument modelH (ExM x)
+    predictH x =
+      coerce $ exBudgetCPU $ sumExBudgetStream $
+        runCostingFunOneArgument modelH (ExM x)
     sizeGen = memUsageGen
   x <- forAll sizeGen
   byR <- lift $ predictR x
@@ -191,7 +195,9 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger
-    predictH x y = coerce $ exBudgetCPU $ runCostingFunTwoArguments modelH (ExM x) (ExM y)
+    predictH x y =
+      coerce $ exBudgetCPU $ sumExBudgetStream $
+        runCostingFunTwoArguments modelH (ExM x) (ExM y)
     sizeGen = case domain of
                 Everywhere    -> twoArgs
                 OnDiagonal    -> memUsageGen >>= \x -> pure (x,x)
@@ -221,7 +227,8 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
     predictH x y z =
-      coerce $ exBudgetCPU $ runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
+      coerce $ exBudgetCPU $ sumExBudgetStream $
+        runCostingFunThreeArguments modelH (ExM x) (ExM y) (ExM z)
     sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
   (x, y, z) <- forAll sizeGen
   byR <- lift $ predictR x y z
@@ -258,8 +265,9 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
       -> CostingInteger
       -> CostingInteger
       -> CostingInteger
-    predictH x y z u v w = coerce $ exBudgetCPU $ runCostingFunSixArguments modelH
-                                                     (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
+    predictH x y z u v w =
+      coerce $ exBudgetCPU $ sumExBudgetStream $
+        runCostingFunSixArguments modelH (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
     sizeGen =
       (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
         <*> memUsageGen

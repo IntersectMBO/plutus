@@ -9,7 +9,9 @@
 module CreateBuiltinCostModel where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
@@ -290,7 +292,7 @@ boolMemModel = ModelTwoArgumentsConstantCost 1
 
 
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger x = coerce $ memoryUsage x
+memoryUsageAsCostingInteger = coerce . sumCostStream . flattenCostRose . memoryUsage
 
 
 ---------------- Integers ----------------

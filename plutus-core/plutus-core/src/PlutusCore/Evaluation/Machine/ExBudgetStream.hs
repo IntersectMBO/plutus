@@ -1,5 +1,6 @@
 module PlutusCore.Evaluation.Machine.ExBudgetStream
     ( ExBudgetStream(..)
+    , sumExBudgetStream
     , zipCostStream
     ) where
 
@@ -26,6 +27,10 @@ data ExBudgetStream
     = ExBudgetLast !ExBudget
     | ExBudgetCons !ExBudget ExBudgetStream
     deriving stock (Show)
+
+sumExBudgetStream :: ExBudgetStream -> ExBudget
+sumExBudgetStream (ExBudgetLast budget)         = budget
+sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
 
 -- | Convert a 'CostStream' to an 'ExBudgetStream' by applying a function to each element.
 costToExBudgetStream :: (CostingInteger -> ExBudget) -> CostStream -> ExBudgetStream
