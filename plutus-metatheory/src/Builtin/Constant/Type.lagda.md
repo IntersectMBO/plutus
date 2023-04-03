@@ -37,20 +37,4 @@ data TyCon (Φ : Con) : Set where
   bls12-381-g1-element : TyCon Φ
   bls12-381-g2-element : TyCon Φ
   bls12-381-mlresult   : TyCon Φ
-
---{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}
---{-# FOREIGN GHC import PlutusCore                                      #-}
---{-# FOREIGN GHC type TypeBuiltin               = SomeTypeIn DefaultUni #-}
---{-# FOREIGN GHC pattern TyInteger              = SomeTypeIn DefaultUniInteger    #-}
---{-# FOREIGN GHC pattern TyByteString           = SomeTypeIn DefaultUniByteString #-}
---{-# FOREIGN GHC pattern TyString               = SomeTypeIn DefaultUniString     #-}
---{-# FOREIGN GHC pattern TyUnit                 = SomeTypeIn DefaultUniUnit       #-}
---{-# FOREIGN GHC pattern TyBool                 = SomeTypeIn DefaultUniBool       #-}
---{-# FOREIGN GHC pattern TyList a               = SomeTypeIn DefaultUniList a     #-}
---{-# FOREIGN GHC pattern TyPair a b             = SomeTypeIn DefaultUniPair a b   #-}
---{-# FOREIGN GHC pattern TyData                 = SomeTypeIn DefaultUniData       #-}
---{-# FOREIGN GHC pattern TyBLS12_381_G1_Element = SomeTypeIn DefaultUniBLS12_381_G1_Element #-}
---{-# FOREIGN GHC pattern TyBLS12_381_G2_Element = SomeTypeIn DefaultUniBLS12_381_G2_Element #-}
---{-# FOREIGN GHC pattern TyBLS12_381_MlResult   = SomeTypeIn DefaultUniBLS12_381_MlResult   #-}
---{-# COMPILE GHC TyCon  = data TypeBuiltin (TyInteger | TyByteString | TyString | TyUnit | TyBool | TyList | TyPair | TyData | TyBLS12_381_G1_Element | TyBLS12_381_G2_Element | TyBLS12_381_MlResult) #-}
 ```
