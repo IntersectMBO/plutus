@@ -39,7 +39,7 @@ renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
 renTyCon⋆ ρ pdata = pdata
 renTyCon⋆ ρ bls12-381-g1-element = bls12-381-g1-element
 renTyCon⋆ ρ bls12-381-g2-element = bls12-381-g2-element
-renTyCon⋆ ρ mlresult = mlresult
+renTyCon⋆ ρ bls12-381-mlresult = bls12-381-mlresult
 
 
 ren⋆ ρ (` α) = ` (ρ α)
