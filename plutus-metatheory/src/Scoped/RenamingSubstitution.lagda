@@ -37,6 +37,9 @@ renTyCon⋆ ρ bool = bool
 renTyCon⋆ ρ (list A) = list (ren⋆ ρ A)
 renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
 renTyCon⋆ ρ pdata = pdata
+renTyCon⋆ ρ bls12-381-g1-element = bls12-381-g1-element
+renTyCon⋆ ρ bls12-381-g2-element = bls12-381-g2-element
+renTyCon⋆ ρ mlresult = mlresult
 
 
 ren⋆ ρ (` α) = ` (ρ α)
@@ -100,6 +103,9 @@ subTyCon⋆ σ bool = bool
 subTyCon⋆ σ (list A) = list (sub⋆ σ A)
 subTyCon⋆ σ (pair A B) = pair (sub⋆ σ A) (sub⋆ σ B)
 subTyCon⋆ σ pdata = pdata
+subTyCon⋆ σ bls12-381-g1-element = bls12-381-g1-element
+subTyCon⋆ σ bls12-381-g2-element = bls12-381-g2-element
+subTyCon⋆ σ bls12-381-mlresult = bls12-381-mlresult
 
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
@@ -185,6 +191,9 @@ renTyCon⋆-cong p bool = refl
 renTyCon⋆-cong p (list A) = cong list (ren⋆-cong p A)
 renTyCon⋆-cong p (pair A B) = cong₂ pair (ren⋆-cong p A) (ren⋆-cong p B)
 renTyCon⋆-cong p pdata = refl
+renTyCon⋆-cong p bls12-381-g1-element = refl
+renTyCon⋆-cong p bls12-381-g2-element = refl
+renTyCon⋆-cong p bls12-381-mlresult = refl
 
 ren⋆-cong p (` x)       = cong ` (p x)
 ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
@@ -216,6 +225,9 @@ subTyCon⋆-cong p bool = refl
 subTyCon⋆-cong p (list A) = cong list (sub⋆-cong p A)
 subTyCon⋆-cong p (pair A B) = cong₂ pair (sub⋆-cong p A) (sub⋆-cong p B)
 subTyCon⋆-cong p pdata = refl
+subTyCon⋆-cong p bls12-381-g1-element = refl
+subTyCon⋆-cong p bls12-381-g2-element = refl
+subTyCon⋆-cong p bls12-381-mlresult = refl
 
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
