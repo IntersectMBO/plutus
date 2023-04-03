@@ -14,8 +14,7 @@ import Data.Coerce
 -- stored strictly.
 --
 -- The semantics of a stream are those of the 'fold' of its elements. I.e. a stream that is a
--- reordered version of another stream is considered equal to that stream (not by the derived 'Eq'
--- instance, though).
+-- reordered version of another stream is considered equal to that stream.
 --
 -- An 'ExBudgetStream' is what one gets by zipping two 'CostStream's (one for CPU, one for memory),
 -- which is why the two data types are so similar. The only reason why we don't express both the

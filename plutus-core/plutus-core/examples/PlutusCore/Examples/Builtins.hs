@@ -481,7 +481,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             @(Data -> [Integer])
             (\_ -> unsafePerformIO $ do
                 performMinorGC
-                threadDelay 50000  -- Giving GC enough time to finish up.
+                -- Somehow this allows the remaining finalizers to complete, while 'yeild' doesn't.
+                -- No idea what's going on. Not that we care much though, since even if we lose
+                -- several dozens of remaining elements it would a bug for that to affect anything.
+                threadDelay 1
                 finalize
                 results <- readIORef resultsVar
                 pure $ reverse results)

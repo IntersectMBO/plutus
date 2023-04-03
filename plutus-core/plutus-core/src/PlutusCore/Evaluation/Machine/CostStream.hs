@@ -16,8 +16,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 -- are stored strictly.
 --
 -- The semantics of a stream are those of the sum of its elements. I.e. a stream that is a reordered
--- version of another stream is considered equal to that stream (not by the derived 'Eq' instance,
--- though).
+-- version of another stream is considered equal to that stream.
 data CostStream
     = CostLast {-# UNPACK #-} !CostingInteger
     | CostCons {-# UNPACK #-} !CostingInteger CostStream
