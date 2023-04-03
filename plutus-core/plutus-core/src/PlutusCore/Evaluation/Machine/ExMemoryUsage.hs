@@ -228,7 +228,7 @@ instance ExMemoryUsage Data where
         sizeData d = combine nodeMem $ case d of
             -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
             Constr _ l -> CostRose 0 $ l <&> sizeData
-            Map l      -> CostRose 0 $ l <&> \(d1, d2) -> CostRose 0 $ [d1, d2] <&> sizeData
+            Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
